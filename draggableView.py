@@ -4,6 +4,7 @@
 
 import wx
 from wx.lib.docview import CommandProcessor, Command
+import types
 
 class DraggableView():
     def __init__(self, page, uiView):
@@ -38,10 +39,13 @@ class DraggableView():
         self.view.Refresh()
         self.view.Update()
 
+    def GetHandlers(self):
+        return self.handlers
+
     def GetHandler(self, name):
         if name in self.handlers:
             return self.handlers[name]
-        return ""
+        return None
 
     def SetHandler(self, name, handlerStr):
         self.handlers[name] = handlerStr
@@ -93,8 +97,8 @@ class DraggableView():
 
     def OnButton(self, event):
         if not self.isEditing:
-            if "onClick" in self.handlers:
-                exec(self.handlers["onClick"])
+            if "OnClick" in self.handlers:
+                self.page.RunHandler(self, self.handlers["OnClick"])
 
     def OnPaintSelectionBox(self, event):
         dc = wx.PaintDC(self.selectionBox)
@@ -108,16 +112,30 @@ class DraggableButton(DraggableView):
         button = wx.Button(parent=page, id=viewId, label="Button")
         DraggableView.__init__(self, page, button)
         self.type = "button"
-        self.properties["title"] = "Button"
+        self.handlers["OnClick"] = ""
+        self.handlers["OnIdle"] = ""
+        self.properties["name"] = "button" + str(viewId-999)
         self.view.Bind(wx.EVT_BUTTON, self.OnButton)
 
 
 class DraggableTextField(DraggableView):
     def __init__(self, page, viewId):
         field = wx.TextCtrl(parent=page, id=viewId, value="TextField")
+
+        # Add easier methods to a new TextCtrl
+        def SetText(self, text):
+            self.ChangeValue(text)
+        field.SetText = types.MethodType(SetText, field)
+
+        def GetText(self):
+            return self.GetValue()
+        field.GetText = types.MethodType(GetText, field)
+
         DraggableView.__init__(self, page, field)
         self.type = "textfield"
-        self.properties["text"] = "Text"
+        self.handlers["OnTextChanged"] = ""
+        self.handlers["OnEnter"] = ""
+        self.properties["name"] = "field" + str(viewId-999)
 
     def SetEditing(self, editing):
         DraggableView.SetEditing(self, editing)

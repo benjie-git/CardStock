@@ -44,7 +44,6 @@ class PageFrame(wx.Frame):
         self.CreateStatusBar()
         self.MakeMenu()
         self.filename = None
-        self.codeEditor = None
 
         self.page = PageWindow(self, -1)
         self.page.SetEditing(True)
@@ -61,6 +60,7 @@ class PageFrame(wx.Frame):
         # Tell the frame that it should layout itself in response to
         # size events using this sizer.
         self.SetSizer(box)
+        self.SetSelectedUIView(None)
 
     def SaveFile(self):
         if self.filename:
@@ -77,12 +77,7 @@ class PageFrame(wx.Frame):
             self.page.ReadFile(self.filename)
 
     def SetSelectedUIView(self, view):
-        if view:
-            self.cPanel.codeEditor.SetText(view.GetHandler("onClick"))
-            self.cPanel.codeEditor.Enable(True)
-        else:
-            self.cPanel.codeEditor.SetText("")
-            self.cPanel.codeEditor.Enable(False)
+        self.cPanel.UpdateHandlerForUIView(view, None)
 
     def MakeMenu(self):
         # create the file menu
@@ -283,6 +278,11 @@ class ControlPanel(wx.Panel):
         self.addTextField.SetEditable(False)
         self.addTextField.Bind(wx.EVT_LEFT_DOWN, self.AddTextDown)
 
+        self.handlerPicker = wx.Choice(parent=self, id=wx.ID_ANY)
+        self.handlerPicker.Enable(False)
+        self.handlerPicker.Bind(wx.EVT_CHOICE, self.OnHandlerChoice)
+        self.currentHandler = None
+
         self.codeEditor = PythonEditor.CreatePythonEditor(self)
         self.codeEditor.SetSize((150,200))
         self.codeEditor.Bind(stc.EVT_STC_CHANGE, self.CodeEditorTextChanged)
@@ -312,6 +312,7 @@ class ControlPanel(wx.Panel):
         self.box.Add(self.cGrid, 0, wx.ALL, spacing)
         self.box.Add(self.tGrid, 0, wx.ALL, spacing)
         self.box.Add(self.ci, 0, wx.EXPAND|wx.ALL, spacing)
+        self.box.Add(self.handlerPicker, 0, wx.EXPAND|wx.ALL, spacing)
         self.box.Add(self.codeEditor, 0, wx.EXPAND|wx.ALL, spacing)
         self.SetSizer(self.box)
         self.SetAutoLayout(True)
@@ -329,6 +330,7 @@ class ControlPanel(wx.Panel):
             self.box.Show(self.ci)
             self.box.Hide(self.addButton)
             self.box.Hide(self.addTextField)
+            self.box.Hide(self.handlerPicker)
             self.box.Hide(self.codeEditor)
             self.modeButtons[0].SetToggle(False)
             self.modeButtons[1].SetToggle(True)
@@ -339,6 +341,7 @@ class ControlPanel(wx.Panel):
             self.box.Hide(self.ci)
             self.box.Show(self.addButton)
             self.box.Show(self.addTextField)
+            self.box.Show(self.handlerPicker)
             self.box.Show(self.codeEditor)
             self.modeButtons[0].SetToggle(True)
             self.modeButtons[1].SetToggle(False)
@@ -350,7 +353,28 @@ class ControlPanel(wx.Panel):
 
     def CodeEditorTextChanged(self, event):
         if self.page.GetSelectedUIView():
-            self.page.GetSelectedUIView().SetHandler("onClick", self.codeEditor.GetText())
+            self.page.GetSelectedUIView().SetHandler(self.currentHandler, self.codeEditor.GetText())
+
+    def OnHandlerChoice(self, event):
+        self.UpdateHandlerForUIView(self.page.GetSelectedUIView(),
+                                    self.handlerPicker.GetItems()[self.handlerPicker.GetSelection()])
+
+    def UpdateHandlerForUIView(self, uiView, handlerName):
+        if uiView:
+            if handlerName:
+                self.currentHandler = handlerName
+            if uiView.GetHandler(handlerName) == None:
+                self.currentHandler = list(uiView.GetHandlers().keys())[0]
+            self.handlerPicker.SetItems(list(uiView.GetHandlers().keys()))
+            self.handlerPicker.SetStringSelection(self.currentHandler)
+            self.codeEditor.SetText(uiView.GetHandler(self.currentHandler))
+            self.handlerPicker.Enable(True)
+            self.codeEditor.Enable(True)
+        else:
+            self.handlerPicker.Set(["No Selected Item"])
+            self.codeEditor.SetText("")
+            self.handlerPicker.Enable(False)
+            self.codeEditor.Enable(False)
 
     def AddButtonDown(self, event):
         self.page.AddUiViewOfType("button")

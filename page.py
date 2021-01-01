@@ -53,7 +53,7 @@ class PageWindow(wx.Window):
         self.uiViews = []
 
         self.selectedView = None
-        self.handlers = {"onOpen":'print("Page Opened")'}
+        self.handlers = {"OnOpen":'print("Page Opened")'}
 
         self.InitBuffer()
 
@@ -341,6 +341,12 @@ class PageWindow(wx.Window):
         for other in self.listeners:
             other.UpdateLine(self.colour, self.thickness)
 
+    def RunHandler(self, uiView, handlerStr):
+        localVars = {"page":self, "self":uiView.view}
+        for ui in self.uiViews:
+            localVars[ui.properties["name"]] = ui.view
+        exec(handlerStr, {}, localVars)
+
 
 class AddLineCommand(Command):
     parent = None
@@ -368,7 +374,6 @@ class AddUIViewCommand(Command):
         self.page = args[2]
         self.viewType = args[3]
         self.viewId = self.page.nextId
-        self.page.nextId += 1
 
     def Do(self):
         if self.viewType == "button":
