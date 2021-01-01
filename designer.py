@@ -18,7 +18,7 @@ import wx
 import wx.html
 import wx.stc as stc
 from wx.lib import buttons # for generic button classes
-from page import PageWindow
+from page import PageWindow, SoloPageFrame
 import PythonEditor
 import version
 
@@ -26,27 +26,7 @@ from wx.lib.mixins.inspection import InspectionMixin
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-#----------------------------------------------------------------------
-
-# There are standard IDs for the menu items we need in this app, or we
-# could have used wx.NewId() to autogenerate some new unique ID values
-# instead.
-
-idABOUT  = wx.ID_ABOUT
-
-idNEW    = wx.ID_NEW
-idOPEN   = wx.ID_OPEN
-idSAVE   = wx.ID_SAVE
-idSAVEAS = wx.ID_SAVEAS
-idCLEAR  = wx.ID_CLEAR
-idEXIT   = wx.ID_EXIT
-
-idUNDO   = wx.ID_UNDO
-idREDO   = wx.ID_REDO
-idCUT    = wx.ID_CUT
-idCOPY   = wx.ID_COPY
-idDELETE = wx.ID_DELETE
-idPASTE  = wx.ID_PASTE
+# ----------------------------------------------------------------------
 
 
 class PageFrame(wx.Frame):
@@ -56,6 +36,7 @@ class PageFrame(wx.Frame):
     provides for saving a page to a file, etc.
     """
     title = "Page"
+
     def __init__(self, parent):
         wx.Frame.__init__(self, parent, -1, self.title, size=(800,600),
                          style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
@@ -65,12 +46,13 @@ class PageFrame(wx.Frame):
         self.filename = None
         self.codeEditor = None
 
-        self.page = PageWindow(self, -1, True)
+        self.page = PageWindow(self, -1)
+        self.page.SetEditing(True)
         self.page.SetDesigner(self)
         self.cPanel = ControlPanel(self, -1, self.page)
 
         # Create a sizer to layout the two windows side-by-side.
-        # Both will grow vertically, the page window will grow
+        # Both will grow vertically, the page view will grow
         # horizontally as well.
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(self.cPanel, 0, wx.EXPAND)
@@ -109,25 +91,28 @@ class PageFrame(wx.Frame):
         # Using the "\tKeyName" syntax automatically creates a
         # wx.AcceleratorTable for this frame and binds the keys to
         # the menu items.
-        menu1.Append(idOPEN, "&Open\tCtrl-O", "Open a page file")
-        menu1.Append(idSAVE, "&Save\tCtrl-S", "Save the page")
-        menu1.Append(idSAVEAS, "Save &As", "Save the page in a new file")
+        menu1.Append(wx.ID_OPEN, "&Open\tCtrl-O", "Open a page file")
+        menu1.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save the page")
+        menu1.Append(wx.ID_SAVEAS, "Save &As", "Save the page in a new file")
         menu1.AppendSeparator()
-        menu1.Append(idCLEAR, "&Clear Page", "Clear the current page")
+        menu1.Append(wx.ID_CLEAR, "&Clear Page", "Clear the current page")
         menu1.AppendSeparator()
-        menu1.Append(idEXIT, "E&xit", "Terminate the application")
+        runId = wx.NewId()
+        menu1.Append(runId, "&Run Page\tCtrl-R", "Run the current page")
+        menu1.AppendSeparator()
+        menu1.Append(wx.ID_EXIT, "E&xit", "Terminate the application")
 
         menu2 = wx.Menu()
-        menu2.Append(idUNDO, "&Undo\tCtrl-Z", "Undo Action")
-        menu2.Append(idREDO, "&Redo\tCtrl-Shift-Z", "Redo Action")
+        menu2.Append(wx.ID_UNDO, "&Undo\tCtrl-Z", "Undo Action")
+        menu2.Append(wx.ID_REDO, "&Redo\tCtrl-Shift-Z", "Redo Action")
         menu2.AppendSeparator()
-        menu2.Append(idCUT,  "C&ut\tCtrl-X", "Cut Selection")
-        menu2.Append(idCOPY, "&Copy\tCtrl-C", "Copy Selection")
-        menu2.Append(idPASTE,"&Paste\tCtrl-V", "Paste Selection")
+        menu2.Append(wx.ID_CUT,  "C&ut\tCtrl-X", "Cut Selection")
+        menu2.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
+        menu2.Append(wx.ID_PASTE,"&Paste\tCtrl-V", "Paste Selection")
 
         # and the help menu
         menu3 = wx.Menu()
-        menu3.Append(idABOUT, "&About\tCtrl-H", "Display the gratuitous 'about this app' thingamajig")
+        menu3.Append(wx.ID_ABOUT, "&About\tCtrl-H", "Display the gratuitous 'about this app' thingamajig")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
@@ -136,19 +121,20 @@ class PageFrame(wx.Frame):
         menuBar.Append(menu3, "&Help")
         self.SetMenuBar(menuBar)
 
-        self.Bind(wx.EVT_MENU,   self.OnMenuOpen, id=idOPEN)
-        self.Bind(wx.EVT_MENU,   self.OnMenuSave, id=idSAVE)
-        self.Bind(wx.EVT_MENU, self.OnMenuSaveAs, id=idSAVEAS)
-        self.Bind(wx.EVT_MENU,  self.OnMenuClear, id=idCLEAR)
-        self.Bind(wx.EVT_MENU,   self.OnMenuExit, id=idEXIT)
+        self.Bind(wx.EVT_MENU,   self.OnMenuOpen, id=wx.ID_OPEN)
+        self.Bind(wx.EVT_MENU,   self.OnMenuSave, id=wx.ID_SAVE)
+        self.Bind(wx.EVT_MENU, self.OnMenuSaveAs, id=wx.ID_SAVEAS)
+        self.Bind(wx.EVT_MENU,  self.OnMenuClear, id=wx.ID_CLEAR)
+        self.Bind(wx.EVT_MENU,  self.OnMenuRun, id=runId)
+        self.Bind(wx.EVT_MENU,   self.OnMenuExit, id=wx.ID_EXIT)
 
-        self.Bind(wx.EVT_MENU,  self.OnMenuAbout, id=idABOUT)
+        self.Bind(wx.EVT_MENU,  self.OnMenuAbout, id=wx.ID_ABOUT)
 
-        self.Bind(wx.EVT_MENU,  self.OnUndo, id=idUNDO)
-        self.Bind(wx.EVT_MENU,  self.OnRedo, id=idREDO)
-        self.Bind(wx.EVT_MENU,  self.OnCut, id=idCUT)
-        self.Bind(wx.EVT_MENU,  self.OnCopy, id=idCOPY)
-        self.Bind(wx.EVT_MENU,  self.OnPaste, id=idPASTE)
+        self.Bind(wx.EVT_MENU,  self.OnUndo, id=wx.ID_UNDO)
+        self.Bind(wx.EVT_MENU,  self.OnRedo, id=wx.ID_REDO)
+        self.Bind(wx.EVT_MENU,  self.OnCut, id=wx.ID_CUT)
+        self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
+        self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
 
     wildcard = "page files (*.ddl)|*.ddl|All files (*.*)|*.*"
 
@@ -161,13 +147,11 @@ class PageFrame(wx.Frame):
             self.SetTitle(self.title + ' -- ' + self.filename)
         dlg.Destroy()
 
-
     def OnMenuSave(self, event):
         if not self.filename:
             self.OnMenuSaveAs(event)
         else:
             self.SaveFile()
-
 
     def OnMenuSaveAs(self, event):
         dlg = wx.FileDialog(self, "Save page as...", os.getcwd(),
@@ -182,11 +166,18 @@ class PageFrame(wx.Frame):
             self.SetTitle(self.title + ' -- ' + self.filename)
         dlg.Destroy()
 
-
     def OnMenuClear(self, event):
         self.page.ClearAll()
         self.SetTitle(self.title)
 
+    def OnMenuRun(self, event):
+        frame = SoloPageFrame(None)
+        data = {}
+        data["lines"] = self.page.GetLinesData()
+        data["uiviews"] = self.page.GetUIViewsData()
+        data["handlers"] = self.page.GetHandlersData()
+        frame.page.LoadFromData(data)
+        frame.Show(True)
 
     def OnMenuExit(self, event):
         self.Close()
@@ -216,13 +207,12 @@ class PageFrame(wx.Frame):
         if f and hasattr(f, "Redo"):
             f.Redo()
 
-
     def OnMenuAbout(self, event):
         dlg = PageAbout(self)
         dlg.ShowModal()
         dlg.Destroy()
 
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 
 
 class ControlPanel(wx.Panel):
@@ -230,7 +220,7 @@ class ControlPanel(wx.Panel):
     This class implements a very simple control panel for the pageWindow.
     It creates buttons for each of the colours and thickneses supported by
     the pageWindow, and event handlers to set the selected values.  There is
-    also a little window that shows an example line in the selected
+    also a little view that shows an example line in the selected
     values.  Nested sizers are used for layout.
     """
 
@@ -264,7 +254,6 @@ class ControlPanel(wx.Panel):
             self.clrBtns[colours[k]] = b
         self.clrBtns[colours[keys[0]]].SetToggle(True)
 
-
         # Make a grid of buttons for the thicknesses.  Attach each button
         # event to self.OnSetThickness.  The button ID is the same as the
         # thickness value.
@@ -279,8 +268,8 @@ class ControlPanel(wx.Panel):
             self.thknsBtns[x] = b
         self.thknsBtns[1].SetToggle(True)
 
-        # Make a colour indicator window, it is registerd as a listener
-        # with the page window so it will be notified when the settings
+        # Make a colour indicator view, it is registerd as a listener
+        # with the page view so it will be notified when the settings
         # change
         self.ci = ColourIndicator(self)
         page.AddListener(self.ci)
@@ -315,7 +304,7 @@ class ControlPanel(wx.Panel):
         self.modeButtons[0].SetToggle(True)
 
         # Make a box sizer and put the two grids and the indicator
-        # window in it.
+        # view in it.
         self.box = wx.BoxSizer(wx.VERTICAL)
         self.box.Add(self.modeSizer, 0, wx.ALL, spacing)
         self.box.Add(self.addButton, 0, wx.ALL, spacing)
@@ -328,7 +317,6 @@ class ControlPanel(wx.Panel):
         self.SetAutoLayout(True)
 
         self.SetDrawingMode(False)
-
 
     def OnSetDrawingMode(self, event):
         drawMode = (event.GetId() == 2)
@@ -355,7 +343,7 @@ class ControlPanel(wx.Panel):
             self.modeButtons[0].SetToggle(True)
             self.modeButtons[1].SetToggle(False)
         self.box.Layout()
-        # Resize this window so it is just large enough for the
+        # Resize this view so it is just large enough for the
         # minimum requirements of the sizer.
         self.box.Fit(self)
         self.page.SetDrawingMode(drawMode)
@@ -386,7 +374,6 @@ class ControlPanel(wx.Panel):
         dc.SelectObject(wx.NullBitmap)
         return bmp
 
-
     def OnSetColour(self, event):
         """
         Use the event ID to get the colour, set that colour in the page.
@@ -397,7 +384,6 @@ class ControlPanel(wx.Panel):
             self.clrBtns[self.page.colour].SetToggle(False)
         # set the new colour
         self.page.SetColour(colour)
-
 
     def OnSetThickness(self, event):
         """
@@ -411,8 +397,7 @@ class ControlPanel(wx.Panel):
         self.page.SetThickness(thickness)
 
 
-
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 
 class ColourIndicator(wx.Window):
     """
@@ -426,20 +411,18 @@ class ColourIndicator(wx.Window):
         self.colour = self.thickness = None
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-
     def UpdateLine(self, colour, thickness):
         """
-        The page window calls this method any time the colour
+        The page view calls this method any time the colour
         or line thickness changes.
         """
         self.colour = colour
         self.thickness = thickness
         self.Refresh()  # generate a paint event
 
-
     def OnPaint(self, event):
         """
-        This method is called when all or part of the window needs to be
+        This method is called when all or part of the view needs to be
         redrawn.
         """
         dc = wx.PaintDC(self)
@@ -450,10 +433,10 @@ class ColourIndicator(wx.Window):
             dc.DrawLine(10, int(sz.height/2), int(sz.width-10), int(sz.height/2))
 
 
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 
 class PageAbout(wx.Dialog):
-    """ An about box that uses an HTML window """
+    """ An about box that uses an HTML view """
 
     text = '''
 <html>
@@ -489,9 +472,7 @@ cellpadding="0" border="1">
         wx.CallAfter(button.SetFocus)
 
 
-#----------------------------------------------------------------------
-#----------------------------------------------------------------------
-
+# ----------------------------------------------------------------------
 
 class PageApp(wx.App, InspectionMixin):
     def OnInit(self):
@@ -514,7 +495,8 @@ class PageApp(wx.App, InspectionMixin):
         if top:
             top.Raise()
 
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
+
 
 if __name__ == '__main__':
     app = PageApp(redirect=False)

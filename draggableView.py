@@ -5,33 +5,43 @@
 import wx
 from wx.lib.docview import CommandProcessor, Command
 
-class DraggableView(wx.Window):
-    def __init__(self, editing, **kwargs):
-        wx.Window.__init__(self, **kwargs)
-        self.child = None
+class DraggableView():
+    def __init__(self, page, uiView):
+        self.page = page
+        self.view = uiView
         self.type = None
-        self.handlers = {"onClick":''}
+        self.handlers = {}
         self.properties = {}
         self.delta = ((0, 0))
-        self.isEditing = editing
+        self.isEditing = False
         self.isSelected = False
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.view.Bind(wx.EVT_LEFT_DOWN, self.OnDown)
+        self.view.Bind(wx.EVT_MOTION, self.OnMove)
+        self.view.Bind(wx.EVT_LEFT_UP, self.OnRelease)
 
-        if self.isEditing:
-            self.Bind(wx.EVT_LEFT_DOWN, self.skipEvent)
-            # self.Bind(wx.EVT_MOTION, self.skipEvent)
-            # self.Bind(wx.EVT_LEFT_UP, self.skipEvent)
+        self.selectionBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(0,0), size=self.view.GetSize(), style=0)
+        self.selectionBox.Bind(wx.EVT_PAINT, self.OnPaintSelectionBox)
+        self.selectionBox.SetBackgroundColour(None)
+        self.selectionBox.Enable(False)
+        self.selectionBox.Hide()
+
+    def SetEditing(self, editing):
+        self.isEditing = editing
+        self.SetSelected(False)
 
     def GetSelected(self):
         return self.isSelected
 
     def SetSelected(self, selected):
         self.isSelected = selected
-        self.Refresh()
-        self.Update()
+        self.selectionBox.Show(selected)
+        self.view.Refresh()
+        self.view.Update()
 
     def GetHandler(self, name):
-        return self.handlers[name]
+        if name in self.handlers:
+            return self.handlers[name]
+        return ""
 
     def SetHandler(self, name, handlerStr):
         self.handlers[name] = handlerStr
@@ -44,86 +54,74 @@ class DraggableView(wx.Window):
 
     def GetData(self):
         return {"type":self.type,
-                "id":self.GetId(),
-                "frame":(self.GetRect()),
+                "id":self.view.GetId(),
+                "frame":(self.view.GetRect()),
                 "handlers":self.handlers,
                 "properties":self.properties}
 
     def SetData(self, data):
-        self.SetRect(data["frame"])
+        self.view.SetRect(data["frame"])
         self.handlers = data["handlers"]
         self.properties = data["properties"]
 
-    def SetChildView(self, view):
-        self.child = view
-        self.SetSize(view.GetSize()[0]+4, view.GetSize()[1]+4)
-        self.child.Center()
+    def OnDown(self, event):
         if self.isEditing:
-            self.child.Bind(wx.EVT_LEFT_DOWN, self.onDown)
-            self.child.Bind(wx.EVT_MOTION, self.onMove)
-            self.child.Bind(wx.EVT_LEFT_UP, self.onRelease)
-        if not self.isEditing:
-            self.child.Bind(wx.EVT_BUTTON, self.onButton)
+            self.view.CaptureMouse()
+            x, y = self.page.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
+            originx, originy = self.view.GetPosition()
+            dx = x - originx
+            dy = y - originy
+            self.moveOrigin = (originx, originy)
+            self.delta = ((dx, dy))
+            self.page.SelectUIView(self)
+        else:
+            event.Skip()
 
-    def skipEvent(self, event):
-        event.Skip()
-
-    def onDown(self, event):
-        self.child.CaptureMouse()
-        self.GetParent().SelectUIView(self)
-        x, y = self.GetParent().ScreenToClient(self.ClientToScreen(event.GetPosition()))
-        originx, originy = self.GetPosition()
-        dx = x - originx
-        dy = y - originy
-        self.moveOrigin = (originx, originy)
-        self.delta = ((dx, dy))
-
-    def onMove(self, event):
-        if event.Dragging():
-            x, y = self.GetParent().ScreenToClient(self.ClientToScreen(event.GetPosition()))
+    def OnMove(self, event):
+        if self.isEditing and event.Dragging():
+            x, y = self.page.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
             fp = (x-self.delta[0], y-self.delta[1])
-            self.Move(fp)
+            self.view.Move(fp)
 
-    def onRelease(self, event):
-        if self.child.HasCapture():
-            endx, endy = self.GetPosition()
-            command = MoveUIViewCommand(True, 'Move', self.GetParent(), self, (endx-self.moveOrigin[0], endy-self.moveOrigin[1]))
-            self.SetPosition(self.moveOrigin)
-            self.GetParent().command_processor.Submit(command)
-            self.child.ReleaseMouse()
+    def OnRelease(self, event):
+        if self.isEditing and self.view.HasCapture():
+            endx, endy = self.view.GetPosition()
+            command = MoveUIViewCommand(True, 'Move', self.page, self, (endx-self.moveOrigin[0], endy-self.moveOrigin[1]))
+            self.view.SetPosition(self.moveOrigin)
+            self.page.command_processor.Submit(command)
+            self.view.ReleaseMouse()
 
-    def onButton(self, event):
-        if self.handlers["onClick"]:
-            exec(self.handlers["onClick"])
+    def OnButton(self, event):
+        if not self.isEditing:
+            if "onClick" in self.handlers:
+                exec(self.handlers["onClick"])
 
-    def OnPaint(self, event):
-        if self.isSelected:
-            dc = wx.PaintDC(self)
-            dc.SetPen(wx.Pen('Blue', 2, wx.SOLID))
-            #dc.SetBrush(wx.Brush('Blue', wx.SOLID))
-            dc.DrawRectangle((1, 1), (self.GetSize()[0]-1, self.GetSize()[1]-1))
+    def OnPaintSelectionBox(self, event):
+        dc = wx.PaintDC(self.selectionBox)
+        dc.SetPen(wx.Pen('Blue', 2, wx.PENSTYLE_SOLID))
+        dc.SetBrush(wx.Brush('Blue', wx.BRUSHSTYLE_TRANSPARENT))
+        dc.DrawRectangle((1, 1), (self.selectionBox.GetSize()[0]-2, self.selectionBox.GetSize()[1]-2))
 
 
 class DraggableButton(DraggableView):
-    def __init__(self, editing, **kwargs):
-        DraggableView.__init__(self, editing, **kwargs)
+    def __init__(self, page, viewId):
+        button = wx.Button(parent=page, id=viewId, label="Button")
+        DraggableView.__init__(self, page, button)
         self.type = "button"
-        dragButton = wx.Button(parent=self, id=wx.ID_ANY, label="Button")
-        self.SetChildView(dragButton)
         self.properties["title"] = "Button"
-        if self.isEditing:
-            self.child.Bind(wx.EVT_BUTTON, self.skipEvent)
+        self.view.Bind(wx.EVT_BUTTON, self.OnButton)
 
 
 class DraggableTextField(DraggableView):
-    def __init__(self, editing, **kwargs):
-        DraggableView.__init__(self, editing, **kwargs)
+    def __init__(self, page, viewId):
+        field = wx.TextCtrl(parent=page, id=viewId, value="TextField")
+        DraggableView.__init__(self, page, field)
         self.type = "textfield"
-        dragText = wx.TextCtrl(parent=self, id=wx.ID_ANY, value="Text")
-        self.SetChildView(dragText)
         self.properties["text"] = "Text"
-        if self.isEditing:
-            dragText.SetEditable(False)
+
+    def SetEditing(self, editing):
+        DraggableView.SetEditing(self, editing)
+        self.view.SetEditable(not editing)
 
 
 class MoveUIViewCommand(Command):
@@ -131,21 +129,19 @@ class MoveUIViewCommand(Command):
 
     def __init__(self, *args, **kwargs):
         super().__init__()
-        self.parent = args[2]
+        self.page = args[2]
         self.dragView = args[3]
         self.delta = args[4]
-        self.viewId = self.dragView.GetId()
+        self.viewId = self.dragView.view.GetId()
 
     def Do(self):
-        view = self.parent.GetUIViewById(self.viewId)
-        pos = view.GetPosition()
-        view.SetPosition((pos[0]+self.delta[0],
-                                   pos[1]+self.delta[1]))
+        uiView = self.page.GetUIViewById(self.viewId)
+        pos = uiView.view.GetPosition()
+        uiView.view.SetPosition((pos[0]+self.delta[0], pos[1]+self.delta[1]))
         return True
 
     def Undo(self):
-        view = self.parent.GetUIViewById(self.viewId)
-        pos = view.GetPosition()
-        view.SetPosition((pos[0]-self.delta[0],
-                                   pos[1]-self.delta[1]))
+        uiView = self.page.GetUIViewById(self.viewId)
+        pos = uiView.view.GetPosition()
+        uiView.view.SetPosition((pos[0]-self.delta[0], pos[1]-self.delta[1]))
         return True
