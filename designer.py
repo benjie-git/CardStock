@@ -11,7 +11,6 @@ implemented using an wx.html.HtmlWindow.
 
 import sys
 import os
-import PythonEditor
 
 from six.moves import cPickle as pickle
 
@@ -21,15 +20,11 @@ import wx.stc as stc
 from wx.lib import buttons # for generic button classes
 from page import PageWindow
 import PythonEditor
-import draggableView
 import version
 
 from wx.lib.mixins.inspection import InspectionMixin
 
-
 HERE = os.path.dirname(os.path.abspath(__file__))
-if hasattr(sys, 'frozen') and sys.frozen:
-    HERE = os.path.dirname(os.path.abspath(sys.argv[0]))
 
 #----------------------------------------------------------------------
 
@@ -37,17 +32,24 @@ if hasattr(sys, 'frozen') and sys.frozen:
 # could have used wx.NewId() to autogenerate some new unique ID values
 # instead.
 
+idABOUT  = wx.ID_ABOUT
+
 idNEW    = wx.ID_NEW
 idOPEN   = wx.ID_OPEN
 idSAVE   = wx.ID_SAVE
 idSAVEAS = wx.ID_SAVEAS
 idCLEAR  = wx.ID_CLEAR
 idEXIT   = wx.ID_EXIT
-idABOUT  = wx.ID_ABOUT
+
+idUNDO   = wx.ID_UNDO
+idREDO   = wx.ID_REDO
+idCUT    = wx.ID_CUT
+idCOPY   = wx.ID_COPY
+idDELETE = wx.ID_DELETE
+idPASTE  = wx.ID_PASTE
 
 
-
-class pageFrame(wx.Frame):
+class PageFrame(wx.Frame):
     """
     A pageFrame contains a pageWindow and a ControlPanel and manages
     their layout with a wx.BoxSizer.  A menu and associated event handlers
@@ -92,12 +94,13 @@ class pageFrame(wx.Frame):
         if self.filename:
             self.page.ReadFile(self.filename)
 
-
     def SetSelectedUIView(self, view):
         if view:
             self.cPanel.codeEditor.SetText(view.GetHandler("onClick"))
+            self.cPanel.codeEditor.Enable(True)
         else:
             self.cPanel.codeEditor.SetText("")
+            self.cPanel.codeEditor.Enable(False)
 
     def MakeMenu(self):
         # create the file menu
@@ -110,22 +113,27 @@ class pageFrame(wx.Frame):
         menu1.Append(idSAVE, "&Save\tCtrl-S", "Save the page")
         menu1.Append(idSAVEAS, "Save &As", "Save the page in a new file")
         menu1.AppendSeparator()
-        menu1.Append(idCLEAR, "&Clear", "Clear the current page")
+        menu1.Append(idCLEAR, "&Clear Page", "Clear the current page")
         menu1.AppendSeparator()
         menu1.Append(idEXIT, "E&xit", "Terminate the application")
 
-        # and the help menu
         menu2 = wx.Menu()
-        if hasattr(sys, 'frozen'):
-            item = menu2.Append(-1, "Check for Update...")
-            self.Bind(wx.EVT_MENU, self.OnMenuCheckForUpdate, item)
+        menu2.Append(idUNDO, "&Undo\tCtrl-Z", "Undo Action")
+        menu2.Append(idREDO, "&Redo\tCtrl-Shift-Z", "Redo Action")
+        menu2.AppendSeparator()
+        menu2.Append(idCUT,  "C&ut\tCtrl-X", "Cut Selection")
+        menu2.Append(idCOPY, "&Copy\tCtrl-C", "Copy Selection")
+        menu2.Append(idPASTE,"&Paste\tCtrl-V", "Paste Selection")
 
-        menu2.Append(idABOUT, "&About\tCtrl-H", "Display the gratuitous 'about this app' thingamajig")
+        # and the help menu
+        menu3 = wx.Menu()
+        menu3.Append(idABOUT, "&About\tCtrl-H", "Display the gratuitous 'about this app' thingamajig")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
         menuBar.Append(menu1, "&File")
-        menuBar.Append(menu2, "&Help")
+        menuBar.Append(menu2, "&Edit")
+        menuBar.Append(menu3, "&Help")
         self.SetMenuBar(menuBar)
 
         self.Bind(wx.EVT_MENU,   self.OnMenuOpen, id=idOPEN)
@@ -133,9 +141,14 @@ class pageFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuSaveAs, id=idSAVEAS)
         self.Bind(wx.EVT_MENU,  self.OnMenuClear, id=idCLEAR)
         self.Bind(wx.EVT_MENU,   self.OnMenuExit, id=idEXIT)
+
         self.Bind(wx.EVT_MENU,  self.OnMenuAbout, id=idABOUT)
 
-
+        self.Bind(wx.EVT_MENU,  self.OnUndo, id=idUNDO)
+        self.Bind(wx.EVT_MENU,  self.OnRedo, id=idREDO)
+        self.Bind(wx.EVT_MENU,  self.OnCut, id=idCUT)
+        self.Bind(wx.EVT_MENU,  self.OnCopy, id=idCOPY)
+        self.Bind(wx.EVT_MENU,  self.OnPaste, id=idPASTE)
 
     wildcard = "page files (*.ddl)|*.ddl|All files (*.*)|*.*"
 
@@ -171,21 +184,43 @@ class pageFrame(wx.Frame):
 
 
     def OnMenuClear(self, event):
-        self.page.SetLinesData([])
+        self.page.ClearAll()
         self.SetTitle(self.title)
 
 
     def OnMenuExit(self, event):
         self.Close()
 
+    def OnCut(self, event):
+        f = self.FindFocus()
+        if f and hasattr(f, "Cut"):
+            f.Cut()
+
+    def OnCopy(self, event):
+        f = self.FindFocus()
+        if f and hasattr(f, "Copy"):
+            f.Copy()
+
+    def OnPaste(self, event):
+        f = self.FindFocus()
+        if f and hasattr(f, "Paste"):
+            f.Paste()
+
+    def OnUndo(self, event):
+        f = self.FindFocus()
+        if f and hasattr(f, "Undo"):
+            f.Undo()
+
+    def OnRedo(self, event):
+        f = self.FindFocus()
+        if f and hasattr(f, "Redo"):
+            f.Redo()
+
 
     def OnMenuAbout(self, event):
         dlg = PageAbout(self)
         dlg.ShowModal()
         dlg.Destroy()
-
-    def OnMenuCheckForUpdate(self, event):
-        wx.GetApp().CheckForUpdate(parentWindow=self)
 
 #----------------------------------------------------------------------
 
@@ -218,14 +253,14 @@ class ControlPanel(wx.Panel):
         colours = page.menuColours
         keys = list(colours.keys())
         keys.sort()
-        cGrid = wx.GridSizer(cols=numCols, hgap=2, vgap=2)
+        self.cGrid = wx.GridSizer(cols=numCols, hgap=2, vgap=2)
         for k in keys:
             bmp = self.MakeBitmap(colours[k])
             b = buttons.GenBitmapToggleButton(self, k, bmp, size=btnSize )
             b.SetBezelWidth(1)
             b.SetUseFocusIndicator(False)
             self.Bind(wx.EVT_BUTTON, self.OnSetColour, b)
-            cGrid.Add(b, 0)
+            self.cGrid.Add(b, 0)
             self.clrBtns[colours[k]] = b
         self.clrBtns[colours[keys[0]]].SetToggle(True)
 
@@ -234,60 +269,107 @@ class ControlPanel(wx.Panel):
         # event to self.OnSetThickness.  The button ID is the same as the
         # thickness value.
         self.thknsBtns = {}
-        tGrid = wx.GridSizer(cols=numCols, hgap=2, vgap=2)
+        self.tGrid = wx.GridSizer(cols=numCols, hgap=2, vgap=2)
         for x in range(1, page.maxThickness+1):
             b = buttons.GenToggleButton(self, x, str(x), size=btnSize)
             b.SetBezelWidth(1)
             b.SetUseFocusIndicator(False)
             self.Bind(wx.EVT_BUTTON, self.OnSetThickness, b)
-            tGrid.Add(b, 0)
+            self.tGrid.Add(b, 0)
             self.thknsBtns[x] = b
         self.thknsBtns[1].SetToggle(True)
 
         # Make a colour indicator window, it is registerd as a listener
         # with the page window so it will be notified when the settings
         # change
-        ci = ColourIndicator(self)
-        page.AddListener(ci)
+        self.ci = ColourIndicator(self)
+        page.AddListener(self.ci)
         page.Notify()
         self.page = page
 
-        addButton = wx.Button(parent=self, id=-1, label="Button")
-        addButton.Bind(wx.EVT_LEFT_DOWN, self.addButtonDown)
+        self.addButton = wx.Button(parent=self, id=wx.ID_ANY, label="Button")
+        self.addButton.Bind(wx.EVT_LEFT_DOWN, self.AddButtonDown)
 
-        addText = wx.TextCtrl(parent=self, id=-1, value="Text")
-        addText.SetEditable(False)
-        addText.Bind(wx.EVT_LEFT_DOWN, self.addTextDown)
+        self.addTextField = wx.TextCtrl(parent=self, id=wx.ID_ANY, value="Text")
+        self.addTextField.SetEditable(False)
+        self.addTextField.Bind(wx.EVT_LEFT_DOWN, self.AddTextDown)
 
         self.codeEditor = PythonEditor.CreatePythonEditor(self)
         self.codeEditor.SetSize((150,200))
-        self.codeEditor.Bind(stc.EVT_STC_CHANGE, self.codeEditorTextChanged)
+        self.codeEditor.Bind(stc.EVT_STC_CHANGE, self.CodeEditorTextChanged)
+
+        self.modeSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.modeButtons = []
+        b = buttons.GenToggleButton(self, 1, "Hand", size=(45,28))
+        b.SetBezelWidth(1)
+        b.SetUseFocusIndicator(False)
+        self.Bind(wx.EVT_BUTTON, self.OnSetDrawingMode, b)
+        self.modeSizer.Add(b, 0, wx.ALL, spacing)
+        self.modeButtons.append(b)
+        b = buttons.GenToggleButton(self, 2, "Pen", size=(45,28))
+        b.SetBezelWidth(1)
+        b.SetUseFocusIndicator(False)
+        self.Bind(wx.EVT_BUTTON, self.OnSetDrawingMode, b)
+        self.modeSizer.Add(b, 0, wx.ALL, spacing)
+        self.modeButtons.append(b)
+        self.modeButtons[0].SetToggle(True)
 
         # Make a box sizer and put the two grids and the indicator
         # window in it.
-        box = wx.BoxSizer(wx.VERTICAL)
-        box.Add(addButton, 0, wx.ALL, spacing)
-        box.Add(addText, 0, wx.ALL, spacing)
-        box.Add(cGrid, 0, wx.ALL, spacing)
-        box.Add(tGrid, 0, wx.ALL, spacing)
-        box.Add(ci, 0, wx.EXPAND|wx.ALL, spacing)
-        box.Add(self.codeEditor, 0, wx.EXPAND|wx.ALL, spacing)
-        self.SetSizer(box)
+        self.box = wx.BoxSizer(wx.VERTICAL)
+        self.box.Add(self.modeSizer, 0, wx.ALL, spacing)
+        self.box.Add(self.addButton, 0, wx.ALL, spacing)
+        self.box.Add(self.addTextField, 0, wx.ALL, spacing)
+        self.box.Add(self.cGrid, 0, wx.ALL, spacing)
+        self.box.Add(self.tGrid, 0, wx.ALL, spacing)
+        self.box.Add(self.ci, 0, wx.EXPAND|wx.ALL, spacing)
+        self.box.Add(self.codeEditor, 0, wx.EXPAND|wx.ALL, spacing)
+        self.SetSizer(self.box)
         self.SetAutoLayout(True)
 
+        self.SetDrawingMode(False)
+
+
+    def OnSetDrawingMode(self, event):
+        drawMode = (event.GetId() == 2)
+        self.SetDrawingMode(drawMode)
+
+    def SetDrawingMode(self, drawMode):
+        if drawMode:
+            self.box.Show(self.cGrid)
+            self.box.Show(self.tGrid)
+            self.box.Show(self.ci)
+            self.box.Hide(self.addButton)
+            self.box.Hide(self.addTextField)
+            self.box.Hide(self.codeEditor)
+            self.modeButtons[0].SetToggle(False)
+            self.modeButtons[1].SetToggle(True)
+            self.page.SelectUIView(None)
+        else:
+            self.box.Hide(self.cGrid)
+            self.box.Hide(self.tGrid)
+            self.box.Hide(self.ci)
+            self.box.Show(self.addButton)
+            self.box.Show(self.addTextField)
+            self.box.Show(self.codeEditor)
+            self.modeButtons[0].SetToggle(True)
+            self.modeButtons[1].SetToggle(False)
+        self.box.Layout()
         # Resize this window so it is just large enough for the
         # minimum requirements of the sizer.
-        box.Fit(self)
+        self.box.Fit(self)
+        self.page.SetDrawingMode(drawMode)
 
-    def codeEditorTextChanged(self, event):
-        self.page.GetSelectedUIView().SetHandler("onClick", self.codeEditor.GetText())
+    def CodeEditorTextChanged(self, event):
+        if self.page.GetSelectedUIView():
+            self.page.GetSelectedUIView().SetHandler("onClick", self.codeEditor.GetText())
 
-    def addButtonDown(self, event):
+    def AddButtonDown(self, event):
         self.page.AddUiViewOfType("button")
         event.Skip()
 
-    def addTextDown(self, event):
-        self.page.AddUiViewOfType("text")
+    def AddTextDown(self, event):
+        self.page.AddUiViewOfType("textfield")
         event.Skip()
 
     def MakeBitmap(self, colour):
@@ -345,7 +427,7 @@ class ColourIndicator(wx.Window):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
 
-    def Update(self, colour, thickness):
+    def UpdateLine(self, colour, thickness):
         """
         The page window calls this method any time the colour
         or line thickness changes.
@@ -415,7 +497,7 @@ class PageApp(wx.App, InspectionMixin):
     def OnInit(self):
         self.Init() # for InspectionMixin
 
-        frame = pageFrame(None)
+        frame = PageFrame(None)
         frame.Show(True)
         self.SetTopWindow(frame)
         self.SetAppDisplayName('PyPage')

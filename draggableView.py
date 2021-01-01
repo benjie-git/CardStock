@@ -3,13 +3,14 @@
 # This is a draggable View, for adding a UI elements from the palate to the Page.
 
 import wx
+from wx.lib.docview import CommandProcessor, Command
 
 class DraggableView(wx.Window):
     def __init__(self, editing, **kwargs):
         wx.Window.__init__(self, **kwargs)
         self.child = None
         self.type = None
-        self.handlers = {"onClick":'print("UI element clicked!")'}
+        self.handlers = {"onClick":''}
         self.properties = {}
         self.delta = ((0, 0))
         self.isEditing = editing
@@ -35,8 +36,15 @@ class DraggableView(wx.Window):
     def SetHandler(self, name, handlerStr):
         self.handlers[name] = handlerStr
 
+    def GetProperty(self, name):
+        return self.properties[name]
+
+    def SetProperty(self, name, value):
+        self.properties[name] = value
+
     def GetData(self):
         return {"type":self.type,
+                "id":self.GetId(),
                 "frame":(self.GetRect()),
                 "handlers":self.handlers,
                 "properties":self.properties}
@@ -58,7 +66,6 @@ class DraggableView(wx.Window):
             self.child.Bind(wx.EVT_BUTTON, self.onButton)
 
     def skipEvent(self, event):
-        # event.StopPropagation()
         event.Skip()
 
     def onDown(self, event):
@@ -68,6 +75,7 @@ class DraggableView(wx.Window):
         originx, originy = self.GetPosition()
         dx = x - originx
         dy = y - originy
+        self.moveOrigin = (originx, originy)
         self.delta = ((dx, dy))
 
     def onMove(self, event):
@@ -78,6 +86,10 @@ class DraggableView(wx.Window):
 
     def onRelease(self, event):
         if self.child.HasCapture():
+            endx, endy = self.GetPosition()
+            command = MoveUIViewCommand(True, 'Move', self.GetParent(), self, (endx-self.moveOrigin[0], endy-self.moveOrigin[1]))
+            self.SetPosition(self.moveOrigin)
+            self.GetParent().command_processor.Submit(command)
             self.child.ReleaseMouse()
 
     def onButton(self, event):
@@ -96,9 +108,9 @@ class DraggableButton(DraggableView):
     def __init__(self, editing, **kwargs):
         DraggableView.__init__(self, editing, **kwargs)
         self.type = "button"
-        dragButton = wx.Button(parent=self, id=-1, label="Button")
+        dragButton = wx.Button(parent=self, id=wx.ID_ANY, label="Button")
         self.SetChildView(dragButton)
-        self.properties = {"title":"Button"}
+        self.properties["title"] = "Button"
         if self.isEditing:
             self.child.Bind(wx.EVT_BUTTON, self.skipEvent)
 
@@ -107,8 +119,33 @@ class DraggableTextField(DraggableView):
     def __init__(self, editing, **kwargs):
         DraggableView.__init__(self, editing, **kwargs)
         self.type = "textfield"
-        dragText = wx.TextCtrl(parent=self, id=-1, value="Text")
+        dragText = wx.TextCtrl(parent=self, id=wx.ID_ANY, value="Text")
         self.SetChildView(dragText)
-        self.properties = {"text":"text"}
+        self.properties["text"] = "Text"
         if self.isEditing:
             dragText.SetEditable(False)
+
+
+class MoveUIViewCommand(Command):
+    dragView = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.parent = args[2]
+        self.dragView = args[3]
+        self.delta = args[4]
+        self.viewId = self.dragView.GetId()
+
+    def Do(self):
+        view = self.parent.GetUIViewById(self.viewId)
+        pos = view.GetPosition()
+        view.SetPosition((pos[0]+self.delta[0],
+                                   pos[1]+self.delta[1]))
+        return True
+
+    def Undo(self):
+        view = self.parent.GetUIViewById(self.viewId)
+        pos = view.GetPosition()
+        view.SetPosition((pos[0]-self.delta[0],
+                                   pos[1]-self.delta[1]))
+        return True

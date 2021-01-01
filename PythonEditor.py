@@ -30,7 +30,7 @@ else:
 
 
 def CreatePythonEditor(parent):
-    editor = stc.StyledTextCtrl(id=-1, parent=parent, style=wx.VSCROLL | wx.HSCROLL)
+    editor = stc.StyledTextCtrl(id=wx.ID_ANY, parent=parent, style=wx.VSCROLL | wx.HSCROLL)
 
     # editor.SetAutoLayout(True)
     # editor.SetConstraints(LayoutAnchors(editor, True, True, True, True))
@@ -52,8 +52,6 @@ def CreatePythonEditor(parent):
 
     editor.Bind(wx.EVT_KEY_DOWN, PyEditorOnKeyPress)
     editor.Bind(stc.EVT_STC_UPDATEUI, PyEditorOnUpdateUI)
-
-    editor.SetText("def a:\n  if 1:\n    print(1)\n  else:\n    print(0)\n")
 
     return editor
 

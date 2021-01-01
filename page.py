@@ -7,6 +7,7 @@ can do simple drawings upon. and add Buttons and TextFields to.
 
 
 import wx
+from wx.lib.docview import CommandProcessor, Command
 import sys
 from six.moves import cPickle as pickle
 from draggableView import DraggableButton,DraggableTextField
@@ -38,14 +39,19 @@ class PageWindow(wx.Window):
         wx.Window.__init__(self, parent, ID, style=wx.NO_FULL_REPAINT_ON_RESIZE)
         self.SetBackgroundColour("WHITE")
         self.listeners = []
-        self.thickness = 4
-        self.SetColour("Black")
         self.lines = []
         self.designer = None
-        self.isDrawing = False
+        self.command_processor = CommandProcessor()
         self.isEditing = editing
         self.pos = wx.Point(0,0)
-        self.MakeMenu()
+        self.isInDrawingMode = False
+        self.isDrawing = False
+        self.nextId = 1000
+
+        if editing:
+            self.thickness = 4
+            self.SetColour("Black")
+            self.MakeMenu()
 
         self.uiViews = []
 
@@ -54,12 +60,13 @@ class PageWindow(wx.Window):
 
         self.InitBuffer()
 
-        self.SetCursor(wx.Cursor(wx.CURSOR_PENCIL))
+        self.UpdateCursor()
 
         # hook some mouse events
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
         self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
-        self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
+        if editing:
+            self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
         self.Bind(wx.EVT_MOTION, self.OnMotion)
 
         # the window resize event and idle events for managing the buffer
@@ -72,8 +79,21 @@ class PageWindow(wx.Window):
         # When the window is destroyed, clean up resources.
         self.Bind(wx.EVT_WINDOW_DESTROY, self.Cleanup)
 
+    def UpdateCursor(self):
+        self.SetCursor(wx.Cursor(wx.CURSOR_PENCIL if self.isInDrawingMode else wx.CURSOR_HAND))
+
+    def SetDrawingMode(self, drawMode):
+        self.isInDrawingMode = drawMode
+        self.UpdateCursor()
+
+    def ClearAll(self):
+        self.SetLinesData([])
+        for v in self.uiViews.copy():
+            self.uiViews.remove(v)
+            v.Destroy()
 
     def ReadFile(self, filename):
+        self.ClearAll()
         try:
             with open(filename, 'rb') as f:
                 data = pickle.load(f)
@@ -121,21 +141,21 @@ class PageWindow(wx.Window):
 
 
     def AddUiViewOfType(self, viewType):
-        dragView = None
         if viewType == "button":
-            dragView = DraggableButton(self.isEditing, parent=self, id=-1)
-        elif viewType == "text":
-            dragView = DraggableTextField(self.isEditing, parent=self, id=-1)
-        dragView.Center()
-        self.uiViews.append(dragView)
+            command = AddUIViewCommand(True, 'Add Button', self, "button", self.nextId)
+            self.command_processor.Submit(command)
+        elif viewType == "textfield":
+            command = AddUIViewCommand(True, 'Add TextField', self, "textfield", self.nextId)
+            self.command_processor.Submit(command)
+        self.nextId += 1
 
 
     def AddUiViewFromData(self, data):
         dragView = None
         if data["type"] == "button":
-            dragView = DraggableButton(self.isEditing, parent=self, id=-1)
+            dragView = DraggableButton(self.isEditing, parent=self, id=data["id"])
         elif data["type"] == "textfield":
-            dragView = DraggableTextField(self.isEditing, parent=self, id=-1)
+            dragView = DraggableTextField(self.isEditing, parent=self, id=data["id"])
         dragView.SetData(data)
         self.uiViews.append(dragView)
 
@@ -200,16 +220,20 @@ class PageWindow(wx.Window):
 
     def OnLeftDown(self, event):
         """called when the left mouse button is pressed"""
-        self.curLine = []
-        self.pos = event.GetPosition()
-        self.isDrawing = True
-        self.CaptureMouse()
-
+        if self.isInDrawingMode:
+            self.curLine = []
+            self.pos = event.GetPosition()
+            self.isDrawing = True
+            self.CaptureMouse()
+        elif self.isEditing:
+            self.SelectUIView(None)
 
     def OnLeftUp(self, event):
         """called when the left mouse button is released"""
         if self.HasCapture():
-            self.lines.append( (self.colour, self.thickness, self.curLine) )
+            command = AddLineCommand(True, 'Add Line', self,
+                                     (self.colour, self.thickness, self.curLine) )
+            self.command_processor.Submit(command)
             self.curLine = []
             self.isDrawing = False
             self.ReleaseMouse()
@@ -217,7 +241,8 @@ class PageWindow(wx.Window):
 
     def OnRightUp(self, event):
         """called when the right mouse button is released, will popup the menu"""
-        self.PopupMenu(self.menu)
+        if self.isInDrawingMode:
+            self.PopupMenu(self.menu)
 
 
     def GetSelectedUIView(self):
@@ -227,10 +252,21 @@ class PageWindow(wx.Window):
     def SelectUIView(self, view):
         if self.selectedView:
             self.selectedView.SetSelected(False)
-        view.SetSelected(True)
+        if view:
+            view.SetSelected(True)
         self.selectedView = view
         self.designer.SetSelectedUIView(view)
 
+    def GetUIViewById(self, viewId):
+        for v in self.uiViews:
+            if v.GetId() == viewId:
+                return v
+        return None
+
+    def RemoveUIViewById(self, viewId):
+        for v in self.uiViews.copy():
+            if v.GetId() == viewId:
+                self.uiViews.remove(v)
 
     def OnMotion(self, event):
         """
@@ -298,6 +334,15 @@ class PageWindow(wx.Window):
     def OnMenuSetThickness(self, event):
         self.SetThickness(event.GetId())
 
+    def Undo(self):
+        self.command_processor.Undo()
+        self.InitBuffer()
+        self.Refresh()
+
+    def Redo(self):
+        self.command_processor.Redo()
+        self.InitBuffer()
+        self.Refresh()
 
     # Observer pattern.  Listeners are registered and then notified
     # whenever doodle settings change.
@@ -306,7 +351,53 @@ class PageWindow(wx.Window):
 
     def Notify(self):
         for other in self.listeners:
-            other.Update(self.colour, self.thickness)
+            other.UpdateLine(self.colour, self.thickness)
+
+
+class AddLineCommand(Command):
+    parent = None
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.parent = args[2]
+        self.line = args[3]
+
+    def Do(self):
+        self.parent.lines.append(self.line)
+        return True
+
+    def Undo(self):
+        if len(self.parent.lines):
+            self.parent.lines.pop();
+        return True
+
+
+class AddUIViewCommand(Command):
+    dragView = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.parent = args[2]
+        self.viewType = args[3]
+        self.viewId = self.parent.nextId
+        self.parent.nextId += 1
+
+    def Do(self):
+        if self.viewType == "button":
+            self.dragView = DraggableButton(self.parent.isEditing, parent=self.parent, id=self.viewId)
+        elif self.viewType == "textfield":
+            self.dragView = DraggableTextField(self.parent.isEditing, parent=self.parent, id=self.viewId)
+
+        if self.dragView:
+            self.dragView.Center()
+            self.parent.uiViews.append(self.dragView)
+            return True
+        return False
+
+    def Undo(self):
+        self.parent.RemoveUIViewById(self.viewId)
+        self.dragView.Destroy()
+        self.dragView = None
+        return True
 
 
 #----------------------------------------------------------------------
