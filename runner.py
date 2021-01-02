@@ -3,22 +3,24 @@ import sys
 
 class Runner():
     def __init__(self, page, sb):
-        self.localVars = {}
-        self.localVars["page"] = page
+        self.locals = {}
+        self.globals = {}
+        self.globals["page"] = page
         self.statusBar = sb
         for ui in page.uiViews:
-            self.localVars[ui.properties["name"]] = ui.view
+            self.globals[ui.properties["name"]] = ui.view
 
     def RunHandler(self, uiView, handlerName):
+        self.locals["self"] = uiView.view
+
         handlerStr = uiView.handlers[handlerName]
-        self.localVars["self"] = uiView.view
 
         error_class = None
         line_number = None
         detail = None
 
         try:
-            exec(handlerStr, {}, self.localVars)
+            exec(handlerStr, self.globals, self.locals)
         except SyntaxError as err:
             error_class = err.__class__.__name__
             detail = err.args[0]
