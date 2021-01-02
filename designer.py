@@ -46,21 +46,44 @@ class PageFrame(wx.Frame):
         self.MakeMenu()
         self.filename = None
 
-        self.page = PageWindow(self, -1)
+        toolbar = self.CreateToolBar(style=wx.TB_TEXT)
+        toolbar.AddTool(wx.ID_INDEX, 'Edit', wx.ArtProvider.GetBitmap(wx.ART_FIND), wx.NullBitmap)
+        toolbar.AddTool(wx.ID_EDIT, 'Draw', wx.ArtProvider.GetBitmap(wx.ART_FIND_AND_REPLACE), wx.NullBitmap)
+        toolbar.AddTool(wx.ID_APPLY, 'Run', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
+        toolbar.AddSeparator()
+
+        self.addButton = wx.Button(parent=toolbar, id=wx.ID_ANY, label="Button")
+        self.addButton.Bind(wx.EVT_LEFT_DOWN, self.OnMenuAddButton)
+        toolbar.AddControl(self.addButton, label="Add Button")
+
+        self.addTextField = wx.TextCtrl(parent=toolbar, id=wx.ID_ANY, value="Text")
+        self.addTextField.Bind(wx.EVT_LEFT_DOWN, self.OnMenuAddTextField)
+        self.addTextField.SetEditable(False)
+        toolbar.AddControl(self.addTextField, label="Add TextField")
+
+        # toolbar.AddTool(wx.ID_FILE1, 'Add Button', wx.ArtProvider.GetBitmap(wx.ART_NEW_DIR), wx.NullBitmap)
+        # toolbar.AddTool(wx.ID_FILE2, 'Add Field', wx.ArtProvider.GetBitmap(wx.ART_NEW), wx.NullBitmap)
+        toolbar.Realize()
+
+        self.Bind(wx.EVT_TOOL, self.OnMenuDraw, id=wx.ID_EDIT)
+        self.Bind(wx.EVT_TOOL, self.OnMenuEdit, id=wx.ID_INDEX)
+        self.Bind(wx.EVT_TOOL, self.OnMenuRun, id=wx.ID_APPLY)
+        # self.Bind(wx.EVT_TOOL, self.OnMenuAddButton, id=wx.ID_FILE1)
+        # self.Bind(wx.EVT_TOOL, self.OnMenuAddTextField, id=wx.ID_FILE2)
+
+        self.splitter = wx.SplitterWindow(self, id=wx.ID_ANY, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
+
+        self.page = PageWindow(self.splitter, -1)
         self.page.SetEditing(True)
         self.page.SetDesigner(self)
-        self.cPanel = ControlPanel(self, -1, self.page)
 
-        # Create a sizer to layout the two windows side-by-side.
-        # Both will grow vertically, the page view will grow
-        # horizontally as well.
-        box = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(self.cPanel, 0, wx.EXPAND)
-        box.Add(self.page, 1, wx.EXPAND)
+        self.cPanel = ControlPanel(self.splitter, -1, self.page)
 
-        # Tell the frame that it should layout itself in response to
-        # size events using this sizer.
-        self.SetSizer(box)
+        self.splitter.SplitVertically(self.page, self.cPanel)
+        self.splitter.SetMinimumPaneSize(120)
+        self.splitter.SetSashPosition(self.splitter.GetSize()[0]-120)
+        self.splitter.SetSashGravity(0.8)
+
         self.SetSelectedUIView(None)
 
     def SaveFile(self):
@@ -93,7 +116,7 @@ class PageFrame(wx.Frame):
         menu1.AppendSeparator()
         menu1.Append(wx.ID_CLEAR, "&Clear Page", "Clear the current page")
         menu1.AppendSeparator()
-        runId = wx.NewId()
+        runId = wx.NewIdRef()
         menu1.Append(runId, "&Run Page\tCtrl-R", "Run the current page")
         menu1.AppendSeparator()
         menu1.Append(wx.ID_EXIT, "E&xit", "Terminate the application")
@@ -210,6 +233,23 @@ class PageFrame(wx.Frame):
         dlg.ShowModal()
         dlg.Destroy()
 
+    def OnMenuDraw(self, event):
+        self.cPanel.SetDrawingMode(True)
+
+    def OnMenuEdit(self, event):
+        self.cPanel.SetDrawingMode(False)
+
+    def OnMenuAddButton(self, event):
+        if self.page.isEditing and not self.page.isInDrawingMode:
+            self.page.AddUiViewOfType("button")
+            event.Skip()
+
+    def OnMenuAddTextField(self, event):
+        if self.page.isEditing and not self.page.isInDrawingMode:
+            self.page.AddUiViewOfType("textfield")
+            event.Skip()
+
+
 # ----------------------------------------------------------------------
 
 
@@ -274,13 +314,6 @@ class ControlPanel(wx.Panel):
         page.Notify()
         self.page = page
 
-        self.addButton = wx.Button(parent=self, id=wx.ID_ANY, label="Button")
-        self.addButton.Bind(wx.EVT_LEFT_DOWN, self.AddButtonDown)
-
-        self.addTextField = wx.TextCtrl(parent=self, id=wx.ID_ANY, value="Text")
-        self.addTextField.SetEditable(False)
-        self.addTextField.Bind(wx.EVT_LEFT_DOWN, self.AddTextDown)
-
         self.handlerPicker = wx.Choice(parent=self, id=wx.ID_ANY)
         self.handlerPicker.Enable(False)
         self.handlerPicker.Bind(wx.EVT_CHOICE, self.OnHandlerChoice)
@@ -290,28 +323,9 @@ class ControlPanel(wx.Panel):
         self.codeEditor.SetSize((150,200))
         self.codeEditor.Bind(stc.EVT_STC_CHANGE, self.CodeEditorTextChanged)
 
-        self.modeSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.modeButtons = []
-        b = buttons.GenToggleButton(self, 1, "Hand", size=(45,28))
-        b.SetBezelWidth(1)
-        b.SetUseFocusIndicator(False)
-        self.Bind(wx.EVT_BUTTON, self.OnSetDrawingMode, b)
-        self.modeSizer.Add(b, 0, wx.ALL, spacing)
-        self.modeButtons.append(b)
-        b = buttons.GenToggleButton(self, 2, "Pen", size=(45,28))
-        b.SetBezelWidth(1)
-        b.SetUseFocusIndicator(False)
-        self.Bind(wx.EVT_BUTTON, self.OnSetDrawingMode, b)
-        self.modeSizer.Add(b, 0, wx.ALL, spacing)
-        self.modeButtons.append(b)
-        self.modeButtons[0].SetToggle(True)
-
         # Make a box sizer and put the two grids and the indicator
         # view in it.
         self.box = wx.BoxSizer(wx.VERTICAL)
-        self.box.Add(self.modeSizer, 0, wx.ALL, spacing)
-        self.box.Add(self.addButton, 0, wx.ALL, spacing)
-        self.box.Add(self.addTextField, 0, wx.ALL, spacing)
         self.box.Add(self.cGrid, 0, wx.ALL, spacing)
         self.box.Add(self.tGrid, 0, wx.ALL, spacing)
         self.box.Add(self.ci, 0, wx.EXPAND|wx.ALL, spacing)
@@ -331,23 +345,15 @@ class ControlPanel(wx.Panel):
             self.box.Show(self.cGrid)
             self.box.Show(self.tGrid)
             self.box.Show(self.ci)
-            self.box.Hide(self.addButton)
-            self.box.Hide(self.addTextField)
             self.box.Hide(self.handlerPicker)
             self.box.Hide(self.codeEditor)
-            self.modeButtons[0].SetToggle(False)
-            self.modeButtons[1].SetToggle(True)
             self.page.SelectUIView(None)
         else:
             self.box.Hide(self.cGrid)
             self.box.Hide(self.tGrid)
             self.box.Hide(self.ci)
-            self.box.Show(self.addButton)
-            self.box.Show(self.addTextField)
             self.box.Show(self.handlerPicker)
             self.box.Show(self.codeEditor)
-            self.modeButtons[0].SetToggle(True)
-            self.modeButtons[1].SetToggle(False)
         self.box.Layout()
         # Resize this view so it is just large enough for the
         # minimum requirements of the sizer.
@@ -378,14 +384,6 @@ class ControlPanel(wx.Panel):
             self.codeEditor.SetText("")
             self.handlerPicker.Enable(False)
             self.codeEditor.Enable(False)
-
-    def AddButtonDown(self, event):
-        self.page.AddUiViewOfType("button")
-        event.Skip()
-
-    def AddTextDown(self, event):
-        self.page.AddUiViewOfType("textfield")
-        event.Skip()
 
     def MakeBitmap(self, colour):
         """
