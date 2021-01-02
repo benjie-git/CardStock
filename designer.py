@@ -21,6 +21,7 @@ from wx.lib import buttons # for generic button classes
 from page import PageWindow, SoloPageFrame
 import PythonEditor
 import version
+from runner import Runner
 
 from wx.lib.mixins.inspection import InspectionMixin
 
@@ -167,11 +168,13 @@ class PageFrame(wx.Frame):
 
     def OnMenuRun(self, event):
         frame = SoloPageFrame(None)
+        sb = frame.CreateStatusBar()
         data = {}
         data["lines"] = self.page.GetLinesData()
         data["uiviews"] = self.page.GetUIViewsData()
         data["handlers"] = self.page.GetHandlersData()
         frame.page.LoadFromData(data)
+        frame.page.runner = Runner(frame.page, sb)
         frame.Show(True)
 
     def OnMenuExit(self, event):

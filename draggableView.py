@@ -98,7 +98,7 @@ class DraggableView():
     def OnButton(self, event):
         if not self.isEditing:
             if "OnClick" in self.handlers:
-                self.page.RunHandler(self, self.handlers["OnClick"])
+                self.page.runner.RunHandler(self, "OnClick")
 
     def OnPaintSelectionBox(self, event):
         dc = wx.PaintDC(self.selectionBox)

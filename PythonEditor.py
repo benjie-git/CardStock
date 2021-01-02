@@ -41,11 +41,11 @@ def CreatePythonEditor(parent):
     editor.SetBackSpaceUnIndents(True)
     #editor.SetIndentationGuides(True)
     editor.SetUseAntiAliasing(True)
-    editor.SetMarginWidth(1, 0)
+    editor.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
+    editor.SetMarginWidth(1, 24)
 
-    # editor.SetStyleBits(7)
     editor.StyleSetSpec(stc.STC_STYLE_DEFAULT, "face:%(mono)s,size:%(size)d" % faces)
-    # editor.StyleClearAll()  # Reset all to be like the default
+    editor.StyleSetSpec(wx.stc.STC_STYLE_LINENUMBER, 'fore:#999999,back:#EEEEEE')
 
     editor.SetLexer(stc.STC_LEX_PYTHON)
     editor.SetKeyWords(0, " ".join(keyword.kwlist))

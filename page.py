@@ -9,6 +9,7 @@ can do simple drawings upon. and add Buttons and TextFields to.
 import wx
 from wx.lib.docview import CommandProcessor, Command
 import sys
+from runner import Runner
 from six.moves import cPickle as pickle
 from draggableView import DraggableButton,DraggableTextField
 
@@ -48,6 +49,7 @@ class PageWindow(wx.Window):
         self.nextId = 1000
         self.thickness = 4
         self.SetColour("Black")
+        self.runner = None
         # self.MakeMenu()
 
         self.uiViews = []
@@ -341,12 +343,6 @@ class PageWindow(wx.Window):
         for other in self.listeners:
             other.UpdateLine(self.colour, self.thickness)
 
-    def RunHandler(self, uiView, handlerStr):
-        localVars = {"page":self, "self":uiView.view}
-        for ui in self.uiViews:
-            localVars[ui.properties["name"]] = ui.view
-        exec(handlerStr, {}, localVars)
-
 
 class AddLineCommand(Command):
     parent = None
@@ -411,6 +407,7 @@ if __name__ == '__main__':
     frame = SoloPageFrame(None)
     if len(sys.argv) > 1:
         frame.page.ReadFile(sys.argv[1])
+    frame.page.runner = Runner(frame.page)
     frame.Show(True)
     app.MainLoop()
 
