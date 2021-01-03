@@ -13,6 +13,7 @@ class UiView():
         self.type = None
         self.handlers = {}
         self.properties = {}
+        self.customPropKeys = ["size", "position"]
         self.delta = ((0, 0))
         self.isEditing = False
         self.isSelected = False
@@ -56,24 +57,32 @@ class UiView():
         self.handlers[name] = handlerStr
 
     def GetProperty(self, name):
-        if name == "position":
+        if name in self.properties:
+            return self.properties[name]
+        elif name == "position":
             return list(self.view.GetPosition())
         elif name == "size":
             return list(self.view.GetSize())
-        return self.properties[name]
+        return None
 
     def SetProperty(self, name, value):
-        if name == "position":
+        if name in self.properties:
+            self.properties[name] = value
+        elif name == "position":
             self.view.SetPosition(value)
         elif name == "size":
             self.view.SetSize(value)
-        else:
-            self.properties[name] = value
+
+    def GetPropertyKeys(self):
+        keys = []
+        keys.extend(self.properties.keys())
+        keys.extend(self.customPropKeys)
+        return keys
 
     def GetProperties(self):
         props = self.properties.copy()
-        props["position"] = self.GetProperty("position")
-        props["size"] = self.GetProperty("size")
+        for k in self.customPropKeys:
+            props[k] = self.GetProperty(k)
         return props
 
     def GetData(self):
@@ -133,8 +142,26 @@ class UiButton(UiView):
         self.type = "button"
         self.handlers["OnClick"] = ""
         self.handlers["OnIdle"] = ""
-        self.properties["name"] = "button" + str(viewId-999)
+        self.properties["name"] = "button_" + str(viewId-999)
+
+        self.customPropKeys.append("title")
+        self.SetProperty("title", "Button")
         self.view.Bind(wx.EVT_BUTTON, self.OnButton)
+
+    def GetPropertyKeys(self):
+        # Custom property order for the inspector
+        return ["name", "title", "position", "size"]
+
+    def GetProperty(self, name):
+        if name == "title":
+            return self.view.GetLabel()
+        return UiView.GetProperty(self, name)
+
+    def SetProperty(self, name, value):
+        if name == "title":
+            self.view.SetLabel(value)
+        else:
+            UiView.SetProperty(self,name, value)
 
 
 class UiTextField(UiView):
@@ -154,11 +181,34 @@ class UiTextField(UiView):
         self.type = "textfield"
         self.handlers["OnTextChanged"] = ""
         self.handlers["OnEnter"] = ""
-        self.properties["name"] = "field" + str(viewId-999)
+        self.properties["name"] = "field_" + str(viewId-999)
+
+        self.customPropKeys.append("text")
+        self.SetProperty("text", "Text")
+
+        self.properties["editable"] = True
+
+    def GetPropertyKeys(self):
+        # Custom property order for the inspector
+        return ["name", "text", "editable", "position", "size"]
+
+    def GetProperty(self, name):
+        if name == "text":
+            return self.view.GetText()
+        return UiView.GetProperty(self, name)
+
+    def SetProperty(self, name, value):
+        if name == "text":
+            self.view.SetText(value)
+        else:
+            UiView.SetProperty(self,name, value)
 
     def SetEditing(self, editing):
         UiView.SetEditing(self, editing)
-        self.view.SetEditable(not editing)
+        if editing:
+            self.view.SetEditable(False)
+        else:
+            self.view.SetEditable(self.GetProperty("editable"))
 
 
 class MoveUIViewCommand(Command):

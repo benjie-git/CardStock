@@ -98,6 +98,7 @@ class ControlPanel(wx.Panel):
 
         self.editBox = wx.BoxSizer(wx.VERTICAL)
         self.editBox.Add(self.inspector, 0, wx.EXPAND|wx.ALL, spacing)
+        self.editBox.AddSpacer(10)
         self.editBox.Add(self.handlerPicker, 0, wx.EXPAND|wx.ALL, spacing)
         self.editBox.Add(self.codeEditor, 1, wx.EXPAND|wx.ALL, spacing)
         self.editBox.SetSizeHints(self)
@@ -144,13 +145,13 @@ class ControlPanel(wx.Panel):
         if self.inspector.GetNumberRows() > 0:
             self.inspector.DeleteRows(0, self.inspector.GetNumberRows())
         if uiView:
-            props = uiView.GetProperties()
-            self.inspector.InsertRows(0,len(props.keys()))
+            keys = uiView.GetPropertyKeys()
+            self.inspector.InsertRows(0,len(keys))
             r = 0
-            for k,v in props.items():
+            for k in keys:
                 self.inspector.SetCellValue(r, 0, k)
                 self.inspector.SetReadOnly(r, 0)
-                self.inspector.SetCellValue(r, 1, str(v))
+                self.inspector.SetCellValue(r, 1, str(uiView.GetProperty(k)))
                 r+=1
         else:
             self.inspector.InsertRows(0,1)
@@ -167,14 +168,21 @@ class ControlPanel(wx.Panel):
             oldVal = uiView.GetProperty(key)
             valStr = self.inspector.GetCellValue(event.GetRow(), 1)
             val = valStr
-            if isinstance(oldVal, int):
-                val = int(valStr)
-            elif isinstance(oldVal, float):
-                val = float(valStr)
-            elif isinstance(oldVal, list):
-                val = ast.literal_eval(valStr)
-            uiView.SetProperty(key, val)
 
+            try:
+                if isinstance(oldVal, bool):
+                    val = valStr[0].upper() == "T"
+                elif isinstance(oldVal, int):
+                    val = int(valStr)
+                elif isinstance(oldVal, float):
+                    val = float(valStr)
+                elif isinstance(oldVal, list):
+                    val = ast.literal_eval(valStr)
+            except:
+                val = oldVal # On any conversion failure, use old value
+
+            uiView.SetProperty(key, val)
+            self.inspector.SetCellValue(event.GetRow(), 1, str(val))
 
     def UpdateHandlerForUIView(self, uiView, handlerName):
         if uiView:
