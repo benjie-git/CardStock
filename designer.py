@@ -9,17 +9,14 @@ menu that PageWindow provides.  There is also a nice About dialog
 implemented using an wx.html.HtmlWindow.
 """
 
-import sys
 import os
 
 from six.moves import cPickle as pickle
 
 import wx
 import wx.html
-import wx.stc as stc
-from wx.lib import buttons # for generic button classes
 from page import PageWindow, SoloPageFrame
-import PythonEditor
+from controlPanel import ControlPanel
 import version
 from runner import Runner
 
@@ -101,7 +98,7 @@ class PageFrame(wx.Frame):
             self.page.ReadFile(self.filename)
 
     def SetSelectedUIView(self, view):
-        self.cPanel.UpdateHandlerForUIView(view, None)
+        self.cPanel.UpdateForUIView(view)
 
     def MakeMenu(self):
         # create the file menu
@@ -189,13 +186,17 @@ class PageFrame(wx.Frame):
         self.page.ClearAll()
         self.SetTitle(self.title)
 
-    def OnMenuRun(self, event):
-        frame = SoloPageFrame(None)
-        sb = frame.CreateStatusBar()
+    def GetData(self):
         data = {}
         data["lines"] = self.page.GetLinesData()
         data["uiviews"] = self.page.GetUIViewsData()
         data["handlers"] = self.page.GetHandlersData()
+        return data
+
+    def OnMenuRun(self, event):
+        frame = SoloPageFrame(None)
+        sb = frame.CreateStatusBar()
+        data = self.GetData()
         frame.page.LoadFromData(data)
         frame.page.runner = Runner(frame.page, sb)
         frame.Show(True)
@@ -253,212 +254,6 @@ class PageFrame(wx.Frame):
 # ----------------------------------------------------------------------
 
 
-class ControlPanel(wx.Panel):
-    """
-    This class implements a very simple control panel for the pageWindow.
-    It creates buttons for each of the colours and thickneses supported by
-    the pageWindow, and event handlers to set the selected values.  There is
-    also a little view that shows an example line in the selected
-    values.  Nested sizers are used for layout.
-    """
-
-    BMP_SIZE = 16
-    BMP_BORDER = 3
-
-    def __init__(self, parent, ID, page):
-        wx.Panel.__init__(self, parent, ID, style=wx.RAISED_BORDER)
-
-        numCols = 4
-        spacing = 4
-
-        btnSize = wx.Size(self.BMP_SIZE + 2*self.BMP_BORDER,
-                          self.BMP_SIZE + 2*self.BMP_BORDER)
-
-        # Make a grid of buttons for each colour.  Attach each button
-        # event to self.OnSetColour.  The button ID is the same as the
-        # key in the colour dictionary.
-        self.clrBtns = {}
-        colours = page.menuColours
-        keys = list(colours.keys())
-        keys.sort()
-        self.cGrid = wx.GridSizer(cols=numCols, hgap=2, vgap=2)
-        for k in keys:
-            bmp = self.MakeBitmap(colours[k])
-            b = buttons.GenBitmapToggleButton(self, k, bmp, size=btnSize )
-            b.SetBezelWidth(1)
-            b.SetUseFocusIndicator(False)
-            self.Bind(wx.EVT_BUTTON, self.OnSetColour, b)
-            self.cGrid.Add(b, 0)
-            self.clrBtns[colours[k]] = b
-        self.clrBtns[colours[keys[0]]].SetToggle(True)
-
-        # Make a grid of buttons for the thicknesses.  Attach each button
-        # event to self.OnSetThickness.  The button ID is the same as the
-        # thickness value.
-        self.thknsBtns = {}
-        self.tGrid = wx.GridSizer(cols=numCols, hgap=2, vgap=2)
-        for x in range(1, page.maxThickness+1):
-            b = buttons.GenToggleButton(self, x, str(x), size=btnSize)
-            b.SetBezelWidth(1)
-            b.SetUseFocusIndicator(False)
-            self.Bind(wx.EVT_BUTTON, self.OnSetThickness, b)
-            self.tGrid.Add(b, 0)
-            self.thknsBtns[x] = b
-        self.thknsBtns[1].SetToggle(True)
-
-        # Make a colour indicator view, it is registerd as a listener
-        # with the page view so it will be notified when the settings
-        # change
-        self.ci = ColourIndicator(self)
-        page.AddListener(self.ci)
-        page.Notify()
-        self.page = page
-
-        self.handlerPicker = wx.Choice(parent=self, id=wx.ID_ANY)
-        self.handlerPicker.Enable(False)
-        self.handlerPicker.Bind(wx.EVT_CHOICE, self.OnHandlerChoice)
-        self.currentHandler = None
-
-        self.codeEditor = PythonEditor.CreatePythonEditor(self)
-        self.codeEditor.SetSize((150,200))
-        self.codeEditor.Bind(stc.EVT_STC_CHANGE, self.CodeEditorTextChanged)
-
-        # Make a box sizer and put the two grids and the indicator
-        # view in it.
-        self.box = wx.BoxSizer(wx.VERTICAL)
-        self.box.Add(self.cGrid, 0, wx.ALL, spacing)
-        self.box.Add(self.tGrid, 0, wx.ALL, spacing)
-        self.box.Add(self.ci, 0, wx.EXPAND|wx.ALL, spacing)
-        self.box.Add(self.handlerPicker, 0, wx.EXPAND|wx.ALL, spacing)
-        self.box.Add(self.codeEditor, 0, wx.EXPAND|wx.ALL, spacing)
-        self.SetSizer(self.box)
-        self.SetAutoLayout(True)
-
-        self.SetDrawingMode(False)
-
-    def OnSetDrawingMode(self, event):
-        drawMode = (event.GetId() == 2)
-        self.SetDrawingMode(drawMode)
-
-    def SetDrawingMode(self, drawMode):
-        if drawMode:
-            self.box.Show(self.cGrid)
-            self.box.Show(self.tGrid)
-            self.box.Show(self.ci)
-            self.box.Hide(self.handlerPicker)
-            self.box.Hide(self.codeEditor)
-            self.page.SelectUIView(None)
-        else:
-            self.box.Hide(self.cGrid)
-            self.box.Hide(self.tGrid)
-            self.box.Hide(self.ci)
-            self.box.Show(self.handlerPicker)
-            self.box.Show(self.codeEditor)
-        self.box.Layout()
-        # Resize this view so it is just large enough for the
-        # minimum requirements of the sizer.
-        self.box.Fit(self)
-        self.page.SetDrawingMode(drawMode)
-
-    def CodeEditorTextChanged(self, event):
-        if self.page.GetSelectedUIView():
-            self.page.GetSelectedUIView().SetHandler(self.currentHandler, self.codeEditor.GetText())
-
-    def OnHandlerChoice(self, event):
-        self.UpdateHandlerForUIView(self.page.GetSelectedUIView(),
-                                    self.handlerPicker.GetItems()[self.handlerPicker.GetSelection()])
-
-    def UpdateHandlerForUIView(self, uiView, handlerName):
-        if uiView:
-            if handlerName:
-                self.currentHandler = handlerName
-            if uiView.GetHandler(handlerName) == None:
-                self.currentHandler = list(uiView.GetHandlers().keys())[0]
-            self.handlerPicker.SetItems(list(uiView.GetHandlers().keys()))
-            self.handlerPicker.SetStringSelection(self.currentHandler)
-            self.codeEditor.SetText(uiView.GetHandler(self.currentHandler))
-            self.handlerPicker.Enable(True)
-            self.codeEditor.Enable(True)
-        else:
-            self.handlerPicker.Set(["No Selected Item"])
-            self.codeEditor.SetText("")
-            self.handlerPicker.Enable(False)
-            self.codeEditor.Enable(False)
-
-    def MakeBitmap(self, colour):
-        """
-        We can create a bitmap of whatever we want by simply selecting
-        it into a wx.MemoryDC and drawing on it.  In this case we just set
-        a background brush and clear the dc.
-        """
-        bmp = wx.Bitmap(self.BMP_SIZE, self.BMP_SIZE)
-        dc = wx.MemoryDC()
-        dc.SelectObject(bmp)
-        dc.SetBackground(wx.Brush(colour))
-        dc.Clear()
-        dc.SelectObject(wx.NullBitmap)
-        return bmp
-
-    def OnSetColour(self, event):
-        """
-        Use the event ID to get the colour, set that colour in the page.
-        """
-        colour = self.page.menuColours[event.GetId()]
-        if colour != self.page.colour:
-            # untoggle the old colour button
-            self.clrBtns[self.page.colour].SetToggle(False)
-        # set the new colour
-        self.page.SetColour(colour)
-
-    def OnSetThickness(self, event):
-        """
-        Use the event ID to set the thickness in the page.
-        """
-        thickness = event.GetId()
-        if thickness != self.page.thickness:
-            # untoggle the old thickness button
-            self.thknsBtns[self.page.thickness].SetToggle(False)
-        # set the new colour
-        self.page.SetThickness(thickness)
-
-
-# ----------------------------------------------------------------------
-
-class ColourIndicator(wx.Window):
-    """
-    An instance of this class is used on the ControlPanel to show
-    a sample of what the current page line will look like.
-    """
-    def __init__(self, parent):
-        wx.Window.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
-        self.SetBackgroundColour(wx.WHITE)
-        self.SetMinSize( (45, 45) )
-        self.colour = self.thickness = None
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
-
-    def UpdateLine(self, colour, thickness):
-        """
-        The page view calls this method any time the colour
-        or line thickness changes.
-        """
-        self.colour = colour
-        self.thickness = thickness
-        self.Refresh()  # generate a paint event
-
-    def OnPaint(self, event):
-        """
-        This method is called when all or part of the view needs to be
-        redrawn.
-        """
-        dc = wx.PaintDC(self)
-        if self.colour:
-            sz = self.GetClientSize()
-            pen = wx.Pen(self.colour, self.thickness)
-            dc.SetPen(pen)
-            dc.DrawLine(10, int(sz.height/2), int(sz.width-10), int(sz.height/2))
-
-
-# ----------------------------------------------------------------------
 
 class PageAbout(wx.Dialog):
     """ An about box that uses an HTML view """

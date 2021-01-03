@@ -11,7 +11,7 @@ from wx.lib.docview import CommandProcessor, Command
 import sys
 from runner import Runner
 from six.moves import cPickle as pickle
-from draggableView import DraggableButton,DraggableTextField
+from uiViews import UiButton,UiTextField
 
 # ----------------------------------------------------------------------
 
@@ -148,14 +148,15 @@ class PageWindow(wx.Window):
         elif viewType == "textfield":
             command = AddUIViewCommand(True, 'Add TextField', self, "textfield", self.nextId)
             self.command_processor.Submit(command)
+        self.SelectUIView(self.GetUIViewById(self.nextId))
         self.nextId += 1
 
     def AddUiViewFromData(self, data):
         dragView = None
         if data["type"] == "button":
-            dragView = DraggableButton(self, data["id"])
+            dragView = UiButton(self, data["id"])
         elif data["type"] == "textfield":
-            dragView = DraggableTextField(self, data["id"])
+            dragView = UiTextField(self, data["id"])
         dragView.SetData(data)
         self.uiViews.append(dragView)
         dragView.SetEditing(self.isEditing)
@@ -221,6 +222,7 @@ class PageWindow(wx.Window):
     #     """called when the right mouse button is released, will popup the menu"""
     #     if self.isInDrawingMode:
     #         self.PopupMenu(self.menu)
+
     def OnLeftDown(self, event):
         """called when the left mouse button is pressed"""
         if self.isInDrawingMode:
@@ -373,9 +375,9 @@ class AddUIViewCommand(Command):
 
     def Do(self):
         if self.viewType == "button":
-            self.dragView = DraggableButton(self.page, self.viewId)
+            self.dragView = UiButton(self.page, self.viewId)
         elif self.viewType == "textfield":
-            self.dragView = DraggableTextField(self.page, self.viewId)
+            self.dragView = UiTextField(self.page, self.viewId)
 
         if self.dragView:
             self.dragView.view.Center()
