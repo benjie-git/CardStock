@@ -78,7 +78,7 @@ class PageFrame(wx.Frame):
 
         self.splitter.SplitVertically(self.page, self.cPanel)
         self.splitter.SetMinimumPaneSize(120)
-        self.splitter.SetSashPosition(self.splitter.GetSize()[0]-120)
+        self.splitter.SetSashPosition(self.splitter.GetSize()[0]-200)
         self.splitter.SetSashGravity(0.8)
 
         self.SetSelectedUIView(None)
@@ -198,8 +198,12 @@ class PageFrame(wx.Frame):
         sb = frame.CreateStatusBar()
         data = self.GetData()
         frame.page.LoadFromData(data)
-        frame.page.runner = Runner(frame.page, sb)
+        frame.page.SetEditing(False)
         frame.Show(True)
+
+        frame.page.runner = Runner(frame.page, sb)
+        if "OnStart" in frame.page.uiPage.handlers:
+            frame.page.runner.RunHandler(frame.page.uiPage, "OnStart")
 
     def OnMenuExit(self, event):
         self.Close()

@@ -72,12 +72,13 @@ class ControlPanel(wx.Panel):
         self.inspector = wx.grid.Grid(self, -1)
         self.inspector.CreateGrid(1, 2)
         self.inspector.SetRowSize(0, 24)
-        self.inspector.SetColSize(0, 100)
+        self.inspector.SetColSize(0, 70)
         self.inspector.SetColLabelSize(20)
         self.inspector.SetColLabelValue(0, "Inspector")
         self.inspector.SetColLabelValue(1, "Value")
         self.inspector.SetRowLabelSize(0)
         self.inspector.DisableDragRowSize()
+
         self.inspector.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.InspectorValueChanged)
 
         self.handlerPicker = wx.Choice(parent=self, id=wx.ID_ANY)
@@ -130,8 +131,10 @@ class ControlPanel(wx.Panel):
         self.page.SetDrawingMode(drawMode)
 
     def CodeEditorTextChanged(self, event):
-        if self.page.GetSelectedUIView():
-            self.page.GetSelectedUIView().SetHandler(self.currentHandler, self.codeEditor.GetText())
+        uiView = self.page.GetSelectedUIView()
+        if not uiView:
+            uiView = self.page.uiPage
+        uiView.SetHandler(self.currentHandler, self.codeEditor.GetText())
 
     def OnHandlerChoice(self, event):
         self.UpdateHandlerForUIView(self.page.GetSelectedUIView(),
@@ -144,62 +147,54 @@ class ControlPanel(wx.Panel):
     def UpdateInspectorForUIView(self, uiView):
         if self.inspector.GetNumberRows() > 0:
             self.inspector.DeleteRows(0, self.inspector.GetNumberRows())
-        if uiView:
-            keys = uiView.GetPropertyKeys()
-            self.inspector.InsertRows(0,len(keys))
-            r = 0
-            for k in keys:
-                self.inspector.SetCellValue(r, 0, k)
-                self.inspector.SetReadOnly(r, 0)
-                self.inspector.SetCellValue(r, 1, str(uiView.GetProperty(k)))
-                r+=1
-        else:
-            self.inspector.InsertRows(0,1)
-            self.inspector.SetCellValue(0, 0, "")
-            self.inspector.SetReadOnly(0, 0)
-            self.inspector.SetCellValue(0, 1, "")
-            self.inspector.SetReadOnly(0, 1)
+        if not uiView:
+            uiView = self.page.uiPage
+        keys = uiView.GetPropertyKeys()
+        self.inspector.InsertRows(0,len(keys))
+        r = 0
+        for k in keys:
+            self.inspector.SetCellValue(r, 0, k)
+            self.inspector.SetReadOnly(r, 0)
+            self.inspector.SetCellValue(r, 1, str(uiView.GetProperty(k)))
+            r+=1
         self.Layout()
 
     def InspectorValueChanged(self, event):
         uiView = self.page.GetSelectedUIView()
-        if uiView:
-            key = self.inspector.GetCellValue(event.GetRow(), 0)
-            oldVal = uiView.GetProperty(key)
-            valStr = self.inspector.GetCellValue(event.GetRow(), 1)
-            val = valStr
+        if not uiView:
+            uiView = self.page.uiPage
+        key = self.inspector.GetCellValue(event.GetRow(), 0)
+        oldVal = uiView.GetProperty(key)
+        valStr = self.inspector.GetCellValue(event.GetRow(), 1)
+        val = valStr
 
-            try:
-                if isinstance(oldVal, bool):
-                    val = valStr[0].upper() == "T"
-                elif isinstance(oldVal, int):
-                    val = int(valStr)
-                elif isinstance(oldVal, float):
-                    val = float(valStr)
-                elif isinstance(oldVal, list):
-                    val = ast.literal_eval(valStr)
-            except:
-                val = oldVal # On any conversion failure, use old value
+        try:
+            if isinstance(oldVal, bool):
+                val = valStr[0].upper() == "T"
+            elif isinstance(oldVal, int):
+                val = int(valStr)
+            elif isinstance(oldVal, float):
+                val = float(valStr)
+            elif isinstance(oldVal, list):
+                val = ast.literal_eval(valStr)
+        except:
+            val = oldVal # On any conversion failure, use old value
 
-            uiView.SetProperty(key, val)
-            self.inspector.SetCellValue(event.GetRow(), 1, str(val))
+        uiView.SetProperty(key, val)
+        self.inspector.SetCellValue(event.GetRow(), 1, str(val))
 
     def UpdateHandlerForUIView(self, uiView, handlerName):
-        if uiView:
-            if handlerName:
-                self.currentHandler = handlerName
-            if uiView.GetHandler(handlerName) == None:
-                self.currentHandler = list(uiView.GetHandlers().keys())[0]
-            self.handlerPicker.SetItems(list(uiView.GetHandlers().keys()))
-            self.handlerPicker.SetStringSelection(self.currentHandler)
-            self.codeEditor.SetText(uiView.GetHandler(self.currentHandler))
-            self.handlerPicker.Enable(True)
-            self.codeEditor.Enable(True)
-        else:
-            self.handlerPicker.Set(["No Selected Item"])
-            self.codeEditor.SetText("")
-            self.handlerPicker.Enable(False)
-            self.codeEditor.Enable(False)
+        if not uiView:
+            uiView = self.page.uiPage
+        if handlerName:
+            self.currentHandler = handlerName
+        if uiView.GetHandler(handlerName) == None:
+            self.currentHandler = list(uiView.GetHandlers().keys())[0]
+        self.handlerPicker.SetItems(list(uiView.GetHandlers().keys()))
+        self.handlerPicker.SetStringSelection(self.currentHandler)
+        self.codeEditor.SetText(uiView.GetHandler(self.currentHandler))
+        self.handlerPicker.Enable(True)
+        self.codeEditor.Enable(True)
 
     def MakeBitmap(self, colour):
         """

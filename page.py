@@ -11,7 +11,7 @@ from wx.lib.docview import CommandProcessor, Command
 import sys
 from runner import Runner
 from six.moves import cPickle as pickle
-from uiViews import UiButton,UiTextField
+from uiViews import UiButton, UiTextField, UiPage
 
 # ----------------------------------------------------------------------
 
@@ -52,7 +52,8 @@ class PageWindow(wx.Window):
         self.runner = None
         # self.MakeMenu()
 
-        self.uiViews = []
+        self.uiPage = UiPage(self)
+        self.uiViews = [self.uiPage]
 
         self.selectedView = None
         self.handlers = {"OnOpen":'print("Page Opened")'}
@@ -92,9 +93,13 @@ class PageWindow(wx.Window):
 
     def ClearAll(self):
         self.SetLinesData([])
-        for v in self.uiViews.copy():
-            self.uiViews.remove(v)
-            v.view.Destroy()
+        for ui in self.uiViews.copy():
+            if ui.type != "page":
+                self.uiViews.remove(ui)
+                ui.view.Destroy()
+            else:
+                for k,v in ui.GetHandlers().items():
+                    ui.SetHandler(k,"")
 
     def ReadFile(self, filename):
         try:
@@ -152,14 +157,17 @@ class PageWindow(wx.Window):
         self.nextId += 1
 
     def AddUiViewFromData(self, data):
-        dragView = None
+        uiView = None
         if data["type"] == "button":
-            dragView = UiButton(self, data["id"])
+            uiView = UiButton(self, data["id"])
+            self.uiViews.append(uiView)
         elif data["type"] == "textfield":
-            dragView = UiTextField(self, data["id"])
-        dragView.SetData(data)
-        self.uiViews.append(dragView)
-        dragView.SetEditing(self.isEditing)
+            uiView = UiTextField(self, data["id"])
+            self.uiViews.append(uiView)
+        elif data["type"] == "page":
+            uiView = self.uiPage
+        uiView.SetData(data)
+        uiView.SetEditing(self.isEditing)
 
     def GetLinesData(self):
         return self.lines[:]
@@ -182,6 +190,28 @@ class PageWindow(wx.Window):
 
     def SetHandlersData(self, data):
         self.handlers = data
+
+    def GetSelectedUIView(self):
+        return self.selectedView
+
+    def SelectUIView(self, view):
+        if self.selectedView:
+            self.selectedView.SetSelected(False)
+        if view:
+            view.SetSelected(True)
+        self.selectedView = view
+        self.designer.SetSelectedUIView(view)
+
+    def GetUIViewById(self, viewId):
+        for ui in self.uiViews:
+            if ui.view.GetId() == viewId:
+                return ui
+        return None
+
+    def RemoveUIViewById(self, viewId):
+        for ui in self.uiViews.copy():
+            if ui.view.GetId() == viewId:
+                self.uiViews.remove(ui)
 
     # def MakeMenu(self):
     #     """Make a menu that can be popped up later"""
@@ -232,6 +262,8 @@ class PageWindow(wx.Window):
             self.CaptureMouse()
         elif self.isEditing:
             self.SelectUIView(None)
+        else:
+            event.Skip()
 
     def OnLeftUp(self, event):
         """called when the left mouse button is released"""
@@ -242,28 +274,8 @@ class PageWindow(wx.Window):
             self.curLine = []
             self.isDrawing = False
             self.ReleaseMouse()
-
-    def GetSelectedUIView(self):
-        return self.selectedView
-
-    def SelectUIView(self, view):
-        if self.selectedView:
-            self.selectedView.SetSelected(False)
-        if view:
-            view.SetSelected(True)
-        self.selectedView = view
-        self.designer.SetSelectedUIView(view)
-
-    def GetUIViewById(self, viewId):
-        for ui in self.uiViews:
-            if ui.view.GetId() == viewId:
-                return ui
-        return None
-
-    def RemoveUIViewById(self, viewId):
-        for ui in self.uiViews.copy():
-            if ui.view.GetId() == viewId:
-                self.uiViews.remove(ui)
+        else:
+            event.Skip()
 
     def OnMotion(self, event):
         """
@@ -279,6 +291,8 @@ class PageWindow(wx.Window):
             self.curLine.append(coords)
             dc.DrawLine(*coords)
             self.pos = pos
+        else:
+            event.Skip()
 
     def OnSize(self, event):
         """
@@ -411,5 +425,7 @@ if __name__ == '__main__':
         frame.page.ReadFile(sys.argv[1])
     frame.page.runner = Runner(frame.page)
     frame.Show(True)
+    if "OnStart" in frame.page.uiPage.handlers:
+        frame.page.runner.RunHandler(frame.page.uiPage, "OnStart")
     app.MainLoop()
 

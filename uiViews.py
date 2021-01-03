@@ -12,14 +12,21 @@ class UiView():
         self.view = uiView
         self.type = None
         self.handlers = {}
+        self.handlers["OnMouseDown"] = ""
+        self.handlers["OnMouseMove"] = ""
+        self.handlers["OnMouseUp"] = ""
+        self.handlers["OnMouseEnter"] = ""
+        self.handlers["OnMouseExit"] = ""
         self.properties = {}
         self.customPropKeys = ["size", "position"]
         self.delta = ((0, 0))
         self.isEditing = False
         self.isSelected = False
-        self.view.Bind(wx.EVT_LEFT_DOWN, self.OnDown)
-        self.view.Bind(wx.EVT_MOTION, self.OnMove)
-        self.view.Bind(wx.EVT_LEFT_UP, self.OnRelease)
+        self.view.Bind(wx.EVT_ENTER_WINDOW, self.OnMouseEnter)
+        self.view.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
+        self.view.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
+        self.view.Bind(wx.EVT_MOTION, self.OnMouseMove)
+        self.view.Bind(wx.EVT_LEFT_UP, self.OnMouseUp)
 
         self.selectionBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(0,0), size=self.view.GetSize(), style=0)
         self.selectionBox.Bind(wx.EVT_PAINT, self.OnPaintSelectionBox)
@@ -96,8 +103,8 @@ class UiView():
         for k,v in data["properties"].items():
             self.SetProperty(k, v)
 
-    def OnDown(self, event):
-        if self.isEditing:
+    def OnMouseDown(self, event):
+        if self.type != "page" and self.isEditing:
             self.view.CaptureMouse()
             x, y = self.page.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
             originx, originy = self.view.GetPosition()
@@ -107,26 +114,67 @@ class UiView():
             self.delta = ((dx, dy))
             self.page.SelectUIView(self)
         else:
+            if "OnMouseDown" in self.handlers:
+                self.page.runner.RunHandler(self, "OnMouseDown")
             event.Skip()
 
-    def OnMove(self, event):
-        if self.isEditing and event.Dragging():
+    def OnMouseMove(self, event):
+        if self.type != "page" and self.isEditing and event.Dragging():
             x, y = self.page.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
             fp = (x-self.delta[0], y-self.delta[1])
             self.view.Move(fp)
+        elif not self.isEditing:
+            if "OnMouseMove" in self.handlers:
+                self.page.runner.RunHandler(self, "OnMouseMove")
+            event.Skip()
 
-    def OnRelease(self, event):
-        if self.isEditing and self.view.HasCapture():
+    def OnMouseUp(self, event):
+        if self.type != "page" and self.isEditing and self.view.HasCapture():
             endx, endy = self.view.GetPosition()
             command = MoveUIViewCommand(True, 'Move', self.page, self, (endx-self.moveOrigin[0], endy-self.moveOrigin[1]))
             self.view.SetPosition(self.moveOrigin)
             self.page.command_processor.Submit(command)
             self.view.ReleaseMouse()
+        elif not self.isEditing:
+            if "OnMouseUp" in self.handlers:
+                self.page.runner.RunHandler(self, "OnMouseUp")
+            event.Skip()
+
+    def OnMouseEnter(self, event):
+        if not self.isEditing:
+            if "OnMouseEnter" in self.handlers:
+                self.page.runner.RunHandler(self, "OnMouseEnter")
+            event.Skip()
+
+    def OnMouseExit(self, event):
+        if not self.isEditing:
+            if "OnMouseExit" in self.handlers:
+                self.page.runner.RunHandler(self, "OnMouseExit")
+            event.Skip()
 
     def OnButton(self, event):
         if not self.isEditing:
             if "OnClick" in self.handlers:
                 self.page.runner.RunHandler(self, "OnClick")
+            event.Skip()
+
+    def OnTextEnter(self, event):
+        if not self.isEditing:
+            if "OnTextEnter" in self.handlers:
+                self.page.runner.RunHandler(self, "OnTextEnter")
+            event.Skip()
+
+    def OnTextChanged(self, event):
+        if not self.isEditing:
+            if "OnTextChanged" in self.handlers:
+                self.page.runner.RunHandler(self, "OnTextChanged")
+            event.Skip()
+
+    def OnIdle(self, event):
+        if not self.isEditing:
+            if "OnIdle" in self.handlers:
+                self.page.runner.RunHandler(self, "OnIdle")
+            event.Skip()
 
     def OnPaintSelectionBox(self, event):
         dc = wx.PaintDC(self.selectionBox)
@@ -139,13 +187,27 @@ class UiButton(UiView):
     def __init__(self, page, viewId):
         button = wx.Button(parent=page, id=viewId, label="Button")
         UiView.__init__(self, page, button)
-        self.type = "button"
-        self.handlers["OnClick"] = ""
-        self.handlers["OnIdle"] = ""
-        self.properties["name"] = "button_" + str(viewId-999)
 
+        # Add easier methods to a new Button
+        def SetTitle(self, title):
+            self.SetLabel(title)
+        button.SetTitle = types.MethodType(SetTitle, button)
+
+        def GetTitle(self):
+            return self.GetLabel()
+        button.SetTitle = types.MethodType(GetTitle, button)
+
+        self.type = "button"
+        self.properties["name"] = "button_" + str(viewId-999)
         self.customPropKeys.append("title")
         self.SetProperty("title", "Button")
+
+        handlers = {}
+        handlers["OnClick"] = ""
+        for k,v in self.handlers.items():
+            handlers[k] = v
+        self.handlers = handlers
+
         self.view.Bind(wx.EVT_BUTTON, self.OnButton)
 
     def GetPropertyKeys(self):
@@ -166,7 +228,7 @@ class UiButton(UiView):
 
 class UiTextField(UiView):
     def __init__(self, page, viewId):
-        field = wx.TextCtrl(parent=page, id=viewId, value="TextField")
+        field = wx.TextCtrl(parent=page, id=viewId, value="TextField", style=wx.TE_PROCESS_ENTER)
 
         # Add easier methods to a new TextCtrl
         def SetText(self, text):
@@ -179,14 +241,20 @@ class UiTextField(UiView):
 
         UiView.__init__(self, page, field)
         self.type = "textfield"
-        self.handlers["OnTextChanged"] = ""
-        self.handlers["OnEnter"] = ""
         self.properties["name"] = "field_" + str(viewId-999)
-
         self.customPropKeys.append("text")
         self.SetProperty("text", "Text")
-
         self.properties["editable"] = True
+
+        handlers = {}
+        handlers["OnTextEnter"] = ""
+        handlers["OnTextChanged"] = ""
+        for k,v in self.handlers.items():
+            handlers[k] = v
+        self.handlers = handlers
+
+        self.view.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
+        self.view.Bind(wx.EVT_CHAR, self.OnTextChanged)
 
     def GetPropertyKeys(self):
         # Custom property order for the inspector
@@ -209,6 +277,27 @@ class UiTextField(UiView):
             self.view.SetEditable(False)
         else:
             self.view.SetEditable(self.GetProperty("editable"))
+
+
+class UiPage(UiView):
+    def __init__(self, page):
+        UiView.__init__(self, page, page)
+        self.type = "page"
+        self.properties["name"] = "page_1"
+        self.customPropKeys.remove("position")
+
+        handlers = {}
+        handlers["OnStart"] = ""
+        handlers["OnIdle"] = ""
+        for k,v in self.handlers.items():
+            handlers[k] = v
+        self.handlers = handlers
+
+        page.Bind(wx.EVT_IDLE, self.OnIdle)
+
+    def GetPropertyKeys(self):
+        # Custom property order for the inspector
+        return ["name", "size"]
 
 
 class MoveUIViewCommand(Command):
