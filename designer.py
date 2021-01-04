@@ -10,13 +10,12 @@ implemented using an wx.html.HtmlWindow.
 """
 
 import os
-
-from six.moves import cPickle as pickle
-
+import json
 import wx
 import wx.html
-from page import PageWindow, SoloPageFrame
+from page import PageWindow
 from controlPanel import ControlPanel
+from viewer import ViewerFrame
 import version
 from runner import Runner
 
@@ -27,7 +26,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # ----------------------------------------------------------------------
 
 
-class PageFrame(wx.Frame):
+class DesignerFrame(wx.Frame):
     """
     A pageFrame contains a pageWindow and a ControlPanel and manages
     their layout with a wx.BoxSizer.  A menu and associated event handlers
@@ -88,10 +87,9 @@ class PageFrame(wx.Frame):
             data = {}
             data["lines"] = self.page.GetLinesData()
             data["uiviews"] = self.page.GetUIViewsData()
-            data["handlers"] = self.page.GetHandlersData()
 
-            with open(self.filename, 'wb') as f:
-                pickle.dump(data, f)
+            with open(self.filename, 'w') as f:
+                json.dump(data, f)
 
     def ReadFile(self):
         if self.filename:
@@ -190,20 +188,15 @@ class PageFrame(wx.Frame):
         data = {}
         data["lines"] = self.page.GetLinesData()
         data["uiviews"] = self.page.GetUIViewsData()
-        data["handlers"] = self.page.GetHandlersData()
         return data
 
     def OnMenuRun(self, event):
-        frame = SoloPageFrame(None)
+        frame = ViewerFrame(None)
         sb = frame.CreateStatusBar()
         data = self.GetData()
         frame.page.LoadFromData(data)
         frame.page.SetEditing(False)
-        frame.Show(True)
-
-        frame.page.runner = Runner(frame.page, sb)
-        if "OnStart" in frame.page.uiPage.handlers:
-            frame.page.runner.RunHandler(frame.page.uiPage, "OnStart")
+        frame.RunViewer(sb)
 
     def OnMenuExit(self, event):
         self.Close()
@@ -302,7 +295,7 @@ class PageApp(wx.App, InspectionMixin):
     def OnInit(self):
         self.Init() # for InspectionMixin
 
-        frame = PageFrame(None)
+        frame = DesignerFrame(None)
         frame.Show(True)
         self.SetTopWindow(frame)
         self.SetAppDisplayName('PyPage')

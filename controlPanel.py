@@ -76,10 +76,11 @@ class ControlPanel(wx.Panel):
         self.inspector.SetColLabelSize(20)
         self.inspector.SetColLabelValue(0, "Inspector")
         self.inspector.SetColLabelValue(1, "Value")
-        self.inspector.SetRowLabelSize(0)
+        self.inspector.SetRowLabelSize(1)
         self.inspector.DisableDragRowSize()
 
         self.inspector.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.InspectorValueChanged)
+        self.inspector.Bind(wx.EVT_KEY_DOWN, self.OnGridEnter)
 
         self.handlerPicker = wx.Choice(parent=self, id=wx.ID_ANY)
         self.handlerPicker.Enable(False)
@@ -89,6 +90,10 @@ class ControlPanel(wx.Panel):
         self.codeEditor = PythonEditor.CreatePythonEditor(self)
         self.codeEditor.SetSize((150,2000))
         self.codeEditor.Bind(stc.EVT_STC_CHANGE, self.CodeEditorTextChanged)
+
+        self.lastSelectedUIView = None
+        self.UpdateInspectorForUIView(None)
+        self.UpdateHandlerForUIView(None, None)
 
         # ----------
 
@@ -130,6 +135,14 @@ class ControlPanel(wx.Panel):
         self.Layout()
         self.page.SetDrawingMode(drawMode)
 
+    def OnGridEnter(self, event):
+        if not self.inspector.IsCellEditControlShown() and \
+                (event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER):
+            if self.inspector.GetGridCursorCol() == 1:
+                self.inspector.EnableCellEditControl()
+        else:
+            event.Skip()
+
     def CodeEditorTextChanged(self, event):
         uiView = self.page.GetSelectedUIView()
         if not uiView:
@@ -141,8 +154,10 @@ class ControlPanel(wx.Panel):
                                     self.handlerPicker.GetItems()[self.handlerPicker.GetSelection()])
 
     def UpdateForUIView(self, uiView):
-        self.UpdateInspectorForUIView(uiView)
-        self.UpdateHandlerForUIView(uiView, None)
+        if uiView != self.lastSelectedUIView:
+            self.UpdateInspectorForUIView(uiView)
+            self.UpdateHandlerForUIView(uiView, None)
+            self.lastSelectedUIView = uiView
 
     def UpdateInspectorForUIView(self, uiView):
         if self.inspector.GetNumberRows() > 0:
@@ -186,6 +201,8 @@ class ControlPanel(wx.Panel):
     def UpdateHandlerForUIView(self, uiView, handlerName):
         if not uiView:
             uiView = self.page.uiPage
+        if handlerName == None:
+            handlerName = uiView.lastEditedHandler
         if handlerName:
             self.currentHandler = handlerName
         if uiView.GetHandler(handlerName) == None:
@@ -195,6 +212,7 @@ class ControlPanel(wx.Panel):
         self.codeEditor.SetText(uiView.GetHandler(self.currentHandler))
         self.handlerPicker.Enable(True)
         self.codeEditor.Enable(True)
+        uiView.lastEditedHandler = self.currentHandler
 
     def MakeBitmap(self, colour):
         """

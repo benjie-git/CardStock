@@ -9,8 +9,8 @@ can do simple drawings upon. and add Buttons and TextFields to.
 import wx
 from wx.lib.docview import CommandProcessor, Command
 import sys
+import json
 from runner import Runner
-from six.moves import cPickle as pickle
 from uiViews import UiButton, UiTextField, UiPage
 
 # ----------------------------------------------------------------------
@@ -54,20 +54,20 @@ class PageWindow(wx.Window):
 
         self.uiPage = UiPage(self)
         self.uiViews = [self.uiPage]
+        self.timer = None
 
         self.selectedView = None
-        self.handlers = {"OnOpen":'print("Page Opened")'}
 
         self.InitBuffer()
 
         self.UpdateCursor()
 
         # hook some mouse events
-        self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
-        self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+        self.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
+        self.Bind(wx.EVT_LEFT_UP, self.OnMouseUp)
         # if editing:
-        #     self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
-        self.Bind(wx.EVT_MOTION, self.OnMotion)
+        #     self.Bind(wx.EVT_RIGHT_UP, self.OnMouseRightUp)
+        self.Bind(wx.EVT_MOTION, self.OnMouseMove)
 
         # the view resize event and idle events for managing the buffer
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -83,6 +83,10 @@ class PageWindow(wx.Window):
         self.isEditing = editing
         for ui in self.uiViews:
             ui.SetEditing(editing)
+        if not editing:
+            self.timer = wx.Timer(self)
+            self.Bind(wx.EVT_TIMER, self.uiPage.OnIdle, self.timer)
+            self.timer.Start(100)
 
     def UpdateCursor(self):
         self.SetCursor(wx.Cursor(wx.CURSOR_PENCIL if self.isInDrawingMode else wx.CURSOR_HAND))
@@ -103,18 +107,14 @@ class PageWindow(wx.Window):
 
     def ReadFile(self, filename):
         try:
-            with open(filename, 'rb') as f:
-                data = pickle.load(f)
+            with open(filename, 'r') as f:
+                data = json.load(f)
             self.LoadFromData(data)
-        except pickle.UnpicklingError:
-            wx.MessageBox("%s is not a page file." %filename,
-                          "oops!", style=wx.OK | wx.ICON_EXCLAMATION)
 
     def LoadFromData(self, data):
         self.ClearAll()
         self.SetLinesData(data["lines"])
         self.SetUIViewsData(data["uiviews"])
-        self.SetHandlersData(data["handlers"])
 
     def SetDesigner(self, designer):
         self.designer = designer
@@ -123,6 +123,8 @@ class PageWindow(wx.Window):
         if hasattr(self, "menu"):
             self.menu.Destroy()
             del self.menu
+        if self.timer:
+            self.timer.Stop()
 
     def InitBuffer(self):
         """Initialize the bitmap used for buffering the display."""
@@ -160,12 +162,11 @@ class PageWindow(wx.Window):
         uiView = None
         if data["type"] == "button":
             uiView = UiButton(self, data["id"])
-            self.uiViews.append(uiView)
         elif data["type"] == "textfield":
             uiView = UiTextField(self, data["id"])
-            self.uiViews.append(uiView)
         elif data["type"] == "page":
             uiView = self.uiPage
+        self.uiViews.append(uiView)
         uiView.SetData(data)
         uiView.SetEditing(self.isEditing)
 
@@ -184,12 +185,6 @@ class PageWindow(wx.Window):
         self.uiViews = []
         for v in data:
             self.AddUiViewFromData(v)
-
-    def GetHandlersData(self):
-        return self.handlers
-
-    def SetHandlersData(self, data):
-        self.handlers = data
 
     def GetSelectedUIView(self):
         return self.selectedView
@@ -248,49 +243,52 @@ class PageWindow(wx.Window):
     #     else:
     #         event.Check(False)
     #
-    # def OnRightUp(self, event):
+    # def OnMouseRightUp(self, event):
     #     """called when the right mouse button is released, will popup the menu"""
     #     if self.isInDrawingMode:
     #         self.PopupMenu(self.menu)
 
-    def OnLeftDown(self, event):
+    def OnMouseDown(self, event):
         """called when the left mouse button is pressed"""
-        if self.isInDrawingMode:
-            self.curLine = []
-            self.pos = event.GetPosition()
-            self.isDrawing = True
-            self.CaptureMouse()
-        elif self.isEditing:
-            self.SelectUIView(None)
+        if self.isEditing:
+            if self.isInDrawingMode:
+                self.curLine = []
+                self.pos = event.GetPosition()
+                self.isDrawing = True
+                self.CaptureMouse()
+            else:
+                self.SelectUIView(None)
         else:
             event.Skip()
 
-    def OnLeftUp(self, event):
+    def OnMouseUp(self, event):
         """called when the left mouse button is released"""
-        if self.HasCapture():
-            command = AddLineCommand(True, 'Add Line', self,
-                                     (self.colour, self.thickness, self.curLine) )
-            self.command_processor.Submit(command)
-            self.curLine = []
-            self.isDrawing = False
-            self.ReleaseMouse()
+        if self.isEditing:
+            if self.HasCapture():
+                command = AddLineCommand(True, 'Add Line', self,
+                                         (self.colour, self.thickness, self.curLine) )
+                self.command_processor.Submit(command)
+                self.curLine = []
+                self.isDrawing = False
+                self.ReleaseMouse()
         else:
             event.Skip()
 
-    def OnMotion(self, event):
+    def OnMouseMove(self, event):
         """
         Called when the mouse is in motion.  If the left button is
         dragging then draw a line from the last event position to the
         current one.  Save the coordinants for redraws.
         """
-        if self.isDrawing and event.Dragging() and event.LeftIsDown():
-            dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
-            dc.SetPen(self.pen)
-            pos = event.GetPosition()
-            coords = (self.pos.x, self.pos.y, pos.x, pos.y)
-            self.curLine.append(coords)
-            dc.DrawLine(*coords)
-            self.pos = pos
+        if self.isEditing:
+            if self.isDrawing and event.Dragging() and event.LeftIsDown():
+                dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
+                dc.SetPen(self.pen)
+                pos = event.GetPosition()
+                coords = (self.pos.x, self.pos.y, pos.x, pos.y)
+                self.curLine.append(coords)
+                dc.DrawLine(*coords)
+                self.pos = pos
         else:
             event.Skip()
 
@@ -300,6 +298,7 @@ class PageWindow(wx.Window):
         handler will resize the buffer.
         """
         self.reInitBuffer = True
+        event.Skip()
 
     def OnIdle(self, event):
         """
@@ -311,6 +310,7 @@ class PageWindow(wx.Window):
         if self.reInitBuffer:
             self.InitBuffer()
             self.Refresh(False)
+        event.Skip()
 
     def OnPaint(self, event):
         """
@@ -405,27 +405,3 @@ class AddUIViewCommand(Command):
         self.dragView.view.Destroy()
         self.dragView = None
         return True
-
-
-# ----------------------------------------------------------------------
-
-class SoloPageFrame(wx.Frame):
-    def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, "Page", size=(800,600),
-                         style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
-        self.page = PageWindow(self, -1)
-
-# ----------------------------------------------------------------------
-
-
-if __name__ == '__main__':
-    app = wx.App()
-    frame = SoloPageFrame(None)
-    if len(sys.argv) > 1:
-        frame.page.ReadFile(sys.argv[1])
-    frame.page.runner = Runner(frame.page)
-    frame.Show(True)
-    if "OnStart" in frame.page.uiPage.handlers:
-        frame.page.runner.RunHandler(frame.page.uiPage, "OnStart")
-    app.MainLoop()
-

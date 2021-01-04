@@ -7,11 +7,12 @@ from wx.lib.docview import CommandProcessor, Command
 import types
 
 class UiView():
-    def __init__(self, page, uiView):
+    def __init__(self, type, page, uiView):
         self.page = page
         self.view = uiView
-        self.type = None
+        self.type = type
         self.handlers = {}
+        self.lastEditedHandler = None
         self.handlers["OnMouseDown"] = ""
         self.handlers["OnMouseMove"] = ""
         self.handlers["OnMouseUp"] = ""
@@ -26,6 +27,8 @@ class UiView():
         self.view.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
         self.view.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
         self.view.Bind(wx.EVT_MOTION, self.OnMouseMove)
+        if self.type != "page":
+            self.view.Bind(wx.EVT_MOTION, self.page.uiPage.OnMouseMove)
         self.view.Bind(wx.EVT_LEFT_UP, self.OnMouseUp)
 
         self.selectionBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(0,0), size=self.view.GetSize(), style=0)
@@ -115,7 +118,7 @@ class UiView():
             self.page.SelectUIView(self)
         else:
             if "OnMouseDown" in self.handlers:
-                self.page.runner.RunHandler(self, "OnMouseDown")
+                self.page.runner.RunHandler(self, "OnMouseDown", event)
             event.Skip()
 
     def OnMouseMove(self, event):
@@ -125,7 +128,7 @@ class UiView():
             self.view.Move(fp)
         elif not self.isEditing:
             if "OnMouseMove" in self.handlers:
-                self.page.runner.RunHandler(self, "OnMouseMove")
+                self.page.runner.RunHandler(self, "OnMouseMove", event)
             event.Skip()
 
     def OnMouseUp(self, event):
@@ -137,43 +140,43 @@ class UiView():
             self.view.ReleaseMouse()
         elif not self.isEditing:
             if "OnMouseUp" in self.handlers:
-                self.page.runner.RunHandler(self, "OnMouseUp")
+                self.page.runner.RunHandler(self, "OnMouseUp", event)
             event.Skip()
 
     def OnMouseEnter(self, event):
         if not self.isEditing:
             if "OnMouseEnter" in self.handlers:
-                self.page.runner.RunHandler(self, "OnMouseEnter")
+                self.page.runner.RunHandler(self, "OnMouseEnter", event)
             event.Skip()
 
     def OnMouseExit(self, event):
         if not self.isEditing:
             if "OnMouseExit" in self.handlers:
-                self.page.runner.RunHandler(self, "OnMouseExit")
+                self.page.runner.RunHandler(self, "OnMouseExit", event)
             event.Skip()
 
     def OnButton(self, event):
         if not self.isEditing:
             if "OnClick" in self.handlers:
-                self.page.runner.RunHandler(self, "OnClick")
+                self.page.runner.RunHandler(self, "OnClick", event)
             event.Skip()
 
     def OnTextEnter(self, event):
         if not self.isEditing:
             if "OnTextEnter" in self.handlers:
-                self.page.runner.RunHandler(self, "OnTextEnter")
+                self.page.runner.RunHandler(self, "OnTextEnter", event)
             event.Skip()
 
     def OnTextChanged(self, event):
         if not self.isEditing:
             if "OnTextChanged" in self.handlers:
-                self.page.runner.RunHandler(self, "OnTextChanged")
+                self.page.runner.RunHandler(self, "OnTextChanged", event)
             event.Skip()
 
     def OnIdle(self, event):
         if not self.isEditing:
             if "OnIdle" in self.handlers:
-                self.page.runner.RunHandler(self, "OnIdle")
+                self.page.runner.RunHandler(self, "OnIdle", event)
             event.Skip()
 
     def OnPaintSelectionBox(self, event):
@@ -186,18 +189,17 @@ class UiView():
 class UiButton(UiView):
     def __init__(self, page, viewId):
         button = wx.Button(parent=page, id=viewId, label="Button")
-        UiView.__init__(self, page, button)
+        UiView.__init__(self, "button", page, button)
 
         # Add easier methods to a new Button
         def SetTitle(self, title):
-            self.SetLabel(title)
+            self.SetLabel(str(title))
         button.SetTitle = types.MethodType(SetTitle, button)
 
         def GetTitle(self):
             return self.GetLabel()
         button.SetTitle = types.MethodType(GetTitle, button)
 
-        self.type = "button"
         self.properties["name"] = "button_" + str(viewId-999)
         self.customPropKeys.append("title")
         self.SetProperty("title", "Button")
@@ -232,15 +234,14 @@ class UiTextField(UiView):
 
         # Add easier methods to a new TextCtrl
         def SetText(self, text):
-            self.ChangeValue(text)
+            self.ChangeValue(str(text))
         field.SetText = types.MethodType(SetText, field)
 
         def GetText(self):
             return self.GetValue()
         field.GetText = types.MethodType(GetText, field)
 
-        UiView.__init__(self, page, field)
-        self.type = "textfield"
+        UiView.__init__(self, "textfield", page, field)
         self.properties["name"] = "field_" + str(viewId-999)
         self.customPropKeys.append("text")
         self.SetProperty("text", "Text")
@@ -281,8 +282,7 @@ class UiTextField(UiView):
 
 class UiPage(UiView):
     def __init__(self, page):
-        UiView.__init__(self, page, page)
-        self.type = "page"
+        UiView.__init__(self, "page", page, page)
         self.properties["name"] = "page_1"
         self.customPropKeys.remove("position")
 
@@ -292,8 +292,6 @@ class UiPage(UiView):
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
-
-        page.Bind(wx.EVT_IDLE, self.OnIdle)
 
     def GetPropertyKeys(self):
         # Custom property order for the inspector
