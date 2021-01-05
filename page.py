@@ -199,7 +199,8 @@ class PageWindow(wx.Window):
         if view:
             view.SetSelected(True)
         self.selectedView = view
-        self.designer.SetSelectedUIView(view)
+        if self.designer:
+            self.designer.SetSelectedUIView(view)
 
     def UpdateSelectedUIView(self):
         if self.designer:

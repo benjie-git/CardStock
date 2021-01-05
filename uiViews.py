@@ -21,29 +21,46 @@ class UiView():
         self.properties = {}
         self.customPropKeys = ["size", "position"]
         self.delta = ((0, 0))
+        self.minSize = (20,20)
         self.isEditing = False
         self.isSelected = False
         self.view.Bind(wx.EVT_ENTER_WINDOW, self.OnMouseEnter)
         self.view.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
         self.view.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
         self.view.Bind(wx.EVT_MOTION, self.OnMouseMove)
+        self.view.Bind(wx.EVT_SIZE, self.OnResize)
         if self.type != "page":
             self.view.Bind(wx.EVT_MOTION, self.page.uiPage.OnMouseMove)
         self.view.Bind(wx.EVT_LEFT_UP, self.OnMouseUp)
 
-        self.selectionBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(0,0), size=self.view.GetSize(), style=0)
+        viewSize = list(self.view.GetSize())
+        self.selectionBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(0,0), size=viewSize, style=0)
         self.selectionBox.Bind(wx.EVT_PAINT, self.OnPaintSelectionBox)
         self.selectionBox.SetBackgroundColour(None)
         self.selectionBox.Enable(False)
         self.selectionBox.Hide()
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.selectionBox, 1, wx.EXPAND | wx.ALL, 0)
-        #sizer.SetSizeHints(self.view)
-        self.view.SetSizer(sizer)
+        self.resizeBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(viewSize[0]-10, viewSize[1]-10), size=(10,10), style=0)
+        self.resizeBox.SetBackgroundColour('Blue')
+        self.resizeBox.Enable(False)
+        self.resizeBox.Hide()
+
+    def OnResize(self, event):
+        setw,seth = self.view.GetSize()
+        w,h = (setw,seth)
+        if w < 20:
+            w = 20
+        if h < 20:
+            h = 20
+        if w != setw or h != seth:
+            self.view.SetSize(w,h)
+        self.selectionBox.SetSize(w,h)
+        x,y = self.view.GetPosition()
+        self.resizeBox.SetRect((w-10, h-10, 10, 10))
 
     def DestroyView(self):
         self.selectionBox.Destroy()
+        self.resizeBox.Destroy()
         self.view.Destroy()
 
     def SetEditing(self, editing):
@@ -56,6 +73,7 @@ class UiView():
     def SetSelected(self, selected):
         self.isSelected = selected
         self.selectionBox.Show(selected)
+        self.resizeBox.Show(selected)
         self.view.Refresh()
         self.view.Update()
 
@@ -123,7 +141,17 @@ class UiView():
             dx = x - originx
             dy = y - originy
             self.moveOrigin = (originx, originy)
+            self.origMousePos = (x, y)
+            self.origSize = list(self.view.GetSize())
             self.delta = ((dx, dy))
+
+            rpx,rpy = event.GetPosition()
+            hackOffset = 5 if self.type == "button" else 0  # Buttons are bigger than specified???
+            if self.origSize[0] - rpx + hackOffset < 10 and self.origSize[1] - rpy + hackOffset < 10:
+                self.isResizing = True
+            else:
+                self.isResizing = False
+
             self.page.SelectUIView(self)
         else:
             if "OnMouseDown" in self.handlers:
@@ -133,8 +161,12 @@ class UiView():
     def OnMouseMove(self, event):
         if self.type != "page" and self.isEditing and event.Dragging():
             x, y = self.page.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
-            fp = (x-self.delta[0], y-self.delta[1])
-            self.view.Move(fp)
+            if not self.isResizing:
+                fp = (x - self.delta[0], y - self.delta[1])
+                self.view.Move(fp)
+            else:
+                offset = (x-self.origMousePos[0], y-self.origMousePos[1])
+                self.view.SetSize(self.origSize[0]+offset[0], self.origSize[1]+offset[1])
             self.page.UpdateSelectedUIView()
         elif not self.isEditing:
             if "OnMouseMove" in self.handlers:
@@ -143,12 +175,21 @@ class UiView():
 
     def OnMouseUp(self, event):
         if self.type != "page" and self.isEditing and self.view.HasCapture():
-            endx, endy = self.view.GetPosition()
-            offset = (endx-self.moveOrigin[0], endy-self.moveOrigin[1])
-            if offset != (0, 0):
-                command = MoveUIViewCommand(True, 'Move', self.page, self, offset)
-                self.view.SetPosition(self.moveOrigin)
-                self.page.command_processor.Submit(command)
+            if not self.isResizing:
+                endx, endy = self.view.GetPosition()
+                offset = (endx-self.moveOrigin[0], endy-self.moveOrigin[1])
+                if offset != (0, 0):
+                    command = MoveUIViewCommand(True, 'Move', self.page, self, offset)
+                    self.view.SetPosition(self.moveOrigin)
+                    self.page.command_processor.Submit(command)
+            else:
+                endw, endh = self.view.GetSize()
+                offset = (endw-self.origSize[0], endh-self.origSize[1])
+                if offset != (0, 0):
+                    command = ResizeUIViewCommand(True, 'Move', self.page, self, offset)
+                    self.view.SetSize(self.origSize)
+                    self.page.command_processor.Submit(command)
+
             self.view.ReleaseMouse()
         elif not self.isEditing:
             if "OnMouseUp" in self.handlers:
@@ -242,7 +283,7 @@ class UiButton(UiView):
 
 class UiTextField(UiView):
     def __init__(self, page, viewId):
-        field = wx.TextCtrl(parent=page, id=viewId, value="TextField", style=wx.TE_PROCESS_ENTER)
+        field = wx.TextCtrl(parent=page, id=viewId, value="TextField", style=wx.TE_PROCESS_ENTER) # wx.TE_MULTILINE
 
         # Add easier methods to a new TextCtrl
         def SetText(self, text):
@@ -311,14 +352,14 @@ class UiPage(UiView):
 
 
 class MoveUIViewCommand(Command):
-    dragView = None
+    uiView = None
 
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.page = args[2]
-        self.dragView = args[3]
+        self.uiView = args[3]
         self.delta = args[4]
-        self.viewId = self.dragView.view.GetId()
+        self.viewId = self.uiView.view.GetId()
 
     def Do(self):
         uiView = self.page.GetUIViewById(self.viewId)
@@ -330,4 +371,27 @@ class MoveUIViewCommand(Command):
         uiView = self.page.GetUIViewById(self.viewId)
         pos = uiView.view.GetPosition()
         uiView.view.SetPosition((pos[0]-self.delta[0], pos[1]-self.delta[1]))
+        return True
+
+
+class ResizeUIViewCommand(Command):
+    uiView = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.page = args[2]
+        self.uiView = args[3]
+        self.delta = args[4]
+        self.viewId = self.uiView.view.GetId()
+
+    def Do(self):
+        uiView = self.page.GetUIViewById(self.viewId)
+        viewSize = uiView.view.GetSize()
+        uiView.view.SetSize((viewSize[0]+self.delta[0], viewSize[1]+self.delta[1]))
+        return True
+
+    def Undo(self):
+        uiView = self.page.GetUIViewById(self.viewId)
+        viewSize = uiView.view.GetSize()
+        uiView.view.SetSize((viewSize[0]-self.delta[0], viewSize[1]-self.delta[1]))
         return True
