@@ -9,6 +9,28 @@ class Runner():
         self.statusBar = sb
         self.globals = None
 
+        self.keyCodeStringMap = {
+            wx.WXK_RETURN:"Return",
+            wx.WXK_NUMPAD_ENTER:"Enter",
+            wx.WXK_TAB:"Tab",
+            wx.WXK_SPACE:"Space",
+            wx.WXK_NUMPAD_SPACE:"Space",
+            wx.WXK_NUMPAD_TAB:"Tab",
+            wx.WXK_ESCAPE:"Escape",
+            wx.WXK_CAPITAL:"CAPSLOCK",
+            wx.WXK_LEFT:"Left",
+            wx.WXK_RIGHT:"Right",
+            wx.WXK_UP:"Up",
+            wx.WXK_DOWN:"Down",
+            wx.WXK_SHIFT: "Shift",
+            wx.WXK_ALT: "Alt",
+            wx.WXK_CONTROL: "Control",
+            wx.WXK_RAW_CONTROL: "Control",
+        }
+        if wx.GetOsVersion()[0] == wx.OS_MAC_OSX_DARWIN:
+            self.keyCodeStringMap[wx.WXK_ALT] = "Option"
+            self.keyCodeStringMap[wx.WXK_CONTROL] = "Command"
+
     def RunHandler(self, uiView, handlerName, event):
         if not self.globals:
             self.globals = {}
@@ -31,6 +53,15 @@ class Runner():
             self.locals["mouseX"] = mouseX
             self.locals["mouseY"] = mouseY
 
+        if event and handlerName.startswith("OnKey"):
+            code = event.GetKeyCode()
+            if code in self.keyCodeStringMap:
+                self.locals["key"] = self.keyCodeStringMap[code]
+            elif event.GetUnicodeKey() != wx.WXK_NONE:
+                self.locals["key"] = chr(event.GetUnicodeKey())
+            else:
+                return
+
         try:
             exec(handlerStr, self.globals, self.locals)
         except SyntaxError as err:
@@ -47,6 +78,8 @@ class Runner():
             self.locals.pop("mouseX")
         if "mouseY" in self.locals:
             self.locals.pop("mouseY")
+        if "key" in self.locals:
+            self.locals.pop("key")
 
         if error_class:
             msg = f"{error_class} in {uiView.GetProperty('name')}.{handlerName}(), line {line_number}: {detail}"

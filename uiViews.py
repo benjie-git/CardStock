@@ -33,6 +33,10 @@ class UiView():
             self.view.Bind(wx.EVT_MOTION, self.page.uiPage.OnMouseMove)
         self.view.Bind(wx.EVT_LEFT_UP, self.OnMouseUp)
 
+        if self.type == "page":
+            self.view.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+            self.view.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+
         viewSize = list(self.view.GetSize())
         self.selectionBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(0,0), size=viewSize, style=0)
         self.selectionBox.Bind(wx.EVT_PAINT, self.OnPaintSelectionBox)
@@ -226,6 +230,18 @@ class UiView():
                 self.page.runner.RunHandler(self, "OnTextChanged", event)
             event.Skip()
 
+    def OnKeyDown(self, event):
+        if not self.isEditing:
+            if "OnKeyDown" in self.handlers:
+                self.page.runner.RunHandler(self, "OnKeyDown", event)
+            event.Skip()
+
+    def OnKeyUp(self, event):
+        if not self.isEditing:
+            if "OnKeyUp" in self.handlers:
+                self.page.runner.RunHandler(self, "OnKeyUp", event)
+            event.Skip()
+
     def OnIdle(self, event):
         if not self.isEditing:
             if "OnIdle" in self.handlers:
@@ -342,6 +358,8 @@ class UiPage(UiView):
         handlers = {}
         handlers["OnStart"] = ""
         handlers["OnIdle"] = ""
+        handlers["OnKeyDown"] = ""
+        handlers["OnKeyUp"] = ""
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
