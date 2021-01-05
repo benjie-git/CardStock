@@ -18,6 +18,7 @@ from controlPanel import ControlPanel
 from viewer import ViewerFrame
 import version
 from runner import Runner
+from stack import StackModel
 
 from wx.lib.mixins.inspection import InspectionMixin
 
@@ -84,19 +85,28 @@ class DesignerFrame(wx.Frame):
 
     def SaveFile(self):
         if self.filename:
-            data = {}
-            data["lines"] = self.page.GetLinesData()
-            data["uiviews"] = self.page.GetUIViewsData()
+            stack = StackModel()
+            stack.AppendPage(self.page)
+            data = stack.GetStackData()
 
             with open(self.filename, 'w') as f:
-                json.dump(data, f)
+                json.dump(data, f, indent=2)
 
     def ReadFile(self):
         if self.filename:
-            self.page.ReadFile(self.filename)
+            data = None
+            with open(self.filename, 'r') as f:
+                data = json.load(f)
+            if data:
+                stack = StackModel()
+                stack.SetStackData(data)
+                self.page.LoadFromData(stack.GetPageData(0))
 
     def SetSelectedUIView(self, view):
         self.cPanel.UpdateForUIView(view)
+
+    def UpdateSelectedUIView(self):
+        self.cPanel.UpdateInspectorForUIView(self.page.GetSelectedUIView())
 
     def MakeMenu(self):
         # create the file menu
@@ -184,17 +194,13 @@ class DesignerFrame(wx.Frame):
         self.page.ClearAll()
         self.SetTitle(self.title)
 
-    def GetData(self):
-        data = {}
-        data["lines"] = self.page.GetLinesData()
-        data["uiviews"] = self.page.GetUIViewsData()
-        return data
 
     def OnMenuRun(self, event):
         frame = ViewerFrame(None)
         sb = frame.CreateStatusBar()
-        data = self.GetData()
-        frame.page.LoadFromData(data)
+        stack = StackModel()
+        stack.AppendPage(self.page)
+        frame.page.LoadFromData(stack.GetPageData(0))
         frame.page.SetEditing(False)
         frame.RunViewer(sb)
 

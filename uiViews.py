@@ -42,6 +42,10 @@ class UiView():
         #sizer.SetSizeHints(self.view)
         self.view.SetSizer(sizer)
 
+    def DestroyView(self):
+        self.selectionBox.Destroy()
+        self.view.Destroy()
+
     def SetEditing(self, editing):
         self.isEditing = editing
         self.SetSelected(False)
@@ -96,13 +100,18 @@ class UiView():
         return props
 
     def GetData(self):
+        handlers = {}
+        for k,v in self.handlers.items():
+            if len(v.strip()) > 0:
+                handlers[k] = v
+
         return {"type":self.type,
-                "id":self.view.GetId(),
-                "handlers":self.handlers,
+                "handlers":handlers,
                 "properties":self.GetProperties()}
 
     def SetData(self, data):
-        self.handlers = data["handlers"]
+        for k,v in data["handlers"].items():
+            self.handlers[k] = v
         for k,v in data["properties"].items():
             self.SetProperty(k, v)
 
@@ -126,17 +135,20 @@ class UiView():
             x, y = self.page.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
             fp = (x-self.delta[0], y-self.delta[1])
             self.view.Move(fp)
+            self.page.UpdateSelectedUIView()
         elif not self.isEditing:
             if "OnMouseMove" in self.handlers:
                 self.page.runner.RunHandler(self, "OnMouseMove", event)
-            event.Skip()
+        event.Skip()
 
     def OnMouseUp(self, event):
         if self.type != "page" and self.isEditing and self.view.HasCapture():
             endx, endy = self.view.GetPosition()
-            command = MoveUIViewCommand(True, 'Move', self.page, self, (endx-self.moveOrigin[0], endy-self.moveOrigin[1]))
-            self.view.SetPosition(self.moveOrigin)
-            self.page.command_processor.Submit(command)
+            offset = (endx-self.moveOrigin[0], endy-self.moveOrigin[1])
+            if offset != (0, 0):
+                command = MoveUIViewCommand(True, 'Move', self.page, self, offset)
+                self.view.SetPosition(self.moveOrigin)
+                self.page.command_processor.Submit(command)
             self.view.ReleaseMouse()
         elif not self.isEditing:
             if "OnMouseUp" in self.handlers:
@@ -200,7 +212,7 @@ class UiButton(UiView):
             return self.GetLabel()
         button.SetTitle = types.MethodType(GetTitle, button)
 
-        self.properties["name"] = "button_" + str(viewId-999)
+        self.properties["name"] = page.GetNextAvailableName("button_")
         self.customPropKeys.append("title")
         self.SetProperty("title", "Button")
 
@@ -242,7 +254,7 @@ class UiTextField(UiView):
         field.GetText = types.MethodType(GetText, field)
 
         UiView.__init__(self, "textfield", page, field)
-        self.properties["name"] = "field_" + str(viewId-999)
+        self.properties["name"] = page.GetNextAvailableName("field_")
         self.customPropKeys.append("text")
         self.SetProperty("text", "Text")
         self.properties["editable"] = True
@@ -283,7 +295,7 @@ class UiTextField(UiView):
 class UiPage(UiView):
     def __init__(self, page):
         UiView.__init__(self, "page", page, page)
-        self.properties["name"] = "page_1"
+        self.properties["name"] = page.GetNextAvailableName("page_")
         self.customPropKeys.remove("position")
 
         handlers = {}

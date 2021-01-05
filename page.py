@@ -39,7 +39,7 @@ class PageWindow(wx.Window):
         wx.Window.__init__(self, parent, ID, style=wx.NO_FULL_REPAINT_ON_RESIZE)
         self.SetBackgroundColour("WHITE")
         self.listeners = []
-        self.lines = []
+        self.shapes = []
         self.designer = None
         self.command_processor = CommandProcessor()
         self.isEditing = False
@@ -52,8 +52,9 @@ class PageWindow(wx.Window):
         self.runner = None
         # self.MakeMenu()
 
+        self.uiViews = []
         self.uiPage = UiPage(self)
-        self.uiViews = [self.uiPage]
+        self.uiViews.append(self.uiPage)
         self.timer = None
 
         self.selectedView = None
@@ -97,23 +98,25 @@ class PageWindow(wx.Window):
 
     def ClearAll(self):
         self.SetLinesData([])
+        self.SelectUIView(None)
+
         for ui in self.uiViews.copy():
             if ui.type != "page":
                 self.uiViews.remove(ui)
-                ui.view.Destroy()
+                ui.DestroyView()
             else:
                 for k,v in ui.GetHandlers().items():
                     ui.SetHandler(k,"")
 
-    def ReadFile(self, filename):
-        try:
-            with open(filename, 'r') as f:
-                data = json.load(f)
-            self.LoadFromData(data)
+    def GetData(self):
+        data = {}
+        data["shapes"] = self.GetShapesData()
+        data["uiviews"] = self.GetUIViewsData()
+        return data
 
     def LoadFromData(self, data):
         self.ClearAll()
-        self.SetLinesData(data["lines"])
+        self.SetLinesData(data["shapes"])
         self.SetUIViewsData(data["uiviews"])
 
     def SetDesigner(self, designer):
@@ -133,7 +136,7 @@ class PageWindow(wx.Window):
         dc = wx.BufferedDC(None, self.buffer)
         dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
         dc.Clear()
-        self.DrawLines(dc)
+        self.DrawShapes(dc)
         self.reInitBuffer = False
 
     def SetColour(self, colour):
@@ -161,20 +164,21 @@ class PageWindow(wx.Window):
     def AddUiViewFromData(self, data):
         uiView = None
         if data["type"] == "button":
-            uiView = UiButton(self, data["id"])
+            uiView = UiButton(self, self.nextId)
         elif data["type"] == "textfield":
-            uiView = UiTextField(self, data["id"])
+            uiView = UiTextField(self, self.nextId)
         elif data["type"] == "page":
             uiView = self.uiPage
+        self.nextId += 1
         self.uiViews.append(uiView)
         uiView.SetData(data)
         uiView.SetEditing(self.isEditing)
 
-    def GetLinesData(self):
-        return self.lines[:]
+    def GetShapesData(self):
+        return self.shapes[:]
 
     def SetLinesData(self, lines):
-        self.lines = lines[:]
+        self.shapes = lines[:]
         self.InitBuffer()
         self.Refresh()
 
@@ -197,6 +201,19 @@ class PageWindow(wx.Window):
         self.selectedView = view
         self.designer.SetSelectedUIView(view)
 
+    def UpdateSelectedUIView(self):
+        if self.designer:
+            self.designer.UpdateSelectedUIView()
+
+    def GetNextAvailableName(self, base):
+        names = map(lambda ui: ui.GetProperty("name"), self.uiViews)
+        i = 1
+        while True:
+            name = base+str(i)
+            if name not in names:
+                return name
+            i += 1
+
     def GetUIViewById(self, viewId):
         for ui in self.uiViews:
             if ui.view.GetId() == viewId:
@@ -207,6 +224,8 @@ class PageWindow(wx.Window):
         for ui in self.uiViews.copy():
             if ui.view.GetId() == viewId:
                 self.uiViews.remove(ui)
+                if self.selectedView == ui:
+                    self.SelectUIView(None)
 
     # def MakeMenu(self):
     #     """Make a menu that can be popped up later"""
@@ -254,6 +273,8 @@ class PageWindow(wx.Window):
             if self.isInDrawingMode:
                 self.curLine = []
                 self.pos = event.GetPosition()
+                coords = (self.pos.x, self.pos.y)
+                self.curLine.append(coords)
                 self.isDrawing = True
                 self.CaptureMouse()
             else:
@@ -266,7 +287,7 @@ class PageWindow(wx.Window):
         if self.isEditing:
             if self.HasCapture():
                 command = AddLineCommand(True, 'Add Line', self,
-                                         (self.colour, self.thickness, self.curLine) )
+                                         ("pen", self.colour, self.thickness, self.curLine) )
                 self.command_processor.Submit(command)
                 self.curLine = []
                 self.isDrawing = False
@@ -285,9 +306,9 @@ class PageWindow(wx.Window):
                 dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
                 dc.SetPen(self.pen)
                 pos = event.GetPosition()
-                coords = (self.pos.x, self.pos.y, pos.x, pos.y)
+                coords = (pos.x, pos.y)
                 self.curLine.append(coords)
-                dc.DrawLine(*coords)
+                dc.DrawLine(*(self.pos.x, self.pos.y, pos.x, pos.y))
                 self.pos = pos
         else:
             event.Skip()
@@ -322,15 +343,20 @@ class PageWindow(wx.Window):
         # here that's all there is to it.
         dc = wx.BufferedPaintDC(self, self.buffer)
 
-    def DrawLines(self, dc):
+    def DrawShapes(self, dc):
         """
-        Redraws all the lines that have been drawn already.
+        Redraws all the shapes that have been drawn already.
         """
-        for colour, thickness, line in self.lines:
+        for type, colour, thickness, line in self.shapes:
             pen = wx.Pen(colour, thickness, wx.PENSTYLE_SOLID)
             dc.SetPen(pen)
-            for coords in line:
-                dc.DrawLine(*coords)
+
+            lastPos = None
+            if type == "pen":
+                for coords in line:
+                    if lastPos:
+                        dc.DrawLine(*(lastPos[0], lastPos[1], coords[0], coords[1]))
+                    lastPos = coords
 
     # Event handlers for the popup menu, uses the event ID to determine
     # the colour or the thickness to set.
@@ -369,17 +395,17 @@ class AddLineCommand(Command):
         self.line = args[3]
 
     def Do(self):
-        self.parent.lines.append(self.line)
+        self.parent.shapes.append(self.line)
         return True
 
     def Undo(self):
-        if len(self.parent.lines):
-            self.parent.lines.pop();
+        if len(self.parent.shapes):
+            self.parent.shapes.pop();
         return True
 
 
 class AddUIViewCommand(Command):
-    dragView = None
+    uiView = None
 
     def __init__(self, *args, **kwargs):
         super().__init__()
@@ -389,19 +415,19 @@ class AddUIViewCommand(Command):
 
     def Do(self):
         if self.viewType == "button":
-            self.dragView = UiButton(self.page, self.viewId)
+            self.uiView = UiButton(self.page, self.viewId)
         elif self.viewType == "textfield":
-            self.dragView = UiTextField(self.page, self.viewId)
+            self.uiView = UiTextField(self.page, self.viewId)
 
-        if self.dragView:
-            self.dragView.view.Center()
-            self.page.uiViews.append(self.dragView)
-            self.dragView.SetEditing(self.page.isEditing)
+        if self.uiView:
+            self.uiView.view.Center()
+            self.page.uiViews.append(self.uiView)
+            self.uiView.SetEditing(self.page.isEditing)
             return True
         return False
 
     def Undo(self):
         self.page.RemoveUIViewById(self.viewId)
-        self.dragView.view.Destroy()
-        self.dragView = None
+        self.uiView.DestroyView()
+        self.uiView = None
         return True

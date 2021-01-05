@@ -18,6 +18,7 @@ from page import PageWindow
 from controlPanel import ControlPanel
 import version
 from runner import Runner
+from stack import StackModel
 
 from wx.lib.mixins.inspection import InspectionMixin
 
@@ -47,7 +48,7 @@ class ViewerFrame(wx.Frame):
     # def SaveFile(self):
     #     if self.filename:
     #         data = {}
-    #         data["lines"] = self.page.GetLinesData()
+    #         data["shapes"] = self.page.GetLinesData()
     #         data["uiviews"] = self.page.GetUIViewsData()
     #
     #         with open(self.filename, 'w') as f:
@@ -208,7 +209,13 @@ class PageApp(wx.App, InspectionMixin):
 if __name__ == '__main__':
     app = PageApp(redirect=False)
     if len(sys.argv) > 1:
-        app.frame.page.ReadFile(sys.argv[1])
+        filename = sys.argv[1]
+        with open(filename, 'r') as f:
+            data = json.load(f)
+        if data:
+            stack = StackModel()
+            stack.SetStackData(data)
+            app.frame.page.LoadFromData(stack.GetPageData(0))
     else:
         print("Usage: python3 viewer.py <filename>")
         exit(1)

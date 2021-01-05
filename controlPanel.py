@@ -73,6 +73,7 @@ class ControlPanel(wx.Panel):
         self.inspector.CreateGrid(1, 2)
         self.inspector.SetRowSize(0, 24)
         self.inspector.SetColSize(0, 70)
+        self.inspector.SetColSize(1, 130)
         self.inspector.SetColLabelSize(20)
         self.inspector.SetColLabelValue(0, "Inspector")
         self.inspector.SetColLabelValue(1, "Value")
