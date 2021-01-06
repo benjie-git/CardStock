@@ -31,7 +31,7 @@ class Runner():
             self.keyCodeStringMap[wx.WXK_CONTROL] = "Command"
             self.keyCodeStringMap[wx.WXK_RAW_CONTROL] = "Control"
 
-    def RunHandler(self, uiView, handlerName, event):
+    def RunHandler(self, uiView, handlerName, event, message=None):
         if not self.globals:
             self.globals = {}
             self.globals["page"] = self.page
@@ -48,6 +48,8 @@ class Runner():
         detail = None
 
         self.locals["self"] = uiView.view
+        if message:
+            self.locals["message"] = message
 
         if event and handlerName.startswith("OnMouse"):
             mouseX, mouseY = self.page.ScreenToClient(uiView.view.ClientToScreen(event.GetPosition()))
@@ -81,6 +83,8 @@ class Runner():
             self.locals.pop("mouseY")
         if "key" in self.locals:
             self.locals.pop("key")
+        if "message" in self.locals:
+            self.locals.pop("message")
 
         if error_class:
             msg = f"{error_class} in {uiView.GetProperty('name')}.{handlerName}(), line {line_number}: {detail}"

@@ -262,7 +262,7 @@ class UiView():
 
     def SendMessage(self, message):
         if "OnMessage" in self.handlers:
-            self.page.runner.RunHandler(self, "OnMessage", None)
+            self.page.runner.RunHandler(self, "OnMessage", None, message)
 
     def OnPaintSelectionBox(self, event):
         dc = wx.PaintDC(self.selectionBox)
@@ -302,6 +302,10 @@ class UiButton(UiView):
             return self.GetLabel()
         button.GetTitle = types.MethodType(GetTitle, button)
         button.GetText = types.MethodType(SetTitle, button)
+
+        def SendMessage(innerself, message):
+            self.SendMessage(message)
+        button.SendMessage = types.MethodType(SendMessage, button)
 
         self.properties["name"] = page.GetNextAvailableName("button_")
         self.customPropKeys.append("title")
@@ -343,6 +347,10 @@ class UiTextField(UiView):
         def GetText(self):
             return self.GetValue()
         field.GetText = types.MethodType(GetText, field)
+
+        def SendMessage(innerself, message):
+            self.SendMessage(message)
+        field.SendMessage = types.MethodType(SendMessage, field)
 
         UiView.__init__(self, "textfield", page, field)
         self.properties["name"] = page.GetNextAvailableName("field_")
