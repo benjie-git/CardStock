@@ -224,6 +224,7 @@ class PageWindow(wx.Window):
         elif data["type"] == "page":
             uiView = self.uiPage
             uiView.SetData(data)
+            self.uiViews.append(uiView)
 
         uiView.SetEditing(self.isEditing)
         return uiView
