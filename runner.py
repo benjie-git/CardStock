@@ -1,6 +1,7 @@
 import traceback
 import sys
 import wx
+from wx.adv import Sound
 
 class Runner():
     def __init__(self, page, sb=None):
@@ -17,7 +18,6 @@ class Runner():
             wx.WXK_NUMPAD_SPACE:"Space",
             wx.WXK_NUMPAD_TAB:"Tab",
             wx.WXK_ESCAPE:"Escape",
-            wx.WXK_CAPITAL:"CAPSLOCK",
             wx.WXK_LEFT:"Left",
             wx.WXK_RIGHT:"Right",
             wx.WXK_UP:"Up",
@@ -25,11 +25,11 @@ class Runner():
             wx.WXK_SHIFT: "Shift",
             wx.WXK_ALT: "Alt",
             wx.WXK_CONTROL: "Control",
-            wx.WXK_RAW_CONTROL: "Control",
         }
         if wx.GetOsVersion()[0] == wx.OS_MAC_OSX_DARWIN:
             self.keyCodeStringMap[wx.WXK_ALT] = "Option"
             self.keyCodeStringMap[wx.WXK_CONTROL] = "Command"
+            self.keyCodeStringMap[wx.WXK_RAW_CONTROL] = "Control"
 
     def RunHandler(self, uiView, handlerName, event):
         if not self.globals:
@@ -37,6 +37,7 @@ class Runner():
             self.globals["page"] = self.page
             self.globals["Alert"] = Alert
             self.globals["Ask"] = Ask
+            self.globals["PlaySound"] = PlaySound
             for ui in self.page.uiViews:
                 self.globals[ui.properties["name"]] = ui.view
 
@@ -87,6 +88,9 @@ class Runner():
             if self.statusBar:
                 self.statusBar.SetStatusText(msg)
 
+    def StopRunning(self):
+        Sound.Stop()
+
 
 def Alert(title, message):
     wx.MessageDialog(None, str(message), str(title), wx.OK).ShowModal()
@@ -95,3 +99,7 @@ def Alert(title, message):
 def Ask(title, message=""):
     r = wx.MessageDialog(None, str(message), str(title), wx.YES_NO).ShowModal()
     return (r == wx.ID_YES)
+
+
+def PlaySound(filepath):
+    Sound.PlaySound(filepath)

@@ -117,12 +117,18 @@ class ViewerFrame(wx.Frame):
     def OnUndo(self, event):
         f = self.FindFocus()
         if f and hasattr(f, "Undo"):
-            f.Undo()
+            if not hasattr(f, "CanUndo") or f.CanUndo():
+                f.Undo()
+                return
+        event.Skip()
 
     def OnRedo(self, event):
         f = self.FindFocus()
         if f and hasattr(f, "Redo"):
-            f.Redo()
+            if not hasattr(f, "CanRedo") or f.CanRedo():
+                f.Redo()
+                return
+        event.Skip()
 
     def OnMenuAbout(self, event):
         dlg = PageAbout(self)

@@ -3,6 +3,7 @@ import wx.stc as stc
 import wx.grid
 from wx.lib import buttons # for generic button classes
 import PythonEditor
+from uiViews import UiView
 import ast
 
 
@@ -144,15 +145,11 @@ class ControlPanel(wx.Panel):
         else:
             event.Skip()
 
-    def CodeEditorTextChanged(self, event):
-        uiView = self.page.GetSelectedUIView()
-        if not uiView:
-            uiView = self.page.uiPage
-        uiView.SetHandler(self.currentHandler, self.codeEditor.GetText())
-
     def OnHandlerChoice(self, event):
-        self.UpdateHandlerForUIView(self.page.GetSelectedUIView(),
-                                    self.handlerPicker.GetItems()[self.handlerPicker.GetSelection()])
+        displayName = self.handlerPicker.GetItems()[self.handlerPicker.GetSelection()]
+        keys = list(UiView.handlerDisplayNames.keys())
+        vals = list(UiView.handlerDisplayNames.values())
+        self.UpdateHandlerForUIView(self.page.GetSelectedUIView(), keys[vals.index(displayName)])
 
     def UpdateForUIView(self, uiView):
         if uiView != self.lastSelectedUIView:
@@ -208,12 +205,19 @@ class ControlPanel(wx.Panel):
             self.currentHandler = handlerName
         if uiView.GetHandler(handlerName) == None:
             self.currentHandler = list(uiView.GetHandlers().keys())[0]
-        self.handlerPicker.SetItems(list(uiView.GetHandlers().keys()))
-        self.handlerPicker.SetStringSelection(self.currentHandler)
+
+        self.handlerPicker.SetItems([UiView.handlerDisplayNames[k] for k in uiView.GetHandlers().keys()])
+        self.handlerPicker.SetStringSelection(UiView.handlerDisplayNames[self.currentHandler])
         self.codeEditor.SetText(uiView.GetHandler(self.currentHandler))
         self.handlerPicker.Enable(True)
         self.codeEditor.Enable(True)
         uiView.lastEditedHandler = self.currentHandler
+
+    def CodeEditorTextChanged(self, event):
+        uiView = self.page.GetSelectedUIView()
+        if not uiView:
+            uiView = self.page.uiPage
+        uiView.SetHandler(self.currentHandler, self.codeEditor.GetText())
 
     def MakeBitmap(self, colour):
         """

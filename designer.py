@@ -81,6 +81,7 @@ class DesignerFrame(wx.Frame):
         self.splitter.SetSashPosition(self.splitter.GetSize()[0]-200)
         self.splitter.SetSashGravity(0.8)
 
+        self.page.SetFocus()
         self.SetSelectedUIView(None)
 
     def SaveFile(self):
@@ -200,7 +201,8 @@ class DesignerFrame(wx.Frame):
         sb = frame.CreateStatusBar()
         stack = StackModel()
         stack.AppendPage(self.page)
-        frame.page.LoadFromData(stack.GetPageData(0))
+        data = stack.GetPageData(0)
+        frame.page.LoadFromData(data)
         frame.page.SetEditing(False)
         frame.RunViewer(sb)
 
@@ -209,28 +211,40 @@ class DesignerFrame(wx.Frame):
 
     def OnCut(self, event):
         f = self.FindFocus()
-        if f and hasattr(f, "Cut"):
+        if f == self.page:
+            self.page.CutView()
+        elif f and hasattr(f, "Cut"):
             f.Cut()
 
     def OnCopy(self, event):
         f = self.FindFocus()
-        if f and hasattr(f, "Copy"):
+        if f == self.page:
+            self.page.CopyView()
+        elif f and hasattr(f, "Copy"):
             f.Copy()
 
     def OnPaste(self, event):
         f = self.FindFocus()
-        if f and hasattr(f, "Paste"):
+        if f == self.page:
+            self.page.PasteView()
+        elif f and hasattr(f, "Paste"):
             f.Paste()
 
     def OnUndo(self, event):
         f = self.FindFocus()
         if f and hasattr(f, "Undo"):
-            f.Undo()
+            if not hasattr(f, "CanUndo") or f.CanUndo():
+                f.Undo()
+                return
+        event.Skip()
 
     def OnRedo(self, event):
         f = self.FindFocus()
         if f and hasattr(f, "Redo"):
-            f.Redo()
+            if not hasattr(f, "CanRedo") or f.CanRedo():
+                f.Redo()
+                return
+        event.Skip()
 
     def OnMenuAbout(self, event):
         dlg = PageAbout(self)

@@ -6,7 +6,17 @@ import wx
 from wx.lib.docview import CommandProcessor, Command
 import types
 
+
 class UiView():
+
+    uiViewNextId = 1
+
+    @classmethod
+    def GetNextUiViewId(cls):
+        id = cls.uiViewNextId
+        cls.uiViewNextId += 1
+        return id
+
     def __init__(self, type, page, uiView):
         self.page = page
         self.view = uiView
@@ -18,7 +28,8 @@ class UiView():
         self.handlers["OnMouseUp"] = ""
         self.handlers["OnMouseEnter"] = ""
         self.handlers["OnMouseExit"] = ""
-        self.properties = {}
+        self.handlers["OnMessage"] = ""
+        self.properties = {"id":UiView.GetNextUiViewId()}
         self.customPropKeys = ["size", "position"]
         self.delta = ((0, 0))
         self.minSize = (20,20)
@@ -190,11 +201,12 @@ class UiView():
                 endw, endh = self.view.GetSize()
                 offset = (endw-self.origSize[0], endh-self.origSize[1])
                 if offset != (0, 0):
-                    command = ResizeUIViewCommand(True, 'Move', self.page, self, offset)
+                    command = ResizeUIViewCommand(True, 'Resize', self.page, self, offset)
                     self.view.SetSize(self.origSize)
                     self.page.command_processor.Submit(command)
 
             self.view.ReleaseMouse()
+            self.page.SetFocus()
         elif not self.isEditing:
             if "OnMouseUp" in self.handlers:
                 self.page.runner.RunHandler(self, "OnMouseUp", event)
@@ -248,26 +260,48 @@ class UiView():
                 self.page.runner.RunHandler(self, "OnIdle", event)
             event.Skip()
 
+    def SendMessage(self, message):
+        if "OnMessage" in self.handlers:
+            self.page.runner.RunHandler(self, "OnMessage", None)
+
     def OnPaintSelectionBox(self, event):
         dc = wx.PaintDC(self.selectionBox)
         dc.SetPen(wx.Pen('Blue', 2, wx.PENSTYLE_SOLID))
         dc.SetBrush(wx.Brush('Blue', wx.BRUSHSTYLE_TRANSPARENT))
         dc.DrawRectangle((1, 1), (self.selectionBox.GetSize()[0]-2, self.selectionBox.GetSize()[1]-2))
 
+    handlerDisplayNames = {
+        'OnClick':      "def OnClick():",
+        'OnTextEnter':  "def OnTextEnter():",
+        'OnTextChanged':"def OnTextChanged():",
+        'OnMouseDown':  "def OnMouseDown(mouseX, mouseY):",
+        'OnMouseMove':  "def OnMouseMove(mouseX, mouseY):",
+        'OnMouseUp':    "def OnMouseUp(mouseX, mouseY):",
+        'OnMouseEnter': "def OnMouseEnter(mouseX, mouseY):",
+        'OnMouseExit':  "def OnMouseExit(mouseX, mouseY):",
+        'OnMessage':    "def OnMessage(message):",
+        'OnStart':      "def OnStart():",
+        'OnIdle':       "def OnIdle():",
+        'OnKeyDown':    "def OnKeyDown(key):",
+        'OnKeyUp':      "def OnKeyUp(key):",
+    }
+
 
 class UiButton(UiView):
-    def __init__(self, page, viewId):
-        button = wx.Button(parent=page, id=viewId, label="Button")
+    def __init__(self, page):
+        button = wx.Button(parent=page, id=wx.ID_ANY, label="Button")
         UiView.__init__(self, "button", page, button)
 
         # Add easier methods to a new Button
         def SetTitle(self, title):
             self.SetLabel(str(title))
         button.SetTitle = types.MethodType(SetTitle, button)
+        button.SetText = types.MethodType(SetTitle, button)
 
         def GetTitle(self):
             return self.GetLabel()
-        button.SetTitle = types.MethodType(GetTitle, button)
+        button.GetTitle = types.MethodType(GetTitle, button)
+        button.GetText = types.MethodType(SetTitle, button)
 
         self.properties["name"] = page.GetNextAvailableName("button_")
         self.customPropKeys.append("title")
@@ -298,8 +332,8 @@ class UiButton(UiView):
 
 
 class UiTextField(UiView):
-    def __init__(self, page, viewId):
-        field = wx.TextCtrl(parent=page, id=viewId, value="TextField", style=wx.TE_PROCESS_ENTER) # wx.TE_MULTILINE
+    def __init__(self, page):
+        field = wx.TextCtrl(parent=page, id=wx.ID_ANY, value="TextField", style=wx.TE_PROCESS_ENTER) # wx.TE_MULTILINE
 
         # Add easier methods to a new TextCtrl
         def SetText(self, text):
@@ -373,11 +407,11 @@ class MoveUIViewCommand(Command):
     uiView = None
 
     def __init__(self, *args, **kwargs):
-        super().__init__()
+        super().__init__(args, kwargs)
         self.page = args[2]
         self.uiView = args[3]
         self.delta = args[4]
-        self.viewId = self.uiView.view.GetId()
+        self.viewId = self.uiView.GetProperty("id")
 
     def Do(self):
         uiView = self.page.GetUIViewById(self.viewId)
@@ -396,11 +430,11 @@ class ResizeUIViewCommand(Command):
     uiView = None
 
     def __init__(self, *args, **kwargs):
-        super().__init__()
+        super().__init__(args, kwargs)
         self.page = args[2]
         self.uiView = args[3]
         self.delta = args[4]
-        self.viewId = self.uiView.view.GetId()
+        self.viewId = self.uiView.GetProperty("id")
 
     def Do(self):
         uiView = self.page.GetUIViewById(self.viewId)

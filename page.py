@@ -11,7 +11,7 @@ from wx.lib.docview import CommandProcessor, Command
 import sys
 import json
 from runner import Runner
-from uiViews import UiButton, UiTextField, UiPage
+from uiViews import UiButton, UiTextField, UiPage, UiView
 
 # ----------------------------------------------------------------------
 
@@ -46,7 +46,6 @@ class PageWindow(wx.Window):
         self.pos = wx.Point(0,0)
         self.isInDrawingMode = False
         self.isDrawing = False
-        self.nextId = 1000
         self.thickness = 4
         self.SetColour("Black")
         self.runner = None
@@ -112,6 +111,9 @@ class PageWindow(wx.Window):
         data = {}
         data["shapes"] = self.GetShapesData()
         data["uiviews"] = self.GetUIViewsData()
+        #for d in data["uiviews"]:
+        #    d["properties"].pop("id")
+
         return data
 
     def LoadFromData(self, data):
@@ -128,6 +130,8 @@ class PageWindow(wx.Window):
             del self.menu
         if self.timer:
             self.timer.Stop()
+        if self.runner:
+            self.runner.StopRunning()
 
     def InitBuffer(self):
         """Initialize the bitmap used for buffering the display."""
@@ -151,28 +155,88 @@ class PageWindow(wx.Window):
         self.pen = wx.Pen(self.colour, self.thickness, wx.PENSTYLE_SOLID)
         self.Notify()
 
+    def CopyView(self):
+        if self.selectedView:
+            clipdata = wx.CustomDataObject("org.pycard.view")
+            data = bytes(json.dumps(self.selectedView.GetData()).encode('utf8'))
+            clipdata.SetData(data)
+            wx.TheClipboard.Open()
+            wx.TheClipboard.SetData(clipdata)
+            wx.TheClipboard.Close()
+
+    def CutView(self):
+        if self.selectedView:
+            self.CopyView()
+            v = self.selectedView
+            command = RemoveUIViewCommand(True, "Cut", v, self)
+            self.command_processor.Submit(command)
+
+    def PasteView(self):
+        if not wx.TheClipboard.IsOpened():  # may crash, otherwise
+            if wx.TheClipboard.Open():
+                if wx.TheClipboard.IsSupported(wx.DataFormat("org.pycard.view")):
+                    clipdata = wx.CustomDataObject("org.pycard.view")
+                    if wx.TheClipboard.GetData(clipdata):
+                        rawdata = clipdata.GetData()
+                        data = json.loads(rawdata.tobytes().decode('utf8'))
+                        data["properties"]["id"] = UiView.GetNextUiViewId()
+                        uiView = self.AddUiViewFromData(data)
+                        self.SelectUIView(uiView)
+                wx.TheClipboard.Close()
+
     def AddUiViewOfType(self, viewType):
         if viewType == "button":
-            command = AddUIViewCommand(True, 'Add Button', self, "button", self.nextId)
+            command = AddUIViewCommand(True, 'Add Button', self, "button")
             self.command_processor.Submit(command)
         elif viewType == "textfield":
-            command = AddUIViewCommand(True, 'Add TextField', self, "textfield", self.nextId)
+            command = AddUIViewCommand(True, 'Add TextField', self, "textfield")
             self.command_processor.Submit(command)
-        self.SelectUIView(self.GetUIViewById(self.nextId))
-        self.nextId += 1
+        uiView = self.uiViews[-1]
+        self.SelectUIView(uiView)
+        return uiView
+
+    def AddUIViewOfTypeInternal(self, type):
+        uiView = None
+        if type == "button":
+            uiView = UiButton(self)
+        elif type == "textfield":
+            uiView = UiTextField(self)
+
+        if uiView:
+            uiView.view.Center()
+            self.uiViews.append(uiView)
+            uiView.SetEditing(self.isEditing)
+        return uiView
 
     def AddUiViewFromData(self, data):
         uiView = None
+
+        data["properties"]["name"] = self.DeduplicateName(data["properties"]["name"])
+
         if data["type"] == "button":
-            uiView = UiButton(self, self.nextId)
+            command = AddUIViewCommand(True, 'Add Button', self, "button", data)
+            self.command_processor.Submit(command)
+            uiView = self.uiViews[-1]
         elif data["type"] == "textfield":
-            uiView = UiTextField(self, self.nextId)
+            command = AddUIViewCommand(True, 'Add TextField', self, "textfield", data)
+            self.command_processor.Submit(command)
+            uiView = self.uiViews[-1]
         elif data["type"] == "page":
             uiView = self.uiPage
-        self.nextId += 1
-        self.uiViews.append(uiView)
-        uiView.SetData(data)
+            uiView.SetData(data)
+
         uiView.SetEditing(self.isEditing)
+        return uiView
+
+    def DeduplicateName(self, name):
+        names = [v.properties["name"] for v in self.uiViews]
+
+        if name in names:
+            name = name.rstrip("0123456789")
+            if name[-1:] != "_":
+                name = name + "_"
+            name = self.GetNextAvailableName(name)
+        return name
 
     def GetShapesData(self):
         return self.shapes[:]
@@ -207,7 +271,7 @@ class PageWindow(wx.Window):
             self.designer.UpdateSelectedUIView()
 
     def GetNextAvailableName(self, base):
-        names = map(lambda ui: ui.GetProperty("name"), self.uiViews)
+        names = [ui.GetProperty("name") for ui in self.uiViews]
         i = 1
         while True:
             name = base+str(i)
@@ -217,56 +281,18 @@ class PageWindow(wx.Window):
 
     def GetUIViewById(self, viewId):
         for ui in self.uiViews:
-            if ui.view.GetId() == viewId:
+            if ui.GetProperty("id") == viewId:
                 return ui
         return None
 
     def RemoveUIViewById(self, viewId):
         for ui in self.uiViews.copy():
-            if ui.view.GetId() == viewId:
-                self.uiViews.remove(ui)
+            if ui.GetProperty("id") == viewId:
                 if self.selectedView == ui:
                     self.SelectUIView(None)
-
-    # def MakeMenu(self):
-    #     """Make a menu that can be popped up later"""
-    #     menu = wx.Menu()
-    #     for k in sorted(self.menuColours):
-    #         text = self.menuColours[k]
-    #         menu.Append(k, text, kind=wx.ITEM_CHECK)
-    #     self.Bind(wx.EVT_MENU_RANGE, self.OnMenuSetColour, id=100, id2=200)
-    #     self.Bind(wx.EVT_UPDATE_UI_RANGE, self.OnCheckMenuColours, id=100, id2=200)
-    #     menu.Break()
-    #
-    #     for x in range(1, self.maxThickness+1):
-    #         menu.Append(x, str(x), kind=wx.ITEM_CHECK)
-    #
-    #     self.Bind(wx.EVT_MENU_RANGE, self.OnMenuSetThickness, id=1, id2=self.maxThickness)
-    #     self.Bind(wx.EVT_UPDATE_UI_RANGE, self.OnCheckMenuThickness, id=1, id2=self.maxThickness)
-    #     self.menu = menu
-    #
-    #
-    # # These two event handlers are called before the menu is displayed
-    # # to determine which items should be checked.
-    # def OnCheckMenuColours(self, event):
-    #     text = self.menuColours[event.GetId()]
-    #     if text == self.colour:
-    #         event.Check(True)
-    #         event.SetText(text.upper())
-    #     else:
-    #         event.Check(False)
-    #         event.SetText(text)
-    #
-    # def OnCheckMenuThickness(self, event):
-    #     if event.GetId() == self.thickness:
-    #         event.Check(True)
-    #     else:
-    #         event.Check(False)
-    #
-    # def OnMouseRightUp(self, event):
-    #     """called when the right mouse button is released, will popup the menu"""
-    #     if self.isInDrawingMode:
-    #         self.PopupMenu(self.menu)
+                self.uiViews.remove(ui)
+                ui.DestroyView()
+                return
 
     def OnMouseDown(self, event):
         """called when the left mouse button is pressed"""
@@ -406,29 +432,45 @@ class AddLineCommand(Command):
 
 
 class AddUIViewCommand(Command):
-    uiView = None
-
     def __init__(self, *args, **kwargs):
-        super().__init__()
+        super().__init__(args, kwargs)
         self.page = args[2]
         self.viewType = args[3]
-        self.viewId = self.page.nextId
+        self.viewData = args[4] if len(args)>4 else None
+        self.viewId = None
+        self.uiView = None
 
     def Do(self):
-        if self.viewType == "button":
-            self.uiView = UiButton(self.page, self.viewId)
-        elif self.viewType == "textfield":
-            self.uiView = UiTextField(self.page, self.viewId)
-
-        if self.uiView:
-            self.uiView.view.Center()
-            self.page.uiViews.append(self.uiView)
-            self.uiView.SetEditing(self.page.isEditing)
-            return True
-        return False
+        self.uiView = self.page.AddUIViewOfTypeInternal(self.viewType)
+        if self.viewData:
+            self.uiView.SetData(self.viewData)
+        if not self.viewId:
+            self.viewId = self.uiView.GetProperty("id")
+        else:
+            self.uiView.SetProperty("id", self.viewId)
+        return True
 
     def Undo(self):
         self.page.RemoveUIViewById(self.viewId)
-        self.uiView.DestroyView()
         self.uiView = None
+        return True
+
+
+class RemoveUIViewCommand(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.uiView = args[2]
+        self.page = args[3]
+        self.viewType = self.uiView.type
+        self.viewData = self.uiView.GetData()
+        self.viewId = self.uiView.GetProperty("id")
+
+    def Do(self):
+        self.page.RemoveUIViewById(self.viewId)
+        self.uiView = None
+        return True
+
+    def Undo(self):
+        self.uiView = self.page.AddUIViewOfTypeInternal(self.viewType)
+        self.uiView.SetData(self.viewData)
         return True
