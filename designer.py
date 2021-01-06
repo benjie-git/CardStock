@@ -10,6 +10,7 @@ implemented using an wx.html.HtmlWindow.
 """
 
 import os
+import sys
 import json
 import wx
 import wx.html
@@ -108,6 +109,7 @@ class DesignerFrame(wx.Frame):
 
     def UpdateSelectedUiView(self):
         self.cPanel.UpdateInspectorForUiView(self.page.GetSelectedUiView())
+        self.cPanel.UpdateHandlerForUiView(self.page.GetSelectedUiView(), None)
 
     def MakeMenu(self):
         # create the file menu
@@ -167,10 +169,14 @@ class DesignerFrame(wx.Frame):
         dlg = wx.FileDialog(self, "Open page file...", os.getcwd(),
                            style=wx.FD_OPEN, wildcard = self.wildcard)
         if dlg.ShowModal() == wx.ID_OK:
-            self.filename = dlg.GetPath()
-            self.ReadFile()
-            self.SetTitle(self.title + ' -- ' + self.filename)
+            filename = dlg.GetPath()
+            self.OpenFile(filename)
         dlg.Destroy()
+
+    def OpenFile(self, filename):
+        self.filename = filename
+        self.ReadFile()
+        self.SetTitle(self.title + ' -- ' + self.filename)
 
     def OnMenuSave(self, event):
         if not self.filename:
@@ -311,13 +317,13 @@ cellpadding="0" border="1">
 
 # ----------------------------------------------------------------------
 
-class PageApp(wx.App, InspectionMixin):
+class DesignerApp(wx.App, InspectionMixin):
     def OnInit(self):
         self.Init() # for InspectionMixin
 
-        frame = DesignerFrame(None)
-        frame.Show(True)
-        self.SetTopWindow(frame)
+        self.frame = DesignerFrame(None)
+        self.frame.Show(True)
+        self.SetTopWindow(self.frame)
         self.SetAppDisplayName('PyPage')
         return True
 
@@ -336,6 +342,12 @@ class PageApp(wx.App, InspectionMixin):
 
 
 if __name__ == '__main__':
-    app = PageApp(redirect=False)
+    app = DesignerApp(redirect=False)
+    if len(sys.argv) > 1:
+        filename = sys.argv[1]
+        app.frame.OpenFile(filename)
+    else:
+        print("Usage: python3 designer.py [filename]")
+        exit(1)
     app.MainLoop()
 

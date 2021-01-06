@@ -120,6 +120,7 @@ class PageWindow(wx.Window):
         self.ClearAll()
         self.SetLinesData(data["shapes"])
         self.SetUiViewsData(data["uiviews"])
+        self.UpdateSelectedUiView()
 
     def SetDesigner(self, designer):
         self.designer = designer

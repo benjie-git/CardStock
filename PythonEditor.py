@@ -4,103 +4,106 @@ import keyword
 
 
 if wx.Platform == '__WXMSW__':
-    faces = { 'times': 'Times New Roman',
-              'mono' : 'Courier New',
+    faces = { 'mono' : 'Courier New',
               'helv' : 'Arial',
-              'other': 'Comic Sans MS',
               'size' : 12,
               'size2': 10,
              }
 elif wx.Platform == '__WXMAC__':
-    faces = { 'times': 'Times New Roman',
-              'mono' : 'Monaco',
+    faces = { 'mono' : 'Monaco',
               'helv' : 'Arial',
-              'other': 'Comic Sans MS',
               'size' : 14,
               'size2': 12,
              }
 else:
-    faces = { 'times': 'Times',
-              'mono' : 'Courier',
+    faces = { 'mono' : 'Courier',
               'helv' : 'Helvetica',
-              'other': 'new century schoolbook',
               'size' : 14,
               'size2': 12,
              }
 
 
-def CreatePythonEditor(parent):
-    editor = stc.StyledTextCtrl(id=wx.ID_ANY, parent=parent, style=wx.VSCROLL | wx.HSCROLL)
+class PythonEditor(stc.StyledTextCtrl):
+    def __init__(self, parent):
+        super().__init__(id=wx.ID_ANY, parent=parent, style=wx.VSCROLL | wx.HSCROLL)
 
-    # editor.SetAutoLayout(True)
-    # editor.SetConstraints(LayoutAnchors(editor, True, True, True, True))
+        self.SetAutoLayout(True)
+        # self.SetConstraints(stc.LayoutAnchors(self, True, True, True, True))
 
-    editor.SetTabWidth(2)
-    editor.SetUseTabs(0)
-    editor.SetTabIndents(True)
-    editor.SetBackSpaceUnIndents(True)
-    #editor.SetIndentationGuides(True)
-    editor.SetUseAntiAliasing(True)
-    editor.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
-    editor.SetMarginWidth(1, 24)
+        self.SetTabWidth(3)
+        self.SetUseTabs(0)
+        self.SetTabIndents(True)
+        self.SetBackSpaceUnIndents(True)
+        # self.SetIndentationGuides(True)
+        self.SetUseAntiAliasing(True)
+        self.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
+        self.SetMarginWidth(1, 24)
 
-    editor.StyleSetSpec(stc.STC_STYLE_DEFAULT, "face:%(mono)s,size:%(size)d" % faces)
-    editor.StyleSetSpec(wx.stc.STC_STYLE_LINENUMBER, 'fore:#999999,back:#EEEEEE')
+        self.StyleSetSpec(stc.STC_STYLE_DEFAULT,    'face:%(mono)s,fore:#000000,size:%(size)d' % faces)
+        self.StyleSetSpec(stc.STC_STYLE_LINENUMBER, 'face:%(mono)s,fore:#999999,back:#EEEEEE' % faces)
+        self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT, 'face:%(mono)s,fore:#000000,back:#DDDDFF,bold' % faces)
+        self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,   'face:%(mono)s,fore:#000000,back:#FFCCCC,bold' % faces)
+        self.StyleSetSpec(stc.STC_P_DEFAULT,        'face:%(mono)s,fore:#000000,size:%(size)d' % faces)
+        self.StyleSetSpec(stc.STC_P_NUMBER,         'face:%(mono)s,fore:#007F7F' % faces)
+        self.StyleSetSpec(stc.STC_P_CHARACTER,      'face:%(mono)s,fore:#7F007F' % faces)
+        self.StyleSetSpec(stc.STC_P_WORD,           'face:%(mono)s,fore:#0000FF' % faces)
+        self.StyleSetSpec(stc.STC_P_CLASSNAME,      'face:%(mono)s,fore:#2222FF' % faces)
+        self.StyleSetSpec(stc.STC_P_DEFNAME,        'face:%(mono)s,fore:#2222FF' % faces)
+        self.StyleSetSpec(stc.STC_P_OPERATOR,       'face:%(mono)s,fore:#000044,bold' % faces)
+        self.StyleSetSpec(stc.STC_P_IDENTIFIER,     'face:%(mono)s,fore:#000000' % faces)
+        self.StyleSetSpec(stc.STC_P_STRING,         'face:%(mono)s,fore:#007F7F,bold' % faces)
+        self.StyleSetSpec(stc.STC_P_STRINGEOL,      'face:%(mono)s,fore:#000000,back:#E0C0E0,eol' % faces)
+        self.StyleSetSpec(stc.STC_P_COMMENTLINE,    'face:%(mono)s,fore:#888888' % faces)
+        self.StyleSetSpec(stc.STC_P_COMMENTBLOCK,   'face:%(mono)s,fore:#999999' % faces)
+        self.StyleSetSpec(stc.STC_P_TRIPLE,         'face:%(mono)s,fore:#999999' % faces)
+        self.StyleSetSpec(stc.STC_P_TRIPLEDOUBLE,   'face:%(mono)s,fore:#999999' % faces)
 
-    editor.SetLexer(stc.STC_LEX_PYTHON)
-    editor.SetKeyWords(0, " ".join(keyword.kwlist))
+        self.SetLexer(stc.STC_LEX_PYTHON)
+        self.SetKeyWords(0, " ".join(keyword.kwlist))
 
-    editor.Bind(wx.EVT_KEY_DOWN, PyEditorOnKeyPress)
-    editor.Bind(stc.EVT_STC_UPDATEUI, PyEditorOnUpdateUi)
+        self.Bind(wx.EVT_KEY_DOWN, self.PyEditorOnKeyPress)
+        self.Bind(stc.EVT_STC_UPDATEUI, self.PyEditorOnUpdateUi)
 
-    return editor
+    def PyEditorOnKeyPress(self, event):
+        if event.GetKeyCode() == stc.STC_KEY_RETURN:
+            numSpaces = self.GetLineIndentation(self.GetCurrentLine())
+            line = self.GetLine(self.GetCurrentLine())
+            if line.strip()[-1:] == ":":
+                numSpaces += 2
+            self.AddText("\n" + " "*numSpaces)
+        else:
+            event.Skip()
 
+    def PyEditorOnUpdateUi(self, event):
+        # check for matching braces
+        braceAtCaret = -1
+        braceOpposite = -1
+        charBefore = None
+        caretPos = self.GetCurrentPos()
 
-def PyEditorOnKeyPress(event):
-    editor = event.GetEventObject()
-    if event.GetKeyCode() == stc.STC_KEY_RETURN:
-        numSpaces = editor.GetLineIndentation(editor.GetCurrentLine())
-        line = editor.GetLine(editor.GetCurrentLine())
-        if line.strip()[-1:] == ":":
-            numSpaces += 2
-        editor.AddText("\n" + " "*numSpaces)
-    else:
-        event.Skip()
+        if caretPos > 0:
+            charBefore = self.GetCharAt(caretPos - 1)
+            styleBefore = self.GetStyleAt(caretPos - 1)
 
+        # check before
+        if charBefore and chr(charBefore) in "[]{}()" and styleBefore == stc.STC_P_OPERATOR:
+            braceAtCaret = caretPos - 1
 
-def PyEditorOnUpdateUi(event):
-    editor = event.GetEventObject()
+        # check after
+        if braceAtCaret < 0:
+            charAfter = self.GetCharAt(caretPos)
+            styleAfter = self.GetStyleAt(caretPos)
 
-    # check for matching braces
-    braceAtCaret = -1
-    braceOpposite = -1
-    charBefore = None
-    caretPos = editor.GetCurrentPos()
+            if charAfter and chr(charAfter) in "[]{}()" and styleAfter == stc.STC_P_OPERATOR:
+                braceAtCaret = caretPos
 
-    if caretPos > 0:
-        charBefore = editor.GetCharAt(caretPos - 1)
-        styleBefore = editor.GetStyleAt(caretPos - 1)
+        if braceAtCaret >= 0:
+            braceOpposite = self.BraceMatch(braceAtCaret)
 
-    # check before
-    if charBefore and chr(charBefore) in "[]{}()" and styleBefore == stc.STC_P_OPERATOR:
-        braceAtCaret = caretPos - 1
-
-    # check after
-    if braceAtCaret < 0:
-        charAfter = editor.GetCharAt(caretPos)
-        styleAfter = editor.GetStyleAt(caretPos)
-
-        if charAfter and chr(charAfter) in "[]{}()" and styleAfter == stc.STC_P_OPERATOR:
-            braceAtCaret = caretPos
-
-    if braceAtCaret >= 0:
-        braceOpposite = editor.BraceMatch(braceAtCaret)
-
-    if braceAtCaret != -1  and braceOpposite == -1:
-        editor.BraceBadLight(braceAtCaret)
-    else:
-        editor.BraceHighlight(braceAtCaret, braceOpposite)
-        pt = editor.PointFromPosition(braceOpposite)
-        editor.Refresh(True, wx.Rect(pt.x, pt.y, 5,5))
-        #print(pt)
-        editor.Refresh(False)
+        if braceAtCaret != -1  and braceOpposite == -1:
+            self.BraceBadLight(braceAtCaret)
+        else:
+            self.BraceHighlight(braceAtCaret, braceOpposite)
+            pt = self.PointFromPosition(braceOpposite)
+            self.Refresh(True, wx.Rect(pt.x, pt.y, 5,5))
+            self.Refresh(False)

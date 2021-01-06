@@ -223,7 +223,7 @@ if __name__ == '__main__':
             stack.SetStackData(data)
             app.frame.page.LoadFromData(stack.GetPageData(0))
     else:
-        print("Usage: python3 viewer.py <filename>")
+        print("Usage: python3 viewer.py filename")
         exit(1)
     app.frame.RunViewer(app.statusbar)
 

@@ -246,13 +246,11 @@ class UiView():
         if not self.isEditing:
             if "OnKeyDown" in self.handlers:
                 self.page.runner.RunHandler(self, "OnKeyDown", event)
-            event.Skip()
 
     def OnKeyUp(self, event):
         if not self.isEditing:
             if "OnKeyUp" in self.handlers:
                 self.page.runner.RunHandler(self, "OnKeyUp", event)
-            event.Skip()
 
     def OnIdle(self, event):
         if not self.isEditing:

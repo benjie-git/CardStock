@@ -2,7 +2,7 @@ import wx
 import wx.stc as stc
 import wx.grid
 from wx.lib import buttons # for generic button classes
-import PythonEditor
+from PythonEditor import PythonEditor
 from uiViews import UiView
 import ast
 
@@ -89,7 +89,7 @@ class ControlPanel(wx.Panel):
         self.handlerPicker.Bind(wx.EVT_CHOICE, self.OnHandlerChoice)
         self.currentHandler = None
 
-        self.codeEditor = PythonEditor.CreatePythonEditor(self)
+        self.codeEditor = PythonEditor(self)
         self.codeEditor.SetSize((150,2000))
         self.codeEditor.Bind(stc.EVT_STC_CHANGE, self.CodeEditorTextChanged)
 
