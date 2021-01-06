@@ -113,12 +113,15 @@ class UiView():
         return None
 
     def SetProperty(self, name, value):
-        if name in self.properties:
-            self.properties[name] = value
+        if name == "name":
+            if value != self.properties["name"]:
+                self.properties[name] = self.page.DeduplicateName(value, [self.properties["name"]])
         elif name == "position":
             self.view.SetPosition(value)
         elif name == "size":
             self.view.SetSize(value)
+        elif name in self.properties:
+            self.properties[name] = value
 
     def GetPropertyKeys(self):
         keys = []
@@ -305,7 +308,7 @@ class UiButton(UiView):
             self.SendMessage(message)
         button.SendMessage = types.MethodType(SendMessage, button)
 
-        self.properties["name"] = page.GetNextAvailableName("button_")
+        self.properties["name"] = page.GetNextAvailableNameForBase("button_")
         self.customPropKeys.append("title")
         self.SetProperty("title", "Button")
 
@@ -351,7 +354,7 @@ class UiTextField(UiView):
         field.SendMessage = types.MethodType(SendMessage, field)
 
         UiView.__init__(self, "textfield", page, field)
-        self.properties["name"] = page.GetNextAvailableName("field_")
+        self.properties["name"] = page.GetNextAvailableNameForBase("field_")
         self.customPropKeys.append("text")
         self.SetProperty("text", "Text")
         self.properties["editable"] = True
@@ -392,7 +395,7 @@ class UiTextField(UiView):
 class UiPage(UiView):
     def __init__(self, page):
         UiView.__init__(self, "page", page, page)
-        self.properties["name"] = page.GetNextAvailableName("page_")
+        self.properties["name"] = page.GetNextAvailableNameForBase("page_")
         self.customPropKeys.remove("position")
 
         handlers = {}

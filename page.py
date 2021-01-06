@@ -230,14 +230,16 @@ class PageWindow(wx.Window):
         uiView.SetEditing(self.isEditing)
         return uiView
 
-    def DeduplicateName(self, name):
+    def DeduplicateName(self, name, exclude=[]):
         names = [v.properties["name"] for v in self.uiViews]
+        for n in exclude:
+            names.remove(n)
 
         if name in names:
             name = name.rstrip("0123456789")
             if name[-1:] != "_":
                 name = name + "_"
-            name = self.GetNextAvailableName(name)
+            name = self.GetNextAvailableNameForBase(name, exclude)
         return name
 
     def GetShapesData(self):
@@ -272,8 +274,10 @@ class PageWindow(wx.Window):
         if self.designer:
             self.designer.UpdateSelectedUiView()
 
-    def GetNextAvailableName(self, base):
+    def GetNextAvailableNameForBase(self, base, exclude=[]):
         names = [ui.GetProperty("name") for ui in self.uiViews]
+        for n in exclude:
+            names.remove(n)
         i = 1
         while True:
             name = base+str(i)

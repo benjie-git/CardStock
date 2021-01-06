@@ -195,6 +195,7 @@ class ControlPanel(wx.Panel):
 
         uiView.SetProperty(key, val)
         self.inspector.SetCellValue(event.GetRow(), 1, str(val))
+        self.UpdateInspectorForUiView(uiView)
 
     def UpdateHandlerForUiView(self, uiView, handlerName):
         if not uiView:
