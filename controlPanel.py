@@ -93,9 +93,9 @@ class ControlPanel(wx.Panel):
         self.codeEditor.SetSize((150,2000))
         self.codeEditor.Bind(stc.EVT_STC_CHANGE, self.CodeEditorTextChanged)
 
-        self.lastSelectedUIView = None
-        self.UpdateInspectorForUIView(None)
-        self.UpdateHandlerForUIView(None, None)
+        self.lastSelectedUiView = None
+        self.UpdateInspectorForUiView(None)
+        self.UpdateHandlerForUiView(None, None)
 
         # ----------
 
@@ -129,7 +129,7 @@ class ControlPanel(wx.Panel):
         if drawMode:
             self.box.Show(self.drawBox)
             self.box.Hide(self.editBox)
-            self.page.SelectUIView(None)
+            self.page.SelectUiView(None)
         else:
             self.box.Hide(self.drawBox)
             self.box.Show(self.editBox)
@@ -149,15 +149,15 @@ class ControlPanel(wx.Panel):
         displayName = self.handlerPicker.GetItems()[self.handlerPicker.GetSelection()]
         keys = list(UiView.handlerDisplayNames.keys())
         vals = list(UiView.handlerDisplayNames.values())
-        self.UpdateHandlerForUIView(self.page.GetSelectedUIView(), keys[vals.index(displayName)])
+        self.UpdateHandlerForUiView(self.page.GetSelectedUiView(), keys[vals.index(displayName)])
 
-    def UpdateForUIView(self, uiView):
-        if uiView != self.lastSelectedUIView:
-            self.UpdateInspectorForUIView(uiView)
-            self.UpdateHandlerForUIView(uiView, None)
-            self.lastSelectedUIView = uiView
+    def UpdateForUiView(self, uiView):
+        if uiView != self.lastSelectedUiView:
+            self.UpdateInspectorForUiView(uiView)
+            self.UpdateHandlerForUiView(uiView, None)
+            self.lastSelectedUiView = uiView
 
-    def UpdateInspectorForUIView(self, uiView):
+    def UpdateInspectorForUiView(self, uiView):
         if self.inspector.GetNumberRows() > 0:
             self.inspector.DeleteRows(0, self.inspector.GetNumberRows())
         if not uiView:
@@ -173,7 +173,7 @@ class ControlPanel(wx.Panel):
         self.Layout()
 
     def InspectorValueChanged(self, event):
-        uiView = self.page.GetSelectedUIView()
+        uiView = self.page.GetSelectedUiView()
         if not uiView:
             uiView = self.page.uiPage
         key = self.inspector.GetCellValue(event.GetRow(), 0)
@@ -196,7 +196,7 @@ class ControlPanel(wx.Panel):
         uiView.SetProperty(key, val)
         self.inspector.SetCellValue(event.GetRow(), 1, str(val))
 
-    def UpdateHandlerForUIView(self, uiView, handlerName):
+    def UpdateHandlerForUiView(self, uiView, handlerName):
         if not uiView:
             uiView = self.page.uiPage
         if handlerName == None:
@@ -214,7 +214,7 @@ class ControlPanel(wx.Panel):
         uiView.lastEditedHandler = self.currentHandler
 
     def CodeEditorTextChanged(self, event):
-        uiView = self.page.GetSelectedUIView()
+        uiView = self.page.GetSelectedUiView()
         if not uiView:
             uiView = self.page.uiPage
         uiView.SetHandler(self.currentHandler, self.codeEditor.GetText())

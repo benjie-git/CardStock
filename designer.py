@@ -82,7 +82,7 @@ class DesignerFrame(wx.Frame):
         self.splitter.SetSashGravity(0.8)
 
         self.page.SetFocus()
-        self.SetSelectedUIView(None)
+        self.SetSelectedUiView(None)
 
     def SaveFile(self):
         if self.filename:
@@ -103,11 +103,11 @@ class DesignerFrame(wx.Frame):
                 stack.SetStackData(data)
                 self.page.LoadFromData(stack.GetPageData(0))
 
-    def SetSelectedUIView(self, view):
-        self.cPanel.UpdateForUIView(view)
+    def SetSelectedUiView(self, view):
+        self.cPanel.UpdateForUiView(view)
 
-    def UpdateSelectedUIView(self):
-        self.cPanel.UpdateInspectorForUIView(self.page.GetSelectedUIView())
+    def UpdateSelectedUiView(self):
+        self.cPanel.UpdateInspectorForUiView(self.page.GetSelectedUiView())
 
     def MakeMenu(self):
         # create the file menu

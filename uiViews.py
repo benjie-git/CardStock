@@ -167,7 +167,7 @@ class UiView():
             else:
                 self.isResizing = False
 
-            self.page.SelectUIView(self)
+            self.page.SelectUiView(self)
         else:
             if "OnMouseDown" in self.handlers:
                 self.page.runner.RunHandler(self, "OnMouseDown", event)
@@ -182,7 +182,7 @@ class UiView():
             else:
                 offset = (x-self.origMousePos[0], y-self.origMousePos[1])
                 self.view.SetSize(self.origSize[0]+offset[0], self.origSize[1]+offset[1])
-            self.page.UpdateSelectedUIView()
+            self.page.UpdateSelectedUiView()
         elif not self.isEditing:
             if "OnMouseMove" in self.handlers:
                 self.page.runner.RunHandler(self, "OnMouseMove", event)
@@ -194,14 +194,14 @@ class UiView():
                 endx, endy = self.view.GetPosition()
                 offset = (endx-self.moveOrigin[0], endy-self.moveOrigin[1])
                 if offset != (0, 0):
-                    command = MoveUIViewCommand(True, 'Move', self.page, self, offset)
+                    command = MoveUiViewCommand(True, 'Move', self.page, self, offset)
                     self.view.SetPosition(self.moveOrigin)
                     self.page.command_processor.Submit(command)
             else:
                 endw, endh = self.view.GetSize()
                 offset = (endw-self.origSize[0], endh-self.origSize[1])
                 if offset != (0, 0):
-                    command = ResizeUIViewCommand(True, 'Resize', self.page, self, offset)
+                    command = ResizeUiViewCommand(True, 'Resize', self.page, self, offset)
                     self.view.SetSize(self.origSize)
                     self.page.command_processor.Submit(command)
 
@@ -411,7 +411,7 @@ class UiPage(UiView):
         return ["name", "size"]
 
 
-class MoveUIViewCommand(Command):
+class MoveUiViewCommand(Command):
     uiView = None
 
     def __init__(self, *args, **kwargs):
@@ -422,19 +422,19 @@ class MoveUIViewCommand(Command):
         self.viewId = self.uiView.GetProperty("id")
 
     def Do(self):
-        uiView = self.page.GetUIViewById(self.viewId)
+        uiView = self.page.GetUiViewById(self.viewId)
         pos = uiView.view.GetPosition()
         uiView.view.SetPosition((pos[0]+self.delta[0], pos[1]+self.delta[1]))
         return True
 
     def Undo(self):
-        uiView = self.page.GetUIViewById(self.viewId)
+        uiView = self.page.GetUiViewById(self.viewId)
         pos = uiView.view.GetPosition()
         uiView.view.SetPosition((pos[0]-self.delta[0], pos[1]-self.delta[1]))
         return True
 
 
-class ResizeUIViewCommand(Command):
+class ResizeUiViewCommand(Command):
     uiView = None
 
     def __init__(self, *args, **kwargs):
@@ -445,13 +445,13 @@ class ResizeUIViewCommand(Command):
         self.viewId = self.uiView.GetProperty("id")
 
     def Do(self):
-        uiView = self.page.GetUIViewById(self.viewId)
+        uiView = self.page.GetUiViewById(self.viewId)
         viewSize = uiView.view.GetSize()
         uiView.view.SetSize((viewSize[0]+self.delta[0], viewSize[1]+self.delta[1]))
         return True
 
     def Undo(self):
-        uiView = self.page.GetUIViewById(self.viewId)
+        uiView = self.page.GetUiViewById(self.viewId)
         viewSize = uiView.view.GetSize()
         uiView.view.SetSize((viewSize[0]-self.delta[0], viewSize[1]-self.delta[1]))
         return True

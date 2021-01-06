@@ -49,7 +49,7 @@ class ViewerFrame(wx.Frame):
     #     if self.filename:
     #         data = {}
     #         data["shapes"] = self.page.GetLinesData()
-    #         data["uiviews"] = self.page.GetUIViewsData()
+    #         data["uiviews"] = self.page.GetUiViewsData()
     #
     #         with open(self.filename, 'w') as f:
     #             json.dump(data, f)

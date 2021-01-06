@@ -51,7 +51,7 @@ def CreatePythonEditor(parent):
     editor.SetKeyWords(0, " ".join(keyword.kwlist))
 
     editor.Bind(wx.EVT_KEY_DOWN, PyEditorOnKeyPress)
-    editor.Bind(stc.EVT_STC_UPDATEUI, PyEditorOnUpdateUI)
+    editor.Bind(stc.EVT_STC_UPDATEUI, PyEditorOnUpdateUi)
 
     return editor
 
@@ -68,7 +68,7 @@ def PyEditorOnKeyPress(event):
         event.Skip()
 
 
-def PyEditorOnUpdateUI(event):
+def PyEditorOnUpdateUi(event):
     editor = event.GetEventObject()
 
     # check for matching braces
