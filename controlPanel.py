@@ -92,6 +92,7 @@ class ControlPanel(wx.Panel):
         self.codeEditor = PythonEditor(self)
         self.codeEditor.SetSize((150,2000))
         self.codeEditor.Bind(stc.EVT_STC_CHANGE, self.CodeEditorTextChanged)
+        self.updatingEditor = False
 
         self.lastSelectedUiView = None
         self.UpdateInspectorForUiView(None)
@@ -210,16 +211,19 @@ class ControlPanel(wx.Panel):
 
         self.handlerPicker.SetItems([UiView.handlerDisplayNames[k] for k in uiView.model.GetHandlers().keys()])
         self.handlerPicker.SetStringSelection(UiView.handlerDisplayNames[self.currentHandler])
+        self.updatingEditor = True
         self.codeEditor.SetText(uiView.model.GetHandler(self.currentHandler))
+        self.updatingEditor = False
         self.handlerPicker.Enable(True)
         self.codeEditor.Enable(True)
         uiView.lastEditedHandler = self.currentHandler
 
     def CodeEditorTextChanged(self, event):
-        uiView = self.page.GetSelectedUiView()
-        if not uiView:
-            uiView = self.page.uiPage
-        uiView.model.SetHandler(self.currentHandler, self.codeEditor.GetText())
+        if not self.updatingEditor:
+            uiView = self.page.GetSelectedUiView()
+            if not uiView:
+                uiView = self.page.uiPage
+            uiView.model.SetHandler(self.currentHandler, self.codeEditor.GetText())
 
     def MakeBitmap(self, colour):
         """

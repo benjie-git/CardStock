@@ -11,8 +11,8 @@ class UiView(object):
         super().__init__()
         self.page = page
         self.view = view
-
         self.model = model
+
         self.model.AddPropertyListener(self.OnPropertyChanged)
 
         mSize = self.model.GetProperty("size")
@@ -109,7 +109,7 @@ class UiView(object):
             self.page.SelectUiView(self)
         else:
             if "OnMouseDown" in self.model.handlers:
-                self.model.runner.RunHandler(self, "OnMouseDown", event)
+                self.model.runner.RunHandler(self.model, "OnMouseDown", event)
             event.Skip()
 
     def OnMouseMove(self, event):
@@ -125,7 +125,7 @@ class UiView(object):
                 self.model.SetProperty("size", self.view.GetSize())
         elif not self.isEditing:
             if "OnMouseMove" in self.model.handlers:
-                self.model.runner.RunHandler(self, "OnMouseMove", event)
+                self.model.runner.RunHandler(self.model, "OnMouseMove", event)
         event.Skip()
 
     def OnMouseUp(self, event):
@@ -149,19 +149,19 @@ class UiView(object):
             self.page.SetFocus()
         elif not self.isEditing:
             if "OnMouseUp" in self.model.handlers:
-                self.model.runner.RunHandler(self, "OnMouseUp", event)
+                self.model.runner.RunHandler(self.model, "OnMouseUp", event)
             event.Skip()
 
     def OnMouseEnter(self, event):
         if not self.isEditing:
             if "OnMouseEnter" in self.model.handlers:
-                self.model.runner.RunHandler(self, "OnMouseEnter", event)
+                self.model.runner.RunHandler(self.model, "OnMouseEnter", event)
             event.Skip()
 
     def OnMouseExit(self, event):
         if not self.isEditing:
             if "OnMouseExit" in self.model.handlers:
-                self.model.runner.RunHandler(self, "OnMouseExit", event)
+                self.model.runner.RunHandler(self.model, "OnMouseExit", event)
             event.Skip()
 
     def OnPaintSelectionBox(self, event):
@@ -207,9 +207,16 @@ class ViewModel(object):
         self.propertyListeners = []
 
         self.runner = None
+        self.isDirty = False
 
     def GetType(self):
         return self.type
+
+    def SetDirty(self, isDirty):
+        self.isDirty = isDirty
+
+    def GetDirty(self):
+        return self.isDirty
 
     def GetData(self):
         handlers = {}
@@ -266,12 +273,16 @@ class ViewModel(object):
     def SetProperty(self, key, value):
         if isinstance(value, wx.Point) or isinstance(value, wx.Position) or isinstance(value, wx.Size):
             value = list(value)
-        self.properties[key] = value
-        for callback in self.propertyListeners:
-            callback(self, key)
+        if self.properties[key] != value:
+            self.properties[key] = value
+            for callback in self.propertyListeners:
+                callback(self, key)
+            self.isDirty = True
 
     def SetHandler(self, key, value):
-        self.handlers[key] = value
+        if self.handlers[key] != value:
+            self.handlers[key] = value
+            self.isDirty = True
 
     def SendMessage(self, message):
         if self.runner:

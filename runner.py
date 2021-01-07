@@ -31,7 +31,7 @@ class Runner():
             self.keyCodeStringMap[wx.WXK_CONTROL] = "Command"
             self.keyCodeStringMap[wx.WXK_RAW_CONTROL] = "Control"
 
-    def RunHandler(self, uiView, handlerName, event, message=None):
+    def RunHandler(self, uiModel, handlerName, event, message=None):
         if not self.globals:
             self.globals = {}
             self.globals["page"] = self.page.uiPage.model
@@ -41,18 +41,18 @@ class Runner():
             for ui in self.page.uiViews:
                 self.globals[ui.model.GetProperty("name")] = ui.model
 
-        handlerStr = uiView.model.handlers[handlerName]
+        handlerStr = uiModel.handlers[handlerName]
 
         error_class = None
         line_number = None
         detail = None
 
-        self.locals["self"] = uiView.model
+        self.locals["self"] = uiModel
         if message:
             self.locals["message"] = message
 
         if event and handlerName.startswith("OnMouse"):
-            mouseX, mouseY = self.page.ScreenToClient(uiView.view.ClientToScreen(event.GetPosition()))
+            mouseX, mouseY = self.page.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
             self.locals["mouseX"] = mouseX
             self.locals["mouseY"] = mouseY
 
@@ -87,7 +87,7 @@ class Runner():
             self.locals.pop("message")
 
         if error_class:
-            msg = f"{error_class} in {uiView.model.GetProperty('name')}.{handlerName}(), line {line_number}: {detail}"
+            msg = f"{error_class} in {uiModel.GetProperty('name')}.{handlerName}(), line {line_number}: {detail}"
             print(msg)
             if self.statusBar:
                 self.statusBar.SetStatusText(msg)

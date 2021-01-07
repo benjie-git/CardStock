@@ -43,6 +43,7 @@ class DesignerFrame(wx.Frame):
         self.CreateStatusBar()
         self.MakeMenu()
         self.filename = None
+        self.app = None
 
         toolbar = self.CreateToolBar(style=wx.TB_TEXT)
         toolbar.AddTool(wx.ID_INDEX, 'Edit', wx.ArtProvider.GetBitmap(wx.ART_FIND), wx.NullBitmap)
@@ -83,6 +84,8 @@ class DesignerFrame(wx.Frame):
         self.splitter.SetMinimumPaneSize(120)
         self.splitter.SetSashPosition(self.splitter.GetSize()[0]-200)
         self.splitter.SetSashGravity(0.8)
+
+        self.viewer = None
 
         self.page.SetFocus()
         self.SetSelectedUiView(None)
@@ -125,11 +128,11 @@ class DesignerFrame(wx.Frame):
         # Using the "\tKeyName" syntax automatically creates a
         # wx.AcceleratorTable for this frame and binds the keys to
         # the menu items.
+        menu1.Append(wx.ID_NEW, "&New Page\tCtrl-N", "Create a new file")
         menu1.Append(wx.ID_OPEN, "&Open\tCtrl-O", "Open a page file")
+        menu1.AppendSeparator()
         menu1.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save the page")
         menu1.Append(wx.ID_SAVEAS, "Save &As", "Save the page in a new file")
-        menu1.AppendSeparator()
-        menu1.Append(wx.ID_CLEAR, "&Clear Page", "Clear the current page")
         menu1.AppendSeparator()
         runId = wx.NewIdRef()
         menu1.Append(runId, "&Run Page\tCtrl-R", "Run the current page")
@@ -155,10 +158,10 @@ class DesignerFrame(wx.Frame):
         menuBar.Append(menu3, "&Help")
         self.SetMenuBar(menuBar)
 
+        self.Bind(wx.EVT_MENU,  self.OnMenuNew, id=wx.ID_NEW)
         self.Bind(wx.EVT_MENU,   self.OnMenuOpen, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU,   self.OnMenuSave, id=wx.ID_SAVE)
         self.Bind(wx.EVT_MENU, self.OnMenuSaveAs, id=wx.ID_SAVEAS)
-        self.Bind(wx.EVT_MENU,  self.OnMenuClear, id=wx.ID_CLEAR)
         self.Bind(wx.EVT_MENU,  self.OnMenuRun, id=runId)
         self.Bind(wx.EVT_MENU,   self.OnMenuExit, id=wx.ID_EXIT)
 
@@ -172,7 +175,27 @@ class DesignerFrame(wx.Frame):
 
     wildcard = "page files (*.ddl)|*.ddl|All files (*.*)|*.*"
 
+    def OnMenuNew(self, event):
+        if self.stack.GetDirty():
+            r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
+                                 "Save before starting a New file?", wx.YES_NO | wx.CANCEL).ShowModal()
+            if r == wx.ID_CANCEL:
+                return
+            if r == wx.ID_YES:
+                self.OnMenuSave(None)
+
+        self.NewFile()
+        self.SetTitle(self.title)
+
     def OnMenuOpen(self, event):
+        if self.stack.GetDirty():
+            r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
+                                 "Save before Opening a file?", wx.YES_NO | wx.CANCEL).ShowModal()
+            if r == wx.ID_CANCEL:
+                return
+            if r == wx.ID_YES:
+                self.OnMenuSave(None)
+
         dlg = wx.FileDialog(self, "Open page file...", os.getcwd(),
                            style=wx.FD_OPEN, wildcard = self.wildcard)
         if dlg.ShowModal() == wx.ID_OK:
@@ -204,21 +227,34 @@ class DesignerFrame(wx.Frame):
             self.SetTitle(self.title + ' -- ' + self.filename)
         dlg.Destroy()
 
-    def OnMenuClear(self, event):
-        self.NewFile()
-        self.SetTitle(self.title)
-
     def OnMenuRun(self, event):
-        frame = ViewerFrame(None)
-        sb = frame.CreateStatusBar()
+        if self.viewer:
+            self.viewer.Destroy()
+        self.viewer = ViewerFrame(self)
+        sb = self.viewer.CreateStatusBar()
         data = self.stack.GetData()
         stack = StackModel()
         stack.SetData(data)
-        frame.page.SetModel(stack.GetPageModel(0))
-        frame.page.SetEditing(False)
-        frame.RunViewer(sb)
+        self.viewer.page.SetModel(stack.GetPageModel(0))
+        self.viewer.page.SetEditing(False)
+        self.viewer.RunViewer(sb)
+        self.viewer.Bind(wx.EVT_CLOSE, self.OnViewerClose)
+
+    def OnViewerClose(self, event):
+        self.viewer = None
 
     def OnMenuExit(self, event):
+        if self.stack.GetDirty():
+            r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
+                                 "Save before Quitting?", wx.YES_NO | wx.CANCEL).ShowModal()
+            if r == wx.ID_CANCEL:
+                return
+            if r == wx.ID_YES:
+                self.OnMenuSave(None)
+
+        if self.viewer:
+            self.viewer.Destroy()
+
         self.Close()
 
     def OnCut(self, event):
@@ -328,6 +364,7 @@ class DesignerApp(wx.App, InspectionMixin):
         self.Init() # for InspectionMixin
 
         self.frame = DesignerFrame(None)
+        self.frame.app = self
         self.frame.Show(True)
         self.SetTopWindow(self.frame)
         self.SetAppDisplayName('PyPage')

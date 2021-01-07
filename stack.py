@@ -17,6 +17,12 @@ class StackModel(object):
     def GetPageModel(self, i):
         return self.pageModels[i]
 
+    def GetDirty(self):
+        for page in self.pageModels:
+            if page.GetDirty():
+                return True
+        return False
+
     def GetData(self):
         return {"pages":[m.GetData() for m in self.pageModels]}
 

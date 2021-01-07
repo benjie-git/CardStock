@@ -58,11 +58,7 @@ class ViewerFrame(wx.Frame):
     def MakeMenu(self):
         # create the file menu
         menu1 = wx.Menu()
-
-        # Using the "\tKeyName" syntax automatically creates a
-        # wx.AcceleratorTable for this frame and binds the keys to
-        # the menu items.
-        menu1.Append(wx.ID_EXIT, "E&xit", "Terminate the application")
+        menu1.Append(wx.ID_CLOSE, "&Close\tCtrl-W", "Close Window")
 
         menu2 = wx.Menu()
         menu2.Append(wx.ID_UNDO, "&Undo\tCtrl-Z", "Undo Action")
@@ -78,12 +74,12 @@ class ViewerFrame(wx.Frame):
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
-        # menuBar.Append(menu1, "&File")
+        menuBar.Append(menu1, "&File")
         menuBar.Append(menu2, "&Edit")
         menuBar.Append(menu3, "&Help")
         self.SetMenuBar(menuBar)
 
-        self.Bind(wx.EVT_MENU,   self.OnMenuExit, id=wx.ID_EXIT)
+        self.Bind(wx.EVT_MENU,   self.OnClose, id=wx.ID_CLOSE)
 
         self.Bind(wx.EVT_MENU,  self.OnMenuAbout, id=wx.ID_ABOUT)
 
@@ -93,8 +89,8 @@ class ViewerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
 
-    def OnMenuExit(self, event):
-        self.Close()
+    def OnClose(self, event):
+        self.Destroy()
 
     def OnCut(self, event):
         f = self.FindFocus()
@@ -141,7 +137,7 @@ class ViewerFrame(wx.Frame):
         self.Show(True)
 
         if "OnStart" in self.page.uiPage.model.handlers:
-            runner.RunHandler(self.page.uiPage, "OnStart", None)
+            runner.RunHandler(self.page.uiPage.model, "OnStart", None)
 
 
 # ----------------------------------------------------------------------

@@ -15,8 +15,8 @@ class UiButton(UiView):
             model.SetProperty("name", page.uiPage.model.GetNextAvailableNameForBase("button_"))
 
         super().__init__(page, model, button)
-        self.model = model
 
+        self.view.SetLabel(model.GetProperty("title"))
         self.view.Bind(wx.EVT_BUTTON, self.OnButton)
 
 
@@ -28,7 +28,7 @@ class UiButton(UiView):
     def OnButton(self, event):
         if not self.isEditing:
             if "OnClick" in self.model.handlers:
-                self.model.runner.RunHandler(self, "OnClick", event)
+                self.model.runner.RunHandler(self.model, "OnClick", event)
             event.Skip()
 
 

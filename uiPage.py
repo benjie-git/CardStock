@@ -23,17 +23,17 @@ class UiPage(UiView):
     def OnKeyDown(self, event):
         if not self.isEditing:
             if "OnKeyDown" in self.model.handlers:
-                self.model.runner.RunHandler(self, "OnKeyDown", event)
+                self.model.runner.RunHandler(self.model, "OnKeyDown", event)
 
     def OnKeyUp(self, event):
         if not self.isEditing:
             if "OnKeyUp" in self.model.handlers:
-                self.model.runner.RunHandler(self, "OnKeyUp", event)
+                self.model.runner.RunHandler(self.model, "OnKeyUp", event)
 
     def OnIdle(self, event):
         if not self.isEditing:
             if "OnIdle" in self.model.handlers:
-                self.model.runner.RunHandler(self, "OnIdle", event)
+                self.model.runner.RunHandler(self.model, "OnIdle", event)
             event.Skip()
 
 
@@ -56,6 +56,22 @@ class PageModel(ViewModel):
         self.childModels = []
         self.shapes = []
 
+    def GetDirty(self):
+        if self.isDirty:
+            return True
+        for child in self.childModels:
+            if child.isDirty:
+                return True
+        return False
+
+    def SetDirty(self, isDirty):
+        if isDirty:
+            self.isDirty = True
+        else:
+            self.isDirty = False
+            for child in self.childModels:
+                child.isDirty = False
+
     def GetData(self):
         data = super().GetData()
         data["shapes"] = self.shapes
@@ -72,9 +88,11 @@ class PageModel(ViewModel):
 
     def AddChild(self, model):
         self.childModels.append(model)
+        self.isDirty = True
 
     def RemoveChild(self, model):
         self.childModels.remove(model)
+        self.isDirty = True
 
     def DeduplicateName(self, name, exclude=[]):
         names = [m.properties["name"] for m in self.childModels]

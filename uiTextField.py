@@ -15,7 +15,8 @@ class UiTextField(UiView):
             model.SetProperty("name", page.uiPage.model.GetNextAvailableNameForBase("field_"))
 
         super().__init__(page, model, field)
-        self.model = model
+
+        self.view.ChangeValue(model.GetProperty("text"))
 
         self.view.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
         self.view.Bind(wx.EVT_CHAR, self.OnTextChanged)
@@ -35,13 +36,13 @@ class UiTextField(UiView):
     def OnTextEnter(self, event):
         if not self.isEditing:
             if "OnTextEnter" in self.model.handlers:
-                self.model.runner.RunHandler(self, "OnTextEnter", event)
+                self.model.runner.RunHandler(self.model, "OnTextEnter", event)
             event.Skip()
 
     def OnTextChanged(self, event):
         if not self.isEditing:
             if "OnTextChanged" in self.model.handlers:
-                self.model.runner.RunHandler(self, "OnTextChanged", event)
+                self.model.runner.RunHandler(self.model, "OnTextChanged", event)
             event.Skip()
 
 

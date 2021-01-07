@@ -61,6 +61,9 @@ class PageWindow(wx.Window):
         self.uiPage = UiPage(self, pageModel)
         self.selectedView = None
 
+        self.uiPage.model.SetDirty(False)
+        self.command_processor.ClearCommands()
+
         self.InitBuffer()
         self.UpdateCursor()
 
@@ -123,7 +126,10 @@ class PageWindow(wx.Window):
         self.ClearAllViews()
         self.CreateViews(model.childModels)
         self.uiPage.model = model
+        self.uiPage.model.shapes = []
+        self.command_processor.ClearCommands()
         self.UpdateSelectedUiView()
+        model.SetDirty(False)
         self.InitBuffer()
 
     def SetDesigner(self, designer):
@@ -154,8 +160,8 @@ class PageWindow(wx.Window):
     def CopyView(self):
         if self.selectedView:
             clipData = wx.CustomDataObject("org.pycard.models")
-            dict = self.selectedView.model.GetData()
-            data = bytes(json.dumps(dict).encode('utf8'))
+            list = [self.selectedView.model.GetData()]
+            data = bytes(json.dumps(list).encode('utf8'))
             clipData.SetData(data)
             wx.TheClipboard.Open()
             wx.TheClipboard.SetData(clipData)
@@ -171,12 +177,14 @@ class PageWindow(wx.Window):
     def PasteView(self):
         if not wx.TheClipboard.IsOpened():  # may crash, otherwise
             if wx.TheClipboard.Open():
-                if wx.TheClipboard.IsSupported(wx.DataFormat("org.pycard.view")):
+                if wx.TheClipboard.IsSupported(wx.DataFormat("org.pycard.models")):
                     clipData = wx.CustomDataObject("org.pycard.models")
                     if wx.TheClipboard.GetData(clipData):
                         rawdata = clipData.GetData()
-                        data = json.loads(rawdata.tobytes().decode('utf8'))
-                        uiView = self.AddUiViewFromModel(PageModel.ModelFromData(data))
+                        list = json.loads(rawdata.tobytes().decode('utf8'))
+                        uiView = None
+                        for dict in list:
+                            uiView = self.AddUiViewFromModel(PageModel.ModelFromData(dict))
                         self.SelectUiView(uiView)
                 wx.TheClipboard.Close()
 
