@@ -3,7 +3,7 @@ import wx.stc as stc
 import wx.grid
 from wx.lib import buttons # for generic button classes
 from PythonEditor import PythonEditor
-from uiViews import UiView
+from uiView import UiView
 import ast
 
 
@@ -162,13 +162,13 @@ class ControlPanel(wx.Panel):
             self.inspector.DeleteRows(0, self.inspector.GetNumberRows())
         if not uiView:
             uiView = self.page.uiPage
-        keys = uiView.GetPropertyKeys()
+        keys = uiView.model.PropertyKeys()
         self.inspector.InsertRows(0,len(keys))
         r = 0
         for k in keys:
             self.inspector.SetCellValue(r, 0, k)
             self.inspector.SetReadOnly(r, 0)
-            self.inspector.SetCellValue(r, 1, str(uiView.GetProperty(k)))
+            self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
             r+=1
         self.Layout()
 
@@ -177,7 +177,7 @@ class ControlPanel(wx.Panel):
         if not uiView:
             uiView = self.page.uiPage
         key = self.inspector.GetCellValue(event.GetRow(), 0)
-        oldVal = uiView.GetProperty(key)
+        oldVal = uiView.model.GetProperty(key)
         valStr = self.inspector.GetCellValue(event.GetRow(), 1)
         val = valStr
 
@@ -193,9 +193,10 @@ class ControlPanel(wx.Panel):
         except:
             val = oldVal # On any conversion failure, use old value
 
-        uiView.SetProperty(key, val)
+        if key == "name":
+            val = self.page.uiPage.model.DeduplicateName(val, [uiView.model.GetProperty("name")])
+        uiView.model.SetProperty(key, val)
         self.inspector.SetCellValue(event.GetRow(), 1, str(val))
-        self.UpdateInspectorForUiView(uiView)
 
     def UpdateHandlerForUiView(self, uiView, handlerName):
         if not uiView:
@@ -204,12 +205,12 @@ class ControlPanel(wx.Panel):
             handlerName = uiView.lastEditedHandler
         if handlerName:
             self.currentHandler = handlerName
-        if uiView.GetHandler(handlerName) == None:
-            self.currentHandler = list(uiView.GetHandlers().keys())[0]
+        if uiView.model.GetHandler(handlerName) == None:
+            self.currentHandler = list(uiView.model.GetHandlers().keys())[0]
 
-        self.handlerPicker.SetItems([UiView.handlerDisplayNames[k] for k in uiView.GetHandlers().keys()])
+        self.handlerPicker.SetItems([UiView.handlerDisplayNames[k] for k in uiView.model.GetHandlers().keys()])
         self.handlerPicker.SetStringSelection(UiView.handlerDisplayNames[self.currentHandler])
-        self.codeEditor.SetText(uiView.GetHandler(self.currentHandler))
+        self.codeEditor.SetText(uiView.model.GetHandler(self.currentHandler))
         self.handlerPicker.Enable(True)
         self.codeEditor.Enable(True)
         uiView.lastEditedHandler = self.currentHandler
@@ -218,7 +219,7 @@ class ControlPanel(wx.Panel):
         uiView = self.page.GetSelectedUiView()
         if not uiView:
             uiView = self.page.uiPage
-        uiView.SetHandler(self.currentHandler, self.codeEditor.GetText())
+        uiView.model.SetHandler(self.currentHandler, self.codeEditor.GetText())
 
     def MakeBitmap(self, colour):
         """

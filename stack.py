@@ -1,20 +1,28 @@
-from page import PageWindow
+#!/usr/bin/python
 
-class StackModel():
+from uiPage import PageModel
+
+
+class StackModel(object):
     def __init__(self):
-        self.pagesData = []
+        super().__init__()
+        self.pageModels = []
 
-    def GetPageData(self, i):
-        return self.pagesData[i]
+    def AddPageModel(self, pageModel):
+        self.pageModels.append(pageModel)
 
-    def GetPages(self):
-        return self.pagesData
+    def RemovePageModel(self, pageModel):
+        self.pageModels.remove(pageModel)
 
-    def AppendPage(self, page):
-        self.pagesData.append(page.GetData())
+    def GetPageModel(self, i):
+        return self.pageModels[i]
 
-    def GetStackData(self):
-        return {"pages":self.pagesData}
+    def GetData(self):
+        return {"pages":[m.GetData() for m in self.pageModels]}
 
-    def SetStackData(self, data):
-        self.pagesData = data["pages"]
+    def SetData(self, stackData):
+        self.pageModels = []
+        for data in stackData["pages"]:
+            m = PageModel()
+            m.SetData(data)
+            self.AddPageModel(m)

@@ -34,20 +34,20 @@ class Runner():
     def RunHandler(self, uiView, handlerName, event, message=None):
         if not self.globals:
             self.globals = {}
-            self.globals["page"] = self.page
+            self.globals["page"] = self.page.uiPage.model
             self.globals["Alert"] = Alert
             self.globals["Ask"] = Ask
             self.globals["PlaySound"] = PlaySound
             for ui in self.page.uiViews:
-                self.globals[ui.properties["name"]] = ui.view
+                self.globals[ui.model.GetProperty("name")] = ui.model
 
-        handlerStr = uiView.handlers[handlerName]
+        handlerStr = uiView.model.handlers[handlerName]
 
         error_class = None
         line_number = None
         detail = None
 
-        self.locals["self"] = uiView.view
+        self.locals["self"] = uiView.model
         if message:
             self.locals["message"] = message
 
@@ -87,7 +87,7 @@ class Runner():
             self.locals.pop("message")
 
         if error_class:
-            msg = f"{error_class} in {uiView.GetProperty('name')}.{handlerName}(), line {line_number}: {detail}"
+            msg = f"{error_class} in {uiView.model.GetProperty('name')}.{handlerName}(), line {line_number}: {detail}"
             print(msg)
             if self.statusBar:
                 self.statusBar.SetStatusText(msg)
@@ -96,7 +96,7 @@ class Runner():
         Sound.Stop()
 
 
-def Alert(title, message):
+def Alert(title, message=""):
     wx.MessageDialog(None, str(message), str(title), wx.OK).ShowModal()
 
 

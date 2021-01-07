@@ -14,12 +14,12 @@ import sys
 import json
 import wx
 import wx.html
-from page import PageWindow
+from pageWindow import PageWindow
 from controlPanel import ControlPanel
 from viewer import ViewerFrame
 import version
-from runner import Runner
 from stack import StackModel
+from uiPage import PageModel
 
 from wx.lib.mixins.inspection import InspectionMixin
 
@@ -71,7 +71,9 @@ class DesignerFrame(wx.Frame):
 
         self.splitter = wx.SplitterWindow(self, id=wx.ID_ANY, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
 
-        self.page = PageWindow(self.splitter, -1)
+        self.stack = StackModel()
+        self.stack.AddPageModel(PageModel())
+        self.page = PageWindow(self.splitter, -1, self.stack.GetPageModel(0))
         self.page.SetEditing(True)
         self.page.SetDesigner(self)
 
@@ -85,24 +87,29 @@ class DesignerFrame(wx.Frame):
         self.page.SetFocus()
         self.SetSelectedUiView(None)
 
+    def NewFile(self):
+        self.stack = StackModel()
+        self.stack.AddPageModel(PageModel())
+        self.page.SetModel(self.stack.GetPageModel(0))
+        self.page.SetEditing(True)
+
     def SaveFile(self):
         if self.filename:
-            stack = StackModel()
-            stack.AppendPage(self.page)
-            data = stack.GetStackData()
+            data = self.stack.GetData()
 
             with open(self.filename, 'w') as f:
                 json.dump(data, f, indent=2)
 
     def ReadFile(self):
         if self.filename:
-            data = None
             with open(self.filename, 'r') as f:
                 data = json.load(f)
             if data:
-                stack = StackModel()
-                stack.SetStackData(data)
-                self.page.LoadFromData(stack.GetPageData(0))
+                self.stack.SetData(data)
+                model = self.stack.GetPageModel(0)
+                self.page.SetModel(model)
+                self.page.SetEditing(True)
+                self.page.SetDesigner(self)
 
     def SetSelectedUiView(self, view):
         self.cPanel.UpdateForUiView(view)
@@ -198,17 +205,16 @@ class DesignerFrame(wx.Frame):
         dlg.Destroy()
 
     def OnMenuClear(self, event):
-        self.page.ClearAll()
+        self.NewFile()
         self.SetTitle(self.title)
-
 
     def OnMenuRun(self, event):
         frame = ViewerFrame(None)
         sb = frame.CreateStatusBar()
+        data = self.stack.GetData()
         stack = StackModel()
-        stack.AppendPage(self.page)
-        data = stack.GetPageData(0)
-        frame.page.LoadFromData(data)
+        stack.SetData(data)
+        frame.page.SetModel(stack.GetPageModel(0))
         frame.page.SetEditing(False)
         frame.RunViewer(sb)
 
@@ -264,12 +270,12 @@ class DesignerFrame(wx.Frame):
         self.cPanel.SetDrawingMode(False)
 
     def OnMenuAddButton(self, event):
-        if self.page.isEditing and not self.page.isInDrawingMode:
+        if self.page.uiPage.isEditing and not self.page.isInDrawingMode:
             self.page.AddUiViewOfType("button")
             event.Skip()
 
     def OnMenuAddTextField(self, event):
-        if self.page.isEditing and not self.page.isInDrawingMode:
+        if self.page.uiPage.isEditing and not self.page.isInDrawingMode:
             self.page.AddUiViewOfType("textfield")
             event.Skip()
 
@@ -346,8 +352,5 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         filename = sys.argv[1]
         app.frame.OpenFile(filename)
-    else:
-        print("Usage: python3 designer.py [filename]")
-        exit(1)
     app.MainLoop()
 

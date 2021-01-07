@@ -1,4 +1,5 @@
-# page.py
+#!/usr/bin/python
+# pageWindow.py
 
 """
 This module contains the PageWindow class which is a window that you
@@ -8,10 +9,10 @@ can do simple drawings upon. and add Buttons and TextFields to.
 
 import wx
 from wx.lib.docview import CommandProcessor, Command
-import sys
 import json
-from runner import Runner
-from uiViews import UiButton, UiTextField, UiPage, UiView
+from uiPage import UiPage, PageModel
+from uiButton import UiButton
+from uiTextField import UiTextField
 
 # ----------------------------------------------------------------------
 
@@ -35,31 +36,32 @@ class PageWindow(wx.Window):
                     }
     maxThickness = 16
 
-    def __init__(self, parent, ID):
+    def __init__(self, parent, ID, pageModel):
         wx.Window.__init__(self, parent, ID, style=wx.NO_FULL_REPAINT_ON_RESIZE)
         self.SetBackgroundColour("WHITE")
         self.listeners = []
-        self.shapes = []
         self.designer = None
         self.command_processor = CommandProcessor()
-        self.isEditing = False
         self.pos = wx.Point(0,0)
         self.isInDrawingMode = False
         self.isDrawing = False
         self.thickness = 4
+        self.colour = None
+        self.pen = None
         self.SetColour("Black")
         self.runner = None
-        # self.MakeMenu()
-
-        self.uiViews = []
-        self.uiPage = UiPage(self)
-        self.uiViews.append(self.uiPage)
         self.timer = None
 
+        if not pageModel:
+            pageModel = PageModel()
+
+        self.uiViews = []
+        self.CreateViews(pageModel.childModels)
+
+        self.uiPage = UiPage(self, pageModel)
         self.selectedView = None
 
         self.InitBuffer()
-
         self.UpdateCursor()
 
         # hook some mouse events
@@ -79,8 +81,17 @@ class PageWindow(wx.Window):
         # When the window is destroyed, clean up resources.
         self.Bind(wx.EVT_WINDOW_DESTROY, self.Cleanup)
 
+    def Cleanup(self, evt):
+        if hasattr(self, "menu"):
+            self.menu.Destroy()
+            del self.menu
+        if self.timer:
+            self.timer.Stop()
+        if self.runner:
+            self.runner.StopRunning()
+
     def SetEditing(self, editing):
-        self.isEditing = editing
+        self.uiPage.isEditing = editing
         for ui in self.uiViews:
             ui.SetEditing(editing)
         if not editing:
@@ -95,44 +106,28 @@ class PageWindow(wx.Window):
         self.isInDrawingMode = drawMode
         self.UpdateCursor()
 
-    def ClearAll(self):
-        self.SetLinesData([])
+    def ClearAllViews(self):
         self.SelectUiView(None)
-
         for ui in self.uiViews.copy():
-            if ui.type != "page":
+            if ui.model.type != "page":
+                ui.model.RemovePropertyListener(self.OnPropertyChanged)
                 self.uiViews.remove(ui)
+                self.uiPage.model.RemoveChild(ui.model)
                 ui.DestroyView()
-            else:
-                for k,v in ui.GetHandlers().items():
-                    ui.SetHandler(k,"")
 
-    def GetData(self):
-        data = {}
-        data["shapes"] = self.GetShapesData()
-        data["uiviews"] = self.GetUiViewsData()
-        #for d in data["uiviews"]:
-        #    d["properties"].pop("id")
+    def CreateViews(self, models):
+        for m in models:
+            self.AddUiViewFromModel(m)
 
-        return data
-
-    def LoadFromData(self, data):
-        self.ClearAll()
-        self.SetLinesData(data["shapes"])
-        self.SetUiViewsData(data["uiviews"])
+    def SetModel(self, model):
+        self.ClearAllViews()
+        self.CreateViews(model.childModels)
+        self.uiPage.model = model
         self.UpdateSelectedUiView()
+        self.InitBuffer()
 
     def SetDesigner(self, designer):
         self.designer = designer
-
-    def Cleanup(self, evt):
-        if hasattr(self, "menu"):
-            self.menu.Destroy()
-            del self.menu
-        if self.timer:
-            self.timer.Stop()
-        if self.runner:
-            self.runner.StopRunning()
 
     def InitBuffer(self):
         """Initialize the bitmap used for buffering the display."""
@@ -158,11 +153,12 @@ class PageWindow(wx.Window):
 
     def CopyView(self):
         if self.selectedView:
-            clipdata = wx.CustomDataObject("org.pycard.view")
-            data = bytes(json.dumps(self.selectedView.GetData()).encode('utf8'))
-            clipdata.SetData(data)
+            clipData = wx.CustomDataObject("org.pycard.models")
+            dict = self.selectedView.model.GetData()
+            data = bytes(json.dumps(dict).encode('utf8'))
+            clipData.SetData(data)
             wx.TheClipboard.Open()
-            wx.TheClipboard.SetData(clipdata)
+            wx.TheClipboard.SetData(clipData)
             wx.TheClipboard.Close()
 
     def CutView(self):
@@ -176,12 +172,11 @@ class PageWindow(wx.Window):
         if not wx.TheClipboard.IsOpened():  # may crash, otherwise
             if wx.TheClipboard.Open():
                 if wx.TheClipboard.IsSupported(wx.DataFormat("org.pycard.view")):
-                    clipdata = wx.CustomDataObject("org.pycard.view")
-                    if wx.TheClipboard.GetData(clipdata):
-                        rawdata = clipdata.GetData()
+                    clipData = wx.CustomDataObject("org.pycard.models")
+                    if wx.TheClipboard.GetData(clipData):
+                        rawdata = clipData.GetData()
                         data = json.loads(rawdata.tobytes().decode('utf8'))
-                        data["properties"]["id"] = UiView.GetNextUiViewId()
-                        uiView = self.AddUiViewFromData(data)
+                        uiView = self.AddUiViewFromModel(PageModel.ModelFromData(data))
                         self.SelectUiView(uiView)
                 wx.TheClipboard.Close()
 
@@ -196,67 +191,41 @@ class PageWindow(wx.Window):
         self.SelectUiView(uiView)
         return uiView
 
-    def AddUiViewOfTypeInternal(self, type):
+    def AddUiViewInternal(self, type, model=None):
         uiView = None
         if type == "button":
-            uiView = UiButton(self)
+            uiView = UiButton(self, model)
         elif type == "textfield":
-            uiView = UiTextField(self)
+            uiView = UiTextField(self, model)
 
         if uiView:
-            uiView.view.Center()
+            if not model:
+                uiView.view.Center()
+                uiView.model.SetProperty("position", uiView.view.GetPosition())
+                uiView.model.SetProperty("size", uiView.view.GetSize())
             self.uiViews.append(uiView)
-            uiView.SetEditing(self.isEditing)
+            if not uiView.model in self.uiPage.model.childModels:
+                self.uiPage.model.AddChild(uiView.model)
+            uiView.model.AddPropertyListener(self.OnPropertyChanged)
+            uiView.SetEditing(self.uiPage.isEditing)
         return uiView
 
-    def AddUiViewFromData(self, data):
+    def AddUiViewFromModel(self, model):
         uiView = None
 
-        data["properties"]["name"] = self.DeduplicateName(data["properties"]["name"])
+        model.SetProperty("name", self.uiPage.model.DeduplicateName(model.GetProperty("name")))
 
-        if data["type"] == "button":
-            command = AddUiViewCommand(True, 'Add Button', self, "button", data)
+        if model.GetType() == "button":
+            command = AddUiViewCommand(True, 'Add Button', self, "button", model)
             self.command_processor.Submit(command)
             uiView = self.uiViews[-1]
-        elif data["type"] == "textfield":
-            command = AddUiViewCommand(True, 'Add TextField', self, "textfield", data)
+        elif model.GetType() == "textfield":
+            command = AddUiViewCommand(True, 'Add TextField', self, "textfield", model)
             self.command_processor.Submit(command)
             uiView = self.uiViews[-1]
-        elif data["type"] == "page":
-            uiView = self.uiPage
-            uiView.SetData(data)
-            self.uiViews.append(uiView)
-
-        uiView.SetEditing(self.isEditing)
+        if uiView:
+            uiView.SetEditing(self.uiPage.isEditing)
         return uiView
-
-    def DeduplicateName(self, name, exclude=[]):
-        names = [v.properties["name"] for v in self.uiViews]
-        for n in exclude:
-            names.remove(n)
-
-        if name in names:
-            name = name.rstrip("0123456789")
-            if name[-1:] != "_":
-                name = name + "_"
-            name = self.GetNextAvailableNameForBase(name, exclude)
-        return name
-
-    def GetShapesData(self):
-        return self.shapes[:]
-
-    def SetLinesData(self, lines):
-        self.shapes = lines[:]
-        self.InitBuffer()
-        self.Refresh()
-
-    def GetUiViewsData(self):
-        return [v.GetData() for v in self.uiViews]
-
-    def SetUiViewsData(self, data):
-        self.uiViews = []
-        for v in data:
-            self.AddUiViewFromData(v)
 
     def GetSelectedUiView(self):
         return self.selectedView
@@ -270,39 +239,35 @@ class PageWindow(wx.Window):
         if self.designer:
             self.designer.SetSelectedUiView(view)
 
+    def OnPropertyChanged(self, model, key):
+        uiView = self.GetUiViewByModel(model)
+        if uiView == self.selectedView:
+            self.UpdateSelectedUiView()
+
     def UpdateSelectedUiView(self):
         if self.designer:
             self.designer.UpdateSelectedUiView()
 
-    def GetNextAvailableNameForBase(self, base, exclude=[]):
-        names = [ui.GetProperty("name") for ui in self.uiViews]
-        for n in exclude:
-            names.remove(n)
-        i = 1
-        while True:
-            name = base+str(i)
-            if name not in names:
-                return name
-            i += 1
-
-    def GetUiViewById(self, viewId):
+    def GetUiViewByModel(self, model):
         for ui in self.uiViews:
-            if ui.GetProperty("id") == viewId:
+            if ui.model == model:
                 return ui
         return None
 
-    def RemoveUiViewById(self, viewId):
+    def RemoveUiViewByModel(self, viewModel):
         for ui in self.uiViews.copy():
-            if ui.GetProperty("id") == viewId:
+            if ui.model == viewModel:
                 if self.selectedView == ui:
                     self.SelectUiView(None)
+                ui.model.RemoveAllPropertyListeners()
                 self.uiViews.remove(ui)
+                self.uiPage.model.RemoveChild(ui.model)
                 ui.DestroyView()
                 return
 
     def OnMouseDown(self, event):
         """called when the left mouse button is pressed"""
-        if self.isEditing:
+        if self.uiPage.isEditing:
             if self.isInDrawingMode:
                 self.curLine = []
                 self.pos = event.GetPosition()
@@ -315,26 +280,13 @@ class PageWindow(wx.Window):
         else:
             event.Skip()
 
-    def OnMouseUp(self, event):
-        """called when the left mouse button is released"""
-        if self.isEditing:
-            if self.HasCapture():
-                command = AddLineCommand(True, 'Add Line', self,
-                                         ("pen", self.colour, self.thickness, self.curLine) )
-                self.command_processor.Submit(command)
-                self.curLine = []
-                self.isDrawing = False
-                self.ReleaseMouse()
-        else:
-            event.Skip()
-
     def OnMouseMove(self, event):
         """
         Called when the mouse is in motion.  If the left button is
         dragging then draw a line from the last event position to the
         current one.  Save the coordinants for redraws.
         """
-        if self.isEditing:
+        if self.uiPage.isEditing:
             if self.isDrawing and event.Dragging() and event.LeftIsDown():
                 dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
                 dc.SetPen(self.pen)
@@ -343,6 +295,19 @@ class PageWindow(wx.Window):
                 self.curLine.append(coords)
                 dc.DrawLine(*(self.pos.x, self.pos.y, pos.x, pos.y))
                 self.pos = pos
+        else:
+            event.Skip()
+
+    def OnMouseUp(self, event):
+        """called when the left mouse button is released"""
+        if self.uiPage.isEditing:
+            if self.HasCapture():
+                command = AddLineCommand(True, 'Add Line', self,
+                                         ("pen", self.colour, self.thickness, self.curLine) )
+                self.command_processor.Submit(command)
+                self.curLine = []
+                self.isDrawing = False
+                self.ReleaseMouse()
         else:
             event.Skip()
 
@@ -380,7 +345,7 @@ class PageWindow(wx.Window):
         """
         Redraws all the shapes that have been drawn already.
         """
-        for type, colour, thickness, line in self.shapes:
+        for type, colour, thickness, line in self.uiPage.model.shapes:
             pen = wx.Pen(colour, thickness, wx.PENSTYLE_SOLID)
             dc.SetPen(pen)
 
@@ -424,16 +389,16 @@ class AddLineCommand(Command):
 
     def __init__(self, *args, **kwargs):
         super().__init__()
-        self.parent = args[2]
+        self.page = args[2]
         self.line = args[3]
 
     def Do(self):
-        self.parent.shapes.append(self.line)
+        self.page.uiPage.model.shapes.append(self.line)
         return True
 
     def Undo(self):
-        if len(self.parent.shapes):
-            self.parent.shapes.pop();
+        if len(self.page.uiPage.model.shapes):
+            self.page.uiPage.model.shapes.pop()
         return True
 
 
@@ -442,22 +407,17 @@ class AddUiViewCommand(Command):
         super().__init__(args, kwargs)
         self.page = args[2]
         self.viewType = args[3]
-        self.viewData = args[4] if len(args)>4 else None
-        self.viewId = None
+        self.viewModel = args[4] if len(args)>4 else None
         self.uiView = None
 
     def Do(self):
-        self.uiView = self.page.AddUiViewOfTypeInternal(self.viewType)
-        if self.viewData:
-            self.uiView.SetData(self.viewData)
-        if not self.viewId:
-            self.viewId = self.uiView.GetProperty("id")
-        else:
-            self.uiView.SetProperty("id", self.viewId)
+        self.uiView = self.page.AddUiViewInternal(self.viewType, self.viewModel)
+        if not self.viewModel:
+            self.viewModel = self.uiView.model
         return True
 
     def Undo(self):
-        self.page.RemoveUiViewById(self.viewId)
+        self.page.RemoveUiViewByModel(self.viewModel)
         self.uiView = None
         return True
 
@@ -467,16 +427,13 @@ class RemoveUiViewCommand(Command):
         super().__init__(args, kwargs)
         self.uiView = args[2]
         self.page = args[3]
-        self.viewType = self.uiView.type
-        self.viewData = self.uiView.GetData()
-        self.viewId = self.uiView.GetProperty("id")
+        self.viewModel = self.uiView.model
 
     def Do(self):
-        self.page.RemoveUiViewById(self.viewId)
+        self.page.RemoveUiViewByModel(self.viewModel)
         self.uiView = None
         return True
 
     def Undo(self):
-        self.uiView = self.page.AddUiViewOfTypeInternal(self.viewType)
-        self.uiView.SetData(self.viewData)
+        self.uiView = self.page.AddUiViewInternal(self.viewModel.type, self.viewModel)
         return True

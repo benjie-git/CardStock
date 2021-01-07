@@ -14,8 +14,8 @@ import sys
 import json
 import wx
 import wx.html
-from page import PageWindow
-from controlPanel import ControlPanel
+from pageWindow import PageWindow
+from uiPage import PageModel
 import version
 from runner import Runner
 from stack import StackModel
@@ -42,21 +42,18 @@ class ViewerFrame(wx.Frame):
         self.MakeMenu()
         self.filename = None
 
-        self.page = PageWindow(self, -1)
-        self.page.SetEditing(True)
-
-    # def SaveFile(self):
-    #     if self.filename:
-    #         data = {}
-    #         data["shapes"] = self.page.GetLinesData()
-    #         data["uiviews"] = self.page.GetUiViewsData()
-    #
-    #         with open(self.filename, 'w') as f:
-    #             json.dump(data, f)
+        self.stack = StackModel()
+        self.stack.AddPageModel(PageModel())
+        self.page = PageWindow(self, -1, self.stack.GetPageModel(0))
+        self.page.SetEditing(False)
 
     def ReadFile(self):
         if self.filename:
-            self.page.ReadFile(self.filename)
+            with open(self.filename, 'r') as f:
+                data = json.load(f)
+            if data:
+                self.stack.SetData(data)
+                self.page.SetModel(self.stack.GetPageModel(0))
 
     def MakeMenu(self):
         # create the file menu
@@ -136,12 +133,15 @@ class ViewerFrame(wx.Frame):
         dlg.Destroy()
 
     def RunViewer(self, sb):
-        self.page.runner = Runner(self.page, sb)
+        runner = Runner(self.page, sb)
+        self.page.uiPage.model.runner = runner
+        for ui in self.page.uiViews:
+            ui.model.runner = runner
         self.page.SetEditing(False)
         self.Show(True)
 
-        if "OnStart" in self.page.uiPage.handlers:
-            self.page.runner.RunHandler(self.page.uiPage, "OnStart", None)
+        if "OnStart" in self.page.uiPage.model.handlers:
+            runner.RunHandler(self.page.uiPage, "OnStart", None)
 
 
 # ----------------------------------------------------------------------
@@ -220,8 +220,8 @@ if __name__ == '__main__':
             data = json.load(f)
         if data:
             stack = StackModel()
-            stack.SetStackData(data)
-            app.frame.page.LoadFromData(stack.GetPageData(0))
+            stack.SetData(data)
+            app.frame.page.SetModel(stack.GetPageModel(0))
     else:
         print("Usage: python3 viewer.py filename")
         exit(1)
