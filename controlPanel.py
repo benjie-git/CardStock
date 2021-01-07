@@ -5,6 +5,7 @@ from wx.lib import buttons # for generic button classes
 from PythonEditor import PythonEditor
 from uiView import UiView
 import ast
+from wx.lib.docview import Command
 
 
 class ControlPanel(wx.Panel):
@@ -91,8 +92,7 @@ class ControlPanel(wx.Panel):
 
         self.codeEditor = PythonEditor(self)
         self.codeEditor.SetSize((150,2000))
-        self.codeEditor.Bind(stc.EVT_STC_CHANGE, self.CodeEditorTextChanged)
-        self.updatingEditor = False
+        self.codeEditor.Bind(wx.EVT_IDLE, self.CodeEditorOnIdle)
 
         self.lastSelectedUiView = None
         self.UpdateInspectorForUiView(None)
@@ -150,6 +150,7 @@ class ControlPanel(wx.Panel):
         displayName = self.handlerPicker.GetItems()[self.handlerPicker.GetSelection()]
         keys = list(UiView.handlerDisplayNames.keys())
         vals = list(UiView.handlerDisplayNames.values())
+        self.SaveCurrentHandler()
         self.UpdateHandlerForUiView(self.page.GetSelectedUiView(), keys[vals.index(displayName)])
 
     def UpdateForUiView(self, uiView):
@@ -196,8 +197,9 @@ class ControlPanel(wx.Panel):
 
         if key == "name":
             val = self.page.uiPage.model.DeduplicateName(val, [uiView.model.GetProperty("name")])
-        uiView.model.SetProperty(key, val)
-        self.inspector.SetCellValue(event.GetRow(), 1, str(val))
+
+        command = SetPropertyCommand(True, "Set Property", self, uiView.model, key, val)
+        self.page.command_processor.Submit(command)
 
     def UpdateHandlerForUiView(self, uiView, handlerName):
         if not uiView:
@@ -211,19 +213,30 @@ class ControlPanel(wx.Panel):
 
         self.handlerPicker.SetItems([UiView.handlerDisplayNames[k] for k in uiView.model.GetHandlers().keys()])
         self.handlerPicker.SetStringSelection(UiView.handlerDisplayNames[self.currentHandler])
-        self.updatingEditor = True
         self.codeEditor.SetText(uiView.model.GetHandler(self.currentHandler))
-        self.updatingEditor = False
+        self.codeEditor.EmptyUndoBuffer()
         self.handlerPicker.Enable(True)
         self.codeEditor.Enable(True)
         uiView.lastEditedHandler = self.currentHandler
 
-    def CodeEditorTextChanged(self, event):
-        if not self.updatingEditor:
+    def SaveCurrentHandler(self):
+        if self.codeEditor.HasFocus():
             uiView = self.page.GetSelectedUiView()
             if not uiView:
                 uiView = self.page.uiPage
-            uiView.model.SetHandler(self.currentHandler, self.codeEditor.GetText())
+
+            oldVal = uiView.model.GetHandler(self.currentHandler)
+            newVal = self.codeEditor.GetText()
+
+            if newVal != oldVal:
+                command = SetHandlerCommand(True, "Set Handler", self, uiView.model,
+                                            self.currentHandler, newVal)
+                self.page.command_processor.Submit(command)
+
+    def CodeEditorOnIdle(self, event):
+        if self.currentHandler:
+            self.SaveCurrentHandler()
+        event.Skip()
 
     def MakeBitmap(self, colour):
         """
@@ -296,3 +309,60 @@ class ColourIndicator(wx.Window):
             pen = wx.Pen(self.colour, self.thickness)
             dc.SetPen(pen)
             dc.DrawLine(10, int(sz.height/2), int(sz.width-10), int(sz.height/2))
+
+
+class SetPropertyCommand(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.cPanel = args[2]
+        self.model = args[3]
+        self.key = args[4]
+        self.newVal = args[5]
+        self.oldVal = self.model.GetProperty(self.key)
+
+    def Do(self):
+        uiView = self.cPanel.page.GetUiViewByModel(self.model)
+        self.cPanel.page.SelectUiView(uiView)
+        self.model.SetProperty(self.key, self.newVal)
+        return True
+
+    def Undo(self):
+        uiView = self.cPanel.page.GetUiViewByModel(self.model)
+        self.cPanel.page.SelectUiView(uiView)
+        self.model.SetProperty(self.key, self.oldVal)
+        return True
+
+
+class SetHandlerCommand(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.cPanel = args[2]
+        self.model = args[3]
+        self.key = args[4]
+        self.newVal = args[5]
+        self.oldVal = self.model.GetHandler(self.key)
+        self.hasRun = False
+
+    def Do(self):
+        if self.hasRun:
+            uiView = self.cPanel.page.GetUiViewByModel(self.model)
+            self.cPanel.page.SelectUiView(uiView)
+
+        self.model.SetHandler(self.key, self.newVal)
+
+        if self.hasRun:
+            self.cPanel.UpdateHandlerForUiView(uiView, self.key)
+
+        self.hasRun = True
+        return True
+
+    def Undo(self):
+        if self.hasRun:
+            uiView = self.cPanel.page.GetUiViewByModel(self.model)
+            self.cPanel.page.SelectUiView(uiView)
+
+        self.model.SetHandler(self.key, self.oldVal)
+
+        if self.hasRun:
+            self.cPanel.UpdateHandlerForUiView(uiView, self.key)
+        return True

@@ -171,7 +171,7 @@ class PageWindow(wx.Window):
         if self.selectedView:
             self.CopyView()
             v = self.selectedView
-            command = RemoveUiViewCommand(True, "Cut", v, self)
+            command = RemoveUiViewCommand(True, "Cut", v.model, self)
             self.command_processor.Submit(command)
 
     def PasteView(self):
@@ -415,33 +415,29 @@ class AddUiViewCommand(Command):
         super().__init__(args, kwargs)
         self.page = args[2]
         self.viewType = args[3]
-        self.viewModel = args[4] if len(args)>4 else None
-        self.uiView = None
+        self.model = args[4] if len(args)>4 else None
 
     def Do(self):
-        self.uiView = self.page.AddUiViewInternal(self.viewType, self.viewModel)
-        if not self.viewModel:
-            self.viewModel = self.uiView.model
+        uiView = self.page.AddUiViewInternal(self.viewType, self.model)
+        if not self.model:
+            self.model = uiView.model
         return True
 
     def Undo(self):
-        self.page.RemoveUiViewByModel(self.viewModel)
-        self.uiView = None
+        self.page.RemoveUiViewByModel(self.model)
         return True
 
 
 class RemoveUiViewCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
-        self.uiView = args[2]
+        self.viewModel = args[2]
         self.page = args[3]
-        self.viewModel = self.uiView.model
 
     def Do(self):
         self.page.RemoveUiViewByModel(self.viewModel)
-        self.uiView = None
         return True
 
     def Undo(self):
-        self.uiView = self.page.AddUiViewInternal(self.viewModel.type, self.viewModel)
+        self.page.AddUiViewInternal(self.viewModel.type, self.viewModel)
         return True

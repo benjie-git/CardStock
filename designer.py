@@ -41,6 +41,7 @@ class DesignerFrame(wx.Frame):
                          style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
         self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/mondrian.ico')))
         self.CreateStatusBar()
+        self.editMenu = None
         self.MakeMenu()
         self.filename = None
         self.app = None
@@ -77,6 +78,8 @@ class DesignerFrame(wx.Frame):
         self.page = PageWindow(self.splitter, -1, self.stack.GetPageModel(0))
         self.page.SetEditing(True)
         self.page.SetDesigner(self)
+
+        self.page.command_processor.SetEditMenu(self.editMenu)
 
         self.cPanel = ControlPanel(self.splitter, -1, self.page)
 
@@ -146,6 +149,7 @@ class DesignerFrame(wx.Frame):
         menu2.Append(wx.ID_CUT,  "C&ut\tCtrl-X", "Cut Selection")
         menu2.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
         menu2.Append(wx.ID_PASTE,"&Paste\tCtrl-V", "Paste Selection")
+        self.editMenu = menu2
 
         # and the help menu
         menu3 = wx.Menu()
@@ -280,6 +284,7 @@ class DesignerFrame(wx.Frame):
 
     def OnUndo(self, event):
         f = self.FindFocus()
+        if f == self.cPanel.codeEditor: f = self.page
         if f and hasattr(f, "Undo"):
             if not hasattr(f, "CanUndo") or f.CanUndo():
                 f.Undo()
@@ -288,6 +293,7 @@ class DesignerFrame(wx.Frame):
 
     def OnRedo(self, event):
         f = self.FindFocus()
+        if f == self.cPanel.codeEditor: f = self.page
         if f and hasattr(f, "Redo"):
             if not hasattr(f, "CanRedo") or f.CanRedo():
                 f.Redo()
