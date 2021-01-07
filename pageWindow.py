@@ -63,6 +63,7 @@ class PageWindow(wx.Window):
 
         self.uiPage.model.SetDirty(False)
         self.command_processor.ClearCommands()
+        self.uiPage.model.AddPropertyListener(self.OnPropertyChanged)
 
         self.InitBuffer()
         self.UpdateCursor()
@@ -130,6 +131,7 @@ class PageWindow(wx.Window):
         self.command_processor.ClearCommands()
         self.UpdateSelectedUiView()
         model.SetDirty(False)
+        model.AddPropertyListener(self.OnPropertyChanged)
         self.InitBuffer()
 
     def SetDesigner(self, designer):
@@ -249,8 +251,8 @@ class PageWindow(wx.Window):
 
     def OnPropertyChanged(self, model, key):
         uiView = self.GetUiViewByModel(model)
-        if uiView == self.selectedView:
-            self.UpdateSelectedUiView()
+        if self.designer:
+            self.designer.cPanel.UpdatedProperty(uiView, key)
 
     def UpdateSelectedUiView(self):
         if self.designer:

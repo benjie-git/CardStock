@@ -261,30 +261,35 @@ class DesignerFrame(wx.Frame):
 
         self.Close()
 
-    def OnCut(self, event):
+    def GetDesiredFocus(self):
         f = self.FindFocus()
+        if f == self.cPanel.inspector: f = self.page
+        if f == self.cPanel.codeEditor: f = self.page
+        return f
+
+    def OnCut(self, event):
+        f = self.GetDesiredFocus()
         if f == self.page:
             self.page.CutView()
         elif f and hasattr(f, "Cut"):
             f.Cut()
 
     def OnCopy(self, event):
-        f = self.FindFocus()
+        f = self.GetDesiredFocus()
         if f == self.page:
             self.page.CopyView()
         elif f and hasattr(f, "Copy"):
             f.Copy()
 
     def OnPaste(self, event):
-        f = self.FindFocus()
+        f = self.GetDesiredFocus()
         if f == self.page:
             self.page.PasteView()
         elif f and hasattr(f, "Paste"):
             f.Paste()
 
     def OnUndo(self, event):
-        f = self.FindFocus()
-        if f == self.cPanel.codeEditor: f = self.page
+        f = self.GetDesiredFocus()
         if f and hasattr(f, "Undo"):
             if not hasattr(f, "CanUndo") or f.CanUndo():
                 f.Undo()
@@ -292,7 +297,7 @@ class DesignerFrame(wx.Frame):
         event.Skip()
 
     def OnRedo(self, event):
-        f = self.FindFocus()
+        f = self.GetDesiredFocus()
         if f == self.cPanel.codeEditor: f = self.page
         if f and hasattr(f, "Redo"):
             if not hasattr(f, "CanRedo") or f.CanRedo():

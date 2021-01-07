@@ -154,12 +154,29 @@ class ControlPanel(wx.Panel):
         self.UpdateHandlerForUiView(self.page.GetSelectedUiView(), keys[vals.index(displayName)])
 
     def UpdateForUiView(self, uiView):
-        if uiView != self.lastSelectedUiView:
+        lastUi = self.lastSelectedUiView
+        if not lastUi:
+            lastUi = self.page.uiPage
+        if uiView != lastUi:
             self.UpdateInspectorForUiView(uiView)
             self.UpdateHandlerForUiView(uiView, None)
             self.lastSelectedUiView = uiView
 
+    def UpdatedProperty(self, uiView, key):
+        if not uiView:
+            uiView = self.page.uiPage
+        lastUi = self.lastSelectedUiView
+        if not lastUi:
+            lastUi = self.page.uiPage
+        if uiView == lastUi:
+            keys = uiView.model.PropertyKeys()
+            r = 0
+            for k in keys:
+                self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
+                r += 1
+
     def UpdateInspectorForUiView(self, uiView):
+
         if self.inspector.GetNumberRows() > 0:
             self.inspector.DeleteRows(0, self.inspector.GetNumberRows())
         if not uiView:
@@ -185,7 +202,7 @@ class ControlPanel(wx.Panel):
 
         try:
             if isinstance(oldVal, bool):
-                val = valStr[0].upper() == "T"
+                val = valStr[0].upper() == "T" # Anything starting with T is considered True
             elif isinstance(oldVal, int):
                 val = int(valStr)
             elif isinstance(oldVal, float):
@@ -319,16 +336,20 @@ class SetPropertyCommand(Command):
         self.key = args[4]
         self.newVal = args[5]
         self.oldVal = self.model.GetProperty(self.key)
+        self.hasRun = False
 
     def Do(self):
-        uiView = self.cPanel.page.GetUiViewByModel(self.model)
-        self.cPanel.page.SelectUiView(uiView)
+        if self.hasRun:
+            uiView = self.cPanel.page.GetUiViewByModel(self.model)
+            self.cPanel.page.SelectUiView(uiView)
         self.model.SetProperty(self.key, self.newVal)
+        self.hasRun = True
         return True
 
     def Undo(self):
-        uiView = self.cPanel.page.GetUiViewByModel(self.model)
-        self.cPanel.page.SelectUiView(uiView)
+        if self.hasRun:
+            uiView = self.cPanel.page.GetUiViewByModel(self.model)
+            self.cPanel.page.SelectUiView(uiView)
         self.model.SetProperty(self.key, self.oldVal)
         return True
 
