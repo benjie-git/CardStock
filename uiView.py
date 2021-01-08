@@ -4,6 +4,7 @@
 
 import wx
 from wx.lib.docview import Command
+import ast
 
 
 class UiView(object):
@@ -74,6 +75,7 @@ class UiView(object):
             h = 20
         if w != setW or h != setH:
             self.view.SetSize(w, h)
+            self.model.SetProperty("size", [w,h])
         self.selectionBox.SetSize(w, h)
         x,y = self.view.GetPosition()
         if self.resizeBox:
@@ -217,6 +219,10 @@ class ViewModel(object):
                            "position": (0,0)
                            }
         self.propertyKeys = ["name", "position", "size"]
+        self.propertyTypes = {"name": "string",
+                              "position": "point",
+                              "size": "point"}
+        self.propertyChoices = {}
 
         self.propertyListeners = []
 
@@ -263,6 +269,13 @@ class ViewModel(object):
     def PropertyKeys(self):
         return self.propertyKeys
 
+    # Options currently are string, bool, int, float, point, choice
+    def GetPropertyType(self, key):
+        return self.propertyTypes[key]
+
+    def GetPropertyChoices(self, key):
+        return self.propertyChoices[key]
+
     def AddPropertyListener(self, callback):
         self.propertyListeners.append(callback)
 
@@ -297,6 +310,25 @@ class ViewModel(object):
             for callback in self.propertyListeners:
                 callback(self, key)
             self.isDirty = True
+
+    def InterpretPropertyFromString(self, key, valStr):
+        propType = self.propertyTypes[key]
+        val = valStr
+        try:
+            if propType == "bool":
+                val = valStr == "True"
+            elif propType == "int":
+                val = int(valStr)
+            elif propType == "float":
+                val = float(valStr)
+            elif propType == "point":
+                val = ast.literal_eval(valStr)
+                if not isinstance(val, list) or len(val) != 2:
+                    raise Exception()
+        except:
+            return None
+
+        return val
 
     def SetHandler(self, key, value):
         if self.handlers[key] != value:

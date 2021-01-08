@@ -46,6 +46,7 @@ class ButtonModel(ViewModel):
         self.handlers = handlers
 
         self.properties["title"] = "Button"
+        self.propertyTypes["title"] = "string"
 
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "title", "position", "size"]

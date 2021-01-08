@@ -25,7 +25,7 @@ else:
 
 class PythonEditor(stc.StyledTextCtrl):
     def __init__(self, parent):
-        super().__init__(id=wx.ID_ANY, parent=parent, style=wx.VSCROLL | wx.HSCROLL)
+        super().__init__(id=wx.ID_ANY, parent=parent)
 
         self.SetAutoLayout(True)
         # self.SetConstraints(stc.LayoutAnchors(self, True, True, True, True))

@@ -4,6 +4,7 @@
 
 import wx
 from uiView import UiView, ViewModel
+import wx.stc as stc
 
 
 class UiTextField(UiView):
@@ -27,9 +28,15 @@ class UiTextField(UiView):
         else:
             text = "Text"
             alignment = wx.TEXT_ALIGNMENT_LEFT
-
-        field = wx.TextCtrl(parent=page, id=wx.ID_ANY, value="TextField", style=wx.TE_PROCESS_ENTER|alignment) # wx.TE_MULTILINE
-        field.SetLabelText(text)
+        if model.GetProperty("multiline"):
+            field = stc.StyledTextCtrl(parent=page, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
+            field.SetUseHorizontalScrollBar(False)
+            field.SetMarginWidth(1, 0)
+            field.ChangeValue(text)
+            field.Bind(stc.EVT_STC_CHANGE, self.OnFieldChange)
+        else:
+            field = wx.TextCtrl(parent=page, id=wx.ID_ANY, value="TextField", style=wx.TE_PROCESS_ENTER|alignment)
+            field.ChangeValue(text)
         return field
 
     def SetView(self, view):
@@ -38,11 +45,23 @@ class UiTextField(UiView):
         view.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
         view.Bind(wx.EVT_CHAR, self.OnTextChanged)
 
+    def OnResize(self, event):
+        super().OnResize(event)
+        if self.model.GetProperty("multiline"):
+            self.view.SetScrollWidth(self.view.GetSize().Width-6)
+
+    def OnFieldChange(self, event):
+        self.model.SetProperty("text", self.view.GetText())
+
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "text":
+            wasEditable = self.view.IsEditable()
+            if not wasEditable:
+                self.view.SetEditable(True)
             self.view.ChangeValue(str(self.model.GetProperty(key)))
-        elif key == "alignment":
+            self.view.SetEditable(wasEditable)
+        elif key == "alignment" or key == "multiline":
             self.page.SelectUiView(None)
             self.view.Destroy()
             newField = self.CreateField(self.page, self.model)
@@ -80,12 +99,19 @@ class TextFieldModel(ViewModel):
             handlers[k] = v
         self.handlers = handlers
 
-        self.properties["editable"] = True
         self.properties["text"] = "Text"
         self.properties["alignment"] = "Left"
+        self.properties["editable"] = True
+        self.properties["multiline"] = False
+
+        self.propertyTypes["text"] = "string"
+        self.propertyTypes["alignment"] = "choice"
+        self.propertyTypes["editable"] = "bool"
+        self.propertyTypes["multiline"] = "bool"
+        self.propertyChoices["alignment"] = ["Left", "Center", "Right"]
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "text", "alignment", "editable", "position", "size"]
+        self.propertyKeys = ["name", "text", "alignment", "editable", "multiline", "position", "size"]
 
     def GetText(self): return self.GetProperty("text")
     def SetText(self, text): self.SetProperty("text", text)

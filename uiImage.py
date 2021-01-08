@@ -17,10 +17,20 @@ class UiImage(UiView):
         container.Enable(True)
         self.imgView = wx.StaticBitmap(container, bitmap=img)
         self.imgView.Enable(True)
-        self.imgView.SetScaleMode(3)
+        self.imgView.SetScaleMode(self.AspectStrToInt(model.GetProperty("fit")))
 
         super().__init__(page, model, container)
         self.BindEvents(self.imgView)
+
+    def AspectStrToInt(self, str):
+        if str == "Center":
+            return 0
+        elif str == "Stretch":
+            return 1
+        elif str == "Scale":
+            return 3
+        else:
+            return 3 # Default to Scale
 
     def GetImg(self, model):
         file = model.GetProperty("file")
@@ -41,6 +51,8 @@ class UiImage(UiView):
             img = self.GetImg(self.model)
             self.imgView.SetBitmap(img)
             self.imgView.SetSize(self.view.GetSize())
+        elif key == "fit":
+            self.imgView.SetScaleMode(self.AspectStrToInt(model.GetProperty("fit")))
 
 
 class ImageModel(ViewModel):
@@ -49,9 +61,14 @@ class ImageModel(ViewModel):
         self.type = "image"
 
         self.properties["file"] = ""
+        self.properties["fit"] = "Scale"
+
+        self.propertyTypes["file"] = "string"
+        self.propertyTypes["fit"] = "choice"
+        self.propertyChoices["fit"] = ["Center", "Stretch", "Fill"]
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "file", "position", "size"]
+        self.propertyKeys = ["name", "file", "fit", "position", "size"]
 
     def GetFile(self): return self.GetProperty("file")
     def SetFile(self, text): self.SetProperty("file", text)

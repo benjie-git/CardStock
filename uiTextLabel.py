@@ -52,6 +52,10 @@ class TextLabelModel(ViewModel):
         self.properties["text"] = "Text"
         self.properties["alignment"] = "Left"
 
+        self.propertyTypes["text"] = "string"
+        self.propertyTypes["alignment"] = "choice"
+        self.propertyChoices["alignment"] = ["Left", "Center", "Right"]
+
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "text", "alignment", "position", "size"]
 

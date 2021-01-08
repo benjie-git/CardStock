@@ -4,7 +4,6 @@ import wx.grid
 from wx.lib import buttons # for generic button classes
 from PythonEditor import PythonEditor
 from uiView import UiView
-import ast
 from wx.lib.docview import Command
 
 
@@ -84,6 +83,7 @@ class ControlPanel(wx.Panel):
 
         self.inspector.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.InspectorValueChanged)
         self.inspector.Bind(wx.EVT_KEY_DOWN, self.OnGridEnter)
+        self.inspector.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnGridClick)
 
         self.handlerPicker = wx.Choice(parent=self, id=wx.ID_ANY)
         self.handlerPicker.Enable(False)
@@ -138,6 +138,12 @@ class ControlPanel(wx.Panel):
         self.Layout()
         self.page.SetDrawingMode(drawMode)
 
+    def OnGridClick(self, event):
+        self.inspector.SetGridCursor(event.Row, event.Col)
+        if self.inspector.GetGridCursorCol() == 1:
+            self.inspector.EnableCellEditControl()
+        event.Skip()
+
     def OnGridEnter(self, event):
         if not self.inspector.IsCellEditControlShown() and \
                 (event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER):
@@ -176,7 +182,6 @@ class ControlPanel(wx.Panel):
                 r += 1
 
     def UpdateInspectorForUiView(self, uiView):
-
         if self.inspector.GetNumberRows() > 0:
             self.inspector.DeleteRows(0, self.inspector.GetNumberRows())
         if not uiView:
@@ -188,6 +193,13 @@ class ControlPanel(wx.Panel):
             self.inspector.SetCellValue(r, 0, k)
             self.inspector.SetReadOnly(r, 0)
             self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
+            if uiView.model.GetPropertyType(k) == "bool":
+                editor = wx.grid.GridCellChoiceEditor(["True", "False"])
+                self.inspector.SetCellEditor(r, 1, editor)
+
+            elif uiView.model.GetPropertyType(k) == "choice":
+                editor = wx.grid.GridCellChoiceEditor(uiView.model.GetPropertyChoices(k))
+                self.inspector.SetCellEditor(r, 1, editor)
             r+=1
         self.Layout()
 
@@ -196,25 +208,16 @@ class ControlPanel(wx.Panel):
         key = self.inspector.GetCellValue(event.GetRow(), 0)
         oldVal = uiView.model.GetProperty(key)
         valStr = self.inspector.GetCellValue(event.GetRow(), 1)
-        val = valStr
 
-        try:
-            if isinstance(oldVal, bool):
-                val = valStr[0].upper() == "T" # Anything starting with T is considered True
-            elif isinstance(oldVal, int):
-                val = int(valStr)
-            elif isinstance(oldVal, float):
-                val = float(valStr)
-            elif isinstance(oldVal, list):
-                val = ast.literal_eval(valStr)
-        except:
-            val = oldVal # On any conversion failure, use old value
+        val = uiView.model.InterpretPropertyFromString(key, valStr)
+        if val is not None and val != oldVal:
+            if key == "name":
+                val = self.page.uiPage.model.DeduplicateName(val, [uiView.model.GetProperty("name")])
 
-        if key == "name":
-            val = self.page.uiPage.model.DeduplicateName(val, [uiView.model.GetProperty("name")])
-
-        command = SetPropertyCommand(True, "Set Property", self, uiView.model, key, val)
-        self.page.command_processor.Submit(command)
+            command = SetPropertyCommand(True, "Set Property", self, uiView.model, key, val)
+            self.page.command_processor.Submit(command)
+        else:
+            self.UpdatedProperty(uiView, "")
 
     def UpdateHandlerForUiView(self, uiView, handlerName):
         if not uiView:
