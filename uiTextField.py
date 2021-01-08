@@ -9,31 +9,28 @@ import wx.stc as stc
 
 class UiTextField(UiView):
     def __init__(self, page, model=None):
-        field = self.CreateField(page, model)
-
         if not model:
             model = TextFieldModel()
             model.SetProperty("name", page.uiPage.model.GetNextAvailableNameForBase("field_"))
 
+        field = self.CreateField(page, model)
+
         super().__init__(page, model, field)
 
     def CreateField(self, page, model):
-        if model:
-            text = model.GetProperty("text")
-            alignment = wx.TE_LEFT
-            if model.GetProperty("alignment") == "Right":
-                alignment = wx.TE_RIGHT
-            elif model.GetProperty("alignment") == "Center":
-                alignment = wx.TE_CENTER
-        else:
-            text = "Text"
-            alignment = wx.TEXT_ALIGNMENT_LEFT
+        text = model.GetProperty("text")
+        alignment = wx.TE_LEFT
+        if model.GetProperty("alignment") == "Right":
+            alignment = wx.TE_RIGHT
+        elif model.GetProperty("alignment") == "Center":
+            alignment = wx.TE_CENTER
+
         if model.GetProperty("multiline"):
             field = stc.StyledTextCtrl(parent=page, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
             field.SetUseHorizontalScrollBar(False)
             field.SetMarginWidth(1, 0)
             field.ChangeValue(text)
-            field.Bind(stc.EVT_STC_CHANGE, self.OnFieldChange)
+            field.Bind(stc.EVT_STC_CHANGE, self.OnTextChanged)
         else:
             field = wx.TextCtrl(parent=page, id=wx.ID_ANY, value="TextField", style=wx.TE_PROCESS_ENTER|alignment)
             field.ChangeValue(text)
@@ -43,15 +40,12 @@ class UiTextField(UiView):
         super().SetView(view)
         view.ChangeValue(self.model.GetProperty("text"))
         view.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
-        view.Bind(wx.EVT_CHAR, self.OnTextChanged)
+        view.Bind(wx.EVT_TEXT, self.OnTextChanged)
 
     def OnResize(self, event):
         super().OnResize(event)
         if self.model.GetProperty("multiline"):
             self.view.SetScrollWidth(self.view.GetSize().Width-6)
-
-    def OnFieldChange(self, event):
-        self.model.SetProperty("text", self.view.GetText())
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
@@ -83,6 +77,7 @@ class UiTextField(UiView):
 
     def OnTextChanged(self, event):
         if not self.isEditing:
+            self.model.SetProperty("text", self.view.GetValue())
             if "OnTextChanged" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnTextChanged", event)
             event.Skip()
@@ -114,4 +109,5 @@ class TextFieldModel(ViewModel):
         self.propertyKeys = ["name", "text", "alignment", "editable", "multiline", "position", "size"]
 
     def GetText(self): return self.GetProperty("text")
-    def SetText(self, text): self.SetProperty("text", text)
+    def SetText(self, text): self.SetProperty("text", str(text))
+    def AppendText(self, text): self.SetProperty("text", self.GetProperty("text") + str(text))

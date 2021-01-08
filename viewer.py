@@ -54,7 +54,7 @@ class ViewerFrame(wx.Frame):
             if data:
                 self.stack.SetData(data)
                 self.page.SetModel(self.stack.GetPageModel(0))
-                self.SetSize(self.page.uiPage.model.GetProperty("size"))
+                self.SetClientSize(self.page.uiPage.model.GetProperty("size"))
                 self.filename = filename
 
     def MakeMenu(self):

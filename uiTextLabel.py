@@ -60,4 +60,5 @@ class TextLabelModel(ViewModel):
         self.propertyKeys = ["name", "text", "alignment", "position", "size"]
 
     def GetText(self): return self.GetProperty("text")
-    def SetText(self, text): self.SetProperty("text", text)
+    def SetText(self, text): self.SetProperty("text", str(text))
+    def AppendText(self, text): self.SetProperty("text", self.GetProperty("text") + str(text))

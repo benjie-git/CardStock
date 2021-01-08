@@ -265,7 +265,7 @@ class DesignerFrame(wx.Frame):
         self.viewer.page.SetEditing(False)
         self.viewer.RunViewer(sb)
         self.viewer.Bind(wx.EVT_CLOSE, self.OnViewerClose)
-        self.viewer.SetSize(page1model.GetProperty("size"))
+        self.viewer.SetClientSize(page1model.GetProperty("size"))
 
     def OnViewerClose(self, event):
         self.viewer = None
