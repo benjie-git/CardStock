@@ -13,6 +13,8 @@ import json
 from uiPage import UiPage, PageModel
 from uiButton import UiButton
 from uiTextField import UiTextField
+from uiTextLabel import UiTextLabel
+from uiImage import UiImage
 
 # ----------------------------------------------------------------------
 
@@ -132,6 +134,7 @@ class PageWindow(wx.Window):
         self.UpdateSelectedUiView()
         model.SetDirty(False)
         model.AddPropertyListener(self.OnPropertyChanged)
+        model.SetProperty("size", self.GetSize())
         self.InitBuffer()
 
     def SetDesigner(self, designer):
@@ -193,10 +196,14 @@ class PageWindow(wx.Window):
     def AddUiViewOfType(self, viewType):
         if viewType == "button":
             command = AddUiViewCommand(True, 'Add Button', self, "button")
-            self.command_processor.Submit(command)
         elif viewType == "textfield":
             command = AddUiViewCommand(True, 'Add TextField', self, "textfield")
-            self.command_processor.Submit(command)
+        elif viewType == "textlabel":
+            command = AddUiViewCommand(True, 'Add TextLabel', self, "textlabel")
+        elif viewType == "image":
+            command = AddUiViewCommand(True, 'Add Image', self, "image")
+
+        self.command_processor.Submit(command)
         uiView = self.uiViews[-1]
         self.SelectUiView(uiView)
         return uiView
@@ -207,6 +214,10 @@ class PageWindow(wx.Window):
             uiView = UiButton(self, model)
         elif type == "textfield":
             uiView = UiTextField(self, model)
+        elif type == "textlabel":
+            uiView = UiTextLabel(self, model)
+        elif type == "image":
+            uiView = UiImage(self, model)
 
         if uiView:
             if not model:
@@ -227,12 +238,15 @@ class PageWindow(wx.Window):
 
         if model.GetType() == "button":
             command = AddUiViewCommand(True, 'Add Button', self, "button", model)
-            self.command_processor.Submit(command)
-            uiView = self.uiViews[-1]
         elif model.GetType() == "textfield":
             command = AddUiViewCommand(True, 'Add TextField', self, "textfield", model)
-            self.command_processor.Submit(command)
-            uiView = self.uiViews[-1]
+        elif model.GetType() == "textlabel":
+            command = AddUiViewCommand(True, 'Add TextLabel', self, "textlabel", model)
+        elif model.GetType() == "image":
+            command = AddUiViewCommand(True, 'Add Image', self, "image", model)
+
+        self.command_processor.Submit(command)
+        uiView = self.uiViews[-1]
         if uiView:
             uiView.SetEditing(self.uiPage.isEditing)
         return uiView

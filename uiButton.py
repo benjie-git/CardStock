@@ -16,14 +16,16 @@ class UiButton(UiView):
 
         super().__init__(page, model, button)
 
-        self.view.SetLabel(model.GetProperty("title"))
-        self.view.Bind(wx.EVT_BUTTON, self.OnButton)
+    def SetView(self, view):
+        super().SetView(view)
+        view.SetLabel(self.model.GetProperty("title"))
+        view.Bind(wx.EVT_BUTTON, self.OnButton)
 
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "title":
-            self.view.SetLabel(str(self.model.GetProperty("title")))
+            self.view.SetLabel(str(self.model.GetProperty(key)))
 
     def OnButton(self, event):
         if not self.isEditing:

@@ -8,7 +8,7 @@ from uiView import UiView, ViewModel
 
 class UiTextField(UiView):
     def __init__(self, page, model=None):
-        field = wx.TextCtrl(parent=page, id=wx.ID_ANY, value="TextField", style=wx.TE_PROCESS_ENTER) # wx.TE_MULTILINE
+        field = self.CreateField(page, model)
 
         if not model:
             model = TextFieldModel()
@@ -16,15 +16,38 @@ class UiTextField(UiView):
 
         super().__init__(page, model, field)
 
-        self.view.ChangeValue(model.GetProperty("text"))
+    def CreateField(self, page, model):
+        if model:
+            text = model.GetProperty("text")
+            alignment = wx.TE_LEFT
+            if model.GetProperty("alignment") == "Right":
+                alignment = wx.TE_RIGHT
+            elif model.GetProperty("alignment") == "Center":
+                alignment = wx.TE_CENTER
+        else:
+            text = "Text"
+            alignment = wx.TEXT_ALIGNMENT_LEFT
 
-        self.view.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
-        self.view.Bind(wx.EVT_CHAR, self.OnTextChanged)
+        field = wx.TextCtrl(parent=page, id=wx.ID_ANY, value="TextField", style=wx.TE_PROCESS_ENTER|alignment) # wx.TE_MULTILINE
+        field.SetLabelText(text)
+        return field
+
+    def SetView(self, view):
+        super().SetView(view)
+        view.ChangeValue(self.model.GetProperty("text"))
+        view.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
+        view.Bind(wx.EVT_CHAR, self.OnTextChanged)
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "text":
-            self.view.ChangeValue(str(self.model.GetProperty("text")))
+            self.view.ChangeValue(str(self.model.GetProperty(key)))
+        elif key == "alignment":
+            self.page.SelectUiView(None)
+            self.view.Destroy()
+            newField = self.CreateField(self.page, self.model)
+            self.SetView(newField)
+            self.page.SelectUiView(self)
 
     def SetEditing(self, editing):
         UiView.SetEditing(self, editing)
@@ -59,9 +82,10 @@ class TextFieldModel(ViewModel):
 
         self.properties["editable"] = True
         self.properties["text"] = "Text"
+        self.properties["alignment"] = "Left"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "text", "editable", "position", "size"]
+        self.propertyKeys = ["name", "text", "alignment", "editable", "position", "size"]
 
     def GetText(self): return self.GetProperty("text")
     def SetText(self, text): self.SetProperty("text", text)

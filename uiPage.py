@@ -6,6 +6,8 @@ import wx
 from uiView import UiView, ViewModel
 from uiButton import ButtonModel
 from uiTextField import TextFieldModel
+from uiTextLabel import TextLabelModel
+from uiImage import ImageModel
 
 
 class UiPage(UiView):
@@ -16,9 +18,19 @@ class UiPage(UiView):
             model.SetProperty("name", model.GetNextAvailableNameForBase("page_"))
 
         super().__init__(page, model, page)
+        page.Bind(wx.EVT_SIZE, self.OnResize)
+        self.model.SetProperty("size", self.view.GetSize())
 
-        self.view.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        self.view.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+    def SetView(self, view):
+        super().SetView(view)
+        view.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        view.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+        view.Bind(wx.EVT_SIZE, self.OnResize)
+        self.model.SetProperty("size", self.view.GetSize())
+
+    def OnResize(self, event):
+        self.model.SetProperty("size", self.view.GetSize())
+        event.Skip()
 
     def OnKeyDown(self, event):
         if not self.isEditing:
@@ -48,7 +60,6 @@ class PageModel(ViewModel):
             handlers[k] = v
         self.handlers = handlers
 
-        self.properties.pop("position")
 
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "size"]
@@ -127,5 +138,9 @@ class PageModel(ViewModel):
             m = ButtonModel()
         elif data["type"] == "textfield":
             m = TextFieldModel()
+        elif data["type"] == "textlabel":
+            m = TextLabelModel()
+        elif data["type"] == "image":
+            m = ImageModel()
         m.SetData(data)
         return m

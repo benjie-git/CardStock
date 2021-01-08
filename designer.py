@@ -56,10 +56,18 @@ class DesignerFrame(wx.Frame):
         self.addButton.Bind(wx.EVT_LEFT_DOWN, self.OnMenuAddButton)
         toolbar.AddControl(self.addButton, label="Add Button")
 
-        self.addTextField = wx.TextCtrl(parent=toolbar, id=wx.ID_ANY, value="Text")
+        self.addTextField = wx.TextCtrl(parent=toolbar, id=wx.ID_ANY, value="TextField", style=wx.TE_CENTER)
         self.addTextField.Bind(wx.EVT_LEFT_DOWN, self.OnMenuAddTextField)
         self.addTextField.SetEditable(False)
         toolbar.AddControl(self.addTextField, label="Add TextField")
+
+        self.addTextLabel = wx.StaticText(parent=toolbar, id=wx.ID_ANY, label="TextLabel", style=wx.ALIGN_CENTER)
+        self.addTextLabel.Bind(wx.EVT_LEFT_DOWN, self.OnMenuAddTextLabel)
+        toolbar.AddControl(self.addTextLabel, label="Add TextLabel")
+
+        self.addImage = wx.StaticBitmap(parent=toolbar, style=wx.ALIGN_CENTER)
+        self.addImage.Bind(wx.EVT_LEFT_DOWN, self.OnMenuAddImage)
+        toolbar.AddControl(self.addImage, label="Add Image")
 
         # toolbar.AddTool(wx.ID_FILE1, 'Add Button', wx.ArtProvider.GetBitmap(wx.ART_NEW_DIR), wx.NullBitmap)
         # toolbar.AddTool(wx.ID_FILE2, 'Add Field', wx.ArtProvider.GetBitmap(wx.ART_NEW), wx.NullBitmap)
@@ -105,6 +113,7 @@ class DesignerFrame(wx.Frame):
 
             with open(self.filename, 'w') as f:
                 json.dump(data, f, indent=2)
+            self.stack.SetDirty(False)
 
     def ReadFile(self):
         if self.filename:
@@ -268,21 +277,21 @@ class DesignerFrame(wx.Frame):
         return f
 
     def OnCut(self, event):
-        f = self.GetDesiredFocus()
+        f = self.FindFocus()
         if f == self.page:
             self.page.CutView()
         elif f and hasattr(f, "Cut"):
             f.Cut()
 
     def OnCopy(self, event):
-        f = self.GetDesiredFocus()
+        f = self.FindFocus()
         if f == self.page:
             self.page.CopyView()
         elif f and hasattr(f, "Copy"):
             f.Copy()
 
     def OnPaste(self, event):
-        f = self.GetDesiredFocus()
+        f = self.FindFocus()
         if f == self.page:
             self.page.PasteView()
         elif f and hasattr(f, "Paste"):
@@ -324,6 +333,16 @@ class DesignerFrame(wx.Frame):
     def OnMenuAddTextField(self, event):
         if self.page.uiPage.isEditing and not self.page.isInDrawingMode:
             self.page.AddUiViewOfType("textfield")
+            event.Skip()
+
+    def OnMenuAddTextLabel(self, event):
+        if self.page.uiPage.isEditing and not self.page.isInDrawingMode:
+            self.page.AddUiViewOfType("textlabel")
+            event.Skip()
+
+    def OnMenuAddImage(self, event):
+        if self.page.uiPage.isEditing and not self.page.isInDrawingMode:
+            self.page.AddUiViewOfType("image")
             event.Skip()
 
 

@@ -10,29 +10,34 @@ class UiView(object):
     def __init__(self, page, model, view):
         super().__init__()
         self.page = page
-        self.view = view
         self.model = model
 
         self.model.AddPropertyListener(self.OnPropertyChanged)
 
-        mSize = self.model.GetProperty("size")
-        if mSize[0] > 0 and mSize[1] > 0:
-            self.view.SetSize(mSize)
-            self.view.SetPosition(self.model.GetProperty("position"))
+        self.SetView(view)
 
         self.lastEditedHandler = None
         self.delta = ((0, 0))
         self.minSize = (20,20)
         self.isEditing = False
         self.isSelected = False
-        self.view.Bind(wx.EVT_ENTER_WINDOW, self.OnMouseEnter)
-        self.view.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
-        self.view.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
-        self.view.Bind(wx.EVT_MOTION, self.OnMouseMove)
-        self.view.Bind(wx.EVT_SIZE, self.OnResize)
+
+    def __del__(self):
+        self.model.RemoveAllPropertyListeners()
+
+    def BindEvents(self, view):
+        view.Bind(wx.EVT_ENTER_WINDOW, self.OnMouseEnter)
+        view.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
+        view.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
+        view.Bind(wx.EVT_MOTION, self.OnMouseMove)
+        view.Bind(wx.EVT_SIZE, self.OnResize)
         if self.model.type != "page":
-            self.view.Bind(wx.EVT_MOTION, self.page.uiPage.OnMouseMove)
-        self.view.Bind(wx.EVT_LEFT_UP, self.OnMouseUp)
+            view.Bind(wx.EVT_MOTION, self.page.uiPage.OnMouseMove)
+        view.Bind(wx.EVT_LEFT_UP, self.OnMouseUp)
+
+    def SetView(self, view):
+        self.view = view
+        self.BindEvents(view)
 
         viewSize = list(self.view.GetSize())
         self.selectionBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(0,0), size=viewSize, style=0)
@@ -46,14 +51,16 @@ class UiView(object):
         self.resizeBox.Enable(False)
         self.resizeBox.Hide()
 
-    def __del__(self):
-        self.model.RemoveAllPropertyListeners()
+        mSize = self.model.GetProperty("size")
+        if mSize[0] > 0 and mSize[1] > 0:
+            self.view.SetSize(mSize)
+            self.view.SetPosition(self.model.GetProperty("position"))
 
     def OnPropertyChanged(self, model, key):
         if key == "size":
-            self.view.SetSize(self.model.GetProperty("size"))
+            self.view.SetSize(self.model.GetProperty(key))
         elif key == "position":
-            self.view.SetPosition(self.model.GetProperty("position"))
+            self.view.SetPosition(self.model.GetProperty(key))
 
     def OnResize(self, event):
         setW, setH = self.view.GetSize()
@@ -67,6 +74,7 @@ class UiView(object):
         self.selectionBox.SetSize(w, h)
         x,y = self.view.GetPosition()
         self.resizeBox.SetRect((w-10, h-10, 10, 10))
+        event.Skip()
 
     def DestroyView(self):
         self.selectionBox.Destroy()
@@ -218,6 +226,11 @@ class ViewModel(object):
     def GetDirty(self):
         return self.isDirty
 
+    def GetFrame(self):
+        p = wx.Point(self.properties["position"])
+        s = wx.Size(self.properties["size"])
+        return wx.Rect(p, s)
+
     def GetData(self):
         handlers = {}
         for k, v in self.handlers.items():
@@ -294,6 +307,18 @@ class ViewModel(object):
     def SetPosition(self, pos): self.SetProperty("position", pos)
     def GetPosition(self): return self.GetProperty("position")
     def MoveTo(self, pos): self.SetProperty("position", pos)
+    def IsTouching(self, model): return self.GetFrame().Intersects(model.GetFrame())
+    def IsTouchingEdge(self, model):
+        sf = self.GetFrame() # self frame
+        f = model.GetFrame() # other frame
+        top = wx.Rect(f.Left, f.Top, f.Width, 1)
+        bottom = wx.Rect(f.Left, f.Bottom, f.Width, 1)
+        left = wx.Rect(f.Left, f.Top, 1, f.Height)
+        right = wx.Rect(f.Right, f.Top, 1, f.Height)
+        return sf.Intersects(top) or sf.Intersects(bottom) or \
+                sf.Intersects(left) or sf.Intersects(right)
+
+
 
 
 class MoveUiViewCommand(Command):
