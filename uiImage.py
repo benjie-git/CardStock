@@ -15,7 +15,6 @@ class UiImage(UiView):
         img = self.GetImg(model)
         container = wx.Window(page)
         container.Enable(True)
-        container.Bind(wx.EVT_SIZE, self.OnContainerResized)
         self.imgView = wx.StaticBitmap(container, bitmap=img)
         self.imgView.Enable(True)
         self.imgView.SetScaleMode(3)
@@ -31,7 +30,8 @@ class UiImage(UiView):
             img = wx.Image(100,100, True).ConvertToBitmap()
         return img
 
-    def OnContainerResized(self, event):
+    def OnResize(self, event):
+        super().OnResize(event)
         self.imgView.SetSize(self.view.GetSize())
         event.Skip()
 

@@ -46,16 +46,16 @@ class ViewerFrame(wx.Frame):
         self.stack.AddPageModel(PageModel())
         self.page = PageWindow(self, -1, self.stack.GetPageModel(0))
         self.page.SetEditing(False)
-        self.page.SetSize(self.GetSize())
 
-    def ReadFile(self):
-        if self.filename:
-            with open(self.filename, 'r') as f:
+    def ReadFile(self, filename):
+        if filename:
+            with open(filename, 'r') as f:
                 data = json.load(f)
             if data:
                 self.stack.SetData(data)
                 self.page.SetModel(self.stack.GetPageModel(0))
-                self.SetSize(self.page.model.GetProperty("size"))
+                self.SetSize(self.page.uiPage.model.GetProperty("size"))
+                self.filename = filename
 
     def MakeMenu(self):
         # create the file menu
@@ -214,12 +214,7 @@ if __name__ == '__main__':
     app = ViewerApp(redirect=False)
     if len(sys.argv) > 1:
         filename = sys.argv[1]
-        with open(filename, 'r') as f:
-            data = json.load(f)
-        if data:
-            stack = StackModel()
-            stack.SetData(data)
-            app.frame.page.SetModel(stack.GetPageModel(0))
+        app.frame.ReadFile(filename)
     else:
         print("Usage: python3 viewer.py filename")
         exit(1)

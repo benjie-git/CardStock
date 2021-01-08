@@ -18,7 +18,6 @@ class UiPage(UiView):
             model.SetProperty("name", model.GetNextAvailableNameForBase("page_"))
 
         super().__init__(page, model, page)
-        page.Bind(wx.EVT_SIZE, self.OnResize)
         self.model.SetProperty("size", self.view.GetSize())
 
     def SetView(self, view):

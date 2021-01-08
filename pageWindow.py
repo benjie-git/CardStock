@@ -98,7 +98,7 @@ class PageWindow(wx.Window):
             self.runner.StopRunning()
 
     def SetEditing(self, editing):
-        self.uiPage.isEditing = editing
+        self.uiPage.SetEditing(editing)
         for ui in self.uiViews:
             ui.SetEditing(editing)
         if not editing:
