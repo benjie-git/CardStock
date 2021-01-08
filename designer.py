@@ -106,6 +106,8 @@ class DesignerFrame(wx.Frame):
         self.stack.AddPageModel(PageModel())
         self.page.SetModel(self.stack.GetPageModel(0))
         self.page.SetEditing(True)
+        self.Layout()
+        self.page.uiPage.model.SetProperty("size", self.page.GetSize())
 
     def SaveFile(self):
         if self.filename:
@@ -123,8 +125,15 @@ class DesignerFrame(wx.Frame):
                 self.stack.SetData(data)
                 model = self.stack.GetPageModel(0)
                 self.page.SetModel(model)
+                self.page.SetSize(model.GetProperty("size"))
                 self.page.SetEditing(True)
                 self.page.SetDesigner(self)
+                self.SetFrameSizeFromModel()
+
+    def SetFrameSizeFromModel(self):
+        self.splitter.SetSize((self.page.GetSize().Width + self.splitter.GetSashSize() + self.cPanel.GetSize().Width,
+                               self.page.GetSize().Height))
+        self.SetClientSize(self.splitter.GetSize())
 
     def SetSelectedUiView(self, view):
         self.cPanel.UpdateForUiView(view)
@@ -248,10 +257,12 @@ class DesignerFrame(wx.Frame):
         data = self.stack.GetData()
         stack = StackModel()
         stack.SetData(data)
-        self.viewer.page.SetModel(stack.GetPageModel(0))
+        page1model = stack.GetPageModel(0)
+        self.viewer.page.SetModel(page1model)
         self.viewer.page.SetEditing(False)
         self.viewer.RunViewer(sb)
         self.viewer.Bind(wx.EVT_CLOSE, self.OnViewerClose)
+        self.viewer.SetSize(page1model.GetProperty("size"))
 
     def OnViewerClose(self, event):
         self.viewer = None

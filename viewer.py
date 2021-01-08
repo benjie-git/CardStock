@@ -46,6 +46,7 @@ class ViewerFrame(wx.Frame):
         self.stack.AddPageModel(PageModel())
         self.page = PageWindow(self, -1, self.stack.GetPageModel(0))
         self.page.SetEditing(False)
+        self.page.SetSize(self.GetSize())
 
     def ReadFile(self):
         if self.filename:
@@ -54,6 +55,7 @@ class ViewerFrame(wx.Frame):
             if data:
                 self.stack.SetData(data)
                 self.page.SetModel(self.stack.GetPageModel(0))
+                self.SetSize(self.page.model.GetProperty("size"))
 
     def MakeMenu(self):
         # create the file menu
@@ -182,7 +184,7 @@ cellpadding="0" border="1">
 
 # ----------------------------------------------------------------------
 
-class PageApp(wx.App, InspectionMixin):
+class ViewerApp(wx.App, InspectionMixin):
     def OnInit(self):
         self.Init(self) # for InspectionMixin
 
@@ -209,7 +211,7 @@ class PageApp(wx.App, InspectionMixin):
 
 
 if __name__ == '__main__':
-    app = PageApp(redirect=False)
+    app = ViewerApp(redirect=False)
     if len(sys.argv) > 1:
         filename = sys.argv[1]
         with open(filename, 'r') as f:

@@ -134,7 +134,6 @@ class PageWindow(wx.Window):
         self.UpdateSelectedUiView()
         model.SetDirty(False)
         model.AddPropertyListener(self.OnPropertyChanged)
-        model.SetProperty("size", self.GetSize())
         self.InitBuffer()
 
     def SetDesigner(self, designer):
