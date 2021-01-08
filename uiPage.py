@@ -25,12 +25,11 @@ class UiPage(UiView):
         super().SetView(view)
         view.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         view.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
-        view.Bind(wx.EVT_SIZE, self.OnResize)
         self.model.SetProperty("size", self.view.GetSize())
 
     def OnResize(self, event):
+        super().OnResize(event)
         self.model.SetProperty("size", self.view.GetSize())
-        event.Skip()
 
     def OnKeyDown(self, event):
         if not self.isEditing:
@@ -134,7 +133,9 @@ class PageModel(ViewModel):
     @classmethod
     def ModelFromData(cls, data):
         m = None
-        if data["type"] == "button":
+        if data["type"] == "page":
+            m = PageModel()
+        elif data["type"] == "button":
             m = ButtonModel()
         elif data["type"] == "textfield":
             m = TextFieldModel()

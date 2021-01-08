@@ -62,6 +62,7 @@ class PageWindow(wx.Window):
 
         self.uiPage = UiPage(self, pageModel)
         self.selectedView = None
+        self.SelectUiView(self.uiPage)
 
         self.uiPage.model.SetDirty(False)
         self.command_processor.ClearCommands()
@@ -131,7 +132,7 @@ class PageWindow(wx.Window):
         self.uiPage.model = model
         self.uiPage.model.shapes = []
         self.command_processor.ClearCommands()
-        self.UpdateSelectedUiView()
+        self.SelectUiView(self.uiPage)
         model.SetDirty(False)
         model.AddPropertyListener(self.OnPropertyChanged)
         self.InitBuffer()
@@ -162,17 +163,16 @@ class PageWindow(wx.Window):
         self.Notify()
 
     def CopyView(self):
-        if self.selectedView:
-            clipData = wx.CustomDataObject("org.pycard.models")
-            list = [self.selectedView.model.GetData()]
-            data = bytes(json.dumps(list).encode('utf8'))
-            clipData.SetData(data)
-            wx.TheClipboard.Open()
-            wx.TheClipboard.SetData(clipData)
-            wx.TheClipboard.Close()
+        clipData = wx.CustomDataObject("org.pycard.models")
+        list = [self.selectedView.model.GetData()]
+        data = bytes(json.dumps(list).encode('utf8'))
+        clipData.SetData(data)
+        wx.TheClipboard.Open()
+        wx.TheClipboard.SetData(clipData)
+        wx.TheClipboard.Close()
 
     def CutView(self):
-        if self.selectedView:
+        if self.selectedView != self.uiPage:
             self.CopyView()
             v = self.selectedView
             command = RemoveUiViewCommand(True, "Cut", v.model, self)
@@ -188,8 +188,14 @@ class PageWindow(wx.Window):
                         list = json.loads(rawdata.tobytes().decode('utf8'))
                         uiView = None
                         for dict in list:
-                            uiView = self.AddUiViewFromModel(PageModel.ModelFromData(dict))
-                        self.SelectUiView(uiView)
+                            model = PageModel.ModelFromData(dict)
+                            if model.type == "page":
+                                for m in model.childModels:
+                                    uiView = self.AddUiViewFromModel(m)
+                            else:
+                                uiView = self.AddUiViewFromModel(model)
+                        if uiView:
+                            self.SelectUiView(uiView)
                 wx.TheClipboard.Close()
 
     def AddUiViewOfType(self, viewType):
@@ -281,7 +287,7 @@ class PageWindow(wx.Window):
         for ui in self.uiViews.copy():
             if ui.model == viewModel:
                 if self.selectedView == ui:
-                    self.SelectUiView(None)
+                    self.SelectUiView(self.uiPage)
                 ui.model.RemoveAllPropertyListeners()
                 self.uiViews.remove(ui)
                 self.uiPage.model.RemoveChild(ui.model)
@@ -299,7 +305,7 @@ class PageWindow(wx.Window):
                 self.isDrawing = True
                 self.CaptureMouse()
             else:
-                self.SelectUiView(None)
+                self.SelectUiView(self.uiPage)
         else:
             event.Skip()
 

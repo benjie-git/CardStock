@@ -99,7 +99,9 @@ class DesignerFrame(wx.Frame):
         self.viewer = None
 
         self.page.SetFocus()
-        self.SetSelectedUiView(None)
+        self.SetSelectedUiView(self.page.uiPage)
+        self.Layout()
+        self.stack.SetDirty(False)
 
     def NewFile(self):
         self.stack = StackModel()
@@ -108,6 +110,7 @@ class DesignerFrame(wx.Frame):
         self.page.SetEditing(True)
         self.Layout()
         self.page.uiPage.model.SetProperty("size", self.page.GetSize())
+        self.stack.SetDirty(False)
 
     def SaveFile(self):
         if self.filename:

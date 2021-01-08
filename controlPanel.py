@@ -193,8 +193,6 @@ class ControlPanel(wx.Panel):
 
     def InspectorValueChanged(self, event):
         uiView = self.page.GetSelectedUiView()
-        if not uiView:
-            uiView = self.page.uiPage
         key = self.inspector.GetCellValue(event.GetRow(), 0)
         oldVal = uiView.model.GetProperty(key)
         valStr = self.inspector.GetCellValue(event.GetRow(), 1)
@@ -239,8 +237,6 @@ class ControlPanel(wx.Panel):
     def SaveCurrentHandler(self):
         if self.codeEditor.HasFocus():
             uiView = self.page.GetSelectedUiView()
-            if not uiView:
-                uiView = self.page.uiPage
 
             oldVal = uiView.model.GetHandler(self.currentHandler)
             newVal = self.codeEditor.GetText()

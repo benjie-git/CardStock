@@ -46,10 +46,13 @@ class UiView(object):
         self.selectionBox.Enable(False)
         self.selectionBox.Hide()
 
-        self.resizeBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(viewSize[0]-10, viewSize[1]-10), size=(10,10), style=0)
-        self.resizeBox.SetBackgroundColour('Blue')
-        self.resizeBox.Enable(False)
-        self.resizeBox.Hide()
+        if self.model.type != "page":
+            self.resizeBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(viewSize[0]-10, viewSize[1]-10), size=(10,10), style=0)
+            self.resizeBox.SetBackgroundColour('Blue')
+            self.resizeBox.Enable(False)
+            self.resizeBox.Hide()
+        else:
+            self.resizeBox = None
 
         mSize = self.model.GetProperty("size")
         if mSize[0] > 0 and mSize[1] > 0:
@@ -73,12 +76,14 @@ class UiView(object):
             self.view.SetSize(w, h)
         self.selectionBox.SetSize(w, h)
         x,y = self.view.GetPosition()
-        self.resizeBox.SetRect((w-10, h-10, 10, 10))
+        if self.resizeBox:
+            self.resizeBox.SetRect((w-10, h-10, 10, 10))
         event.Skip()
 
     def DestroyView(self):
         self.selectionBox.Destroy()
-        self.resizeBox.Destroy()
+        if self.resizeBox:
+            self.resizeBox.Destroy()
         self.view.Destroy()
 
     def SetEditing(self, editing):
@@ -91,29 +96,30 @@ class UiView(object):
     def SetSelected(self, selected):
         self.isSelected = selected
         self.selectionBox.Show(selected)
-        self.resizeBox.Show(selected)
+        if self.resizeBox:
+            self.resizeBox.Show(selected)
         self.view.Refresh()
         self.view.Update()
 
     def OnMouseDown(self, event):
-        if self.model.type != "page" and self.isEditing:
-            self.view.CaptureMouse()
-            x, y = self.page.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
-            originx, originy = self.view.GetPosition()
-            dx = x - originx
-            dy = y - originy
-            self.moveOrigin = (originx, originy)
-            self.origMousePos = (x, y)
-            self.origSize = list(self.view.GetSize())
-            self.delta = ((dx, dy))
+        if self.isEditing:
+            if self.model.type != "page":
+                self.view.CaptureMouse()
+                x, y = self.page.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
+                originx, originy = self.view.GetPosition()
+                dx = x - originx
+                dy = y - originy
+                self.moveOrigin = (originx, originy)
+                self.origMousePos = (x, y)
+                self.origSize = list(self.view.GetSize())
+                self.delta = ((dx, dy))
 
-            rpx,rpy = event.GetPosition()
-            hackOffset = 5 if self.model.type == "button" else 0  # Buttons are bigger than specified???
-            if self.origSize[0] - rpx + hackOffset < 10 and self.origSize[1] - rpy + hackOffset < 10:
-                self.isResizing = True
-            else:
-                self.isResizing = False
-
+                rpx,rpy = event.GetPosition()
+                hackOffset = 5 if self.model.type == "button" else 0  # Buttons are bigger than specified???
+                if self.origSize[0] - rpx + hackOffset < 10 and self.origSize[1] - rpy + hackOffset < 10:
+                    self.isResizing = True
+                else:
+                    self.isResizing = False
             self.page.SelectUiView(self)
         else:
             if "OnMouseDown" in self.model.handlers:
