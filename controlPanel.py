@@ -81,7 +81,7 @@ class ControlPanel(wx.Panel):
         self.inspector.SetRowLabelSize(1)
         self.inspector.DisableDragRowSize()
 
-        self.inspector.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.InspectorValueChanged)
+        self.inspector.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnInspectorValueChanged)
         self.inspector.Bind(wx.EVT_KEY_DOWN, self.OnGridEnter)
         self.inspector.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnGridClick)
 
@@ -182,6 +182,13 @@ class ControlPanel(wx.Panel):
                 r += 1
 
     def UpdateInspectorForUiView(self, uiView):
+        # Catch a still-open editor and handle it before we move on to a newly selectd uiView
+        if self.inspector.IsCellEditControlShown():
+            ed = self.inspector.GetCellEditor(self.inspector.GetGridCursorRow(), self.inspector.GetGridCursorCol())
+            val = ed.GetValue()
+            self.InspectorValueChanged(self.lastSelectedUiView, self.inspector.GetGridCursorRow(), val)
+            self.inspector.HideCellEditControl()
+
         if self.inspector.GetNumberRows() > 0:
             self.inspector.DeleteRows(0, self.inspector.GetNumberRows())
         if not uiView:
@@ -203,11 +210,14 @@ class ControlPanel(wx.Panel):
             r+=1
         self.Layout()
 
-    def InspectorValueChanged(self, event):
+    def OnInspectorValueChanged(self, event):
         uiView = self.page.GetSelectedUiView()
-        key = self.inspector.GetCellValue(event.GetRow(), 0)
+        self.InspectorValueChanged(uiView, event.GetRow(),
+                                   self.inspector.GetCellValue(event.GetRow(), 1))
+
+    def InspectorValueChanged(self, uiView, row, valStr):
+        key = self.inspector.GetCellValue(row, 0)
         oldVal = uiView.model.GetProperty(key)
-        valStr = self.inspector.GetCellValue(event.GetRow(), 1)
 
         val = uiView.model.InterpretPropertyFromString(key, valStr)
         if val is not None and val != oldVal:
