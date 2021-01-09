@@ -174,25 +174,46 @@ class UiView(object):
             uiView = self
             if self.model.type == "page":
                 uiView = self.page.GetSelectedUiView()
+
+            code = event.GetKeyCode()
             if uiView.model.type != "page":
-                pos = list(uiView.model.GetProperty("position"))
-                code = event.GetKeyCode()
+                pos = wx.Point(uiView.model.GetProperty("position"))
+                pageRect = self.page.GetRect()
+                dist = 20 if event.AltDown() else (5 if event.ShiftDown() else 1)
                 if code == wx.WXK_LEFT:
-                    command = MoveUiViewCommand(True, 'Move', self.page, uiView, (-1,0))
-                    self.page.command_processor.Submit(command)
-                    uiView.model.SetProperty("position", (pos[0]-1, pos[1]))
+                    if pos.x-dist < 0: dist = pos.x
+                    if dist > 0:
+                        command = MoveUiViewCommand(True, 'Move', self.page, uiView, (-dist,0))
+                        self.page.command_processor.Submit(command)
+                        uiView.model.SetProperty("position", (pos.x-dist, pos.y))
                 elif code == wx.WXK_RIGHT:
-                    command = MoveUiViewCommand(True, 'Move', self.page, uiView, (1,0))
-                    self.page.command_processor.Submit(command)
-                    uiView.model.SetProperty("position", (pos[0]+1, pos[1]))
+                    if pos.x+dist > pageRect.Right-20: dist = pageRect.Right-20 - pos.x
+                    if dist > 0:
+                        command = MoveUiViewCommand(True, 'Move', self.page, uiView, (dist,0))
+                        self.page.command_processor.Submit(command)
+                        uiView.model.SetProperty("position", (pos.x+dist, pos.y))
                 elif code == wx.WXK_UP:
-                    command = MoveUiViewCommand(True, 'Move', self.page, uiView, (0,-1))
-                    self.page.command_processor.Submit(command)
-                    uiView.model.SetProperty("position", (pos[0], pos[1]-1))
+                    if pos.y-dist < 0: dist = pos.y
+                    if dist > 0:
+                        command = MoveUiViewCommand(True, 'Move', self.page, uiView, (0,-dist))
+                        self.page.command_processor.Submit(command)
+                        uiView.model.SetProperty("position", (pos.x, pos.y-dist))
                 elif code == wx.WXK_DOWN:
-                    command = MoveUiViewCommand(True, 'Move', self.page, uiView, (0,1))
-                    self.page.command_processor.Submit(command)
-                    uiView.model.SetProperty("position", (pos[0], pos[1]+1))
+                    if pos.y+dist > pageRect.Bottom-20: dist = pageRect.Bottom-20 - pos.y
+                    if dist > 0:
+                        command = MoveUiViewCommand(True, 'Move', self.page, uiView, (0,dist))
+                        self.page.command_processor.Submit(command)
+                        uiView.model.SetProperty("position", (pos.x, pos.y+dist))
+
+            if code == wx.WXK_TAB:
+                    ui = self.page.GetSelectedUiView()
+                    if ui == self.page.uiPage:
+                        self.page.SelectUiView(self.page.uiViews[0])
+                    elif ui == self.page.uiViews[-1]:
+                        self.page.SelectUiView(self.page.uiPage)
+                    else:
+                        nextUi = self.page.uiViews[self.page.uiViews.index(ui)+1]
+                        self.page.SelectUiView(nextUi)
         else:
             event.Skip()
 

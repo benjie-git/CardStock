@@ -147,8 +147,9 @@ class ControlPanel(wx.Panel):
     def OnGridEnter(self, event):
         if not self.inspector.IsCellEditControlShown() and \
                 (event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER):
-            if self.inspector.GetGridCursorCol() == 1:
-                self.inspector.EnableCellEditControl()
+            if self.inspector.GetGridCursorCol() == 0:
+                self.inspector.SetGridCursor(self.inspector.GetGridCursorRow(), 1)
+            self.inspector.EnableCellEditControl()
         else:
             event.Skip()
 

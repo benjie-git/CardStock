@@ -39,7 +39,7 @@ class PageWindow(wx.Window):
     maxThickness = 16
 
     def __init__(self, parent, ID, pageModel):
-        wx.Window.__init__(self, parent, ID, style=wx.NO_FULL_REPAINT_ON_RESIZE)
+        wx.Window.__init__(self, parent, ID, style=wx.NO_FULL_REPAINT_ON_RESIZE|wx.WANTS_CHARS)
         self.SetBackgroundColour("WHITE")
         self.listeners = []
         self.designer = None
