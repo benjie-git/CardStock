@@ -32,6 +32,7 @@ class UiView(object):
         view.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
         view.Bind(wx.EVT_MOTION, self.OnMouseMove)
         view.Bind(wx.EVT_SIZE, self.OnResize)
+        view.Bind(wx.EVT_KEY_DOWN, self.OnArrowKeyDown)
         if self.model.type != "page":
             view.Bind(wx.EVT_MOTION, self.page.uiPage.OnMouseMove)
         view.Bind(wx.EVT_LEFT_UP, self.OnMouseUp)
@@ -166,6 +167,33 @@ class UiView(object):
         elif not self.isEditing:
             if "OnMouseUp" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnMouseUp", event)
+            event.Skip()
+
+    def OnArrowKeyDown(self, event):
+        if self.isEditing:
+            uiView = self
+            if self.model.type == "page":
+                uiView = self.page.GetSelectedUiView()
+            if uiView.model.type != "page":
+                pos = list(uiView.model.GetProperty("position"))
+                code = event.GetKeyCode()
+                if code == wx.WXK_LEFT:
+                    command = MoveUiViewCommand(True, 'Move', self.page, uiView, (-1,0))
+                    self.page.command_processor.Submit(command)
+                    uiView.model.SetProperty("position", (pos[0]-1, pos[1]))
+                elif code == wx.WXK_RIGHT:
+                    command = MoveUiViewCommand(True, 'Move', self.page, uiView, (1,0))
+                    self.page.command_processor.Submit(command)
+                    uiView.model.SetProperty("position", (pos[0]+1, pos[1]))
+                elif code == wx.WXK_UP:
+                    command = MoveUiViewCommand(True, 'Move', self.page, uiView, (0,-1))
+                    self.page.command_processor.Submit(command)
+                    uiView.model.SetProperty("position", (pos[0], pos[1]-1))
+                elif code == wx.WXK_DOWN:
+                    command = MoveUiViewCommand(True, 'Move', self.page, uiView, (0,1))
+                    self.page.command_processor.Submit(command)
+                    uiView.model.SetProperty("position", (pos[0], pos[1]+1))
+        else:
             event.Skip()
 
     def OnMouseEnter(self, event):

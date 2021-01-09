@@ -65,9 +65,7 @@ class DesignerFrame(wx.Frame):
         self.addTextLabel.Bind(wx.EVT_LEFT_DOWN, self.OnMenuAddTextLabel)
         toolbar.AddControl(self.addTextLabel, label="Add TextLabel")
 
-        self.addImage = wx.StaticBitmap(parent=toolbar, style=wx.ALIGN_CENTER)
-        self.addImage.Bind(wx.EVT_LEFT_DOWN, self.OnMenuAddImage)
-        toolbar.AddControl(self.addImage, label="Add Image")
+        toolbar.AddTool(wx.ID_FILE1, 'Add Image', wx.ArtProvider.GetBitmap(wx.ART_NEW), wx.NullBitmap)
 
         # toolbar.AddTool(wx.ID_FILE1, 'Add Button', wx.ArtProvider.GetBitmap(wx.ART_NEW_DIR), wx.NullBitmap)
         # toolbar.AddTool(wx.ID_FILE2, 'Add Field', wx.ArtProvider.GetBitmap(wx.ART_NEW), wx.NullBitmap)
@@ -76,8 +74,7 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_TOOL, self.OnMenuDraw, id=wx.ID_EDIT)
         self.Bind(wx.EVT_TOOL, self.OnMenuEdit, id=wx.ID_INDEX)
         self.Bind(wx.EVT_TOOL, self.OnMenuRun, id=wx.ID_APPLY)
-        # self.Bind(wx.EVT_TOOL, self.OnMenuAddButton, id=wx.ID_FILE1)
-        # self.Bind(wx.EVT_TOOL, self.OnMenuAddTextField, id=wx.ID_FILE2)
+        self.Bind(wx.EVT_TOOL, self.OnMenuAddImage, id=wx.ID_FILE1)
 
         self.splitter = wx.SplitterWindow(self, id=wx.ID_ANY, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
 
