@@ -71,14 +71,14 @@ class UiTextField(UiView):
 
     def OnTextEnter(self, event):
         if not self.isEditing:
-            if "OnTextEnter" in self.model.handlers:
+            if self.model.runner and "OnTextEnter" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnTextEnter", event)
             event.Skip()
 
     def OnTextChanged(self, event):
         if not self.isEditing:
             self.model.SetProperty("text", self.view.GetValue())
-            if "OnTextChanged" in self.model.handlers:
+            if self.model.runner and "OnTextChanged" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnTextChanged", event)
             event.Skip()
 

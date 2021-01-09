@@ -15,13 +15,14 @@ class UiView(object):
 
         self.model.AddPropertyListener(self.OnPropertyChanged)
 
+        self.isEditing = False
+        self.isSelected = False
+
         self.SetView(view)
 
         self.lastEditedHandler = None
         self.delta = ((0, 0))
         self.minSize = (20,20)
-        self.isEditing = False
-        self.isSelected = False
 
     def __del__(self):
         self.model.RemoveAllPropertyListeners()
@@ -125,7 +126,7 @@ class UiView(object):
                     self.isResizing = False
             self.page.SelectUiView(self)
         else:
-            if "OnMouseDown" in self.model.handlers:
+            if self.model.runner and "OnMouseDown" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnMouseDown", event)
             event.Skip()
 
@@ -141,7 +142,7 @@ class UiView(object):
                 self.view.SetSize(self.origSize[0]+offset[0], self.origSize[1]+offset[1])
                 self.model.SetProperty("size", self.view.GetSize())
         elif not self.isEditing:
-            if "OnMouseMove" in self.model.handlers:
+            if self.model.runner and "OnMouseMove" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnMouseMove", event)
         event.Skip()
 
@@ -165,7 +166,7 @@ class UiView(object):
 
             self.page.SetFocus()
         elif not self.isEditing:
-            if "OnMouseUp" in self.model.handlers:
+            if self.model.runner and "OnMouseUp" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnMouseUp", event)
             event.Skip()
 
@@ -219,13 +220,13 @@ class UiView(object):
 
     def OnMouseEnter(self, event):
         if not self.isEditing:
-            if "OnMouseEnter" in self.model.handlers:
+            if self.model.runner and "OnMouseEnter" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnMouseEnter", event)
             event.Skip()
 
     def OnMouseExit(self, event):
         if not self.isEditing:
-            if "OnMouseExit" in self.model.handlers:
+            if self.model.runner and "OnMouseExit" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnMouseExit", event)
             event.Skip()
 

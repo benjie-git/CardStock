@@ -29,7 +29,7 @@ class UiButton(UiView):
 
     def OnButton(self, event):
         if not self.isEditing:
-            if "OnClick" in self.model.handlers:
+            if self.model.runner and "OnClick" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnClick", event)
             event.Skip()
 

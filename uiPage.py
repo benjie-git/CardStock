@@ -32,19 +32,19 @@ class UiPage(UiView):
 
     def OnKeyDown(self, event):
         if not self.isEditing:
-            if "OnKeyDown" in self.model.handlers:
+            if self.model.runner and "OnKeyDown" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnKeyDown", event)
         else:
             event.Skip()
 
     def OnKeyUp(self, event):
         if not self.isEditing:
-            if "OnKeyUp" in self.model.handlers:
+            if self.model.runner and "OnKeyUp" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnKeyUp", event)
 
     def OnIdle(self, event):
         if not self.isEditing:
-            if "OnIdle" in self.model.handlers:
+            if self.model.runner and "OnIdle" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnIdle", event)
             event.Skip()
 
