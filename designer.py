@@ -265,6 +265,7 @@ class DesignerFrame(wx.Frame):
         self.viewer.SetClientSize(page1model.GetProperty("size"))
 
     def OnViewerClose(self, event):
+        self.viewer.Destroy()
         self.viewer = None
 
     def OnMenuExit(self, event):

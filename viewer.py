@@ -81,7 +81,7 @@ class ViewerFrame(wx.Frame):
         menuBar.Append(menu3, "&Help")
         self.SetMenuBar(menuBar)
 
-        self.Bind(wx.EVT_MENU,   self.OnClose, id=wx.ID_CLOSE)
+        self.Bind(wx.EVT_MENU,   self.OnMenuClose, id=wx.ID_CLOSE)
 
         self.Bind(wx.EVT_MENU,  self.OnMenuAbout, id=wx.ID_ABOUT)
 
@@ -91,8 +91,8 @@ class ViewerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
 
-    def OnClose(self, event):
-        self.Destroy()
+    def OnMenuClose(self, event):
+        self.Close()
 
     def OnCut(self, event):
         f = self.FindFocus()
