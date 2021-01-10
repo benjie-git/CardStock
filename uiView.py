@@ -262,7 +262,9 @@ class ViewModel(object):
                          "OnMouseUp": "",
                          "OnMouseEnter": "",
                          "OnMouseExit": "",
-                         "OnMessage": ""
+                         "OnMessage": "",
+                         "OnStart": "",
+                         "OnIdle": ""
                          }
         self.properties = {"name": "",
                            "size": (0,0),

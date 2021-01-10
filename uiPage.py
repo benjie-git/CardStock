@@ -46,7 +46,9 @@ class UiPage(UiView):
         if not self.isEditing:
             if self.model.runner and "OnIdle" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnIdle", event)
-            event.Skip()
+            for m in self.model.childModels:
+                if m.runner and "OnIdle" in m.handlers:
+                    m.runner.RunHandler(m, "OnIdle", event)
 
 
 class PageModel(ViewModel):

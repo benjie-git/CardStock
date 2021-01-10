@@ -195,7 +195,7 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
 
-    wildcard = "page files (*.ddl)|*.ddl|All files (*.*)|*.*"
+    wildcard = "page files (*.cds)|*.cds|All files (*.*)|*.*"
 
     def OnMenuNew(self, event):
         if self.stack.GetDirty():
@@ -243,7 +243,7 @@ class DesignerFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if not os.path.splitext(filename)[1]:
-                filename = filename + '.ddl'
+                filename = filename + '.cds'
             self.filename = filename
             self.SaveFile()
             self.SetTitle(self.title + ' -- ' + self.filename)

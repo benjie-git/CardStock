@@ -140,6 +140,9 @@ class ViewerFrame(wx.Frame):
 
         if "OnStart" in self.page.uiPage.model.handlers:
             runner.RunHandler(self.page.uiPage.model, "OnStart", None)
+        for ui in self.page.uiViews:
+            if "OnStart" in ui.model.handlers:
+                runner.RunHandler(ui.model, "OnStart", None)
 
 
 # ----------------------------------------------------------------------
