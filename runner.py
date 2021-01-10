@@ -38,6 +38,9 @@ class Runner():
             self.globals["Alert"] = Alert
             self.globals["Ask"] = Ask
             self.globals["PlaySound"] = PlaySound
+            self.globals["StopSound"] = StopSound
+            self.globals["BroadcastMessage"] = self.BroadcastMessage
+
             for ui in self.page.uiViews:
                 self.globals[ui.model.GetProperty("name")] = ui.model
 
@@ -95,6 +98,11 @@ class Runner():
     def StopRunning(self):
         Sound.Stop()
 
+    def BroadcastMessage(self, message):
+        self.RunHandler(self.page.uiPage.model, "OnMessage", None, message)
+        for ui in self.page.uiViews:
+            self.RunHandler(ui.model, "OnMessage", None, message)
+
 
 def Alert(title, message=""):
     wx.MessageDialog(None, str(message), str(title), wx.OK).ShowModal()
@@ -107,3 +115,7 @@ def Ask(title, message=""):
 
 def PlaySound(filepath):
     Sound.PlaySound(filepath)
+
+
+def StopSound(filepath):
+    Sound.Stop()
