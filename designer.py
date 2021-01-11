@@ -1,11 +1,11 @@
 # designer.py
 """
 This module implements the PyPageDesigner application.  It takes the
-PageWindow and reuses it in a much more
+StackWindow and reuses it in a much more
 intelligent Frame.  This one has a menu and a statusbar, is able to
 save and reload stacks, clear the workspace, and has a simple control
 panel for setting color and line thickness in addition to the popup
-menu that PageWindow provides.  There is also a nice About dialog
+menu that StackWindow provides.  There is also a nice About dialog
 implemented using an wx.html.HtmlWindow.
 """
 
@@ -14,7 +14,7 @@ import sys
 import json
 import wx
 import wx.html
-from pageWindow import PageWindow
+from stackWindow import StackWindow
 from controlPanel import ControlPanel
 from viewer import ViewerFrame
 import version
@@ -32,9 +32,9 @@ class DesignerFrame(wx.Frame):
     """
     A pageFrame contains a pageWindow and a ControlPanel and manages
     their layout with a wx.BoxSizer.  A menu and associated event handlers
-    provides for saving a page to a file, etc.
+    provides for saving a stackView to a file, etc.
     """
-    title = "Page"
+    title = "CardStock"
 
     def __init__(self, parent):
         wx.Frame.__init__(self, parent, -1, self.title, size=(800,600),
@@ -78,69 +78,73 @@ class DesignerFrame(wx.Frame):
 
         self.splitter = wx.SplitterWindow(self, id=wx.ID_ANY, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
 
-        self.stack = StackModel()
-        self.stack.AddPageModel(PageModel())
-        self.page = PageWindow(self.splitter, -1, self.stack.GetPageModel(0))
-        self.page.SetEditing(True)
-        self.page.SetDesigner(self)
+        stackModel = StackModel()
+        stackModel.AddPageModel(PageModel())
+        self.stackView = StackWindow(self.splitter, -1, stackModel)
+        self.stackView.SetEditing(True)
+        self.stackView.SetDesigner(self)
 
-        self.page.command_processor.SetEditMenu(self.editMenu)
+        self.stackView.command_processor.SetEditMenu(self.editMenu)
 
-        self.cPanel = ControlPanel(self.splitter, -1, self.page)
+        self.cPanel = ControlPanel(self.splitter, -1, self.stackView)
 
-        self.splitter.SplitVertically(self.page, self.cPanel)
+        self.splitter.SplitVertically(self.stackView, self.cPanel)
         self.splitter.SetMinimumPaneSize(120)
         self.splitter.SetSashPosition(self.splitter.GetSize()[0]-200)
         self.splitter.SetSashGravity(0.8)
 
         self.viewer = None
 
-        self.page.SetFocus()
-        self.SetSelectedUiView(self.page.uiPage)
+        self.stackView.SetFocus()
+        self.SetSelectedUiView(self.stackView.uiPage)
         self.Layout()
-        self.stack.SetDirty(False)
+        self.stackView.stackModel.SetDirty(False)
 
     def NewFile(self):
-        self.stack = StackModel()
-        self.stack.AddPageModel(PageModel())
-        self.page.SetModel(self.stack.GetPageModel(0))
-        self.page.SetEditing(True)
+        self.filename = None
+        stackModel = StackModel()
+        pm = PageModel()
+        stackModel.AddPageModel(pm)
+        self.stackView.SetStackModel(stackModel)
+        self.stackView.SetEditing(True)
         self.Layout()
-        self.page.uiPage.model.SetProperty("size", self.page.GetSize())
-        self.stack.SetDirty(False)
+        pm.SetProperty("size", self.stackView.GetSize())
+        self.stackView.stackModel.SetDirty(False)
+        self.stackView.SelectUiView(self.stackView.uiPage)
 
     def SaveFile(self):
         if self.filename:
-            data = self.stack.GetData()
+            data = self.stackView.stackModel.GetData()
 
             with open(self.filename, 'w') as f:
                 json.dump(data, f, indent=2)
-            self.stack.SetDirty(False)
+            self.stackView.stackModel.SetDirty(False)
 
     def ReadFile(self):
         if self.filename:
             with open(self.filename, 'r') as f:
                 data = json.load(f)
             if data:
-                self.stack.SetData(data)
-                model = self.stack.GetPageModel(0)
-                self.page.SetModel(model)
-                self.page.SetSize(model.GetProperty("size"))
-                self.page.SetEditing(True)
-                self.page.SetDesigner(self)
+                stackModel = StackModel()
+                stackModel.SetData(data)
+                self.stackView.SetStackModel(stackModel)
+                self.stackView.SetSize(self.stackView.uiPage.model.GetProperty("size"))
+                self.stackView.SetEditing(True)
+                self.stackView.SetDesigner(self)
+                self.stackView.SelectUiView(self.stackView.uiPage)
                 self.SetFrameSizeFromModel()
 
     def SetFrameSizeFromModel(self):
-        self.splitter.SetSize((self.page.GetSize().Width + self.splitter.GetSashSize() + self.cPanel.GetSize().Width,
-                               self.page.GetSize().Height))
+        self.splitter.SetSize((self.stackView.GetSize().Width + self.splitter.GetSashSize() + self.cPanel.GetSize().Width,
+                               self.stackView.GetSize().Height))
         self.SetClientSize(self.splitter.GetSize())
 
     def SetSelectedUiView(self, view):
         self.cPanel.UpdateForUiView(view)
 
     def UpdateSelectedUiView(self):
-        self.cPanel.UpdateInspectorForUiView(self.page.GetSelectedUiView())
-        self.cPanel.UpdateHandlerForUiView(self.page.GetSelectedUiView(), None)
+        self.cPanel.UpdateInspectorForUiView(self.stackView.GetSelectedUiView())
+        self.cPanel.UpdateHandlerForUiView(self.stackView.GetSelectedUiView(), None)
 
     def MakeMenu(self):
         # create the file menu
@@ -150,13 +154,13 @@ class DesignerFrame(wx.Frame):
         # wx.AcceleratorTable for this frame and binds the keys to
         # the menu items.
         menu1.Append(wx.ID_NEW, "&New Page\tCtrl-N", "Create a new file")
-        menu1.Append(wx.ID_OPEN, "&Open\tCtrl-O", "Open a page file")
+        menu1.Append(wx.ID_OPEN, "&Open\tCtrl-O", "Open a Stack")
         menu1.AppendSeparator()
-        menu1.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save the page")
-        menu1.Append(wx.ID_SAVEAS, "Save &As", "Save the page in a new file")
+        menu1.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save the Stack")
+        menu1.Append(wx.ID_SAVEAS, "Save &As", "Save the Stack in a new file")
         menu1.AppendSeparator()
         runId = wx.NewIdRef()
-        menu1.Append(runId, "&Run Page\tCtrl-R", "Run the current page")
+        menu1.Append(runId, "&Run Page\tCtrl-R", "Run the current Stack")
         menu1.AppendSeparator()
         menu1.Append(wx.ID_EXIT, "E&xit", "Terminate the application")
 
@@ -195,10 +199,10 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
 
-    wildcard = "page files (*.cds)|*.cds|All files (*.*)|*.*"
+    wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
 
     def OnMenuNew(self, event):
-        if self.stack.GetDirty():
+        if self.stackView.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before starting a New file?", wx.YES_NO | wx.CANCEL).ShowModal()
             if r == wx.ID_CANCEL:
@@ -210,7 +214,7 @@ class DesignerFrame(wx.Frame):
         self.SetTitle(self.title)
 
     def OnMenuOpen(self, event):
-        if self.stack.GetDirty():
+        if self.stackView.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before Opening a file?", wx.YES_NO | wx.CANCEL).ShowModal()
             if r == wx.ID_CANCEL:
@@ -218,7 +222,7 @@ class DesignerFrame(wx.Frame):
             if r == wx.ID_YES:
                 self.OnMenuSave(None)
 
-        dlg = wx.FileDialog(self, "Open page file...", os.getcwd(),
+        dlg = wx.FileDialog(self, "Open CardStock file...", os.getcwd(),
                            style=wx.FD_OPEN, wildcard = self.wildcard)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
@@ -237,7 +241,7 @@ class DesignerFrame(wx.Frame):
             self.SaveFile()
 
     def OnMenuSaveAs(self, event):
-        dlg = wx.FileDialog(self, "Save page as...", os.getcwd(),
+        dlg = wx.FileDialog(self, "Save CaardStock file as...", os.getcwd(),
                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
                            wildcard = self.wildcard)
         if dlg.ShowModal() == wx.ID_OK:
@@ -254,22 +258,22 @@ class DesignerFrame(wx.Frame):
             self.viewer.Destroy()
         self.viewer = ViewerFrame(self)
         sb = self.viewer.CreateStatusBar()
-        data = self.stack.GetData()
+        data = self.stackView.stackModel.GetData()
+
         stack = StackModel()
         stack.SetData(data)
-        page1model = stack.GetPageModel(0)
-        self.viewer.page.SetModel(page1model)
-        self.viewer.page.SetEditing(False)
-        self.viewer.RunViewer(sb)
+        self.viewer.stackView.SetStackModel(stack)
+        self.viewer.stackView.SetEditing(False)
         self.viewer.Bind(wx.EVT_CLOSE, self.OnViewerClose)
-        self.viewer.SetClientSize(page1model.GetProperty("size"))
+        self.viewer.SetClientSize(self.stackView.uiPage.model.GetProperty("size"))
+        self.viewer.RunViewer(sb)
 
     def OnViewerClose(self, event):
         self.viewer.Destroy()
         self.viewer = None
 
     def OnMenuExit(self, event):
-        if self.stack.GetDirty():
+        if self.stackView.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before Quitting?", wx.YES_NO | wx.CANCEL).ShowModal()
             if r == wx.ID_CANCEL:
@@ -284,28 +288,28 @@ class DesignerFrame(wx.Frame):
 
     def GetDesiredFocus(self):
         f = self.FindFocus()
-        if f == self.cPanel.inspector: f = self.page
-        if f == self.cPanel.codeEditor: f = self.page
+        if f == self.cPanel.inspector: f = self.stackView
+        if f == self.cPanel.codeEditor: f = self.stackView
         return f
 
     def OnCut(self, event):
         f = self.FindFocus()
-        if f == self.page:
-            self.page.CutView()
+        if f == self.stackView:
+            self.stackView.CutView()
         elif f and hasattr(f, "Cut"):
             f.Cut()
 
     def OnCopy(self, event):
         f = self.FindFocus()
-        if f == self.page:
-            self.page.CopyView()
+        if f == self.stackView:
+            self.stackView.CopyView()
         elif f and hasattr(f, "Copy"):
             f.Copy()
 
     def OnPaste(self, event):
         f = self.FindFocus()
-        if f == self.page:
-            self.page.PasteView()
+        if f == self.stackView:
+            self.stackView.PasteView()
         elif f and hasattr(f, "Paste"):
             f.Paste()
 
@@ -319,7 +323,7 @@ class DesignerFrame(wx.Frame):
 
     def OnRedo(self, event):
         f = self.GetDesiredFocus()
-        if f == self.cPanel.codeEditor: f = self.page
+        if f == self.cPanel.codeEditor: f = self.stackView
         if f and hasattr(f, "Redo"):
             if not hasattr(f, "CanRedo") or f.CanRedo():
                 f.Redo()
@@ -338,23 +342,23 @@ class DesignerFrame(wx.Frame):
         self.cPanel.SetDrawingMode(False)
 
     def OnMenuAddButton(self, event):
-        if self.page.uiPage.isEditing and not self.page.isInDrawingMode:
-            self.page.AddUiViewOfType("button")
+        if self.stackView.uiPage.isEditing and not self.stackView.isInDrawingMode:
+            self.stackView.AddUiViewOfType("button")
             event.Skip()
 
     def OnMenuAddTextField(self, event):
-        if self.page.uiPage.isEditing and not self.page.isInDrawingMode:
-            self.page.AddUiViewOfType("textfield")
+        if self.stackView.uiPage.isEditing and not self.stackView.isInDrawingMode:
+            self.stackView.AddUiViewOfType("textfield")
             event.Skip()
 
     def OnMenuAddTextLabel(self, event):
-        if self.page.uiPage.isEditing and not self.page.isInDrawingMode:
-            self.page.AddUiViewOfType("textlabel")
+        if self.stackView.uiPage.isEditing and not self.stackView.isInDrawingMode:
+            self.stackView.AddUiViewOfType("textlabel")
             event.Skip()
 
     def OnMenuAddImage(self, event):
-        if self.page.uiPage.isEditing and not self.page.isInDrawingMode:
-            self.page.AddUiViewOfType("image")
+        if self.stackView.uiPage.isEditing and not self.stackView.isInDrawingMode:
+            self.stackView.AddUiViewOfType("image")
             event.Skip()
 
 
@@ -371,17 +375,17 @@ class PageAbout(wx.Dialog):
 <center><table bgcolor="#455481" width="100%%" cellspacing="0"
 cellpadding="0" border="1">
 <tr>
-    <td align="center"><h1>PyPage %s</h1></td>
+    <td align="center"><h1>CardStock %s</h1></td>
 </tr>
 </table>
 </center>
-<p><b>PyPage</b> is a tool for learning python using a GUI framework inspired by HyperCard of old.</p>
+<p><b>CardStock</b> is a tool for learning python using a GUI framework inspired by HyperCard of old.</p>
 </body>
 </html>
 '''
 
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, 'About PyPage',
+        wx.Dialog.__init__(self, parent, -1, 'About CardStock',
                           size=(420, 380) )
 
         html = wx.html.HtmlWindow(self, -1)
@@ -409,7 +413,7 @@ class DesignerApp(wx.App, InspectionMixin):
         self.frame.app = self
         self.frame.Show(True)
         self.SetTopWindow(self.frame)
-        self.SetAppDisplayName('PyPage')
+        self.SetAppDisplayName('CardStock')
         return True
 
     def MacReopenApp(self):

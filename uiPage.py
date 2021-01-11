@@ -11,13 +11,11 @@ from uiImage import ImageModel
 
 
 class UiPage(UiView):
-    def __init__(self, page, model=None):
-        if not model:
-            model = PageModel()
+    def __init__(self, stackView, model):
         if not model.GetProperty("name"):
             model.SetProperty("name", model.GetNextAvailableNameForBase("page_"))
 
-        super().__init__(page, model, page)
+        super().__init__(stackView, model, stackView)
         self.model.SetProperty("size", self.view.GetSize())
 
     def SetView(self, view):
@@ -107,7 +105,8 @@ class PageModel(ViewModel):
         self.childModels.remove(model)
         self.isDirty = True
 
-    def DeduplicateName(self, name, exclude=[]):
+    def DeduplicateName(self, name, exclude=None):
+        if exclude is None: exclude = []
         names = [m.properties["name"] for m in self.childModels]
         names.extend(["page", "self"])
         for n in exclude:
@@ -121,7 +120,8 @@ class PageModel(ViewModel):
             name = self.GetNextAvailableNameForBase(name, exclude)
         return name
 
-    def GetNextAvailableNameForBase(self, base, exclude=[]):
+    def GetNextAvailableNameForBase(self, base, exclude=None):
+        if exclude is None: exclude = []
         names = [m.GetProperty("name") for m in self.childModels]
         for n in exclude:
             if n in names:

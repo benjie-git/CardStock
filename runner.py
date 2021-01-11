@@ -4,8 +4,8 @@ import wx
 from wx.adv import Sound
 
 class Runner():
-    def __init__(self, page, sb=None):
-        self.page = page
+    def __init__(self, stackView, sb=None):
+        self.stackView = stackView
         self.locals = {}
         self.statusBar = sb
         self.globals = None
@@ -34,14 +34,14 @@ class Runner():
     def RunHandler(self, uiModel, handlerName, event, message=None):
         if not self.globals:
             self.globals = {}
-            self.globals["page"] = self.page.uiPage.model
+            self.globals["page"] = self.stackView.uiPage.model
             self.globals["Alert"] = Alert
             self.globals["Ask"] = Ask
             self.globals["PlaySound"] = PlaySound
             self.globals["StopSound"] = StopSound
             self.globals["BroadcastMessage"] = self.BroadcastMessage
 
-            for ui in self.page.uiViews:
+            for ui in self.stackView.uiViews:
                 self.globals[ui.model.GetProperty("name")] = ui.model
 
         handlerStr = uiModel.handlers[handlerName]
@@ -55,7 +55,7 @@ class Runner():
             self.locals["message"] = message
 
         if event and handlerName.startswith("OnMouse"):
-            mouseX, mouseY = self.page.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+            mouseX, mouseY = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
             self.locals["mouseX"] = mouseX
             self.locals["mouseY"] = mouseY
 
@@ -99,8 +99,8 @@ class Runner():
         Sound.Stop()
 
     def BroadcastMessage(self, message):
-        self.RunHandler(self.page.uiPage.model, "OnMessage", None, message)
-        for ui in self.page.uiViews:
+        self.RunHandler(self.stackView.uiPage.model, "OnMessage", None, message)
+        for ui in self.stackView.uiViews:
             self.RunHandler(ui.model, "OnMessage", None, message)
 
 

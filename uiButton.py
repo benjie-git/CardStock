@@ -7,14 +7,15 @@ from uiView import UiView, ViewModel
 
 
 class UiButton(UiView):
-    def __init__(self, page, model=None):
-        button = wx.Button(parent=page, id=wx.ID_ANY, label="Button")
+    def __init__(self, stackView, model=None):
+        button = wx.Button(parent=stackView, id=wx.ID_ANY, label="Button")
 
         if not model:
             model = ButtonModel()
-            model.SetProperty("name", page.uiPage.model.GetNextAvailableNameForBase("button_"))
+            model.SetProperty("name", stackView.uiPage.model.GetNextAvailableNameForBase("button_"))
 
-        super().__init__(page, model, button)
+        button.SetCursor(wx.Cursor(wx.CURSOR_HAND))
+        super().__init__(stackView, model, button)
 
     def SetView(self, view):
         super().SetView(view)

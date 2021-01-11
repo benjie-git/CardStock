@@ -8,16 +8,16 @@ import wx.stc as stc
 
 
 class UiTextField(UiView):
-    def __init__(self, page, model=None):
+    def __init__(self, stackView, model=None):
         if not model:
             model = TextFieldModel()
-            model.SetProperty("name", page.uiPage.model.GetNextAvailableNameForBase("field_"))
+            model.SetProperty("name", stackView.uiPage.model.GetNextAvailableNameForBase("field_"))
 
-        field = self.CreateField(page, model)
+        field = self.CreateField(stackView, model)
 
-        super().__init__(page, model, field)
+        super().__init__(stackView, model, field)
 
-    def CreateField(self, page, model):
+    def CreateField(self, stackView, model):
         text = model.GetProperty("text")
         alignment = wx.TE_LEFT
         if model.GetProperty("alignment") == "Right":
@@ -26,13 +26,13 @@ class UiTextField(UiView):
             alignment = wx.TE_CENTER
 
         if model.GetProperty("multiline"):
-            field = stc.StyledTextCtrl(parent=page, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
+            field = stc.StyledTextCtrl(parent=stackView, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
             field.SetUseHorizontalScrollBar(False)
             field.SetMarginWidth(1, 0)
             field.ChangeValue(text)
             field.Bind(stc.EVT_STC_CHANGE, self.OnTextChanged)
         else:
-            field = wx.TextCtrl(parent=page, id=wx.ID_ANY, value="TextField", style=wx.TE_PROCESS_ENTER|alignment)
+            field = wx.TextCtrl(parent=stackView, id=wx.ID_ANY, value="TextField", style=wx.TE_PROCESS_ENTER | alignment)
             field.ChangeValue(text)
         return field
 
@@ -56,11 +56,11 @@ class UiTextField(UiView):
             self.view.ChangeValue(str(self.model.GetProperty(key)))
             self.view.SetEditable(wasEditable)
         elif key == "alignment" or key == "multiline":
-            self.page.SelectUiView(None)
+            self.stackView.SelectUiView(None)
             self.view.Destroy()
-            newField = self.CreateField(self.page, self.model)
+            newField = self.CreateField(self.stackView, self.model)
             self.SetView(newField)
-            self.page.SelectUiView(self)
+            self.stackView.SelectUiView(self)
 
     def SetEditing(self, editing):
         UiView.SetEditing(self, editing)

@@ -1,11 +1,11 @@
 # designer.py
 """
 This module implements the PyPageDesigner application.  It takes the
-PageWindow and reuses it in a much more
+StackWindow and reuses it in a much more
 intelligent Frame.  This one has a menu and a statusbar, is able to
 save and reload stacks, clear the workspace, and has a simple control
 panel for setting color and line thickness in addition to the popup
-menu that PageWindow provides.  There is also a nice About dialog
+menu that StackWindow provides.  There is also a nice About dialog
 implemented using an wx.html.HtmlWindow.
 """
 
@@ -14,11 +14,11 @@ import sys
 import json
 import wx
 import wx.html
-from pageWindow import PageWindow
+from stackWindow import StackWindow
+from stack import StackModel
 from uiPage import PageModel
 import version
 from runner import Runner
-from stack import StackModel
 
 from wx.lib.mixins.inspection import InspectionMixin
 
@@ -31,9 +31,9 @@ class ViewerFrame(wx.Frame):
     """
     A pageFrame contains a pageWindow and a ControlPanel and manages
     their layout with a wx.BoxSizer.  A menu and associated event handlers
-    provides for saving a page to a file, etc.
+    provides for saving a stackView to a file, etc.
     """
-    title = "Page"
+    title = "CardStock"
 
     def __init__(self, parent):
         wx.Frame.__init__(self, parent, -1, self.title, size=(800,600),
@@ -42,19 +42,19 @@ class ViewerFrame(wx.Frame):
         self.MakeMenu()
         self.filename = None
 
-        self.stack = StackModel()
-        self.stack.AddPageModel(PageModel())
-        self.page = PageWindow(self, -1, self.stack.GetPageModel(0))
-        self.page.SetEditing(False)
+        stackModel = StackModel()
+        stackModel.AddPageModel(PageModel())
+        self.stackView = StackWindow(self, -1, stackModel)
+        self.stackView.SetEditing(False)
 
     def ReadFile(self, filename):
         if filename:
             with open(filename, 'r') as f:
                 data = json.load(f)
             if data:
-                self.stack.SetData(data)
-                self.page.SetModel(self.stack.GetPageModel(0))
-                self.SetClientSize(self.page.uiPage.model.GetProperty("size"))
+                self.stackView.stackModel.SetData(data)
+                self.stackView.SetStackModel(self.stackView.stackModel)
+                self.SetClientSize(self.stackView.uiPage.model.GetProperty("size"))
                 self.filename = filename
 
     def MakeMenu(self):
@@ -131,16 +131,14 @@ class ViewerFrame(wx.Frame):
         dlg.Destroy()
 
     def RunViewer(self, sb):
-        runner = Runner(self.page, sb)
-        self.page.uiPage.model.runner = runner
-        for ui in self.page.uiViews:
-            ui.model.runner = runner
-        self.page.SetEditing(False)
+        runner = Runner(self.stackView, sb)
+        self.stackView.stackModel.SetRunner(runner)
+        self.stackView.SetEditing(False)
         self.Show(True)
 
-        if "OnStart" in self.page.uiPage.model.handlers:
-            runner.RunHandler(self.page.uiPage.model, "OnStart", None)
-        for ui in self.page.uiViews:
+        if "OnStart" in self.stackView.uiPage.model.handlers:
+            runner.RunHandler(self.stackView.uiPage.model, "OnStart", None)
+        for ui in self.stackView.uiViews:
             if "OnStart" in ui.model.handlers:
                 runner.RunHandler(ui.model, "OnStart", None)
 

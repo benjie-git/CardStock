@@ -8,9 +8,9 @@ import ast
 
 
 class UiView(object):
-    def __init__(self, page, model, view):
+    def __init__(self, stackView, model, view):
         super().__init__()
-        self.page = page
+        self.stackView = stackView
         self.model = model
 
         self.model.AddPropertyListener(self.OnPropertyChanged)
@@ -35,7 +35,7 @@ class UiView(object):
         view.Bind(wx.EVT_SIZE, self.OnResize)
         view.Bind(wx.EVT_KEY_DOWN, self.OnArrowKeyDown)
         if self.model.type != "page":
-            view.Bind(wx.EVT_MOTION, self.page.uiPage.OnMouseMove)
+            view.Bind(wx.EVT_MOTION, self.stackView.uiPage.OnMouseMove)
         view.Bind(wx.EVT_LEFT_UP, self.OnMouseUp)
 
     def SetView(self, view):
@@ -107,9 +107,9 @@ class UiView(object):
 
     def OnMouseDown(self, event):
         if self.isEditing:
-            if self.model.type != "page":
+            if self.model.type != "page" and not self.stackView.isInDrawingMode:
                 self.view.CaptureMouse()
-                x, y = self.page.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
+                x, y = self.stackView.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
                 originx, originy = self.view.GetPosition()
                 dx = x - originx
                 dy = y - originy
@@ -124,15 +124,18 @@ class UiView(object):
                     self.isResizing = True
                 else:
                     self.isResizing = False
-            self.page.SelectUiView(self)
+            if not self.stackView.isInDrawingMode:
+                self.stackView.SelectUiView(self)
+            else:
+                event.Skip()
         else:
             if self.model.runner and "OnMouseDown" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnMouseDown", event)
             event.Skip()
 
     def OnMouseMove(self, event):
-        if self.model.type != "page" and self.isEditing and event.Dragging():
-            x, y = self.page.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
+        if self.model.type != "page" and self.isEditing and not self.stackView.isInDrawingMode and event.Dragging():
+            x, y = self.stackView.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
             if not self.isResizing:
                 fp = (x - self.delta[0], y - self.delta[1])
                 self.view.Move(fp)
@@ -147,74 +150,74 @@ class UiView(object):
         event.Skip()
 
     def OnMouseUp(self, event):
-        if self.model.type != "page" and self.isEditing and self.view.HasCapture():
+        if self.model.type != "page" and self.isEditing and not self.stackView.isInDrawingMode and self.view.HasCapture():
             self.view.ReleaseMouse()
             if not self.isResizing:
                 endx, endy = self.view.GetPosition()
                 offset = (endx-self.moveOrigin[0], endy-self.moveOrigin[1])
                 if offset != (0, 0):
-                    command = MoveUiViewCommand(True, 'Move', self.page, self, offset)
+                    command = MoveUiViewCommand(True, 'Move', self.stackView, self, offset)
                     self.view.SetPosition(self.moveOrigin)
-                    self.page.command_processor.Submit(command)
+                    self.stackView.command_processor.Submit(command)
             else:
                 endw, endh = self.view.GetSize()
                 offset = (endw-self.origSize[0], endh-self.origSize[1])
                 if offset != (0, 0):
-                    command = ResizeUiViewCommand(True, 'Resize', self.page, self, offset)
+                    command = ResizeUiViewCommand(True, 'Resize', self.stackView, self, offset)
                     self.view.SetSize(self.origSize)
-                    self.page.command_processor.Submit(command)
+                    self.stackView.command_processor.Submit(command)
 
-            self.page.SetFocus()
+            self.stackView.SetFocus()
         elif not self.isEditing:
             if self.model.runner and "OnMouseUp" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnMouseUp", event)
-            event.Skip()
+        event.Skip()
 
     def OnArrowKeyDown(self, event):
         if self.isEditing:
             uiView = self
             if self.model.type == "page":
-                uiView = self.page.GetSelectedUiView()
+                uiView = self.stackView.GetSelectedUiView()
 
             code = event.GetKeyCode()
             if uiView.model.type != "page":
                 pos = wx.Point(uiView.model.GetProperty("position"))
-                pageRect = self.page.GetRect()
+                pageRect = self.stackView.GetRect()
                 dist = 20 if event.AltDown() else (5 if event.ShiftDown() else 1)
                 if code == wx.WXK_LEFT:
                     if pos.x-dist < 0: dist = pos.x
                     if dist > 0:
-                        command = MoveUiViewCommand(True, 'Move', self.page, uiView, (-dist,0))
-                        self.page.command_processor.Submit(command)
+                        command = MoveUiViewCommand(True, 'Move', self.stackView, uiView, (-dist, 0))
+                        self.stackView.command_processor.Submit(command)
                         uiView.model.SetProperty("position", (pos.x-dist, pos.y))
                 elif code == wx.WXK_RIGHT:
                     if pos.x+dist > pageRect.Right-20: dist = pageRect.Right-20 - pos.x
                     if dist > 0:
-                        command = MoveUiViewCommand(True, 'Move', self.page, uiView, (dist,0))
-                        self.page.command_processor.Submit(command)
+                        command = MoveUiViewCommand(True, 'Move', self.stackView, uiView, (dist, 0))
+                        self.stackView.command_processor.Submit(command)
                         uiView.model.SetProperty("position", (pos.x+dist, pos.y))
                 elif code == wx.WXK_UP:
                     if pos.y-dist < 0: dist = pos.y
                     if dist > 0:
-                        command = MoveUiViewCommand(True, 'Move', self.page, uiView, (0,-dist))
-                        self.page.command_processor.Submit(command)
+                        command = MoveUiViewCommand(True, 'Move', self.stackView, uiView, (0, -dist))
+                        self.stackView.command_processor.Submit(command)
                         uiView.model.SetProperty("position", (pos.x, pos.y-dist))
                 elif code == wx.WXK_DOWN:
                     if pos.y+dist > pageRect.Bottom-20: dist = pageRect.Bottom-20 - pos.y
                     if dist > 0:
-                        command = MoveUiViewCommand(True, 'Move', self.page, uiView, (0,dist))
-                        self.page.command_processor.Submit(command)
+                        command = MoveUiViewCommand(True, 'Move', self.stackView, uiView, (0, dist))
+                        self.stackView.command_processor.Submit(command)
                         uiView.model.SetProperty("position", (pos.x, pos.y+dist))
 
             if code == wx.WXK_TAB:
-                    ui = self.page.GetSelectedUiView()
-                    if ui == self.page.uiPage:
-                        self.page.SelectUiView(self.page.uiViews[0])
-                    elif ui == self.page.uiViews[-1]:
-                        self.page.SelectUiView(self.page.uiPage)
+                    ui = self.stackView.GetSelectedUiView()
+                    if ui == self.stackView.uiPage:
+                        self.stackView.SelectUiView(self.stackView.uiViews[0])
+                    elif ui == self.stackView.uiViews[-1]:
+                        self.stackView.SelectUiView(self.stackView.uiPage)
                     else:
-                        nextUi = self.page.uiViews[self.page.uiViews.index(ui)+1]
-                        self.page.SelectUiView(nextUi)
+                        nextUi = self.stackView.uiViews[self.stackView.uiViews.index(ui) + 1]
+                        self.stackView.SelectUiView(nextUi)
         else:
             event.Skip()
 
@@ -416,19 +419,19 @@ class MoveUiViewCommand(Command):
 
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
-        self.page = args[2]
+        self.stackView = args[2]
         self.uiView = args[3]
         self.delta = args[4]
         self.viewModel = self.uiView.model
 
     def Do(self):
-        uiView = self.page.GetUiViewByModel(self.viewModel)
+        uiView = self.stackView.GetUiViewByModel(self.viewModel)
         pos = uiView.view.GetPosition()
         uiView.view.SetPosition((pos[0]+self.delta[0], pos[1]+self.delta[1]))
         return True
 
     def Undo(self):
-        uiView = self.page.GetUiViewByModel(self.viewModel)
+        uiView = self.stackView.GetUiViewByModel(self.viewModel)
         pos = uiView.view.GetPosition()
         uiView.view.SetPosition((pos[0]-self.delta[0], pos[1]-self.delta[1]))
         return True
@@ -439,19 +442,19 @@ class ResizeUiViewCommand(Command):
 
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
-        self.page = args[2]
+        self.stackView = args[2]
         self.uiView = args[3]
         self.delta = args[4]
         self.viewModel = self.uiView.model
 
     def Do(self):
-        uiView = self.page.GetUiViewByModel(self.viewModel)
+        uiView = self.stackView.GetUiViewByModel(self.viewModel)
         viewSize = uiView.view.GetSize()
         uiView.view.SetSize((viewSize[0]+self.delta[0], viewSize[1]+self.delta[1]))
         return True
 
     def Undo(self):
-        uiView = self.page.GetUiViewByModel(self.viewModel)
+        uiView = self.stackView.GetUiViewByModel(self.viewModel)
         viewSize = uiView.view.GetSize()
         uiView.view.SetSize((viewSize[0]-self.delta[0], viewSize[1]-self.delta[1]))
         return True

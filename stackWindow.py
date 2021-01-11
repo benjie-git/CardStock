@@ -1,8 +1,8 @@
 #!/usr/bin/python
-# pageWindow.py
+# stackWindow.py
 
 """
-This module contains the PageWindow class which is a window that you
+This module contains the StackWindow class which is a window that you
 can do simple drawings upon. and add Buttons and TextFields to.
 """
 
@@ -10,6 +10,7 @@ can do simple drawings upon. and add Buttons and TextFields to.
 import wx
 from wx.lib.docview import CommandProcessor, Command
 import json
+from stack import StackModel
 from uiPage import UiPage, PageModel
 from uiButton import UiButton
 from uiTextField import UiTextField
@@ -18,7 +19,7 @@ from uiImage import UiImage
 
 # ----------------------------------------------------------------------
 
-class PageWindow(wx.Window):
+class StackWindow(wx.Window):
     menuColours = { 100 : 'White',
                     101 : 'Yellow',
                     102 : 'Red',
@@ -38,7 +39,7 @@ class PageWindow(wx.Window):
                     }
     maxThickness = 16
 
-    def __init__(self, parent, ID, pageModel):
+    def __init__(self, parent, ID, stackModel):
         wx.Window.__init__(self, parent, ID, style=wx.NO_FULL_REPAINT_ON_RESIZE|wx.WANTS_CHARS)
         self.SetBackgroundColour("WHITE")
         self.listeners = []
@@ -54,13 +55,16 @@ class PageWindow(wx.Window):
         self.runner = None
         self.timer = None
 
-        if not pageModel:
-            pageModel = PageModel()
+        if not stackModel:
+            stackModel = StackModel()
+            stackModel.AddPageModel(PageModel())
 
-        self.uiViews = []
-        self.CreateViews(pageModel.childModels)
+        self.stackModel = stackModel
 
-        self.uiPage = UiPage(self, pageModel)
+        self.pageIndex = 0
+
+        self.CreateViews(stackModel.GetPageModel(self.pageIndex))
+
         self.selectedView = None
         self.SelectUiView(self.uiPage)
 
@@ -122,19 +126,22 @@ class PageWindow(wx.Window):
                 self.uiPage.model.RemoveChild(ui.model)
                 ui.DestroyView()
 
-    def CreateViews(self, models):
-        for m in models:
+    def CreateViews(self, pageModel):
+        self.uiPage = UiPage(self, pageModel)
+        self.uiViews = []
+        for m in pageModel.childModels:
             self.AddUiViewFromModel(m)
 
-    def SetModel(self, model):
+    def SetStackModel(self, model):
         self.ClearAllViews()
-        self.CreateViews(model.childModels)
-        self.uiPage.model = model
-        self.uiPage.model.shapes = []
+        self.pageIndex = 0
+        self.stackModel = model
+        pageModel = model.GetPageModel(self.pageIndex)
+        self.CreateViews(pageModel)
         self.command_processor.ClearCommands()
         self.SelectUiView(self.uiPage)
         model.SetDirty(False)
-        model.AddPropertyListener(self.OnPropertyChanged)
+        pageModel.AddPropertyListener(self.OnPropertyChanged)
         self.InitBuffer()
 
     def SetDesigner(self, designer):
@@ -163,7 +170,7 @@ class PageWindow(wx.Window):
         self.Notify()
 
     def CopyView(self):
-        clipData = wx.CustomDataObject("org.pycard.models")
+        clipData = wx.CustomDataObject("org.cardstock.models")
         list = [self.selectedView.model.GetData()]
         data = bytes(json.dumps(list).encode('utf8'))
         clipData.SetData(data)
@@ -181,8 +188,8 @@ class PageWindow(wx.Window):
     def PasteView(self):
         if not wx.TheClipboard.IsOpened():  # may crash, otherwise
             if wx.TheClipboard.Open():
-                if wx.TheClipboard.IsSupported(wx.DataFormat("org.pycard.models")):
-                    clipData = wx.CustomDataObject("org.pycard.models")
+                if wx.TheClipboard.IsSupported(wx.DataFormat("org.cardstock.models")):
+                    clipData = wx.CustomDataObject("org.cardstock.models")
                     if wx.TheClipboard.GetData(clipData):
                         rawdata = clipData.GetData()
                         list = json.loads(rawdata.tobytes().decode('utf8'))
@@ -239,7 +246,8 @@ class PageWindow(wx.Window):
     def AddUiViewFromModel(self, model):
         uiView = None
 
-        model.SetProperty("name", self.uiPage.model.DeduplicateName(model.GetProperty("name")))
+        if not model in self.uiPage.model.childModels:
+            model.SetProperty("name", self.uiPage.model.DeduplicateName(model.GetProperty("name")))
 
         if model.GetType() == "button":
             command = AddUiViewCommand(True, 'Add Button', self, "button", model)
@@ -330,7 +338,7 @@ class PageWindow(wx.Window):
     def OnMouseUp(self, event):
         """called when the left mouse button is released"""
         if self.uiPage.isEditing:
-            if self.HasCapture():
+            if self.HasCapture() and self.isInDrawingMode:
                 command = AddLineCommand(True, 'Add Line', self,
                                          ("pen", self.colour, self.thickness, self.curLine) )
                 self.command_processor.Submit(command)
@@ -418,34 +426,34 @@ class AddLineCommand(Command):
 
     def __init__(self, *args, **kwargs):
         super().__init__()
-        self.page = args[2]
+        self.stackView = args[2]
         self.line = args[3]
 
     def Do(self):
-        self.page.uiPage.model.shapes.append(self.line)
+        self.stackView.uiPage.model.shapes.append(self.line)
         return True
 
     def Undo(self):
-        if len(self.page.uiPage.model.shapes):
-            self.page.uiPage.model.shapes.pop()
+        if len(self.stackView.uiPage.model.shapes):
+            self.stackView.uiPage.model.shapes.pop()
         return True
 
 
 class AddUiViewCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
-        self.page = args[2]
+        self.stackView = args[2]
         self.viewType = args[3]
         self.model = args[4] if len(args)>4 else None
 
     def Do(self):
-        uiView = self.page.AddUiViewInternal(self.viewType, self.model)
+        uiView = self.stackView.AddUiViewInternal(self.viewType, self.model)
         if not self.model:
             self.model = uiView.model
         return True
 
     def Undo(self):
-        self.page.RemoveUiViewByModel(self.model)
+        self.stackView.RemoveUiViewByModel(self.model)
         return True
 
 
@@ -453,12 +461,12 @@ class RemoveUiViewCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.viewModel = args[2]
-        self.page = args[3]
+        self.stackView = args[3]
 
     def Do(self):
-        self.page.RemoveUiViewByModel(self.viewModel)
+        self.stackView.RemoveUiViewByModel(self.viewModel)
         return True
 
     def Undo(self):
-        self.page.AddUiViewInternal(self.viewModel.type, self.viewModel)
+        self.stackView.AddUiViewInternal(self.viewModel.type, self.viewModel)
         return True

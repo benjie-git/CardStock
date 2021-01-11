@@ -7,19 +7,20 @@ import wx
 from uiView import UiView, ViewModel
 
 class UiImage(UiView):
-    def __init__(self, page, model=None):
+    def __init__(self, stackView, model=None):
         if not model:
             model = ImageModel()
-            model.SetProperty("name", page.uiPage.model.GetNextAvailableNameForBase("image_"))
+            model.SetProperty("name", stackView.uiPage.model.GetNextAvailableNameForBase("image_"))
 
         img = self.GetImg(model)
-        container = wx.Window(page)
+        container = wx.Window(stackView)
         container.Enable(True)
         self.imgView = wx.StaticBitmap(container, bitmap=img)
         self.imgView.Enable(True)
         self.imgView.SetScaleMode(self.AspectStrToInt(model.GetProperty("fit")))
+        self.imgView.SetCursor(wx.Cursor(wx.CURSOR_HAND))
 
-        super().__init__(page, model, container)
+        super().__init__(stackView, model, container)
         self.BindEvents(self.imgView)
 
     def AspectStrToInt(self, str):

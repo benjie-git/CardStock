@@ -7,16 +7,17 @@ from uiView import UiView, ViewModel
 
 
 class UiTextLabel(UiView):
-    def __init__(self, page, model=None):
+    def __init__(self, stackView, model=None):
         if not model:
             model = TextLabelModel()
-            model.SetProperty("name", page.uiPage.model.GetNextAvailableNameForBase("label_"))
+            model.SetProperty("name", stackView.uiPage.model.GetNextAvailableNameForBase("label_"))
 
-        label = self.CreateLabel(page, model)
+        label = self.CreateLabel(stackView, model)
+        label.SetCursor(wx.Cursor(wx.CURSOR_HAND))
 
-        super().__init__(page, model, label)
+        super().__init__(stackView, model, label)
 
-    def CreateLabel(self, page, model):
+    def CreateLabel(self, stackView, model):
         if model:
             text = model.GetProperty("text")
             alignment = wx.ALIGN_LEFT
@@ -28,7 +29,7 @@ class UiTextLabel(UiView):
             text = "Text"
             alignment = wx.ALIGN_LEFT
 
-        label = wx.StaticText(parent=page, id=wx.ID_ANY, style=alignment)
+        label = wx.StaticText(parent=stackView, id=wx.ID_ANY, style=alignment)
         label.SetLabelText(text)
         return label
 
@@ -37,11 +38,11 @@ class UiTextLabel(UiView):
         if key == "text":
             self.view.SetLabelText(str(self.model.GetProperty(key)))
         elif key == "alignment":
-            self.page.SelectUiView(None)
+            self.stackView.SelectUiView(None)
             self.view.Destroy()
-            newLabel = self.CreateLabel(self.page, self.model)
+            newLabel = self.CreateLabel(self.stackView, self.model)
             self.SetView(newLabel)
-            self.page.SelectUiView(self)
+            self.stackView.SelectUiView(self)
 
 
 class TextLabelModel(ViewModel):

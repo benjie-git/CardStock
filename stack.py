@@ -27,6 +27,12 @@ class StackModel(object):
         for page in self.pageModels:
             page.SetDirty(dirty)
 
+    def SetRunner(self, runner):
+        for pageModel in self.pageModels:
+            pageModel.runner = runner
+            for model in pageModel.childModels:
+                model.runner = runner
+
     def GetData(self):
         return {"pages":[m.GetData() for m in self.pageModels]}
 
