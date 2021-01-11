@@ -396,10 +396,13 @@ class ViewModel(object):
 
     def GetSize(self): return list(self.GetProperty("size"))
     def SetSize(self, size): self.SetProperty("size", size)
+
     def GetPosition(self): return self.GetProperty("position")
     def SetPosition(self, pos): self.SetProperty("position", pos)
-    def GetPosition(self): return self.GetProperty("position")
-    def MoveTo(self, pos): self.SetProperty("position", pos)
+    def MoveBy(self, delta):
+        pos = self.GetProperty("position")
+        self.SetProperty("position", (pos[0]+delta[0], pos[1]+delta[1]))
+
     def IsTouching(self, model): return self.GetFrame().Intersects(model.GetFrame())
     def IsTouchingEdge(self, model):
         sf = self.GetFrame() # self frame
@@ -408,8 +411,11 @@ class ViewModel(object):
         bottom = wx.Rect(f.Left, f.Bottom, f.Width, 1)
         left = wx.Rect(f.Left, f.Top, 1, f.Height)
         right = wx.Rect(f.Right, f.Top, 1, f.Height)
-        return sf.Intersects(top) or sf.Intersects(bottom) or \
-                sf.Intersects(left) or sf.Intersects(right)
+        if sf.Intersects(top): return "Top"
+        if sf.Intersects(bottom): return "Bottom"
+        if sf.Intersects(left): return "Left"
+        if sf.Intersects(right): return "Right"
+        return False
 
 
 

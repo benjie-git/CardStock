@@ -2,6 +2,8 @@ import traceback
 import sys
 import wx
 from wx.adv import Sound
+from time import sleep
+from random import randint
 
 class Runner():
     def __init__(self, stackView, sb=None):
@@ -34,7 +36,8 @@ class Runner():
     def RunHandler(self, uiModel, handlerName, event, message=None):
         if not self.globals:
             self.globals = {}
-            self.globals["page"] = self.stackView.uiPage.model
+            self.globals["card"] = self.stackView.uiPage.model
+            self.globals["Wait"] = Wait
             self.globals["Alert"] = Alert
             self.globals["Ask"] = Ask
             self.globals["PlaySound"] = PlaySound
@@ -102,6 +105,10 @@ class Runner():
         self.RunHandler(self.stackView.uiPage.model, "OnMessage", None, message)
         for ui in self.stackView.uiViews:
             self.RunHandler(ui.model, "OnMessage", None, message)
+
+
+def Wait(delay):
+    sleep(delay)
 
 
 def Alert(title, message=""):

@@ -60,17 +60,11 @@ class StackWindow(wx.Window):
             stackModel.AddPageModel(PageModel())
 
         self.stackModel = stackModel
-
-        self.pageIndex = 0
-
-        self.CreateViews(stackModel.GetPageModel(self.pageIndex))
-
         self.selectedView = None
-        self.SelectUiView(self.uiPage)
+        self.LoadCardAtIndex(0)
 
         self.uiPage.model.SetDirty(False)
         self.command_processor.ClearCommands()
-        self.uiPage.model.AddPropertyListener(self.OnPropertyChanged)
 
         self.InitBuffer()
         self.UpdateCursor()
@@ -108,7 +102,7 @@ class StackWindow(wx.Window):
         if not editing:
             self.timer = wx.Timer(self)
             self.Bind(wx.EVT_TIMER, self.uiPage.OnIdle, self.timer)
-            self.timer.Start(100)
+            self.timer.Start(50)
 
     def UpdateCursor(self):
         self.SetCursor(wx.Cursor(wx.CURSOR_PENCIL if self.isInDrawingMode else wx.CURSOR_HAND))
@@ -134,13 +128,16 @@ class StackWindow(wx.Window):
 
     def SetStackModel(self, model):
         self.ClearAllViews()
-        self.pageIndex = 0
         self.stackModel = model
-        pageModel = model.GetPageModel(self.pageIndex)
-        self.CreateViews(pageModel)
+        self.LoadCardAtIndex(0)
         self.command_processor.ClearCommands()
+        self.stackModel.SetDirty(False)
+
+    def LoadCardAtIndex(self, index):
+        self.pageIndex = index
+        pageModel = self.stackModel.GetPageModel(index)
+        self.CreateViews(pageModel)
         self.SelectUiView(self.uiPage)
-        model.SetDirty(False)
         pageModel.AddPropertyListener(self.OnPropertyChanged)
         self.InitBuffer()
 

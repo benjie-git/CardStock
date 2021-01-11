@@ -2,6 +2,7 @@ import wx
 import wx.stc as stc
 import keyword
 
+TAB_WIDTH = 3
 
 if wx.Platform == '__WXMSW__':
     faces = { 'mono' : 'Courier New',
@@ -30,7 +31,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.SetAutoLayout(True)
         # self.SetConstraints(stc.LayoutAnchors(self, True, True, True, True))
 
-        self.SetTabWidth(3)
+        self.SetTabWidth(TAB_WIDTH)
         self.SetUseTabs(0)
         self.SetTabIndents(True)
         self.SetBackSpaceUnIndents(True)
@@ -70,7 +71,7 @@ class PythonEditor(stc.StyledTextCtrl):
             numSpaces = self.GetLineIndentation(self.GetCurrentLine())
             line = self.GetLine(self.GetCurrentLine())
             if line.strip()[-1:] == ":":
-                numSpaces += 2
+                numSpaces += TAB_WIDTH
             self.AddText("\n" + " "*numSpaces)
         else:
             event.Skip()
