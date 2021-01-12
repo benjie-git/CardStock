@@ -8,7 +8,7 @@ from uiView import UiView, ViewModel
 
 class UiButton(UiView):
     def __init__(self, stackView, model=None):
-        button = wx.Button(parent=stackView, id=wx.ID_ANY, label="Button")
+        button = wx.Button(parent=stackView, id=wx.ID_ANY, label="Button")  # style=wx.BORDER_NONE
 
         if not model:
             model = ButtonModel()

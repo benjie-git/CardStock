@@ -18,7 +18,10 @@ class UiImage(UiView):
         self.imgView = wx.StaticBitmap(container, bitmap=img)
         self.imgView.Enable(True)
         self.imgView.SetScaleMode(self.AspectStrToInt(model.GetProperty("fit")))
+        container.SetBackgroundColour(model.GetProperty("bgColor"))
+        self.imgView.Show(model.GetProperty("file") != "")
         self.imgView.SetCursor(wx.Cursor(wx.CURSOR_HAND))
+        container.SetCursor(wx.Cursor(wx.CURSOR_HAND))
 
         super().__init__(stackView, model, container)
         self.BindEvents(self.imgView)
@@ -36,10 +39,10 @@ class UiImage(UiView):
     def GetImg(self, model):
         file = model.GetProperty("file")
         if os.path.exists(file):
-            img = wx.Image(file, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+            bmp = wx.Image(file, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
         else:
-            img = wx.Image(100,100, True).ConvertToBitmap()
-        return img
+            bmp = wx.Image(100,100, True).ConvertToBitmap()
+        return bmp
 
     def OnResize(self, event):
         super().OnResize(event)
@@ -52,8 +55,12 @@ class UiImage(UiView):
             img = self.GetImg(self.model)
             self.imgView.SetBitmap(img)
             self.imgView.SetSize(self.view.GetSize())
+            self.imgView.Show(model.GetProperty(key) != "")
         elif key == "fit":
-            self.imgView.SetScaleMode(self.AspectStrToInt(model.GetProperty("fit")))
+            self.imgView.SetScaleMode(self.AspectStrToInt(model.GetProperty(key)))
+        elif key == "bgColor":
+            self.view.SetBackgroundColour(model.GetProperty(key))
+            self.view.Refresh()
 
 
 class ImageModel(ViewModel):
@@ -63,13 +70,15 @@ class ImageModel(ViewModel):
 
         self.properties["file"] = ""
         self.properties["fit"] = "Scale"
+        self.properties["bgColor"] = ""
 
         self.propertyTypes["file"] = "string"
         self.propertyTypes["fit"] = "choice"
+        self.propertyTypes["bgColor"] = "string"
         self.propertyChoices["fit"] = ["Center", "Stretch", "Fill"]
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "file", "fit", "position", "size"]
+        self.propertyKeys = ["name", "file", "fit", "bgColor", "position", "size"]
 
     def GetFile(self): return self.GetProperty("file")
     def SetFile(self, text): self.SetProperty("file", text)
