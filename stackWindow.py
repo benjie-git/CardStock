@@ -11,7 +11,7 @@ import wx
 from wx.lib.docview import CommandProcessor, Command
 import json
 from stack import StackModel
-from uiCard import uiCard, CardModel
+from uiCard import UiCard, CardModel
 from uiButton import UiButton
 from uiTextField import UiTextField
 from uiTextLabel import UiTextLabel
@@ -64,7 +64,7 @@ class StackWindow(wx.Window):
         self.selectedView = None
         self.uiViews = []
         self.cardIndex = None
-        self.uiCard = uiCard(self, stackModel.cardModels[0])
+        self.uiCard = UiCard(self, stackModel.cardModels[0])
         self.LoadCardAtIndex(0)
 
         self.uiCard.model.SetDirty(False)
@@ -347,12 +347,17 @@ class StackWindow(wx.Window):
         pass
 
     def AddCard(self):
-        self.stackModel.cardModels.insert(self.cardIndex+1, CardModel())
+        newCard = CardModel()
+        newCard.SetProperty("name", newCard.DeduplicateNameInternal("card_1",
+                                        [m.GetProperty("name") for m in self.stackModel.cardModels]))
+        self.stackModel.cardModels.insert(self.cardIndex+1, newCard)
         self.LoadCardAtIndex(self.cardIndex+1)
 
     def DuplicateCard(self):
         newCard = CardModel()
         newCard.SetData(self.stackModel.cardModels[self.cardIndex].GetData())
+        newCard.SetProperty("name", newCard.DeduplicateNameInternal(newCard.GetProperty("name"),
+                                        [m.GetProperty("name") for m in self.stackModel.cardModels]))
         self.stackModel.cardModels.insert(self.cardIndex+1, newCard)
         self.LoadCardAtIndex(self.cardIndex+1)
 

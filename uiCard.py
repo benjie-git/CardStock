@@ -10,7 +10,7 @@ from uiTextLabel import TextLabelModel
 from uiImage import ImageModel
 
 
-class uiCard(UiView):
+class UiCard(UiView):
     def __init__(self, stackView, model):
         if not model.GetProperty("name"):
             model.SetProperty("name", model.GetNextAvailableNameForBase("card_"))
@@ -107,33 +107,22 @@ class CardModel(ViewModel):
         self.childModels.remove(model)
         self.isDirty = True
 
+    def GetDedupNameList(self, name, exclude):
+        names = [m.properties["name"] for m in self.childModels]
+        for n in exclude:
+            if n in names:
+                names.remove(n)
+        return names
+
     def DeduplicateName(self, name, exclude=None):
         if exclude is None: exclude = []
-        names = [m.properties["name"] for m in self.childModels]
-        names.extend(["card", "self"])
-        for n in exclude:
-            if n in names:
-                names.remove(n)
+        names = self.GetDedupNameList(name, exclude)
+        return super().DeduplicateNameInternal(name, names)
 
-        if name in names:
-            name = name.rstrip("0123456789")
-            if name[-1:] != "_":
-                name = name + "_"
-            name = self.GetNextAvailableNameForBase(name, exclude)
-        return name
-
-    def GetNextAvailableNameForBase(self, base, exclude=None):
+    def GetNextAvailableNameForBase(self, name, exclude=None):
         if exclude is None: exclude = []
-        names = [m.GetProperty("name") for m in self.childModels]
-        for n in exclude:
-            if n in names:
-                names.remove(n)
-        i = 0
-        while True:
-            i += 1
-            name = base+str(i)
-            if name not in names:
-                return name
+        names = self.GetDedupNameList(name, exclude)
+        return super().GetNextAvailableNameForBaseInternal(name, names)
 
     @classmethod
     def ModelFromData(cls, data):
