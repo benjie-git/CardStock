@@ -44,6 +44,7 @@ class StackWindow(wx.Window):
         self.SetBackgroundColour("WHITE")
         self.listeners = []
         self.designer = None
+        self.isEditing = False
         self.command_processor = CommandProcessor()
         self.pos = wx.Point(0,0)
         self.isInDrawingMode = False
@@ -52,7 +53,6 @@ class StackWindow(wx.Window):
         self.colour = None
         self.pen = None
         self.SetColour("Black")
-        self.runner = None
         self.timer = None
 
         if not stackModel:
@@ -61,6 +61,9 @@ class StackWindow(wx.Window):
 
         self.stackModel = stackModel
         self.selectedView = None
+        self.uiViews = []
+        self.cardIndex = None
+        self.uiPage = UiPage(self, stackModel.cardModels[0])
         self.LoadCardAtIndex(0)
 
         self.uiPage.model.SetDirty(False)
@@ -75,6 +78,8 @@ class StackWindow(wx.Window):
         # if editing:
         #     self.Bind(wx.EVT_RIGHT_UP, self.OnMouseRightUp)
         self.Bind(wx.EVT_MOTION, self.OnMouseMove)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
 
         # the view resize event and idle events for managing the buffer
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -87,25 +92,26 @@ class StackWindow(wx.Window):
         self.Bind(wx.EVT_WINDOW_DESTROY, self.Cleanup)
 
     def Cleanup(self, evt):
-        if hasattr(self, "menu"):
-            self.menu.Destroy()
-            del self.menu
-        if self.timer:
-            self.timer.Stop()
-        if self.runner:
-            self.runner.StopRunning()
+        if evt.GetEventObject() == self:
+            if hasattr(self, "menu"):
+                self.menu.Destroy()
+                del self.menu
+            if self.timer:
+                self.timer.Stop()
 
     def SetEditing(self, editing):
-        self.uiPage.SetEditing(editing)
-        for ui in self.uiViews:
-            ui.SetEditing(editing)
+        self.isEditing = editing
         if not editing:
+            self.SelectUiView(None)
             self.timer = wx.Timer(self)
-            self.Bind(wx.EVT_TIMER, self.uiPage.OnIdle, self.timer)
+            self.Bind(wx.EVT_TIMER, self.OnIdleTimer, self.timer)
             self.timer.Start(50)
 
     def UpdateCursor(self):
         self.SetCursor(wx.Cursor(wx.CURSOR_PENCIL if self.isInDrawingMode else wx.CURSOR_HAND))
+
+    def OnIdleTimer(self, event):
+        self.uiPage.OnIdle(event)
 
     def SetDrawingMode(self, drawMode):
         self.isInDrawingMode = drawMode
@@ -117,11 +123,10 @@ class StackWindow(wx.Window):
             if ui.model.type != "page":
                 ui.model.RemovePropertyListener(self.OnPropertyChanged)
                 self.uiViews.remove(ui)
-                self.uiPage.model.RemoveChild(ui.model)
                 ui.DestroyView()
 
     def CreateViews(self, pageModel):
-        self.uiPage = UiPage(self, pageModel)
+        self.uiPage.SetModel(pageModel)
         self.uiViews = []
         for m in pageModel.childModels:
             self.AddUiViewFromModel(m)
@@ -129,17 +134,29 @@ class StackWindow(wx.Window):
     def SetStackModel(self, model):
         self.ClearAllViews()
         self.stackModel = model
+        self.cardIndex = None
         self.LoadCardAtIndex(0)
         self.command_processor.ClearCommands()
         self.stackModel.SetDirty(False)
 
     def LoadCardAtIndex(self, index):
-        self.pageIndex = index
-        pageModel = self.stackModel.GetPageModel(index)
-        self.CreateViews(pageModel)
-        self.SelectUiView(self.uiPage)
-        pageModel.AddPropertyListener(self.OnPropertyChanged)
-        self.InitBuffer()
+        if index != self.cardIndex:
+            if not self.isEditing and self.cardIndex is not None:
+                oldCardModel = self.stackModel.cardModels[self.cardIndex]
+                if oldCardModel.runner:
+                    oldCardModel.runner.RunHandler(oldCardModel, "OnHideCard", None)
+            self.cardIndex = index
+            pageModel = self.stackModel.GetPageModel(index)
+            self.ClearAllViews()
+            self.CreateViews(pageModel)
+            self.SelectUiView(self.uiPage)
+            pageModel.AddPropertyListener(self.OnPropertyChanged)
+            self.InitBuffer()
+            if not self.isEditing and self.uiPage.model.runner and index is not None:
+                self.uiPage.model.runner.SetupForCurrentCard()
+                self.uiPage.model.runner.RunHandler(self.uiPage.model, "OnShowCard", None)
+            if self.designer:
+                self.designer.UpdateCardList()
 
     def SetDesigner(self, designer):
         self.designer = designer
@@ -237,7 +254,6 @@ class StackWindow(wx.Window):
             if not uiView.model in self.uiPage.model.childModels:
                 self.uiPage.model.AddChild(uiView.model)
             uiView.model.AddPropertyListener(self.OnPropertyChanged)
-            uiView.SetEditing(self.uiPage.isEditing)
         return uiView
 
     def AddUiViewFromModel(self, model):
@@ -257,21 +273,20 @@ class StackWindow(wx.Window):
 
         self.command_processor.Submit(command)
         uiView = self.uiViews[-1]
-        if uiView:
-            uiView.SetEditing(self.uiPage.isEditing)
         return uiView
 
     def GetSelectedUiView(self):
         return self.selectedView
 
     def SelectUiView(self, view):
-        if self.selectedView:
-            self.selectedView.SetSelected(False)
-        if view:
-            view.SetSelected(True)
-        self.selectedView = view
-        if self.designer:
-            self.designer.SetSelectedUiView(view)
+        if self.isEditing:
+            if self.selectedView:
+                self.selectedView.SetSelected(False)
+            if view:
+                view.SetSelected(True)
+            self.selectedView = view
+            if self.designer:
+                self.designer.SetSelectedUiView(view)
 
     def OnPropertyChanged(self, model, key):
         uiView = self.GetUiViewByModel(model)
@@ -299,9 +314,61 @@ class StackWindow(wx.Window):
                 ui.DestroyView()
                 return
 
+    def ReorderSelectedView(self, direction):
+        if self.selectedView and self.selectedView != self.uiPage:
+            currentIndex = self.uiPage.model.childModels.index(self.selectedView.model)
+            newIndex = None
+            if direction == "front": newIndex = 0
+            elif direction == "fwd": newIndex = currentIndex+1
+            elif direction == "back": newIndex = currentIndex-1
+            elif direction == "end": newIndex = len(self.uiPage.model.childModels)-1
+
+            if newIndex < 0: newIndex = 0
+            if newIndex >= len(self.uiPage.model.childModels): newIndex = len(self.uiPage.model.childModels)-1
+
+            if newIndex and newIndex != currentIndex:
+                self.uiPage.model.childModels.insert(newIndex, self.uiPage.model.childModels.pop(currentIndex))
+                self.LoadCardAtIndex(self.cardIndex)
+
+    def ReorderCurrentCard(self, direction):
+        currentIndex = self.cardIndex
+        newIndex = None
+        if direction == "fwd": newIndex = currentIndex + 1
+        elif direction == "back": newIndex = currentIndex - 1
+
+        if newIndex < 0: newIndex = 0
+        if newIndex >= len(self.stackModel.cardModels): newIndex = len(self.stackModel.cardModels) - 1
+
+        if newIndex and newIndex != currentIndex:
+            self.stackModel.cardModels.insert(newIndex, self.stackModel.cardModels[currentIndex])
+            self.cardIndex = newIndex
+            self.UpdateCardChooser()
+
+    def UpdateCardChooser(self):
+        pass
+
+    def AddCard(self):
+        self.stackModel.cardModels.insert(self.cardIndex+1, PageModel())
+        self.LoadCardAtIndex(self.cardIndex+1)
+
+    def DuplicateCard(self):
+        newCard = PageModel()
+        newCard.SetData(self.stackModel.cardModels[self.cardIndex].GetData())
+        self.stackModel.cardModels.insert(self.cardIndex+1, newCard)
+        self.LoadCardAtIndex(self.cardIndex+1)
+
+    def RemoveCard(self):
+        index = self.cardIndex
+        if len(self.stackModel.cardModels) > 1:
+            self.cardIndex = None
+            self.stackModel.cardModels.pop(index)
+            if index >= len(self.stackModel.cardModels):
+                index -= 1
+            self.LoadCardAtIndex(index)
+
     def OnMouseDown(self, event):
         """called when the left mouse button is pressed"""
-        if self.uiPage.isEditing:
+        if self.isEditing:
             if self.isInDrawingMode:
                 self.curLine = []
                 self.pos = event.GetPosition()
@@ -320,7 +387,7 @@ class StackWindow(wx.Window):
         dragging then draw a line from the last event position to the
         current one.  Save the coordinants for redraws.
         """
-        if self.uiPage.isEditing:
+        if self.isEditing:
             if self.isDrawing and event.Dragging() and event.LeftIsDown():
                 dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
                 dc.SetPen(self.pen)
@@ -334,7 +401,7 @@ class StackWindow(wx.Window):
 
     def OnMouseUp(self, event):
         """called when the left mouse button is released"""
-        if self.uiPage.isEditing:
+        if self.isEditing:
             if self.HasCapture() and self.isInDrawingMode:
                 command = AddLineCommand(True, 'Add Line', self,
                                          ("pen", self.colour, self.thickness, self.curLine) )
@@ -344,6 +411,12 @@ class StackWindow(wx.Window):
                 self.ReleaseMouse()
         else:
             event.Skip()
+
+    def OnKeyDown(self, event):
+        self.uiPage.OnKeyDown(event)
+
+    def OnKeyUp(self, event):
+        self.uiPage.OnKeyUp(event)
 
     def OnSize(self, event):
         """

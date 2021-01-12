@@ -20,28 +20,31 @@ class UiPage(UiView):
 
     def SetView(self, view):
         super().SetView(view)
-        view.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        view.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
         self.model.SetProperty("size", self.view.GetSize())
 
     def OnResize(self, event):
         super().OnResize(event)
         self.model.SetProperty("size", self.view.GetSize())
 
+    def OnPropertyChanged(self, model, key):
+        super().OnPropertyChanged(model, key)
+        if key == "name":
+            self.stackView.designer.UpdateCardList()
+
     def OnKeyDown(self, event):
-        if not self.isEditing:
+        if not self.stackView.isEditing:
             if self.model.runner and "OnKeyDown" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnKeyDown", event)
         else:
             event.Skip()
 
     def OnKeyUp(self, event):
-        if not self.isEditing:
+        if not self.stackView.isEditing:
             if self.model.runner and "OnKeyUp" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnKeyUp", event)
 
     def OnIdle(self, event):
-        if not self.isEditing:
+        if not self.stackView.isEditing:
             if self.model.runner and "OnIdle" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnIdle", event)
             for m in self.model.childModels:
@@ -55,11 +58,10 @@ class PageModel(ViewModel):
         self.type = "page"
 
         # Add custom handlers to the top of the list
-        handlers = {"OnStart": "", "OnIdle": "", "OnKeyDown": "", "OnKeyUp": ""}
+        handlers = {"OnStart": "", "OnShowCard": "", "OnHideCard": "","OnIdle": "", "OnKeyDown": "", "OnKeyUp": ""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
-
 
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "size"]

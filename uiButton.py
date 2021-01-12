@@ -29,10 +29,10 @@ class UiButton(UiView):
             self.view.SetLabel(str(self.model.GetProperty(key)))
 
     def OnButton(self, event):
-        if not self.isEditing:
+        if not self.stackView.isEditing:
             if self.model.runner and "OnClick" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnClick", event)
-            event.Skip()
+            # event.Skip()   # Crashes if handler goes to a different page
 
 
 class ButtonModel(ViewModel):

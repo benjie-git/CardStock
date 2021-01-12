@@ -27,6 +27,23 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 # ----------------------------------------------------------------------
 
+ID_RUN = wx.NewIdRef()
+ID_EDIT = wx.NewIdRef()
+ID_DRAW = wx.NewIdRef()
+ID_ADD_CARD = wx.NewIdRef()
+ID_DUPLICATE_CARD = wx.NewIdRef()
+ID_REMOVE_CARD = wx.NewIdRef()
+ID_MOVE_CARD_FWD = wx.NewIdRef()
+ID_MOVE_CARD_BACK = wx.NewIdRef()
+ID_ADD_BUTTON = wx.NewIdRef()
+ID_ADD_FIELD = wx.NewIdRef()
+ID_ADD_LABEL = wx.NewIdRef()
+ID_ADD_IMAGE = wx.NewIdRef()
+ID_MOVE_VIEW_FRONT = wx.NewIdRef()
+ID_MOVE_VIEW_FWD = wx.NewIdRef()
+ID_MOVE_VIEW_BACK = wx.NewIdRef()
+ID_MOVE_VIEW_END = wx.NewIdRef()
+
 
 class DesignerFrame(wx.Frame):
     """
@@ -47,9 +64,9 @@ class DesignerFrame(wx.Frame):
         self.app = None
 
         toolbar = self.CreateToolBar(style=wx.TB_TEXT)
-        toolbar.AddTool(wx.ID_INDEX, 'Edit', wx.ArtProvider.GetBitmap(wx.ART_FIND), wx.NullBitmap)
-        toolbar.AddTool(wx.ID_EDIT, 'Draw', wx.ArtProvider.GetBitmap(wx.ART_FIND_AND_REPLACE), wx.NullBitmap)
-        toolbar.AddTool(wx.ID_APPLY, 'Run', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
+        toolbar.AddTool(ID_EDIT, 'Edit', wx.ArtProvider.GetBitmap(wx.ART_FIND), wx.NullBitmap)
+        toolbar.AddTool(ID_DRAW, 'Draw', wx.ArtProvider.GetBitmap(wx.ART_FIND_AND_REPLACE), wx.NullBitmap)
+        toolbar.AddTool(ID_RUN, 'Run', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
         toolbar.AddSeparator()
 
         self.addButton = wx.Button(parent=toolbar, id=wx.ID_ANY, label="Button")
@@ -65,10 +82,14 @@ class DesignerFrame(wx.Frame):
         self.addTextLabel.Bind(wx.EVT_LEFT_DOWN, self.OnMenuAddTextLabel)
         toolbar.AddControl(self.addTextLabel, label="Add TextLabel")
 
-        toolbar.AddTool(wx.ID_FILE1, 'Add Image', wx.ArtProvider.GetBitmap(wx.ART_NEW), wx.NullBitmap)
+        toolbar.AddTool(ID_ADD_IMAGE, 'Add Image', wx.ArtProvider.GetBitmap(wx.ART_NEW), wx.NullBitmap)
 
-        # toolbar.AddTool(wx.ID_FILE1, 'Add Button', wx.ArtProvider.GetBitmap(wx.ART_NEW_DIR), wx.NullBitmap)
-        # toolbar.AddTool(wx.ID_FILE2, 'Add Field', wx.ArtProvider.GetBitmap(wx.ART_NEW), wx.NullBitmap)
+        toolbar.AddStretchableSpace()
+
+        self.cardPicker = wx.Choice(parent=toolbar, id=wx.ID_ANY, choices=["Card 1", "Card 2"], size=(250,20))
+        self.cardPicker.Bind(wx.EVT_CHOICE, self.OnPickCard)
+        toolbar.AddControl(self.cardPicker)
+
         toolbar.Realize()
 
         self.Bind(wx.EVT_TOOL, self.OnMenuDraw, id=wx.ID_EDIT)
@@ -99,6 +120,7 @@ class DesignerFrame(wx.Frame):
         self.SetSelectedUiView(self.stackView.uiPage)
         self.Layout()
         self.stackView.stackModel.SetDirty(False)
+        self.UpdateCardList()
 
     def NewFile(self):
         self.filename = None
@@ -111,6 +133,7 @@ class DesignerFrame(wx.Frame):
         pm.SetProperty("size", self.stackView.GetSize())
         self.stackView.stackModel.SetDirty(False)
         self.stackView.SelectUiView(self.stackView.uiPage)
+        self.UpdateCardList()
 
     def SaveFile(self):
         if self.filename:
@@ -127,12 +150,13 @@ class DesignerFrame(wx.Frame):
             if data:
                 stackModel = StackModel()
                 stackModel.SetData(data)
+                self.stackView.SetDesigner(self)
                 self.stackView.SetStackModel(stackModel)
                 self.stackView.SetSize(self.stackView.uiPage.model.GetProperty("size"))
                 self.stackView.SetEditing(True)
-                self.stackView.SetDesigner(self)
                 self.stackView.SelectUiView(self.stackView.uiPage)
                 self.SetFrameSizeFromModel()
+                self.UpdateCardList()
 
     def SetFrameSizeFromModel(self):
         self.splitter.SetSize((self.stackView.GetSize().Width + self.splitter.GetSashSize() + self.cPanel.GetSize().Width,
@@ -148,47 +172,68 @@ class DesignerFrame(wx.Frame):
 
     def MakeMenu(self):
         # create the file menu
-        menu1 = wx.Menu()
-
         # Using the "\tKeyName" syntax automatically creates a
         # wx.AcceleratorTable for this frame and binds the keys to
         # the menu items.
-        menu1.Append(wx.ID_NEW, "&New Page\tCtrl-N", "Create a new file")
-        menu1.Append(wx.ID_OPEN, "&Open\tCtrl-O", "Open a Stack")
-        menu1.AppendSeparator()
-        menu1.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save the Stack")
-        menu1.Append(wx.ID_SAVEAS, "Save &As", "Save the Stack in a new file")
-        menu1.AppendSeparator()
-        runId = wx.NewIdRef()
-        menu1.Append(runId, "&Run Page\tCtrl-R", "Run the current Stack")
-        menu1.AppendSeparator()
-        menu1.Append(wx.ID_EXIT, "E&xit", "Terminate the application")
+        fileMenu = wx.Menu()
+        fileMenu.Append(wx.ID_NEW, "&New Page\tCtrl-N", "Create a new file")
+        fileMenu.Append(wx.ID_OPEN, "&Open\tCtrl-O", "Open a Stack")
+        fileMenu.AppendSeparator()
+        fileMenu.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save the Stack")
+        fileMenu.Append(wx.ID_SAVEAS, "Save &As", "Save the Stack in a new file")
+        fileMenu.AppendSeparator()
+        fileMenu.Append(ID_RUN, "&Run Page\tCtrl-R", "Run the current Stack")
+        fileMenu.AppendSeparator()
+        fileMenu.Append(wx.ID_EXIT, "E&xit", "Terminate the application")
 
-        menu2 = wx.Menu()
-        menu2.Append(wx.ID_UNDO, "&Undo\tCtrl-Z", "Undo Action")
-        menu2.Append(wx.ID_REDO, "&Redo\tCtrl-Shift-Z", "Redo Action")
-        menu2.AppendSeparator()
-        menu2.Append(wx.ID_CUT,  "C&ut\tCtrl-X", "Cut Selection")
-        menu2.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
-        menu2.Append(wx.ID_PASTE,"&Paste\tCtrl-V", "Paste Selection")
-        self.editMenu = menu2
+        editMenu = wx.Menu()
+        editMenu.Append(wx.ID_UNDO, "&Undo\tCtrl-Z", "Undo Action")
+        editMenu.Append(wx.ID_REDO, "&Redo\tCtrl-Shift-Z", "Redo Action")
+        editMenu.AppendSeparator()
+        editMenu.Append(wx.ID_CUT,  "C&ut\tCtrl-X", "Cut Selection")
+        editMenu.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
+        editMenu.Append(wx.ID_PASTE,"&Paste\tCtrl-V", "Paste Selection")
+        self.editMenu = editMenu
+
+        cardMenu = wx.Menu()
+        cardMenu.Append(ID_ADD_CARD, "&Add Card", "Add Card")
+        cardMenu.Append(ID_DUPLICATE_CARD, "&Duplicate Card", "Duplicate Card")
+        cardMenu.Append(ID_REMOVE_CARD, "&Remove Card", "Remove Card")
+        cardMenu.AppendSeparator()
+        cardMenu.Append(ID_MOVE_CARD_FWD, "Move Card &Forward", "Move Card Forward")
+        cardMenu.Append(ID_MOVE_CARD_BACK, "Move Card Bac&k", "Move Card Back")
+        self.editMenu = cardMenu
+
+        viewMenu = wx.Menu()
+        viewMenu.Append(ID_ADD_BUTTON, "Add &Button", "Add Button")
+        viewMenu.Append(ID_ADD_FIELD, "Add Text&Label", "Add TextLabel")
+        viewMenu.Append(ID_ADD_LABEL, "Add &TextField", "Add TextField")
+        viewMenu.Append(ID_ADD_IMAGE, "Add &Image", "Add Image")
+        viewMenu.AppendSeparator()
+        viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front", "Move to Front")
+        viewMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward", "Move Forward")
+        viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&k", "Move Back")
+        viewMenu.Append(ID_MOVE_VIEW_END, "Move to Back", "Move to Back")
+        self.editMenu = viewMenu
 
         # and the help menu
-        menu3 = wx.Menu()
-        menu3.Append(wx.ID_ABOUT, "&About\tCtrl-H", "Display the gratuitous 'about this app' thingamajig")
+        helpMenu = wx.Menu()
+        helpMenu.Append(wx.ID_ABOUT, "&About\tCtrl-H", "Display the gratuitous 'about this app' thingamajig")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
-        menuBar.Append(menu1, "&File")
-        menuBar.Append(menu2, "&Edit")
-        menuBar.Append(menu3, "&Help")
+        menuBar.Append(fileMenu, "&File")
+        menuBar.Append(editMenu, "&Edit")
+        menuBar.Append(cardMenu, "&Cards")
+        menuBar.Append(viewMenu, "&Views")
+        menuBar.Append(helpMenu, "&Help")
         self.SetMenuBar(menuBar)
 
         self.Bind(wx.EVT_MENU,  self.OnMenuNew, id=wx.ID_NEW)
         self.Bind(wx.EVT_MENU,   self.OnMenuOpen, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU,   self.OnMenuSave, id=wx.ID_SAVE)
         self.Bind(wx.EVT_MENU, self.OnMenuSaveAs, id=wx.ID_SAVEAS)
-        self.Bind(wx.EVT_MENU,  self.OnMenuRun, id=runId)
+        self.Bind(wx.EVT_MENU,  self.OnMenuRun, id=ID_RUN)
         self.Bind(wx.EVT_MENU,   self.OnMenuExit, id=wx.ID_EXIT)
 
         self.Bind(wx.EVT_MENU,  self.OnMenuAbout, id=wx.ID_ABOUT)
@@ -198,6 +243,22 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnCut, id=wx.ID_CUT)
         self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
+
+        self.Bind(wx.EVT_MENU,  self.OnMenuAddButton, id=ID_ADD_BUTTON)
+        self.Bind(wx.EVT_MENU,  self.OnMenuAddTextField, id=ID_ADD_FIELD)
+        self.Bind(wx.EVT_MENU,  self.OnMenuAddTextLabel, id=ID_ADD_LABEL)
+        self.Bind(wx.EVT_MENU,  self.OnMenuAddImage, id=ID_ADD_IMAGE)
+        self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_FRONT)
+        self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_FWD)
+        self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_BACK)
+        self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_END)
+
+        self.Bind(wx.EVT_MENU,  self.OnMenuAddCard, id=ID_ADD_CARD)
+        self.Bind(wx.EVT_MENU,  self.OnMenuDuplicateCard, id=ID_DUPLICATE_CARD)
+        self.Bind(wx.EVT_MENU,  self.OnMenuRemoveCard, id=ID_REMOVE_CARD)
+        self.Bind(wx.EVT_MENU,  self.OnMenuMoveCard, id=ID_MOVE_CARD_FWD)
+        self.Bind(wx.EVT_MENU,  self.OnMenuMoveCard, id=ID_MOVE_CARD_BACK)
+
 
     wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
 
@@ -286,6 +347,43 @@ class DesignerFrame(wx.Frame):
 
         self.Close()
 
+    def OnMenuMoveView(self, event):
+        if event.GetId() == ID_MOVE_VIEW_FRONT:
+            self.stackView.ReorderSelectedView("front")
+        elif event.GetId() == ID_MOVE_VIEW_FWD:
+            self.stackView.ReorderSelectedView("fwd")
+        elif event.GetId() == ID_MOVE_VIEW_BACK:
+            self.stackView.ReorderSelectedView("back")
+        elif event.GetId() == ID_MOVE_VIEW_END:
+            self.stackView.ReorderSelectedView("end")
+
+    def OnMenuMoveCard(self, event):
+        if event.GetId() == ID_MOVE_CARD_FWD:
+            self.stackView.ReorderCurrentCard("fwd")
+        elif event.GetId() == ID_MOVE_CARD_BACK:
+            self.stackView.ReorderCurrentCard("back")
+
+    def OnMenuAddCard(self, event):
+        self.stackView.AddCard()
+
+    def OnMenuDuplicateCard(self, event):
+        self.stackView.DuplicateCard()
+
+    def OnMenuRemoveCard(self, event):
+        self.stackView.RemoveCard()
+
+    def OnPickCard(self, event):
+        self.stackView.LoadCardAtIndex(event.GetSelection())
+
+    def UpdateCardList(self):
+        choices = []
+        i = 1
+        for m in self.stackView.stackModel.cardModels:
+            choices.append(f"Card %d: %s"%(i,m.GetProperty("name")))
+            i += 1
+        self.cardPicker.SetItems(choices)
+        self.cardPicker.SetSelection(self.stackView.cardIndex)
+
     def GetDesiredFocus(self):
         f = self.FindFocus()
         if f == self.cPanel.inspector: f = self.stackView
@@ -342,22 +440,22 @@ class DesignerFrame(wx.Frame):
         self.cPanel.SetDrawingMode(False)
 
     def OnMenuAddButton(self, event):
-        if self.stackView.uiPage.isEditing and not self.stackView.isInDrawingMode:
+        if self.stackView.isEditing and not self.stackView.isInDrawingMode:
             self.stackView.AddUiViewOfType("button")
             event.Skip()
 
     def OnMenuAddTextField(self, event):
-        if self.stackView.uiPage.isEditing and not self.stackView.isInDrawingMode:
+        if self.stackView.isEditing and not self.stackView.isInDrawingMode:
             self.stackView.AddUiViewOfType("textfield")
             event.Skip()
 
     def OnMenuAddTextLabel(self, event):
-        if self.stackView.uiPage.isEditing and not self.stackView.isInDrawingMode:
+        if self.stackView.isEditing and not self.stackView.isInDrawingMode:
             self.stackView.AddUiViewOfType("textlabel")
             event.Skip()
 
     def OnMenuAddImage(self, event):
-        if self.stackView.uiPage.isEditing and not self.stackView.isInDrawingMode:
+        if self.stackView.isEditing and not self.stackView.isInDrawingMode:
             self.stackView.AddUiViewOfType("image")
             event.Skip()
 

@@ -11,11 +11,8 @@ class UiView(object):
     def __init__(self, stackView, model, view):
         super().__init__()
         self.stackView = stackView
-        self.model = model
+        self.SetModel(model)
 
-        self.model.AddPropertyListener(self.OnPropertyChanged)
-
-        self.isEditing = False
         self.isSelected = False
 
         self.SetView(view)
@@ -23,9 +20,6 @@ class UiView(object):
         self.lastEditedHandler = None
         self.delta = ((0, 0))
         self.minSize = (20,20)
-
-    def __del__(self):
-        self.model.RemoveAllPropertyListeners()
 
     def BindEvents(self, view):
         view.Bind(wx.EVT_ENTER_WINDOW, self.OnMouseEnter)
@@ -62,6 +56,10 @@ class UiView(object):
             self.view.SetSize(mSize)
             self.view.SetPosition(self.model.GetProperty("position"))
 
+    def SetModel(self, model):
+        self.model = model
+        self.model.AddPropertyListener(self.OnPropertyChanged)
+
     def OnPropertyChanged(self, model, key):
         if key == "size":
             self.view.SetSize(self.model.GetProperty(key))
@@ -85,14 +83,12 @@ class UiView(object):
         event.Skip()
 
     def DestroyView(self):
+        self.model.RemovePropertyListener(self.OnPropertyChanged)
         self.selectionBox.Destroy()
         if self.resizeBox:
             self.resizeBox.Destroy()
         self.view.Destroy()
-
-    def SetEditing(self, editing):
-        self.isEditing = editing
-        self.SetSelected(False)
+        self.view = None
 
     def GetSelected(self):
         return self.isSelected
@@ -106,7 +102,7 @@ class UiView(object):
         self.view.Update()
 
     def OnMouseDown(self, event):
-        if self.isEditing:
+        if self.stackView.isEditing:
             if self.model.type != "page" and not self.stackView.isInDrawingMode:
                 self.view.CaptureMouse()
                 x, y = self.stackView.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
@@ -134,7 +130,7 @@ class UiView(object):
             event.Skip()
 
     def OnMouseMove(self, event):
-        if self.model.type != "page" and self.isEditing and not self.stackView.isInDrawingMode and event.Dragging():
+        if self.model.type != "page" and self.stackView.isEditing and not self.stackView.isInDrawingMode and event.Dragging():
             x, y = self.stackView.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
             if not self.isResizing:
                 fp = (x - self.delta[0], y - self.delta[1])
@@ -144,13 +140,13 @@ class UiView(object):
                 offset = (x-self.origMousePos[0], y-self.origMousePos[1])
                 self.view.SetSize(self.origSize[0]+offset[0], self.origSize[1]+offset[1])
                 self.model.SetProperty("size", self.view.GetSize())
-        elif not self.isEditing:
+        elif not self.stackView.isEditing:
             if self.model.runner and "OnMouseMove" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnMouseMove", event)
         event.Skip()
 
     def OnMouseUp(self, event):
-        if self.model.type != "page" and self.isEditing and not self.stackView.isInDrawingMode and self.view.HasCapture():
+        if self.model.type != "page" and self.stackView.isEditing and not self.stackView.isInDrawingMode and self.view.HasCapture():
             self.view.ReleaseMouse()
             if not self.isResizing:
                 endx, endy = self.view.GetPosition()
@@ -168,13 +164,13 @@ class UiView(object):
                     self.stackView.command_processor.Submit(command)
 
             self.stackView.SetFocus()
-        elif not self.isEditing:
+        elif not self.stackView.isEditing:
             if self.model.runner and "OnMouseUp" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnMouseUp", event)
         event.Skip()
 
     def OnArrowKeyDown(self, event):
-        if self.isEditing:
+        if self.stackView.isEditing:
             uiView = self
             if self.model.type == "page":
                 uiView = self.stackView.GetSelectedUiView()
@@ -222,13 +218,13 @@ class UiView(object):
             event.Skip()
 
     def OnMouseEnter(self, event):
-        if not self.isEditing:
+        if not self.stackView.isEditing:
             if self.model.runner and "OnMouseEnter" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnMouseEnter", event)
             event.Skip()
 
     def OnMouseExit(self, event):
-        if not self.isEditing:
+        if not self.stackView.isEditing:
             if self.model.runner and "OnMouseExit" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnMouseExit", event)
             event.Skip()
@@ -250,6 +246,8 @@ class UiView(object):
         'OnMouseExit':  "def OnMouseExit(mouseX, mouseY):",
         'OnMessage':    "def OnMessage(message):",
         'OnStart':      "def OnStart():",
+        'OnShowCard':   "def OnShowCard():",
+        'OnHideCard':   "def OnHideCard():",
         'OnIdle':       "def OnIdle():",
         'OnKeyDown':    "def OnKeyDown(key):",
         'OnKeyUp':      "def OnKeyUp(key):",

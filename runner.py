@@ -3,7 +3,7 @@ import sys
 import wx
 from wx.adv import Sound
 from time import sleep
-from random import randint
+
 
 class Runner():
     def __init__(self, stackView, sb=None):
@@ -33,19 +33,23 @@ class Runner():
             self.keyCodeStringMap[wx.WXK_CONTROL] = "Command"
             self.keyCodeStringMap[wx.WXK_RAW_CONTROL] = "Control"
 
+    def SetupForCurrentCard(self):
+        self.globals = {}
+        self.globals["card"] = self.stackView.uiPage.model
+        self.globals["Wait"] = self.Wait
+        self.globals["Alert"] = self.Alert
+        self.globals["Ask"] = self.Ask
+        self.globals["GotoCardName"] = self.GotoCardName
+        self.globals["GotoCardNumber"] = self.GotoCardNumber
+        self.globals["PlaySound"] = self.PlaySound
+        self.globals["StopSound"] = self.StopSound
+        self.globals["BroadcastMessage"] = self.BroadcastMessage
+        for ui in self.stackView.uiViews:
+            self.globals[ui.model.GetProperty("name")] = ui.model
+
     def RunHandler(self, uiModel, handlerName, event, message=None):
         if not self.globals:
-            self.globals = {}
-            self.globals["card"] = self.stackView.uiPage.model
-            self.globals["Wait"] = Wait
-            self.globals["Alert"] = Alert
-            self.globals["Ask"] = Ask
-            self.globals["PlaySound"] = PlaySound
-            self.globals["StopSound"] = StopSound
-            self.globals["BroadcastMessage"] = self.BroadcastMessage
-
-            for ui in self.stackView.uiViews:
-                self.globals[ui.model.GetProperty("name")] = ui.model
+            self.SetupForCurrentCard()
 
         handlerStr = uiModel.handlers[handlerName]
 
@@ -106,23 +110,30 @@ class Runner():
         for ui in self.stackView.uiViews:
             self.RunHandler(ui.model, "OnMessage", None, message)
 
+    def GotoCardName(self, cardName):
+        index = None
+        for m in self.stackView.stackModel.cardModels:
+            if m.GetProperty("name") == cardName:
+                index = self.stackView.stackModel.cardModels.index(m)
+        if index is not None:
+            self.stackView.LoadCardAtIndex(index)
 
-def Wait(delay):
-    sleep(delay)
+    def GotoCardNumber(self, cardIndex):
+        if cardIndex > 0 and cardIndex <= len(self.stackView.stackModel.cardModels):
+            self.stackView.LoadCardAtIndex(cardIndex-1)
 
+    def Wait(self, delay):
+        sleep(delay)
 
-def Alert(title, message=""):
-    wx.MessageDialog(None, str(message), str(title), wx.OK).ShowModal()
+    def Alert(self, title, message=""):
+        wx.MessageDialog(None, str(message), str(title), wx.OK).ShowModal()
 
+    def Ask(self, title, message=""):
+        r = wx.MessageDialog(None, str(message), str(title), wx.YES_NO).ShowModal()
+        return (r == wx.ID_YES)
 
-def Ask(title, message=""):
-    r = wx.MessageDialog(None, str(message), str(title), wx.YES_NO).ShowModal()
-    return (r == wx.ID_YES)
+    def PlaySound(self, filepath):
+        Sound.PlaySound(filepath)
 
-
-def PlaySound(filepath):
-    Sound.PlaySound(filepath)
-
-
-def StopSound(filepath):
-    Sound.Stop()
+    def StopSound(self, filepath):
+        Sound.Stop()
