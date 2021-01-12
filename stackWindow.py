@@ -48,6 +48,7 @@ class StackWindow(wx.Window):
         self.command_processor = CommandProcessor()
         self.pos = wx.Point(0,0)
         self.isInDrawingMode = False
+        self.showCardPending = False
         self.isDrawing = False
         self.thickness = 4
         self.colour = None
@@ -152,11 +153,9 @@ class StackWindow(wx.Window):
             self.SelectUiView(self.uiPage)
             pageModel.AddPropertyListener(self.OnPropertyChanged)
             self.InitBuffer()
-            if not self.isEditing and self.uiPage.model.runner and index is not None:
-                self.uiPage.model.runner.SetupForCurrentCard()
-                self.uiPage.model.runner.RunHandler(self.uiPage.model, "OnShowCard", None)
             if self.designer:
                 self.designer.UpdateCardList()
+            self.showCardPending = True
 
     def SetDesigner(self, designer):
         self.designer = designer
@@ -436,6 +435,13 @@ class StackWindow(wx.Window):
         if self.reInitBuffer:
             self.InitBuffer()
             self.Refresh(False)
+
+        if self.showCardPending:
+            self.showCardPending = False
+            if not self.isEditing and self.uiPage.model.runner:
+                self.uiPage.model.runner.SetupForCurrentCard()
+                self.uiPage.model.runner.RunHandler(self.uiPage.model, "OnShowCard", None)
+
         event.Skip()
 
     def OnPaint(self, event):
