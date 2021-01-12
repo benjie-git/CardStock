@@ -11,7 +11,7 @@ class UiTextField(UiView):
     def __init__(self, stackView, model=None):
         if not model:
             model = TextFieldModel()
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameForBase("field_"))
+            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("field_"))
 
         field = self.CreateField(stackView, model)
 

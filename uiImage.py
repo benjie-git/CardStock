@@ -10,7 +10,7 @@ class UiImage(UiView):
     def __init__(self, stackView, model=None):
         if not model:
             model = ImageModel()
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameForBase("image_"))
+            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("image_"))
 
         img = self.GetImg(model)
         container = wx.Window(stackView)

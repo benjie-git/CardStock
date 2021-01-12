@@ -415,16 +415,16 @@ class ViewModel(object):
         if sf.Intersects(right): return "Right"
         return False
 
-    def DeduplicateNameInternal(self, name, existingNames):
+    def DeduplicateName(self, name, existingNames):
         existingNames.extend(["card", "self", "key", "mouseX",  "mouseY", "message"]) # disallow globals
         if name in existingNames:
             name = name.rstrip("0123456789")
             if name[-1:] != "_":
                 name = name + "_"
-            name = self.GetNextAvailableNameForBaseInternal(name, existingNames)
+            name = self.GetNextAvailableName(name, existingNames)
         return name
 
-    def GetNextAvailableNameForBaseInternal(self, base, existingNames):
+    def GetNextAvailableName(self, base, existingNames):
         i = 0
         while True:
             i += 1

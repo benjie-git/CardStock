@@ -12,7 +12,7 @@ class UiButton(UiView):
 
         if not model:
             model = ButtonModel()
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameForBase("button_"))
+            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("button_"))
 
         button.SetCursor(wx.Cursor(wx.CURSOR_HAND))
         super().__init__(stackView, model, button)

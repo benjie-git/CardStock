@@ -13,7 +13,7 @@ from uiImage import ImageModel
 class UiCard(UiView):
     def __init__(self, stackView, model):
         if not model.GetProperty("name"):
-            model.SetProperty("name", model.GetNextAvailableNameForBase("card_"))
+            model.SetProperty("name", model.GetNextAvailableNameInCard("card_"))
 
         super().__init__(stackView, model, stackView)
         self.model.SetProperty("size", self.view.GetSize())
@@ -114,15 +114,15 @@ class CardModel(ViewModel):
                 names.remove(n)
         return names
 
-    def DeduplicateName(self, name, exclude=None):
+    def DeduplicateNameInCard(self, name, exclude=None):
         if exclude is None: exclude = []
         names = self.GetDedupNameList(name, exclude)
-        return super().DeduplicateNameInternal(name, names)
+        return super().DeduplicateName(name, names)
 
-    def GetNextAvailableNameForBase(self, name, exclude=None):
+    def GetNextAvailableNameInCard(self, name, exclude=None):
         if exclude is None: exclude = []
         names = self.GetDedupNameList(name, exclude)
-        return super().GetNextAvailableNameForBaseInternal(name, names)
+        return super().GetNextAvailableName(name, names)
 
     @classmethod
     def ModelFromData(cls, data):

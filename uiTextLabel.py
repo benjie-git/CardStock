@@ -10,7 +10,7 @@ class UiTextLabel(UiView):
     def __init__(self, stackView, model=None):
         if not model:
             model = TextLabelModel()
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameForBase("label_"))
+            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("label_"))
 
         label = self.CreateLabel(stackView, model)
         label.SetCursor(wx.Cursor(wx.CURSOR_HAND))

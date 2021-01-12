@@ -259,7 +259,7 @@ class StackWindow(wx.Window):
         uiView = None
 
         if not model in self.uiCard.model.childModels:
-            model.SetProperty("name", self.uiCard.model.DeduplicateName(model.GetProperty("name")))
+            model.SetProperty("name", self.uiCard.model.DeduplicateNameInCard(model.GetProperty("name")))
 
         if model.GetType() == "button":
             command = AddUiViewCommand(True, 'Add Button', self, "button", model)
@@ -348,16 +348,16 @@ class StackWindow(wx.Window):
 
     def AddCard(self):
         newCard = CardModel()
-        newCard.SetProperty("name", newCard.DeduplicateNameInternal("card_1",
-                                        [m.GetProperty("name") for m in self.stackModel.cardModels]))
+        newCard.SetProperty("name", newCard.DeduplicateName("card_1",
+                                                            [m.GetProperty("name") for m in self.stackModel.cardModels]))
         self.stackModel.cardModels.insert(self.cardIndex+1, newCard)
         self.LoadCardAtIndex(self.cardIndex+1)
 
     def DuplicateCard(self):
         newCard = CardModel()
         newCard.SetData(self.stackModel.cardModels[self.cardIndex].GetData())
-        newCard.SetProperty("name", newCard.DeduplicateNameInternal(newCard.GetProperty("name"),
-                                        [m.GetProperty("name") for m in self.stackModel.cardModels]))
+        newCard.SetProperty("name", newCard.DeduplicateName(newCard.GetProperty("name"),
+                                                            [m.GetProperty("name") for m in self.stackModel.cardModels]))
         self.stackModel.cardModels.insert(self.cardIndex+1, newCard)
         self.LoadCardAtIndex(self.cardIndex+1)
 
