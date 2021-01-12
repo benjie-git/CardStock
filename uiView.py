@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# This is a draggable View, for adding a UI elements from the palate to the Page.
+# This is a draggable View, for adding a UI elements from the palate to the Card.
 
 import wx
 from wx.lib.docview import Command
@@ -28,8 +28,8 @@ class UiView(object):
         view.Bind(wx.EVT_MOTION, self.OnMouseMove)
         view.Bind(wx.EVT_SIZE, self.OnResize)
         view.Bind(wx.EVT_KEY_DOWN, self.OnArrowKeyDown)
-        if self.model.type != "page":
-            view.Bind(wx.EVT_MOTION, self.stackView.uiPage.OnMouseMove)
+        if self.model.type != "card":
+            view.Bind(wx.EVT_MOTION, self.stackView.uiCard.OnMouseMove)
         view.Bind(wx.EVT_LEFT_UP, self.OnMouseUp)
 
     def SetView(self, view):
@@ -43,7 +43,7 @@ class UiView(object):
         self.selectionBox.Enable(False)
         self.selectionBox.Hide()
 
-        if self.model.type != "page":
+        if self.model.type != "card":
             self.resizeBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(viewSize[0]-10, viewSize[1]-10), size=(10,10), style=0)
             self.resizeBox.SetBackgroundColour('Blue')
             self.resizeBox.Enable(False)
@@ -103,7 +103,7 @@ class UiView(object):
 
     def OnMouseDown(self, event):
         if self.stackView.isEditing:
-            if self.model.type != "page" and not self.stackView.isInDrawingMode:
+            if self.model.type != "card" and not self.stackView.isInDrawingMode:
                 self.view.CaptureMouse()
                 x, y = self.stackView.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
                 originx, originy = self.view.GetPosition()
@@ -130,7 +130,7 @@ class UiView(object):
             event.Skip()
 
     def OnMouseMove(self, event):
-        if self.model.type != "page" and self.stackView.isEditing and not self.stackView.isInDrawingMode and event.Dragging():
+        if self.model.type != "card" and self.stackView.isEditing and not self.stackView.isInDrawingMode and event.Dragging():
             x, y = self.stackView.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
             if not self.isResizing:
                 fp = (x - self.delta[0], y - self.delta[1])
@@ -146,7 +146,7 @@ class UiView(object):
         event.Skip()
 
     def OnMouseUp(self, event):
-        if self.model.type != "page" and self.stackView.isEditing and not self.stackView.isInDrawingMode and self.view.HasCapture():
+        if self.model.type != "card" and self.stackView.isEditing and not self.stackView.isInDrawingMode and self.view.HasCapture():
             self.view.ReleaseMouse()
             if not self.isResizing:
                 endx, endy = self.view.GetPosition()
@@ -172,13 +172,13 @@ class UiView(object):
     def OnArrowKeyDown(self, event):
         if self.stackView.isEditing:
             uiView = self
-            if self.model.type == "page":
+            if self.model.type == "card":
                 uiView = self.stackView.GetSelectedUiView()
 
             code = event.GetKeyCode()
-            if uiView.model.type != "page":
+            if uiView.model.type != "card":
                 pos = wx.Point(uiView.model.GetProperty("position"))
-                pageRect = self.stackView.GetRect()
+                cardRect = self.stackView.GetRect()
                 dist = 20 if event.AltDown() else (5 if event.ShiftDown() else 1)
                 if code == wx.WXK_LEFT:
                     if pos.x-dist < 0: dist = pos.x
@@ -187,7 +187,7 @@ class UiView(object):
                         self.stackView.command_processor.Submit(command)
                         uiView.model.SetProperty("position", (pos.x-dist, pos.y))
                 elif code == wx.WXK_RIGHT:
-                    if pos.x+dist > pageRect.Right-20: dist = pageRect.Right-20 - pos.x
+                    if pos.x+dist > cardRect.Right-20: dist = cardRect.Right-20 - pos.x
                     if dist > 0:
                         command = MoveUiViewCommand(True, 'Move', self.stackView, uiView, (dist, 0))
                         self.stackView.command_processor.Submit(command)
@@ -199,7 +199,7 @@ class UiView(object):
                         self.stackView.command_processor.Submit(command)
                         uiView.model.SetProperty("position", (pos.x, pos.y-dist))
                 elif code == wx.WXK_DOWN:
-                    if pos.y+dist > pageRect.Bottom-20: dist = pageRect.Bottom-20 - pos.y
+                    if pos.y+dist > cardRect.Bottom-20: dist = cardRect.Bottom-20 - pos.y
                     if dist > 0:
                         command = MoveUiViewCommand(True, 'Move', self.stackView, uiView, (0, dist))
                         self.stackView.command_processor.Submit(command)
@@ -207,10 +207,10 @@ class UiView(object):
 
             if code == wx.WXK_TAB:
                     ui = self.stackView.GetSelectedUiView()
-                    if ui == self.stackView.uiPage:
+                    if ui == self.stackView.uiCard:
                         self.stackView.SelectUiView(self.stackView.uiViews[0])
                     elif ui == self.stackView.uiViews[-1]:
-                        self.stackView.SelectUiView(self.stackView.uiPage)
+                        self.stackView.SelectUiView(self.stackView.uiCard)
                     else:
                         nextUi = self.stackView.uiViews[self.stackView.uiViews.index(ui) + 1]
                         self.stackView.SelectUiView(nextUi)

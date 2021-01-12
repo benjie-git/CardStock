@@ -1,6 +1,6 @@
 # designer.py
 """
-This module implements the PyPageDesigner application.  It takes the
+This module implements the PyStackDesigner application.  It takes the
 StackWindow and reuses it in a much more
 intelligent Frame.  This one has a menu and a statusbar, is able to
 save and reload stacks, clear the workspace, and has a simple control
@@ -16,7 +16,7 @@ import wx
 import wx.html
 from stackWindow import StackWindow
 from stack import StackModel
-from uiPage import PageModel
+from uiCard import CardModel
 import version
 from runner import Runner
 
@@ -29,7 +29,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 class ViewerFrame(wx.Frame):
     """
-    A pageFrame contains a pageWindow and a ControlPanel and manages
+    A stackFrame contains a stackWindow and a ControlPanel and manages
     their layout with a wx.BoxSizer.  A menu and associated event handlers
     provides for saving a stackView to a file, etc.
     """
@@ -43,7 +43,7 @@ class ViewerFrame(wx.Frame):
         self.filename = None
 
         stackModel = StackModel()
-        stackModel.AddPageModel(PageModel())
+        stackModel.AddCardModel(CardModel())
         self.stackView = StackWindow(self, -1, stackModel)
         self.stackView.SetEditing(False)
 
@@ -54,7 +54,7 @@ class ViewerFrame(wx.Frame):
             if data:
                 self.stackView.stackModel.SetData(data)
                 self.stackView.SetStackModel(self.stackView.stackModel)
-                self.SetClientSize(self.stackView.uiPage.model.GetProperty("size"))
+                self.SetClientSize(self.stackView.uiCard.model.GetProperty("size"))
                 self.filename = filename
 
     def MakeMenu(self):
@@ -126,7 +126,7 @@ class ViewerFrame(wx.Frame):
         event.Skip()
 
     def OnMenuAbout(self, event):
-        dlg = PageAbout(self)
+        dlg = CardStockAbout(self)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -136,8 +136,8 @@ class ViewerFrame(wx.Frame):
         self.stackView.SetEditing(False)
         self.Show(True)
 
-        if "OnStart" in self.stackView.uiPage.model.handlers:
-            runner.RunHandler(self.stackView.uiPage.model, "OnStart", None)
+        if "OnStart" in self.stackView.uiCard.model.handlers:
+            runner.RunHandler(self.stackView.uiCard.model, "OnStart", None)
         for ui in self.stackView.uiViews:
             if "OnStart" in ui.model.handlers:
                 runner.RunHandler(ui.model, "OnStart", None)
@@ -146,7 +146,7 @@ class ViewerFrame(wx.Frame):
 # ----------------------------------------------------------------------
 
 
-class PageAbout(wx.Dialog):
+class CardStockAbout(wx.Dialog):
     """ An about box that uses an HTML view """
 
     text = '''
@@ -155,17 +155,17 @@ class PageAbout(wx.Dialog):
 <center><table bgcolor="#455481" width="100%%" cellspacing="0"
 cellpadding="0" border="1">
 <tr>
-    <td align="center"><h1>PyPage %s</h1></td>
+    <td align="center"><h1>CardStock %s</h1></td>
 </tr>
 </table>
 </center>
-<p><b>PyPage</b> is a tool for learning python using a GUI framework inspired by HyperCard of old.</p>
+<p><b>CardStock</b> is a tool for learning python using a GUI framework inspired by HyperCard of old.</p>
 </body>
 </html>
 '''
 
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, 'About PyPage',
+        wx.Dialog.__init__(self, parent, -1, 'About CardStock',
                           size=(420, 380) )
 
         html = wx.html.HtmlWindow(self, -1)
@@ -192,7 +192,7 @@ class ViewerApp(wx.App, InspectionMixin):
         self.frame = ViewerFrame(None)
         self.statusbar = self.frame.CreateStatusBar()
         self.SetTopWindow(self.frame)
-        self.SetAppDisplayName('PyPage')
+        self.SetAppDisplayName('CardStock')
 
         return True
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# This is a draggable View, for adding a UI elements from the palate to the Page.
+# This is a draggable View, for adding a UI elements from the palate to the Card.
 
 import wx
 from uiView import UiView, ViewModel
@@ -10,10 +10,10 @@ from uiTextLabel import TextLabelModel
 from uiImage import ImageModel
 
 
-class UiPage(UiView):
+class uiCard(UiView):
     def __init__(self, stackView, model):
         if not model.GetProperty("name"):
-            model.SetProperty("name", model.GetNextAvailableNameForBase("page_"))
+            model.SetProperty("name", model.GetNextAvailableNameForBase("card_"))
 
         super().__init__(stackView, model, stackView)
         self.model.SetProperty("size", self.view.GetSize())
@@ -52,10 +52,10 @@ class UiPage(UiView):
                     m.runner.RunHandler(m, "OnIdle", event)
 
 
-class PageModel(ViewModel):
+class CardModel(ViewModel):
     def __init__(self):
         super().__init__()
-        self.type = "page"
+        self.type = "card"
 
         # Add custom handlers to the top of the list
         handlers = {"OnStart": "", "OnShowCard": "", "OnHideCard": "","OnIdle": "", "OnKeyDown": "", "OnKeyUp": ""}
@@ -97,7 +97,7 @@ class PageModel(ViewModel):
         super().SetData(data)
         self.shapes = data["shapes"]
         for childData in data["childModels"]:
-            self.childModels.append(PageModel.ModelFromData(childData))
+            self.childModels.append(CardModel.ModelFromData(childData))
 
     def AddChild(self, model):
         self.childModels.append(model)
@@ -110,7 +110,7 @@ class PageModel(ViewModel):
     def DeduplicateName(self, name, exclude=None):
         if exclude is None: exclude = []
         names = [m.properties["name"] for m in self.childModels]
-        names.extend(["page", "self"])
+        names.extend(["card", "self"])
         for n in exclude:
             if n in names:
                 names.remove(n)
@@ -138,8 +138,8 @@ class PageModel(ViewModel):
     @classmethod
     def ModelFromData(cls, data):
         m = None
-        if data["type"] == "page":
-            m = PageModel()
+        if data["type"] == "card":
+            m = CardModel()
         elif data["type"] == "button":
             m = ButtonModel()
         elif data["type"] == "textfield":

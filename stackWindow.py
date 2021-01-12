@@ -11,7 +11,7 @@ import wx
 from wx.lib.docview import CommandProcessor, Command
 import json
 from stack import StackModel
-from uiPage import UiPage, PageModel
+from uiCard import uiCard, CardModel
 from uiButton import UiButton
 from uiTextField import UiTextField
 from uiTextLabel import UiTextLabel
@@ -58,16 +58,16 @@ class StackWindow(wx.Window):
 
         if not stackModel:
             stackModel = StackModel()
-            stackModel.AddPageModel(PageModel())
+            stackModel.AddCardModel(CardModel())
 
         self.stackModel = stackModel
         self.selectedView = None
         self.uiViews = []
         self.cardIndex = None
-        self.uiPage = UiPage(self, stackModel.cardModels[0])
+        self.uiCard = uiCard(self, stackModel.cardModels[0])
         self.LoadCardAtIndex(0)
 
-        self.uiPage.model.SetDirty(False)
+        self.uiCard.model.SetDirty(False)
         self.command_processor.ClearCommands()
 
         self.InitBuffer()
@@ -112,7 +112,7 @@ class StackWindow(wx.Window):
         self.SetCursor(wx.Cursor(wx.CURSOR_PENCIL if self.isInDrawingMode else wx.CURSOR_HAND))
 
     def OnIdleTimer(self, event):
-        self.uiPage.OnIdle(event)
+        self.uiCard.OnIdle(event)
 
     def SetDrawingMode(self, drawMode):
         self.isInDrawingMode = drawMode
@@ -121,15 +121,15 @@ class StackWindow(wx.Window):
     def ClearAllViews(self):
         self.SelectUiView(None)
         for ui in self.uiViews.copy():
-            if ui.model.type != "page":
+            if ui.model.type != "card":
                 ui.model.RemovePropertyListener(self.OnPropertyChanged)
                 self.uiViews.remove(ui)
                 ui.DestroyView()
 
-    def CreateViews(self, pageModel):
-        self.uiPage.SetModel(pageModel)
+    def CreateViews(self, cardModel):
+        self.uiCard.SetModel(cardModel)
         self.uiViews = []
-        for m in pageModel.childModels:
+        for m in cardModel.childModels:
             self.AddUiViewFromModel(m)
 
     def SetStackModel(self, model):
@@ -147,11 +147,11 @@ class StackWindow(wx.Window):
                 if oldCardModel.runner:
                     oldCardModel.runner.RunHandler(oldCardModel, "OnHideCard", None)
             self.cardIndex = index
-            pageModel = self.stackModel.GetPageModel(index)
+            cardModel = self.stackModel.GetCardModel(index)
             self.ClearAllViews()
-            self.CreateViews(pageModel)
-            self.SelectUiView(self.uiPage)
-            pageModel.AddPropertyListener(self.OnPropertyChanged)
+            self.CreateViews(cardModel)
+            self.SelectUiView(self.uiCard)
+            cardModel.AddPropertyListener(self.OnPropertyChanged)
             self.InitBuffer()
             if self.designer:
                 self.designer.UpdateCardList()
@@ -192,7 +192,7 @@ class StackWindow(wx.Window):
         wx.TheClipboard.Close()
 
     def CutView(self):
-        if self.selectedView != self.uiPage:
+        if self.selectedView != self.uiCard:
             self.CopyView()
             v = self.selectedView
             command = RemoveUiViewCommand(True, "Cut", v.model, self)
@@ -208,8 +208,8 @@ class StackWindow(wx.Window):
                         list = json.loads(rawdata.tobytes().decode('utf8'))
                         uiView = None
                         for dict in list:
-                            model = PageModel.ModelFromData(dict)
-                            if model.type == "page":
+                            model = CardModel.ModelFromData(dict)
+                            if model.type == "card":
                                 for m in model.childModels:
                                     uiView = self.AddUiViewFromModel(m)
                             else:
@@ -250,16 +250,16 @@ class StackWindow(wx.Window):
                 uiView.model.SetProperty("position", uiView.view.GetPosition())
                 uiView.model.SetProperty("size", uiView.view.GetSize())
             self.uiViews.append(uiView)
-            if not uiView.model in self.uiPage.model.childModels:
-                self.uiPage.model.AddChild(uiView.model)
+            if not uiView.model in self.uiCard.model.childModels:
+                self.uiCard.model.AddChild(uiView.model)
             uiView.model.AddPropertyListener(self.OnPropertyChanged)
         return uiView
 
     def AddUiViewFromModel(self, model):
         uiView = None
 
-        if not model in self.uiPage.model.childModels:
-            model.SetProperty("name", self.uiPage.model.DeduplicateName(model.GetProperty("name")))
+        if not model in self.uiCard.model.childModels:
+            model.SetProperty("name", self.uiCard.model.DeduplicateName(model.GetProperty("name")))
 
         if model.GetType() == "button":
             command = AddUiViewCommand(True, 'Add Button', self, "button", model)
@@ -306,27 +306,27 @@ class StackWindow(wx.Window):
         for ui in self.uiViews.copy():
             if ui.model == viewModel:
                 if self.selectedView == ui:
-                    self.SelectUiView(self.uiPage)
+                    self.SelectUiView(self.uiCard)
                 ui.model.RemoveAllPropertyListeners()
                 self.uiViews.remove(ui)
-                self.uiPage.model.RemoveChild(ui.model)
+                self.uiCard.model.RemoveChild(ui.model)
                 ui.DestroyView()
                 return
 
     def ReorderSelectedView(self, direction):
-        if self.selectedView and self.selectedView != self.uiPage:
-            currentIndex = self.uiPage.model.childModels.index(self.selectedView.model)
+        if self.selectedView and self.selectedView != self.uiCard:
+            currentIndex = self.uiCard.model.childModels.index(self.selectedView.model)
             newIndex = None
             if direction == "front": newIndex = 0
             elif direction == "fwd": newIndex = currentIndex+1
             elif direction == "back": newIndex = currentIndex-1
-            elif direction == "end": newIndex = len(self.uiPage.model.childModels)-1
+            elif direction == "end": newIndex = len(self.uiCard.model.childModels)-1
 
             if newIndex < 0: newIndex = 0
-            if newIndex >= len(self.uiPage.model.childModels): newIndex = len(self.uiPage.model.childModels)-1
+            if newIndex >= len(self.uiCard.model.childModels): newIndex = len(self.uiCard.model.childModels)-1
 
             if newIndex and newIndex != currentIndex:
-                self.uiPage.model.childModels.insert(newIndex, self.uiPage.model.childModels.pop(currentIndex))
+                self.uiCard.model.childModels.insert(newIndex, self.uiCard.model.childModels.pop(currentIndex))
                 self.LoadCardAtIndex(self.cardIndex)
 
     def ReorderCurrentCard(self, direction):
@@ -347,11 +347,11 @@ class StackWindow(wx.Window):
         pass
 
     def AddCard(self):
-        self.stackModel.cardModels.insert(self.cardIndex+1, PageModel())
+        self.stackModel.cardModels.insert(self.cardIndex+1, CardModel())
         self.LoadCardAtIndex(self.cardIndex+1)
 
     def DuplicateCard(self):
-        newCard = PageModel()
+        newCard = CardModel()
         newCard.SetData(self.stackModel.cardModels[self.cardIndex].GetData())
         self.stackModel.cardModels.insert(self.cardIndex+1, newCard)
         self.LoadCardAtIndex(self.cardIndex+1)
@@ -376,7 +376,7 @@ class StackWindow(wx.Window):
                 self.isDrawing = True
                 self.CaptureMouse()
             else:
-                self.SelectUiView(self.uiPage)
+                self.SelectUiView(self.uiCard)
         else:
             event.Skip()
 
@@ -412,10 +412,10 @@ class StackWindow(wx.Window):
             event.Skip()
 
     def OnKeyDown(self, event):
-        self.uiPage.OnKeyDown(event)
+        self.uiCard.OnKeyDown(event)
 
     def OnKeyUp(self, event):
-        self.uiPage.OnKeyUp(event)
+        self.uiCard.OnKeyUp(event)
 
     def OnSize(self, event):
         """
@@ -438,9 +438,9 @@ class StackWindow(wx.Window):
 
         if self.showCardPending:
             self.showCardPending = False
-            if not self.isEditing and self.uiPage.model.runner:
-                self.uiPage.model.runner.SetupForCurrentCard()
-                self.uiPage.model.runner.RunHandler(self.uiPage.model, "OnShowCard", None)
+            if not self.isEditing and self.uiCard.model.runner:
+                self.uiCard.model.runner.SetupForCurrentCard()
+                self.uiCard.model.runner.RunHandler(self.uiCard.model, "OnShowCard", None)
 
         event.Skip()
 
@@ -458,7 +458,7 @@ class StackWindow(wx.Window):
         """
         Redraws all the shapes that have been drawn already.
         """
-        for type, colour, thickness, line in self.uiPage.model.shapes:
+        for type, colour, thickness, line in self.uiCard.model.shapes:
             pen = wx.Pen(colour, thickness, wx.PENSTYLE_SOLID)
             dc.SetPen(pen)
 
@@ -506,12 +506,12 @@ class AddLineCommand(Command):
         self.line = args[3]
 
     def Do(self):
-        self.stackView.uiPage.model.shapes.append(self.line)
+        self.stackView.uiCard.model.shapes.append(self.line)
         return True
 
     def Undo(self):
-        if len(self.stackView.uiPage.model.shapes):
-            self.stackView.uiPage.model.shapes.pop()
+        if len(self.stackView.uiCard.model.shapes):
+            self.stackView.uiCard.model.shapes.pop()
         return True
 
 

@@ -1,6 +1,6 @@
 # designer.py
 """
-This module implements the PyPageDesigner application.  It takes the
+This module implements the PyStackDesigner application.  It takes the
 StackWindow and reuses it in a much more
 intelligent Frame.  This one has a menu and a statusbar, is able to
 save and reload stacks, clear the workspace, and has a simple control
@@ -19,7 +19,7 @@ from controlPanel import ControlPanel
 from viewer import ViewerFrame
 import version
 from stack import StackModel
-from uiPage import PageModel
+from uiCard import CardModel
 
 from wx.lib.mixins.inspection import InspectionMixin
 
@@ -47,7 +47,7 @@ ID_MOVE_VIEW_END = wx.NewIdRef()
 
 class DesignerFrame(wx.Frame):
     """
-    A pageFrame contains a pageWindow and a ControlPanel and manages
+    A stackFrame contains a stackWindow and a ControlPanel and manages
     their layout with a wx.BoxSizer.  A menu and associated event handlers
     provides for saving a stackView to a file, etc.
     """
@@ -100,7 +100,7 @@ class DesignerFrame(wx.Frame):
         self.splitter = wx.SplitterWindow(self, id=wx.ID_ANY, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
 
         stackModel = StackModel()
-        stackModel.AddPageModel(PageModel())
+        stackModel.AddCardModel(CardModel())
         self.stackView = StackWindow(self.splitter, -1, stackModel)
         self.stackView.SetEditing(True)
         self.stackView.SetDesigner(self)
@@ -117,7 +117,7 @@ class DesignerFrame(wx.Frame):
         self.viewer = None
 
         self.stackView.SetFocus()
-        self.SetSelectedUiView(self.stackView.uiPage)
+        self.SetSelectedUiView(self.stackView.uiCard)
         self.Layout()
         self.stackView.stackModel.SetDirty(False)
         self.UpdateCardList()
@@ -125,14 +125,14 @@ class DesignerFrame(wx.Frame):
     def NewFile(self):
         self.filename = None
         stackModel = StackModel()
-        pm = PageModel()
-        stackModel.AddPageModel(pm)
+        pm = CardModel()
+        stackModel.AddCardModel(pm)
         self.stackView.SetStackModel(stackModel)
         self.stackView.SetEditing(True)
         self.Layout()
         pm.SetProperty("size", self.stackView.GetSize())
         self.stackView.stackModel.SetDirty(False)
-        self.stackView.SelectUiView(self.stackView.uiPage)
+        self.stackView.SelectUiView(self.stackView.uiCard)
         self.UpdateCardList()
 
     def SaveFile(self):
@@ -152,9 +152,9 @@ class DesignerFrame(wx.Frame):
                 stackModel.SetData(data)
                 self.stackView.SetDesigner(self)
                 self.stackView.SetStackModel(stackModel)
-                self.stackView.SetSize(self.stackView.uiPage.model.GetProperty("size"))
+                self.stackView.SetSize(self.stackView.uiCard.model.GetProperty("size"))
                 self.stackView.SetEditing(True)
-                self.stackView.SelectUiView(self.stackView.uiPage)
+                self.stackView.SelectUiView(self.stackView.uiCard)
                 self.SetFrameSizeFromModel()
                 self.UpdateCardList()
 
@@ -176,13 +176,13 @@ class DesignerFrame(wx.Frame):
         # wx.AcceleratorTable for this frame and binds the keys to
         # the menu items.
         fileMenu = wx.Menu()
-        fileMenu.Append(wx.ID_NEW, "&New Page\tCtrl-N", "Create a new file")
+        fileMenu.Append(wx.ID_NEW, "&New Card\tCtrl-N", "Create a new file")
         fileMenu.Append(wx.ID_OPEN, "&Open\tCtrl-O", "Open a Stack")
         fileMenu.AppendSeparator()
         fileMenu.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save the Stack")
         fileMenu.Append(wx.ID_SAVEAS, "Save &As", "Save the Stack in a new file")
         fileMenu.AppendSeparator()
-        fileMenu.Append(ID_RUN, "&Run Page\tCtrl-R", "Run the current Stack")
+        fileMenu.Append(ID_RUN, "&Run Card\tCtrl-R", "Run the current Stack")
         fileMenu.AppendSeparator()
         fileMenu.Append(wx.ID_EXIT, "E&xit", "Terminate the application")
 
@@ -326,7 +326,7 @@ class DesignerFrame(wx.Frame):
         self.viewer.stackView.SetStackModel(stack)
         self.viewer.stackView.SetEditing(False)
         self.viewer.Bind(wx.EVT_CLOSE, self.OnViewerClose)
-        self.viewer.SetClientSize(self.stackView.uiPage.model.GetProperty("size"))
+        self.viewer.SetClientSize(self.stackView.uiCard.model.GetProperty("size"))
         self.viewer.RunViewer(sb)
 
     def OnViewerClose(self, event):
@@ -429,7 +429,7 @@ class DesignerFrame(wx.Frame):
         event.Skip()
 
     def OnMenuAbout(self, event):
-        dlg = PageAbout(self)
+        dlg = CardStockAbout(self)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -464,7 +464,7 @@ class DesignerFrame(wx.Frame):
 
 
 
-class PageAbout(wx.Dialog):
+class CardStockAbout(wx.Dialog):
     """ An about box that uses an HTML view """
 
     text = '''

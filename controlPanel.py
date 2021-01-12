@@ -9,9 +9,9 @@ from wx.lib.docview import Command
 
 class ControlPanel(wx.Panel):
     """
-    This class implements a very simple control panel for the pageWindow.
+    This class implements a very simple control panel for the stackWindow.
     It creates buttons for each of the colours and thickneses supported by
-    the pageWindow, and event handlers to set the selected values.  There is
+    the stackWindow, and event handlers to set the selected values.  There is
     also a little view that shows an example line in the selected
     values.  Nested sizers are used for layout.
     """
@@ -169,10 +169,10 @@ class ControlPanel(wx.Panel):
 
     def UpdatedProperty(self, uiView, key):
         if not uiView:
-            uiView = self.stackView.uiPage
+            uiView = self.stackView.uiCard
         lastUi = self.lastSelectedUiView
         if not lastUi:
-            lastUi = self.stackView.uiPage
+            lastUi = self.stackView.uiCard
         if uiView == lastUi:
             keys = uiView.model.PropertyKeys()
             r = 0
@@ -191,7 +191,7 @@ class ControlPanel(wx.Panel):
         if self.inspector.GetNumberRows() > 0:
             self.inspector.DeleteRows(0, self.inspector.GetNumberRows())
         if not uiView:
-            uiView = self.stackView.uiPage
+            uiView = self.stackView.uiCard
         keys = uiView.model.PropertyKeys()
         self.inspector.InsertRows(0,len(keys))
         r = 0
@@ -221,7 +221,7 @@ class ControlPanel(wx.Panel):
         val = uiView.model.InterpretPropertyFromString(key, valStr)
         if val is not None and val != oldVal:
             if key == "name":
-                val = self.stackView.uiPage.model.DeduplicateName(val, [uiView.model.GetProperty("name")])
+                val = self.stackView.uiCard.model.DeduplicateName(val, [uiView.model.GetProperty("name")])
 
             command = SetPropertyCommand(True, "Set Property", self, uiView.model, key, val)
             self.stackView.command_processor.Submit(command)
@@ -230,7 +230,7 @@ class ControlPanel(wx.Panel):
 
     def UpdateHandlerForUiView(self, uiView, handlerName):
         if not uiView:
-            uiView = self.stackView.uiPage
+            uiView = self.stackView.uiCard
         if handlerName == None:
             handlerName = uiView.lastEditedHandler
         if handlerName:

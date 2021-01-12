@@ -35,7 +35,7 @@ class Runner():
 
     def SetupForCurrentCard(self):
         self.globals = {}
-        self.globals["card"] = self.stackView.uiPage.model
+        self.globals["card"] = self.stackView.uiCard.model
         self.globals["Wait"] = self.Wait
         self.globals["Alert"] = self.Alert
         self.globals["Ask"] = self.Ask
@@ -106,7 +106,7 @@ class Runner():
         Sound.Stop()
 
     def BroadcastMessage(self, message):
-        self.RunHandler(self.stackView.uiPage.model, "OnMessage", None, message)
+        self.RunHandler(self.stackView.uiCard.model, "OnMessage", None, message)
         for ui in self.stackView.uiViews:
             self.RunHandler(ui.model, "OnMessage", None, message)
 

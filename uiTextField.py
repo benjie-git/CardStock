@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# This is a draggable View, for adding a UI elements from the palate to the Page.
+# This is a draggable View, for adding a UI elements from the palate to the Card.
 
 import wx
 from uiView import UiView, ViewModel
@@ -11,7 +11,7 @@ class UiTextField(UiView):
     def __init__(self, stackView, model=None):
         if not model:
             model = TextFieldModel()
-            model.SetProperty("name", stackView.uiPage.model.GetNextAvailableNameForBase("field_"))
+            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameForBase("field_"))
 
         field = self.CreateField(stackView, model)
 

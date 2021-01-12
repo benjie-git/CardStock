@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# This is a draggable View, for adding a UI elements from the palate to the Page.
+# This is a draggable View, for adding a UI elements from the palate to the Card.
 
 import os
 import wx
@@ -10,7 +10,7 @@ class UiImage(UiView):
     def __init__(self, stackView, model=None):
         if not model:
             model = ImageModel()
-            model.SetProperty("name", stackView.uiPage.model.GetNextAvailableNameForBase("image_"))
+            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameForBase("image_"))
 
         img = self.GetImg(model)
         container = wx.Window(stackView)

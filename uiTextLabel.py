@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# This is a draggable View, for adding a UI elements from the palate to the Page.
+# This is a draggable View, for adding a UI elements from the palate to the Card.
 
 import wx
 from uiView import UiView, ViewModel
@@ -10,7 +10,7 @@ class UiTextLabel(UiView):
     def __init__(self, stackView, model=None):
         if not model:
             model = TextLabelModel()
-            model.SetProperty("name", stackView.uiPage.model.GetNextAvailableNameForBase("label_"))
+            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameForBase("label_"))
 
         label = self.CreateLabel(stackView, model)
         label.SetCursor(wx.Cursor(wx.CURSOR_HAND))

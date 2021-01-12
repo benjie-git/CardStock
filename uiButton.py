@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# This is a draggable View, for adding a UI elements from the palate to the Page.
+# This is a draggable View, for adding a UI elements from the palate to the Card.
 
 import wx
 from uiView import UiView, ViewModel
@@ -12,7 +12,7 @@ class UiButton(UiView):
 
         if not model:
             model = ButtonModel()
-            model.SetProperty("name", stackView.uiPage.model.GetNextAvailableNameForBase("button_"))
+            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameForBase("button_"))
 
         button.SetCursor(wx.Cursor(wx.CURSOR_HAND))
         super().__init__(stackView, model, button)
@@ -32,7 +32,7 @@ class UiButton(UiView):
         if not self.stackView.isEditing:
             if self.model.runner and "OnClick" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnClick", event)
-            # event.Skip()   # Crashes if handler goes to a different page
+            # event.Skip()   # Crashes if handler goes to a different card
 
 
 class ButtonModel(ViewModel):
