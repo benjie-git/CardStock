@@ -140,11 +140,9 @@ class UiView(object):
             if not self.isResizing:
                 fp = (x - self.delta[0], y - self.delta[1])
                 self.view.Move(fp)
-                self.model.SetProperty("position", self.view.GetPosition())
             else:
                 offset = (x-self.origMousePos[0], y-self.origMousePos[1])
                 self.view.SetSize(self.origSize[0]+offset[0], self.origSize[1]+offset[1])
-                self.model.SetProperty("size", self.view.GetSize())
         elif not self.stackView.isEditing:
             if self.model.runner and "OnMouseMove" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnMouseMove", event)
@@ -389,7 +387,6 @@ class ViewModel(object):
                     raise Exception()
         except:
             return None
-
         return val
 
     def SetHandler(self, key, value):
@@ -446,8 +443,6 @@ class ViewModel(object):
             name = base+str(i)
             if name not in existingNames:
                 return name
-
-
 
 
 class MoveUiViewCommand(Command):

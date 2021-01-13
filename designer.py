@@ -94,10 +94,10 @@ class DesignerFrame(wx.Frame):
 
         toolbar.Realize()
 
-        self.Bind(wx.EVT_TOOL, self.OnMenuDraw, id=wx.ID_EDIT)
-        self.Bind(wx.EVT_TOOL, self.OnMenuEdit, id=wx.ID_INDEX)
-        self.Bind(wx.EVT_TOOL, self.OnMenuRun, id=wx.ID_APPLY)
-        self.Bind(wx.EVT_TOOL, self.OnMenuAddImage, id=wx.ID_FILE1)
+        self.Bind(wx.EVT_TOOL, self.OnMenuDraw, id=ID_DRAW)
+        self.Bind(wx.EVT_TOOL, self.OnMenuEdit, id=ID_EDIT)
+        self.Bind(wx.EVT_TOOL, self.OnMenuRun, id=ID_RUN)
+        self.Bind(wx.EVT_TOOL, self.OnMenuAddImage, id=ID_ADD_IMAGE)
 
         self.splitter = wx.SplitterWindow(self, id=wx.ID_ANY, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
 
@@ -436,6 +436,7 @@ class DesignerFrame(wx.Frame):
 
     def OnUndo(self, event):
         f = self.GetDesiredFocus()
+        if f == self.splitter: f = self.stackView
         if f and hasattr(f, "Undo"):
             if not hasattr(f, "CanUndo") or f.CanUndo():
                 f.Undo()
@@ -444,6 +445,7 @@ class DesignerFrame(wx.Frame):
 
     def OnRedo(self, event):
         f = self.GetDesiredFocus()
+        if f == self.splitter: f = self.stackView
         if f == self.cPanel.codeEditor: f = self.stackView
         if f and hasattr(f, "Redo"):
             if not hasattr(f, "CanRedo") or f.CanRedo():

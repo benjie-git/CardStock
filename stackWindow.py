@@ -51,6 +51,7 @@ class StackWindow(wx.Window):
         self.showCardPending = False
         self.isDrawing = False
         self.thickness = 4
+        self.curLine = []
         self.colour = None
         self.pen = None
         self.SetColour("Black")
@@ -147,15 +148,16 @@ class StackWindow(wx.Window):
                 if oldCardModel.runner:
                     oldCardModel.runner.RunHandler(oldCardModel, "OnHideCard", None)
             self.cardIndex = index
-            cardModel = self.stackModel.GetCardModel(index)
             self.ClearAllViews()
-            self.CreateViews(cardModel)
-            self.SelectUiView(self.uiCard)
-            cardModel.AddPropertyListener(self.OnPropertyChanged)
-            self.InitBuffer()
-            if self.designer:
-                self.designer.UpdateCardList()
-            self.showCardPending = True
+            if index is not None:
+                cardModel = self.stackModel.GetCardModel(index)
+                self.CreateViews(cardModel)
+                self.SelectUiView(self.uiCard)
+                cardModel.AddPropertyListener(self.OnPropertyChanged)
+                self.InitBuffer()
+                if self.designer:
+                    self.designer.UpdateCardList()
+                self.showCardPending = True
 
     def SetDesigner(self, designer):
         self.designer = designer
@@ -355,25 +357,22 @@ class StackWindow(wx.Window):
         newCard = CardModel()
         newCard.SetProperty("name", newCard.DeduplicateName("card_1",
                                                             [m.GetProperty("name") for m in self.stackModel.cardModels]))
-        self.stackModel.cardModels.insert(self.cardIndex+1, newCard)
-        self.LoadCardAtIndex(self.cardIndex+1)
+        command = AddUiViewCommand(True, "Add Card", self, self.cardIndex+1, "card", newCard)
+        self.command_processor.Submit(command)
 
     def DuplicateCard(self):
         newCard = CardModel()
         newCard.SetData(self.stackModel.cardModels[self.cardIndex].GetData())
         newCard.SetProperty("name", newCard.DeduplicateName(newCard.GetProperty("name"),
                                                             [m.GetProperty("name") for m in self.stackModel.cardModels]))
-        self.stackModel.cardModels.insert(self.cardIndex+1, newCard)
-        self.LoadCardAtIndex(self.cardIndex+1)
+        command = AddUiViewCommand(True, "Duplicate Card", self, self.cardIndex+1, "card", newCard)
+        self.command_processor.Submit(command)
 
     def RemoveCard(self):
         index = self.cardIndex
         if len(self.stackModel.cardModels) > 1:
-            self.cardIndex = None
-            self.stackModel.cardModels.pop(index)
-            if index >= len(self.stackModel.cardModels):
-                index -= 1
-            self.LoadCardAtIndex(index)
+            command = RemoveUiViewCommand(True, "Add Card", self, index, self.stackModel.cardModels[index])
+            self.command_processor.Submit(command)
 
     def OnMouseDown(self, event):
         """called when the left mouse button is pressed"""
@@ -411,7 +410,7 @@ class StackWindow(wx.Window):
     def OnMouseUp(self, event):
         """called when the left mouse button is released"""
         if self.isEditing:
-            if self.HasCapture() and self.isInDrawingMode:
+            if self.HasCapture() and self.isDrawing:
                 command = AddLineCommand(True, 'Add Line', self, self.cardIndex,
                                          ("pen", self.colour, self.thickness, self.curLine) )
                 self.command_processor.Submit(command)
@@ -534,18 +533,30 @@ class AddUiViewCommand(Command):
         self.stackView = args[2]
         self.cardIndex = args[3]
         self.viewType = args[4]
-        self.model = args[5] if len(args)>5 else None
+        self.viewModel = args[5] if len(args)>5 else None
 
     def Do(self):
-        self.stackView.LoadCardAtIndex(self.cardIndex)
-        uiView = self.stackView.AddUiViewInternal(self.viewType, self.model)
-        if not self.model:
-            self.model = uiView.model
+        if self.viewType == "card":
+            self.stackView.LoadCardAtIndex(None)
+            self.stackView.stackModel.cardModels.insert(self.cardIndex, self.viewModel)
+            self.stackView.LoadCardAtIndex(self.cardIndex)
+        else:
+            self.stackView.LoadCardAtIndex(self.cardIndex)
+            uiView = self.stackView.AddUiViewInternal(self.viewType, self.viewModel)
+            if not self.viewModel:
+                self.viewModel = uiView.model
         return True
 
     def Undo(self):
-        self.stackView.LoadCardAtIndex(self.cardIndex)
-        self.stackView.RemoveUiViewByModel(self.model)
+        if self.viewType == "card":
+            self.stackView.LoadCardAtIndex(None)
+            self.stackView.stackModel.cardModels.remove(self.viewModel)
+            index = self.cardIndex-1
+            if index < 0: index = 0
+            self.stackView.LoadCardAtIndex(index)
+        else:
+            self.stackView.LoadCardAtIndex(self.cardIndex)
+            self.stackView.RemoveUiViewByModel(self.viewModel)
         return True
 
 
@@ -557,11 +568,23 @@ class RemoveUiViewCommand(Command):
         self.viewModel = args[4]
 
     def Do(self):
-        self.stackView.LoadCardAtIndex(self.cardIndex)
-        self.stackView.RemoveUiViewByModel(self.viewModel)
+        if self.viewModel.type == "card":
+            self.stackView.LoadCardAtIndex(None)
+            self.stackView.stackModel.cardModels.remove(self.viewModel)
+            index = self.cardIndex
+            if index >= len(self.stackView.stackModel.cardModels)-1: index = len(self.stackView.stackModel.cardModels)-1
+            self.stackView.LoadCardAtIndex(index)
+        else:
+            self.stackView.LoadCardAtIndex(self.cardIndex)
+            self.stackView.RemoveUiViewByModel(self.viewModel)
         return True
 
     def Undo(self):
-        self.stackView.LoadCardAtIndex(self.cardIndex)
-        self.stackView.AddUiViewInternal(self.viewModel.type, self.viewModel)
+        if self.viewModel.type == "card":
+            self.stackView.LoadCardAtIndex(None)
+            self.stackView.stackModel.cardModels.insert(self.cardIndex, self.viewModel)
+            self.stackView.LoadCardAtIndex(self.cardIndex)
+        else:
+            self.stackView.LoadCardAtIndex(self.cardIndex)
+            self.stackView.AddUiViewInternal(self.viewModel.type, self.viewModel)
         return True
