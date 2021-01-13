@@ -488,6 +488,8 @@ class StackWindow(wx.Window):
 
     def Undo(self):
         self.command_processor.Undo()
+        if not self.command_processor.CanUndo():
+            self.stackModel.SetDirty(False)
         self.InitBuffer()
         self.Refresh()
 
