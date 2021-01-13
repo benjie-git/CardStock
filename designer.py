@@ -371,14 +371,20 @@ class DesignerFrame(wx.Frame):
             self.stackView.ReorderCurrentCard("back")
 
     def OnMenuNextCard(self, event):
-        index = self.stackView.cardIndex+1
-        if index < len(self.stackView.stackModel.cardModels):
-            self.stackView.LoadCardAtIndex(index)
+        if self.FindFocus() == self.cPanel.codeEditor:
+            event.Skip()
+        else:
+            index = self.stackView.cardIndex+1
+            if index < len(self.stackView.stackModel.cardModels):
+                self.stackView.LoadCardAtIndex(index)
 
     def OnMenuPrevCard(self, event):
-        index = self.stackView.cardIndex-1
-        if index >= 0:
-            self.stackView.LoadCardAtIndex(index)
+        if self.FindFocus() == self.cPanel.codeEditor:
+            event.Skip()
+        else:
+            index = self.stackView.cardIndex-1
+            if index >= 0:
+                self.stackView.LoadCardAtIndex(index)
 
     def OnMenuAddCard(self, event):
         self.stackView.AddCard()

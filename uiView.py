@@ -56,6 +56,9 @@ class UiView(object):
             self.view.SetSize(mSize)
             self.view.SetPosition(self.model.GetProperty("position"))
 
+        self.view.Show(not self.model.GetProperty("hidden"))
+
+
     def SetModel(self, model):
         self.model = model
         self.model.AddPropertyListener(self.OnPropertyChanged)
@@ -65,6 +68,8 @@ class UiView(object):
             self.view.SetSize(self.model.GetProperty(key))
         elif key == "position":
             self.view.SetPosition(self.model.GetProperty(key))
+        elif key == "hidden":
+            self.view.Show(not self.model.GetProperty(key))
 
     def OnResize(self, event):
         setW, setH = self.view.GetSize()
@@ -271,12 +276,14 @@ class ViewModel(object):
                          }
         self.properties = {"name": "",
                            "size": (0,0),
-                           "position": (0,0)
+                           "position": (0,0),
+                           "hidden": False,
                            }
         self.propertyKeys = ["name", "position", "size"]
         self.propertyTypes = {"name": "string",
                               "position": "point",
-                              "size": "point"}
+                              "size": "point",
+                              "hidden": "bool"}
         self.propertyChoices = {}
 
         self.propertyListeners = []
@@ -393,6 +400,12 @@ class ViewModel(object):
     def SendMessage(self, message):
         if self.runner:
             self.runner.RunHandler(self, "OnMessage", None, message)
+
+    def Show(self, show=True):
+        self.SetProperty("hidden", not show)
+
+    def Hide(self, hide=True):
+        self.SetProperty("hidden", hide)
 
     def GetSize(self): return list(self.GetProperty("size"))
     def SetSize(self, size): self.SetProperty("size", size)
