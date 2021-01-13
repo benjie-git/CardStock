@@ -30,6 +30,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ID_RUN = wx.NewIdRef()
 ID_EDIT = wx.NewIdRef()
 ID_DRAW = wx.NewIdRef()
+ID_NEXT_CARD = wx.NewIdRef()
+ID_PREV_CARD = wx.NewIdRef()
 ID_ADD_CARD = wx.NewIdRef()
 ID_DUPLICATE_CARD = wx.NewIdRef()
 ID_REMOVE_CARD = wx.NewIdRef()
@@ -196,6 +198,9 @@ class DesignerFrame(wx.Frame):
         self.editMenu = editMenu
 
         cardMenu = wx.Menu()
+        cardMenu.Append(ID_NEXT_CARD, "&Next Card\tCtrl-Right", "Next Card")
+        cardMenu.Append(ID_PREV_CARD, "&Previous Card\tCtrl-Left", "Previous Card")
+        cardMenu.AppendSeparator()
         cardMenu.Append(ID_ADD_CARD, "&Add Card", "Add Card")
         cardMenu.Append(ID_DUPLICATE_CARD, "&Duplicate Card", "Duplicate Card")
         cardMenu.Append(ID_REMOVE_CARD, "&Remove Card", "Remove Card")
@@ -244,6 +249,14 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
 
+        self.Bind(wx.EVT_MENU,  self.OnMenuNextCard, id=ID_NEXT_CARD)
+        self.Bind(wx.EVT_MENU,  self.OnMenuPrevCard, id=ID_PREV_CARD)
+        self.Bind(wx.EVT_MENU,  self.OnMenuAddCard, id=ID_ADD_CARD)
+        self.Bind(wx.EVT_MENU,  self.OnMenuDuplicateCard, id=ID_DUPLICATE_CARD)
+        self.Bind(wx.EVT_MENU,  self.OnMenuRemoveCard, id=ID_REMOVE_CARD)
+        self.Bind(wx.EVT_MENU,  self.OnMenuMoveCard, id=ID_MOVE_CARD_FWD)
+        self.Bind(wx.EVT_MENU,  self.OnMenuMoveCard, id=ID_MOVE_CARD_BACK)
+
         self.Bind(wx.EVT_MENU,  self.OnMenuAddButton, id=ID_ADD_BUTTON)
         self.Bind(wx.EVT_MENU,  self.OnMenuAddTextField, id=ID_ADD_FIELD)
         self.Bind(wx.EVT_MENU,  self.OnMenuAddTextLabel, id=ID_ADD_LABEL)
@@ -252,12 +265,6 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_FWD)
         self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_BACK)
         self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_END)
-
-        self.Bind(wx.EVT_MENU,  self.OnMenuAddCard, id=ID_ADD_CARD)
-        self.Bind(wx.EVT_MENU,  self.OnMenuDuplicateCard, id=ID_DUPLICATE_CARD)
-        self.Bind(wx.EVT_MENU,  self.OnMenuRemoveCard, id=ID_REMOVE_CARD)
-        self.Bind(wx.EVT_MENU,  self.OnMenuMoveCard, id=ID_MOVE_CARD_FWD)
-        self.Bind(wx.EVT_MENU,  self.OnMenuMoveCard, id=ID_MOVE_CARD_BACK)
 
 
     wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
@@ -362,6 +369,16 @@ class DesignerFrame(wx.Frame):
             self.stackView.ReorderCurrentCard("fwd")
         elif event.GetId() == ID_MOVE_CARD_BACK:
             self.stackView.ReorderCurrentCard("back")
+
+    def OnMenuNextCard(self, event):
+        index = self.stackView.cardIndex+1
+        if index < len(self.stackView.stackModel.cardModels):
+            self.stackView.LoadCardAtIndex(index)
+
+    def OnMenuPrevCard(self, event):
+        index = self.stackView.cardIndex-1
+        if index >= 0:
+            self.stackView.LoadCardAtIndex(index)
 
     def OnMenuAddCard(self, event):
         self.stackView.AddCard()

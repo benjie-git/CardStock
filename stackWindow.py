@@ -130,7 +130,7 @@ class StackWindow(wx.Window):
         self.uiCard.SetModel(cardModel)
         self.uiViews = []
         for m in cardModel.childModels:
-            self.AddUiViewFromModel(m)
+            self.AddUiViewFromModel(m, canUndo=False)  # Don't allow undoing card loads
 
     def SetStackModel(self, model):
         self.ClearAllViews()
@@ -195,7 +195,7 @@ class StackWindow(wx.Window):
         if self.selectedView != self.uiCard:
             self.CopyView()
             v = self.selectedView
-            command = RemoveUiViewCommand(True, "Cut", v.model, self)
+            command = RemoveUiViewCommand(True, "Cut", self, self.cardIndex, v.model)
             self.command_processor.Submit(command)
 
     def PasteView(self):
@@ -220,13 +220,13 @@ class StackWindow(wx.Window):
 
     def AddUiViewOfType(self, viewType):
         if viewType == "button":
-            command = AddUiViewCommand(True, 'Add Button', self, "button")
+            command = AddUiViewCommand(True, 'Add Button', self, self.cardIndex, "button")
         elif viewType == "textfield":
-            command = AddUiViewCommand(True, 'Add TextField', self, "textfield")
+            command = AddUiViewCommand(True, 'Add TextField', self, self.cardIndex, "textfield")
         elif viewType == "textlabel":
-            command = AddUiViewCommand(True, 'Add TextLabel', self, "textlabel")
+            command = AddUiViewCommand(True, 'Add TextLabel', self, self.cardIndex, "textlabel")
         elif viewType == "image":
-            command = AddUiViewCommand(True, 'Add Image', self, "image")
+            command = AddUiViewCommand(True, 'Add Image', self, self.cardIndex, "image")
 
         self.command_processor.Submit(command)
         uiView = self.uiViews[-1]
@@ -255,22 +255,27 @@ class StackWindow(wx.Window):
             uiView.model.AddPropertyListener(self.OnPropertyChanged)
         return uiView
 
-    def AddUiViewFromModel(self, model):
+    def AddUiViewFromModel(self, model, canUndo=True):
         uiView = None
 
         if not model in self.uiCard.model.childModels:
             model.SetProperty("name", self.uiCard.model.DeduplicateNameInCard(model.GetProperty("name")))
 
         if model.GetType() == "button":
-            command = AddUiViewCommand(True, 'Add Button', self, "button", model)
+            command = AddUiViewCommand(True, 'Add Button', self, self.cardIndex, "button", model)
         elif model.GetType() == "textfield":
-            command = AddUiViewCommand(True, 'Add TextField', self, "textfield", model)
+            command = AddUiViewCommand(True, 'Add TextField', self, self.cardIndex, "textfield", model)
         elif model.GetType() == "textlabel":
-            command = AddUiViewCommand(True, 'Add TextLabel', self, "textlabel", model)
+            command = AddUiViewCommand(True, 'Add TextLabel', self, self.cardIndex, "textlabel", model)
         elif model.GetType() == "image":
-            command = AddUiViewCommand(True, 'Add Image', self, "image", model)
+            command = AddUiViewCommand(True, 'Add Image', self, self.cardIndex, "image", model)
 
-        self.command_processor.Submit(command)
+        if canUndo:
+            self.command_processor.Submit(command)
+        else:
+            # Don't mess with the Undo queue when we're just building a pgae
+            command.Do()
+
         uiView = self.uiViews[-1]
         return uiView
 
@@ -307,7 +312,7 @@ class StackWindow(wx.Window):
             if ui.model == viewModel:
                 if self.selectedView == ui:
                     self.SelectUiView(self.uiCard)
-                ui.model.RemoveAllPropertyListeners()
+                ui.model.RemovePropertyListener(self.OnPropertyChanged)
                 self.uiViews.remove(ui)
                 self.uiCard.model.RemoveChild(ui.model)
                 ui.DestroyView()
@@ -407,7 +412,7 @@ class StackWindow(wx.Window):
         """called when the left mouse button is released"""
         if self.isEditing:
             if self.HasCapture() and self.isInDrawingMode:
-                command = AddLineCommand(True, 'Add Line', self,
+                command = AddLineCommand(True, 'Add Line', self, self.cardIndex,
                                          ("pen", self.colour, self.thickness, self.curLine) )
                 self.command_processor.Submit(command)
                 self.curLine = []
@@ -508,13 +513,16 @@ class AddLineCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.stackView = args[2]
-        self.line = args[3]
+        self.cardIndex = args[3]
+        self.line = args[4]
 
     def Do(self):
+        self.stackView.LoadCardAtIndex(self.cardIndex)
         self.stackView.uiCard.model.shapes.append(self.line)
         return True
 
     def Undo(self):
+        self.stackView.LoadCardAtIndex(self.cardIndex)
         if len(self.stackView.uiCard.model.shapes):
             self.stackView.uiCard.model.shapes.pop()
         return True
@@ -524,16 +532,19 @@ class AddUiViewCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.stackView = args[2]
-        self.viewType = args[3]
-        self.model = args[4] if len(args)>4 else None
+        self.cardIndex = args[3]
+        self.viewType = args[4]
+        self.model = args[5] if len(args)>5 else None
 
     def Do(self):
+        self.stackView.LoadCardAtIndex(self.cardIndex)
         uiView = self.stackView.AddUiViewInternal(self.viewType, self.model)
         if not self.model:
             self.model = uiView.model
         return True
 
     def Undo(self):
+        self.stackView.LoadCardAtIndex(self.cardIndex)
         self.stackView.RemoveUiViewByModel(self.model)
         return True
 
@@ -541,13 +552,16 @@ class AddUiViewCommand(Command):
 class RemoveUiViewCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
-        self.viewModel = args[2]
-        self.stackView = args[3]
+        self.stackView = args[2]
+        self.cardIndex = args[3]
+        self.viewModel = args[4]
 
     def Do(self):
+        self.stackView.LoadCardAtIndex(self.cardIndex)
         self.stackView.RemoveUiViewByModel(self.viewModel)
         return True
 
     def Undo(self):
+        self.stackView.LoadCardAtIndex(self.cardIndex)
         self.stackView.AddUiViewInternal(self.viewModel.type, self.viewModel)
         return True

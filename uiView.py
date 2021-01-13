@@ -152,14 +152,14 @@ class UiView(object):
                 endx, endy = self.view.GetPosition()
                 offset = (endx-self.moveOrigin[0], endy-self.moveOrigin[1])
                 if offset != (0, 0):
-                    command = MoveUiViewCommand(True, 'Move', self.stackView, self, offset)
+                    command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, self.model, offset)
                     self.view.SetPosition(self.moveOrigin)
                     self.stackView.command_processor.Submit(command)
             else:
                 endw, endh = self.view.GetSize()
                 offset = (endw-self.origSize[0], endh-self.origSize[1])
                 if offset != (0, 0):
-                    command = ResizeUiViewCommand(True, 'Resize', self.stackView, self, offset)
+                    command = ResizeUiViewCommand(True, 'Resize', self.stackView, self.stackView.cardIndex, self.model, offset)
                     self.view.SetSize(self.origSize)
                     self.stackView.command_processor.Submit(command)
 
@@ -175,6 +175,8 @@ class UiView(object):
             if self.model.type == "card":
                 uiView = self.stackView.GetSelectedUiView()
 
+            if not uiView: return
+
             code = event.GetKeyCode()
             if uiView.model.type != "card":
                 pos = wx.Point(uiView.model.GetProperty("position"))
@@ -183,25 +185,25 @@ class UiView(object):
                 if code == wx.WXK_LEFT:
                     if pos.x-dist < 0: dist = pos.x
                     if dist > 0:
-                        command = MoveUiViewCommand(True, 'Move', self.stackView, uiView, (-dist, 0))
+                        command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (-dist, 0))
                         self.stackView.command_processor.Submit(command)
                         uiView.model.SetProperty("position", (pos.x-dist, pos.y))
                 elif code == wx.WXK_RIGHT:
                     if pos.x+dist > cardRect.Right-20: dist = cardRect.Right-20 - pos.x
                     if dist > 0:
-                        command = MoveUiViewCommand(True, 'Move', self.stackView, uiView, (dist, 0))
+                        command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (dist, 0))
                         self.stackView.command_processor.Submit(command)
                         uiView.model.SetProperty("position", (pos.x+dist, pos.y))
                 elif code == wx.WXK_UP:
                     if pos.y-dist < 0: dist = pos.y
                     if dist > 0:
-                        command = MoveUiViewCommand(True, 'Move', self.stackView, uiView, (0, -dist))
+                        command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (0, -dist))
                         self.stackView.command_processor.Submit(command)
                         uiView.model.SetProperty("position", (pos.x, pos.y-dist))
                 elif code == wx.WXK_DOWN:
                     if pos.y+dist > cardRect.Bottom-20: dist = cardRect.Bottom-20 - pos.y
                     if dist > 0:
-                        command = MoveUiViewCommand(True, 'Move', self.stackView, uiView, (0, dist))
+                        command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (0, dist))
                         self.stackView.command_processor.Submit(command)
                         uiView.model.SetProperty("position", (pos.x, pos.y+dist))
 
@@ -441,20 +443,20 @@ class MoveUiViewCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.stackView = args[2]
-        self.uiView = args[3]
-        self.delta = args[4]
-        self.viewModel = self.uiView.model
+        self.cardIndex = args[3]
+        self.viewModel = args[4]
+        self.delta = args[5]
 
     def Do(self):
-        uiView = self.stackView.GetUiViewByModel(self.viewModel)
-        pos = uiView.view.GetPosition()
-        uiView.view.SetPosition((pos[0]+self.delta[0], pos[1]+self.delta[1]))
+        self.stackView.LoadCardAtIndex(self.cardIndex)
+        pos = self.viewModel.GetProperty("position")
+        self.viewModel.SetProperty("position", (pos[0]+self.delta[0], pos[1]+self.delta[1]))
         return True
 
     def Undo(self):
-        uiView = self.stackView.GetUiViewByModel(self.viewModel)
-        pos = uiView.view.GetPosition()
-        uiView.view.SetPosition((pos[0]-self.delta[0], pos[1]-self.delta[1]))
+        self.stackView.LoadCardAtIndex(self.cardIndex)
+        pos = self.viewModel.GetProperty("position")
+        self.viewModel.SetProperty("position", (pos[0]-self.delta[0], pos[1]-self.delta[1]))
         return True
 
 
@@ -464,18 +466,18 @@ class ResizeUiViewCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.stackView = args[2]
-        self.uiView = args[3]
-        self.delta = args[4]
-        self.viewModel = self.uiView.model
+        self.cardIndex = args[3]
+        self.viewModel = args[4]
+        self.delta = args[5]
 
     def Do(self):
-        uiView = self.stackView.GetUiViewByModel(self.viewModel)
-        viewSize = uiView.view.GetSize()
-        uiView.view.SetSize((viewSize[0]+self.delta[0], viewSize[1]+self.delta[1]))
+        self.stackView.LoadCardAtIndex(self.cardIndex)
+        viewSize = self.viewModel.GetProperty("size")
+        self.viewModel.SetProperty("size", (viewSize[0]+self.delta[0], viewSize[1]+self.delta[1]))
         return True
 
     def Undo(self):
-        uiView = self.stackView.GetUiViewByModel(self.viewModel)
-        viewSize = uiView.view.GetSize()
-        uiView.view.SetSize((viewSize[0]-self.delta[0], viewSize[1]-self.delta[1]))
+        self.stackView.LoadCardAtIndex(self.cardIndex)
+        viewSize = self.viewModel.GetProperty("size")
+        self.viewModel.SetProperty("size", (viewSize[0]-self.delta[0], viewSize[1]-self.delta[1]))
         return True

@@ -223,7 +223,7 @@ class ControlPanel(wx.Panel):
             if key == "name":
                 val = self.stackView.uiCard.model.DeduplicateNameInCard(val, [uiView.model.GetProperty("name")])
 
-            command = SetPropertyCommand(True, "Set Property", self, uiView.model, key, val)
+            command = SetPropertyCommand(True, "Set Property", self, self.stackView.cardIndex, uiView.model, key, val)
             self.stackView.command_processor.Submit(command)
         else:
             self.UpdatedProperty(uiView, "")
@@ -249,14 +249,14 @@ class ControlPanel(wx.Panel):
     def SaveCurrentHandler(self):
         if self.codeEditor.HasFocus():
             uiView = self.stackView.GetSelectedUiView()
+            if uiView:
+                oldVal = uiView.model.GetHandler(self.currentHandler)
+                newVal = self.codeEditor.GetText()
 
-            oldVal = uiView.model.GetHandler(self.currentHandler)
-            newVal = self.codeEditor.GetText()
-
-            if newVal != oldVal:
-                command = SetHandlerCommand(True, "Set Handler", self, uiView.model,
-                                            self.currentHandler, newVal)
-                self.stackView.command_processor.Submit(command)
+                if newVal != oldVal:
+                    command = SetHandlerCommand(True, "Set Handler", self, self.stackView.cardIndex, uiView.model,
+                                                self.currentHandler, newVal)
+                    self.stackView.command_processor.Submit(command)
 
     def CodeEditorOnIdle(self, event):
         if self.currentHandler:
@@ -340,13 +340,15 @@ class SetPropertyCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.cPanel = args[2]
-        self.model = args[3]
-        self.key = args[4]
-        self.newVal = args[5]
+        self.cardIndex = args[3]
+        self.model = args[4]
+        self.key = args[5]
+        self.newVal = args[6]
         self.oldVal = self.model.GetProperty(self.key)
         self.hasRun = False
 
     def Do(self):
+        self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
         if self.hasRun:
             uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
             self.cPanel.stackView.SelectUiView(uiView)
@@ -355,6 +357,7 @@ class SetPropertyCommand(Command):
         return True
 
     def Undo(self):
+        self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
         if self.hasRun:
             uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
             self.cPanel.stackView.SelectUiView(uiView)
@@ -366,13 +369,15 @@ class SetHandlerCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.cPanel = args[2]
-        self.model = args[3]
-        self.key = args[4]
-        self.newVal = args[5]
+        self.cardIndex = args[3]
+        self.model = args[4]
+        self.key = args[5]
+        self.newVal = args[6]
         self.oldVal = self.model.GetHandler(self.key)
         self.hasRun = False
 
     def Do(self):
+        self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
         if self.hasRun:
             uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
             self.cPanel.stackView.SelectUiView(uiView)
@@ -386,12 +391,11 @@ class SetHandlerCommand(Command):
         return True
 
     def Undo(self):
-        if self.hasRun:
-            uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
-            self.cPanel.stackView.SelectUiView(uiView)
+        self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
+        uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
+        self.cPanel.stackView.SelectUiView(uiView)
 
         self.model.SetHandler(self.key, self.oldVal)
 
-        if self.hasRun:
-            self.cPanel.UpdateHandlerForUiView(uiView, self.key)
+        self.cPanel.UpdateHandlerForUiView(uiView, self.key)
         return True
