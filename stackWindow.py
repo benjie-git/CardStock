@@ -145,8 +145,8 @@ class StackWindow(wx.Window):
         self.command_processor.ClearCommands()
         self.stackModel.SetDirty(False)
 
-    def LoadCardAtIndex(self, index):
-        if index != self.cardIndex:
+    def LoadCardAtIndex(self, index, reload=False):
+        if index != self.cardIndex or reload == True:
             if not self.isEditing and self.cardIndex is not None:
                 oldCardModel = self.stackModel.cardModels[self.cardIndex]
                 if oldCardModel.runner:
@@ -333,17 +333,17 @@ class StackWindow(wx.Window):
         if self.selectedView and self.selectedView != self.uiCard:
             currentIndex = self.uiCard.model.childModels.index(self.selectedView.model)
             newIndex = None
-            if direction == "front": newIndex = 0
+            if direction == "end": newIndex = 0
             elif direction == "fwd": newIndex = currentIndex+1
             elif direction == "back": newIndex = currentIndex-1
-            elif direction == "end": newIndex = len(self.uiCard.model.childModels)-1
+            elif direction == "front": newIndex = len(self.uiCard.model.childModels)-1
 
             if newIndex < 0: newIndex = 0
             if newIndex >= len(self.uiCard.model.childModels): newIndex = len(self.uiCard.model.childModels)-1
 
-            if newIndex and newIndex != currentIndex:
-                self.uiCard.model.childModels.insert(newIndex, self.uiCard.model.childModels.pop(currentIndex))
-                self.LoadCardAtIndex(self.cardIndex)
+            if newIndex != currentIndex:
+                command = ReorderUiViewCommand(True, "Reorder View", self, self.cardIndex, self.selectedView.model, newIndex)
+                self.command_processor.Submit(command)
 
     def ReorderCurrentCard(self, direction):
         currentIndex = self.cardIndex
@@ -354,10 +354,9 @@ class StackWindow(wx.Window):
         if newIndex < 0: newIndex = 0
         if newIndex >= len(self.stackModel.cardModels): newIndex = len(self.stackModel.cardModels) - 1
 
-        if newIndex and newIndex != currentIndex:
-            self.stackModel.cardModels.insert(newIndex, self.stackModel.cardModels[currentIndex])
-            self.cardIndex = newIndex
-            self.UpdateCardChooser()
+        if newIndex != currentIndex:
+            command = ReorderUiViewCommand(True, "Reorder Card", self, self.cardIndex, self.stackModel.cardModels[currentIndex], newIndex)
+            self.command_processor.Submit(command)
 
     def UpdateCardChooser(self):
         pass
@@ -598,4 +597,41 @@ class RemoveUiViewCommand(Command):
         else:
             self.stackView.LoadCardAtIndex(self.cardIndex)
             self.stackView.AddUiViewInternal(self.viewModel.type, self.viewModel)
+        return True
+
+
+class ReorderUiViewCommand(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.stackView = args[2]
+        self.cardIndex = args[3]
+        self.viewModel = args[4]
+        self.newIndex = args[5]
+        if self.viewModel.type != "card":
+            self.oldIndex = self.stackView.stackModel.cardModels[self.cardIndex].childModels.index(self.viewModel)
+
+    def Do(self):
+        if self.viewModel.type == "card":
+            cardList = self.stackView.stackModel.cardModels
+            cardList.insert(self.newIndex, cardList.pop(self.cardIndex))
+            self.stackView.LoadCardAtIndex(self.newIndex)
+            self.stackView.UpdateCardChooser()
+        else:
+            viewList = self.stackView.stackModel.cardModels[self.cardIndex].childModels
+            viewList.insert(self.newIndex, viewList.pop(self.oldIndex))
+            self.stackView.LoadCardAtIndex(self.cardIndex, reload=True)
+            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
+        return True
+
+    def Undo(self):
+        if self.viewModel.type == "card":
+            cardList = self.stackView.stackModel.cardModels
+            cardList.insert(self.cardIndex, cardList.pop(self.newIndex))
+            self.stackView.LoadCardAtIndex(self.cardIndex)
+            self.stackView.UpdateCardChooser()
+        else:
+            viewList = self.stackView.stackModel.cardModels[self.cardIndex].childModels
+            viewList.insert(self.oldIndex, viewList.pop(self.newIndex))
+            self.stackView.LoadCardAtIndex(self.cardIndex, reload=True)
+            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
         return True

@@ -39,7 +39,7 @@ class Runner():
         self.globals["Wait"] = self.Wait
         self.globals["Alert"] = self.Alert
         self.globals["Ask"] = self.Ask
-        self.globals["GotoCardName"] = self.GotoCardName
+        self.globals["GotoCard"] = self.GotoCard
         self.globals["GotoCardNumber"] = self.GotoCardNumber
         self.globals["PlaySound"] = self.PlaySound
         self.globals["StopSound"] = self.StopSound
@@ -110,7 +110,7 @@ class Runner():
         for ui in self.stackView.uiViews:
             self.RunHandler(ui.model, "OnMessage", None, message)
 
-    def GotoCardName(self, cardName):
+    def GotoCard(self, cardName):
         index = None
         for m in self.stackView.stackModel.cardModels:
             if m.GetProperty("name") == cardName:
