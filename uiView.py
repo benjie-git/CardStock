@@ -362,13 +362,14 @@ class ViewModel(object):
     def GetHandlers(self):
         return self.handlers
 
-    def SetProperty(self, key, value):
+    def SetProperty(self, key, value, notify=True):
         if isinstance(value, wx.Point) or isinstance(value, wx.Position) or isinstance(value, wx.Size):
             value = list(value)
         if self.properties[key] != value:
             self.properties[key] = value
-            for callback in self.propertyListeners:
-                callback(self, key)
+            if notify:
+                for callback in self.propertyListeners:
+                    callback(self, key)
             self.isDirty = True
 
     def InterpretPropertyFromString(self, key, valStr):

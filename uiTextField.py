@@ -31,16 +31,17 @@ class UiTextField(UiView):
             field.SetMarginWidth(1, 0)
             field.ChangeValue(text)
             field.Bind(stc.EVT_STC_CHANGE, self.OnTextChanged)
+            field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
         else:
             field = wx.TextCtrl(parent=stackView, id=wx.ID_ANY, value="TextField", style=wx.TE_PROCESS_ENTER | alignment)
+            field.Bind(wx.EVT_TEXT, self.OnTextChanged)
+            field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
             field.ChangeValue(text)
         return field
 
     def SetView(self, view):
         super().SetView(view)
         view.ChangeValue(self.model.GetProperty("text"))
-        view.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
-        view.Bind(wx.EVT_TEXT, self.OnTextChanged)
 
     def OnResize(self, event):
         super().OnResize(event)
@@ -78,7 +79,7 @@ class UiTextField(UiView):
 
     def OnTextChanged(self, event):
         if not self.stackView.isEditing:
-            self.model.SetProperty("text", self.view.GetValue())
+            self.model.SetProperty("text", self.view.GetValue(), notify=False)
             if self.model.runner and "OnTextChanged" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnTextChanged", event)
             event.Skip()
