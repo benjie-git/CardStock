@@ -155,6 +155,7 @@ class ControlPanel(wx.Panel):
 
     def OnHandlerChoice(self, event):
         displayName = self.handlerPicker.GetItems()[self.handlerPicker.GetSelection()]
+        displayName = displayName.strip().replace("def ", "")
         keys = list(UiView.handlerDisplayNames.keys())
         vals = list(UiView.handlerDisplayNames.values())
         self.SaveCurrentHandler()
@@ -233,13 +234,23 @@ class ControlPanel(wx.Panel):
             uiView = self.stackView.uiCard
         if handlerName == None:
             handlerName = uiView.lastEditedHandler
+        if not handlerName:
+            for k in uiView.model.GetHandlers().keys():
+                if uiView.model.GetHandler(k):
+                    handlerName = k
+                    break
+            else:
+                handlerName = list(uiView.model.GetHandlers().keys())[0]
         if handlerName:
             self.currentHandler = handlerName
-        if uiView.model.GetHandler(handlerName) == None:
-            self.currentHandler = list(uiView.model.GetHandlers().keys())[0]
 
-        self.handlerPicker.SetItems([UiView.handlerDisplayNames[k] for k in uiView.model.GetHandlers().keys()])
-        self.handlerPicker.SetStringSelection(UiView.handlerDisplayNames[self.currentHandler])
+        displayNames = []
+        for k in uiView.model.GetHandlers().keys():
+            decorator = "def " if uiView.model.GetHandler(k) else "       "
+            displayNames.append(decorator + UiView.handlerDisplayNames[k])
+        self.handlerPicker.SetItems(displayNames)
+
+        self.handlerPicker.SetSelection(list(uiView.model.GetHandlers().keys()).index(self.currentHandler))
         self.codeEditor.SetText(uiView.model.GetHandler(self.currentHandler))
         self.codeEditor.EmptyUndoBuffer()
         self.handlerPicker.Enable(True)

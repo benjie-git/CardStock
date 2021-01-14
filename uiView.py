@@ -58,9 +58,9 @@ class UiView(object):
 
         self.view.Show(not self.model.GetProperty("hidden"))
 
-
     def SetModel(self, model):
         self.model = model
+        self.lastEditedHandler = None
         self.model.AddPropertyListener(self.OnPropertyChanged)
 
     def OnPropertyChanged(self, model, key):
@@ -241,21 +241,21 @@ class UiView(object):
         dc.DrawRectangle((1, 1), (self.selectionBox.GetSize()[0]-1, self.selectionBox.GetSize()[1]-1))
 
     handlerDisplayNames = {
-        'OnClick':      "def OnClick():",
-        'OnTextEnter':  "def OnTextEnter():",
-        'OnTextChanged':"def OnTextChanged():",
-        'OnMouseDown':  "def OnMouseDown(mouseX, mouseY):",
-        'OnMouseMove':  "def OnMouseMove(mouseX, mouseY):",
-        'OnMouseUp':    "def OnMouseUp(mouseX, mouseY):",
-        'OnMouseEnter': "def OnMouseEnter(mouseX, mouseY):",
-        'OnMouseExit':  "def OnMouseExit(mouseX, mouseY):",
-        'OnMessage':    "def OnMessage(message):",
-        'OnStart':      "def OnStart():",
-        'OnShowCard':   "def OnShowCard():",
-        'OnHideCard':   "def OnHideCard():",
-        'OnIdle':       "def OnIdle():",
-        'OnKeyDown':    "def OnKeyDown(key):",
-        'OnKeyUp':      "def OnKeyUp(key):",
+        'OnClick':      "OnClick():",
+        'OnTextEnter':  "OnTextEnter():",
+        'OnTextChanged':"OnTextChanged():",
+        'OnMouseDown':  "OnMouseDown(mouseX, mouseY):",
+        'OnMouseMove':  "OnMouseMove(mouseX, mouseY):",
+        'OnMouseUp':    "OnMouseUp(mouseX, mouseY):",
+        'OnMouseEnter': "OnMouseEnter(mouseX, mouseY):",
+        'OnMouseExit':  "OnMouseExit(mouseX, mouseY):",
+        'OnMessage':    "OnMessage(message):",
+        'OnStart':      "OnStart():",
+        'OnShowCard':   "OnShowCard():",
+        'OnHideCard':   "OnHideCard():",
+        'OnIdle':       "OnIdle():",
+        'OnKeyDown':    "OnKeyDown(key):",
+        'OnKeyUp':      "OnKeyUp(key):",
     }
 
 
