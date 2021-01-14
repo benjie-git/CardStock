@@ -53,6 +53,7 @@ class UiTextLabel(UiView):
             self.view.Destroy()
             newLabel = self.CreateLabel(self.stackView, self.model)
             self.SetView(newLabel)
+            self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
             self.stackView.SelectUiView(self)
 
     def FamilyForName(self, name):

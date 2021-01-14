@@ -60,6 +60,7 @@ class UiTextField(UiView):
             self.view.Destroy()
             newField = self.CreateField(self.stackView, self.model)
             self.SetView(newField)
+            self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
             self.stackView.SelectUiView(self)
 
     def SetEditing(self, editing):
