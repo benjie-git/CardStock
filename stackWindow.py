@@ -56,6 +56,9 @@ class StackWindow(wx.Window):
         self.pen = None
         self.SetColour("Black")
         self.timer = None
+        self.cacheView = wx.Window(self, size=(0,0))  # just an offscreen holder for cached uiView.views
+        self.cacheView.Hide()
+        self.uiViewCache = {}
 
         if not stackModel:
             stackModel = StackModel()
@@ -125,7 +128,8 @@ class StackWindow(wx.Window):
             if ui.model.type != "card":
                 ui.model.RemovePropertyListener(self.OnPropertyChanged)
                 self.uiViews.remove(ui)
-                ui.DestroyView()
+                ui.view.Reparent(self.cacheView)
+                self.uiViewCache[ui.model] = ui
 
     def CreateViews(self, cardModel):
         self.uiCard.SetModel(cardModel)
@@ -237,14 +241,19 @@ class StackWindow(wx.Window):
 
     def AddUiViewInternal(self, type, model=None):
         uiView = None
-        if type == "button":
-            uiView = UiButton(self, model)
-        elif type == "textfield":
-            uiView = UiTextField(self, model)
-        elif type == "textlabel":
-            uiView = UiTextLabel(self, model)
-        elif type == "image":
-            uiView = UiImage(self, model)
+
+        if model and model in self.uiViewCache:
+            uiView = self.uiViewCache.pop(model)
+            uiView.view.Reparent(self)
+        else:
+            if type == "button":
+                uiView = UiButton(self, model)
+            elif type == "textfield":
+                uiView = UiTextField(self, model)
+            elif type == "textlabel":
+                uiView = UiTextLabel(self, model)
+            elif type == "image":
+                uiView = UiImage(self, model)
 
         if uiView:
             if not model:
