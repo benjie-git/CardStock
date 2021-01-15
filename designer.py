@@ -92,6 +92,8 @@ class DesignerFrame(wx.Frame):
         self.cardPicker.Bind(wx.EVT_CHOICE, self.OnPickCard)
         toolbar.AddControl(self.cardPicker)
 
+        toolbar.AddTool(ID_ADD_CARD, 'Add Card', wx.ArtProvider.GetBitmap(wx.ART_PLUS), wx.NullBitmap)
+
         toolbar.Realize()
 
         self.Bind(wx.EVT_TOOL, self.OnMenuDraw, id=ID_DRAW)
@@ -127,8 +129,10 @@ class DesignerFrame(wx.Frame):
     def NewFile(self):
         self.filename = None
         stackModel = StackModel()
-        pm = CardModel()
-        stackModel.AppendCardModel(pm)
+        newCard = CardModel()
+        newCard.SetProperty("name", newCard.DeduplicateName("card_1",
+                                                            [m.GetProperty("name") for m in stackModel.cardModels]))
+        stackModel.AppendCardModel(newCard)
         self.stackView.SetStackModel(stackModel)
         self.stackView.SetEditing(True)
         self.Layout()
@@ -203,10 +207,10 @@ class DesignerFrame(wx.Frame):
         self.editMenu = editMenu
 
         cardMenu = wx.Menu()
-        cardMenu.Append(ID_NEXT_CARD, "&Next Card\tCtrl-Right", "Next Card")
-        cardMenu.Append(ID_PREV_CARD, "&Previous Card\tCtrl-Left", "Previous Card")
+        cardMenu.Append(ID_NEXT_CARD, "&Next Card\tCtrl-]", "Next Card")
+        cardMenu.Append(ID_PREV_CARD, "&Previous Card\tCtrl-[", "Previous Card")
         cardMenu.AppendSeparator()
-        cardMenu.Append(ID_ADD_CARD, "&Add Card", "Add Card")
+        cardMenu.Append(ID_ADD_CARD, "&Add Card\tCtrl-+", "Add Card")
         cardMenu.Append(ID_DUPLICATE_CARD, "&Duplicate Card", "Duplicate Card")
         cardMenu.Append(ID_REMOVE_CARD, "&Remove Card", "Remove Card")
         cardMenu.AppendSeparator()
