@@ -74,16 +74,17 @@ class ControlPanel(wx.Panel):
         self.inspector.CreateGrid(1, 2)
         self.inspector.SetRowSize(0, 24)
         self.inspector.SetColSize(0, 70)
-        self.inspector.SetColSize(1, 130)
         self.inspector.SetColLabelSize(20)
         self.inspector.SetColLabelValue(0, "Inspector")
         self.inspector.SetColLabelValue(1, "Value")
         self.inspector.SetRowLabelSize(1)
         self.inspector.DisableDragRowSize()
+        self.inspector.DisableDragColSize()
 
         self.inspector.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnInspectorValueChanged)
         self.inspector.Bind(wx.EVT_KEY_DOWN, self.OnGridEnter)
         self.inspector.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnGridClick)
+        self.inspector.Bind(wx.EVT_SIZE, self.OnGridResized)
 
         self.handlerPicker = wx.Choice(parent=self, id=wx.ID_ANY)
         self.handlerPicker.Enable(False)
@@ -228,6 +229,13 @@ class ControlPanel(wx.Panel):
             self.stackView.command_processor.Submit(command)
         else:
             self.UpdatedProperty(uiView, "")
+
+    def OnGridResized(self, event):
+        width, height = self.inspector.GetSize()
+        width = width - self.inspector.GetColSize(0) - 1
+        if width < 0: width = 0
+        self.inspector.SetColSize(1, width)
+        event.Skip()
 
     def UpdateHandlerForUiView(self, uiView, handlerName):
         if not uiView:
