@@ -475,22 +475,22 @@ class DesignerFrame(wx.Frame):
     def OnMenuAddButton(self, event):
         if self.stackView.isEditing and not self.stackView.isInDrawingMode:
             self.stackView.AddUiViewOfType("button")
-            event.Skip()
+            self.stackView.SetFocus()
 
     def OnMenuAddTextField(self, event):
         if self.stackView.isEditing and not self.stackView.isInDrawingMode:
             self.stackView.AddUiViewOfType("textfield")
-            event.Skip()
+            self.stackView.SetFocus()
 
     def OnMenuAddTextLabel(self, event):
         if self.stackView.isEditing and not self.stackView.isInDrawingMode:
             self.stackView.AddUiViewOfType("textlabel")
-            event.Skip()
+            self.stackView.SetFocus()
 
     def OnMenuAddImage(self, event):
         if self.stackView.isEditing and not self.stackView.isInDrawingMode:
             self.stackView.AddUiViewOfType("image")
-            event.Skip()
+            self.stackView.SetFocus()
 
 
 # ----------------------------------------------------------------------
