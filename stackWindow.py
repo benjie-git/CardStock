@@ -202,11 +202,12 @@ class StackWindow(wx.Window):
         wx.TheClipboard.Close()
 
     def CutView(self):
+        self.CopyView()
         if self.selectedView != self.uiCard:
-            self.CopyView()
-            v = self.selectedView
-            command = RemoveUiViewCommand(True, "Cut", self, self.cardIndex, v.model)
+            command = RemoveUiViewCommand(True, "Cut", self, self.cardIndex, self.selectedView.model)
             self.command_processor.Submit(command)
+        else:
+            self.RemoveCard()
 
     def PasteView(self):
         if not wx.TheClipboard.IsOpened():  # may crash, otherwise
@@ -220,8 +221,11 @@ class StackWindow(wx.Window):
                         for dict in list:
                             model = CardModel.ModelFromData(dict)
                             if model.type == "card":
-                                for m in model.childModels:
-                                    uiView = self.AddUiViewFromModel(m)
+                                model.SetProperty("name", model.DeduplicateName(model.GetProperty("name"),
+                                                                                [m.GetProperty("name") for m in
+                                                                                 self.stackModel.cardModels]))
+                                command = AddUiViewCommand(True, "Paste Card", self, self.cardIndex + 1, "card", model)
+                                self.command_processor.Submit(command)
                             else:
                                 uiView = self.AddUiViewFromModel(model)
                         if uiView:
