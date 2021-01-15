@@ -8,6 +8,8 @@ import ast
 
 
 class UiView(object):
+    minSize = (20,20)
+
     def __init__(self, stackView, model, view):
         super().__init__()
         self.stackView = stackView
@@ -19,7 +21,6 @@ class UiView(object):
 
         self.lastEditedHandler = None
         self.delta = ((0, 0))
-        self.minSize = (20,20)
 
     def BindEvents(self, view):
         view.Bind(wx.EVT_ENTER_WINDOW, self.OnMouseEnter)
@@ -43,13 +44,10 @@ class UiView(object):
         self.selectionBox.Enable(False)
         self.selectionBox.Hide()
 
-        if self.model.type != "card":
-            self.resizeBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(viewSize[0]-10, viewSize[1]-10), size=(10,10), style=0)
-            self.resizeBox.SetBackgroundColour('Blue')
-            self.resizeBox.Enable(False)
-            self.resizeBox.Hide()
-        else:
-            self.resizeBox = None
+        self.resizeBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(viewSize[0]-10, viewSize[1]-10), size=(10,10), style=0)
+        self.resizeBox.SetBackgroundColour('Blue')
+        self.resizeBox.Enable(False)
+        self.resizeBox.Hide()
 
         mSize = self.model.GetProperty("size")
         if mSize[0] > 0 and mSize[1] > 0:
@@ -65,7 +63,10 @@ class UiView(object):
 
     def OnPropertyChanged(self, model, key):
         if key == "size":
-            self.view.SetSize(self.model.GetProperty(key))
+            s = list(self.model.GetProperty(key))
+            if s[0] < self.minSize[0]: s[0] = self.minSize[0]
+            if s[1] < self.minSize[1]: s[1] = self.minSize[1]
+            self.view.SetSize(s)
         elif key == "position":
             self.view.SetPosition(self.model.GetProperty(key))
         elif key == "hidden":
@@ -74,10 +75,10 @@ class UiView(object):
     def OnResize(self, event):
         setW, setH = self.view.GetSize()
         w, h = (setW, setH)
-        if w < 20:
-            w = 20
-        if h < 20:
-            h = 20
+        if w < self.minSize[0]:
+            w = self.minSize[0]
+        if h < self.minSize[1]:
+            h = self.minSize[1]
         if w != setW or h != setH:
             self.view.SetSize(w, h)
             self.model.SetProperty("size", [w,h])
@@ -108,8 +109,7 @@ class UiView(object):
 
     def OnMouseDown(self, event):
         if self.stackView.isEditing:
-            if self.model.type != "card" and not self.stackView.isInDrawingMode:
-                self.view.CaptureMouse()
+            if not self.stackView.isInDrawingMode:
                 x, y = self.stackView.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
                 originx, originy = self.view.GetPosition()
                 dx = x - originx
@@ -125,6 +125,10 @@ class UiView(object):
                     self.isResizing = True
                 else:
                     self.isResizing = False
+
+                if self.model.type != "card" or self.isResizing:
+                    self.view.CaptureMouse()
+
             if not self.stackView.isInDrawingMode:
                 self.stackView.SelectUiView(self)
             else:
@@ -135,7 +139,7 @@ class UiView(object):
             event.Skip()
 
     def OnMouseMove(self, event):
-        if self.model.type != "card" and self.stackView.isEditing and not self.stackView.isInDrawingMode and event.Dragging():
+        if self.stackView.isEditing and not self.stackView.isInDrawingMode and self.view.HasCapture():
             x, y = self.stackView.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
             if not self.isResizing:
                 fp = (x - self.delta[0], y - self.delta[1])
@@ -149,7 +153,7 @@ class UiView(object):
         event.Skip()
 
     def OnMouseUp(self, event):
-        if self.model.type != "card" and self.stackView.isEditing and not self.stackView.isInDrawingMode and self.view.HasCapture():
+        if self.stackView.isEditing and not self.stackView.isInDrawingMode and self.view.HasCapture():
             self.view.ReleaseMouse()
             if not self.isResizing:
                 endx, endy = self.view.GetPosition()
@@ -162,7 +166,8 @@ class UiView(object):
                 endw, endh = self.view.GetSize()
                 offset = (endw-self.origSize[0], endh-self.origSize[1])
                 if offset != (0, 0):
-                    command = ResizeUiViewCommand(True, 'Resize', self.stackView, self.stackView.cardIndex, self.model, offset)
+                    model = self.stackView.stackModel if self.model.type == "card" else self.model
+                    command = ResizeUiViewCommand(True, 'Resize', self.stackView, self.stackView.cardIndex, model, offset)
                     self.view.SetSize(self.origSize)
                     self.stackView.command_processor.Submit(command)
 
@@ -211,6 +216,7 @@ class UiView(object):
                         uiView.model.SetProperty("position", (pos.x, pos.y+dist))
 
             if code == wx.WXK_TAB:
+                if len(self.stackView.uiViews) > 0:
                     ui = self.stackView.GetSelectedUiView()
                     if ui == self.stackView.uiCard:
                         self.stackView.SelectUiView(self.stackView.uiViews[0])
@@ -299,8 +305,8 @@ class ViewModel(object):
         return self.isDirty
 
     def GetFrame(self):
-        p = wx.Point(self.properties["position"])
-        s = wx.Size(self.properties["size"])
+        p = wx.Point(self.GetProperty("position"))
+        s = wx.Size(self.GetProperty("size"))
         return wx.Rect(p, s)
 
     def GetData(self):
@@ -311,7 +317,7 @@ class ViewModel(object):
 
         return {"type": self.type,
                 "handlers": handlers,
-                "properties": self.properties}
+                "properties": self.properties.copy()}
 
     def SetData(self, data):
         for k, v in data["handlers"].items():
@@ -398,6 +404,10 @@ class ViewModel(object):
     def SendMessage(self, message):
         if self.runner:
             self.runner.RunHandler(self, "OnMessage", None, message)
+
+    def Focus(self):
+        if self.runner:
+            self.runner.SetFocus(self)
 
     def Show(self, show=True):
         self.SetProperty("hidden", not show)

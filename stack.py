@@ -1,17 +1,27 @@
 #!/usr/bin/python
 
+from uiView import ViewModel
 from uiCard import CardModel
 
 
-class StackModel(object):
+class StackModel(ViewModel):
     def __init__(self):
         super().__init__()
+        self.type = "stack"
+        handlers = []
+        self.propertyKeys = ["size"]
         self.cardModels = []
 
-    def AddCardModel(self, cardModel):
+    def AppendCardModel(self, cardModel):
+        cardModel.stackModel = self
         self.cardModels.append(cardModel)
 
+    def InsertCardModel(self, index, cardModel):
+        cardModel.stackModel = self
+        self.cardModels.insert(index, cardModel)
+
     def RemoveCardModel(self, cardModel):
+        cardModel.stackModel = None
         self.cardModels.remove(cardModel)
 
     def GetCardModel(self, i):
@@ -28,17 +38,22 @@ class StackModel(object):
             card.SetDirty(dirty)
 
     def SetRunner(self, runner):
+        self.runner = runner
         for cardModel in self.cardModels:
             cardModel.runner = runner
             for model in cardModel.childModels:
                 model.runner = runner
 
     def GetData(self):
-        return {"cards":[m.GetData() for m in self.cardModels]}
+        data = super().GetData()
+        data["cards"] = [m.GetData() for m in self.cardModels]
+        data["properties"].pop("position")
+        return data
 
     def SetData(self, stackData):
+        super().SetData(stackData)
         self.cardModels = []
         for data in stackData["cards"]:
             m = CardModel()
             m.SetData(data)
-            self.AddCardModel(m)
+            self.AppendCardModel(m)

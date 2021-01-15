@@ -43,7 +43,7 @@ class ViewerFrame(wx.Frame):
         self.filename = None
 
         stackModel = StackModel()
-        stackModel.AddCardModel(CardModel())
+        stackModel.AppendCardModel(CardModel())
         self.stackView = StackWindow(self, -1, stackModel)
         self.stackView.SetEditing(False)
 

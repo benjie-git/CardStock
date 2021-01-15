@@ -102,8 +102,11 @@ class DesignerFrame(wx.Frame):
         self.splitter = wx.SplitterWindow(self, id=wx.ID_ANY, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
 
         stackModel = StackModel()
-        stackModel.AddCardModel(CardModel())
-        self.stackView = StackWindow(self.splitter, -1, stackModel)
+        stackModel.AppendCardModel(CardModel())
+        stackContainer = wx.Window(self.splitter)
+        stackContainer.SetBackgroundColour("#E0E0E0")
+        stackContainer.Bind(wx.EVT_SET_FOCUS, self.OnStackContainerFocus)
+        self.stackView = StackWindow(stackContainer, -1, stackModel)
         self.stackView.SetEditing(True)
         self.stackView.SetDesigner(self)
 
@@ -111,7 +114,7 @@ class DesignerFrame(wx.Frame):
 
         self.cPanel = ControlPanel(self.splitter, -1, self.stackView)
 
-        self.splitter.SplitVertically(self.stackView, self.cPanel)
+        self.splitter.SplitVertically(stackContainer, self.cPanel)
         self.splitter.SetMinimumPaneSize(120)
         self.splitter.SetSashPosition(self.splitter.GetSize()[0]-200)
         self.splitter.SetSashGravity(0.8)
@@ -119,6 +122,7 @@ class DesignerFrame(wx.Frame):
         self.viewer = None
 
         self.stackView.SetFocus()
+        self.stackView.SelectUiView(self.stackView.uiCard)
         self.SetSelectedUiView(self.stackView.uiCard)
         self.Layout()
         self.stackView.stackModel.SetDirty(False)
@@ -128,13 +132,14 @@ class DesignerFrame(wx.Frame):
         self.filename = None
         stackModel = StackModel()
         pm = CardModel()
-        stackModel.AddCardModel(pm)
+        stackModel.AppendCardModel(pm)
         self.stackView.SetStackModel(stackModel)
         self.stackView.SetEditing(True)
         self.Layout()
-        pm.SetProperty("size", self.stackView.GetSize())
+        stackModel.SetProperty("size", self.stackView.GetSize())
         self.stackView.stackModel.SetDirty(False)
         self.stackView.SelectUiView(self.stackView.uiCard)
+        self.stackView.SetFocus()
         self.UpdateCardList()
 
     def SaveFile(self):
@@ -154,11 +159,12 @@ class DesignerFrame(wx.Frame):
                 stackModel.SetData(data)
                 self.stackView.SetDesigner(self)
                 self.stackView.SetStackModel(stackModel)
-                self.stackView.SetSize(self.stackView.uiCard.model.GetProperty("size"))
+                self.stackView.SetSize(self.stackView.stackModel.GetProperty("size"))
                 self.stackView.SetEditing(True)
                 self.stackView.SelectUiView(self.stackView.uiCard)
                 self.SetFrameSizeFromModel()
                 self.UpdateCardList()
+                self.stackView.SetFocus()
 
     def SetFrameSizeFromModel(self):
         self.splitter.SetSize((self.stackView.GetSize().Width + self.splitter.GetSashSize() + self.cPanel.GetSize().Width,
@@ -333,7 +339,7 @@ class DesignerFrame(wx.Frame):
         self.viewer.stackView.SetStackModel(stack)
         self.viewer.stackView.SetEditing(False)
         self.viewer.Bind(wx.EVT_CLOSE, self.OnViewerClose)
-        self.viewer.SetClientSize(self.stackView.uiCard.model.GetProperty("size"))
+        self.viewer.SetClientSize(self.stackView.stackModel.GetProperty("size"))
         self.viewer.RunViewer(sb)
 
     def OnViewerClose(self, event):
@@ -406,6 +412,9 @@ class DesignerFrame(wx.Frame):
             i += 1
         self.cardPicker.SetItems(choices)
         self.cardPicker.SetSelection(self.stackView.cardIndex)
+
+    def OnStackContainerFocus(self, event):
+        self.stackView.SetFocus()
 
     def GetDesiredFocus(self):
         f = self.FindFocus()

@@ -102,6 +102,11 @@ class Runner():
             if self.statusBar:
                 self.statusBar.SetStatusText(msg)
 
+    def SetFocus(self, model):
+        uiView = self.stackView.GetUiViewByModel(model)
+        if uiView:
+            uiView.view.SetFocus()
+
     def StopRunning(self):
         Sound.Stop()
 
@@ -135,5 +140,5 @@ class Runner():
     def PlaySound(self, filepath):
         Sound.PlaySound(filepath)
 
-    def StopSound(self, filepath):
+    def StopSound(self):
         Sound.Stop()

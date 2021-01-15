@@ -62,7 +62,7 @@ class StackWindow(wx.Window):
 
         if not stackModel:
             stackModel = StackModel()
-            stackModel.AddCardModel(CardModel())
+            stackModel.AppendCardModel(CardModel())
 
         self.stackModel = stackModel
         self.selectedView = None
@@ -70,6 +70,7 @@ class StackWindow(wx.Window):
         self.cardIndex = None
         self.uiCard = UiCard(self, stackModel.cardModels[0])
         self.LoadCardAtIndex(0)
+        stackModel.AddPropertyListener(self.OnPropertyChanged)
 
         self.uiCard.model.SetDirty(False)
         self.command_processor.ClearCommands()
@@ -138,8 +139,11 @@ class StackWindow(wx.Window):
             self.AddUiViewFromModel(m, canUndo=False)  # Don't allow undoing card loads
 
     def SetStackModel(self, model):
+        if self.stackModel:
+            self.stackModel.RemovePropertyListener(self.OnPropertyChanged)
         self.ClearAllViews()
         self.stackModel = model
+        model.AddPropertyListener(self.OnPropertyChanged)
         self.cardIndex = None
         self.LoadCardAtIndex(0)
         self.command_processor.ClearCommands()
@@ -304,7 +308,12 @@ class StackWindow(wx.Window):
                 self.designer.SetSelectedUiView(view)
 
     def OnPropertyChanged(self, model, key):
-        uiView = self.GetUiViewByModel(model)
+        if model == self.stackModel:
+            uiView = self.uiCard
+            if key == "size":
+                self.SetSize(model.GetProperty(key))
+        else:
+            uiView = self.GetUiViewByModel(model)
         if self.designer:
             self.designer.cPanel.UpdatedProperty(uiView, key)
 
@@ -392,10 +401,10 @@ class StackWindow(wx.Window):
                 self.curLine.append(coords)
                 self.isDrawing = True
                 self.CaptureMouse()
+                return
             else:
                 self.SelectUiView(self.uiCard)
-        else:
-            event.Skip()
+        event.Skip()
 
     def OnMouseMove(self, event):
         """
@@ -412,8 +421,8 @@ class StackWindow(wx.Window):
                 self.curLine.append(coords)
                 dc.DrawLine(*(self.pos.x, self.pos.y, pos.x, pos.y))
                 self.pos = pos
-        else:
-            event.Skip()
+                return
+        event.Skip()
 
     def OnMouseUp(self, event):
         """called when the left mouse button is released"""
@@ -425,8 +434,8 @@ class StackWindow(wx.Window):
                 self.curLine = []
                 self.isDrawing = False
                 self.ReleaseMouse()
-        else:
-            event.Skip()
+                return
+        event.Skip()
 
     def OnKeyDown(self, event):
         self.uiCard.OnKeyDown(event)
@@ -548,7 +557,7 @@ class AddUiViewCommand(Command):
     def Do(self):
         if self.viewType == "card":
             self.stackView.LoadCardAtIndex(None)
-            self.stackView.stackModel.cardModels.insert(self.cardIndex, self.viewModel)
+            self.stackView.stackModel.InsertCardModel(self.cardIndex, self.viewModel)
             self.stackView.LoadCardAtIndex(self.cardIndex)
         else:
             self.stackView.LoadCardAtIndex(self.cardIndex)
@@ -560,7 +569,7 @@ class AddUiViewCommand(Command):
     def Undo(self):
         if self.viewType == "card":
             self.stackView.LoadCardAtIndex(None)
-            self.stackView.stackModel.cardModels.remove(self.viewModel)
+            self.stackView.stackModel.RemoveCardModel(self.viewModel)
             index = self.cardIndex-1
             if index < 0: index = 0
             self.stackView.LoadCardAtIndex(index)
@@ -580,7 +589,7 @@ class RemoveUiViewCommand(Command):
     def Do(self):
         if self.viewModel.type == "card":
             self.stackView.LoadCardAtIndex(None)
-            self.stackView.stackModel.cardModels.remove(self.viewModel)
+            self.stackView.stackModel.RemoveCardModel(self.viewModel)
             index = self.cardIndex
             if index >= len(self.stackView.stackModel.cardModels)-1: index = len(self.stackView.stackModel.cardModels)-1
             self.stackView.LoadCardAtIndex(index)
@@ -592,7 +601,7 @@ class RemoveUiViewCommand(Command):
     def Undo(self):
         if self.viewModel.type == "card":
             self.stackView.LoadCardAtIndex(None)
-            self.stackView.stackModel.cardModels.insert(self.cardIndex, self.viewModel)
+            self.stackView.stackModel.InsertCardModel(self.cardIndex, self.viewModel)
             self.stackView.LoadCardAtIndex(self.cardIndex)
         else:
             self.stackView.LoadCardAtIndex(self.cardIndex)

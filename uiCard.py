@@ -11,12 +11,15 @@ from uiImage import ImageModel
 
 
 class UiCard(UiView):
+    minSize = (200, 200)
+
     def __init__(self, stackView, model):
         if not model.GetProperty("name"):
             model.SetProperty("name", model.GetNextAvailableNameInCard("card_"))
+            model.SetProperty("size", [500,500])
 
         super().__init__(stackView, model, stackView)
-        self.model.SetProperty("size", self.view.GetSize())
+        self.stackView.stackModel.SetProperty("size", self.view.GetSize())
 
     def SetView(self, view):
         super().SetView(view)
@@ -24,7 +27,7 @@ class UiCard(UiView):
 
     def OnResize(self, event):
         super().OnResize(event)
-        self.model.SetProperty("size", self.view.GetSize())
+        self.stackView.stackModel.SetProperty("size", self.view.GetSize())
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
@@ -56,6 +59,7 @@ class CardModel(ViewModel):
     def __init__(self):
         super().__init__()
         self.type = "card"
+        self.stackModel = None  # For setting stack size
 
         # Add custom handlers to the top of the list
         handlers = {"OnStart": "", "OnShowCard": "", "OnHideCard": "","OnIdle": "", "OnKeyDown": "", "OnKeyUp": ""}
@@ -64,10 +68,28 @@ class CardModel(ViewModel):
         self.handlers = handlers
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "size"]
+        self.propertyKeys = ["name", "stackSize"]
+        self.propertyTypes["stackSize"] = "point"
 
         self.childModels = []
         self.shapes = []
+
+    def SetProperty(self, key, value, notify=True):
+        if key == "stackSize":
+            self.stackModel.SetProperty("size", value, notify)
+        else:
+            super().SetProperty(key, value, notify)
+
+    def GetProperty(self, key):
+        if key == "stackSize":
+            return self.stackModel.GetProperty("size")
+        else:
+            return super().GetProperty(key)
+
+    def GetFrame(self):
+        p = wx.Point(self.stackModel.GetProperty("position"))
+        s = wx.Size(self.stackModel.GetProperty("size"))
+        return wx.Rect(p, s)
 
     def GetDirty(self):
         if self.isDirty:
@@ -87,10 +109,12 @@ class CardModel(ViewModel):
 
     def GetData(self):
         data = super().GetData()
-        data["shapes"] = self.shapes
+        data["shapes"] = self.shapes.copy()
         data["childModels"] = []
         for m in self.childModels:
             data["childModels"].append(m.GetData())
+        data["properties"].pop("size")
+        data["properties"].pop("position")
         return data
 
     def SetData(self, data):
@@ -123,6 +147,9 @@ class CardModel(ViewModel):
         if exclude is None: exclude = []
         names = self.GetDedupNameList(name, exclude)
         return super().GetNextAvailableName(name, names)
+
+    def GetSize(self): return list(self.stackModel.GetProperty("size"))
+    def SetSize(self, size): pass
 
     @classmethod
     def ModelFromData(cls, data):
