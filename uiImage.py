@@ -82,3 +82,6 @@ class ImageModel(ViewModel):
 
     def GetFile(self): return self.GetProperty("file")
     def SetFile(self, text): self.SetProperty("file", text)
+
+    def GetBgColor(self): return self.GetProperty("bgColor")
+    def SetBgColor(self, colorStr): self.SetProperty("bgColor", colorStr)

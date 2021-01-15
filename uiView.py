@@ -5,7 +5,7 @@
 import wx
 from wx.lib.docview import Command
 import ast
-
+import re
 
 class UiView(object):
     minSize = (20,20)
@@ -371,6 +371,13 @@ class ViewModel(object):
     def SetProperty(self, key, value, notify=True):
         if isinstance(value, wx.Point) or isinstance(value, wx.Position) or isinstance(value, wx.Size):
             value = list(value)
+        if key == "name":
+            value = re.sub(r'\W+', '', value)
+            if not re.match(r'[A-Za-z_][A-Za-z_0-9]+', value):
+                if notify:
+                    for callback in self.propertyListeners:
+                        callback(self, key)
+                return
         if self.properties[key] != value:
             self.properties[key] = value
             if notify:
@@ -401,6 +408,23 @@ class ViewModel(object):
             self.handlers[key] = value
             self.isDirty = True
 
+    def DeduplicateName(self, name, existingNames):
+        existingNames.extend(["card", "self", "key", "mouseX",  "mouseY", "message"]) # disallow globals
+        if name in existingNames:
+            name = name.rstrip("0123456789")
+            if name[-1:] != "_":
+                name = name + "_"
+            name = self.GetNextAvailableName(name, existingNames)
+        return name
+
+    def GetNextAvailableName(self, base, existingNames):
+        i = 0
+        while True:
+            i += 1
+            name = base+str(i)
+            if name not in existingNames:
+                return name
+
     def SendMessage(self, message):
         if self.runner:
             self.runner.RunHandler(self, "OnMessage", None, message)
@@ -409,11 +433,10 @@ class ViewModel(object):
         if self.runner:
             self.runner.SetFocus(self)
 
-    def Show(self, show=True):
-        self.SetProperty("hidden", not show)
-
-    def Hide(self, hide=True):
-        self.SetProperty("hidden", hide)
+    def Show(self): self.SetProperty("hidden", False)
+    def Hide(self): self.SetProperty("hidden", True)
+    def SetVisible(self, visible): self.SetProperty("hidden", not visible)
+    def GetVisible(self): return not self.GetProperty("hidden")
 
     def GetSize(self): return list(self.GetProperty("size"))
     def SetSize(self, size): self.SetProperty("size", size)
@@ -437,23 +460,6 @@ class ViewModel(object):
         if sf.Intersects(left): return "Left"
         if sf.Intersects(right): return "Right"
         return False
-
-    def DeduplicateName(self, name, existingNames):
-        existingNames.extend(["card", "self", "key", "mouseX",  "mouseY", "message"]) # disallow globals
-        if name in existingNames:
-            name = name.rstrip("0123456789")
-            if name[-1:] != "_":
-                name = name + "_"
-            name = self.GetNextAvailableName(name, existingNames)
-        return name
-
-    def GetNextAvailableName(self, base, existingNames):
-        i = 0
-        while True:
-            i += 1
-            name = base+str(i)
-            if name not in existingNames:
-                return name
 
 
 class MoveUiViewCommand(Command):
