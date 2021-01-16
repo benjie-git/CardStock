@@ -88,7 +88,7 @@ class DesignerFrame(wx.Frame):
 
         toolbar.AddStretchableSpace()
 
-        self.cardPicker = wx.Choice(parent=toolbar, id=wx.ID_ANY, choices=["Card 1", "Card 2"], size=(250,20))
+        self.cardPicker = wx.Choice(parent=toolbar, id=wx.ID_ANY, choices=["Card 1", "Card 2"], size=(200,20))
         self.cardPicker.Bind(wx.EVT_CHOICE, self.OnPickCard)
         toolbar.AddControl(self.cardPicker)
 
@@ -160,7 +160,6 @@ class DesignerFrame(wx.Frame):
                 stackModel.SetData(data)
                 self.stackView.SetDesigner(self)
                 self.stackView.SetStackModel(stackModel)
-                self.stackView.SetSize(self.stackView.stackModel.GetProperty("size"))
                 self.stackView.SetEditing(True)
                 self.stackView.SelectUiView(self.stackView.uiCard)
                 self.SetFrameSizeFromModel()
@@ -410,8 +409,9 @@ class DesignerFrame(wx.Frame):
     def UpdateCardList(self):
         choices = []
         i = 1
+        numCards = len(self.stackView.stackModel.cardModels)
         for m in self.stackView.stackModel.cardModels:
-            choices.append(f"Card %d: %s"%(i,m.GetProperty("name")))
+            choices.append(f"Card {i} of {numCards}: {m.GetProperty('name')}")
             i += 1
         self.cardPicker.SetItems(choices)
         self.cardPicker.SetSelection(self.stackView.cardIndex)

@@ -150,6 +150,7 @@ class StackWindow(wx.Window):
         model.AddPropertyListener(self.OnPropertyChanged)
         self.cardIndex = None
         self.LoadCardAtIndex(0)
+        self.SetSize(self.stackModel.GetProperty("size"))
         self.command_processor.ClearCommands()
         self.stackModel.SetDirty(False)
 
@@ -484,6 +485,7 @@ class StackWindow(wx.Window):
         # deleted.  Since we don't need to draw anything else
         # here that's all there is to it.
         dc = wx.BufferedPaintDC(self, self.buffer)
+        event.Skip()
 
     def DrawShapes(self, dc):
         """

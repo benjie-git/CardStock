@@ -13,6 +13,7 @@ class UiView(object):
     def __init__(self, stackView, model, view):
         super().__init__()
         self.stackView = stackView
+        self.view = view
         self.SetModel(model)
 
         self.isSelected = False

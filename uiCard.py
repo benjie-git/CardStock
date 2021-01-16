@@ -20,10 +20,17 @@ class UiCard(UiView):
 
         super().__init__(stackView, model, stackView)
         self.stackView.stackModel.SetProperty("size", self.view.GetSize())
+        self.view.SetBackgroundColour(self.model.GetProperty("bgColor"))
 
     def SetView(self, view):
         super().SetView(view)
         self.model.SetProperty("size", self.view.GetSize())
+        self.view.SetBackgroundColour(self.model.GetProperty("bgColor"))
+
+    def SetModel(self, model):
+        super().SetModel(model)
+        if self.view:
+            self.view.SetBackgroundColour(self.model.GetProperty("bgColor"))
 
     def OnResize(self, event):
         super().OnResize(event)
@@ -33,6 +40,10 @@ class UiCard(UiView):
         super().OnPropertyChanged(model, key)
         if key == "name":
             self.stackView.designer.UpdateCardList()
+        elif key == "bgColor":
+            self.view.SetBackgroundColour(model.GetProperty(key))
+            self.stackView.InitBuffer()
+            self.view.Refresh()
 
     def OnKeyDown(self, event):
         if not self.stackView.isEditing:
@@ -68,8 +79,10 @@ class CardModel(ViewModel):
         self.handlers = handlers
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "stackSize"]
+        self.properties["bgColor"] = "white"
+        self.propertyKeys = ["name", "bgColor", "stackSize"]
         self.propertyTypes["stackSize"] = "point"
+        self.propertyTypes["bgColor"] = "string"
 
         self.childModels = []
         self.shapes = []
@@ -150,6 +163,9 @@ class CardModel(ViewModel):
 
     def GetSize(self): return list(self.stackModel.GetProperty("size"))
     def SetSize(self, size): pass
+
+    def GetBgColor(self): return self.GetProperty("bgColor")
+    def SetBgColor(self, colorStr): self.SetProperty("bgColor", colorStr)
 
     @classmethod
     def ModelFromData(cls, data):

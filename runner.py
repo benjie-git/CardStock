@@ -11,6 +11,7 @@ class Runner():
         self.locals = {}
         self.statusBar = sb
         self.globals = None
+        self.isRunning = False
 
         self.keyCodeStringMap = {
             wx.WXK_RETURN:"Return",
@@ -50,59 +51,67 @@ class Runner():
             self.globals[ui.model.GetProperty("name")] = ui.model
 
     def RunHandler(self, uiModel, handlerName, event, message=None):
-        if not self.globals:
-            self.SetupForCurrentCard()
+        if not self.isRunning:
+            self.isRunning = True
+            if not self.globals:
+                self.SetupForCurrentCard()
 
-        handlerStr = uiModel.handlers[handlerName]
+            handlerStr = uiModel.handlers[handlerName]
 
-        error_class = None
-        line_number = None
-        detail = None
+            error_class = None
+            line_number = None
+            detail = None
 
-        self.locals["self"] = uiModel
-        if message:
-            self.locals["message"] = message
+            locals = self.locals.copy()
+            locals["self"] = uiModel
+            if message:
+                locals["message"] = message
 
-        if event and handlerName.startswith("OnMouse"):
-            mouseX, mouseY = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-            self.locals["mouseX"] = mouseX
-            self.locals["mouseY"] = mouseY
+            if event and handlerName.startswith("OnMouse"):
+                mouseX, mouseY = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+                locals["mouseX"] = mouseX
+                locals["mouseY"] = mouseY
 
-        if event and handlerName.startswith("OnKey"):
-            code = event.GetKeyCode()
-            if code in self.keyCodeStringMap:
-                self.locals["key"] = self.keyCodeStringMap[code]
-            elif event.GetUnicodeKey() != wx.WXK_NONE:
-                self.locals["key"] = chr(event.GetUnicodeKey())
-            else:
-                return
+            if event and handlerName.startswith("OnKey"):
+                code = event.GetKeyCode()
+                if code in self.keyCodeStringMap:
+                    locals["key"] = self.keyCodeStringMap[code]
+                elif event.GetUnicodeKey() != wx.WXK_NONE:
+                    locals["key"] = chr(event.GetUnicodeKey())
+                else:
+                    return
 
-        try:
-            exec(handlerStr, self.globals, self.locals)
-        except SyntaxError as err:
-            error_class = err.__class__.__name__
-            detail = err.args[0]
-            line_number = err.lineno
-        except Exception as err:
-            error_class = err.__class__.__name__
-            detail = err.args[0]
-            cl, exc, tb = sys.exc_info()
-            line_number = traceback.extract_tb(tb)[-1][1]
+            try:
+                exec(handlerStr, self.globals, locals)
+            except SyntaxError as err:
+                error_class = err.__class__.__name__
+                detail = err.args[0]
+                line_number = err.lineno
+            except Exception as err:
+                error_class = err.__class__.__name__
+                detail = err.args[0]
+                cl, exc, tb = sys.exc_info()
+                line_number = traceback.extract_tb(tb)[-1][1]
 
-        if "mouseX" in self.locals:
-            self.locals.pop("mouseX")
-        if "mouseY" in self.locals:
-            self.locals.pop("mouseY")
-        if "key" in self.locals:
-            self.locals.pop("key")
-        if "message" in self.locals:
-            self.locals.pop("message")
+            if "mouseX" in self.locals:
+                locals.pop("mouseX")
+            if "mouseY" in self.locals:
+                locals.pop("mouseY")
+            if "key" in self.locals:
+                locals.pop("key")
+            if "message" in self.locals:
+                locals.pop("message")
 
-        if error_class:
-            msg = f"{error_class} in {uiModel.GetProperty('name')}.{handlerName}(), line {line_number}: {detail}"
-            print(msg)
-            if self.statusBar:
-                self.statusBar.SetStatusText(msg)
+            locals.pop("self")
+            self.locals = locals
+
+            if error_class:
+                msg = f"{error_class} in {uiModel.GetProperty('name')}.{handlerName}(), line {line_number}: {detail}"
+                print(msg)
+                if self.statusBar:
+                    self.statusBar.SetStatusText(msg)
+
+            self.isRunning = False
 
     def SetFocus(self, model):
         uiView = self.stackView.GetUiViewByModel(model)
