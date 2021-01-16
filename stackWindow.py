@@ -40,7 +40,7 @@ class StackWindow(wx.Window):
     maxThickness = 16
 
     def __init__(self, parent, ID, stackModel):
-        wx.Window.__init__(self, parent, ID, style=wx.NO_FULL_REPAINT_ON_RESIZE|wx.WANTS_CHARS)
+        wx.Window.__init__(self, parent, ID, style=wx.WANTS_CHARS)
         self.SetBackgroundColour("WHITE")
         self.listeners = []
         self.designer = None
@@ -48,7 +48,6 @@ class StackWindow(wx.Window):
         self.command_processor = CommandProcessor()
         self.pos = wx.Point(0,0)
         self.isInDrawingMode = False
-        self.showCardPending = False
         self.isDrawing = False
         self.thickness = 4
         self.curLine = []
@@ -105,6 +104,11 @@ class StackWindow(wx.Window):
             if self.timer:
                 self.timer.Stop()
 
+    def RefreshNow(self):
+        self.Refresh()
+        self.Update()
+        wx.GetApp().Yield()
+
     def SetEditing(self, editing):
         self.isEditing = editing
         if not editing:
@@ -151,7 +155,7 @@ class StackWindow(wx.Window):
 
     def LoadCardAtIndex(self, index, reload=False):
         if index != self.cardIndex or reload == True:
-            if not self.isEditing and self.cardIndex is not None:
+            if not self.isEditing and self.cardIndex is not None and not reload:
                 oldCardModel = self.stackModel.cardModels[self.cardIndex]
                 if oldCardModel.runner:
                     oldCardModel.runner.RunHandler(oldCardModel, "OnHideCard", None)
@@ -165,7 +169,10 @@ class StackWindow(wx.Window):
                 self.InitBuffer()
                 if self.designer:
                     self.designer.UpdateCardList()
-                self.showCardPending = True
+                wx.GetApp().Yield()
+                if not self.isEditing and self.uiCard.model.runner:
+                    self.uiCard.model.runner.SetupForCurrentCard()
+                    self.uiCard.model.runner.RunHandler(self.uiCard.model, "OnShowCard", None)
 
     def SetDesigner(self, designer):
         self.designer = designer
@@ -465,12 +472,6 @@ class StackWindow(wx.Window):
         if self.reInitBuffer:
             self.InitBuffer()
             self.Refresh(False)
-
-        if self.showCardPending:
-            self.showCardPending = False
-            if not self.isEditing and self.uiCard.model.runner:
-                self.uiCard.model.runner.SetupForCurrentCard()
-                self.uiCard.model.runner.RunHandler(self.uiCard.model, "OnShowCard", None)
 
         event.Skip()
 

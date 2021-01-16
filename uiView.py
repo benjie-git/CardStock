@@ -373,7 +373,7 @@ class ViewModel(object):
             value = list(value)
         if key == "name":
             value = re.sub(r'\W+', '', value)
-            if not re.match(r'[A-Za-z_][A-Za-z_0-9]+', value):
+            if not re.match(r'[A-Za-z_][A-Za-z_0-9]*', value):
                 if notify:
                     for callback in self.propertyListeners:
                         callback(self, key)

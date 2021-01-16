@@ -128,12 +128,15 @@ class Runner():
             self.stackView.LoadCardAtIndex(cardIndex-1)
 
     def Wait(self, delay):
+        self.stackView.RefreshNow()
         sleep(delay)
 
     def Alert(self, title, message=""):
+        self.stackView.RefreshNow()
         wx.MessageDialog(None, str(message), str(title), wx.OK).ShowModal()
 
     def Ask(self, title, message=""):
+        self.stackView.RefreshNow()
         r = wx.MessageDialog(None, str(message), str(title), wx.YES_NO).ShowModal()
         return (r == wx.ID_YES)
 

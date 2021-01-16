@@ -142,6 +142,10 @@ class ViewerFrame(wx.Frame):
             if "OnStart" in ui.model.handlers:
                 runner.RunHandler(ui.model, "OnStart", None)
 
+        self.stackView.LoadCardAtIndex(0, reload=True)
+
+
+
 
 # ----------------------------------------------------------------------
 
