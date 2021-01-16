@@ -8,8 +8,9 @@ class StackModel(ViewModel):
     def __init__(self):
         super().__init__()
         self.type = "stack"
-        handlers = []
+        self.handlers = {}
         self.propertyKeys = ["size"]
+        self.properties["size"] = [500, 500]
         self.cardModels = []
 
     def AppendCardModel(self, cardModel):

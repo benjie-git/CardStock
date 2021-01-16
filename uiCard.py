@@ -16,7 +16,6 @@ class UiCard(UiView):
     def __init__(self, stackView, model):
         if not model.GetProperty("name"):
             model.SetProperty("name", model.GetNextAvailableNameInCard("card_"))
-            model.SetProperty("size", [500,500])
 
         super().__init__(stackView, model, stackView)
         self.stackView.stackModel.SetProperty("size", self.view.GetSize())

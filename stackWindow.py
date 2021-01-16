@@ -106,6 +106,7 @@ class StackWindow(wx.Window):
 
     def RefreshNow(self):
         self.Refresh()
+        self.InitBuffer()
         self.Update()
         wx.GetApp().Yield()
 
@@ -167,7 +168,9 @@ class StackWindow(wx.Window):
                 self.CreateViews(cardModel)
                 self.SelectUiView(self.uiCard)
                 cardModel.AddPropertyListener(self.OnPropertyChanged)
+                self.Refresh()
                 self.InitBuffer()
+                self.Update()
                 if self.designer:
                     self.designer.UpdateCardList()
                 wx.GetApp().Yield()
