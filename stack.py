@@ -8,7 +8,7 @@ class StackModel(ViewModel):
     def __init__(self):
         super().__init__()
         self.type = "stack"
-        self.handlers = {}
+        self.handlers = {"OnStackStart": ""}
         self.propertyKeys = ["size"]
         self.properties["size"] = [500, 500]
         self.cardModels = []

@@ -98,6 +98,24 @@ class CardModel(ViewModel):
         else:
             return super().GetProperty(key)
 
+    def GetHandlers(self):
+        h = {"OnStackStart": ""}
+        for k,v in self.handlers.items():
+            h[k] = v
+        return h
+
+    def GetHandler(self, key):
+        if key == "OnStackStart":
+            return self.stackModel.GetHandler(key)
+        else:
+            return super().GetHandler(key)
+
+    def SetHandler(self, key, value):
+        if key == "OnStackStart":
+            self.stackModel.SetHandler("OnStackStart", value)
+        else:
+            super().SetHandler(key, value)
+
     def GetFrame(self):
         p = wx.Point(self.stackModel.GetProperty("position"))
         s = wx.Size(self.stackModel.GetProperty("size"))

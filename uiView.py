@@ -257,6 +257,7 @@ class UiView(object):
         'OnMouseEnter': "OnMouseEnter(mouseX, mouseY):",
         'OnMouseExit':  "OnMouseExit(mouseX, mouseY):",
         'OnMessage':    "OnMessage(message):",
+        'OnStackStart': "OnStackStart():",
         'OnShowCard':   "OnShowCard():",
         'OnHideCard':   "OnHideCard():",
         'OnIdle':       "OnIdle():",

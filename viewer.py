@@ -136,6 +136,8 @@ class ViewerFrame(wx.Frame):
         self.stackView.SetEditing(False)
         self.Show(True)
 
+        runner.RunHandler(self.stackView.stackModel, "OnStackStart", None)
+
         self.stackView.LoadCardAtIndex(0, reload=True)
 
 
