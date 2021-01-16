@@ -115,3 +115,7 @@ class TextFieldModel(ViewModel):
     def GetText(self): return self.GetProperty("text")
     def SetText(self, text): self.SetProperty("text", str(text))
     def AppendText(self, text): self.SetProperty("text", self.GetProperty("text") + str(text))
+
+    def DoEnter(self):
+        if self.runner:
+            self.runner.RunHandler(self, "OnTextEnter", None)

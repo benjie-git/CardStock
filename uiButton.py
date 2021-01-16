@@ -56,3 +56,7 @@ class ButtonModel(ViewModel):
     def SetTitle(self, text): self.SetProperty("title", text)
     def GetText(self): return self.GetProperty("title")
     def SetText(self, text): self.SetProperty("title", text)
+
+    def DoClick(self):
+        if self.runner:
+            self.runner.RunHandler(self, "OnClick", None)
