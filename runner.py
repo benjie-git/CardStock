@@ -2,7 +2,7 @@ import traceback
 import sys
 import wx
 from wx.adv import Sound
-from time import sleep
+from time import sleep, time
 
 
 class Runner():
@@ -37,6 +37,7 @@ class Runner():
         self.globals = {}
         self.globals["card"] = self.stackView.uiCard.model
         self.globals["Wait"] = self.Wait
+        self.globals["Time"] = self.Time
         self.globals["Alert"] = self.Alert
         self.globals["Ask"] = self.Ask
         self.globals["GotoCard"] = self.GotoCard
@@ -168,6 +169,9 @@ class Runner():
     def Wait(self, delay):
         self.stackView.RefreshNow()
         sleep(delay)
+
+    def Time(self):
+        return time()
 
     def Alert(self, title, message=""):
         self.stackView.RefreshNow()

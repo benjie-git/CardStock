@@ -49,6 +49,7 @@ class StackWindow(wx.Window):
         self.pos = wx.Point(0,0)
         self.isInDrawingMode = False
         self.isDrawing = False
+        self.noIdling = False
         self.thickness = 4
         self.curLine = []
         self.colour = None
@@ -108,7 +109,9 @@ class StackWindow(wx.Window):
         self.Refresh()
         self.InitBuffer()
         self.Update()
+        self.noIdling = True
         wx.GetApp().Yield()
+        self.noIdling = False
 
     def SetEditing(self, editing):
         self.isEditing = editing
@@ -122,7 +125,8 @@ class StackWindow(wx.Window):
         self.SetCursor(wx.Cursor(wx.CURSOR_PENCIL if self.isInDrawingMode else wx.CURSOR_HAND))
 
     def OnIdleTimer(self, event):
-        self.uiCard.OnIdle(event)
+        if not self.noIdling:
+            self.uiCard.OnIdle(event)
 
     def SetDrawingMode(self, drawMode):
         self.isInDrawingMode = drawMode
@@ -173,7 +177,9 @@ class StackWindow(wx.Window):
                 self.Update()
                 if self.designer:
                     self.designer.UpdateCardList()
+                self.noIdling = True
                 wx.GetApp().Yield()
+                self.noIdling = False
                 if not self.isEditing and self.uiCard.model.runner:
                     self.uiCard.model.runner.SetupForCurrentCard()
                     self.uiCard.model.runner.RunHandler(self.uiCard.model, "OnShowCard", None)

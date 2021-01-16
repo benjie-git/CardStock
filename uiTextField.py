@@ -28,6 +28,7 @@ class UiTextField(UiView):
         if model.GetProperty("multiline"):
             field = stc.StyledTextCtrl(parent=stackView, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
             field.SetUseHorizontalScrollBar(False)
+            field.SetWrapMode(stc.STC_WRAP_WORD)
             field.SetMarginWidth(1, 0)
             field.ChangeValue(text)
             field.Bind(stc.EVT_STC_CHANGE, self.OnTextChanged)
@@ -56,6 +57,7 @@ class UiTextField(UiView):
                 self.view.SetEditable(True)
             self.view.ChangeValue(str(self.model.GetProperty(key)))
             self.view.SetEditable(wasEditable)
+            self.view.Refresh()
         elif key == "alignment" or key == "multiline":
             self.stackView.SelectUiView(None)
             self.view.Destroy()

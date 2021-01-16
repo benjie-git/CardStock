@@ -72,7 +72,7 @@ class CardModel(ViewModel):
         self.stackModel = None  # For setting stack size
 
         # Add custom handlers to the top of the list
-        handlers = {"OnStart": "", "OnShowCard": "", "OnHideCard": "","OnIdle": "", "OnKeyDown": "", "OnKeyUp": ""}
+        handlers = {"OnShowCard": "", "OnHideCard": "","OnIdle": "", "OnKeyDown": "", "OnKeyUp": ""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers

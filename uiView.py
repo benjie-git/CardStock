@@ -257,7 +257,6 @@ class UiView(object):
         'OnMouseEnter': "OnMouseEnter(mouseX, mouseY):",
         'OnMouseExit':  "OnMouseExit(mouseX, mouseY):",
         'OnMessage':    "OnMessage(message):",
-        'OnStart':      "OnStart():",
         'OnShowCard':   "OnShowCard():",
         'OnHideCard':   "OnHideCard():",
         'OnIdle':       "OnIdle():",
@@ -276,7 +275,6 @@ class ViewModel(object):
                          "OnMouseEnter": "",
                          "OnMouseExit": "",
                          "OnMessage": "",
-                         "OnStart": "",
                          "OnIdle": ""
                          }
         self.properties = {"name": "",

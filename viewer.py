@@ -136,12 +136,6 @@ class ViewerFrame(wx.Frame):
         self.stackView.SetEditing(False)
         self.Show(True)
 
-        if "OnStart" in self.stackView.uiCard.model.handlers:
-            runner.RunHandler(self.stackView.uiCard.model, "OnStart", None)
-        for ui in self.stackView.uiViews:
-            if "OnStart" in ui.model.handlers:
-                runner.RunHandler(ui.model, "OnStart", None)
-
         self.stackView.LoadCardAtIndex(0, reload=True)
 
 
