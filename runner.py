@@ -40,6 +40,8 @@ class Runner():
         self.globals["Alert"] = self.Alert
         self.globals["Ask"] = self.Ask
         self.globals["GotoCard"] = self.GotoCard
+        self.globals["GotoNextCard"] = self.GotoNextCard
+        self.globals["GotoPreviousCard"] = self.GotoPreviousCard
         self.globals["GotoCardNumber"] = self.GotoCardNumber
         self.globals["PlaySound"] = self.PlaySound
         self.globals["StopSound"] = self.StopSound
@@ -126,6 +128,16 @@ class Runner():
     def GotoCardNumber(self, cardIndex):
         if cardIndex > 0 and cardIndex <= len(self.stackView.stackModel.cardModels):
             self.stackView.LoadCardAtIndex(cardIndex-1)
+
+    def GotoNextCard(self):
+        cardIndex = self.stackView.cardIndex + 1
+        if cardIndex >= len(self.stackView.stackModel.cardModels): cardIndex = 0
+        self.stackView.LoadCardAtIndex(cardIndex)
+
+    def GotoPreviousCard(self):
+        cardIndex = self.stackView.cardIndex - 1
+        if cardIndex < 0: cardIndex = len(self.stackView.stackModel.cardModels) - 1
+        self.stackView.LoadCardAtIndex(cardIndex)
 
     def Wait(self, delay):
         self.stackView.RefreshNow()
