@@ -177,12 +177,12 @@ class StackWindow(wx.Window):
                 self.Update()
                 if self.designer:
                     self.designer.UpdateCardList()
-                self.noIdling = True
-                wx.GetApp().Yield()
-                self.noIdling = False
                 if not self.isEditing and self.uiCard.model.runner:
                     self.uiCard.model.runner.SetupForCurrentCard()
                     self.uiCard.model.runner.RunHandler(self.uiCard.model, "OnShowCard", None)
+                self.noIdling = True
+                wx.GetApp().Yield()
+                self.noIdling = False
 
     def SetDesigner(self, designer):
         self.designer = designer

@@ -8,25 +8,38 @@ from time import sleep, time
 class Runner():
     def __init__(self, stackView, sb=None):
         self.stackView = stackView
-        self.locals = {}
         self.statusBar = sb
-        self.globals = None
+        self.cardVarKeys = []  # store names of views on the current card, to remove from clientVars before setting up the next card
+
+        self.clientVars = {
+            "Wait": self.Wait,
+            "Time": self.Time,
+            "Alert": self.Alert,
+            "Ask": self.Ask,
+            "GotoCard": self.GotoCard,
+            "GotoNextCard": self.GotoNextCard,
+            "GotoPreviousCard": self.GotoPreviousCard,
+            "GotoCardNumber": self.GotoCardNumber,
+            "PlaySound": self.PlaySound,
+            "StopSound": self.StopSound,
+            "BroadcastMessage": self.BroadcastMessage
+        }
 
         self.keyCodeStringMap = {
-            wx.WXK_RETURN:"Return",
-            wx.WXK_NUMPAD_ENTER:"Enter",
-            wx.WXK_TAB:"Tab",
-            wx.WXK_SPACE:"Space",
-            wx.WXK_NUMPAD_SPACE:"Space",
-            wx.WXK_NUMPAD_TAB:"Tab",
-            wx.WXK_ESCAPE:"Escape",
-            wx.WXK_LEFT:"Left",
-            wx.WXK_RIGHT:"Right",
-            wx.WXK_UP:"Up",
-            wx.WXK_DOWN:"Down",
+            wx.WXK_RETURN: "Return",
+            wx.WXK_NUMPAD_ENTER: "Enter",
+            wx.WXK_TAB: "Tab",
+            wx.WXK_SPACE: "Space",
+            wx.WXK_NUMPAD_SPACE: "Space",
+            wx.WXK_NUMPAD_TAB: "Tab",
+            wx.WXK_ESCAPE: "Escape",
+            wx.WXK_LEFT: "Left",
+            wx.WXK_RIGHT: "Right",
+            wx.WXK_UP: "Up",
+            wx.WXK_DOWN: "Down",
             wx.WXK_SHIFT: "Shift",
             wx.WXK_ALT: "Alt",
-            wx.WXK_CONTROL: "Control",
+            wx.WXK_CONTROL: "Control"
         }
         if wx.GetOsVersion()[0] == wx.OS_MAC_OSX_DARWIN:
             self.keyCodeStringMap[wx.WXK_ALT] = "Option"
@@ -34,81 +47,76 @@ class Runner():
             self.keyCodeStringMap[wx.WXK_RAW_CONTROL] = "Control"
 
     def SetupForCurrentCard(self):
-        self.globals = {}
-        self.globals["card"] = self.stackView.uiCard.model
-        self.globals["Wait"] = self.Wait
-        self.globals["Time"] = self.Time
-        self.globals["Alert"] = self.Alert
-        self.globals["Ask"] = self.Ask
-        self.globals["GotoCard"] = self.GotoCard
-        self.globals["GotoNextCard"] = self.GotoNextCard
-        self.globals["GotoPreviousCard"] = self.GotoPreviousCard
-        self.globals["GotoCardNumber"] = self.GotoCardNumber
-        self.globals["PlaySound"] = self.PlaySound
-        self.globals["StopSound"] = self.StopSound
-        self.globals["BroadcastMessage"] = self.BroadcastMessage
+        # Setup clientVars with the current card's view names as variables
+        self.clientVars["card"] = self.stackView.uiCard.model
+        for k in self.cardVarKeys:
+            self.clientVars.pop(k)
+            self.cardVarKeys.remove(k)
         for ui in self.stackView.uiViews:
-            self.globals[ui.model.GetProperty("name")] = ui.model
+            name = ui.model.GetProperty("name")
+            self.clientVars[name] = ui.model
+            self.cardVarKeys.append(name)
 
     def RunHandler(self, uiModel, handlerName, event, message=None):
-        if not self.globals:
-            self.SetupForCurrentCard()
-
         handlerStr = uiModel.handlers[handlerName]
 
         error_class = None
         line_number = None
         detail = None
 
-        noValue = ["no value"]
-        oldLocals = {}
+        noValue = ["no value"]  # Use this if this var didn't exist/had no value (not even None)
 
-        if "self" in self.locals:
-            oldLocals["self"] = self.locals["self"]
+        # Keep this method re-entrant, by storing old values (or lack thereof) of anything we set here,
+        # (like self, key, etc.) and replacing or deleting them at the end of the run.
+        oldVars = {}
+
+        if "self" in self.clientVars:
+            oldVars["self"] = self.clientVars["self"]
         else:
-            oldLocals["self"] = noValue
-        self.locals["self"] = uiModel
+            oldVars["self"] = noValue
+        self.clientVars["self"] = uiModel
 
         if message:
-            if "message" in self.locals:
-                oldLocals["message"] = self.locals["message"]
+            if "message" in self.clientVars:
+                oldVars["message"] = self.clientVars["message"]
             else:
-                oldLocals["message"] = noValue
-            self.locals["message"] = message
+                oldVars["message"] = noValue
+            self.clientVars["message"] = message
 
         if event and handlerName.startswith("OnMouse"):
             mouseX, mouseY = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-            if "mouseX" in self.locals:
-                oldLocals["mouseX"] = self.locals["mouseX"]
+            if "mouseX" in self.clientVars:
+                oldVars["mouseX"] = self.clientVars["mouseX"]
             else:
-                oldLocals["mouseX"] = noValue
-            self.locals["mouseX"] = mouseX
-            if "mouseY" in self.locals:
-                oldLocals["mouseY"] = self.locals["mouseY"]
+                oldVars["mouseX"] = noValue
+            self.clientVars["mouseX"] = mouseX
+            if "mouseY" in self.clientVars:
+                oldVars["mouseY"] = self.clientVars["mouseY"]
             else:
-                oldLocals["mouseY"] = noValue
-            self.locals["mouseY"] = mouseY
+                oldVars["mouseY"] = noValue
+            self.clientVars["mouseY"] = mouseY
 
         if event and handlerName.startswith("OnKey"):
             code = event.GetKeyCode()
-            if "key" in self.locals:
-                oldLocals["key"] = self.locals["key"]
+            if "key" in self.clientVars:
+                oldVars["key"] = self.clientVars["key"]
             else:
-                oldLocals["key"] = noValue
+                oldVars["key"] = noValue
             if code in self.keyCodeStringMap:
-                self.locals["key"] = self.keyCodeStringMap[code]
+                self.clientVars["key"] = self.keyCodeStringMap[code]
             elif event.GetUnicodeKey() != wx.WXK_NONE:
-                self.locals["key"] = chr(event.GetUnicodeKey())
+                self.clientVars["key"] = chr(event.GetUnicodeKey())
             else:
-                for k,v in oldLocals.items():
+                for k,v in oldVars.items():
                     if v == noValue:
-                        self.locals.pop(k)
+                        if k in self.clientVars:
+                            self.clientVars.pop(k)
                     else:
-                        self.locals[k] = v
+                        self.clientVars[k] = v
                 return
 
         try:
-            exec(handlerStr, self.globals, self.locals)
+            exec(handlerStr, self.clientVars)
         except SyntaxError as err:
             error_class = err.__class__.__name__
             detail = err.args[0]
@@ -119,11 +127,13 @@ class Runner():
             cl, exc, tb = sys.exc_info()
             line_number = traceback.extract_tb(tb)[-1][1]
 
-        for k, v in oldLocals.items():
+        # restore the old values from before this handler was called
+        for k, v in oldVars.items():
             if v == noValue:
-                self.locals.pop(k)
+                if k in self.clientVars:
+                    self.clientVars.pop(k)
             else:
-                self.locals[k] = v
+                self.clientVars[k] = v
 
         if error_class:
             msg = f"{error_class} in {uiModel.GetProperty('name')}.{handlerName}(), line {line_number}: {detail}"
