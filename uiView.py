@@ -369,7 +369,7 @@ class ViewModel(object):
         return self.handlers
 
     def SetProperty(self, key, value, notify=True):
-        if isinstance(value, wx.Point) or isinstance(value, wx.Position) or isinstance(value, wx.Size):
+        if key in self.propertyTypes and self.propertyTypes[key] == "point":
             value = list(value)
         if key == "name":
             value = re.sub(r'\W+', '', value)
