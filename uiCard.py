@@ -11,8 +11,6 @@ from uiImage import ImageModel
 
 
 class UiCard(UiView):
-    minSize = (200, 200)
-
     def __init__(self, stackView, model):
         if not model.GetProperty("name"):
             model.SetProperty("name", model.GetNextAvailableNameInCard("card_"))
@@ -66,6 +64,8 @@ class UiCard(UiView):
 
 
 class CardModel(ViewModel):
+    minSize = (200, 200)
+
     def __init__(self):
         super().__init__()
         self.type = "card"

@@ -8,8 +8,6 @@ import ast
 import re
 
 class UiView(object):
-    minSize = (20,20)
-
     def __init__(self, stackView, model, view):
         super().__init__()
         self.stackView = stackView
@@ -65,8 +63,6 @@ class UiView(object):
     def OnPropertyChanged(self, model, key):
         if key == "size":
             s = list(self.model.GetProperty(key))
-            if s[0] < self.minSize[0]: s[0] = self.minSize[0]
-            if s[1] < self.minSize[1]: s[1] = self.minSize[1]
             self.view.SetSize(s)
         elif key == "position":
             self.view.SetPosition(self.model.GetProperty(key))
@@ -74,15 +70,7 @@ class UiView(object):
             self.view.Show(not self.model.GetProperty(key))
 
     def OnResize(self, event):
-        setW, setH = self.view.GetSize()
-        w, h = (setW, setH)
-        if w < self.minSize[0]:
-            w = self.minSize[0]
-        if h < self.minSize[1]:
-            h = self.minSize[1]
-        if w != setW or h != setH:
-            self.view.SetSize(w, h)
-            self.model.SetProperty("size", [w,h])
+        w, h = self.view.GetSize()
         self.selectionBox.SetSize(w, h)
         x,y = self.view.GetPosition()
         if self.resizeBox:
@@ -143,11 +131,10 @@ class UiView(object):
         if self.stackView.isEditing and not self.stackView.isInDrawingMode and self.view.HasCapture():
             x, y = self.stackView.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
             if not self.isResizing:
-                fp = (x - self.delta[0], y - self.delta[1])
-                self.view.Move(fp)
+                self.model.SetProperty("position", [x - self.delta[0], y - self.delta[1]])
             else:
                 offset = (x-self.origMousePos[0], y-self.origMousePos[1])
-                self.view.SetSize(self.origSize[0]+offset[0], self.origSize[1]+offset[1])
+                self.model.SetProperty("size", [self.origSize[0]+offset[0], self.origSize[1]+offset[1]])
         elif not self.stackView.isEditing:
             if self.model.runner and "OnMouseMove" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnMouseMove", event)
@@ -161,7 +148,7 @@ class UiView(object):
                 offset = (endx-self.moveOrigin[0], endy-self.moveOrigin[1])
                 if offset != (0, 0):
                     command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, self.model, offset)
-                    self.view.SetPosition(self.moveOrigin)
+                    self.model.SetProperty("position", self.moveOrigin)
                     self.stackView.command_processor.Submit(command)
             else:
                 endw, endh = self.view.GetSize()
@@ -169,7 +156,7 @@ class UiView(object):
                 if offset != (0, 0):
                     model = self.stackView.stackModel if self.model.type == "card" else self.model
                     command = ResizeUiViewCommand(True, 'Resize', self.stackView, self.stackView.cardIndex, model, offset)
-                    self.view.SetSize(self.origSize)
+                    self.model.SetProperty("size", self.origSize)
                     self.stackView.command_processor.Submit(command)
 
             self.stackView.SetFocus()
@@ -267,6 +254,8 @@ class UiView(object):
 
 
 class ViewModel(object):
+    minSize = (20,20)
+
     def __init__(self):
         super().__init__()
         self.type = None
@@ -371,6 +360,7 @@ class ViewModel(object):
     def SetProperty(self, key, value, notify=True):
         if key in self.propertyTypes and self.propertyTypes[key] == "point":
             value = list(value)
+
         if key == "name":
             value = re.sub(r'\W+', '', value)
             if not re.match(r'[A-Za-z_][A-Za-z_0-9]*', value):
@@ -378,6 +368,10 @@ class ViewModel(object):
                     for callback in self.propertyListeners:
                         callback(self, key)
                 return
+        elif key == "size":
+            if value[0] < self.minSize[0]: value[0] = self.minSize[0]
+            if value[1] < self.minSize[1]: value[1] = self.minSize[1]
+
         if self.properties[key] != value:
             self.properties[key] = value
             if notify:
