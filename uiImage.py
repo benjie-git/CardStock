@@ -20,8 +20,6 @@ class UiImage(UiView):
         self.imgView.SetScaleMode(self.AspectStrToInt(model.GetProperty("fit")))
         container.SetBackgroundColour(model.GetProperty("bgColor"))
         self.imgView.Show(model.GetProperty("file") != "")
-        self.imgView.SetCursor(wx.Cursor(wx.CURSOR_HAND))
-        container.SetCursor(wx.Cursor(wx.CURSOR_HAND))
 
         super().__init__(stackView, model, container)
         self.BindEvents(self.imgView)

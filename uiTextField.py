@@ -38,11 +38,22 @@ class UiTextField(UiView):
             field.Bind(wx.EVT_TEXT, self.OnTextChanged)
             field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
             field.ChangeValue(text)
+
+        if stackView.isEditing:
+            field.SetEditable(False)
+        else:
+            field.SetEditable(model.GetProperty("editable"))
         return field
 
     def SetView(self, view):
         super().SetView(view)
         view.ChangeValue(self.model.GetProperty("text"))
+
+    def GetCursor(self):
+        if self.stackView.isEditing:
+            return wx.CURSOR_HAND
+        else:
+            return None
 
     def OnResize(self, event):
         super().OnResize(event)
@@ -65,13 +76,6 @@ class UiTextField(UiView):
             self.SetView(newField)
             self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
             self.stackView.SelectUiView(self)
-
-    def SetEditing(self, editing):
-        UiView.SetEditing(self, editing)
-        if editing:
-            self.view.SetEditable(False)
-        else:
-            self.view.SetEditable(self.model.GetProperty("editable"))
 
     def OnTextEnter(self, event):
         if not self.stackView.isEditing:

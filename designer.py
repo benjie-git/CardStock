@@ -14,6 +14,7 @@ import sys
 import json
 import wx
 import wx.html
+from tools import *
 from stackWindow import StackWindow
 from controlPanel import ControlPanel
 from viewer import ViewerFrame
@@ -29,7 +30,6 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 ID_RUN = wx.NewIdRef()
 ID_EDIT = wx.NewIdRef()
-ID_DRAW = wx.NewIdRef()
 ID_NEXT_CARD = wx.NewIdRef()
 ID_PREV_CARD = wx.NewIdRef()
 ID_ADD_CARD = wx.NewIdRef()
@@ -37,10 +37,6 @@ ID_DUPLICATE_CARD = wx.NewIdRef()
 ID_REMOVE_CARD = wx.NewIdRef()
 ID_MOVE_CARD_FWD = wx.NewIdRef()
 ID_MOVE_CARD_BACK = wx.NewIdRef()
-ID_ADD_BUTTON = wx.NewIdRef()
-ID_ADD_FIELD = wx.NewIdRef()
-ID_ADD_LABEL = wx.NewIdRef()
-ID_ADD_IMAGE = wx.NewIdRef()
 ID_MOVE_VIEW_FRONT = wx.NewIdRef()
 ID_MOVE_VIEW_FWD = wx.NewIdRef()
 ID_MOVE_VIEW_BACK = wx.NewIdRef()
@@ -66,25 +62,7 @@ class DesignerFrame(wx.Frame):
         self.app = None
 
         toolbar = self.CreateToolBar(style=wx.TB_TEXT)
-        toolbar.AddTool(ID_EDIT, 'Edit', wx.ArtProvider.GetBitmap(wx.ART_FIND), wx.NullBitmap)
-        toolbar.AddTool(ID_DRAW, 'Draw', wx.ArtProvider.GetBitmap(wx.ART_FIND_AND_REPLACE), wx.NullBitmap)
         toolbar.AddTool(ID_RUN, 'Run', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
-        toolbar.AddSeparator()
-
-        self.addButton = wx.Button(parent=toolbar, id=wx.ID_ANY, label="Button")
-        self.addButton.Bind(wx.EVT_LEFT_DOWN, self.OnMenuAddButton)
-        toolbar.AddControl(self.addButton, label="Add Button")
-
-        self.addTextField = wx.TextCtrl(parent=toolbar, id=wx.ID_ANY, value="TextField", style=wx.TE_CENTER)
-        self.addTextField.Bind(wx.EVT_LEFT_DOWN, self.OnMenuAddTextField)
-        self.addTextField.SetEditable(False)
-        toolbar.AddControl(self.addTextField, label="Add TextField")
-
-        self.addTextLabel = wx.StaticText(parent=toolbar, id=wx.ID_ANY, label="TextLabel", style=wx.ALIGN_CENTER)
-        self.addTextLabel.Bind(wx.EVT_LEFT_DOWN, self.OnMenuAddTextLabel)
-        toolbar.AddControl(self.addTextLabel, label="Add TextLabel")
-
-        toolbar.AddTool(ID_ADD_IMAGE, 'Add Image', wx.ArtProvider.GetBitmap(wx.ART_NEW), wx.NullBitmap)
 
         toolbar.AddStretchableSpace()
 
@@ -96,10 +74,7 @@ class DesignerFrame(wx.Frame):
 
         toolbar.Realize()
 
-        self.Bind(wx.EVT_TOOL, self.OnMenuDraw, id=ID_DRAW)
-        self.Bind(wx.EVT_TOOL, self.OnMenuEdit, id=ID_EDIT)
         self.Bind(wx.EVT_TOOL, self.OnMenuRun, id=ID_RUN)
-        self.Bind(wx.EVT_TOOL, self.OnMenuAddImage, id=ID_ADD_IMAGE)
 
         self.splitter = wx.SplitterWindow(self, id=wx.ID_ANY, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
 
@@ -122,6 +97,8 @@ class DesignerFrame(wx.Frame):
 
         self.cPanel.SetSize([400,400])
         self.cPanel.Layout()
+
+        self.cPanel.SetToolByName("hand")
 
         self.viewer = None
         self.NewFile()
@@ -218,11 +195,6 @@ class DesignerFrame(wx.Frame):
         self.editMenu = cardMenu
 
         viewMenu = wx.Menu()
-        viewMenu.Append(ID_ADD_BUTTON, "Add &Button", "Add Button")
-        viewMenu.Append(ID_ADD_FIELD, "Add Text&Label", "Add TextLabel")
-        viewMenu.Append(ID_ADD_LABEL, "Add &TextField", "Add TextField")
-        viewMenu.Append(ID_ADD_IMAGE, "Add &Image", "Add Image")
-        viewMenu.AppendSeparator()
         viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front", "Move to Front")
         viewMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward", "Move Forward")
         viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&k", "Move Back")
@@ -265,10 +237,6 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnMenuMoveCard, id=ID_MOVE_CARD_FWD)
         self.Bind(wx.EVT_MENU,  self.OnMenuMoveCard, id=ID_MOVE_CARD_BACK)
 
-        self.Bind(wx.EVT_MENU,  self.OnMenuAddButton, id=ID_ADD_BUTTON)
-        self.Bind(wx.EVT_MENU,  self.OnMenuAddTextField, id=ID_ADD_FIELD)
-        self.Bind(wx.EVT_MENU,  self.OnMenuAddTextLabel, id=ID_ADD_LABEL)
-        self.Bind(wx.EVT_MENU,  self.OnMenuAddImage, id=ID_ADD_IMAGE)
         self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_FRONT)
         self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_FWD)
         self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_BACK)
@@ -463,32 +431,6 @@ class DesignerFrame(wx.Frame):
         dlg = CardStockAbout(self)
         dlg.ShowModal()
         dlg.Destroy()
-
-    def OnMenuDraw(self, event):
-        self.cPanel.SetDrawingMode(True)
-
-    def OnMenuEdit(self, event):
-        self.cPanel.SetDrawingMode(False)
-
-    def OnMenuAddButton(self, event):
-        if self.stackView.isEditing and not self.stackView.isInDrawingMode:
-            self.stackView.AddUiViewOfType("button")
-            self.stackView.SetFocus()
-
-    def OnMenuAddTextField(self, event):
-        if self.stackView.isEditing and not self.stackView.isInDrawingMode:
-            self.stackView.AddUiViewOfType("textfield")
-            self.stackView.SetFocus()
-
-    def OnMenuAddTextLabel(self, event):
-        if self.stackView.isEditing and not self.stackView.isInDrawingMode:
-            self.stackView.AddUiViewOfType("textlabel")
-            self.stackView.SetFocus()
-
-    def OnMenuAddImage(self, event):
-        if self.stackView.isEditing and not self.stackView.isInDrawingMode:
-            self.stackView.AddUiViewOfType("image")
-            self.stackView.SetFocus()
 
 
 # ----------------------------------------------------------------------

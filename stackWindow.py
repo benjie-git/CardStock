@@ -8,54 +8,30 @@ can do simple drawings upon. and add Buttons and TextFields to.
 
 
 import wx
-from wx.lib.docview import CommandProcessor, Command
+from wx.lib.docview import CommandProcessor
 import json
+from tools import *
+from commands import *
 from stack import StackModel
 from uiCard import UiCard, CardModel
 from uiButton import UiButton
 from uiTextField import UiTextField
 from uiTextLabel import UiTextLabel
 from uiImage import UiImage
+from uiShapes import UiShapes
 
 # ----------------------------------------------------------------------
 
 class StackWindow(wx.Window):
-    menuColours = { 100 : 'White',
-                    101 : 'Yellow',
-                    102 : 'Red',
-                    103 : 'Green',
-                    104 : 'Blue',
-                    105 : 'Purple',
-                    106 : 'Brown',
-                    107 : 'Aquamarine',
-                    108 : 'Forest Green',
-                    109 : 'Light Blue',
-                    110 : 'Goldenrod',
-                    111 : 'Cyan',
-                    112 : 'Orange',
-                    113 : 'Black',
-                    114 : 'Dark Grey',
-                    115 : 'Light Grey',
-                    }
-    maxThickness = 16
-
     def __init__(self, parent, ID, stackModel):
         wx.Window.__init__(self, parent, ID, style=wx.WANTS_CHARS)
-        self.SetBackgroundColour("WHITE")
         self.listeners = []
         self.designer = None
-        self.isEditing = False
+        self.isEditing = False  # Is in Editing mode (running from the designer), as opposed to just the viewer
         self.command_processor = CommandProcessor()
-        self.pos = wx.Point(0,0)
-        self.isInDrawingMode = False
-        self.isDrawing = False
         self.noIdling = False
-        self.thickness = 4
-        self.curLine = []
-        self.colour = None
-        self.pen = None
-        self.SetColour("Black")
         self.timer = None
+        self.tool = None
         self.cacheView = wx.Window(self, size=(0,0))  # just an offscreen holder for cached uiView.views
         self.cacheView.Hide()
         self.uiViewCache = {}
@@ -75,24 +51,7 @@ class StackWindow(wx.Window):
         self.uiCard.model.SetDirty(False)
         self.command_processor.ClearCommands()
 
-        self.InitBuffer()
         self.UpdateCursor()
-
-        # hook some mouse events
-        self.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
-        self.Bind(wx.EVT_LEFT_UP, self.OnMouseUp)
-        # if editing:
-        #     self.Bind(wx.EVT_RIGHT_UP, self.OnMouseRightUp)
-        self.Bind(wx.EVT_MOTION, self.OnMouseMove)
-        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
-
-        # the view resize event and idle events for managing the buffer
-        self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.Bind(wx.EVT_IDLE, self.OnIdle)
-
-        # and the refresh event
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
 
         # When the window is destroyed, clean up resources.
         self.Bind(wx.EVT_WINDOW_DESTROY, self.Cleanup)
@@ -107,7 +66,6 @@ class StackWindow(wx.Window):
 
     def RefreshNow(self):
         self.Refresh()
-        self.InitBuffer()
         self.Update()
         self.noIdling = True
         wx.GetApp().Yield()
@@ -120,16 +78,22 @@ class StackWindow(wx.Window):
             self.timer = wx.Timer(self)
             self.Bind(wx.EVT_TIMER, self.OnIdleTimer, self.timer)
             self.timer.Start(50)
+        else:
+            if self.timer:
+                self.timer.Stop()
 
     def UpdateCursor(self):
-        self.SetCursor(wx.Cursor(wx.CURSOR_PENCIL if self.isInDrawingMode else wx.CURSOR_HAND))
+        if self.tool:
+            self.SetCursor(wx.Cursor(self.tool.GetCursor()))
+        else:
+            self.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
 
     def OnIdleTimer(self, event):
-        if not self.noIdling:
+        if not self.isEditing and not self.noIdling:
             self.uiCard.OnIdle(event)
 
-    def SetDrawingMode(self, drawMode):
-        self.isInDrawingMode = drawMode
+    def SetTool(self, tool):
+        self.tool = tool
         self.UpdateCursor()
 
     def ClearAllViews(self):
@@ -173,7 +137,6 @@ class StackWindow(wx.Window):
                 self.SelectUiView(self.uiCard)
                 cardModel.AddPropertyListener(self.OnPropertyChanged)
                 self.Refresh()
-                self.InitBuffer()
                 self.Update()
                 if self.designer:
                     self.designer.UpdateCardList()
@@ -186,28 +149,6 @@ class StackWindow(wx.Window):
 
     def SetDesigner(self, designer):
         self.designer = designer
-
-    def InitBuffer(self):
-        """Initialize the bitmap used for buffering the display."""
-        size = self.GetClientSize()
-        self.buffer = wx.Bitmap(max(1,size.width), max(1,size.height))
-        dc = wx.BufferedDC(None, self.buffer)
-        dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
-        dc.Clear()
-        self.DrawShapes(dc)
-        self.reInitBuffer = False
-
-    def SetColour(self, colour):
-        """Set a new colour and make a matching pen"""
-        self.colour = colour
-        self.pen = wx.Pen(self.colour, self.thickness, wx.PENSTYLE_SOLID)
-        self.Notify()
-
-    def SetThickness(self, num):
-        """Set a new line thickness and make a matching pen"""
-        self.thickness = num
-        self.pen = wx.Pen(self.colour, self.thickness, wx.PENSTYLE_SOLID)
-        self.Notify()
 
     def CopyView(self):
         clipData = wx.CustomDataObject("org.cardstock.models")
@@ -249,21 +190,6 @@ class StackWindow(wx.Window):
                             self.SelectUiView(uiView)
                 wx.TheClipboard.Close()
 
-    def AddUiViewOfType(self, viewType):
-        if viewType == "button":
-            command = AddUiViewCommand(True, 'Add Button', self, self.cardIndex, "button")
-        elif viewType == "textfield":
-            command = AddUiViewCommand(True, 'Add TextField', self, self.cardIndex, "textfield")
-        elif viewType == "textlabel":
-            command = AddUiViewCommand(True, 'Add TextLabel', self, self.cardIndex, "textlabel")
-        elif viewType == "image":
-            command = AddUiViewCommand(True, 'Add Image', self, self.cardIndex, "image")
-
-        self.command_processor.Submit(command)
-        uiView = self.uiViews[-1]
-        self.SelectUiView(uiView)
-        return uiView
-
     def AddUiViewInternal(self, type, model=None):
         uiView = None
 
@@ -273,12 +199,14 @@ class StackWindow(wx.Window):
         else:
             if type == "button":
                 uiView = UiButton(self, model)
-            elif type == "textfield":
+            elif type == "textfield" or type == "field":
                 uiView = UiTextField(self, model)
-            elif type == "textlabel":
+            elif type == "textlabel" or type == "label":
                 uiView = UiTextLabel(self, model)
             elif type == "image":
                 uiView = UiImage(self, model)
+            elif type == "shapes":
+                uiView = UiShapes(self, model)
 
         if uiView:
             if not model:
@@ -297,6 +225,7 @@ class StackWindow(wx.Window):
         if not model in self.uiCard.model.childModels:
             model.SetProperty("name", self.uiCard.model.DeduplicateNameInCard(model.GetProperty("name")))
 
+        command = None
         if model.GetType() == "button":
             command = AddUiViewCommand(True, 'Add Button', self, self.cardIndex, "button", model)
         elif model.GetType() == "textfield":
@@ -305,6 +234,8 @@ class StackWindow(wx.Window):
             command = AddUiViewCommand(True, 'Add TextLabel', self, self.cardIndex, "textlabel", model)
         elif model.GetType() == "image":
             command = AddUiViewCommand(True, 'Add Image', self, self.cardIndex, "image", model)
+        elif model.GetType() == "shapes":
+            command = AddUiViewCommand(True, 'Add Shape', self, self.cardIndex, "shapes", model)
 
         if canUndo:
             self.command_processor.Submit(command)
@@ -388,9 +319,6 @@ class StackWindow(wx.Window):
             command = ReorderUiViewCommand(True, "Reorder Card", self, self.cardIndex, self.stackModel.cardModels[currentIndex], newIndex)
             self.command_processor.Submit(command)
 
-    def UpdateCardChooser(self):
-        pass
-
     def AddCard(self):
         newCard = CardModel()
         newCard.SetProperty("name", newCard.DeduplicateName("card_1",
@@ -412,251 +340,54 @@ class StackWindow(wx.Window):
             command = RemoveUiViewCommand(True, "Add Card", self, index, self.stackModel.cardModels[index])
             self.command_processor.Submit(command)
 
-    def OnMouseDown(self, event):
-        """called when the left mouse button is pressed"""
-        if self.isEditing:
-            if self.isInDrawingMode:
-                self.curLine = []
-                self.pos = event.GetPosition()
-                coords = (self.pos.x, self.pos.y)
-                self.curLine.append(coords)
-                self.isDrawing = True
-                self.CaptureMouse()
-                return
-            else:
-                self.SelectUiView(self.uiCard)
-        event.Skip()
+    def OnMouseDown(self, uiView, event):
+        if self.tool and self.isEditing:
+            self.tool.OnMouseDown(uiView, event)
+        else:
+            uiView.OnMouseDown(event)
 
-    def OnMouseMove(self, event):
-        """
-        Called when the mouse is in motion.  If the left button is
-        dragging then draw a line from the last event position to the
-        current one.  Save the coordinants for redraws.
-        """
-        if self.isEditing:
-            if self.isDrawing and event.Dragging() and event.LeftIsDown():
-                dc = wx.BufferedDC(wx.ClientDC(self), self.buffer)
-                dc.SetPen(self.pen)
-                pos = event.GetPosition()
-                coords = (pos.x, pos.y)
-                self.curLine.append(coords)
-                dc.DrawLine(*(self.pos.x, self.pos.y, pos.x, pos.y))
-                self.pos = pos
-                return
-        event.Skip()
+    def OnMouseMove(self, uiView, event):
+        if self.tool and self.isEditing:
+            self.tool.OnMouseMove(uiView, event)
+        else:
+            uiView.OnMouseMove(event)
 
-    def OnMouseUp(self, event):
-        """called when the left mouse button is released"""
-        if self.isEditing:
-            if self.HasCapture() and self.isDrawing:
-                command = AddLineCommand(True, 'Add Line', self, self.cardIndex,
-                                         ("pen", self.colour, self.thickness, self.curLine) )
-                self.command_processor.Submit(command)
-                self.curLine = []
-                self.isDrawing = False
-                self.ReleaseMouse()
-                return
-        event.Skip()
+    def OnMouseUp(self, uiView, event):
+        if self.tool and self.isEditing:
+            self.tool.OnMouseUp(uiView, event)
+        else:
+            uiView.OnMouseUp(event)
 
-    def OnKeyDown(self, event):
-        self.uiCard.OnKeyDown(event)
+    def OnMouseEnter(self, uiView, event):
+        if not self.isEditing:
+            uiView.OnMouseEnter(event)
 
-    def OnKeyUp(self, event):
-        self.uiCard.OnKeyUp(event)
+    def OnMouseExit(self, uiView, event):
+        if not self.isEditing:
+            uiView.OnMouseExit(event)
 
-    def OnSize(self, event):
-        """
-        Called when the window is resized.  We set a flag so the idle
-        handler will resize the buffer.
-        """
-        self.reInitBuffer = True
-        event.Skip()
+    def OnKeyDown(self, uiView, event):
+        if self.tool and self.isEditing:
+            if event.GetKeyCode() == wx.WXK_ESCAPE:
+                self.designer.cPanel.SetToolByName("hand")
+            self.tool.OnKeyDown(uiView, event)
+        else:
+            self.uiCard.OnKeyDown(event)
+            event.Skip()
 
-    def OnIdle(self, event):
-        """
-        If the size was changed then resize the bitmap used for double
-        buffering to match the window size.  We do it in Idle time so
-        there is only one refresh after resizing is done, not lots while
-        it is happening.
-        """
-        if self.reInitBuffer:
-            self.InitBuffer()
-            self.Refresh(False)
-
-        event.Skip()
-
-    def OnPaint(self, event):
-        """
-        Called when the window is exposed.
-        """
-        # Create a buffered paint DC.  It will create the real
-        # wx.PaintDC and then blit the bitmap to it when dc is
-        # deleted.  Since we don't need to draw anything else
-        # here that's all there is to it.
-        dc = wx.BufferedPaintDC(self, self.buffer)
-        event.Skip()
-
-    def DrawShapes(self, dc):
-        """
-        Redraws all the shapes that have been drawn already.
-        """
-        for type, colour, thickness, line in self.uiCard.model.shapes:
-            pen = wx.Pen(colour, thickness, wx.PENSTYLE_SOLID)
-            dc.SetPen(pen)
-
-            lastPos = None
-            if type == "pen":
-                for coords in line:
-                    if lastPos:
-                        dc.DrawLine(*(lastPos[0], lastPos[1], coords[0], coords[1]))
-                    lastPos = coords
-
-    # Event handlers for the popup menu, uses the event ID to determine
-    # the colour or the thickness to set.
-    def OnMenuSetColour(self, event):
-        self.SetColour(self.menuColours[event.GetId()])
-
-    def OnMenuSetThickness(self, event):
-        self.SetThickness(event.GetId())
+    def OnKeyUp(self, uiView, event):
+        if self.tool and self.isEditing:
+            self.tool.OnKeyUp(uiView, event)
+        else:
+            self.uiCard.OnKeyUp(event)
+            event.Skip()
 
     def Undo(self):
         self.command_processor.Undo()
         if not self.command_processor.CanUndo():
             self.stackModel.SetDirty(False)
-        self.InitBuffer()
         self.Refresh()
 
     def Redo(self):
         self.command_processor.Redo()
-        self.InitBuffer()
         self.Refresh()
-
-    # Observer pattern.  Listeners are registered and then notified
-    # whenever doodle settings change.
-    def AddListener(self, listener):
-        self.listeners.append(listener)
-
-    def Notify(self):
-        for other in self.listeners:
-            other.UpdateLine(self.colour, self.thickness)
-
-
-class AddLineCommand(Command):
-    parent = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__()
-        self.stackView = args[2]
-        self.cardIndex = args[3]
-        self.line = args[4]
-
-    def Do(self):
-        self.stackView.LoadCardAtIndex(self.cardIndex)
-        self.stackView.uiCard.model.shapes.append(self.line)
-        return True
-
-    def Undo(self):
-        self.stackView.LoadCardAtIndex(self.cardIndex)
-        if len(self.stackView.uiCard.model.shapes):
-            self.stackView.uiCard.model.shapes.pop()
-        return True
-
-
-class AddUiViewCommand(Command):
-    def __init__(self, *args, **kwargs):
-        super().__init__(args, kwargs)
-        self.stackView = args[2]
-        self.cardIndex = args[3]
-        self.viewType = args[4]
-        self.viewModel = args[5] if len(args)>5 else None
-
-    def Do(self):
-        if self.viewType == "card":
-            self.stackView.LoadCardAtIndex(None)
-            self.stackView.stackModel.InsertCardModel(self.cardIndex, self.viewModel)
-            self.stackView.LoadCardAtIndex(self.cardIndex)
-        else:
-            self.stackView.LoadCardAtIndex(self.cardIndex)
-            uiView = self.stackView.AddUiViewInternal(self.viewType, self.viewModel)
-            if not self.viewModel:
-                self.viewModel = uiView.model
-        return True
-
-    def Undo(self):
-        if self.viewType == "card":
-            self.stackView.LoadCardAtIndex(None)
-            self.stackView.stackModel.RemoveCardModel(self.viewModel)
-            index = self.cardIndex-1
-            if index < 0: index = 0
-            self.stackView.LoadCardAtIndex(index)
-        else:
-            self.stackView.LoadCardAtIndex(self.cardIndex)
-            self.stackView.RemoveUiViewByModel(self.viewModel)
-        return True
-
-
-class RemoveUiViewCommand(Command):
-    def __init__(self, *args, **kwargs):
-        super().__init__(args, kwargs)
-        self.stackView = args[2]
-        self.cardIndex = args[3]
-        self.viewModel = args[4]
-
-    def Do(self):
-        if self.viewModel.type == "card":
-            self.stackView.LoadCardAtIndex(None)
-            self.stackView.stackModel.RemoveCardModel(self.viewModel)
-            index = self.cardIndex
-            if index >= len(self.stackView.stackModel.cardModels)-1: index = len(self.stackView.stackModel.cardModels)-1
-            self.stackView.LoadCardAtIndex(index)
-        else:
-            self.stackView.LoadCardAtIndex(self.cardIndex)
-            self.stackView.RemoveUiViewByModel(self.viewModel)
-        return True
-
-    def Undo(self):
-        if self.viewModel.type == "card":
-            self.stackView.LoadCardAtIndex(None)
-            self.stackView.stackModel.InsertCardModel(self.cardIndex, self.viewModel)
-            self.stackView.LoadCardAtIndex(self.cardIndex)
-        else:
-            self.stackView.LoadCardAtIndex(self.cardIndex)
-            self.stackView.AddUiViewInternal(self.viewModel.type, self.viewModel)
-        return True
-
-
-class ReorderUiViewCommand(Command):
-    def __init__(self, *args, **kwargs):
-        super().__init__(args, kwargs)
-        self.stackView = args[2]
-        self.cardIndex = args[3]
-        self.viewModel = args[4]
-        self.newIndex = args[5]
-        if self.viewModel.type != "card":
-            self.oldIndex = self.stackView.stackModel.cardModels[self.cardIndex].childModels.index(self.viewModel)
-
-    def Do(self):
-        if self.viewModel.type == "card":
-            cardList = self.stackView.stackModel.cardModels
-            cardList.insert(self.newIndex, cardList.pop(self.cardIndex))
-            self.stackView.LoadCardAtIndex(self.newIndex)
-            self.stackView.UpdateCardChooser()
-        else:
-            viewList = self.stackView.stackModel.cardModels[self.cardIndex].childModels
-            viewList.insert(self.newIndex, viewList.pop(self.oldIndex))
-            self.stackView.LoadCardAtIndex(self.cardIndex, reload=True)
-            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
-        return True
-
-    def Undo(self):
-        if self.viewModel.type == "card":
-            cardList = self.stackView.stackModel.cardModels
-            cardList.insert(self.cardIndex, cardList.pop(self.newIndex))
-            self.stackView.LoadCardAtIndex(self.cardIndex)
-            self.stackView.UpdateCardChooser()
-        else:
-            viewList = self.stackView.stackModel.cardModels[self.cardIndex].childModels
-            viewList.insert(self.oldIndex, viewList.pop(self.newIndex))
-            self.stackView.LoadCardAtIndex(self.cardIndex, reload=True)
-            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
-        return True

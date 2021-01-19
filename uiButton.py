@@ -14,14 +14,13 @@ class UiButton(UiView):
             model = ButtonModel()
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("button_"))
 
-        button.SetCursor(wx.Cursor(wx.CURSOR_HAND))
+        button.SetCursor(wx.Cursor())
         super().__init__(stackView, model, button)
 
     def SetView(self, view):
         super().SetView(view)
         view.SetLabel(self.model.GetProperty("title"))
         view.Bind(wx.EVT_BUTTON, self.OnButton)
-
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)

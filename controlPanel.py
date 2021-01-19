@@ -1,6 +1,6 @@
 import wx
-import wx.stc as stc
 import wx.grid
+from tools import *
 from wx.lib import buttons # for generic button classes
 from PythonEditor import PythonEditor
 from uiView import UiView
@@ -10,63 +10,97 @@ from wx.lib.docview import Command
 class ControlPanel(wx.Panel):
     """
     This class implements a very simple control panel for the stackWindow.
-    It creates buttons for each of the colours and thickneses supported by
+    It creates buttons for each of the colors and thickneses supported by
     the stackWindow, and event handlers to set the selected values.  There is
     also a little view that shows an example line in the selected
     values.  Nested sizers are used for layout.
     """
 
-    BMP_SIZE = 16
-    BMP_BORDER = 3
+    penColors = {100: 'White',
+                 101: 'Yellow',
+                 102: 'Red',
+                 103: 'Green',
+                 104: 'Blue',
+                 105: 'Purple',
+                 106: 'Brown',
+                 107: 'Aquamarine',
+                 108: 'Forest Green',
+                 109: 'Light Blue',
+                 110: 'Goldenrod',
+                 111: 'Cyan',
+                 112: 'Orange',
+                 113: 'Black',
+                 114: 'Dark Grey',
+                 115: 'Light Grey',
+                 }
+    maxThickness = 16
+
+    BMP_SIZE = 22
+    BMP_BORDER = 6
+
+    toolNames = ["hand", "button", "field", "label", "image",
+                 "oval", "rect", "rrect", "line", "pen"]
 
     def __init__(self, parent, ID, stackView):
         wx.Panel.__init__(self, parent, ID, style=wx.RAISED_BORDER)
         self.stackView = stackView
+        self.penColor = "black"
+        self.penThickness = 4
 
-        numCols = 4
-        spacing = 4
+        numCols = 5
+        spacing = 6
 
         btnSize = wx.Size(self.BMP_SIZE + 2*self.BMP_BORDER,
                           self.BMP_SIZE + 2*self.BMP_BORDER)
 
-        # Make a grid of buttons for each colour.  Attach each button
-        # event to self.OnSetColour.  The button ID is the same as the
-        # key in the colour dictionary.
+        # Make a grid of buttons for the tools.
+        self.toolBtns = {}
+        self.toolGrid = wx.GridSizer(cols=numCols, hgap=2, vgap=2)
+        for name in self.toolNames:
+            b = buttons.GenToggleButton(self, self.toolNames.index(name), name, size=btnSize)
+            b.SetBezelWidth(1)
+            b.SetUseFocusIndicator(False)
+            b.Bind(wx.EVT_BUTTON, self.OnSetTool)
+            self.toolGrid.Add(b, 0)
+            self.toolBtns[name] = b
+        self.toolBtns["hand"].SetToggle(True)
+
+        # Make a grid of buttons for each color.  Attach each button
+        # event to self.OnSetColor.  The button ID is the same as the
+        # key in the color dictionary.
         self.clrBtns = {}
-        colours = stackView.menuColours
-        keys = list(colours.keys())
+        keys = list(self.penColors.keys())
         keys.sort()
         self.cGrid = wx.GridSizer(cols=numCols, hgap=2, vgap=2)
         for k in keys:
-            bmp = self.MakeBitmap(colours[k])
+            bmp = self.MakeBitmap(self.penColors[k])
             b = buttons.GenBitmapToggleButton(self, k, bmp, size=btnSize )
             b.SetBezelWidth(1)
             b.SetUseFocusIndicator(False)
-            self.Bind(wx.EVT_BUTTON, self.OnSetColour, b)
+            b.Bind(wx.EVT_BUTTON, self.OnSetColor)
             self.cGrid.Add(b, 0)
-            self.clrBtns[colours[k]] = b
-        self.clrBtns[colours[keys[0]]].SetToggle(True)
+            self.clrBtns[self.penColors[k]] = b
+        self.clrBtns['Black'].SetToggle(True)
 
         # Make a grid of buttons for the thicknesses.  Attach each button
         # event to self.OnSetThickness.  The button ID is the same as the
         # thickness value.
         self.thknsBtns = {}
         self.tGrid = wx.GridSizer(cols=numCols, hgap=2, vgap=2)
-        for x in range(1, stackView.maxThickness+1):
-            b = buttons.GenToggleButton(self, x, str(x), size=btnSize)
+        for x in [1,2,4,8,16]:
+            bmp = self.MakeLineBitmap(x)
+            b = buttons.GenBitmapToggleButton(self, x, bmp, size=btnSize)
             b.SetBezelWidth(1)
             b.SetUseFocusIndicator(False)
-            self.Bind(wx.EVT_BUTTON, self.OnSetThickness, b)
+            b.Bind(wx.EVT_BUTTON, self.OnSetThickness)
             self.tGrid.Add(b, 0)
             self.thknsBtns[x] = b
-        self.thknsBtns[1].SetToggle(True)
+        self.thknsBtns[4].SetToggle(True)
 
-        # Make a colour indicator view, it is registerd as a listener
+        # Make a color indicator view, it is registerd as a listener
         # with the stackView view so it will be notified when the settings
         # change
-        self.ci = ColourIndicator(self)
-        stackView.AddListener(self.ci)
-        stackView.Notify()
+        self.ci = ColorIndicator(self)
 
         # ----------
 
@@ -102,8 +136,8 @@ class ControlPanel(wx.Panel):
         # ----------
 
         self.drawBox = wx.BoxSizer(wx.VERTICAL)
-        self.drawBox.Add(self.cGrid, 0, wx.RIGHT, spacing)
-        self.drawBox.Add(self.tGrid, 0, wx.RIGHT, spacing)
+        self.drawBox.Add(self.cGrid, 0, wx.LEFT, spacing)
+        self.drawBox.Add(self.tGrid, 0, wx.LEFT, spacing)
         self.drawBox.Add(self.ci, 0, wx.EXPAND|wx.ALL, spacing)
 
         self.editBox = wx.BoxSizer(wx.VERTICAL)
@@ -114,30 +148,13 @@ class ControlPanel(wx.Panel):
         self.editBox.SetSizeHints(self)
 
         self.box = wx.BoxSizer(wx.VERTICAL)
+        self.box.Add(self.toolGrid, 0, wx.LEFT, spacing)
         self.box.Add(self.drawBox, 0, wx.EXPAND|wx.ALL, spacing)
         self.box.Add(self.editBox, 1, wx.EXPAND|wx.ALL, spacing)
         self.box.SetSizeHints(self)
 
         self.SetSizer(self.box)
         self.SetAutoLayout(True)
-
-        self.SetDrawingMode(False)
-
-    def OnSetDrawingMode(self, event):
-        drawMode = (event.GetId() == 2)
-        self.SetDrawingMode(drawMode)
-
-    def SetDrawingMode(self, drawMode):
-        if drawMode:
-            self.box.Show(self.drawBox)
-            self.box.Hide(self.editBox)
-            self.stackView.SelectUiView(None)
-        else:
-            self.box.Hide(self.drawBox)
-            self.box.Show(self.editBox)
-
-        self.Layout()
-        self.stackView.SetDrawingMode(drawMode)
 
     def OnGridClick(self, event):
         self.inspector.SetGridCursor(event.Row, event.Col)
@@ -282,7 +299,7 @@ class ControlPanel(wx.Panel):
             self.SaveCurrentHandler()
         event.Skip()
 
-    def MakeBitmap(self, colour):
+    def MakeBitmap(self, color):
         """
         We can create a bitmap of whatever we want by simply selecting
         it into a wx.MemoryDC and drawing on it.  In this case we just set
@@ -291,37 +308,73 @@ class ControlPanel(wx.Panel):
         bmp = wx.Bitmap(self.BMP_SIZE, self.BMP_SIZE)
         dc = wx.MemoryDC()
         dc.SelectObject(bmp)
-        dc.SetBackground(wx.Brush(colour))
+        dc.SetBackground(wx.Brush(color))
         dc.Clear()
         dc.SelectObject(wx.NullBitmap)
         return bmp
 
-    def OnSetColour(self, event):
+    def MakeLineBitmap(self, thickness):
+        bmp = wx.Bitmap(self.BMP_SIZE, thickness)
+        dc = wx.MemoryDC()
+        dc.SelectObject(bmp)
+        dc.SetBackground(wx.Brush("black"))
+        dc.Clear()
+        dc.SelectObject(wx.NullBitmap)
+        return bmp
+
+    def OnSetTool(self, event):
+        toolId = event.GetId()
+        toolName = self.toolNames[toolId]
+        self.SetToolByName(toolName)
+
+    def SetToolByName(self, toolName):
+        if self.stackView.tool:
+            self.toolBtns[self.stackView.tool.name].SetToggle(toolName == self.stackView.tool.name)
+
+        if not self.stackView.tool or toolName != self.stackView.tool.name:
+            tool = BaseTool.ToolFromName(toolName, self.stackView)
+            self.stackView.SetTool(tool)
+
+            if tool.name == "pen":
+                self.box.Show(self.drawBox)
+                self.box.Hide(self.editBox)
+                self.stackView.SelectUiView(None)
+                tool.SetColor(self.penColor)
+                tool.SetThickness(self.penThickness)
+            else:
+                self.box.Hide(self.drawBox)
+                self.box.Show(self.editBox)
+                self.stackView.SelectUiView(self.stackView.uiCard)
+
+            self.Layout()
+
+    def OnSetColor(self, event):
         """
-        Use the event ID to get the colour, set that colour in the stackView.
+        Use the event ID to get the color, set that color in the stackView.
         """
-        colour = self.stackView.menuColours[event.GetId()]
-        if colour != self.stackView.colour:
-            # untoggle the old colour button
-            self.clrBtns[self.stackView.colour].SetToggle(False)
-        # set the new colour
-        self.stackView.SetColour(colour)
+        newColor = self.penColors[event.GetId()]
+        # if newColor != self.penColor:
+            # untoggle the old color button
+            # self.clrBtns[self.lastColorIndex].SetToggle(False)
+        # set the new color
+        self.penColor = newColor
+        self.stackView.tool.SetColor(self.penColor)
 
     def OnSetThickness(self, event):
         """
         Use the event ID to set the thickness in the stackView.
         """
-        thickness = event.GetId()
-        if thickness != self.stackView.thickness:
-            # untoggle the old thickness button
-            self.thknsBtns[self.stackView.thickness].SetToggle(False)
-        # set the new colour
-        self.stackView.SetThickness(thickness)
+        newThickness = event.GetId()
+        # untoggle the old thickness button
+        self.thknsBtns[self.penThickness].SetToggle(newThickness == self.penThickness)
+        # set the new color
+        self.penThickness = newThickness
+        self.stackView.tool.SetThickness(self.penThickness)
 
 
 # ----------------------------------------------------------------------
 
-class ColourIndicator(wx.Window):
+class ColorIndicator(wx.Window):
     """
     An instance of this class is used on the ControlPanel to show
     a sample of what the current stackView line will look like.
@@ -330,15 +383,15 @@ class ColourIndicator(wx.Window):
         wx.Window.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
         self.SetBackgroundColour(wx.WHITE)
         self.SetMinSize( (45, 45) )
-        self.colour = self.thickness = None
+        self.color = self.thickness = None
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-    def UpdateLine(self, colour, thickness):
+    def UpdateLine(self, color, thickness):
         """
-        The stackView view calls this method any time the colour
+        The stackView view calls this method any time the color
         or line thickness changes.
         """
-        self.colour = colour
+        self.color = color
         self.thickness = thickness
         self.Refresh()  # generate a paint event
 
@@ -348,9 +401,9 @@ class ColourIndicator(wx.Window):
         redrawn.
         """
         dc = wx.PaintDC(self)
-        if self.colour:
+        if self.color:
             sz = self.GetClientSize()
-            pen = wx.Pen(self.colour, self.thickness)
+            pen = wx.Pen(self.color, self.thickness)
             dc.SetPen(pen)
             dc.DrawLine(10, int(sz.height/2), int(sz.width-10), int(sz.height/2))
 

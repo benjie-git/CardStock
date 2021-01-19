@@ -8,6 +8,7 @@ from uiButton import ButtonModel
 from uiTextField import TextFieldModel
 from uiTextLabel import TextLabelModel
 from uiImage import ImageModel
+from uiShapes import ShapesModel
 
 
 class UiCard(UiView):
@@ -43,24 +44,19 @@ class UiCard(UiView):
             self.view.Refresh()
 
     def OnKeyDown(self, event):
-        if not self.stackView.isEditing:
-            if self.model.runner and "OnKeyDown" in self.model.handlers:
-                self.model.runner.RunHandler(self.model, "OnKeyDown", event)
-        else:
-            event.Skip()
+        if self.model.runner and "OnKeyDown" in self.model.handlers:
+            self.model.runner.RunHandler(self.model, "OnKeyDown", event)
 
     def OnKeyUp(self, event):
-        if not self.stackView.isEditing:
-            if self.model.runner and "OnKeyUp" in self.model.handlers:
-                self.model.runner.RunHandler(self.model, "OnKeyUp", event)
+        if self.model.runner and "OnKeyUp" in self.model.handlers:
+            self.model.runner.RunHandler(self.model, "OnKeyUp", event)
 
     def OnIdle(self, event):
-        if not self.stackView.isEditing:
-            if self.model.runner and "OnIdle" in self.model.handlers:
-                self.model.runner.RunHandler(self.model, "OnIdle", event)
-            for m in self.model.childModels:
-                if m.runner and "OnIdle" in m.handlers:
-                    m.runner.RunHandler(m, "OnIdle", event)
+        if self.model.runner and "OnIdle" in self.model.handlers:
+            self.model.runner.RunHandler(self.model, "OnIdle", event)
+        for m in self.model.childModels:
+            if m.runner and "OnIdle" in m.handlers:
+                m.runner.RunHandler(m, "OnIdle", event)
 
 
 class CardModel(ViewModel):
@@ -84,7 +80,6 @@ class CardModel(ViewModel):
         self.propertyTypes["bgColor"] = "string"
 
         self.childModels = []
-        self.shapes = []
 
     def SetProperty(self, key, value, notify=True):
         if key == "stackSize":
@@ -139,7 +134,6 @@ class CardModel(ViewModel):
 
     def GetData(self):
         data = super().GetData()
-        data["shapes"] = self.shapes.copy()
         data["childModels"] = []
         for m in self.childModels:
             data["childModels"].append(m.GetData())
@@ -149,7 +143,6 @@ class CardModel(ViewModel):
 
     def SetData(self, data):
         super().SetData(data)
-        self.shapes = data["shapes"]
         for childData in data["childModels"]:
             self.childModels.append(CardModel.ModelFromData(childData))
 
@@ -197,5 +190,7 @@ class CardModel(ViewModel):
             m = TextLabelModel()
         elif data["type"] == "image":
             m = ImageModel()
+        elif data["type"] == "shapes":
+            m = ShapesModel()
         m.SetData(data)
         return m

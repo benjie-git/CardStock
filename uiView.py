@@ -3,7 +3,6 @@
 # This is a draggable View, for adding a UI elements from the palate to the Card.
 
 import wx
-from wx.lib.docview import Command
 import ast
 import re
 
@@ -22,19 +21,30 @@ class UiView(object):
         self.delta = ((0, 0))
 
     def BindEvents(self, view):
-        view.Bind(wx.EVT_ENTER_WINDOW, self.OnMouseEnter)
-        view.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
-        view.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
-        view.Bind(wx.EVT_MOTION, self.OnMouseMove)
+        view.Bind(wx.EVT_ENTER_WINDOW, self.FwdOnMouseEnter)
+        view.Bind(wx.EVT_LEAVE_WINDOW, self.FwdOnMouseExit)
+        view.Bind(wx.EVT_LEFT_DOWN, self.FwdOnMouseDown)
+        view.Bind(wx.EVT_MOTION, self.FwdOnMouseMove)
+        view.Bind(wx.EVT_LEFT_UP, self.FwdOnMouseUp)
+        view.Bind(wx.EVT_KEY_DOWN, self.FwdOnKeyDown)
+        view.Bind(wx.EVT_KEY_UP, self.FwdOnKeyUp)
+
         view.Bind(wx.EVT_SIZE, self.OnResize)
-        view.Bind(wx.EVT_KEY_DOWN, self.OnArrowKeyDown)
-        if self.model.type != "card":
-            view.Bind(wx.EVT_MOTION, self.stackView.uiCard.OnMouseMove)
-        view.Bind(wx.EVT_LEFT_UP, self.OnMouseUp)
+
+    def FwdOnMouseDown( self, event): self.stackView.OnMouseDown( self, event)
+    def FwdOnMouseMove( self, event): self.stackView.OnMouseMove( self, event)
+    def FwdOnMouseUp(   self, event): self.stackView.OnMouseUp(   self, event)
+    def FwdOnMouseEnter(self, event): self.stackView.OnMouseEnter(self, event)
+    def FwdOnMouseExit( self, event): self.stackView.OnMouseExit( self, event)
+    def FwdOnKeyDown(   self, event): self.stackView.OnKeyDown(   self, event)
+    def FwdOnKeyUp(     self, event): self.stackView.OnKeyUp(     self, event)
 
     def SetView(self, view):
         self.view = view
         self.BindEvents(view)
+
+        if self.GetCursor():
+            self.view.SetCursor(wx.Cursor(self.GetCursor()))
 
         viewSize = list(self.view.GetSize())
         self.selectionBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(0,0), size=viewSize, style=0)
@@ -59,6 +69,9 @@ class UiView(object):
         self.model = model
         self.lastEditedHandler = None
         self.model.AddPropertyListener(self.OnPropertyChanged)
+
+    def GetCursor(self):
+        return wx.CURSOR_HAND
 
     def OnPropertyChanged(self, model, key):
         if key == "size":
@@ -97,136 +110,29 @@ class UiView(object):
         self.view.Update()
 
     def OnMouseDown(self, event):
-        if self.stackView.isEditing:
-            if not self.stackView.isInDrawingMode:
-                x, y = self.stackView.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
-                originx, originy = self.view.GetPosition()
-                dx = x - originx
-                dy = y - originy
-                self.moveOrigin = (originx, originy)
-                self.origMousePos = (x, y)
-                self.origSize = list(self.view.GetSize())
-                self.delta = ((dx, dy))
-
-                rpx,rpy = event.GetPosition()
-                hackOffset = 5 if self.model.type == "button" else 0  # Buttons are bigger than specified???
-                if self.origSize[0] - rpx + hackOffset < 10 and self.origSize[1] - rpy + hackOffset < 10:
-                    self.isResizing = True
-                else:
-                    self.isResizing = False
-
-                if self.model.type != "card" or self.isResizing:
-                    self.view.CaptureMouse()
-
-            if not self.stackView.isInDrawingMode:
-                self.stackView.SelectUiView(self)
-            else:
-                event.Skip()
-        else:
-            if self.model.runner and "OnMouseDown" in self.model.handlers:
-                self.model.runner.RunHandler(self.model, "OnMouseDown", event)
-            event.Skip()
+        if self.model.runner and "OnMouseDown" in self.model.handlers:
+            self.model.runner.RunHandler(self.model, "OnMouseDown", event)
+        event.Skip()
 
     def OnMouseMove(self, event):
-        if self.stackView.isEditing and not self.stackView.isInDrawingMode and self.view.HasCapture():
-            x, y = self.stackView.ScreenToClient(self.view.ClientToScreen(event.GetPosition()))
-            if not self.isResizing:
-                self.model.SetProperty("position", [x - self.delta[0], y - self.delta[1]])
-            else:
-                offset = (x-self.origMousePos[0], y-self.origMousePos[1])
-                self.model.SetProperty("size", [self.origSize[0]+offset[0], self.origSize[1]+offset[1]])
-        elif not self.stackView.isEditing:
-            if self.model.runner and "OnMouseMove" in self.model.handlers:
-                self.model.runner.RunHandler(self.model, "OnMouseMove", event)
+        if self.model.runner and "OnMouseMove" in self.model.handlers:
+            self.model.runner.RunHandler(self.model, "OnMouseMove", event)
         event.Skip()
 
     def OnMouseUp(self, event):
-        if self.stackView.isEditing and not self.stackView.isInDrawingMode and self.view.HasCapture():
-            self.view.ReleaseMouse()
-            if not self.isResizing:
-                endx, endy = self.view.GetPosition()
-                offset = (endx-self.moveOrigin[0], endy-self.moveOrigin[1])
-                if offset != (0, 0):
-                    command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, self.model, offset)
-                    self.model.SetProperty("position", self.moveOrigin)
-                    self.stackView.command_processor.Submit(command)
-            else:
-                endw, endh = self.view.GetSize()
-                offset = (endw-self.origSize[0], endh-self.origSize[1])
-                if offset != (0, 0):
-                    model = self.stackView.stackModel if self.model.type == "card" else self.model
-                    command = ResizeUiViewCommand(True, 'Resize', self.stackView, self.stackView.cardIndex, model, offset)
-                    self.model.SetProperty("size", self.origSize)
-                    self.stackView.command_processor.Submit(command)
-
-            self.stackView.SetFocus()
-        elif not self.stackView.isEditing:
-            if self.model.runner and "OnMouseUp" in self.model.handlers:
-                self.model.runner.RunHandler(self.model, "OnMouseUp", event)
+        if self.model.runner and "OnMouseUp" in self.model.handlers:
+            self.model.runner.RunHandler(self.model, "OnMouseUp", event)
         event.Skip()
 
-    def OnArrowKeyDown(self, event):
-        if self.stackView.isEditing:
-            uiView = self
-            if self.model.type == "card":
-                uiView = self.stackView.GetSelectedUiView()
-
-            if not uiView: return
-
-            code = event.GetKeyCode()
-            if uiView.model.type != "card":
-                pos = wx.Point(uiView.model.GetProperty("position"))
-                cardRect = self.stackView.GetRect()
-                dist = 20 if event.AltDown() else (5 if event.ShiftDown() else 1)
-                if code == wx.WXK_LEFT:
-                    if pos.x-dist < 0: dist = pos.x
-                    if dist > 0:
-                        command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (-dist, 0))
-                        self.stackView.command_processor.Submit(command)
-                        uiView.model.SetProperty("position", (pos.x-dist, pos.y))
-                elif code == wx.WXK_RIGHT:
-                    if pos.x+dist > cardRect.Right-20: dist = cardRect.Right-20 - pos.x
-                    if dist > 0:
-                        command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (dist, 0))
-                        self.stackView.command_processor.Submit(command)
-                        uiView.model.SetProperty("position", (pos.x+dist, pos.y))
-                elif code == wx.WXK_UP:
-                    if pos.y-dist < 0: dist = pos.y
-                    if dist > 0:
-                        command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (0, -dist))
-                        self.stackView.command_processor.Submit(command)
-                        uiView.model.SetProperty("position", (pos.x, pos.y-dist))
-                elif code == wx.WXK_DOWN:
-                    if pos.y+dist > cardRect.Bottom-20: dist = cardRect.Bottom-20 - pos.y
-                    if dist > 0:
-                        command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (0, dist))
-                        self.stackView.command_processor.Submit(command)
-                        uiView.model.SetProperty("position", (pos.x, pos.y+dist))
-
-            if code == wx.WXK_TAB:
-                if len(self.stackView.uiViews) > 0:
-                    ui = self.stackView.GetSelectedUiView()
-                    if ui == self.stackView.uiCard:
-                        self.stackView.SelectUiView(self.stackView.uiViews[0])
-                    elif ui == self.stackView.uiViews[-1]:
-                        self.stackView.SelectUiView(self.stackView.uiCard)
-                    else:
-                        nextUi = self.stackView.uiViews[self.stackView.uiViews.index(ui) + 1]
-                        self.stackView.SelectUiView(nextUi)
-        else:
-            event.Skip()
-
     def OnMouseEnter(self, event):
-        if not self.stackView.isEditing:
-            if self.model.runner and "OnMouseEnter" in self.model.handlers:
-                self.model.runner.RunHandler(self.model, "OnMouseEnter", event)
-            event.Skip()
+        if self.model.runner and "OnMouseEnter" in self.model.handlers:
+            self.model.runner.RunHandler(self.model, "OnMouseEnter", event)
+        event.Skip()
 
     def OnMouseExit(self, event):
-        if not self.stackView.isEditing:
-            if self.model.runner and "OnMouseExit" in self.model.handlers:
-                self.model.runner.RunHandler(self.model, "OnMouseExit", event)
-            event.Skip()
+        if self.model.runner and "OnMouseExit" in self.model.handlers:
+            self.model.runner.RunHandler(self.model, "OnMouseExit", event)
+        event.Skip()
 
     def OnPaintSelectionBox(self, event):
         dc = wx.PaintDC(self.selectionBox)
@@ -454,49 +360,3 @@ class ViewModel(object):
         if sf.Intersects(left): return "Left"
         if sf.Intersects(right): return "Right"
         return False
-
-
-class MoveUiViewCommand(Command):
-    uiView = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(args, kwargs)
-        self.stackView = args[2]
-        self.cardIndex = args[3]
-        self.viewModel = args[4]
-        self.delta = args[5]
-
-    def Do(self):
-        self.stackView.LoadCardAtIndex(self.cardIndex)
-        pos = self.viewModel.GetProperty("position")
-        self.viewModel.SetProperty("position", (pos[0]+self.delta[0], pos[1]+self.delta[1]))
-        return True
-
-    def Undo(self):
-        self.stackView.LoadCardAtIndex(self.cardIndex)
-        pos = self.viewModel.GetProperty("position")
-        self.viewModel.SetProperty("position", (pos[0]-self.delta[0], pos[1]-self.delta[1]))
-        return True
-
-
-class ResizeUiViewCommand(Command):
-    uiView = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(args, kwargs)
-        self.stackView = args[2]
-        self.cardIndex = args[3]
-        self.viewModel = args[4]
-        self.delta = args[5]
-
-    def Do(self):
-        self.stackView.LoadCardAtIndex(self.cardIndex)
-        viewSize = self.viewModel.GetProperty("size")
-        self.viewModel.SetProperty("size", (viewSize[0]+self.delta[0], viewSize[1]+self.delta[1]))
-        return True
-
-    def Undo(self):
-        self.stackView.LoadCardAtIndex(self.cardIndex)
-        viewSize = self.viewModel.GetProperty("size")
-        self.viewModel.SetProperty("size", (viewSize[0]-self.delta[0], viewSize[1]-self.delta[1]))
-        return True
