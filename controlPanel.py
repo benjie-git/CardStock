@@ -326,10 +326,12 @@ class ControlPanel(wx.Panel):
         toolId = event.GetId()
         toolName = self.toolNames[toolId]
         self.SetToolByName(toolName)
+        self.stackView.SetFocus()
 
     def SetToolByName(self, toolName):
         if self.stackView.tool:
             self.toolBtns[self.stackView.tool.name].SetToggle(toolName == self.stackView.tool.name)
+        self.toolBtns[toolName].SetToggle(True)
 
         if not self.stackView.tool or toolName != self.stackView.tool.name:
             tool = BaseTool.ToolFromName(toolName, self.stackView)
