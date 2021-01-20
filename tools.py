@@ -1,6 +1,6 @@
 import wx
 from commands import *
-
+import math
 
 class BaseTool(object):
     def __init__(self, stackView):
@@ -306,7 +306,21 @@ class ShapeTool(BaseTool):
         if self.targetUi and self.targetUi.view.HasCapture():
             pos = list(self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition())))
             if pos != self.points[1]:
-                self.points[1] = pos
+                if event.ShiftDown():
+                    dx = pos[0] - self.startPoint[0]
+                    dy = pos[1] - self.startPoint[1]
+                    if self.name == "line":
+                        if abs(dx) > abs(dy):
+                            self.points[1] = [pos[0], self.startPoint[1]]
+                        else:
+                            self.points[1] = [self.startPoint[0], pos[1]]
+                    else:
+                        if abs(dx) > abs(dy):
+                            self.points[1] = [pos[0], self.startPoint[1] + (math.copysign(dx, dy))]
+                        else:
+                            self.points[1] = [self.startPoint[0] + (math.copysign(dy, dx)), pos[1]]
+                else:
+                    self.points[1] = pos
                 self.targetUi.model.DidUpdateShapes()
 
     def OnMouseUp(self, uiView, event):
