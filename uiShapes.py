@@ -12,7 +12,7 @@ class UiShapes(UiView):
 
         if not model:
             model = ShapesModel()
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("drawing_"))
+            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("shape_"))
 
         super().__init__(stackView, model, view)
 
@@ -27,13 +27,13 @@ class UiShapes(UiView):
         """
         Redraws all the shapes that have been drawn already.
         """
-        for type, color, thickness, line in self.model.shapes:
-            pen = wx.Pen(color, thickness, wx.PENSTYLE_SOLID)
+        for shape in self.model.shapes:
+            pen = wx.Pen(shape["penColor"], shape["thickness"], wx.PENSTYLE_SOLID)
             dc.SetPen(pen)
 
-            if type == "pen":
+            if shape["type"] == "pen":
                 lastPos = None
-                for coords in line:
+                for coords in shape["points"]:
                     if lastPos:
                         dc.DrawLine(*(lastPos[0], lastPos[1], coords[0], coords[1]))
                     lastPos = coords
@@ -54,7 +54,7 @@ class ShapesModel(ViewModel):
     def __init__(self):
         super().__init__()
         self.type = "shapes"
-        self.handlers = {"OnMessage": ""}
+        self.handlers = {"OnMessage": "", "OnIdle": ""}
         self.shapes = []
 
         # Custom property order and mask for the inspector
@@ -81,8 +81,51 @@ class ShapesModel(ViewModel):
         for callback in self.propertyListeners:
             callback(self, "shapes")
 
-    def DidUpdateShape(self):  # If client updates the list already passed to AddShape
+    def DidUpdateShapes(self):  # If client updates the list already passed to AddShape
         self.isDirty = True
         for callback in self.propertyListeners:
             callback(self, "shapes")
 
+    # Re-fit the bounding box to the shapes
+    def ReCropShapes(self):
+        # First move all points to be relative to the card origin
+        offset = self.GetProperty("position")
+        for shape in self.shapes:
+            points = shape["points"]
+            # adjust all points in shape
+            i = 0
+            for x, y in points.copy():
+                points[i] = (x + offset[0], y + offset[1])
+                i += 1
+
+        rect = None
+        thickness = 0
+        for shape in self.shapes:
+            points = shape["points"]
+            if len(points) > 0:
+                # calculate bounding rect
+                if not rect:
+                    rect = wx.Rect(points[0][0], points[0][1], 1, 1)
+                for x,y in points:
+                    rect = rect.Union(wx.Rect(x, y, 1, 1))
+
+                if shape["thickness"] > thickness:
+                    thickness = shape["thickness"]
+
+        # inflate rect to account for line thickness
+        rect = rect.Inflate(thickness / 2 + 2)
+
+        # adjust view rect
+        self.SetProperty("position", rect.Position)
+        self.SetProperty("size", rect.Size)
+
+        for shape in self.shapes:
+            points = shape["points"]
+            if len(points) > 0:
+                # adjust all points in shape
+                i = 0
+                for x,y in points.copy():
+                    points[i] = (x-rect.Left, y-rect.Top)
+                    i += 1
+
+        self.DidUpdateShapes()

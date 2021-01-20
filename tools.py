@@ -200,6 +200,8 @@ class PenTool(BaseTool):
         self.pos = wx.Point(0,0)
         self.thickness = 0
         self.color = None
+        self.targetUi = None
+        self.appendToView = False
 
     def SetColor(self, color):
         self.color = color
@@ -208,15 +210,22 @@ class PenTool(BaseTool):
         self.thickness = num
 
     def OnMouseDown(self, uiView, event):
-        self.targetUi = self.stackView.AddUiViewInternal("shapes")
+        self.pos = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+
+        if uiView.model.type == "shapes":
+            self.targetUi = uiView
+            self.UnCropShape(uiView)
+            self.appendToView = True
+        else:
+            self.targetUi = self.stackView.AddUiViewInternal("shapes")
+
         self.targetUi.view.SetCursor(wx.Cursor(wx.CURSOR_PENCIL))
         self.targetUi.model.SetProperty("position", [0,0])
         self.targetUi.model.SetProperty("size", self.stackView.stackModel.GetProperty("size"))
         self.targetUi.view.CaptureMouse()
         self.curLine = []
-        self.pos = self.targetUi.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         self.curLine.append(list(self.pos))
-        self.targetUi.model.AddShape(("pen", self.color, self.thickness, self.curLine))
+        self.targetUi.model.AddShape({"type": "pen", "penColor": self.color, "thickness": self.thickness, "points": self.curLine})
 
     def OnMouseMove(self, uiView, event):
         """
@@ -229,43 +238,42 @@ class PenTool(BaseTool):
             coords = (pos.x, pos.y)
             if coords != (self.pos.x, self.pos.y):
                 self.curLine.append(coords)
-                self.targetUi.model.DidUpdateShape()
+                self.targetUi.model.DidUpdateShapes()
                 self.pos = pos
         event.Skip()
 
     def OnMouseUp(self, uiView, event):
         """called when the left mouse button is released"""
         if self.targetUi and self.targetUi.view.HasCapture():
-            self.CropShape()
             model = self.targetUi.model
             self.curLine = []
             self.targetUi.view.ReleaseMouse()
             self.targetUi = None
 
-            command = AddUiViewCommand(True, 'Add View', self.stackView, self.stackView.cardIndex, model.type, model)
-            self.stackView.RemoveUiViewByModel(model)
-            self.stackView.command_processor.Submit(command)
+            model.ReCropShapes()
+
+            if self.appendToView:
+                shape = model.shapes.pop()
+                command = AppendShapeCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model, shape)
+                self.stackView.command_processor.Submit(command)
+            else:
+                command = AddUiViewCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model.type, model)
+                self.stackView.RemoveUiViewByModel(model)
+                self.stackView.command_processor.Submit(command)
             self.stackView.SelectUiView(self.stackView.GetUiViewByModel(model))
         self.stackView.SetFocus()
 
-    # Crop the shape in-place
-    def CropShape(self):
-        if len(self.curLine) > 0:
-            # calculate bounding rect
-            rect = wx.Rect(self.curLine[0][0], self.curLine[0][1], 1, 1)
-            for x,y in self.curLine[1:]:
-                rect = rect.Union(wx.Rect(x, y, 1, 1))
+    # Un-Crop the shape to fill the card
+    def UnCropShape(self, uiView):
+        offset = uiView.model.GetProperty("position")
+        # adjust view rect
+        uiView.model.SetProperty("position", [0, 0])
+        uiView.model.SetProperty("size", self.stackView.stackModel.GetProperty("size"))
 
-            # inflate rect to account for line thickness
-            rect = rect.Inflate(self.thickness/2 + 2)
-
-            # adjust view rect
-            self.targetUi.model.SetProperty("position", rect.Position)
-            self.targetUi.model.SetProperty("size", rect.Size)
-
+        for shape in uiView.model.shapes:
+            points = shape["points"]
             # adjust all points in shape
             i = 0
-            for x,y in self.curLine.copy():
-                self.curLine[i] = (x-rect.Left, y-rect.Top)
+            for x, y in points.copy():
+                points[i] = (x + offset[0], y + offset[1])
                 i += 1
-

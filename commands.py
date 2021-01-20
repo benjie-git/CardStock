@@ -1,8 +1,6 @@
 from wx.lib.docview import Command
 
 class MoveUiViewCommand(Command):
-    uiView = None
-
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.stackView = args[2]
@@ -24,8 +22,6 @@ class MoveUiViewCommand(Command):
 
 
 class ResizeUiViewCommand(Command):
-    uiView = None
-
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.stackView = args[2]
@@ -141,4 +137,29 @@ class ReorderUiViewCommand(Command):
             viewList.insert(self.oldIndex, viewList.pop(self.newIndex))
             self.stackView.LoadCardAtIndex(self.cardIndex, reload=True)
             self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
+        return True
+
+
+class AppendShapeCommand(Command):
+    uiView = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.stackView = args[2]
+        self.cardIndex = args[3]
+        self.viewModel = args[4]
+        self.shape = args[5].copy()
+
+    def Do(self):
+        self.stackView.LoadCardAtIndex(self.cardIndex)
+        self.viewModel.shapes.append(self.shape)
+        self.viewModel.ReCropShapes()
+        self.viewModel.DidUpdateShapes()
+        return True
+
+    def Undo(self):
+        self.stackView.LoadCardAtIndex(self.cardIndex)
+        self.viewModel.shapes.pop()
+        self.viewModel.ReCropShapes()
+        self.viewModel.DidUpdateShapes()
         return True
