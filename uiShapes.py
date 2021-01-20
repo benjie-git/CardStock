@@ -46,7 +46,8 @@ class UiShapes(UiView):
                     rect = self.model.RectFromPoints(shape["points"])
                     p1 = rect.TopLeft
                     p2 = rect.BottomRight
-                    dc.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
+                    fillColor = shape["fillColor"] if "fillColor" in shape else "white"
+                    dc.SetBrush(wx.Brush(fillColor, wx.BRUSHSTYLE_SOLID))
                     if shape["type"] == "rect":
                         pen.SetJoin(wx.JOIN_MITER)
                         dc.SetPen(pen)

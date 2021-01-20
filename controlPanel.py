@@ -16,25 +16,6 @@ class ControlPanel(wx.Panel):
     values.  Nested sizers are used for layout.
     """
 
-    penColors = {100: 'White',
-                 101: 'Yellow',
-                 102: 'Red',
-                 103: 'Green',
-                 104: 'Blue',
-                 105: 'Purple',
-                 106: 'Brown',
-                 107: 'Aquamarine',
-                 108: 'Forest Green',
-                 109: 'Light Blue',
-                 110: 'Goldenrod',
-                 111: 'Cyan',
-                 112: 'Orange',
-                 113: 'Black',
-                 114: 'Dark Grey',
-                 115: 'Light Grey',
-                 }
-    maxThickness = 16
-
     BMP_SIZE = 25
     BMP_BORDER = 2
 
@@ -45,6 +26,7 @@ class ControlPanel(wx.Panel):
         wx.Panel.__init__(self, parent, ID, style=wx.RAISED_BORDER)
         self.stackView = stackView
         self.penColor = "black"
+        self.fillColor = "white"
         self.penThickness = 4
 
         numCols = 5
@@ -70,22 +52,19 @@ class ControlPanel(wx.Panel):
             self.toolBtns[name] = b
         self.toolBtns["hand"].SetToggle(True)
 
-        # Make a grid of buttons for each color.  Attach each button
-        # event to self.OnSetColor.  The button ID is the same as the
-        # key in the color dictionary.
-        self.clrBtns = {}
-        keys = list(self.penColors.keys())
-        keys.sort()
-        self.cGrid = wx.GridSizer(cols=numCols, hgap=2, vgap=2)
-        for k in keys:
-            bmp = self.MakeBitmap(self.penColors[k])
-            b = buttons.GenBitmapToggleButton(self, k, bmp, size=btnSize )
-            b.SetBezelWidth(1)
-            b.SetUseFocusIndicator(False)
-            b.Bind(wx.EVT_BUTTON, self.OnSetColor)
-            self.cGrid.Add(b, 0)
-            self.clrBtns[self.penColors[k]] = b
-        self.clrBtns['Black'].SetToggle(True)
+        self.cGrid = wx.GridSizer(cols=2, hgap=2, vgap=2)
+        l = wx.StaticText(parent=self, label="Pen Color:")
+        l.SetFont(wx.Font(wx.FontInfo(12).Weight(wx.FONTWEIGHT_BOLD).Family(wx.FONTFAMILY_DEFAULT)))
+        self.cGrid.Add(l, wx.SizerFlags().CenterVertical())
+        self.penColorPicker = wx.ColourPickerCtrl(parent=self, colour="black", style=wx.CLRP_SHOW_ALPHA, name="Pen")
+        self.penColorPicker.Bind(wx.EVT_COLOURPICKER_CHANGED, self.OnSetPenColor)
+        self.cGrid.Add(self.penColorPicker)
+        l = wx.StaticText(parent=self, label="Fill Color:")
+        l.SetFont(wx.Font(wx.FontInfo(12).Weight(wx.FONTWEIGHT_BOLD).Family(wx.FONTFAMILY_DEFAULT)))
+        self.cGrid.Add(l, wx.SizerFlags().CenterVertical())
+        self.fillColorPicker = wx.ColourPickerCtrl(parent=self, colour="white", style=wx.CLRP_SHOW_ALPHA, name="Fill")
+        self.fillColorPicker.Bind(wx.EVT_COLOURPICKER_CHANGED, self.OnSetFillColor)
+        self.cGrid.Add(self.fillColorPicker)
 
         # Make a grid of buttons for the thicknesses.  Attach each button
         # event to self.OnSetThickness.  The button ID is the same as the
@@ -346,7 +325,8 @@ class ControlPanel(wx.Panel):
                 self.box.Show(self.drawBox)
                 self.box.Hide(self.editBox)
                 self.stackView.SelectUiView(None)
-                tool.SetColor(self.penColor)
+                tool.SetPenColor(self.penColor)
+                tool.SetFillColor(self.fillColor)
                 tool.SetThickness(self.penThickness)
             else:
                 self.box.Hide(self.drawBox)
@@ -355,17 +335,15 @@ class ControlPanel(wx.Panel):
 
             self.Layout()
 
-    def OnSetColor(self, event):
-        """
-        Use the event ID to get the color, set that color in the stackView.
-        """
-        newColor = self.penColors[event.GetId()]
-        # if newColor != self.penColor:
-            # untoggle the old color button
-            # self.clrBtns[self.lastColorIndex].SetToggle(False)
-        # set the new color
+    def OnSetPenColor(self, event):
+        newColor = event.GetColour()
         self.penColor = newColor
-        self.stackView.tool.SetColor(self.penColor)
+        self.stackView.tool.SetPenColor(self.penColor)
+
+    def OnSetFillColor(self, event):
+        newColor = event.GetColour()
+        self.fillColor = newColor
+        self.stackView.tool.SetFillColor(self.fillColor)
 
     def OnSetThickness(self, event):
         """

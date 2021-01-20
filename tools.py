@@ -200,12 +200,15 @@ class PenTool(BaseTool):
         self.curLine = []
         self.pos = wx.Point(0,0)
         self.thickness = 0
-        self.color = None
+        self.penColor = None
         self.targetUi = None
         self.appendToView = False
 
-    def SetColor(self, color):
-        self.color = color
+    def SetPenColor(self, color):
+        self.penColor = color
+
+    def SetFillColor(self, color):
+        pass
 
     def SetThickness(self, num):
         self.thickness = num
@@ -225,7 +228,7 @@ class PenTool(BaseTool):
         self.targetUi.view.CaptureMouse()
         self.curLine = []
         self.curLine.append(list(self.pos))
-        self.targetUi.model.AddShape({"type": "pen", "penColor": self.color, "thickness": self.thickness, "points": self.curLine})
+        self.targetUi.model.AddShape({"type": "pen", "penColor": self.penColor, "thickness": self.thickness, "points": self.curLine})
 
     def OnMouseMove(self, uiView, event):
         """
@@ -270,12 +273,16 @@ class ShapeTool(BaseTool):
         self.name = name
         self.startPoint = None
         self.thickness = 0
-        self.color = None
+        self.penColor = None
+        self.fillColor = None
         self.targetUi = None
         self.appendToView = False
 
-    def SetColor(self, color):
-        self.color = color
+    def SetPenColor(self, color):
+        self.penColor = color
+
+    def SetFillColor(self, color):
+        self.fillColor = color
 
     def SetThickness(self, num):
         self.thickness = num
@@ -294,8 +301,8 @@ class ShapeTool(BaseTool):
 
         self.targetUi.view.CaptureMouse()
         self.points = [self.startPoint, self.startPoint]
-        self.targetUi.model.AddShape({"type": self.name, "penColor": self.color, "thickness": self.thickness,
-                                      "points": self.points})
+        self.targetUi.model.AddShape({"type": self.name, "penColor": self.penColor, "fillColor": self.fillColor,
+                                      "thickness": self.thickness, "points": self.points})
 
     def OnMouseMove(self, uiView, event):
         """
