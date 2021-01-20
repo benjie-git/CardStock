@@ -35,8 +35,26 @@ class UiShapes(UiView):
                 lastPos = None
                 for coords in shape["points"]:
                     if lastPos:
-                        dc.DrawLine(*(lastPos[0], lastPos[1], coords[0], coords[1]))
+                        dc.DrawLine(lastPos[0], lastPos[1], coords[0], coords[1])
                     lastPos = coords
+            elif len(shape["points"]) == 2:
+                if shape["type"] == "line":
+                    p1 = shape["points"][0]
+                    p2 = shape["points"][1]
+                    dc.DrawLine(p1[0], p1[1], p2[0], p2[1])
+                else:
+                    rect = self.model.RectFromPoints(shape["points"])
+                    p1 = rect.TopLeft
+                    p2 = rect.BottomRight
+                    dc.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
+                    if shape["type"] == "rect":
+                        pen.SetJoin(wx.JOIN_MITER)
+                        dc.SetPen(pen)
+                        dc.DrawRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
+                    elif shape["type"] == "round_rect":
+                        dc.DrawRoundedRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1], 8)
+                    elif shape["type"] == "oval":
+                        dc.DrawEllipse(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
 
     def OnPaint(self, event):
         dc = wx.PaintDC(self.view)
@@ -86,6 +104,13 @@ class ShapesModel(ViewModel):
         for callback in self.propertyListeners:
             callback(self, "shapes")
 
+    @staticmethod
+    def RectFromPoints(points):
+        rect = wx.Rect(points[0][0], points[0][1], 1, 1)
+        for x, y in points:
+            rect = rect.Union(wx.Rect(x, y, 1, 1))
+        return rect
+
     # Re-fit the bounding box to the shapes
     def ReCropShapes(self):
         # First move all points to be relative to the card origin
@@ -113,7 +138,7 @@ class ShapesModel(ViewModel):
                     thickness = shape["thickness"]
 
         # inflate rect to account for line thickness
-        rect = rect.Inflate(thickness / 2 + 2)
+        rect = rect.Inflate(thickness / 2)
 
         # adjust view rect
         self.SetProperty("position", rect.Position)
@@ -129,3 +154,18 @@ class ShapesModel(ViewModel):
                     i += 1
 
         self.DidUpdateShapes()
+
+    # Un-Crop the shape to fill the card
+    def UnCropShape(self, size):
+        offset = self.GetProperty("position")
+        # adjust view rect
+        self.SetProperty("position", [0, 0])
+        self.SetProperty("size", size)
+
+        for shape in self.shapes:
+            points = shape["points"]
+            # adjust all points in shape
+            i = 0
+            for x, y in points.copy():
+                points[i] = (x + offset[0], y + offset[1])
+                i += 1

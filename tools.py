@@ -18,6 +18,8 @@ class BaseTool(object):
             return ViewTool(stackView, name)
         elif name == "pen":
             return PenTool(stackView)
+        elif name == "rect" or name == "round_rect" or name == "oval" or name == "line":
+            return ShapeTool(stackView, name)
         else:
             return HandTool(stackView)
 
@@ -213,13 +215,13 @@ class PenTool(BaseTool):
 
         if uiView.model.type == "shapes":
             self.targetUi = uiView
-            self.UnCropShape(uiView)
+            uiView.model.UnCropShape(self.stackView.stackModel.GetProperty("size"))
             self.appendToView = True
         else:
             self.targetUi = self.stackView.AddUiViewInternal("shapes")
+            self.targetUi.model.SetProperty("position", [0,0])
+            self.targetUi.model.SetProperty("size", self.stackView.stackModel.GetProperty("size"))
 
-        self.targetUi.model.SetProperty("position", [0,0])
-        self.targetUi.model.SetProperty("size", self.stackView.stackModel.GetProperty("size"))
         self.targetUi.view.CaptureMouse()
         self.curLine = []
         self.curLine.append(list(self.pos))
@@ -238,7 +240,6 @@ class PenTool(BaseTool):
                 self.curLine.append(coords)
                 self.targetUi.model.DidUpdateShapes()
                 self.pos = pos
-        event.Skip()
 
     def OnMouseUp(self, uiView, event):
         """called when the left mouse button is released"""
@@ -261,17 +262,69 @@ class PenTool(BaseTool):
             self.stackView.SelectUiView(self.stackView.GetUiViewByModel(model))
         self.stackView.SetFocus()
 
-    # Un-Crop the shape to fill the card
-    def UnCropShape(self, uiView):
-        offset = uiView.model.GetProperty("position")
-        # adjust view rect
-        uiView.model.SetProperty("position", [0, 0])
-        uiView.model.SetProperty("size", self.stackView.stackModel.GetProperty("size"))
 
-        for shape in uiView.model.shapes:
-            points = shape["points"]
-            # adjust all points in shape
-            i = 0
-            for x, y in points.copy():
-                points[i] = (x + offset[0], y + offset[1])
-                i += 1
+class ShapeTool(BaseTool):
+    def __init__(self, stackView, name):
+        super().__init__(stackView)
+        self.cursor = wx.CURSOR_CROSS
+        self.name = name
+        self.startPoint = None
+        self.thickness = 0
+        self.color = None
+        self.targetUi = None
+        self.appendToView = False
+
+    def SetColor(self, color):
+        self.color = color
+
+    def SetThickness(self, num):
+        self.thickness = num
+
+    def OnMouseDown(self, uiView, event):
+        self.startPoint = list(self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition())))
+
+        if uiView.model.type == "shapes":
+            self.targetUi = uiView
+            uiView.model.UnCropShape(self.stackView.stackModel.GetProperty("size"))
+            self.appendToView = True
+        else:
+            self.targetUi = self.stackView.AddUiViewInternal("shapes")
+            self.targetUi.model.SetProperty("position", [0,0])
+            self.targetUi.model.SetProperty("size", self.stackView.stackModel.GetProperty("size"))
+
+        self.targetUi.view.CaptureMouse()
+        self.points = [self.startPoint, self.startPoint]
+        self.targetUi.model.AddShape({"type": self.name, "penColor": self.color, "thickness": self.thickness,
+                                      "points": self.points})
+
+    def OnMouseMove(self, uiView, event):
+        """
+        Called when the mouse is in motion.  If the left button is
+        dragging then draw a line from the last event position to the
+        current one.  Save the coordinants for redraws.
+        """
+        if self.targetUi and self.targetUi.view.HasCapture():
+            pos = list(self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition())))
+            if pos != self.points[1]:
+                self.points[1] = pos
+                self.targetUi.model.DidUpdateShapes()
+
+    def OnMouseUp(self, uiView, event):
+        """called when the left mouse button is released"""
+        if self.targetUi and self.targetUi.view.HasCapture():
+            model = self.targetUi.model
+            self.targetUi.view.ReleaseMouse()
+            self.targetUi = None
+
+            model.ReCropShapes()
+
+            if self.appendToView:
+                shape = model.shapes.pop()
+                command = AppendShapeCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model, shape)
+                self.stackView.command_processor.Submit(command)
+            else:
+                command = AddUiViewCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model.type, model)
+                self.stackView.RemoveUiViewByModel(model)
+                self.stackView.command_processor.Submit(command)
+            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(model))
+        self.stackView.SetFocus()

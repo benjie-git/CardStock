@@ -39,7 +39,7 @@ class ControlPanel(wx.Panel):
     BMP_BORDER = 6
 
     toolNames = ["hand", "button", "field", "label", "image",
-                 "oval", "rect", "rrect", "line", "pen"]
+                 "oval", "rect", "round_rect", "line", "pen"]
 
     def __init__(self, parent, ID, stackView):
         wx.Panel.__init__(self, parent, ID, style=wx.RAISED_BORDER)
@@ -337,7 +337,7 @@ class ControlPanel(wx.Panel):
             tool = BaseTool.ToolFromName(toolName, self.stackView)
             self.stackView.SetTool(tool)
 
-            if tool.name == "pen":
+            if tool.name == "pen" or tool.name == "oval" or tool.name == "rect" or tool.name == "line" or tool.name == "round_rect":
                 self.box.Show(self.drawBox)
                 self.box.Hide(self.editBox)
                 self.stackView.SelectUiView(None)
