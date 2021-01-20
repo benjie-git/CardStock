@@ -8,7 +8,7 @@ from uiView import UiView, ViewModel
 
 class UiShapes(UiView):
     def __init__(self, stackView, model=None):
-        view = wx.Window(parent=stackView, style=wx.TRANSPARENT_WINDOW)
+        view = wx.Window(parent=stackView)
 
         if not model:
             model = ShapesModel()
@@ -20,6 +20,8 @@ class UiShapes(UiView):
         super().SetView(view)
         view.SetBackgroundColour(None)
         view.Bind(wx.EVT_PAINT, self.OnPaint)
+        if not self.stackView.isEditing:
+            view.Enable(False)
 
     def DrawShapes(self, dc):
         """
