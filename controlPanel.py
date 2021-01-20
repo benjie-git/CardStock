@@ -5,7 +5,7 @@ from wx.lib import buttons # for generic button classes
 from PythonEditor import PythonEditor
 from uiView import UiView
 from wx.lib.docview import Command
-
+from embeddedImages import embeddedImages
 
 class ControlPanel(wx.Panel):
     """
@@ -35,8 +35,8 @@ class ControlPanel(wx.Panel):
                  }
     maxThickness = 16
 
-    BMP_SIZE = 22
-    BMP_BORDER = 6
+    BMP_SIZE = 25
+    BMP_BORDER = 2
 
     toolNames = ["hand", "button", "field", "label", "image",
                  "oval", "rect", "round_rect", "line", "pen"]
@@ -55,9 +55,14 @@ class ControlPanel(wx.Panel):
 
         # Make a grid of buttons for the tools.
         self.toolBtns = {}
+        toolBitmaps = {}
+        for k,v in embeddedImages.items():
+            image = v.GetBitmap().ConvertToImage()
+            image.Rescale(25, 25)
+            toolBitmaps[k] = wx.Bitmap(image)
         self.toolGrid = wx.GridSizer(cols=numCols, hgap=2, vgap=2)
         for name in self.toolNames:
-            b = buttons.GenToggleButton(self, self.toolNames.index(name), name, size=btnSize)
+            b = buttons.GenBitmapToggleButton(self, self.toolNames.index(name), toolBitmaps[name], size=btnSize)
             b.SetBezelWidth(1)
             b.SetUseFocusIndicator(False)
             b.Bind(wx.EVT_BUTTON, self.OnSetTool)

@@ -106,7 +106,7 @@ class HandTool(BaseTool):
         event.Skip()
 
     def OnKeyDown(self, uiView, event):
-        if uiView.model.type == "card":
+        if uiView and uiView.model.type == "card":
             uiView = self.stackView.GetSelectedUiView()
 
         if not uiView: return

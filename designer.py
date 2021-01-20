@@ -52,7 +52,7 @@ class DesignerFrame(wx.Frame):
     title = "CardStock"
 
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, self.title, size=(800,600),
+        super().__init__(parent, -1, self.title, size=(800,600),
                          style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
         self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/mondrian.ico')))
         self.CreateStatusBar()
@@ -87,8 +87,12 @@ class DesignerFrame(wx.Frame):
         self.stackView.SetDesigner(self)
 
         self.stackView.command_processor.SetEditMenu(self.editMenu)
+        self.Bind(wx.EVT_KEY_DOWN, self.FwdOnKeyDown)
+        self.Bind(wx.EVT_KEY_UP, self.FwdOnKeyUp)
 
         self.cPanel = ControlPanel(self.splitter, -1, self.stackView)
+        self.cPanel.Bind(wx.EVT_KEY_DOWN, self.FwdOnKeyDown)
+        self.cPanel.Bind(wx.EVT_KEY_UP, self.FwdOnKeyUp)
 
         self.splitter.SplitVertically(self.stackContainer, self.cPanel)
         self.splitter.SetMinimumPaneSize(120)
@@ -156,6 +160,12 @@ class DesignerFrame(wx.Frame):
     def UpdateSelectedUiView(self):
         self.cPanel.UpdateInspectorForUiView(self.stackView.GetSelectedUiView())
         self.cPanel.UpdateHandlerForUiView(self.stackView.GetSelectedUiView(), None)
+
+    def FwdOnKeyDown(self, event):
+        self.stackView.OnKeyDown(None, event)
+
+    def FwdOnKeyUp(self, event):
+        self.stackView.OnKeyUp(None, event)
 
     def MakeMenu(self):
         # create the file menu
