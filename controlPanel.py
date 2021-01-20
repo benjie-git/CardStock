@@ -25,8 +25,8 @@ class ControlPanel(wx.Panel):
     def __init__(self, parent, ID, stackView):
         wx.Panel.__init__(self, parent, ID, style=wx.RAISED_BORDER)
         self.stackView = stackView
-        self.penColor = "black"
-        self.fillColor = "white"
+        self.penColor = wx.Colour("black")
+        self.fillColor = wx.Colour("white")
         self.penThickness = 4
 
         numCols = 5

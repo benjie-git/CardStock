@@ -12,7 +12,7 @@ from wx.lib.docview import CommandProcessor
 import json
 from tools import *
 from commands import *
-from stack import StackModel
+from stackModel import StackModel
 from uiCard import UiCard, CardModel
 from uiButton import UiButton
 from uiTextField import UiTextField
@@ -76,7 +76,7 @@ class StackWindow(wx.Window):
             self.SelectUiView(None)
             self.timer = wx.Timer(self)
             self.Bind(wx.EVT_TIMER, self.OnIdleTimer, self.timer)
-            self.timer.Start(50)
+            self.timer.Start(33)
         else:
             if self.timer:
                 self.timer.Stop()
@@ -369,6 +369,8 @@ class StackWindow(wx.Window):
             self.tool.OnMouseMove(uiView, event)
         else:
             uiView.OnMouseMove(event)
+            if uiView.model.type != "card":
+                self.uiCard.OnMouseMove(event)
 
     def OnMouseUp(self, uiView, event):
         if self.tool and self.isEditing:

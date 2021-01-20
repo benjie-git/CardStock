@@ -20,8 +20,6 @@ class UiShapes(UiView):
         super().SetView(view)
         view.SetBackgroundColour(None)
         view.Bind(wx.EVT_PAINT, self.OnPaint)
-        if not self.stackView.isEditing:
-            view.Enable(False)
 
     def DrawShapes(self, dc):
         """
@@ -73,7 +71,6 @@ class ShapesModel(ViewModel):
     def __init__(self):
         super().__init__()
         self.type = "shapes"
-        self.handlers = {"OnMessage": "", "OnIdle": ""}
         self.shapes = []
 
         # Custom property order and mask for the inspector

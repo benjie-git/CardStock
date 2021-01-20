@@ -15,7 +15,7 @@ import json
 import wx
 import wx.html
 from stackWindow import StackWindow
-from stack import StackModel
+from stackModel import StackModel
 from uiCard import CardModel
 import version
 from runner import Runner

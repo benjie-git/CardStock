@@ -19,7 +19,7 @@ from stackWindow import StackWindow
 from controlPanel import ControlPanel
 from viewer import ViewerFrame
 import version
-from stack import StackModel
+from stackModel import StackModel
 from uiCard import CardModel
 
 from wx.lib.mixins.inspection import InspectionMixin
@@ -127,10 +127,13 @@ class DesignerFrame(wx.Frame):
     def SaveFile(self):
         if self.filename:
             data = self.stackView.stackModel.GetData()
-
-            with open(self.filename, 'w') as f:
-                json.dump(data, f, indent=2)
-            self.stackView.stackModel.SetDirty(False)
+            try:
+                jsonData = json.dumps(data, indent=2)
+                with open(self.filename, 'w') as f:
+                    f.write(jsonData)
+                self.stackView.stackModel.SetDirty(False)
+            except TypeError:
+                pass
 
     def ReadFile(self):
         if self.filename:
@@ -163,9 +166,11 @@ class DesignerFrame(wx.Frame):
 
     def FwdOnKeyDown(self, event):
         self.stackView.OnKeyDown(None, event)
+        event.Skip()
 
     def FwdOnKeyUp(self, event):
         self.stackView.OnKeyUp(None, event)
+        event.Skip()
 
     def MakeMenu(self):
         # create the file menu

@@ -279,10 +279,10 @@ class ShapeTool(BaseTool):
         self.appendToView = False
 
     def SetPenColor(self, color):
-        self.penColor = color
+        self.penColor = color.GetAsString(flags=wx.C2S_HTML_SYNTAX)
 
     def SetFillColor(self, color):
-        self.fillColor = color
+        self.fillColor = color.GetAsString(flags=wx.C2S_HTML_SYNTAX)
 
     def SetThickness(self, num):
         self.thickness = num

@@ -49,6 +49,7 @@ class StackModel(ViewModel):
         data = super().GetData()
         data["cards"] = [m.GetData() for m in self.cardModels]
         data["properties"].pop("position")
+        data["CardStock_stack_format"] = 1
         return data
 
     def SetData(self, stackData):
