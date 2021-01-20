@@ -35,6 +35,7 @@ class StackWindow(wx.Window):
         self.cacheView = wx.Window(self, size=(0,0))  # just an offscreen holder for cached uiView.views
         self.cacheView.Hide()
         self.uiViewCache = {}
+        self.globalCursor = None
 
         if not stackModel:
             stackModel = StackModel()
@@ -50,8 +51,6 @@ class StackWindow(wx.Window):
 
         self.uiCard.model.SetDirty(False)
         self.command_processor.ClearCommands()
-
-        self.UpdateCursor()
 
         # When the window is destroyed, clean up resources.
         self.Bind(wx.EVT_WINDOW_DESTROY, self.Cleanup)
@@ -84,9 +83,20 @@ class StackWindow(wx.Window):
 
     def UpdateCursor(self):
         if self.tool:
-            self.SetCursor(wx.Cursor(self.tool.GetCursor()))
+            self.globalCursor = self.tool.GetCursor()
         else:
-            self.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
+            self.globalCursor = None
+
+        if self.globalCursor:
+            self.SetCursor(wx.Cursor(self.globalCursor))
+            for uiView in self.uiViews:
+                uiView.view.SetCursor(wx.Cursor(self.globalCursor))
+        else:
+            cursor = wx.CURSOR_ARROW
+            self.SetCursor(wx.Cursor(cursor))
+            for uiView in self.uiViews:
+                viewCursor = uiView.GetCursor()
+                uiView.view.SetCursor(wx.Cursor(viewCursor if viewCursor else cursor))
 
     def OnIdleTimer(self, event):
         if not self.isEditing and not self.noIdling:
@@ -122,6 +132,7 @@ class StackWindow(wx.Window):
         self.SetSize(self.stackModel.GetProperty("size"))
         self.command_processor.ClearCommands()
         self.stackModel.SetDirty(False)
+        self.UpdateCursor()
 
     def LoadCardAtIndex(self, index, reload=False):
         if index != self.cardIndex or reload == True:
@@ -217,6 +228,9 @@ class StackWindow(wx.Window):
             if not uiView.model in self.uiCard.model.childModels:
                 self.uiCard.model.AddChild(uiView.model)
             uiView.model.AddPropertyListener(self.OnPropertyChanged)
+
+            if self.globalCursor:
+                uiView.view.SetCursor(wx.Cursor(self.globalCursor))
         return uiView
 
     def AddUiViewFromModel(self, model, canUndo=True):
@@ -244,6 +258,10 @@ class StackWindow(wx.Window):
             command.Do()
 
         uiView = self.uiViews[-1]
+
+        if self.globalCursor:
+            uiView.view.SetCursor(wx.Cursor(self.globalCursor))
+
         return uiView
 
     def GetSelectedUiView(self):

@@ -43,7 +43,7 @@ class BaseTool(object):
 class HandTool(BaseTool):
     def __init__(self, stackView):
         super().__init__(stackView)
-        self.cursor = wx.CURSOR_HAND
+        self.cursor = None
         self.name = "hand"
 
     def OnMouseDown(self, uiView, event):
@@ -160,7 +160,6 @@ class ViewTool(BaseTool):
 
     def OnMouseDown(self, uiView, event):
         self.targetUi = self.stackView.AddUiViewInternal(self.name)
-        self.targetUi.view.SetCursor(wx.Cursor(wx.CURSOR_CROSS))
         x, y = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         self.origMousePos = (x, y)
         self.targetUi.model.SetProperty("position", self.origMousePos)
@@ -219,7 +218,6 @@ class PenTool(BaseTool):
         else:
             self.targetUi = self.stackView.AddUiViewInternal("shapes")
 
-        self.targetUi.view.SetCursor(wx.Cursor(wx.CURSOR_PENCIL))
         self.targetUi.model.SetProperty("position", [0,0])
         self.targetUi.model.SetProperty("size", self.stackView.stackModel.GetProperty("size"))
         self.targetUi.view.CaptureMouse()

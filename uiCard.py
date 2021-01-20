@@ -17,6 +17,7 @@ class UiCard(UiView):
             model.SetProperty("name", model.GetNextAvailableNameInCard("card_"))
 
         super().__init__(stackView, model, stackView)
+        self.cursor = None
         self.stackView.stackModel.SetProperty("size", self.view.GetSize())
         self.view.SetBackgroundColour(self.model.GetProperty("bgColor"))
 
