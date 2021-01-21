@@ -55,39 +55,6 @@
             "editable": true,
             "multiline": true
           }
-        },
-        {
-          "type": "shapes",
-          "handlers": {},
-          "properties": {
-            "name": "shape_1",
-            "size": [
-              188,
-              196
-            ],
-            "position": [
-              229,
-              24
-            ]
-          },
-          "shapes": [
-            {
-              "type": "round_rect",
-              "penColor": "#9900B16A",
-              "fillColor": "#9E1DAF3E",
-              "thickness": 4,
-              "points": [
-                [
-                  185,
-                  2
-                ],
-                [
-                  2,
-                  193
-                ]
-              ]
-            }
-          ]
         }
       ]
     }

@@ -1,6 +1,8 @@
 {
   "type": "stack",
-  "handlers": {},
+  "handlers": {
+    "OnStackStart": "from random import randint\n\ndx = 0\ndy = 0"
+  },
   "properties": {
     "name": "card_1",
     "size": [
@@ -12,10 +14,9 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "from random import randint\n\ndx = 0\ndy = 0",
         "OnKeyDown": "if key == \"Space\":\n   if dx == 0 and dy == 0:\n      ball.SendMessage(\"StartGame\")\n",
         "OnMouseDown": "if dx == 0 and dy == 0:\n  ball.SendMessage(\"StartGame\")\n",
-        "OnMouseMove": "oldPos = paddle.GetPosition()\npaddleSize = paddle.GetSize()\n\npaddle.SetPosition([mouseX-paddleSize[0]/2, oldPos[1]])"
+        "OnMouseMove": "oldPos = paddle.GetCenter()\npaddle.SetCenter([mouseX, oldPos[1]])\n"
       },
       "properties": {
         "name": "card_1",
@@ -32,8 +33,8 @@
               20
             ],
             "position": [
-              194,
-              579
+              216,
+              657
             ],
             "file": "",
             "fit": "Stretch",

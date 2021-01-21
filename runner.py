@@ -49,7 +49,7 @@ class Runner():
     def SetupForCurrentCard(self):
         # Setup clientVars with the current card's view names as variables
         self.clientVars["card"] = self.stackView.uiCard.model
-        for k in self.cardVarKeys:
+        for k in self.cardVarKeys.copy():
             self.clientVars.pop(k)
             self.cardVarKeys.remove(k)
         for ui in self.stackView.uiViews:

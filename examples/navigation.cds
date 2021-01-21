@@ -6,8 +6,7 @@
     "size": [
       500,
       500
-    ],
-    "hidden": false
+    ]
   },
   "cards": [
     {
@@ -17,10 +16,8 @@
       },
       "properties": {
         "name": "home",
-        "hidden": false,
         "bgColor": "#DDCCBB"
       },
-      "shapes": [],
       "childModels": [
         {
           "type": "button",
@@ -37,7 +34,6 @@
               278,
               226
             ],
-            "hidden": false,
             "title": "-"
           }
         },
@@ -56,7 +52,6 @@
               278,
               146
             ],
-            "hidden": false,
             "title": "+"
           }
         },
@@ -75,7 +70,6 @@
               278,
               306
             ],
-            "hidden": false,
             "title": "*"
           }
         },
@@ -94,7 +88,6 @@
               278,
               386
             ],
-            "hidden": false,
             "title": "/"
           }
         },
@@ -111,7 +104,6 @@
               54,
               40
             ],
-            "hidden": false,
             "text": "Choose a Math Operation",
             "alignment": "Left",
             "textColor": "red",
@@ -125,14 +117,13 @@
           "properties": {
             "name": "label_2",
             "size": [
-              158,
-              37
+              182,
+              43
             ],
             "position": [
               57,
               100
             ],
-            "hidden": false,
             "text": "To Practice",
             "alignment": "Left",
             "textColor": "red",
@@ -149,10 +140,8 @@
       },
       "properties": {
         "name": "plus",
-        "hidden": false,
         "bgColor": "#DDCCBB"
       },
-      "shapes": [],
       "childModels": [
         {
           "type": "button",
@@ -169,7 +158,6 @@
               11,
               12
             ],
-            "hidden": false,
             "title": "Home"
           }
         },
@@ -188,7 +176,6 @@
               198,
               202
             ],
-            "hidden": false,
             "text": "0",
             "alignment": "Right",
             "editable": true,
@@ -208,7 +195,6 @@
               213,
               158
             ],
-            "hidden": false,
             "text": "+",
             "alignment": "Left",
             "textColor": "black",
@@ -229,7 +215,6 @@
               242,
               159
             ],
-            "hidden": false,
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
@@ -250,7 +235,6 @@
               242,
               123
             ],
-            "hidden": false,
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
@@ -267,10 +251,8 @@
       },
       "properties": {
         "name": "minus",
-        "hidden": false,
         "bgColor": "#DDCCBB"
       },
-      "shapes": [],
       "childModels": [
         {
           "type": "button",
@@ -287,7 +269,6 @@
               11,
               12
             ],
-            "hidden": false,
             "title": "Home"
           }
         },
@@ -306,7 +287,6 @@
               198,
               203
             ],
-            "hidden": false,
             "text": "0",
             "alignment": "Right",
             "editable": true,
@@ -326,7 +306,6 @@
               213,
               158
             ],
-            "hidden": false,
             "text": "-",
             "alignment": "Left",
             "textColor": "black",
@@ -347,7 +326,6 @@
               242,
               159
             ],
-            "hidden": false,
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
@@ -368,7 +346,6 @@
               242,
               123
             ],
-            "hidden": false,
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
@@ -385,10 +362,8 @@
       },
       "properties": {
         "name": "times",
-        "hidden": false,
         "bgColor": "#DDCCBB"
       },
-      "shapes": [],
       "childModels": [
         {
           "type": "button",
@@ -405,7 +380,6 @@
               11,
               12
             ],
-            "hidden": false,
             "title": "Home"
           }
         },
@@ -424,7 +398,6 @@
               198,
               203
             ],
-            "hidden": false,
             "text": "0",
             "alignment": "Right",
             "editable": true,
@@ -444,7 +417,6 @@
               213,
               158
             ],
-            "hidden": false,
             "text": "X",
             "alignment": "Left",
             "textColor": "black",
@@ -465,7 +437,6 @@
               242,
               159
             ],
-            "hidden": false,
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
@@ -486,7 +457,6 @@
               242,
               123
             ],
-            "hidden": false,
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
@@ -503,10 +473,8 @@
       },
       "properties": {
         "name": "divide",
-        "hidden": false,
         "bgColor": "#DDCCBB"
       },
-      "shapes": [],
       "childModels": [
         {
           "type": "button",
@@ -523,7 +491,6 @@
               11,
               12
             ],
-            "hidden": false,
             "title": "Home"
           }
         },
@@ -542,7 +509,6 @@
               198,
               203
             ],
-            "hidden": false,
             "text": "0",
             "alignment": "Right",
             "editable": true,
@@ -562,7 +528,6 @@
               213,
               158
             ],
-            "hidden": false,
             "text": "/",
             "alignment": "Left",
             "textColor": "black",
@@ -583,7 +548,6 @@
               242,
               159
             ],
-            "hidden": false,
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
@@ -604,7 +568,6 @@
               242,
               123
             ],
-            "hidden": false,
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
@@ -621,10 +584,8 @@
       },
       "properties": {
         "name": "correct",
-        "hidden": false,
         "bgColor": "#FFFFDD"
       },
-      "shapes": [],
       "childModels": [
         {
           "type": "textlabel",
@@ -639,7 +600,6 @@
               41,
               58
             ],
-            "hidden": false,
             "text": "Good Job!!!",
             "alignment": "Center",
             "textColor": "red",
@@ -660,7 +620,6 @@
               38,
               117
             ],
-            "hidden": false,
             "text": "You did it!",
             "alignment": "Center",
             "textColor": "green",
@@ -670,5 +629,6 @@
         }
       ]
     }
-  ]
+  ],
+  "CardStock_stack_format": 1
 }

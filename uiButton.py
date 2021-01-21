@@ -31,7 +31,6 @@ class UiButton(UiView):
         if not self.stackView.isEditing:
             if self.model.runner and "OnClick" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnClick", event)
-            event.Skip()
 
 
 class ButtonModel(ViewModel):

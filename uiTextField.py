@@ -84,14 +84,12 @@ class UiTextField(UiView):
         if not self.stackView.isEditing:
             if self.model.runner and "OnTextEnter" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnTextEnter", event)
-            event.Skip()
 
     def OnTextChanged(self, event):
         if not self.stackView.isEditing:
             self.model.SetProperty("text", self.view.GetValue(), notify=False)
             if self.model.runner and "OnTextChanged" in self.model.handlers:
                 self.model.runner.RunHandler(self.model, "OnTextChanged", event)
-            event.Skip()
 
 
 class TextFieldModel(ViewModel):

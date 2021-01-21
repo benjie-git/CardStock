@@ -7,9 +7,8 @@
     "name": "",
     "size": [
       500,
-      500
-    ],
-    "hidden": false
+      495
+    ]
   },
   "cards": [
     {
@@ -19,10 +18,8 @@
       },
       "properties": {
         "name": "card_1",
-        "hidden": false,
         "bgColor": "#DDEEDD"
       },
-      "shapes": [],
       "childModels": [
         {
           "type": "textfield",
@@ -39,7 +36,6 @@
               136,
               79
             ],
-            "hidden": false,
             "text": "",
             "alignment": "Right",
             "editable": true,
@@ -61,7 +57,6 @@
               261,
               80
             ],
-            "hidden": false,
             "title": "Find!"
           }
         },
@@ -78,7 +73,6 @@
               52,
               136
             ],
-            "hidden": false,
             "text": "",
             "alignment": "Left",
             "editable": false,
@@ -98,7 +92,6 @@
               105,
               32
             ],
-            "hidden": false,
             "text": "Enter a number to Prime Factor:",
             "alignment": "Center",
             "textColor": "black",
@@ -108,5 +101,6 @@
         }
       ]
     }
-  ]
+  ],
+  "CardStock_stack_format": 1
 }

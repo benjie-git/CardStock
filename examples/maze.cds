@@ -6,8 +6,7 @@
     "size": [
       500,
       500
-    ],
-    "hidden": false
+    ]
   },
   "cards": [
     {
@@ -15,10 +14,8 @@
       "handlers": {},
       "properties": {
         "name": "card_1",
-        "hidden": false,
         "bgColor": "white"
       },
-      "shapes": [],
       "childModels": [
         {
           "type": "image",
@@ -35,7 +32,6 @@
               63,
               273
             ],
-            "hidden": false,
             "file": "",
             "fit": "Scale",
             "bgColor": "black"
@@ -56,7 +52,6 @@
               406,
               0
             ],
-            "hidden": false,
             "file": "",
             "fit": "Scale",
             "bgColor": "green"
@@ -78,7 +73,6 @@
               13,
               450
             ],
-            "hidden": false,
             "file": "",
             "fit": "Scale",
             "bgColor": "blue"
@@ -99,7 +93,6 @@
               63,
               -28
             ],
-            "hidden": false,
             "file": "",
             "fit": "Scale",
             "bgColor": "black"
@@ -120,7 +113,6 @@
               218,
               84
             ],
-            "hidden": false,
             "file": "",
             "fit": "Scale",
             "bgColor": "black"
@@ -141,7 +133,6 @@
               317,
               -23
             ],
-            "hidden": false,
             "file": "",
             "fit": "Scale",
             "bgColor": "black"
@@ -159,10 +150,9 @@
               387
             ],
             "position": [
-              396,
+              397,
               -4
             ],
-            "hidden": false,
             "file": "",
             "fit": "Scale",
             "bgColor": "black"
@@ -183,7 +173,6 @@
               78,
               273
             ],
-            "hidden": false,
             "file": "",
             "fit": "Scale",
             "bgColor": "black"
@@ -204,7 +193,6 @@
               158,
               75
             ],
-            "hidden": false,
             "file": "",
             "fit": "Scale",
             "bgColor": "black"
@@ -225,7 +213,6 @@
               80,
               185
             ],
-            "hidden": false,
             "file": "",
             "fit": "Scale",
             "bgColor": "black"
@@ -246,7 +233,6 @@
               163,
               381
             ],
-            "hidden": false,
             "file": "",
             "fit": "Scale",
             "bgColor": "black"
@@ -254,5 +240,6 @@
         }
       ]
     }
-  ]
+  ],
+  "CardStock_stack_format": 1
 }
