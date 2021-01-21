@@ -163,3 +163,68 @@ class AppendShapeCommand(Command):
         self.viewModel.ReCropShapes()
         self.viewModel.DidUpdateShapes()
         return True
+
+
+class SetPropertyCommand(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.cPanel = args[2]
+        self.cardIndex = args[3]
+        self.model = args[4]
+        self.key = args[5]
+        self.newVal = args[6]
+        self.oldVal = self.model.GetProperty(self.key)
+        self.hasRun = False
+
+    def Do(self):
+        self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
+        if self.hasRun:
+            uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
+            self.cPanel.stackView.SelectUiView(uiView)
+        self.model.SetProperty(self.key, self.newVal)
+        self.hasRun = True
+        return True
+
+    def Undo(self):
+        self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
+        if self.hasRun:
+            uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
+            self.cPanel.stackView.SelectUiView(uiView)
+        self.model.SetProperty(self.key, self.oldVal)
+        return True
+
+
+class SetHandlerCommand(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.cPanel = args[2]
+        self.cardIndex = args[3]
+        self.model = args[4]
+        self.key = args[5]
+        self.newVal = args[6]
+        self.oldVal = self.model.GetHandler(self.key)
+        self.hasRun = False
+
+    def Do(self):
+        self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
+        if self.hasRun:
+            uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
+            self.cPanel.stackView.SelectUiView(uiView)
+
+        self.model.SetHandler(self.key, self.newVal)
+
+        if self.hasRun:
+            self.cPanel.UpdateHandlerForUiView(uiView, self.key)
+
+        self.hasRun = True
+        return True
+
+    def Undo(self):
+        self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
+        uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
+        self.cPanel.stackView.SelectUiView(uiView)
+
+        self.model.SetHandler(self.key, self.oldVal)
+
+        self.cPanel.UpdateHandlerForUiView(uiView, self.key)
+        return True
