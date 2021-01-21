@@ -205,7 +205,7 @@ class PenTool(BaseTool):
         self.appendToView = False
 
     def SetPenColor(self, color):
-        self.penColor = color
+        self.penColor = color.GetAsString(flags=wx.C2S_HTML_SYNTAX)
 
     def SetFillColor(self, color):
         pass

@@ -6,8 +6,7 @@
     "size": [
       637,
       715
-    ],
-    "hidden": false
+    ]
   },
   "cards": [
     {
@@ -20,7 +19,6 @@
       },
       "properties": {
         "name": "card_1",
-        "hidden": false,
         "bgColor": "white"
       },
       "childModels": [
@@ -37,7 +35,6 @@
               194,
               579
             ],
-            "hidden": false,
             "file": "",
             "fit": "Stretch",
             "bgColor": "Blue"
@@ -56,7 +53,6 @@
               12,
               17
             ],
-            "hidden": false,
             "text": "0",
             "alignment": "Left",
             "textColor": "black",
@@ -79,8 +75,7 @@
             "position": [
               73,
               93
-            ],
-            "hidden": false
+            ]
           },
           "shapes": [
             {
@@ -102,5 +97,6 @@
         }
       ]
     }
-  ]
+  ],
+  "CardStock_stack_format": 1
 }

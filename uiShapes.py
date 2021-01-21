@@ -9,6 +9,8 @@ from uiView import UiView, ViewModel
 class UiShapes(UiView):
     def __init__(self, stackView, model=None):
         view = wx.Window(parent=stackView)
+        # self.needsUpdate = True
+        # self.buffer = None
 
         if not model:
             model = ShapesModel()
@@ -55,7 +57,22 @@ class UiShapes(UiView):
                     elif shape["type"] == "oval":
                         dc.DrawEllipse(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
 
+    # def UpdateBuffer(self):
+    #     size = self.view.GetSize()
+    #     self.buffer = wx.Bitmap.FromRGBA(max(1,size.width), max(1,size.height))
+    #     bdc = wx.BufferedDC(None, self.buffer)
+    #     dc = wx.GCDC(bdc)
+    #     self.DrawShapes(dc)
+    #     self.needsUpdate = False
+    #
+    # def OnResize(self, event):
+    #     super().OnResize(event)
+    #     self.needsUpdate = True
+
     def OnPaint(self, event):
+        # if self.needsUpdate:
+        #     self.UpdateBuffer()
+        # wx.BufferedPaintDC(self.view, self.buffer)
         dc = wx.PaintDC(self.view)
         self.DrawShapes(dc)
         event.Skip()
@@ -63,6 +80,7 @@ class UiShapes(UiView):
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "shapes":
+            # self.needsUpdate = True
             self.view.Refresh()
             self.view.Update()
 

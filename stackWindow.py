@@ -36,6 +36,7 @@ class StackWindow(wx.Window):
         self.cacheView.Hide()
         self.uiViewCache = {}
         self.globalCursor = None
+        self.lastMousePos = wx.Point(0,0)
 
         if not stackModel:
             stackModel = StackModel()
@@ -365,12 +366,16 @@ class StackWindow(wx.Window):
             uiView.OnMouseDown(event)
 
     def OnMouseMove(self, uiView, event):
+        pos = self.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        if pos == self.lastMousePos: return
+
         if self.tool and self.isEditing:
             self.tool.OnMouseMove(uiView, event)
         else:
             uiView.OnMouseMove(event)
             if uiView.model.type != "card":
                 self.uiCard.OnMouseMove(event)
+        self.lastMousePos = pos
 
     def OnMouseUp(self, uiView, event):
         if self.tool and self.isEditing:

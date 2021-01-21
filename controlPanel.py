@@ -331,7 +331,6 @@ class ControlPanel(wx.Panel):
             else:
                 self.box.Hide(self.drawBox)
                 self.box.Show(self.editBox)
-                self.stackView.SelectUiView(self.stackView.uiCard)
 
             self.Layout()
 
