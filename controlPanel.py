@@ -39,9 +39,8 @@ class ControlPanel(wx.Panel):
         self.toolBtns = {}
         toolBitmaps = {}
         for k,v in embeddedImages.items():
-            image = v.GetBitmap().ConvertToImage()
-            image.Rescale(25, 25)
-            toolBitmaps[k] = wx.Bitmap(image)
+            toolBitmaps[k] = v.GetBitmap()
+
         self.toolGrid = wx.GridSizer(cols=numCols, hgap=2, vgap=2)
         for name in self.toolNames:
             b = buttons.GenBitmapToggleButton(self, self.toolNames.index(name), toolBitmaps[name], size=btnSize)
@@ -85,6 +84,7 @@ class ControlPanel(wx.Panel):
         # with the stackView view so it will be notified when the settings
         # change
         self.ci = ColorIndicator(self)
+        self.ci.UpdateLine(self.penColor, self.penThickness)
 
         # ----------
 
@@ -338,6 +338,7 @@ class ControlPanel(wx.Panel):
     def OnSetPenColor(self, event):
         newColor = event.GetColour()
         self.penColor = newColor
+        self.ci.UpdateLine(self.penColor, self.penThickness)
         self.stackView.tool.SetPenColor(self.penColor)
 
     def OnSetFillColor(self, event):
@@ -354,6 +355,7 @@ class ControlPanel(wx.Panel):
         self.thknsBtns[self.penThickness].SetToggle(newThickness == self.penThickness)
         # set the new color
         self.penThickness = newThickness
+        self.ci.UpdateLine(self.penColor, self.penThickness)
         self.stackView.tool.SetThickness(self.penThickness)
 
 
