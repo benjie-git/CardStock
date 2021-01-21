@@ -210,9 +210,12 @@ class ViewModel(object):
             if len(v.strip()) > 0:
                 handlers[k] = v
 
+        props = self.properties.copy()
+        props.pop("hidden")
+
         return {"type": self.type,
                 "handlers": handlers,
-                "properties": self.properties.copy()}
+                "properties": props}
 
     def SetData(self, data):
         for k, v in data["handlers"].items():
@@ -241,8 +244,7 @@ class ViewModel(object):
         self.propertyListeners.append(callback)
 
     def RemovePropertyListener(self, callback):
-        # if callback in self.propertyListeners:
-            self.propertyListeners.remove(callback)
+        self.propertyListeners.remove(callback)
 
     def RemoveAllPropertyListeners(self):
         self.propertyListeners = []
@@ -263,6 +265,10 @@ class ViewModel(object):
     def GetHandlers(self):
         return self.handlers
 
+    def Notify(self, key):
+        for callback in self.propertyListeners:
+            callback(self, key)
+
     def SetProperty(self, key, value, notify=True):
         if key in self.propertyTypes and self.propertyTypes[key] == "point":
             value = list(value)
@@ -271,8 +277,7 @@ class ViewModel(object):
             value = re.sub(r'\W+', '', value)
             if not re.match(r'[A-Za-z_][A-Za-z_0-9]*', value):
                 if notify:
-                    for callback in self.propertyListeners:
-                        callback(self, key)
+                    self.Notify(key)
                 return
         elif key == "size":
             if value[0] < self.minSize[0]: value[0] = self.minSize[0]
@@ -281,8 +286,7 @@ class ViewModel(object):
         if self.properties[key] != value:
             self.properties[key] = value
             if notify:
-                for callback in self.propertyListeners:
-                    callback(self, key)
+                self.Notify(key)
             self.isDirty = True
 
     def InterpretPropertyFromString(self, key, valStr):

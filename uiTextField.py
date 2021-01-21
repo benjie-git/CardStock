@@ -76,6 +76,9 @@ class UiTextField(UiView):
             self.SetView(newField)
             self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
             self.stackView.SelectUiView(self)
+        elif key == "selectAll":
+            self.view.SelectAll()
+
 
     def OnTextEnter(self, event):
         if not self.stackView.isEditing:
@@ -119,6 +122,7 @@ class TextFieldModel(ViewModel):
     def GetText(self): return self.GetProperty("text")
     def SetText(self, text): self.SetProperty("text", str(text))
     def AppendText(self, text): self.SetProperty("text", self.GetProperty("text") + str(text))
+    def SelectAll(self): self.Notify("selectAll")
 
     def DoEnter(self):
         if self.runner:

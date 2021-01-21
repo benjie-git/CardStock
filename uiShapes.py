@@ -88,19 +88,16 @@ class ShapesModel(ViewModel):
     def AddShape(self, shape):
         self.shapes.append(shape)
         self.isDirty = True
-        for callback in self.propertyListeners:
-            callback(self, "shapes")
+        self.Notify("shapes")
 
     def UpdateShape(self, i, shape):
         self.shapes[i] = shape
         self.isDirty = True
-        for callback in self.propertyListeners:
-            callback(self, "shapes")
+        self.Notify("shapes")
 
     def DidUpdateShapes(self):  # If client updates the list already passed to AddShape
         self.isDirty = True
-        for callback in self.propertyListeners:
-            callback(self, "shapes")
+        self.Notify("shapes")
 
     @staticmethod
     def RectFromPoints(points):

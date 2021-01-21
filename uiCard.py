@@ -41,7 +41,6 @@ class UiCard(UiView):
             self.stackView.designer.UpdateCardList()
         elif key == "bgColor":
             self.view.SetBackgroundColour(model.GetProperty(key))
-            self.stackView.InitBuffer()
             self.view.Refresh()
 
     def OnKeyDown(self, event):
