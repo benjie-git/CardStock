@@ -37,6 +37,11 @@ class UiTextLabel(UiView):
         label.SetForegroundColour(model.GetProperty("textColor"))
         return label
 
+    def OnResize(self, event):
+        super().OnResize(event)
+        self.view.SetLabel(self.model.GetProperty("text"))
+        self.view.Wrap(self.view.GetSize().Width)
+
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "text":
