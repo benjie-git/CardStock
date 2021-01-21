@@ -347,6 +347,13 @@ class ViewModel(object):
 
     def GetPosition(self): return self.GetProperty("position")
     def SetPosition(self, pos): self.SetProperty("position", pos)
+    def GetCenter(self):
+        p = self.GetProperty("position")
+        s = self.GetProperty("size")
+        return [p[0]+s[0]/2, p[1]+s[1]/2]
+    def SetCenter(self, center):
+        s = self.GetProperty("size")
+        self.SetProperty("position", [center[0]-s[0]/2, center[1]-s[1]/2])
     def MoveBy(self, delta):
         pos = self.GetProperty("position")
         self.SetProperty("position", (pos[0]+delta[0], pos[1]+delta[1]))
