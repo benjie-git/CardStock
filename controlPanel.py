@@ -205,10 +205,12 @@ class ControlPanel(wx.Panel):
             if uiView.model.GetPropertyType(k) == "bool":
                 editor = wx.grid.GridCellChoiceEditor(["True", "False"])
                 self.inspector.SetCellEditor(r, 1, editor)
-
             elif uiView.model.GetPropertyType(k) == "choice":
                 editor = wx.grid.GridCellChoiceEditor(uiView.model.GetPropertyChoices(k))
                 self.inspector.SetCellEditor(r, 1, editor)
+            elif uiView.model.GetPropertyType(k) == "color":
+                self.inspector.SetCellRenderer(r, 1, GridCellColorRenderer())
+                self.inspector.SetCellEditor(r, 1, GridCellColorEditor(self))
             r+=1
         self.Layout()
 
@@ -392,3 +394,56 @@ class ColorIndicator(wx.Window):
             pen = wx.Pen(self.color, self.thickness)
             dc.SetPen(pen)
             dc.DrawLine(10, int(sz.height/2), int(sz.width-10), int(sz.height/2))
+
+
+COLOR_PATCH_WIDTH = 70
+
+class GridCellColorRenderer(wx.grid.GridCellStringRenderer):
+    def Draw(self, grid, attr, dc, rect, row, col, isSelected):
+        text = grid.GetCellValue(row, col)
+        color = wx.Colour(text)
+        if not color.IsOk(): color = wx.Colour('white')
+
+        if isSelected:
+            bg = grid.GetSelectionBackground()
+            fg = grid.GetSelectionForeground()
+        else:
+            bg = attr.GetBackgroundColour()
+            fg = attr.GetTextColour()
+        dc.SetTextBackground(bg)
+        dc.SetTextForeground(fg)
+        dc.SetPen(wx.TRANSPARENT_PEN)
+        dc.SetBrush(wx.Brush(bg, wx.SOLID))
+        dc.DrawRectangle(rect)
+        dc.SetPen(wx.Pen('black', 1, wx.PENSTYLE_SOLID))
+        dc.SetBrush(wx.Brush(color, wx.SOLID))
+        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH, rect.Top, COLOR_PATCH_WIDTH, rect.Height))
+
+        hAlign, vAlign = attr.GetAlignment()
+        dc.SetFont(attr.GetFont())
+        grid.DrawTextRectangle(dc, text, rect, hAlign, vAlign)
+
+
+class GridCellColorEditor(wx.grid.GridCellTextEditor):
+    def __init__(self, cPanel):
+        super().__init__()
+        self.cPanel = cPanel
+        self.grid = cPanel.inspector
+
+    def StartingClick(self):
+        self.row = self.grid.GetGridCursorRow()
+        self.col = self.grid.GetGridCursorCol()
+        text = self.grid.GetCellValue(self.row, self.col)
+        x,y = self.grid.ScreenToClient(wx.GetMousePosition())
+        if x > self.grid.GetSize().Width - COLOR_PATCH_WIDTH:
+            data = wx.ColourData()
+            data.SetColour(text)
+            data.SetChooseAlpha(True)
+            dlg = wx.ColourDialog(self.grid, data)
+            if dlg.ShowModal() == wx.ID_OK:
+                color = dlg.GetColourData().GetColour().GetAsString(flags=wx.C2S_HTML_SYNTAX)
+                self.UpdateColor(color)
+
+    def UpdateColor(self, color):
+        self.grid.SetCellValue(self.row, self.col, color)
+        self.cPanel.InspectorValueChanged(self.cPanel.lastSelectedUiView, self.row, color)
