@@ -90,7 +90,7 @@ class TextLabelModel(ViewModel):
 
         self.propertyTypes["text"] = "string"
         self.propertyTypes["alignment"] = "choice"
-        self.propertyTypes["textColor"] = "string"
+        self.propertyTypes["textColor"] = "color"
         self.propertyTypes["font"] = "choice"
         self.propertyTypes["fontSize"] = "int"
         self.propertyChoices["alignment"] = ["Left", "Center", "Right"]

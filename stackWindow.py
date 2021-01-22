@@ -18,7 +18,7 @@ from uiButton import UiButton
 from uiTextField import UiTextField
 from uiTextLabel import UiTextLabel
 from uiImage import UiImage
-from uiShapes import UiShapes
+from uiShape import UiShape
 
 # ----------------------------------------------------------------------
 
@@ -217,8 +217,8 @@ class StackWindow(wx.Window):
                 uiView = UiTextLabel(self, model)
             elif type == "image":
                 uiView = UiImage(self, model)
-            elif type == "shapes":
-                uiView = UiShapes(self, model)
+            elif type in ["pen", "line", "oval", "rect", "round_rect"]:
+                uiView = UiShape(self, type, model)
 
         if uiView:
             if not model:
@@ -249,8 +249,8 @@ class StackWindow(wx.Window):
             command = AddUiViewCommand(True, 'Add TextLabel', self, self.cardIndex, "textlabel", model)
         elif model.GetType() == "image":
             command = AddUiViewCommand(True, 'Add Image', self, self.cardIndex, "image", model)
-        elif model.GetType() == "shapes":
-            command = AddUiViewCommand(True, 'Add Shape', self, self.cardIndex, "shapes", model)
+        elif model.GetType() in ["pen", "line", "oval", "rect", "round_rect"]:
+            command = AddUiViewCommand(True, 'Add Shape', self, self.cardIndex, model.GetType(), model)
 
         if canUndo:
             self.command_processor.Submit(command)

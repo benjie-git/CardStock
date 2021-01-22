@@ -33,8 +33,8 @@
               20
             ],
             "position": [
-              216,
-              657
+              211,
+              655
             ],
             "file": "",
             "fit": "Stretch",
@@ -62,7 +62,7 @@
           }
         },
         {
-          "type": "shapes",
+          "type": "oval",
           "handlers": {
             "OnMessage": "if message == \"StartGame\":\n   dx=randint(10,20)\n   dy=30-dx\n   self.SetPosition([100,100])\n   score = 0\n   label.SetText(score)\n",
             "OnIdle": "self.MoveBy([dx, dy])\n\nedge = self.IsTouchingEdge(card)\n\nif self.IsTouching(paddle):\n   dy = -dy\n   score += 1\n   label.SetText(score)\n\nif edge == \"Top\":\n   dy = -dy\n\nif edge == \"Left\" or edge == \"Right\":\n   dx = -dx\n\nif edge == \"Bottom\":\n   dx = 0\n   dy = 0\n   label.SetText(\"Oh no!\")\n"
@@ -70,30 +70,30 @@
           "properties": {
             "name": "ball",
             "size": [
-              36,
+              35,
               35
             ],
             "position": [
-              73,
-              93
-            ]
+              86,
+              66
+            ],
+            "originalSize": [
+              35,
+              35
+            ],
+            "penColor": "#000000",
+            "penThickness": 0,
+            "fillColor": "#FF2222"
           },
-          "shapes": [
-            {
-              "type": "oval",
-              "penColor": "Red",
-              "thickness": 16,
-              "points": [
-                [
-                  10,
-                  10
-                ],
-                [
-                  26,
-                  25
-                ]
-              ]
-            }
+          "points": [
+            [
+              2,
+              2
+            ],
+            [
+              33.0,
+              33
+            ]
           ]
         }
       ]

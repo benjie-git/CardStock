@@ -202,7 +202,6 @@ class PenTool(BaseTool):
         self.thickness = 0
         self.penColor = None
         self.targetUi = None
-        self.appendToView = False
 
     def SetPenColor(self, color):
         self.penColor = color.GetAsString(flags=wx.C2S_HTML_SYNTAX)
@@ -216,19 +215,14 @@ class PenTool(BaseTool):
     def OnMouseDown(self, uiView, event):
         self.pos = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
 
-        if uiView.model.type == "shapes":
-            self.targetUi = uiView
-            uiView.model.UnCropShape(self.stackView.stackModel.GetProperty("size"))
-            self.appendToView = True
-        else:
-            self.targetUi = self.stackView.AddUiViewInternal("shapes")
-            self.targetUi.model.SetProperty("position", [0,0])
-            self.targetUi.model.SetProperty("size", self.stackView.stackModel.GetProperty("size"))
+        self.targetUi = self.stackView.AddUiViewInternal(self.name)
+        self.targetUi.model.SetProperty("position", [0,0])
+        self.targetUi.model.SetProperty("size", self.stackView.stackModel.GetProperty("size"))
 
         self.targetUi.view.CaptureMouse()
         self.curLine = []
         self.curLine.append(list(self.pos))
-        self.targetUi.model.AddShape({"type": "pen", "penColor": self.penColor, "thickness": self.thickness, "points": self.curLine})
+        self.targetUi.model.SetShape({"type": "pen", "penColor": self.penColor, "thickness": self.thickness, "points": self.curLine})
 
     def OnMouseMove(self, uiView, event):
         """
@@ -241,7 +235,7 @@ class PenTool(BaseTool):
             coords = (pos.x, pos.y)
             if coords != (self.pos.x, self.pos.y):
                 self.curLine.append(coords)
-                self.targetUi.model.DidUpdateShapes()
+                self.targetUi.model.DidUpdateShape()
                 self.pos = pos
 
     def OnMouseUp(self, uiView, event):
@@ -252,16 +246,11 @@ class PenTool(BaseTool):
             self.targetUi.view.ReleaseMouse()
             self.targetUi = None
 
-            model.ReCropShapes()
+            model.ReCropShape()
 
-            if self.appendToView:
-                shape = model.shapes.pop()
-                command = AppendShapeCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model, shape)
-                self.stackView.command_processor.Submit(command)
-            else:
-                command = AddUiViewCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model.type, model)
-                self.stackView.RemoveUiViewByModel(model)
-                self.stackView.command_processor.Submit(command)
+            command = AddUiViewCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model.type, model)
+            self.stackView.RemoveUiViewByModel(model)
+            self.stackView.command_processor.Submit(command)
             self.stackView.SelectUiView(self.stackView.GetUiViewByModel(model))
         self.stackView.SetFocus()
 
@@ -276,7 +265,6 @@ class ShapeTool(BaseTool):
         self.penColor = None
         self.fillColor = None
         self.targetUi = None
-        self.appendToView = False
 
     def SetPenColor(self, color):
         self.penColor = color.GetAsString(flags=wx.C2S_HTML_SYNTAX)
@@ -290,18 +278,13 @@ class ShapeTool(BaseTool):
     def OnMouseDown(self, uiView, event):
         self.startPoint = list(self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition())))
 
-        if uiView.model.type == "shapes":
-            self.targetUi = uiView
-            uiView.model.UnCropShape(self.stackView.stackModel.GetProperty("size"))
-            self.appendToView = True
-        else:
-            self.targetUi = self.stackView.AddUiViewInternal("shapes")
-            self.targetUi.model.SetProperty("position", [0,0])
-            self.targetUi.model.SetProperty("size", self.stackView.stackModel.GetProperty("size"))
+        self.targetUi = self.stackView.AddUiViewInternal(self.name)
+        self.targetUi.model.SetProperty("position", [0,0])
+        self.targetUi.model.SetProperty("size", self.stackView.stackModel.GetProperty("size"))
 
         self.targetUi.view.CaptureMouse()
         self.points = [self.startPoint, self.startPoint]
-        self.targetUi.model.AddShape({"type": self.name, "penColor": self.penColor, "fillColor": self.fillColor,
+        self.targetUi.model.SetShape({"type": self.name, "penColor": self.penColor, "fillColor": self.fillColor,
                                       "thickness": self.thickness, "points": self.points})
 
     def OnMouseMove(self, uiView, event):
@@ -328,7 +311,7 @@ class ShapeTool(BaseTool):
                             self.points[1] = [self.startPoint[0] + (math.copysign(dy, dx)), pos[1]]
                 else:
                     self.points[1] = pos
-                self.targetUi.model.DidUpdateShapes()
+                self.targetUi.model.DidUpdateShape()
 
     def OnMouseUp(self, uiView, event):
         """called when the left mouse button is released"""
@@ -337,15 +320,10 @@ class ShapeTool(BaseTool):
             self.targetUi.view.ReleaseMouse()
             self.targetUi = None
 
-            model.ReCropShapes()
+            model.ReCropShape()
 
-            if self.appendToView:
-                shape = model.shapes.pop()
-                command = AppendShapeCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model, shape)
-                self.stackView.command_processor.Submit(command)
-            else:
-                command = AddUiViewCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model.type, model)
-                self.stackView.RemoveUiViewByModel(model)
-                self.stackView.command_processor.Submit(command)
+            command = AddUiViewCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model.type, model)
+            self.stackView.RemoveUiViewByModel(model)
+            self.stackView.command_processor.Submit(command)
             self.stackView.SelectUiView(self.stackView.GetUiViewByModel(model))
         self.stackView.SetFocus()

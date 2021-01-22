@@ -8,7 +8,7 @@ from uiButton import ButtonModel
 from uiTextField import TextFieldModel
 from uiTextLabel import TextLabelModel
 from uiImage import ImageModel
-from uiShapes import ShapesModel
+from uiShape import UiShape, ShapeModel
 
 
 class UiCard(UiView):
@@ -77,7 +77,7 @@ class CardModel(ViewModel):
         self.properties["bgColor"] = "white"
         self.propertyKeys = ["name", "bgColor", "stackSize"]
         self.propertyTypes["stackSize"] = "point"
-        self.propertyTypes["bgColor"] = "string"
+        self.propertyTypes["bgColor"] = "color"
 
         self.childModels = []
 
@@ -190,7 +190,7 @@ class CardModel(ViewModel):
             m = TextLabelModel()
         elif data["type"] == "image":
             m = ImageModel()
-        elif data["type"] == "shapes":
-            m = ShapesModel()
+        elif data["type"] in ["pen", "line", "oval", "rect", "round_rect"]:
+            m = UiShape.CreateModelForType(data["type"])
         m.SetData(data)
         return m

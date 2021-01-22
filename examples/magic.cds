@@ -4,8 +4,8 @@
   "properties": {
     "name": "",
     "size": [
-      830,
-      261
+      827,
+      260
     ]
   },
   "cards": [
@@ -56,7 +56,7 @@
           }
         },
         {
-          "type": "shapes",
+          "type": "rect",
           "handlers": {},
           "properties": {
             "name": "tube",
@@ -67,25 +67,24 @@
             "position": [
               289,
               34
-            ]
+            ],
+            "originalSize": [
+              234,
+              190
+            ],
+            "penColor": "#7000E9",
+            "penThickness": 1,
+            "fillColor": "#871AFF"
           },
-          "shapes": [
-            {
-              "type": "rect",
-              "penColor": "#7000E9",
-              "fillColor": "#871AFF",
-              "thickness": 1,
-              "points": [
-                [
-                  0,
-                  0
-                ],
-                [
-                  233,
-                  189
-                ]
-              ]
-            }
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              233,
+              189
+            ]
           ]
         },
         {

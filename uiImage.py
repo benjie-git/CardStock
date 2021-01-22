@@ -72,7 +72,7 @@ class ImageModel(ViewModel):
 
         self.propertyTypes["file"] = "string"
         self.propertyTypes["fit"] = "choice"
-        self.propertyTypes["bgColor"] = "string"
+        self.propertyTypes["bgColor"] = "color"
         self.propertyChoices["fit"] = ["Center", "Stretch", "Fill"]
 
         # Custom property order and mask for the inspector
