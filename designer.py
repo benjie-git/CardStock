@@ -157,12 +157,12 @@ class DesignerFrame(wx.Frame):
         self.splitter.SetSize(clientSize)
         self.SetClientSize(clientSize)
 
-    def SetSelectedUiView(self, view):
-        self.cPanel.UpdateForUiView(view)
+    def SetSelectedUiViews(self, views):
+        self.cPanel.UpdateForUiViews(views)
 
-    def UpdateSelectedUiView(self):
-        self.cPanel.UpdateInspectorForUiView(self.stackView.GetSelectedUiView())
-        self.cPanel.UpdateHandlerForUiView(self.stackView.GetSelectedUiView(), None)
+    def UpdateSelectedUiViews(self):
+        self.cPanel.UpdateInspectorForUiViews(self.stackView.GetSelectedUiViews())
+        self.cPanel.UpdateHandlerForUiViews(self.stackView.GetSelectedUiViews(), None)
 
     def FwdOnKeyDown(self, event):
         self.stackView.OnKeyDown(None, event)
@@ -205,15 +205,15 @@ class DesignerFrame(wx.Frame):
         cardMenu.Append(ID_DUPLICATE_CARD, "&Duplicate Card", "Duplicate Card")
         cardMenu.Append(ID_REMOVE_CARD, "&Remove Card", "Remove Card")
         cardMenu.AppendSeparator()
-        cardMenu.Append(ID_MOVE_CARD_FWD, "Move Card &Forward", "Move Card Forward")
-        cardMenu.Append(ID_MOVE_CARD_BACK, "Move Card Bac&k", "Move Card Back")
+        cardMenu.Append(ID_MOVE_CARD_FWD, "Move Card &Forward\tCtrl-Alt-F", "Move Card Forward")
+        cardMenu.Append(ID_MOVE_CARD_BACK, "Move Card Bac&k\tCtrl-Alt-B", "Move Card Back")
         self.editMenu = cardMenu
 
         viewMenu = wx.Menu()
-        viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front", "Move to Front")
-        viewMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward", "Move Forward")
-        viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&k", "Move Back")
-        viewMenu.Append(ID_MOVE_VIEW_END, "Move to Back", "Move to Back")
+        viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Shift-F", "Move to Front")
+        viewMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward\tCtrl-F", "Move Forward")
+        viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&k\tCtrl-B", "Move Back")
+        viewMenu.Append(ID_MOVE_VIEW_END, "Move to Back\tCtrl-Shift-B", "Move to Back")
         self.editMenu = viewMenu
 
         # and the help menu
@@ -347,13 +347,13 @@ class DesignerFrame(wx.Frame):
 
     def OnMenuMoveView(self, event):
         if event.GetId() == ID_MOVE_VIEW_FRONT:
-            self.stackView.ReorderSelectedView("front")
+            self.stackView.ReorderSelectedViews("front")
         elif event.GetId() == ID_MOVE_VIEW_FWD:
-            self.stackView.ReorderSelectedView("fwd")
+            self.stackView.ReorderSelectedViews("fwd")
         elif event.GetId() == ID_MOVE_VIEW_BACK:
-            self.stackView.ReorderSelectedView("back")
+            self.stackView.ReorderSelectedViews("back")
         elif event.GetId() == ID_MOVE_VIEW_END:
-            self.stackView.ReorderSelectedView("end")
+            self.stackView.ReorderSelectedViews("end")
 
     def OnMenuMoveCard(self, event):
         if event.GetId() == ID_MOVE_CARD_FWD:

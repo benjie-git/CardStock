@@ -7,6 +7,7 @@ from PythonEditor import PythonEditor
 from uiView import UiView
 from embeddedImages import embeddedImages
 
+
 class ControlPanel(wx.Panel):
     """
     This class implements a very simple control panel for the stackWindow.
@@ -114,8 +115,8 @@ class ControlPanel(wx.Panel):
         self.codeEditor.Bind(wx.EVT_IDLE, self.CodeEditorOnIdle)
 
         self.lastSelectedUiView = None
-        self.UpdateInspectorForUiView(None)
-        self.UpdateHandlerForUiView(None, None)
+        self.UpdateInspectorForUiViews([])
+        self.UpdateHandlerForUiViews([], None)
 
         # ----------
 
@@ -161,14 +162,19 @@ class ControlPanel(wx.Panel):
         keys = list(UiView.handlerDisplayNames.keys())
         vals = list(UiView.handlerDisplayNames.values())
         self.SaveCurrentHandler()
-        self.UpdateHandlerForUiView(self.stackView.GetSelectedUiView(), keys[vals.index(displayName)])
+        self.UpdateHandlerForUiViews(self.stackView.GetSelectedUiViews(), keys[vals.index(displayName)])
 
-    def UpdateForUiView(self, uiView):
-        lastUi = self.lastSelectedUiView
-        if uiView != lastUi:
-            self.UpdateInspectorForUiView(uiView)
-            self.UpdateHandlerForUiView(uiView, None)
-            self.lastSelectedUiView = uiView
+    def UpdateForUiViews(self, uiViews):
+        if len(uiViews) == 1:
+            lastUi = self.lastSelectedUiView
+            if uiViews[0] != lastUi:
+                self.UpdateInspectorForUiViews(uiViews)
+                self.UpdateHandlerForUiViews(uiViews, None)
+                self.lastSelectedUiView = uiViews[0]
+        else:
+            self.UpdateInspectorForUiViews([])
+            self.UpdateHandlerForUiViews([], None)
+            self.lastSelectedUiView = None
 
     def UpdatedProperty(self, uiView, key):
         if not uiView:
@@ -183,7 +189,7 @@ class ControlPanel(wx.Panel):
                 self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
                 r += 1
 
-    def UpdateInspectorForUiView(self, uiView):
+    def UpdateInspectorForUiViews(self, uiViews):
         # Catch a still-open editor and handle it before we move on to a newly selectd uiView
         if self.inspector.IsCellEditControlShown():
             ed = self.inspector.GetCellEditor(self.inspector.GetGridCursorRow(), self.inspector.GetGridCursorCol())
@@ -193,8 +199,13 @@ class ControlPanel(wx.Panel):
 
         if self.inspector.GetNumberRows() > 0:
             self.inspector.DeleteRows(0, self.inspector.GetNumberRows())
-        if not uiView:
-            uiView = self.stackView.uiCard
+
+        if len(uiViews) != 1:
+            self.inspector.Enable(False)
+            return
+
+        self.inspector.Enable(True)
+        uiView = uiViews[0]
         keys = uiView.model.PropertyKeys()
         self.inspector.InsertRows(0,len(keys))
         r = 0
@@ -215,7 +226,7 @@ class ControlPanel(wx.Panel):
         self.Layout()
 
     def OnInspectorValueChanged(self, event):
-        uiView = self.stackView.GetSelectedUiView()
+        uiView = self.stackView.GetSelectedUiViews()[0]
         self.InspectorValueChanged(uiView, event.GetRow(),
                                    self.inspector.GetCellValue(event.GetRow(), 1))
 
@@ -240,9 +251,17 @@ class ControlPanel(wx.Panel):
         self.inspector.SetColSize(1, width)
         event.Skip()
 
-    def UpdateHandlerForUiView(self, uiView, handlerName):
-        if not uiView:
-            uiView = self.stackView.uiCard
+    def UpdateHandlerForUiViews(self, uiViews, handlerName):
+        if len(uiViews) != 1:
+            self.codeEditor.SetText("")
+            self.codeEditor.Enable(False)
+            self.handlerPicker.Enable(False)
+            return
+
+        self.codeEditor.Enable(True)
+        self.handlerPicker.Enable(True)
+        uiView = uiViews[0]
+
         if handlerName == None:
             handlerName = uiView.lastEditedHandler
         if not handlerName:
@@ -270,7 +289,7 @@ class ControlPanel(wx.Panel):
 
     def SaveCurrentHandler(self):
         if self.codeEditor.HasFocus():
-            uiView = self.stackView.GetSelectedUiView()
+            uiView = self.stackView.GetSelectedUiViews()[0]
             if uiView:
                 oldVal = uiView.model.GetHandler(self.currentHandler)
                 newVal = self.codeEditor.GetText()

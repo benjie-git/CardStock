@@ -42,13 +42,13 @@ class ResizeUiViewCommand(Command):
         return True
 
 
-class AddUiViewCommand(Command):
+class AddNewUiViewCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.stackView = args[2]
         self.cardIndex = args[3]
         self.viewType = args[4]
-        self.viewModel = args[5] if len(args)>5 else None
+        self.viewModel = args[5] if len(args) > 5 else None
 
     def Do(self):
         if self.viewType == "card":
@@ -75,68 +75,120 @@ class AddUiViewCommand(Command):
         return True
 
 
-class RemoveUiViewCommand(Command):
+class AddUiViewsCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.stackView = args[2]
         self.cardIndex = args[3]
-        self.viewModel = args[4]
+        self.viewModels = args[4]
 
     def Do(self):
-        if self.viewModel.type == "card":
+        self.stackView.LoadCardAtIndex(self.cardIndex)
+        for m in self.viewModels:
+            self.stackView.AddUiViewInternal(m.type, m)
+        return True
+
+    def Undo(self):
+        self.stackView.LoadCardAtIndex(self.cardIndex)
+        for m in self.viewModels:
+            self.stackView.RemoveUiViewByModel(m)
+        return True
+
+
+class RemoveUiViewsCommand(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.stackView = args[2]
+        self.cardIndex = args[3]
+        self.viewModels = args[4]
+        self.modelIndexes = []
+
+    def Do(self):
+        if len(self.viewModels) == 1 and self.viewModels[0].type == "card":
             self.stackView.LoadCardAtIndex(None)
-            self.stackView.stackModel.RemoveCardModel(self.viewModel)
+            self.stackView.stackModel.RemoveCardModel(self.viewModels[0])
             index = self.cardIndex
             if index >= len(self.stackView.stackModel.cardModels)-1: index = len(self.stackView.stackModel.cardModels)-1
             self.stackView.LoadCardAtIndex(index)
         else:
             self.stackView.LoadCardAtIndex(self.cardIndex)
-            self.stackView.RemoveUiViewByModel(self.viewModel)
+            self.modelIndexes = []
+            for m in self.viewModels.copy():
+                self.modelIndexes.append(self.stackView.uiCard.model.childModels.index(m))
+                self.stackView.RemoveUiViewByModel(m)
         return True
 
     def Undo(self):
-        if self.viewModel.type == "card":
+        if len(self.viewModels) == 1 and self.viewModels[0].type == "card":
             self.stackView.LoadCardAtIndex(None)
-            self.stackView.stackModel.InsertCardModel(self.cardIndex, self.viewModel)
+            self.stackView.stackModel.InsertCardModel(self.cardIndex, self.viewModels[0])
             self.stackView.LoadCardAtIndex(self.cardIndex)
         else:
             self.stackView.LoadCardAtIndex(self.cardIndex)
-            self.stackView.AddUiViewInternal(self.viewModel.type, self.viewModel)
+            i = len(self.modelIndexes)-1
+            models = self.viewModels.copy()
+            models.reverse()
+            for m in models:
+                self.stackView.uiCard.model.childModels.insert(i, m)
+                i -= 1
+            self.stackView.LoadCardAtIndex(self.cardIndex, True)
         return True
 
 
-class ReorderUiViewCommand(Command):
+class ReorderCardCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.stackView = args[2]
         self.cardIndex = args[3]
-        self.viewModel = args[4]
-        self.newIndex = args[5]
-        if self.viewModel.type != "card":
-            self.oldIndex = self.stackView.stackModel.cardModels[self.cardIndex].childModels.index(self.viewModel)
+        self.newIndex = args[4]
 
     def Do(self):
-        if self.viewModel.type == "card":
-            cardList = self.stackView.stackModel.cardModels
-            cardList.insert(self.newIndex, cardList.pop(self.cardIndex))
-            self.stackView.LoadCardAtIndex(self.newIndex)
-        else:
-            viewList = self.stackView.stackModel.cardModels[self.cardIndex].childModels
-            viewList.insert(self.newIndex, viewList.pop(self.oldIndex))
-            self.stackView.LoadCardAtIndex(self.cardIndex, reload=True)
-            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
+        cardList = self.stackView.stackModel.cardModels
+        cardList.insert(self.newIndex, cardList.pop(self.cardIndex))
+        self.stackView.LoadCardAtIndex(self.newIndex)
         return True
 
     def Undo(self):
-        if self.viewModel.type == "card":
-            cardList = self.stackView.stackModel.cardModels
-            cardList.insert(self.cardIndex, cardList.pop(self.newIndex))
-            self.stackView.LoadCardAtIndex(self.cardIndex)
-        else:
-            viewList = self.stackView.stackModel.cardModels[self.cardIndex].childModels
-            viewList.insert(self.oldIndex, viewList.pop(self.newIndex))
-            self.stackView.LoadCardAtIndex(self.cardIndex, reload=True)
-            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
+        cardList = self.stackView.stackModel.cardModels
+        cardList.insert(self.cardIndex, cardList.pop(self.newIndex))
+        self.stackView.LoadCardAtIndex(self.cardIndex)
+        return True
+
+
+class ReorderUiViewsCommand(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.stackView = args[2]
+        self.cardIndex = args[3]
+        self.oldIndexes = args[4]
+        self.newIndexes = args[5]
+
+    def Do(self):
+        models = []
+        viewList = self.stackView.stackModel.cardModels[self.cardIndex].childModels
+        for i in self.oldIndexes[::-1]:
+            models.append(viewList.pop(i))
+        for i in self.newIndexes:
+            viewList.insert(i, models.pop())
+        selected = self.stackView.GetSelectedUiViews()
+        self.stackView.LoadCardAtIndex(self.cardIndex, reload=True)
+        self.stackView.SelectUiView(None)
+        for ui in selected:
+            self.stackView.SelectUiView(ui, True)
+        return True
+
+    def Undo(self):
+        models = []
+        viewList = self.stackView.stackModel.cardModels[self.cardIndex].childModels
+        for i in self.newIndexes[::-1]:
+            models.append(viewList.pop(i))
+        for i in self.oldIndexes:
+            viewList.insert(i, models.pop())
+        selected = self.stackView.GetSelectedUiViews()
+        self.stackView.LoadCardAtIndex(self.cardIndex, reload=True)
+        self.stackView.SelectUiView(None)
+        for ui in selected:
+            self.stackView.SelectUiView(ui, True)
         return True
 
 
@@ -202,4 +254,22 @@ class SetHandlerCommand(Command):
         self.model.SetHandler(self.key, self.oldVal)
 
         self.cPanel.UpdateHandlerForUiView(uiView, self.key)
+        return True
+
+
+class CommandGroup(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.commands = args[2]
+
+    def Do(self):
+        for c in self.commands:
+            c.Do()
+        return True
+
+    def Undo(self):
+        commands = self.commands.copy()
+        commands.reverse()
+        for c in commands:
+            c.Undo()
         return True

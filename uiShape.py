@@ -150,8 +150,12 @@ class LineModel(ViewModel):
         if not self.properties["originalSize"] or self.properties["originalSize"][0] == 0 or self.properties["originalSize"][1] == 0:
             return self.points
         padding = int(self.properties["penThickness"] / 2 + 0.5)
-        scaleX = (self.properties["size"][0] - 2*padding) / (self.properties["originalSize"][0] - 2*padding)
-        scaleY = (self.properties["size"][1] - 2*padding) / (self.properties["originalSize"][1] - 2*padding)
+        scaleX = 1
+        scaleY = 1
+        if (self.properties["originalSize"][0] - 2*padding) != 0:
+            scaleX = (self.properties["size"][0] - 2*padding) / (self.properties["originalSize"][0] - 2*padding)
+        if (self.properties["originalSize"][1] - 2*padding) != 0:
+            scaleY = (self.properties["size"][1] - 2*padding) / (self.properties["originalSize"][1] - 2*padding)
         self.scaledPoints = [(((p[0] - padding) * scaleX) + padding, ((p[1] - padding) * scaleY) + padding) for p in self.points]
         return self.scaledPoints
 

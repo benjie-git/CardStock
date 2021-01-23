@@ -70,7 +70,7 @@ class HandTool(BaseTool):
         if self.targetUi.model.type != "card" or self.isResizing:
             self.targetUi.view.CaptureMouse()
 
-        self.stackView.SelectUiView(self.targetUi)
+        self.stackView.SelectUiView(self.targetUi, event.ShiftDown())
 
     def OnMouseMove(self, uiView, event):
         if self.targetUi and self.targetUi.view.HasCapture():
@@ -105,52 +105,54 @@ class HandTool(BaseTool):
             self.targetUi = None
         event.Skip()
 
-    def OnKeyDown(self, uiView, event):
-        if uiView and uiView.model.type == "card":
-            uiView = self.stackView.GetSelectedUiView()
-
-        if not uiView: return
+    def OnKeyDown(self, uiViewIn, event):
+        uiViews = []
+        if uiViewIn and uiViewIn.model.type == "card":
+            uiViews = self.stackView.GetSelectedUiViews()
 
         code = event.GetKeyCode()
-        if uiView.model.type != "card":
-            pos = wx.Point(uiView.model.GetProperty("position"))
-            cardRect = self.stackView.GetRect()
-            dist = 20 if event.AltDown() else (5 if event.ShiftDown() else 1)
-            if code == wx.WXK_LEFT:
-                if pos.x-dist < 0: dist = pos.x
-                if dist > 0:
-                    command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (-dist, 0))
-                    self.stackView.command_processor.Submit(command)
-                    uiView.model.SetProperty("position", (pos.x-dist, pos.y))
-            elif code == wx.WXK_RIGHT:
-                if pos.x+dist > cardRect.Right-20: dist = cardRect.Right-20 - pos.x
-                if dist > 0:
-                    command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (dist, 0))
-                    self.stackView.command_processor.Submit(command)
-                    uiView.model.SetProperty("position", (pos.x+dist, pos.y))
-            elif code == wx.WXK_UP:
-                if pos.y-dist < 0: dist = pos.y
-                if dist > 0:
-                    command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (0, -dist))
-                    self.stackView.command_processor.Submit(command)
-                    uiView.model.SetProperty("position", (pos.x, pos.y-dist))
-            elif code == wx.WXK_DOWN:
-                if pos.y+dist > cardRect.Bottom-20: dist = cardRect.Bottom-20 - pos.y
-                if dist > 0:
-                    command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (0, dist))
-                    self.stackView.command_processor.Submit(command)
-                    uiView.model.SetProperty("position", (pos.x, pos.y+dist))
+        commands = []
+        for uiView in uiViews:
+            if uiView.model.type != "card":
+                pos = wx.Point(uiView.model.GetProperty("position"))
+                cardRect = self.stackView.GetRect()
+                dist = 20 if event.AltDown() else (5 if event.ShiftDown() else 1)
+                if code == wx.WXK_LEFT:
+                    if pos.x-dist < 0: dist = pos.x
+                    if dist > 0:
+                        command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (-dist, 0))
+                        commands.append(command)
+                elif code == wx.WXK_RIGHT:
+                    if pos.x+dist > cardRect.Right-20: dist = cardRect.Right-20 - pos.x
+                    if dist > 0:
+                        command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (dist, 0))
+                        commands.append(command)
+                elif code == wx.WXK_UP:
+                    if pos.y-dist < 0: dist = pos.y
+                    if dist > 0:
+                        command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (0, -dist))
+                        commands.append(command)
+                elif code == wx.WXK_DOWN:
+                    if pos.y+dist > cardRect.Bottom-20: dist = cardRect.Bottom-20 - pos.y
+                    if dist > 0:
+                        command = MoveUiViewCommand(True, 'Move', self.stackView, self.stackView.cardIndex, uiView.model, (0, dist))
+                        commands.append(command)
+
+        if len(commands):
+            command = CommandGroup(True, "Move Views", commands)
+            self.stackView.command_processor.Submit(command)
 
         if code == wx.WXK_TAB:
             if len(self.stackView.uiViews) > 0:
-                ui = self.stackView.GetSelectedUiView()
-                if ui == self.stackView.uiCard:
-                    self.stackView.SelectUiView(self.stackView.uiViews[0])
-                elif ui == self.stackView.uiViews[-1]:
-                    self.stackView.SelectUiView(self.stackView.uiCard)
-                else:
-                    nextUi = self.stackView.uiViews[self.stackView.uiViews.index(ui) + 1]
-                    self.stackView.SelectUiView(nextUi)
+                if len(uiViews) > 0:
+                    ui = uiViews[-1]
+                    if ui == self.stackView.uiCard:
+                        self.stackView.SelectUiView(self.stackView.uiViews[0])
+                    elif ui == self.stackView.uiViews[-1]:
+                        self.stackView.SelectUiView(self.stackView.uiCard)
+                    else:
+                        nextUi = self.stackView.uiViews[self.stackView.uiViews.index(ui) + 1]
+                        self.stackView.SelectUiView(nextUi)
         event.Skip()
 
 
@@ -184,7 +186,7 @@ class ViewTool(BaseTool):
             offset = (endw-self.origSize[0], endh-self.origSize[1])
             if offset != (0, 0):
                 model = self.targetUi.model
-                command = AddUiViewCommand(True, 'Add View', self.stackView, self.stackView.cardIndex, model.type, model)
+                command = AddNewUiViewCommand(True, 'Add View', self.stackView, self.stackView.cardIndex, model.type, model)
                 self.stackView.RemoveUiViewByModel(model)
                 self.stackView.command_processor.Submit(command)
                 self.stackView.SelectUiView(self.stackView.GetUiViewByModel(model))
@@ -248,7 +250,7 @@ class PenTool(BaseTool):
 
             model.ReCropShape()
 
-            command = AddUiViewCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model.type, model)
+            command = AddNewUiViewCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model.type, model)
             self.stackView.RemoveUiViewByModel(model)
             self.stackView.command_processor.Submit(command)
             self.stackView.SelectUiView(self.stackView.GetUiViewByModel(model))
@@ -322,7 +324,7 @@ class ShapeTool(BaseTool):
 
             model.ReCropShape()
 
-            command = AddUiViewCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model.type, model)
+            command = AddNewUiViewCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model.type, model)
             self.stackView.RemoveUiViewByModel(model)
             self.stackView.command_processor.Submit(command)
             self.stackView.SelectUiView(self.stackView.GetUiViewByModel(model))

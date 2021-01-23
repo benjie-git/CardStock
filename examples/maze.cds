@@ -4,8 +4,8 @@
   "properties": {
     "name": "",
     "size": [
-      500,
-      500
+      519,
+      506
     ]
   },
   "cards": [
@@ -14,7 +14,7 @@
       "handlers": {},
       "properties": {
         "name": "card_1",
-        "bgColor": "white"
+        "bgColor": "#FFFFFF"
       },
       "childModels": [
         {
@@ -55,27 +55,6 @@
             "file": "",
             "fit": "Scale",
             "bgColor": "green"
-          }
-        },
-        {
-          "type": "image",
-          "handlers": {
-            "OnMouseMove": "self.SetPosition([mouseX-17, mouseY-17])\n",
-            "OnMessage": "if message == \"reset\":\n   self.SetPosition((20, 465))\nelif message == \"win\":\n   PlaySound(\"yay.wav\")\n   self.SetPosition((20, 465))\n"
-          },
-          "properties": {
-            "name": "ball",
-            "size": [
-              34,
-              34
-            ],
-            "position": [
-              13,
-              450
-            ],
-            "file": "",
-            "fit": "Scale",
-            "bgColor": "blue"
           }
         },
         {
@@ -150,8 +129,8 @@
               387
             ],
             "position": [
-              397,
-              -4
+              396,
+              -3
             ],
             "file": "",
             "fit": "Scale",
@@ -232,6 +211,82 @@
             "position": [
               163,
               381
+            ],
+            "file": "",
+            "fit": "Scale",
+            "bgColor": "black"
+          }
+        },
+        {
+          "type": "round_rect",
+          "handlers": {
+            "OnMouseMove": "self.SetPosition([mouseX-24, mouseY-24])\n",
+            "OnMessage": "if message == \"reset\":\n   PlaySound(\"click.wav\")\n   self.SetPosition((8, 445))\nelif message == \"win\":\n   PlaySound(\"yay.wav\")\n   self.SetPosition((8, 445))\n"
+          },
+          "properties": {
+            "name": "ball",
+            "size": [
+              46,
+              47
+            ],
+            "position": [
+              9,
+              448
+            ],
+            "originalSize": [
+              46,
+              43
+            ],
+            "penColor": "black",
+            "penThickness": 0,
+            "fillColor": "#0A5FFF",
+            "cornerRadius": 10
+          },
+          "points": [
+            [
+              1,
+              1
+            ],
+            [
+              45,
+              42
+            ]
+          ]
+        },
+        {
+          "type": "image",
+          "handlers": {
+            "OnIdle": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+          },
+          "properties": {
+            "name": "wall_9",
+            "size": [
+              26,
+              507
+            ],
+            "position": [
+              500,
+              1
+            ],
+            "file": "",
+            "fit": "Scale",
+            "bgColor": "black"
+          }
+        },
+        {
+          "type": "image",
+          "handlers": {
+            "OnIdle": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+          },
+          "properties": {
+            "name": "wall_10",
+            "size": [
+              429,
+              25
+            ],
+            "position": [
+              80,
+              487
             ],
             "file": "",
             "fit": "Scale",

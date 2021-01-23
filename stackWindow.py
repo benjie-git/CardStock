@@ -43,7 +43,7 @@ class StackWindow(wx.Window):
             stackModel.AppendCardModel(CardModel())
 
         self.stackModel = stackModel
-        self.selectedView = None
+        self.selectedViews = []
         self.uiViews = []
         self.cardIndex = None
         self.uiCard = UiCard(self, stackModel.cardModels[0])
@@ -119,8 +119,7 @@ class StackWindow(wx.Window):
     def CreateViews(self, cardModel):
         self.uiCard.SetModel(cardModel)
         self.uiViews = []
-        for m in cardModel.childModels:
-            self.AddUiViewFromModel(m, canUndo=False)  # Don't allow undoing card loads
+        self.AddUiViewsFromModel(cardModel.childModels, canUndo=False)  # Don't allow undoing card loads
 
     def SetStackModel(self, model):
         if self.stackModel:
@@ -164,7 +163,7 @@ class StackWindow(wx.Window):
 
     def CopyView(self):
         clipData = wx.CustomDataObject("org.cardstock.models")
-        list = [self.selectedView.model.GetData()]
+        list = [ui.model.GetData() for ui in self.selectedViews]
         data = bytes(json.dumps(list).encode('utf8'))
         clipData.SetData(data)
         wx.TheClipboard.Open()
@@ -173,11 +172,11 @@ class StackWindow(wx.Window):
 
     def CutView(self):
         self.CopyView()
-        if self.selectedView != self.uiCard:
-            command = RemoveUiViewCommand(True, "Cut", self, self.cardIndex, self.selectedView.model)
-            self.command_processor.Submit(command)
-        else:
+        if len(self.selectedViews) == 1 and self.selectedViews[0].model.type == "card":
             self.RemoveCard()
+        elif len(self.selectedViews) > 0:
+            command = RemoveUiViewsCommand(True, "Cut", self, self.cardIndex, [ui.model for ui in self.selectedViews])
+            self.command_processor.Submit(command)
 
     def PasteView(self):
         if not wx.TheClipboard.IsOpened():  # may crash, otherwise
@@ -187,19 +186,22 @@ class StackWindow(wx.Window):
                     if wx.TheClipboard.GetData(clipData):
                         rawdata = clipData.GetData()
                         list = json.loads(rawdata.tobytes().decode('utf8'))
-                        uiView = None
-                        for dict in list:
-                            model = CardModel.ModelFromData(dict)
-                            if model.type == "card":
-                                model.SetProperty("name", model.DeduplicateName(model.GetProperty("name"),
-                                                                                [m.GetProperty("name") for m in
-                                                                                 self.stackModel.cardModels]))
-                                command = AddUiViewCommand(True, "Paste Card", self, self.cardIndex + 1, "card", model)
-                                self.command_processor.Submit(command)
-                            else:
-                                uiView = self.AddUiViewFromModel(model)
-                        if uiView:
-                            self.SelectUiView(uiView)
+                        self.SelectUiView(None)
+                        models = [CardModel.ModelFromData(dict) for dict in list]
+                        if len(models) == 1 and models[0].type == "card":
+                            models[0].SetProperty("name", models[0].DeduplicateName(models[0].GetProperty("name"),
+                                                                            [m.GetProperty("name") for m in
+                                                                             self.stackModel.cardModels]))
+                            command = AddNewUiViewCommand(True, "Paste Card", self, self.cardIndex + 1, "card", models[0])
+                            self.command_processor.Submit(command)
+                        else:
+                            for model in models:
+                                model.SetProperty("name",
+                                                  self.uiCard.model.DeduplicateNameInCard(model.GetProperty("name")))
+                            command = AddUiViewsCommand(True, 'Add Views', self, self.cardIndex, models)
+                            self.command_processor.Submit(command)
+                            for ui in self.uiViews[-len(models):]:
+                                self.SelectUiView(ui, True)
                 wx.TheClipboard.Close()
 
     def AddUiViewInternal(self, type, model=None):
@@ -234,23 +236,12 @@ class StackWindow(wx.Window):
                 uiView.view.SetCursor(wx.Cursor(self.globalCursor))
         return uiView
 
-    def AddUiViewFromModel(self, model, canUndo=True):
-        uiView = None
+    def AddUiViewsFromModel(self, models, canUndo=True):
+        for model in models:
+            if not model in self.uiCard.model.childModels:
+                model.SetProperty("name", self.uiCard.model.DeduplicateNameInCard(model.GetProperty("name")))
 
-        if not model in self.uiCard.model.childModels:
-            model.SetProperty("name", self.uiCard.model.DeduplicateNameInCard(model.GetProperty("name")))
-
-        command = None
-        if model.GetType() == "button":
-            command = AddUiViewCommand(True, 'Add Button', self, self.cardIndex, "button", model)
-        elif model.GetType() == "textfield":
-            command = AddUiViewCommand(True, 'Add TextField', self, self.cardIndex, "textfield", model)
-        elif model.GetType() == "textlabel":
-            command = AddUiViewCommand(True, 'Add TextLabel', self, self.cardIndex, "textlabel", model)
-        elif model.GetType() == "image":
-            command = AddUiViewCommand(True, 'Add Image', self, self.cardIndex, "image", model)
-        elif model.GetType() in ["pen", "line", "oval", "rect", "round_rect"]:
-            command = AddUiViewCommand(True, 'Add Shape', self, self.cardIndex, model.GetType(), model)
+        command = AddUiViewsCommand(True, 'Add Views', self, self.cardIndex, models)
 
         if canUndo:
             self.command_processor.Submit(command)
@@ -258,25 +249,32 @@ class StackWindow(wx.Window):
             # Don't mess with the Undo queue when we're just building a pgae
             command.Do()
 
-        uiView = self.uiViews[-1]
+        uiViews = self.uiViews[-len(models):]
 
         if self.globalCursor:
-            uiView.view.SetCursor(wx.Cursor(self.globalCursor))
+            for uiView in uiViews:
+                uiView.view.SetCursor(wx.Cursor(self.globalCursor))
 
-        return uiView
+        return uiViews
 
-    def GetSelectedUiView(self):
-        return self.selectedView
+    def GetSelectedUiViews(self):
+        return self.selectedViews
 
-    def SelectUiView(self, view):
+    def SelectUiView(self, view, extend=False):
         if self.isEditing:
-            if self.selectedView:
-                self.selectedView.SetSelected(False)
+            if len(self.selectedViews) and not extend:
+                for ui in self.selectedViews:
+                    ui.SetSelected(False)
+                self.selectedViews = []
             if view:
-                view.SetSelected(True)
-            self.selectedView = view
+                if not extend or view not in self.selectedViews:
+                    view.SetSelected(True)
+                    self.selectedViews.append(view)
+                else:
+                    view.SetSelected(False)
+                    self.selectedViews.remove(view)
             if self.designer:
-                self.designer.SetSelectedUiView(view)
+                self.designer.SetSelectedUiViews(self.selectedViews)
 
     def OnPropertyChanged(self, model, key):
         if model == self.stackModel:
@@ -301,29 +299,41 @@ class StackWindow(wx.Window):
     def RemoveUiViewByModel(self, viewModel):
         for ui in self.uiViews.copy():
             if ui.model == viewModel:
-                if self.selectedView == ui:
-                    self.SelectUiView(self.uiCard)
+                if ui in self.selectedViews:
+                    self.SelectUiView(ui, True)
                 ui.model.RemovePropertyListener(self.OnPropertyChanged)
                 self.uiViews.remove(ui)
                 self.uiCard.model.RemoveChild(ui.model)
                 ui.DestroyView()
                 return
 
-    def ReorderSelectedView(self, direction):
-        if self.selectedView and self.selectedView != self.uiCard:
-            currentIndex = self.uiCard.model.childModels.index(self.selectedView.model)
-            newIndex = None
-            if direction == "end": newIndex = 0
-            elif direction == "fwd": newIndex = currentIndex+1
-            elif direction == "back": newIndex = currentIndex-1
-            elif direction == "front": newIndex = len(self.uiCard.model.childModels)-1
+    def ReorderSelectedViews(self, direction):
+        oldIndexes = []
+        for ui in self.selectedViews:
+            if ui != self.uiCard:
+                oldIndexes.append(self.uiCard.model.childModels.index(ui.model))
+        oldIndexes.sort()
 
-            if newIndex < 0: newIndex = 0
-            if newIndex >= len(self.uiCard.model.childModels): newIndex = len(self.uiCard.model.childModels)-1
+        if len(oldIndexes):
+            firstIndex = oldIndexes[0]
+            newIndexes = []
+            i = 0
+            for index in oldIndexes:
+                newIndex = 0
+                if direction == "end":
+                    newIndex = 0 + i
+                elif direction == "fwd":
+                    newIndex = firstIndex + 1 + i
+                elif direction == "back":
+                    newIndex = firstIndex - 1 + i
+                elif direction == "front":
+                    newIndex = len(self.uiCard.model.childModels) - len(oldIndexes) + i
+                if newIndex < 0 or newIndex >= len(self.uiCard.model.childModels):
+                    return
+                newIndexes.append(newIndex)
 
-            if newIndex != currentIndex:
-                command = ReorderUiViewCommand(True, "Reorder View", self, self.cardIndex, self.selectedView.model, newIndex)
-                self.command_processor.Submit(command)
+            command = ReorderUiViewsCommand(True, "Reorder Views", self, self.cardIndex, oldIndexes, newIndexes)
+            self.command_processor.Submit(command)
 
     def ReorderCurrentCard(self, direction):
         currentIndex = self.cardIndex
@@ -335,14 +345,14 @@ class StackWindow(wx.Window):
         if newIndex >= len(self.stackModel.cardModels): newIndex = len(self.stackModel.cardModels) - 1
 
         if newIndex != currentIndex:
-            command = ReorderUiViewCommand(True, "Reorder Card", self, self.cardIndex, self.stackModel.cardModels[currentIndex], newIndex)
+            command = ReorderCardCommand(True, "Reorder Card", self, self.cardIndex, newIndex)
             self.command_processor.Submit(command)
 
     def AddCard(self):
         newCard = CardModel()
         newCard.SetProperty("name", newCard.DeduplicateName("card_1",
                                                             [m.GetProperty("name") for m in self.stackModel.cardModels]))
-        command = AddUiViewCommand(True, "Add Card", self, self.cardIndex+1, "card", newCard)
+        command = AddNewUiViewCommand(True, "Add Card", self, self.cardIndex+1, "card", newCard)
         self.command_processor.Submit(command)
 
     def DuplicateCard(self):
@@ -350,13 +360,13 @@ class StackWindow(wx.Window):
         newCard.SetData(self.stackModel.cardModels[self.cardIndex].GetData())
         newCard.SetProperty("name", newCard.DeduplicateName(newCard.GetProperty("name"),
                                                             [m.GetProperty("name") for m in self.stackModel.cardModels]))
-        command = AddUiViewCommand(True, "Duplicate Card", self, self.cardIndex+1, "card", newCard)
+        command = AddNewUiViewCommand(True, "Duplicate Card", self, self.cardIndex+1, "card", newCard)
         self.command_processor.Submit(command)
 
     def RemoveCard(self):
         index = self.cardIndex
         if len(self.stackModel.cardModels) > 1:
-            command = RemoveUiViewCommand(True, "Add Card", self, index, self.stackModel.cardModels[index])
+            command = RemoveUiViewsCommand(True, "Remove Card", self, index, [self.stackModel.cardModels[index]])
             self.command_processor.Submit(command)
 
     def OnMouseDown(self, uiView, event):
