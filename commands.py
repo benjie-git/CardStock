@@ -166,7 +166,7 @@ class ReorderUiViewsCommand(Command):
     def Do(self):
         models = []
         viewList = self.stackView.stackModel.cardModels[self.cardIndex].childModels
-        for i in self.oldIndexes[::-1]:
+        for i in reversed(self.oldIndexes):
             models.append(viewList.pop(i))
         for i in self.newIndexes:
             viewList.insert(i, models.pop())
@@ -180,7 +180,7 @@ class ReorderUiViewsCommand(Command):
     def Undo(self):
         models = []
         viewList = self.stackView.stackModel.cardModels[self.cardIndex].childModels
-        for i in self.newIndexes[::-1]:
+        for i in reversed(self.newIndexes):
             models.append(viewList.pop(i))
         for i in self.oldIndexes:
             viewList.insert(i, models.pop())
@@ -241,7 +241,7 @@ class SetHandlerCommand(Command):
         self.model.SetHandler(self.key, self.newVal)
 
         if self.hasRun:
-            self.cPanel.UpdateHandlerForUiView(uiView, self.key)
+            self.cPanel.UpdateHandlerForUiViews([uiView], self.key)
 
         self.hasRun = True
         return True
@@ -253,7 +253,48 @@ class SetHandlerCommand(Command):
 
         self.model.SetHandler(self.key, self.oldVal)
 
-        self.cPanel.UpdateHandlerForUiView(uiView, self.key)
+        self.cPanel.UpdateHandlerForUiViews([uiView], self.key)
+        return True
+
+
+class GroupUiViewsCommand(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.stackView = args[2]
+        self.cardIndex = args[3]
+        self.models = args[4]
+        self.group = None
+
+    def Do(self):
+        self.stackView.LoadCardAtIndex(self.cardIndex)
+        self.group = self.stackView.GroupModelsInternal(self.models, self.group)
+        return True
+
+    def Undo(self):
+        self.stackView.LoadCardAtIndex(self.cardIndex)
+        self.stackView.UngroupModelsInternal([self.group])
+        return True
+
+
+class UngroupUiViewsCommand(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.stackView = args[2]
+        self.cardIndex = args[3]
+        self.groups = args[4]
+
+    def Do(self):
+        self.stackView.LoadCardAtIndex(self.cardIndex)
+        self.modelSets = self.stackView.UngroupModelsInternal(self.groups)
+        return True
+
+    def Undo(self):
+        self.stackView.LoadCardAtIndex(self.cardIndex)
+        i = 0
+        for subviews in self.modelSets:
+            self.stackView.GroupModelsInternal(subviews, self.groups[i])
+            i += 1
+        self.modelSets = None
         return True
 
 
@@ -268,8 +309,6 @@ class CommandGroup(Command):
         return True
 
     def Undo(self):
-        commands = self.commands.copy()
-        commands.reverse()
-        for c in commands:
+        for c in reversed(self.commands):
             c.Undo()
         return True

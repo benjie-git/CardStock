@@ -52,7 +52,7 @@ class Runner():
         for k in self.cardVarKeys.copy():
             self.clientVars.pop(k)
             self.cardVarKeys.remove(k)
-        for ui in self.stackView.uiViews:
+        for ui in self.stackView.GetAllUiViews():
             name = ui.model.GetProperty("name")
             self.clientVars[name] = ui.model
             self.cardVarKeys.append(name)
@@ -98,14 +98,14 @@ class Runner():
 
         if event and handlerName.startswith("OnKey"):
             code = event.GetKeyCode()
-            if "key" in self.clientVars:
-                oldVars["key"] = self.clientVars["key"]
+            if "keyName" in self.clientVars:
+                oldVars["keyName"] = self.clientVars["keyName"]
             else:
-                oldVars["key"] = noValue
+                oldVars["keyName"] = noValue
             if code in self.keyCodeStringMap:
-                self.clientVars["key"] = self.keyCodeStringMap[code]
+                self.clientVars["keyName"] = self.keyCodeStringMap[code]
             elif event.GetUnicodeKey() != wx.WXK_NONE:
-                self.clientVars["key"] = chr(event.GetUnicodeKey())
+                self.clientVars["keyName"] = chr(event.GetUnicodeKey())
             else:
                 for k,v in oldVars.items():
                     if v == noValue:
@@ -151,7 +151,7 @@ class Runner():
 
     def BroadcastMessage(self, message):
         self.RunHandler(self.stackView.uiCard.model, "OnMessage", None, message)
-        for ui in self.stackView.uiViews:
+        for ui in self.stackView.GetAllUiViews():
             self.RunHandler(ui.model, "OnMessage", None, message)
 
     def GotoCard(self, cardName):

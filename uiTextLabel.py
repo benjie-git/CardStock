@@ -7,17 +7,17 @@ from uiView import UiView, ViewModel
 
 
 class UiTextLabel(UiView):
-    def __init__(self, stackView, model=None):
+    def __init__(self, parent, stackView, model=None):
         if not model:
             model = TextLabelModel()
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("label_"))
 
-        label = self.CreateLabel(stackView, model)
+        label = self.CreateLabel(parent, stackView, model)
         label.SetCursor(wx.Cursor(wx.CURSOR_HAND))
 
-        super().__init__(stackView, model, label)
+        super().__init__(parent, stackView, model, label)
 
-    def CreateLabel(self, stackView, model):
+    def CreateLabel(self, parent, stackView, model):
         if model:
             text = model.GetProperty("text")
             alignment = wx.ALIGN_LEFT
@@ -29,7 +29,7 @@ class UiTextLabel(UiView):
             text = "Text"
             alignment = wx.ALIGN_LEFT
 
-        label = wx.StaticText(parent=stackView, id=wx.ID_ANY, size=(60,20), style=alignment|wx.ST_NO_AUTORESIZE)
+        label = wx.StaticText(parent=parent.view, id=wx.ID_ANY, size=(60,20), style=alignment|wx.ST_NO_AUTORESIZE)
         label.SetLabelText(text)
         famimlyName = model.GetProperty("font")
         size = int(model.GetProperty("fontSize"))

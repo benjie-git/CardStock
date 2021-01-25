@@ -7,8 +7,8 @@ from uiView import UiView, ViewModel
 
 
 class UiShape(UiView):
-    def __init__(self, stackView, shapeType, model=None):
-        view = wx.Window(parent=stackView)
+    def __init__(self, parent, stackView, shapeType, model=None):
+        view = wx.Window(parent=parent.view)
         # self.needsUpdate = True
         # self.buffer = None
 
@@ -16,7 +16,7 @@ class UiShape(UiView):
             model = self.CreateModelForType(shapeType)
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("shape_"))
 
-        super().__init__(stackView, model, view)
+        super().__init__(parent, stackView, model, view)
 
     def SetView(self, view):
         super().SetView(view)
@@ -89,6 +89,7 @@ class UiShape(UiView):
             return ShapeModel()
         if name == "round_rect":
             return RoundRectModel()
+
 
 class LineModel(ViewModel):
     def __init__(self):

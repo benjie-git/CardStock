@@ -7,13 +7,13 @@ import wx
 from uiView import UiView, ViewModel
 
 class UiImage(UiView):
-    def __init__(self, stackView, model=None):
+    def __init__(self, parent, stackView, model=None):
         if not model:
             model = ImageModel()
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("image_"))
 
         img = self.GetImg(model)
-        container = wx.Window(stackView)
+        container = wx.Window(parent.view)
         container.Enable(True)
         self.imgView = wx.StaticBitmap(container, bitmap=img)
         self.imgView.Enable(True)
@@ -21,7 +21,7 @@ class UiImage(UiView):
         container.SetBackgroundColour(model.GetProperty("bgColor"))
         self.imgView.Show(model.GetProperty("file") != "")
 
-        super().__init__(stackView, model, container)
+        super().__init__(parent, stackView, model, container)
         self.BindEvents(self.imgView)
 
     def AspectStrToInt(self, str):

@@ -7,10 +7,12 @@ import ast
 import re
 
 class UiView(object):
-    def __init__(self, stackView, model, view):
+    def __init__(self, parent, stackView, model, view):
         super().__init__()
         self.stackView = stackView
+        self.parent = parent
         self.view = view
+        self.model = None
         self.SetModel(model)
 
         self.isSelected = False
@@ -66,6 +68,8 @@ class UiView(object):
         self.view.Show(not self.model.GetProperty("hidden"))
 
     def SetModel(self, model):
+        if self.model:
+            self.model.RemovePropertyListener(self.OnPropertyChanged)
         self.model = model
         self.lastEditedHandler = None
         self.model.AddPropertyListener(self.OnPropertyChanged)
@@ -134,6 +138,11 @@ class UiView(object):
             self.model.runner.RunHandler(self.model, "OnMouseExit", event)
         event.Skip()
 
+    def OnIdle(self, event):
+        if self.model.runner and "OnIdle" in self.model.handlers:
+            self.model.runner.RunHandler(self.model, "OnIdle", event)
+
+
     def OnPaintSelectionBox(self, event):
         dc = wx.PaintDC(self.selectionBox)
         dc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
@@ -154,8 +163,8 @@ class UiView(object):
         'OnShowCard':   "OnShowCard():",
         'OnHideCard':   "OnHideCard():",
         'OnIdle':       "OnIdle():",
-        'OnKeyDown':    "OnKeyDown(key):",
-        'OnKeyUp':      "OnKeyUp(key):",
+        'OnKeyDown':    "OnKeyDown(keyName):",
+        'OnKeyUp':      "OnKeyUp(keyName):"
     }
 
 
@@ -165,6 +174,7 @@ class ViewModel(object):
     def __init__(self):
         super().__init__()
         self.type = None
+        self.parent = None
         self.handlers = {"OnMouseDown": "",
                          "OnMouseMove": "",
                          "OnMouseUp": "",
@@ -199,10 +209,38 @@ class ViewModel(object):
     def GetDirty(self):
         return self.isDirty
 
+    def GetAbsolutePosition(self):
+        pos = self.GetProperty("position").copy()  # Copy so we don't edit the model's position
+        parent = self.parent
+        while parent and parent.type != "card":
+            parentPos = parent.GetProperty("position")
+            pos[0] += parentPos[0]
+            pos[1] += parentPos[1]
+            parent = parent.parent
+        return pos
+
+    def SetAbsolutePosition(self, pos):
+        parent = self.parent
+        while parent and parent.type != "card":
+            parentPos = parent.GetProperty("position")
+            pos[0] -= parentPos[0]
+            pos[1] -= parentPos[1]
+            parent = parent.parent
+        self.SetProperty("position", pos)
+
     def GetFrame(self):
         p = wx.Point(self.GetProperty("position"))
         s = wx.Size(self.GetProperty("size"))
         return wx.Rect(p, s)
+
+    def GetAbsoluteFrame(self):
+        p = wx.Point(self.GetAbsolutePosition())
+        s = wx.Size(self.GetProperty("size"))
+        return wx.Rect(p, s)
+
+    def SetFrame(self, rect):
+        self.SetProperty("position", rect.Position)
+        self.SetProperty("size", rect.Size)
 
     def GetData(self):
         handlers = {}
@@ -313,7 +351,7 @@ class ViewModel(object):
             self.isDirty = True
 
     def DeduplicateName(self, name, existingNames):
-        existingNames.extend(["card", "self", "key", "mouseX",  "mouseY", "message"]) # disallow globals
+        existingNames.extend(["card", "self", "keyName", "mouseX",  "mouseY", "message"]) # disallow globals
         if name in existingNames:
             name = name.rstrip("0123456789")
             if name[-1:] != "_":
@@ -345,23 +383,27 @@ class ViewModel(object):
     def GetSize(self): return list(self.GetProperty("size"))
     def SetSize(self, size): self.SetProperty("size", size)
 
-    def GetPosition(self): return self.GetProperty("position")
-    def SetPosition(self, pos): self.SetProperty("position", pos)
+    def GetPosition(self): return self.GetAbsolutePosition()
+    def SetPosition(self, pos): self.SetAbsolutePosition(pos)
     def GetCenter(self):
-        p = self.GetProperty("position")
+        p = self.GetAbsolutePosition()
         s = self.GetProperty("size")
         return [p[0]+s[0]/2, p[1]+s[1]/2]
     def SetCenter(self, center):
         s = self.GetProperty("size")
-        self.SetProperty("position", [center[0]-s[0]/2, center[1]-s[1]/2])
+        self.SetAbsolutePosition([center[0]-s[0]/2, center[1]-s[1]/2])
     def MoveBy(self, delta):
         pos = self.GetProperty("position")
         self.SetProperty("position", (pos[0]+delta[0], pos[1]+delta[1]))
 
-    def IsTouching(self, model): return self.GetFrame().Intersects(model.GetFrame())
+    def IsTouching(self, model):
+        sf = self.GetAbsoluteFrame() # self frame in card coords
+        f = model.GetAbsoluteFrame() # other frame in card soords
+        return sf.Intersects(f)
+
     def IsTouchingEdge(self, model):
-        sf = self.GetFrame() # self frame
-        f = model.GetFrame() # other frame
+        sf = self.GetAbsoluteFrame() # self frame in card coords
+        f = model.GetAbsoluteFrame() # other frame in card soords
         top = wx.Rect(f.Left, f.Top, f.Width, 1)
         bottom = wx.Rect(f.Left, f.Bottom, f.Width, 1)
         left = wx.Rect(f.Left, f.Top, 1, f.Height)

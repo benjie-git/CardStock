@@ -8,16 +8,16 @@ import wx.stc as stc
 
 
 class UiTextField(UiView):
-    def __init__(self, stackView, model=None):
+    def __init__(self, parent, stackView, model=None):
         if not model:
             model = TextFieldModel()
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("field_"))
 
-        field = self.CreateField(stackView, model)
+        field = self.CreateField(parent, stackView, model)
 
-        super().__init__(stackView, model, field)
+        super().__init__(parent, stackView, model, field)
 
-    def CreateField(self, stackView, model):
+    def CreateField(self, parent, stackView, model):
         text = model.GetProperty("text")
         alignment = wx.TE_LEFT
         if model.GetProperty("alignment") == "Right":
@@ -26,7 +26,7 @@ class UiTextField(UiView):
             alignment = wx.TE_CENTER
 
         if model.GetProperty("multiline"):
-            field = stc.StyledTextCtrl(parent=stackView, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
+            field = stc.StyledTextCtrl(parent=parent.view, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
             field.SetUseHorizontalScrollBar(False)
             field.SetWrapMode(stc.STC_WRAP_WORD)
             field.SetMarginWidth(1, 0)
@@ -34,7 +34,7 @@ class UiTextField(UiView):
             field.Bind(stc.EVT_STC_CHANGE, self.OnTextChanged)
             field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
         else:
-            field = wx.TextCtrl(parent=stackView, id=wx.ID_ANY, value="TextField", style=wx.TE_PROCESS_ENTER | alignment)
+            field = wx.TextCtrl(parent=parent.view, id=wx.ID_ANY, value="TextField", style=wx.TE_PROCESS_ENTER | alignment)
             field.Bind(wx.EVT_TEXT, self.OnTextChanged)
             field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
             field.ChangeValue(text)
@@ -72,7 +72,7 @@ class UiTextField(UiView):
         elif key == "alignment" or key == "multiline":
             self.stackView.SelectUiView(None)
             self.view.Destroy()
-            newField = self.CreateField(self.stackView, self.model)
+            newField = self.CreateField(self.parent, self.stackView, self.model)
             self.SetView(newField)
             self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
             self.stackView.SelectUiView(self)

@@ -42,7 +42,7 @@ class StackModel(ViewModel):
         self.runner = runner
         for cardModel in self.cardModels:
             cardModel.runner = runner
-            for model in cardModel.childModels:
+            for model in cardModel.GetAllChildModels():
                 model.runner = runner
 
     def GetData(self):

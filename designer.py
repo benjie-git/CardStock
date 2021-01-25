@@ -37,6 +37,8 @@ ID_DUPLICATE_CARD = wx.NewIdRef()
 ID_REMOVE_CARD = wx.NewIdRef()
 ID_MOVE_CARD_FWD = wx.NewIdRef()
 ID_MOVE_CARD_BACK = wx.NewIdRef()
+ID_GROUP = wx.NewIdRef()
+ID_UNGROUP = wx.NewIdRef()
 ID_MOVE_VIEW_FRONT = wx.NewIdRef()
 ID_MOVE_VIEW_FWD = wx.NewIdRef()
 ID_MOVE_VIEW_BACK = wx.NewIdRef()
@@ -192,6 +194,7 @@ class DesignerFrame(wx.Frame):
         editMenu.Append(wx.ID_UNDO, "&Undo\tCtrl-Z", "Undo Action")
         editMenu.Append(wx.ID_REDO, "&Redo\tCtrl-Shift-Z", "Redo Action")
         editMenu.AppendSeparator()
+        editMenu.Append(wx.ID_SELECTALL,  "Select A&ll\tCtrl-A", "Select All")
         editMenu.Append(wx.ID_CUT,  "C&ut\tCtrl-X", "Cut Selection")
         editMenu.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
         editMenu.Append(wx.ID_PASTE,"&Paste\tCtrl-V", "Paste Selection")
@@ -210,6 +213,9 @@ class DesignerFrame(wx.Frame):
         self.editMenu = cardMenu
 
         viewMenu = wx.Menu()
+        viewMenu.Append(ID_GROUP, "&Group Views\tCtrl-G", "Group Views")
+        viewMenu.Append(ID_UNGROUP, "&Ungroup Views\tCtrl-U", "Ungroup Views")
+        viewMenu.AppendSeparator()
         viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Shift-F", "Move to Front")
         viewMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward\tCtrl-F", "Move Forward")
         viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&k\tCtrl-B", "Move Back")
@@ -240,6 +246,7 @@ class DesignerFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU,  self.OnUndo, id=wx.ID_UNDO)
         self.Bind(wx.EVT_MENU,  self.OnRedo, id=wx.ID_REDO)
+        self.Bind(wx.EVT_MENU,  self.OnSelectAll, id=wx.ID_SELECTALL)
         self.Bind(wx.EVT_MENU,  self.OnCut, id=wx.ID_CUT)
         self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
@@ -252,6 +259,8 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnMenuMoveCard, id=ID_MOVE_CARD_FWD)
         self.Bind(wx.EVT_MENU,  self.OnMenuMoveCard, id=ID_MOVE_CARD_BACK)
 
+        self.Bind(wx.EVT_MENU,  self.OnMenuGroup, id=ID_GROUP)
+        self.Bind(wx.EVT_MENU,  self.OnMenuUngroup, id=ID_UNGROUP)
         self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_FRONT)
         self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_FWD)
         self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_BACK)
@@ -345,6 +354,12 @@ class DesignerFrame(wx.Frame):
 
         self.Close()
 
+    def OnMenuGroup(self, event):
+        self.stackView.GroupSelectedViews()
+
+    def OnMenuUngroup(self, event):
+        self.stackView.UngroupSelectedViews()
+
     def OnMenuMoveView(self, event):
         if event.GetId() == ID_MOVE_VIEW_FRONT:
             self.stackView.ReorderSelectedViews("front")
@@ -401,6 +416,13 @@ class DesignerFrame(wx.Frame):
         if f == self.cPanel.inspector: f = self.stackView
         if f == self.cPanel.codeEditor: f = self.stackView
         return f
+
+    def OnSelectAll(self, event):
+        f = self.FindFocus()
+        if f == self.stackView:
+            self.stackView.SelectAll()
+        elif f and hasattr(f, "SelectAll"):
+            f.SelectAll()
 
     def OnCut(self, event):
         f = self.FindFocus()

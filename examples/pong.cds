@@ -14,7 +14,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnKeyDown": "if key == \"Space\":\n   if dx == 0 and dy == 0:\n      ball.SendMessage(\"StartGame\")\n",
+        "OnKeyDown": "if keyName == \"Space\":\n   if dx == 0 and dy == 0:\n      ball.SendMessage(\"StartGame\")\n",
         "OnMouseDown": "if dx == 0 and dy == 0:\n  ball.SendMessage(\"StartGame\")\n",
         "OnMouseMove": "oldPos = paddle.GetCenter()\npaddle.SetCenter([mouseX, oldPos[1]])\n"
       },

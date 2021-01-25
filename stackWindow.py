@@ -12,6 +12,7 @@ from wx.lib.docview import CommandProcessor
 import json
 from tools import *
 from commands import *
+import generator
 from stackModel import StackModel
 from uiCard import UiCard, CardModel
 from uiButton import UiButton
@@ -19,6 +20,8 @@ from uiTextField import UiTextField
 from uiTextLabel import UiTextLabel
 from uiImage import UiImage
 from uiShape import UiShape
+from uiGroup import UiGroup, GroupModel
+
 
 # ----------------------------------------------------------------------
 
@@ -46,7 +49,7 @@ class StackWindow(wx.Window):
         self.selectedViews = []
         self.uiViews = []
         self.cardIndex = None
-        self.uiCard = UiCard(self, stackModel.cardModels[0])
+        self.uiCard = UiCard(None, self, stackModel.cardModels[0])
         self.LoadCardAtIndex(0)
         stackModel.AddPropertyListener(self.OnPropertyChanged)
 
@@ -88,14 +91,15 @@ class StackWindow(wx.Window):
         else:
             self.globalCursor = None
 
+        allUiViews = self.GetAllUiViews()
         if self.globalCursor:
             self.SetCursor(wx.Cursor(self.globalCursor))
-            for uiView in self.uiViews:
+            for uiView in allUiViews:
                 uiView.view.SetCursor(wx.Cursor(self.globalCursor))
         else:
             cursor = wx.CURSOR_ARROW
             self.SetCursor(wx.Cursor(cursor))
-            for uiView in self.uiViews:
+            for uiView in allUiViews:
                 viewCursor = uiView.GetCursor()
                 uiView.view.SetCursor(wx.Cursor(viewCursor if viewCursor else cursor))
 
@@ -119,7 +123,15 @@ class StackWindow(wx.Window):
     def CreateViews(self, cardModel):
         self.uiCard.SetModel(cardModel)
         self.uiViews = []
-        self.AddUiViewsFromModel(cardModel.childModels, canUndo=False)  # Don't allow undoing card loads
+        self.AddUiViewsFromModels(cardModel.childModels, canUndo=False)  # Don't allow undoing card loads
+
+    def GetAllUiViews(self):
+        allUiViews = []
+        for uiView in self.uiViews:
+            allUiViews.append(uiView)
+            if uiView.model.type == "group":
+                allUiViews.extend(uiView.GetAllUiViews())
+        return allUiViews
 
     def SetStackModel(self, model):
         if self.stackModel:
@@ -146,7 +158,7 @@ class StackWindow(wx.Window):
                 cardModel = self.stackModel.GetCardModel(index)
                 self.CreateViews(cardModel)
                 self.SelectUiView(self.uiCard)
-                cardModel.AddPropertyListener(self.OnPropertyChanged)
+                # cardModel.AddPropertyListener(self.OnPropertyChanged)
                 self.Refresh()
                 self.Update()
                 if self.designer:
@@ -170,12 +182,18 @@ class StackWindow(wx.Window):
         wx.TheClipboard.SetData(clipData)
         wx.TheClipboard.Close()
 
+    def SelectAll(self):
+        self.SelectUiView(None)
+        for ui in self.uiViews:
+            self.SelectUiView(ui, True)
+
     def CutView(self):
         self.CopyView()
         if len(self.selectedViews) == 1 and self.selectedViews[0].model.type == "card":
             self.RemoveCard()
         elif len(self.selectedViews) > 0:
-            command = RemoveUiViewsCommand(True, "Cut", self, self.cardIndex, [ui.model for ui in self.selectedViews])
+            deleteViews = [ui for ui in self.selectedViews if ui.model.parent.type != "group"]
+            command = RemoveUiViewsCommand(True, "Cut", self, self.cardIndex, [ui.model for ui in deleteViews])
             self.command_processor.Submit(command)
 
     def PasteView(self):
@@ -187,7 +205,7 @@ class StackWindow(wx.Window):
                         rawdata = clipData.GetData()
                         list = json.loads(rawdata.tobytes().decode('utf8'))
                         self.SelectUiView(None)
-                        models = [CardModel.ModelFromData(dict) for dict in list]
+                        models = [generator.StackGenerator.ModelFromData(dict) for dict in list]
                         if len(models) == 1 and models[0].type == "card":
                             models[0].SetProperty("name", models[0].DeduplicateName(models[0].GetProperty("name"),
                                                                             [m.GetProperty("name") for m in
@@ -204,6 +222,54 @@ class StackWindow(wx.Window):
                                 self.SelectUiView(ui, True)
                 wx.TheClipboard.Close()
 
+    def GroupSelectedViews(self):
+        models = []
+        for ui in self.uiViews:
+            if ui.isSelected:
+                models.append(ui.model)
+        if len(models) >= 2:
+            command = GroupUiViewsCommand(True, 'Group Views', self, self.cardIndex, models)
+            self.command_processor.Submit(command)
+
+    def UngroupSelectedViews(self):
+        models = []
+        for ui in self.uiViews:
+            if ui.isSelected and ui.model.type == "group":
+                models.append(ui.model)
+        if len(models) >= 1:
+            command = UngroupUiViewsCommand(True, 'Ungroup Views', self, self.cardIndex, models)
+            self.command_processor.Submit(command)
+
+    def GroupModelsInternal(self, models, group=None):
+        if len(models) > 1:
+            for m in models:
+                self.RemoveUiViewByModel(m)
+
+            if not group:
+                group = GroupModel()
+            group.AddChildModels(models)
+            self.AddUiViewsFromModels([group], False)
+            self.SelectUiView(self.GetUiViewByModel(group))
+        return group
+
+    def UngroupModelsInternal(self, groups):
+        modelSets = []
+        if len(groups) > 0:
+            self.SelectUiView(None)
+            for group in groups:
+                childModels = []
+                modelSets.append(childModels)
+                for child in group.childModels.copy():
+                    ui = self.GetUiViewByModel(child)
+                    child.RemovePropertyListener(ui.OnPropertyChanged)
+                    group.RemoveChild(child)
+                    childModels.append(child)
+                self.RemoveUiViewByModel(group)
+                self.AddUiViewsFromModels(childModels, False)
+                for child in childModels:
+                    self.SelectUiView(self.GetUiViewByModel(child), True)
+        return modelSets
+
     def AddUiViewInternal(self, type, model=None):
         uiView = None
 
@@ -212,15 +278,17 @@ class StackWindow(wx.Window):
             uiView.view.Reparent(self)
         else:
             if type == "button":
-                uiView = UiButton(self, model)
+                uiView = UiButton(self.uiCard, self, model)
             elif type == "textfield" or type == "field":
-                uiView = UiTextField(self, model)
+                uiView = UiTextField(self.uiCard, self, model)
             elif type == "textlabel" or type == "label":
-                uiView = UiTextLabel(self, model)
+                uiView = UiTextLabel(self.uiCard, self, model)
             elif type == "image":
-                uiView = UiImage(self, model)
+                uiView = UiImage(self.uiCard, self, model)
+            elif type == "group":
+                uiView = UiGroup(self.uiCard, self, model)
             elif type in ["pen", "line", "oval", "rect", "round_rect"]:
-                uiView = UiShape(self, type, model)
+                uiView = UiShape(self.uiCard, self, type, model)
 
         if uiView:
             if not model:
@@ -228,7 +296,9 @@ class StackWindow(wx.Window):
                 uiView.model.SetProperty("position", uiView.view.GetPosition())
                 uiView.model.SetProperty("size", uiView.view.GetSize())
             self.uiViews.append(uiView)
-            if not uiView.model in self.uiCard.model.childModels:
+            uiView.model.parent = self.uiCard.model
+
+            if uiView.model not in self.uiCard.model.childModels:
                 self.uiCard.model.AddChild(uiView.model)
             uiView.model.AddPropertyListener(self.OnPropertyChanged)
 
@@ -236,7 +306,7 @@ class StackWindow(wx.Window):
                 uiView.view.SetCursor(wx.Cursor(self.globalCursor))
         return uiView
 
-    def AddUiViewsFromModel(self, models, canUndo=True):
+    def AddUiViewsFromModels(self, models, canUndo=True):
         for model in models:
             if not model in self.uiCard.model.childModels:
                 model.SetProperty("name", self.uiCard.model.DeduplicateNameInCard(model.GetProperty("name")))
@@ -262,6 +332,8 @@ class StackWindow(wx.Window):
 
     def SelectUiView(self, view, extend=False):
         if self.isEditing:
+            if view and view.parent != self.uiCard:
+                extend = False
             if len(self.selectedViews) and not extend:
                 for ui in self.selectedViews:
                     ui.SetSelected(False)
@@ -291,7 +363,9 @@ class StackWindow(wx.Window):
             self.designer.UpdateSelectedUiView()
 
     def GetUiViewByModel(self, model):
-        for ui in self.uiViews:
+        if model == self.uiCard.model:
+            return self.uiCard
+        for ui in self.GetAllUiViews():
             if ui.model == model:
                 return ui
         return None
@@ -302,6 +376,9 @@ class StackWindow(wx.Window):
                 if ui in self.selectedViews:
                     self.SelectUiView(ui, True)
                 ui.model.RemovePropertyListener(self.OnPropertyChanged)
+                ui.model.parent = None
+                if ui.model.type == "group":
+                    ui.RemoveChildViews()
                 self.uiViews.remove(ui)
                 self.uiCard.model.RemoveChild(ui.model)
                 ui.DestroyView()
@@ -310,6 +387,8 @@ class StackWindow(wx.Window):
     def ReorderSelectedViews(self, direction):
         oldIndexes = []
         for ui in self.selectedViews:
+            if ui.model.parent.type == "group":
+                return
             if ui != self.uiCard:
                 oldIndexes.append(self.uiCard.model.childModels.index(ui.model))
         oldIndexes.sort()
@@ -317,8 +396,7 @@ class StackWindow(wx.Window):
         if len(oldIndexes):
             firstIndex = oldIndexes[0]
             newIndexes = []
-            i = 0
-            for index in oldIndexes:
+            for i in range(0, len(oldIndexes)):
                 newIndex = 0
                 if direction == "end":
                     newIndex = 0 + i
@@ -383,8 +461,10 @@ class StackWindow(wx.Window):
             self.tool.OnMouseMove(uiView, event)
         else:
             uiView.OnMouseMove(event)
-            if uiView.model.type != "card":
-                self.uiCard.OnMouseMove(event)
+            parent = uiView.parent
+            while parent:
+                parent.OnMouseMove(event)
+                parent = parent.parent
         self.lastMousePos = pos
 
     def OnMouseUp(self, uiView, event):

@@ -4,20 +4,15 @@
 
 import wx
 from uiView import UiView, ViewModel
-from uiButton import ButtonModel
-from uiTextField import TextFieldModel
-from uiTextLabel import TextLabelModel
-from uiImage import ImageModel
-from uiShape import UiShape, ShapeModel
+import generator
 
 
 class UiCard(UiView):
-    def __init__(self, stackView, model):
+    def __init__(self, parent, stackView, model):
         if not model.GetProperty("name"):
             model.SetProperty("name", model.GetNextAvailableNameInCard("card_"))
 
-        super().__init__(stackView, model, stackView)
-        self.cursor = None
+        super().__init__(parent, stackView, model, stackView)
         self.stackView.stackModel.SetProperty("size", self.view.GetSize())
         self.view.SetBackgroundColour(self.model.GetProperty("bgColor"))
 
@@ -54,9 +49,8 @@ class UiCard(UiView):
     def OnIdle(self, event):
         if self.model.runner and "OnIdle" in self.model.handlers:
             self.model.runner.RunHandler(self.model, "OnIdle", event)
-        for m in self.model.childModels:
-            if m.runner and "OnIdle" in m.handlers:
-                m.runner.RunHandler(m, "OnIdle", event)
+        for ui in self.stackView.uiViews:
+            ui.OnIdle(event)
 
 
 class CardModel(ViewModel):
@@ -116,10 +110,21 @@ class CardModel(ViewModel):
         s = wx.Size(self.stackModel.GetProperty("size"))
         return wx.Rect(p, s)
 
+    def GetAbsoluteFrame(self):
+        return self.GetFrame()
+
+    def GetAllChildModels(self):
+        allModels = []
+        for child in self.childModels:
+            allModels.append(child)
+            if child.type == "group":
+                allModels.extend(child.GetAllChildModels())
+        return allModels
+
     def GetDirty(self):
         if self.isDirty:
             return True
-        for child in self.childModels:
+        for child in self.GetAllChildModels():
             if child.isDirty:
                 return True
         return False
@@ -129,7 +134,7 @@ class CardModel(ViewModel):
             self.isDirty = True
         else:
             self.isDirty = False
-            for child in self.childModels:
+            for child in self.GetAllChildModels():
                 child.isDirty = False
 
     def GetData(self):
@@ -144,7 +149,7 @@ class CardModel(ViewModel):
     def SetData(self, data):
         super().SetData(data)
         for childData in data["childModels"]:
-            self.childModels.append(CardModel.ModelFromData(childData))
+            self.childModels.append(generator.StackGenerator.ModelFromData(childData))
 
     def AddChild(self, model):
         self.childModels.append(model)
@@ -155,7 +160,7 @@ class CardModel(ViewModel):
         self.isDirty = True
 
     def GetDedupNameList(self, name, exclude):
-        names = [m.properties["name"] for m in self.childModels]
+        names = [m.properties["name"] for m in self.GetAllChildModels()]
         for n in exclude:
             if n in names:
                 names.remove(n)
@@ -176,21 +181,3 @@ class CardModel(ViewModel):
 
     def GetBgColor(self): return self.GetProperty("bgColor")
     def SetBgColor(self, colorStr): self.SetProperty("bgColor", colorStr)
-
-    @classmethod
-    def ModelFromData(cls, data):
-        m = None
-        if data["type"] == "card":
-            m = CardModel()
-        elif data["type"] == "button":
-            m = ButtonModel()
-        elif data["type"] == "textfield":
-            m = TextFieldModel()
-        elif data["type"] == "textlabel":
-            m = TextLabelModel()
-        elif data["type"] == "image":
-            m = ImageModel()
-        elif data["type"] in ["pen", "line", "oval", "rect", "round_rect"]:
-            m = UiShape.CreateModelForType(data["type"])
-        m.SetData(data)
-        return m

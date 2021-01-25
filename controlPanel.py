@@ -177,8 +177,6 @@ class ControlPanel(wx.Panel):
             self.lastSelectedUiView = None
 
     def UpdatedProperty(self, uiView, key):
-        if not uiView:
-            uiView = self.stackView.uiCard
         lastUi = self.lastSelectedUiView
         if not lastUi:
             lastUi = self.stackView.uiCard
