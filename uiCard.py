@@ -10,15 +10,15 @@ import generator
 class UiCard(UiView):
     def __init__(self, parent, stackView, model):
         if not model.GetProperty("name"):
-            model.SetProperty("name", model.GetNextAvailableNameInCard("card_"))
+            model.SetProperty("name", model.GetNextAvailableNameInCard("card_"), False)
 
         super().__init__(parent, stackView, model, stackView)
-        self.stackView.stackModel.SetProperty("size", self.view.GetSize())
+        self.stackView.stackModel.SetProperty("size", self.view.GetSize(), False)
         self.view.SetBackgroundColour(self.model.GetProperty("bgColor"))
 
     def SetView(self, view):
         super().SetView(view)
-        self.model.SetProperty("size", self.view.GetSize())
+        self.model.SetProperty("size", self.view.GetSize(), False)
         self.view.SetBackgroundColour(self.model.GetProperty("bgColor"))
 
     def SetModel(self, model):
@@ -39,16 +39,16 @@ class UiCard(UiView):
             self.view.Refresh()
 
     def OnKeyDown(self, event):
-        if self.model.runner and "OnKeyDown" in self.model.handlers:
-            self.model.runner.RunHandler(self.model, "OnKeyDown", event)
+        if self.stackView.runner and "OnKeyDown" in self.model.handlers:
+            self.stackView.runner.RunHandler(self.model, "OnKeyDown", event)
 
     def OnKeyUp(self, event):
-        if self.model.runner and "OnKeyUp" in self.model.handlers:
-            self.model.runner.RunHandler(self.model, "OnKeyUp", event)
+        if self.stackView.runner and "OnKeyUp" in self.model.handlers:
+            self.stackView.runner.RunHandler(self.model, "OnKeyUp", event)
 
     def OnIdle(self, event):
-        if self.model.runner and "OnIdle" in self.model.handlers:
-            self.model.runner.RunHandler(self.model, "OnIdle", event)
+        if self.stackView.runner and "OnIdle" in self.model.handlers:
+            self.stackView.runner.RunHandler(self.model, "OnIdle", event)
         for ui in self.stackView.uiViews:
             ui.OnIdle(event)
 
@@ -56,8 +56,8 @@ class UiCard(UiView):
 class CardModel(ViewModel):
     minSize = (200, 200)
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stackView):
+        super().__init__(stackView)
         self.type = "card"
         self.stackModel = None  # For setting stack size
 
@@ -149,7 +149,7 @@ class CardModel(ViewModel):
     def SetData(self, data):
         super().SetData(data)
         for childData in data["childModels"]:
-            self.childModels.append(generator.StackGenerator.ModelFromData(childData))
+            self.childModels.append(generator.StackGenerator.ModelFromData(self.stackView, childData))
 
     def AddChild(self, model):
         self.childModels.append(model)

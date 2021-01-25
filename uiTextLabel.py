@@ -9,8 +9,8 @@ from uiView import UiView, ViewModel
 class UiTextLabel(UiView):
     def __init__(self, parent, stackView, model=None):
         if not model:
-            model = TextLabelModel()
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("label_"))
+            model = TextLabelModel(stackView)
+            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("label_"), False)
 
         label = self.CreateLabel(parent, stackView, model)
         label.SetCursor(wx.Cursor(wx.CURSOR_HAND))
@@ -78,8 +78,8 @@ class UiTextLabel(UiView):
 
 
 class TextLabelModel(ViewModel):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stackView):
+        super().__init__(stackView)
         self.type = "textlabel"
 
         self.properties["text"] = "Text"

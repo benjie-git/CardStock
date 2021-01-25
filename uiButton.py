@@ -11,8 +11,8 @@ class UiButton(UiView):
         button = wx.Button(parent=parent.view, id=wx.ID_ANY, label="Button")  # style=wx.BORDER_NONE
 
         if not model:
-            model = ButtonModel()
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("button_"))
+            model = ButtonModel(stackView)
+            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("button_"), False)
 
         button.SetCursor(wx.Cursor())
         super().__init__(parent, stackView, model, button)
@@ -29,13 +29,13 @@ class UiButton(UiView):
 
     def OnButton(self, event):
         if not self.stackView.isEditing:
-            if self.model.runner and "OnClick" in self.model.handlers:
-                self.model.runner.RunHandler(self.model, "OnClick", event)
+            if self.stackView.runner and "OnClick" in self.model.handlers:
+                self.stackView.runner.RunHandler(self.model, "OnClick", event)
 
 
 class ButtonModel(ViewModel):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stackView):
+        super().__init__(stackView)
         self.type = "button"
 
         # Add custom handlers to the top of the list
@@ -56,5 +56,5 @@ class ButtonModel(ViewModel):
     def SetText(self, text): self.SetProperty("title", text)
 
     def DoClick(self):
-        if self.runner:
-            self.runner.RunHandler(self, "OnClick", None)
+        if self.stackView.runner:
+            self.stackView.runner.RunHandler(self, "OnClick", None)

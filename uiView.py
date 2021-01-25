@@ -68,11 +68,8 @@ class UiView(object):
         self.view.Show(not self.model.GetProperty("hidden"))
 
     def SetModel(self, model):
-        if self.model:
-            self.model.RemovePropertyListener(self.OnPropertyChanged)
         self.model = model
         self.lastEditedHandler = None
-        self.model.AddPropertyListener(self.OnPropertyChanged)
 
     def GetCursor(self):
         return wx.CURSOR_HAND
@@ -95,7 +92,6 @@ class UiView(object):
         event.Skip()
 
     def DestroyView(self):
-        self.model.RemovePropertyListener(self.OnPropertyChanged)
         self.selectionBox.Destroy()
         if self.resizeBox:
             self.resizeBox.Destroy()
@@ -114,33 +110,33 @@ class UiView(object):
         self.view.Update()
 
     def OnMouseDown(self, event):
-        if self.model.runner and "OnMouseDown" in self.model.handlers:
-            self.model.runner.RunHandler(self.model, "OnMouseDown", event)
+        if self.stackView.runner and "OnMouseDown" in self.model.handlers:
+            self.stackView.runner.RunHandler(self.model, "OnMouseDown", event)
         event.Skip()
 
     def OnMouseMove(self, event):
-        if self.model.runner and "OnMouseMove" in self.model.handlers:
-            self.model.runner.RunHandler(self.model, "OnMouseMove", event)
+        if self.stackView.runner and "OnMouseMove" in self.model.handlers:
+            self.stackView.runner.RunHandler(self.model, "OnMouseMove", event)
         event.Skip()
 
     def OnMouseUp(self, event):
-        if self.model.runner and "OnMouseUp" in self.model.handlers:
-            self.model.runner.RunHandler(self.model, "OnMouseUp", event)
+        if self.stackView.runner and "OnMouseUp" in self.model.handlers:
+            self.stackView.runner.RunHandler(self.model, "OnMouseUp", event)
         event.Skip()
 
     def OnMouseEnter(self, event):
-        if self.model.runner and "OnMouseEnter" in self.model.handlers:
-            self.model.runner.RunHandler(self.model, "OnMouseEnter", event)
+        if self.stackView.runner and "OnMouseEnter" in self.model.handlers:
+            self.stackView.runner.RunHandler(self.model, "OnMouseEnter", event)
         event.Skip()
 
     def OnMouseExit(self, event):
-        if self.model.runner and "OnMouseExit" in self.model.handlers:
-            self.model.runner.RunHandler(self.model, "OnMouseExit", event)
+        if self.stackView.runner and "OnMouseExit" in self.model.handlers:
+            self.stackView.runner.RunHandler(self.model, "OnMouseExit", event)
         event.Skip()
 
     def OnIdle(self, event):
-        if self.model.runner and "OnIdle" in self.model.handlers:
-            self.model.runner.RunHandler(self.model, "OnIdle", event)
+        if self.stackView.runner and "OnIdle" in self.model.handlers:
+            self.stackView.runner.RunHandler(self.model, "OnIdle", event)
 
 
     def OnPaintSelectionBox(self, event):
@@ -171,7 +167,7 @@ class UiView(object):
 class ViewModel(object):
     minSize = (20,20)
 
-    def __init__(self):
+    def __init__(self, stackView):
         super().__init__()
         self.type = None
         self.parent = None
@@ -195,9 +191,7 @@ class ViewModel(object):
                               "hidden": "bool"}
         self.propertyChoices = {}
 
-        self.propertyListeners = []
-
-        self.runner = None
+        self.stackView = stackView
         self.isDirty = False
 
     def GetType(self):
@@ -259,7 +253,7 @@ class ViewModel(object):
         for k, v in data["handlers"].items():
             self.handlers[k] = v
         for k, v in data["properties"].items():
-            self.SetProperty(k, v)
+            self.SetProperty(k, v, False)
 
     def SetFromModel(self, model):
         for k, v in model.handlers.items():
@@ -278,15 +272,6 @@ class ViewModel(object):
     def GetPropertyChoices(self, key):
         return self.propertyChoices[key]
 
-    def AddPropertyListener(self, callback):
-        self.propertyListeners.append(callback)
-
-    def RemovePropertyListener(self, callback):
-        self.propertyListeners.remove(callback)
-
-    def RemoveAllPropertyListeners(self):
-        self.propertyListeners = []
-
     def GetProperty(self, key):
         if key in self.properties:
             return self.properties[key]
@@ -304,8 +289,7 @@ class ViewModel(object):
         return self.handlers
 
     def Notify(self, key):
-        for callback in self.propertyListeners:
-            callback(self, key)
+        self.stackView.OnPropertyChanged(self, key)
 
     def SetProperty(self, key, value, notify=True):
         if key in self.propertyTypes and self.propertyTypes[key] == "point":
@@ -368,12 +352,12 @@ class ViewModel(object):
                 return name
 
     def SendMessage(self, message):
-        if self.runner:
-            self.runner.RunHandler(self, "OnMessage", None, message)
+        if self.stackView.runner:
+            self.stackView.runner.RunHandler(self, "OnMessage", None, message)
 
     def Focus(self):
-        if self.runner:
-            self.runner.SetFocus(self)
+        if self.stackView.runner:
+            self.stackView.runner.SetFocus(self)
 
     def Show(self): self.SetProperty("hidden", False)
     def Hide(self): self.SetProperty("hidden", True)

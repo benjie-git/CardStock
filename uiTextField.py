@@ -10,8 +10,8 @@ import wx.stc as stc
 class UiTextField(UiView):
     def __init__(self, parent, stackView, model=None):
         if not model:
-            model = TextFieldModel()
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("field_"))
+            model = TextFieldModel(stackView)
+            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("field_"), False)
 
         field = self.CreateField(parent, stackView, model)
 
@@ -79,22 +79,21 @@ class UiTextField(UiView):
         elif key == "selectAll":
             self.view.SelectAll()
 
-
     def OnTextEnter(self, event):
         if not self.stackView.isEditing:
-            if self.model.runner and "OnTextEnter" in self.model.handlers:
-                self.model.runner.RunHandler(self.model, "OnTextEnter", event)
+            if self.stackView.runner and "OnTextEnter" in self.model.handlers:
+                self.stackView.runner.RunHandler(self.model, "OnTextEnter", event)
 
     def OnTextChanged(self, event):
         if not self.stackView.isEditing:
             self.model.SetProperty("text", self.view.GetValue(), notify=False)
-            if self.model.runner and "OnTextChanged" in self.model.handlers:
-                self.model.runner.RunHandler(self.model, "OnTextChanged", event)
+            if self.stackView.runner and "OnTextChanged" in self.model.handlers:
+                self.stackView.runner.RunHandler(self.model, "OnTextChanged", event)
 
 
 class TextFieldModel(ViewModel):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stackView):
+        super().__init__(stackView)
         self.type = "textfield"
 
         # Add custom handlers to the top of the list
@@ -123,5 +122,5 @@ class TextFieldModel(ViewModel):
     def SelectAll(self): self.Notify("selectAll")
 
     def DoEnter(self):
-        if self.runner:
-            self.runner.RunHandler(self, "OnTextEnter", None)
+        if self.stackView.runner:
+            self.stackView.runner.RunHandler(self, "OnTextEnter", None)

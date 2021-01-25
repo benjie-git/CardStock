@@ -42,9 +42,7 @@ class ViewerFrame(wx.Frame):
         self.MakeMenu()
         self.filename = None
 
-        stackModel = StackModel()
-        stackModel.AppendCardModel(CardModel())
-        self.stackView = StackWindow(self, -1, stackModel)
+        self.stackView = StackWindow(self, -1, None)
         self.stackView.SetEditing(False)
 
     def ReadFile(self, filename):
@@ -132,7 +130,7 @@ class ViewerFrame(wx.Frame):
 
     def RunViewer(self, sb):
         runner = Runner(self.stackView, sb)
-        self.stackView.stackModel.SetRunner(runner)
+        self.stackView.runner = runner
         self.stackView.SetEditing(False)
         self.Show(True)
 

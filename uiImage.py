@@ -10,7 +10,7 @@ class UiImage(UiView):
     def __init__(self, parent, stackView, model=None):
         if not model:
             model = ImageModel()
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("image_"))
+            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("image_"), False)
 
         img = self.GetImg(model)
         container = wx.Window(parent.view)
@@ -62,8 +62,8 @@ class UiImage(UiView):
 
 
 class ImageModel(ViewModel):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stackView):
+        super().__init__(stackView)
         self.type = "image"
 
         self.properties["file"] = ""

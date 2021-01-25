@@ -24,21 +24,21 @@ class StackGenerator(object):
         return None
 
     @classmethod
-    def ModelFromData(cls, data):
+    def ModelFromData(cls, stackView, data):
         m = None
         if data["type"] == "card":
-            m = uiCard.CardModel()
+            m = uiCard.CardModel(stackView)
         elif data["type"] == "button":
-            m = uiButton.ButtonModel()
+            m = uiButton.ButtonModel(stackView)
         elif data["type"] == "textfield":
-            m = uiTextField.TextFieldModel()
+            m = uiTextField.TextFieldModel(stackView)
         elif data["type"] == "textlabel":
-            m = uiTextLabel.TextLabelModel()
+            m = uiTextLabel.TextLabelModel(stackView)
         elif data["type"] == "image":
-            m = uiImage.ImageModel()
+            m = uiImage.ImageModel(stackView)
         elif data["type"] == "group":
-            m = uiGroup.GroupModel()
+            m = uiGroup.GroupModel(stackView)
         elif data["type"] in ["pen", "line", "oval", "rect", "round_rect"]:
-            m = uiShape.UiShape.CreateModelForType(data["type"])
+            m = uiShape.UiShape.CreateModelForType(stackView, data["type"])
         m.SetData(data)
         return m

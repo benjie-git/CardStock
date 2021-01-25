@@ -5,8 +5,8 @@ from uiCard import CardModel
 
 
 class StackModel(ViewModel):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stackView):
+        super().__init__(stackView)
         self.type = "stack"
         self.handlers = {"OnStackStart": ""}
         self.propertyKeys = ["size"]
@@ -38,13 +38,6 @@ class StackModel(ViewModel):
         for card in self.cardModels:
             card.SetDirty(dirty)
 
-    def SetRunner(self, runner):
-        self.runner = runner
-        for cardModel in self.cardModels:
-            cardModel.runner = runner
-            for model in cardModel.GetAllChildModels():
-                model.runner = runner
-
     def GetData(self):
         data = super().GetData()
         data["cards"] = [m.GetData() for m in self.cardModels]
@@ -56,6 +49,6 @@ class StackModel(ViewModel):
         super().SetData(stackData)
         self.cardModels = []
         for data in stackData["cards"]:
-            m = CardModel()
+            m = CardModel(self.stackView)
             m.SetData(data)
             self.AppendCardModel(m)

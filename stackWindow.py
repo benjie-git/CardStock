@@ -40,10 +40,11 @@ class StackWindow(wx.Window):
         self.uiViewCache = {}
         self.globalCursor = None
         self.lastMousePos = wx.Point(0,0)
+        self.runner = None
 
         if not stackModel:
-            stackModel = StackModel()
-            stackModel.AppendCardModel(CardModel())
+            stackModel = StackModel(self)
+            stackModel.AppendCardModel(CardModel(self))
 
         self.stackModel = stackModel
         self.selectedViews = []
@@ -51,7 +52,6 @@ class StackWindow(wx.Window):
         self.cardIndex = None
         self.uiCard = UiCard(None, self, stackModel.cardModels[0])
         self.LoadCardAtIndex(0)
-        stackModel.AddPropertyListener(self.OnPropertyChanged)
 
         self.uiCard.model.SetDirty(False)
         self.command_processor.ClearCommands()
@@ -115,7 +115,6 @@ class StackWindow(wx.Window):
         self.SelectUiView(None)
         for ui in self.uiViews.copy():
             if ui.model.type != "card":
-                ui.model.RemovePropertyListener(self.OnPropertyChanged)
                 self.uiViews.remove(ui)
                 ui.view.Reparent(self.cacheView)
                 self.uiViewCache[ui.model] = ui
@@ -134,11 +133,8 @@ class StackWindow(wx.Window):
         return allUiViews
 
     def SetStackModel(self, model):
-        if self.stackModel:
-            self.stackModel.RemovePropertyListener(self.OnPropertyChanged)
         self.ClearAllViews()
         self.stackModel = model
-        model.AddPropertyListener(self.OnPropertyChanged)
         self.cardIndex = None
         self.LoadCardAtIndex(0)
         self.SetSize(self.stackModel.GetProperty("size"))
@@ -150,22 +146,21 @@ class StackWindow(wx.Window):
         if index != self.cardIndex or reload == True:
             if not self.isEditing and self.cardIndex is not None and not reload:
                 oldCardModel = self.stackModel.cardModels[self.cardIndex]
-                if oldCardModel.runner:
-                    oldCardModel.runner.RunHandler(oldCardModel, "OnHideCard", None)
+                if self.runner:
+                    self.runner.RunHandler(oldCardModel, "OnHideCard", None)
             self.cardIndex = index
             self.ClearAllViews()
             if index is not None:
                 cardModel = self.stackModel.GetCardModel(index)
                 self.CreateViews(cardModel)
                 self.SelectUiView(self.uiCard)
-                # cardModel.AddPropertyListener(self.OnPropertyChanged)
                 self.Refresh()
                 self.Update()
                 if self.designer:
                     self.designer.UpdateCardList()
-                if not self.isEditing and self.uiCard.model.runner:
-                    self.uiCard.model.runner.SetupForCurrentCard()
-                    self.uiCard.model.runner.RunHandler(self.uiCard.model, "OnShowCard", None)
+                if not self.isEditing and self.runner:
+                    self.runner.SetupForCurrentCard()
+                    self.runner.RunHandler(self.uiCard.model, "OnShowCard", None)
                 self.noIdling = True
                 wx.GetApp().Yield()
                 self.noIdling = False
@@ -205,7 +200,7 @@ class StackWindow(wx.Window):
                         rawdata = clipData.GetData()
                         list = json.loads(rawdata.tobytes().decode('utf8'))
                         self.SelectUiView(None)
-                        models = [generator.StackGenerator.ModelFromData(dict) for dict in list]
+                        models = [generator.StackGenerator.ModelFromData(self.stackView, dict) for dict in list]
                         if len(models) == 1 and models[0].type == "card":
                             models[0].SetProperty("name", models[0].DeduplicateName(models[0].GetProperty("name"),
                                                                             [m.GetProperty("name") for m in
@@ -246,7 +241,7 @@ class StackWindow(wx.Window):
                 self.RemoveUiViewByModel(m)
 
             if not group:
-                group = GroupModel()
+                group = GroupModel(self)
             group.AddChildModels(models)
             self.AddUiViewsFromModels([group], False)
             self.SelectUiView(self.GetUiViewByModel(group))
@@ -261,7 +256,6 @@ class StackWindow(wx.Window):
                 modelSets.append(childModels)
                 for child in group.childModels.copy():
                     ui = self.GetUiViewByModel(child)
-                    child.RemovePropertyListener(ui.OnPropertyChanged)
                     group.RemoveChild(child)
                     childModels.append(child)
                 self.RemoveUiViewByModel(group)
@@ -300,7 +294,6 @@ class StackWindow(wx.Window):
 
             if uiView.model not in self.uiCard.model.childModels:
                 self.uiCard.model.AddChild(uiView.model)
-            uiView.model.AddPropertyListener(self.OnPropertyChanged)
 
             if self.globalCursor:
                 uiView.view.SetCursor(wx.Cursor(self.globalCursor))
@@ -355,6 +348,9 @@ class StackWindow(wx.Window):
                 self.SetSize(model.GetProperty(key))
         else:
             uiView = self.GetUiViewByModel(model)
+        modelView = self.GetUiViewByModel(model)
+        if modelView:
+            modelView.OnPropertyChanged(model, key)
         if self.designer:
             self.designer.cPanel.UpdatedProperty(uiView, key)
 
@@ -375,7 +371,6 @@ class StackWindow(wx.Window):
             if ui.model == viewModel:
                 if ui in self.selectedViews:
                     self.SelectUiView(ui, True)
-                ui.model.RemovePropertyListener(self.OnPropertyChanged)
                 ui.model.parent = None
                 if ui.model.type == "group":
                     ui.RemoveChildViews()
@@ -427,14 +422,14 @@ class StackWindow(wx.Window):
             self.command_processor.Submit(command)
 
     def AddCard(self):
-        newCard = CardModel()
+        newCard = CardModel(self.stackView)
         newCard.SetProperty("name", newCard.DeduplicateName("card_1",
                                                             [m.GetProperty("name") for m in self.stackModel.cardModels]))
         command = AddNewUiViewCommand(True, "Add Card", self, self.cardIndex+1, "card", newCard)
         self.command_processor.Submit(command)
 
     def DuplicateCard(self):
-        newCard = CardModel()
+        newCard = CardModel(self.stackView)
         newCard.SetData(self.stackModel.cardModels[self.cardIndex].GetData())
         newCard.SetProperty("name", newCard.DeduplicateName(newCard.GetProperty("name"),
                                                             [m.GetProperty("name") for m in self.stackModel.cardModels]))

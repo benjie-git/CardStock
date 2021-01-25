@@ -80,12 +80,10 @@ class DesignerFrame(wx.Frame):
 
         self.splitter = wx.SplitterWindow(self, id=wx.ID_ANY, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
 
-        stackModel = StackModel()
-        stackModel.AppendCardModel(CardModel())
         self.stackContainer = wx.Window(self.splitter)
         self.stackContainer.SetBackgroundColour("#E0E0E0")
         self.stackContainer.Bind(wx.EVT_SET_FOCUS, self.OnStackContainerFocus)
-        self.stackView = StackWindow(self.stackContainer, -1, stackModel)
+        self.stackView = StackWindow(self.stackContainer, -1, None)
         self.stackView.SetDesigner(self)
 
         self.stackView.command_processor.SetEditMenu(self.editMenu)
@@ -111,10 +109,10 @@ class DesignerFrame(wx.Frame):
 
     def NewFile(self):
         self.filename = None
-        stackModel = StackModel()
-        newCard = CardModel()
+        stackModel = StackModel(self.stackView)
+        newCard = CardModel(self.stackView)
         newCard.SetProperty("name", newCard.DeduplicateName("card_1",
-                                                            [m.GetProperty("name") for m in stackModel.cardModels]))
+                                                            [m.GetProperty("name") for m in stackModel.cardModels]), False)
         stackModel.AppendCardModel(newCard)
         self.stackView.SetStackModel(stackModel)
         self.stackView.SetEditing(True)
@@ -142,7 +140,7 @@ class DesignerFrame(wx.Frame):
             with open(self.filename, 'r') as f:
                 data = json.load(f)
             if data:
-                stackModel = StackModel()
+                stackModel = StackModel(self.stackView)
                 stackModel.SetData(data)
                 self.stackView.SetDesigner(self)
                 self.stackView.SetStackModel(stackModel)
@@ -326,9 +324,10 @@ class DesignerFrame(wx.Frame):
             self.viewer.Destroy()
         self.viewer = ViewerFrame(self)
         sb = self.viewer.CreateStatusBar()
+
         data = self.stackView.stackModel.GetData()
 
-        stack = StackModel()
+        stack = StackModel(self.viewer.stackView)
         stack.SetData(data)
         self.viewer.stackView.SetStackModel(stack)
         self.viewer.stackView.SetEditing(False)

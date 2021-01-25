@@ -14,7 +14,7 @@ class UiShape(UiView):
 
         if not model:
             model = self.CreateModelForType(shapeType)
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("shape_"))
+            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("shape_"), False)
 
         super().__init__(parent, stackView, model, view)
 
@@ -82,18 +82,18 @@ class UiShape(UiView):
             self.view.Update()
 
     @staticmethod
-    def CreateModelForType(name):
+    def CreateModelForType(stackView, name):
         if name == "pen" or name == "line":
-            return LineModel()
+            return LineModel(stackView)
         if name == "rect" or name == "oval":
-            return ShapeModel()
+            return ShapeModel(stackView)
         if name == "round_rect":
-            return RoundRectModel()
+            return RoundRectModel(stackView)
 
 
 class LineModel(ViewModel):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stackView):
+        super().__init__(stackView)
         self.type = "line"  # Gets rewritten on SetShape (to "line" or "pen")
         self.points = []
         self.scaledPoints = None
@@ -213,8 +213,8 @@ class LineModel(ViewModel):
 
 
 class ShapeModel(LineModel):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stackView):
+        super().__init__(stackView)
         self.type = "shape"  # Gets rewritten on SetShape (to "oval" or "rect")
 
         self.properties["fillColor"] = ""
@@ -229,8 +229,8 @@ class ShapeModel(LineModel):
 
 
 class RoundRectModel(ShapeModel):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stackView):
+        super().__init__(stackView)
         self.type = "round_rect"
 
         self.properties["cornerRadius"] = 8

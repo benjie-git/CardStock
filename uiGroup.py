@@ -10,7 +10,7 @@ import generator
 class UiGroup(UiView):
     def __init__(self, parent, stackView, model):
         if not model.GetProperty("name"):
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("group_"))
+            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("group_"), False)
 
         self.uiViews = []
         view = wx.Window(parent.view)
@@ -47,9 +47,6 @@ class UiGroup(UiView):
     def RemoveChildViews(self):
         for ui in self.uiViews.copy():
             self.view.RemoveChild(ui.view)
-            if ui.model.type == "group":
-                for subview in ui.uiViews:
-                    subview.model.RemoveAllPropertyListeners()
             self.uiViews.remove(ui)
 
     def RebuildViews(self):
@@ -58,19 +55,18 @@ class UiGroup(UiView):
             self.uiViews.remove(ui)
         for m in self.model.childModels.copy():
             uiView = generator.StackGenerator.UiViewFromModel(self, self.stackView, m)
-            uiView.model.AddPropertyListener(self.stackView.OnPropertyChanged)
             self.uiViews.append(uiView)
 
     def OnIdle(self, event):
-        if self.model.runner and "OnIdle" in self.model.handlers:
-            self.model.runner.RunHandler(self.model, "OnIdle", event)
+        if self.stackView.runner and "OnIdle" in self.model.handlers:
+            self.stackView.runner.RunHandler(self.model, "OnIdle", event)
         for child in self.uiViews:
             child.OnIdle(event)
 
 
 class GroupModel(ViewModel):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stackView):
+        super().__init__(stackView)
         self.type = "group"
 
         self.childModels = []
@@ -109,7 +105,7 @@ class GroupModel(ViewModel):
     def SetData(self, data):
         super().SetData(data)
         for childData in data["childModels"]:
-            model = generator.StackGenerator.ModelFromData(childData)
+            model = generator.StackGenerator.ModelFromData(self.stackView, childData)
             model.parent = self
             self.childModels.append(model)
 
