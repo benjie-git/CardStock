@@ -14,9 +14,9 @@
     {
       "type": "card",
       "handlers": {
-        "OnKeyDown": "if keyName == \"Space\":\n   if dx == 0 and dy == 0:\n      ball.SendMessage(\"StartGame\")\n",
-        "OnMouseDown": "if dx == 0 and dy == 0:\n  ball.SendMessage(\"StartGame\")\n",
-        "OnMouseMove": "oldPos = paddle.GetCenter()\npaddle.SetCenter([mouseX, oldPos[1]])\n"
+        "OnKeyDown": "if keyName == \"Space\":\n   # Only start a game if the ball wasn't already moving\n   if dx == 0 and dy == 0:\n      ball.SendMessage(\"StartGame\")\n",
+        "OnMouseDown": "if dx == 0 and dy == 0:\n   # Only start a game if the ball wasn't already moving\n  ball.SendMessage(\"StartGame\")\n",
+        "OnMouseMove": "# Make the paddle follow the mouse's X position\noldPos = paddle.GetCenter()\npaddle.SetCenter([mouseX, oldPos[1]])\n"
       },
       "properties": {
         "name": "card_1",
@@ -65,7 +65,7 @@
           "type": "oval",
           "handlers": {
             "OnMessage": "if message == \"StartGame\":\n   dx=randint(10,20)\n   dy=30-dx\n   self.SetPosition([100,100])\n   score = 0\n   label.SetText(score)\n",
-            "OnIdle": "self.MoveBy([dx, dy])\n\nedge = self.IsTouchingEdge(card)\n\nif self.IsTouching(paddle):\n   dy = -dy\n   score += 1\n   label.SetText(score)\n\nif edge == \"Top\":\n   dy = -dy\n\nif edge == \"Left\" or edge == \"Right\":\n   dx = -dx\n\nif edge == \"Bottom\":\n   dx = 0\n   dy = 0\n   label.SetText(\"Oh no!\")\n"
+            "OnIdle": "self.MoveBy([dx, dy])\n\nif self.IsTouching(paddle):\n   # Switch vertical sign\n   dy = -dy\n   \n   # Speed up or slow down horizontally\n   # based on which side of the paddle\n   # we hit\n   if ball.GetCenter()[0] < paddle.GetCenter()[0]:\n      dx = dx - randint(2,6)\n   elif ball.GetCenter()[0] > paddle.GetCenter()[0]:\n      dx = dx + randint(2,6)\n   # keep the ball from getting too fast\n   dx = min(dx, 30)\n   dx = max(dx, -30)\n   \n   score += 1\n   label.SetText(score)\n\nedge = self.IsTouchingEdge(card)\nif edge == \"Top\":\n   dy = -dy\nelif edge == \"Left\" or edge == \"Right\":\n   dx = -dx\nelif edge == \"Bottom\":\n   # Lose if we hit the bottm of the card\n   dx = 0\n   dy = 0\n   label.SetText(\"Oh no!\")\n"
           },
           "properties": {
             "name": "ball",

@@ -484,14 +484,12 @@ class StackWindow(wx.Window):
             self.tool.OnKeyDown(uiView, event)
         else:
             self.uiCard.OnKeyDown(event)
-            event.Skip()
 
     def OnKeyUp(self, uiView, event):
         if self.tool and self.isEditing:
             self.tool.OnKeyUp(uiView, event)
         else:
             self.uiCard.OnKeyUp(event)
-            event.Skip()
 
     def Undo(self):
         self.command_processor.Undo()
