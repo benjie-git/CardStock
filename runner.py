@@ -125,7 +125,11 @@ class Runner():
             error_class = err.__class__.__name__
             detail = err.args[0]
             cl, exc, tb = sys.exc_info()
-            line_number = traceback.extract_tb(tb)[-1][1]
+            trace = traceback.extract_tb(tb)
+            for i in range(len(trace)-1, -1, -1):
+                if trace[i][0] == "<string>":
+                    line_number = trace[i][1]
+                    break
 
         # restore the old values from before this handler was called
         for k, v in oldVars.items():

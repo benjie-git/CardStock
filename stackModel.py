@@ -11,6 +11,7 @@ class StackModel(ViewModel):
         self.handlers = {"OnStackStart": ""}
         self.propertyKeys = ["size"]
         self.properties["size"] = [500, 500]
+        self.properties["name"] = "stack"
         self.cardModels = []
 
     def AppendCardModel(self, cardModel):
@@ -42,6 +43,7 @@ class StackModel(ViewModel):
         data = super().GetData()
         data["cards"] = [m.GetData() for m in self.cardModels]
         data["properties"].pop("position")
+        data["properties"].pop("name")
         data["CardStock_stack_format"] = 1
         return data
 
