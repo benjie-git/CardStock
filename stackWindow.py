@@ -422,14 +422,14 @@ class StackWindow(wx.Window):
             self.command_processor.Submit(command)
 
     def AddCard(self):
-        newCard = CardModel(self.stackView)
+        newCard = CardModel(self)
         newCard.SetProperty("name", newCard.DeduplicateName("card_1",
                                                             [m.GetProperty("name") for m in self.stackModel.cardModels]))
         command = AddNewUiViewCommand(True, "Add Card", self, self.cardIndex+1, "card", newCard)
         self.command_processor.Submit(command)
 
     def DuplicateCard(self):
-        newCard = CardModel(self.stackView)
+        newCard = CardModel(self)
         newCard.SetData(self.stackModel.cardModels[self.cardIndex].GetData())
         newCard.SetProperty("name", newCard.DeduplicateName(newCard.GetProperty("name"),
                                                             [m.GetProperty("name") for m in self.stackModel.cardModels]))

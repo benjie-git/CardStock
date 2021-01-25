@@ -8,14 +8,18 @@ from uiView import UiView, ViewModel
 
 class UiButton(UiView):
     def __init__(self, parent, stackView, model=None):
-        button = wx.Button(parent=parent.view, id=wx.ID_ANY, label="Button")  # style=wx.BORDER_NONE
-
         if not model:
             model = ButtonModel(stackView)
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("button_"), False)
 
+        button = self.CreateButton(parent, model)
+
         button.SetCursor(wx.Cursor())
         super().__init__(parent, stackView, model, button)
+
+    def CreateButton(self, parent, model):
+        return wx.Button(parent=parent.view, label="Button",
+                         style=(wx.BORDER_DEFAULT if model.GetProperty("border") else wx.BORDER_NONE))
 
     def SetView(self, view):
         super().SetView(view)
@@ -26,6 +30,14 @@ class UiButton(UiView):
         super().OnPropertyChanged(model, key)
         if key == "title":
             self.view.SetLabel(str(self.model.GetProperty(key)))
+        elif key == "border":
+            self.stackView.SelectUiView(None)
+            self.view.Destroy()
+            newButton = self.CreateButton(self.parent, self.model)
+            self.SetView(newButton)
+            self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
+            self.stackView.SelectUiView(self)
+
 
     def OnButton(self, event):
         if not self.stackView.isEditing:
@@ -45,10 +57,12 @@ class ButtonModel(ViewModel):
         self.handlers = handlers
 
         self.properties["title"] = "Button"
+        self.properties["border"] = True
         self.propertyTypes["title"] = "string"
+        self.propertyTypes["border"] = "bool"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "title", "position", "size"]
+        self.propertyKeys = ["name", "title", "border", "position", "size"]
 
     def GetTitle(self): return self.GetProperty("title")
     def SetTitle(self, text): self.SetProperty("title", text)
