@@ -218,28 +218,26 @@ class DesignerFrame(wx.Frame):
         cardMenu.AppendSeparator()
         cardMenu.Append(ID_MOVE_CARD_FWD, "Move Card &Forward\tCtrl-Alt-F", "Move Card Forward")
         cardMenu.Append(ID_MOVE_CARD_BACK, "Move Card Bac&k\tCtrl-Alt-B", "Move Card Back")
-        self.editMenu = cardMenu
 
         viewMenu = wx.Menu()
-        viewMenu.Append(ID_GROUP, "&Group Views\tCtrl-G", "Group Views")
-        viewMenu.Append(ID_UNGROUP, "&Ungroup Views\tCtrl-U", "Ungroup Views")
+        viewMenu.Append(ID_GROUP, "&Group Objects\tCtrl-G", "Group Objects")
+        viewMenu.Append(ID_UNGROUP, "&Ungroup Objects\tCtrl-U", "Ungroup Objects")
         viewMenu.AppendSeparator()
         viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Shift-F", "Move to Front")
         viewMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward\tCtrl-F", "Move Forward")
         viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&k\tCtrl-B", "Move Back")
         viewMenu.Append(ID_MOVE_VIEW_END, "Move to Back\tCtrl-Shift-B", "Move to Back")
-        self.editMenu = viewMenu
 
         # and the help menu
         helpMenu = wx.Menu()
-        helpMenu.Append(wx.ID_ABOUT, "&About\tCtrl-H", "Display the gratuitous 'about this app' thingamajig")
+        helpMenu.Append(wx.ID_ABOUT, "&About", "About")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
         menuBar.Append(fileMenu, "&File")
         menuBar.Append(editMenu, "&Edit")
-        menuBar.Append(cardMenu, "&Cards")
-        menuBar.Append(viewMenu, "&Views")
+        menuBar.Append(cardMenu, "&Card")
+        menuBar.Append(viewMenu, "&Object")
         menuBar.Append(helpMenu, "&Help")
         self.SetMenuBar(menuBar)
 

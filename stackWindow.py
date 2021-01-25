@@ -322,7 +322,9 @@ class StackWindow(wx.Window):
 
     def SelectUiView(self, view, extend=False):
         if self.isEditing:
-            if view and view.parent != self.uiCard:
+            if extend and view and view.parent and view.parent.model.type == "group":
+                extend = False
+            if extend and len(self.selectedViews) and self.selectedViews[0].parent and self.selectedViews[0].parent.model.type == "group":
                 extend = False
             if len(self.selectedViews) and not extend:
                 for ui in self.selectedViews:

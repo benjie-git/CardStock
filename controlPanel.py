@@ -91,9 +91,9 @@ class ControlPanel(wx.Panel):
         self.inspector = wx.grid.Grid(self, -1)
         self.inspector.CreateGrid(1, 2)
         self.inspector.SetRowSize(0, 24)
-        self.inspector.SetColSize(0, 90)
+        self.inspector.SetColSize(0, 100)
         self.inspector.SetColLabelSize(20)
-        self.inspector.SetColLabelValue(0, "Inspector")
+        self.inspector.SetColLabelValue(0, "")
         self.inspector.SetColLabelValue(1, "Value")
         self.inspector.SetRowLabelSize(1)
         self.inspector.DisableDragRowSize()
@@ -171,8 +171,8 @@ class ControlPanel(wx.Panel):
                 self.UpdateHandlerForUiViews(uiViews, None)
                 self.lastSelectedUiView = uiViews[0]
         else:
-            self.UpdateInspectorForUiViews([])
-            self.UpdateHandlerForUiViews([], None)
+            self.UpdateInspectorForUiViews(uiViews)
+            self.UpdateHandlerForUiViews(uiViews, None)
             self.lastSelectedUiView = None
 
     def UpdatedProperty(self, uiView, key):
@@ -199,10 +199,12 @@ class ControlPanel(wx.Panel):
 
         if len(uiViews) != 1:
             self.inspector.Enable(False)
+            self.inspector.SetColLabelValue(0, "Objects" if len(uiViews) else "None")
             return
 
         self.inspector.Enable(True)
         uiView = uiViews[0]
+        self.inspector.SetColLabelValue(0, uiView.model.GetDisplayType())
         keys = uiView.model.PropertyKeys()
         self.inspector.InsertRows(0,len(keys))
         r = 0

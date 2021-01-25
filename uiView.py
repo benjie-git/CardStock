@@ -197,6 +197,20 @@ class ViewModel(object):
     def GetType(self):
         return self.type
 
+    def GetDisplayType(self):
+        displayTypes = {"card": "Card",
+                        "button": "Button",
+                        "textfield": "TextField",
+                        "textlabel": "TextLabel",
+                        "image": "Image",
+                        "pen": "Pen",
+                        "line": "Line",
+                        "rect": "Rectangle",
+                        "oval": "Oval",
+                        "round_rect": "Round Retangle",
+                        "group": "Group"}
+        return displayTypes[self.type]
+
     def SetDirty(self, isDirty):
         self.isDirty = isDirty
 
