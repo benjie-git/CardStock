@@ -38,6 +38,7 @@ class UiGroup(UiView):
 
     def OnResize(self, event):
         super().OnResize(event)
+        self.model.ResizeChildModels()
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
@@ -68,6 +69,7 @@ class GroupModel(ViewModel):
     def __init__(self, stackView):
         super().__init__(stackView)
         self.type = "group"
+        self.origFrame = None
 
         self.childModels = []
 
@@ -102,27 +104,39 @@ class GroupModel(ViewModel):
             data["childModels"].append(m.GetData())
         return data
 
+    def SetFromModel(self, model):
+        super().SetFromModel(model)
+        self.origFrame = self.GetFrame()
+        for model in model.childModels:
+            model.origGroupSubviewFrame = model.GetFrame()
+
     def SetData(self, data):
         super().SetData(data)
         for childData in data["childModels"]:
             model = generator.StackGenerator.ModelFromData(self.stackView, childData)
             model.parent = self
             self.childModels.append(model)
+            model.origGroupSubviewFrame = model.GetFrame()
+        self.origFrame = self.GetFrame()
 
     def AddChildModels(self, models):
         selfPos = self.GetProperty("position")
-        for model in models.copy():
+        for model in models:
             self.childModels.append(model)
             model.parent = self
             pos = model.GetProperty("position")
             model.SetProperty("position", [pos[0]-selfPos[0], pos[1]-selfPos[1]], False)
         self.UpdateFrame()
+        self.origFrame = self.GetFrame()
+        for model in models:
+            model.origGroupSubviewFrame = model.GetFrame()
         self.Notify("child")
         self.isDirty = True
 
     def RemoveChild(self, model):
         self.childModels.remove(model)
         model.parent = None
+        model.origGroupSubviewFrame = None
         pos = model.GetProperty("position")
         selfPos = self.GetProperty("position")
         model.SetProperty("position", [pos[0]+selfPos[0], pos[1]+selfPos[1]], False)
@@ -141,3 +155,18 @@ class GroupModel(ViewModel):
             for m in self.childModels:
                 oldPos = m.GetProperty("position")
                 m.SetProperty("position", [oldPos[0] - offset[0], oldPos[1] - offset[1]], False)
+
+    def ResizeChildModels(self):
+        scaleX = 1
+        scaleY = 1
+        if self.origFrame.Size.Width != 0:
+            scaleX = self.GetFrame().Size.Width / self.origFrame.Size.Width
+        if self.origFrame.Size.Height != 0:
+            scaleY = self.GetFrame().Size.Height / self.origFrame.Size.Height
+        for m in self.childModels:
+            pos = m.origGroupSubviewFrame.Position
+            size = m.origGroupSubviewFrame.Size
+
+            pos = wx.Point(pos.x * scaleX, pos.y * scaleY)
+            size = wx.Size(size.Width * scaleX, size.Height * scaleY)
+            m.SetFrame(wx.Rect(pos, size))
