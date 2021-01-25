@@ -12,12 +12,14 @@ class MoveUiViewCommand(Command):
         self.stackView.LoadCardAtIndex(self.cardIndex)
         pos = self.viewModel.GetProperty("position")
         self.viewModel.SetProperty("position", (pos[0]+self.delta[0], pos[1]+self.delta[1]))
+        self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
         return True
 
     def Undo(self):
         self.stackView.LoadCardAtIndex(self.cardIndex)
         pos = self.viewModel.GetProperty("position")
         self.viewModel.SetProperty("position", (pos[0]-self.delta[0], pos[1]-self.delta[1]))
+        self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
         return True
 
 
@@ -33,12 +35,14 @@ class ResizeUiViewCommand(Command):
         self.stackView.LoadCardAtIndex(self.cardIndex)
         viewSize = self.viewModel.GetProperty("size")
         self.viewModel.SetProperty("size", (viewSize[0]+self.delta[0], viewSize[1]+self.delta[1]))
+        self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
         return True
 
     def Undo(self):
         self.stackView.LoadCardAtIndex(self.cardIndex)
         viewSize = self.viewModel.GetProperty("size")
         self.viewModel.SetProperty("size", (viewSize[0]-self.delta[0], viewSize[1]-self.delta[1]))
+        self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
         return True
 
 
@@ -60,6 +64,7 @@ class AddNewUiViewCommand(Command):
             uiView = self.stackView.AddUiViewInternal(self.viewType, self.viewModel)
             if not self.viewModel:
                 self.viewModel = uiView.model
+            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
         return True
 
     def Undo(self):
@@ -84,8 +89,10 @@ class AddUiViewsCommand(Command):
 
     def Do(self):
         self.stackView.LoadCardAtIndex(self.cardIndex)
+        self.stackView.SelectUiView(None)
         for m in self.viewModels:
             self.stackView.AddUiViewInternal(m.type, m)
+            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(m), True)
         return True
 
     def Undo(self):
@@ -132,6 +139,9 @@ class RemoveUiViewsCommand(Command):
                 self.stackView.uiCard.model.childModels.insert(i, m)
                 i -= 1
             self.stackView.LoadCardAtIndex(self.cardIndex, True)
+            self.stackView.SelectUiView(None)
+            for m in models:
+                self.stackView.SelectUiView(self.stackView.GetUiViewByModel(m), True)
         return True
 
 
