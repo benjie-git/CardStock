@@ -33,15 +33,17 @@ class ResizeUiViewCommand(Command):
 
     def Do(self):
         self.stackView.LoadCardAtIndex(self.cardIndex)
-        viewSize = self.viewModel.GetProperty("size")
-        self.viewModel.SetProperty("size", (viewSize[0]+self.delta[0], viewSize[1]+self.delta[1]))
+        sizeModel = self.stackView.stackModel if self.viewModel.type == "card" else self.viewModel
+        viewSize = sizeModel.GetProperty("size")
+        sizeModel.SetProperty("size", (viewSize[0]+self.delta[0], viewSize[1]+self.delta[1]))
         self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
         return True
 
     def Undo(self):
         self.stackView.LoadCardAtIndex(self.cardIndex)
-        viewSize = self.viewModel.GetProperty("size")
-        self.viewModel.SetProperty("size", (viewSize[0]-self.delta[0], viewSize[1]-self.delta[1]))
+        sizeModel = self.stackView.stackModel if self.viewModel.type == "card" else self.viewModel
+        viewSize = sizeModel.GetProperty("size")
+        sizeModel.SetProperty("size", (viewSize[0]-self.delta[0], viewSize[1]-self.delta[1]))
         self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
         return True
 

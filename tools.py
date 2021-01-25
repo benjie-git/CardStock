@@ -80,8 +80,9 @@ class HandTool(BaseTool):
 
         rpx,rpy = self.targetUi.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         hackOffset = 5 if self.targetUi.model.type == "button" else 0  # Buttons are bigger than specified???
-        if self.origSize[0] - rpx + hackOffset < 10 and self.origSize[1] - rpy + hackOffset < 10:
-            self.isResizing = True
+        if self.origSize[0] - rpx + hackOffset < 10 and self.origSize[1] - rpy + hackOffset < 10 and \
+            self.origSize[0] + hackOffset > rpx and self.origSize[1] + hackOffset > rpy:
+                self.isResizing = True
         else:
             self.isResizing = False
 
@@ -115,8 +116,7 @@ class HandTool(BaseTool):
                 endw, endh = self.targetUi.view.GetSize()
                 offset = (endw-self.origSize[0], endh-self.origSize[1])
                 if offset != (0, 0):
-                    model = self.stackView.stackModel if self.targetUi.model.type == "card" else self.targetUi.model
-                    command = ResizeUiViewCommand(True, 'Resize', self.stackView, self.stackView.cardIndex, model, offset)
+                    command = ResizeUiViewCommand(True, 'Resize', self.stackView, self.stackView.cardIndex, self.targetUi.model, offset)
                     self.targetUi.model.SetProperty("size", self.origSize)
                     self.stackView.command_processor.Submit(command)
 
@@ -166,15 +166,24 @@ class HandTool(BaseTool):
 
         if code == wx.WXK_TAB:
             allUiViews = self.stackView.GetAllUiViews()
+            searchReverse = event.ShiftDown()
             if len(allUiViews) > 0:
-                if len(uiViews) > 0:
-                    ui = uiViews[-1]
+                ui = uiViews[-1]
+                if not searchReverse:
                     if ui == self.stackView.uiCard:
                         self.stackView.SelectUiView(allUiViews[0])
                     elif ui == allUiViews[-1]:
                         self.stackView.SelectUiView(self.stackView.uiCard)
                     else:
                         nextUi = allUiViews[allUiViews.index(ui) + 1]
+                        self.stackView.SelectUiView(nextUi)
+                else:
+                    if ui == self.stackView.uiCard:
+                        self.stackView.SelectUiView(allUiViews[-1])
+                    elif ui == allUiViews[0]:
+                        self.stackView.SelectUiView(self.stackView.uiCard)
+                    else:
+                        nextUi = allUiViews[allUiViews.index(ui) - 1]
                         self.stackView.SelectUiView(nextUi)
         event.Skip()
 

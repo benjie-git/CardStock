@@ -21,7 +21,7 @@ class ControlPanel(wx.Panel):
     BMP_BORDER = 2
 
     toolNames = ["hand", "button", "field", "label", "image",
-                 "oval", "rect", "round_rect", "line", "pen"]
+                 "pen", "oval", "rect", "round_rect", "line"]
 
     def __init__(self, parent, ID, stackView):
         wx.Panel.__init__(self, parent, ID, style=wx.RAISED_BORDER)
@@ -29,8 +29,7 @@ class ControlPanel(wx.Panel):
         self.penColor = wx.Colour("black")
         self.fillColor = wx.Colour("white")
         self.penThickness = 4
-
-        numCols = 5
+        numCols = 10
         spacing = 6
 
         btnSize = wx.Size(self.BMP_SIZE + 2*self.BMP_BORDER,
@@ -42,7 +41,7 @@ class ControlPanel(wx.Panel):
         for k,v in embeddedImages.items():
             toolBitmaps[k] = v.GetBitmap()
 
-        self.toolGrid = wx.GridSizer(cols=numCols, hgap=2, vgap=2)
+        self.toolGrid = wx.GridSizer(cols=numCols, hgap=3, vgap=2)
         for name in self.toolNames:
             b = buttons.GenBitmapToggleButton(self, self.toolNames.index(name), toolBitmaps[name], size=btnSize)
             b.SetBezelWidth(1)

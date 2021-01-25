@@ -244,7 +244,6 @@ class StackWindow(wx.Window):
                 group = GroupModel(self)
             group.AddChildModels(models)
             self.AddUiViewsFromModels([group], False)
-            self.SelectUiView(self.GetUiViewByModel(group))
         return group
 
     def UngroupModelsInternal(self, groups):
@@ -260,8 +259,6 @@ class StackWindow(wx.Window):
                     childModels.append(child)
                 self.RemoveUiViewByModel(group)
                 self.AddUiViewsFromModels(childModels, False)
-                for child in childModels:
-                    self.SelectUiView(self.GetUiViewByModel(child), True)
         return modelSets
 
     def AddUiViewInternal(self, type, model=None):

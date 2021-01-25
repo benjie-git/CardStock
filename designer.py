@@ -87,6 +87,9 @@ class DesignerFrame(wx.Frame):
         self.stackView.SetDesigner(self)
 
         self.stackView.command_processor.SetEditMenu(self.editMenu)
+        self.stackContainer.Bind(wx.EVT_LEFT_DOWN, self.FwdOnMouseDown)
+        self.stackContainer.Bind(wx.EVT_MOVE, self.FwdOnMouseMove)
+        self.stackContainer.Bind(wx.EVT_LEFT_UP, self.FwdOnMouseDown)
         self.Bind(wx.EVT_KEY_DOWN, self.FwdOnKeyDown)
         self.Bind(wx.EVT_KEY_UP, self.FwdOnKeyUp)
 
@@ -164,13 +167,20 @@ class DesignerFrame(wx.Frame):
         self.cPanel.UpdateInspectorForUiViews(self.stackView.GetSelectedUiViews())
         self.cPanel.UpdateHandlerForUiViews(self.stackView.GetSelectedUiViews(), None)
 
+    def FwdOnMouseDown(self, event):
+        self.stackView.OnMouseDown(self.stackView.uiCard, event)
+
+    def FwdOnMouseMove(self, event):
+        self.stackView.OnMouseMove(self.stackView.uiCard, event)
+
+    def FwdOnMouseUp(self, event):
+        self.stackView.OnMouseUp(self.stackView.uiCard, event)
+
     def FwdOnKeyDown(self, event):
         self.stackView.OnKeyDown(None, event)
-        event.Skip()
 
     def FwdOnKeyUp(self, event):
         self.stackView.OnKeyUp(None, event)
-        event.Skip()
 
     def MakeMenu(self):
         # create the file menu
