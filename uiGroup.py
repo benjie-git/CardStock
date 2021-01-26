@@ -44,10 +44,11 @@ class UiGroup(UiView):
         self.view.Update()
 
     def OnPaintGroup(self, event):
-        dc = wx.PaintDC(self.view)
-        dc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
-        dc.SetBrush(wx.TRANSPARENT_BRUSH)
-        dc.DrawRectangle((1, 1), (self.view.GetSize()[0]-1, self.view.GetSize()[1]-1))
+        if self.stackView.isEditing:
+            dc = wx.PaintDC(self.view)
+            dc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
+            dc.SetBrush(wx.TRANSPARENT_BRUSH)
+            dc.DrawRectangle((1, 1), (self.view.GetSize()[0]-1, self.view.GetSize()[1]-1))
         event.Skip()
 
 
