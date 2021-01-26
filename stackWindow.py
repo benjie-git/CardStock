@@ -199,8 +199,7 @@ class StackWindow(wx.Window):
                     if wx.TheClipboard.GetData(clipData):
                         rawdata = clipData.GetData()
                         list = json.loads(rawdata.tobytes().decode('utf8'))
-                        self.SelectUiView(None)
-                        models = [generator.StackGenerator.ModelFromData(self.stackView, dict) for dict in list]
+                        models = [generator.StackGenerator.ModelFromData(self, dict) for dict in list]
                         if len(models) == 1 and models[0].type == "card":
                             models[0].SetProperty("name", models[0].DeduplicateName(models[0].GetProperty("name"),
                                                                             [m.GetProperty("name") for m in
@@ -213,8 +212,6 @@ class StackWindow(wx.Window):
                                                   self.uiCard.model.DeduplicateNameInCard(model.GetProperty("name")))
                             command = AddUiViewsCommand(True, 'Add Views', self, self.cardIndex, models)
                             self.command_processor.Submit(command)
-                            for ui in self.uiViews[-len(models):]:
-                                self.SelectUiView(ui, True)
                 wx.TheClipboard.Close()
 
     def GroupSelectedViews(self):
