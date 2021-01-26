@@ -4,6 +4,7 @@
 
 import os
 import wx
+import generator
 from uiView import UiView, ViewModel
 
 class UiImage(UiView):
@@ -13,9 +14,9 @@ class UiImage(UiView):
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("image_"), False)
 
         img = self.GetImg(model)
-        container = wx.Window(parent.view, style=wx.TRANSPARENT_WINDOW)
+        container = generator.TransparentWindow(parent.view)
         container.Enable(True)
-        self.imgView = wx.StaticBitmap(container, bitmap=img, style=wx.TRANSPARENT_WINDOW)
+        self.imgView = wx.StaticBitmap(container, bitmap=img)
         self.imgView.Enable(True)
         self.imgView.SetScaleMode(self.AspectStrToInt(model.GetProperty("fit")))
         container.SetBackgroundColour(model.GetProperty("bgColor"))

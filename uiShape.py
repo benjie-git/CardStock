@@ -3,12 +3,13 @@
 # This is a draggable View, for adding a UI elements from the palate to the Card.
 
 import wx
+import generator
 from uiView import UiView, ViewModel
 
 
 class UiShape(UiView):
     def __init__(self, parent, stackView, shapeType, model=None):
-        view = wx.Window(parent=parent.view, style=wx.TRANSPARENT_WINDOW)
+        view = generator.TransparentWindow(parent=parent.view)
         # self.needsUpdate = True
         # self.buffer = None
 

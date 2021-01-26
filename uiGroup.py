@@ -13,7 +13,7 @@ class UiGroup(UiView):
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("group_"), False)
 
         self.uiViews = []
-        view = wx.Window(parent.view, style=wx.TRANSPARENT_WINDOW)
+        view = generator.TransparentWindow(parent.view)
         view.Bind(wx.EVT_PAINT, self.OnPaintGroup)
         view.SetBackgroundColour(None)
 

@@ -1,3 +1,4 @@
+import wx
 import uiButton
 import uiTextField
 import uiTextLabel
@@ -5,6 +6,7 @@ import uiImage
 import uiShape
 import uiGroup
 import uiCard
+
 
 class StackGenerator(object):
     @classmethod
@@ -42,3 +44,11 @@ class StackGenerator(object):
             m = uiShape.UiShape.CreateModelForType(stackView, data["type"])
         m.SetData(data)
         return m
+
+
+class TransparentWindow(wx.Window):
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.SetBackgroundStyle(wx.BG_STYLE_TRANSPARENT)
+        self.Create(*args, **kwargs)
+        self.SetBackgroundColour(None)

@@ -5,6 +5,8 @@
 import wx
 import ast
 import re
+import generator
+
 
 class UiView(object):
     def __init__(self, parent, stackView, model, view):
@@ -49,9 +51,8 @@ class UiView(object):
             self.view.SetCursor(wx.Cursor(self.GetCursor()))
 
         viewSize = list(self.view.GetSize())
-        self.selectionBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(0,0), size=viewSize, style=wx.TRANSPARENT_WINDOW)
+        self.selectionBox = generator.TransparentWindow(parent=self.view, id=wx.ID_ANY, pos=(0,0), size=viewSize)
         self.selectionBox.Bind(wx.EVT_PAINT, self.OnPaintSelectionBox)
-        self.selectionBox.SetBackgroundColour(None)
         self.selectionBox.Enable(False)
         self.selectionBox.Hide()
 
