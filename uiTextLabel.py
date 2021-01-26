@@ -29,7 +29,8 @@ class UiTextLabel(UiView):
             text = "Text"
             alignment = wx.ALIGN_LEFT
 
-        label = wx.StaticText(parent=parent.view, id=wx.ID_ANY, size=(60,20), style=alignment|wx.ST_NO_AUTORESIZE)
+        label = wx.StaticText(parent=parent.view, id=wx.ID_ANY, size=(60,20),
+                              style=wx.TRANSPARENT_WINDOW|alignment|wx.ST_NO_AUTORESIZE)
         label.SetLabelText(text)
         famimlyName = model.GetProperty("font")
         size = int(model.GetProperty("fontSize"))

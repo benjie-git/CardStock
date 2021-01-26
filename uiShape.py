@@ -8,7 +8,7 @@ from uiView import UiView, ViewModel
 
 class UiShape(UiView):
     def __init__(self, parent, stackView, shapeType, model=None):
-        view = wx.Window(parent=parent.view)
+        view = wx.Window(parent=parent.view, style=wx.TRANSPARENT_WINDOW)
         # self.needsUpdate = True
         # self.buffer = None
 

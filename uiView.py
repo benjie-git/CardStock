@@ -49,7 +49,7 @@ class UiView(object):
             self.view.SetCursor(wx.Cursor(self.GetCursor()))
 
         viewSize = list(self.view.GetSize())
-        self.selectionBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(0,0), size=viewSize, style=0)
+        self.selectionBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(0,0), size=viewSize, style=wx.TRANSPARENT_WINDOW)
         self.selectionBox.Bind(wx.EVT_PAINT, self.OnPaintSelectionBox)
         self.selectionBox.SetBackgroundColour(None)
         self.selectionBox.Enable(False)

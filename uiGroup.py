@@ -13,7 +13,8 @@ class UiGroup(UiView):
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("group_"), False)
 
         self.uiViews = []
-        view = wx.Window(parent.view)
+        view = wx.Window(parent.view, style=wx.TRANSPARENT_WINDOW)
+        view.Bind(wx.EVT_PAINT, self.OnPaintGroup)
         view.SetBackgroundColour(None)
 
         super().__init__(parent, stackView, model, view)
@@ -39,6 +40,16 @@ class UiGroup(UiView):
     def OnResize(self, event):
         super().OnResize(event)
         self.model.ResizeChildModels()
+        self.view.Refresh()
+        self.view.Update()
+
+    def OnPaintGroup(self, event):
+        dc = wx.PaintDC(self.view)
+        dc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
+        dc.SetBrush(wx.TRANSPARENT_BRUSH)
+        dc.DrawRectangle((1, 1), (self.view.GetSize()[0]-1, self.view.GetSize()[1]-1))
+        event.Skip()
+
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
