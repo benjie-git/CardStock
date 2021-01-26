@@ -13,7 +13,7 @@ class UiShape(UiView):
         # self.buffer = None
 
         if not model:
-            model = self.CreateModelForType(shapeType)
+            model = self.CreateModelForType(stackView, shapeType)
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("shape_"), False)
 
         super().__init__(parent, stackView, model, view)

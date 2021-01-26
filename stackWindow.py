@@ -161,9 +161,9 @@ class StackWindow(wx.Window):
                 if not self.isEditing and self.runner:
                     self.runner.SetupForCurrentCard()
                     self.runner.RunHandler(self.uiCard.model, "OnShowCard", None)
-                self.noIdling = True
-                wx.GetApp().Yield()
-                self.noIdling = False
+                    self.noIdling = True
+                    wx.GetApp().Yield()
+                    self.noIdling = False
 
     def SetDesigner(self, designer):
         self.designer = designer
@@ -237,11 +237,11 @@ class StackWindow(wx.Window):
 
     def GroupModelsInternal(self, models, group=None):
         if len(models) > 1:
-            for m in models:
-                self.RemoveUiViewByModel(m)
-
             if not group:
                 group = GroupModel(self)
+                group.SetProperty("name", self.uiCard.model.GetNextAvailableNameInCard("group_"), False)
+            for m in models:
+                self.RemoveUiViewByModel(m)
             group.AddChildModels(models)
             self.AddUiViewsFromModels([group], False)
         return group
@@ -318,7 +318,7 @@ class StackWindow(wx.Window):
         return uiViews
 
     def GetSelectedUiViews(self):
-        return self.selectedViews
+        return self.selectedViews.copy()
 
     def SelectUiView(self, view, extend=False):
         if self.isEditing:
@@ -326,17 +326,19 @@ class StackWindow(wx.Window):
                 extend = False
             if extend and len(self.selectedViews) and self.selectedViews[0].parent and self.selectedViews[0].parent.model.type == "group":
                 extend = False
+            if extend and ((view.model.type == "card") != (len(self.selectedViews) and self.selectedViews[0].model.type == "card")):
+                extend = False
             if len(self.selectedViews) and not extend:
                 for ui in self.selectedViews:
                     ui.SetSelected(False)
                 self.selectedViews = []
             if view:
-                if not extend or view not in self.selectedViews:
-                    view.SetSelected(True)
-                    self.selectedViews.append(view)
-                else:
+                if extend and view in self.selectedViews:
                     view.SetSelected(False)
                     self.selectedViews.remove(view)
+                else:
+                    view.SetSelected(True)
+                    self.selectedViews.append(view)
             if self.designer:
                 self.designer.SetSelectedUiViews(self.selectedViews)
 

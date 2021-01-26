@@ -1,25 +1,29 @@
 from wx.lib.docview import Command
 
-class MoveUiViewCommand(Command):
+class MoveUiViewsCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.stackView = args[2]
         self.cardIndex = args[3]
-        self.viewModel = args[4]
+        self.viewModels = args[4]
         self.delta = args[5]
 
     def Do(self):
         self.stackView.LoadCardAtIndex(self.cardIndex)
-        pos = self.viewModel.GetProperty("position")
-        self.viewModel.SetProperty("position", (pos[0]+self.delta[0], pos[1]+self.delta[1]))
-        self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
+        self.stackView.SelectUiView(None)
+        for m in self.viewModels:
+            pos = m.GetProperty("position")
+            m.SetProperty("position", (pos[0]+self.delta[0], pos[1]+self.delta[1]))
+            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(m), True)
         return True
 
     def Undo(self):
         self.stackView.LoadCardAtIndex(self.cardIndex)
-        pos = self.viewModel.GetProperty("position")
-        self.viewModel.SetProperty("position", (pos[0]-self.delta[0], pos[1]-self.delta[1]))
-        self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.viewModel))
+        self.stackView.SelectUiView(None)
+        for m in self.viewModels:
+            pos = m.GetProperty("position")
+            m.SetProperty("position", (pos[0]-self.delta[0], pos[1]-self.delta[1]))
+            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(m), True)
         return True
 
 

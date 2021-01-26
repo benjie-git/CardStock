@@ -142,7 +142,7 @@ class UiView(object):
     def OnPaintSelectionBox(self, event):
         dc = wx.PaintDC(self.selectionBox)
         dc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
-        dc.SetBrush(wx.Brush('Blue', wx.BRUSHSTYLE_TRANSPARENT))
+        dc.SetBrush(wx.TRANSPARENT_BRUSH)
         dc.DrawRectangle((1, 1), (self.selectionBox.GetSize()[0]-1, self.selectionBox.GetSize()[1]-1))
 
     handlerDisplayNames = {
