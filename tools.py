@@ -3,6 +3,11 @@ from commands import *
 import math
 
 
+MOVE_THRESHOLD = 5
+RESIZE_BOX_SIZE = 10
+BUTTON_OFFSET_HACK = 5
+
+
 # quick function to return the manhattan distance between two points, as lists
 def dist(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
@@ -68,22 +73,26 @@ class HandTool(BaseTool):
         else:
             # Clicked on a group's subview
             oldSelection = self.stackView.GetSelectedUiViews()
-            while uiView.parent and uiView.parent.parent:
-                if uiView.parent.isSelected or (len(oldSelection) == 1 and \
-                                                oldSelection[0].parent == uiView.parent and \
-                                                oldSelection[0] != uiView):
+            self.targetUi = uiView
+            while self.targetUi.parent and self.targetUi.parent.parent:
+                if self.targetUi.parent.isSelected or (len(oldSelection) == 1 and \
+                                                oldSelection[0].parent == self.targetUi.parent and \
+                                                oldSelection[0] != self.targetUi):
                     # If the parent or a sibling of this subview was already selected
-                    self.stackView.SelectUiView(uiView)
+                    self.stackView.SelectUiView(self.targetUi)
                     selectedGroupSubview = True
                     break
-                uiView = uiView.parent
-            self.targetUi = uiView
+                self.targetUi = self.targetUi.parent
             while self.targetUi.parent and self.targetUi.parent.model.type == "group":
                 self.targetUi = self.targetUi.parent
 
         self.absOrigin = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         self.relOrigin = self.targetUi.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-
+        if uiView.model.type == "button":
+            self.absOrigin.x -= BUTTON_OFFSET_HACK
+            self.absOrigin.y -= BUTTON_OFFSET_HACK
+            self.relOrigin.x -= BUTTON_OFFSET_HACK
+            self.relOrigin.y -= BUTTON_OFFSET_HACK
         self.targetUi.view.CaptureMouse()
 
         if self.targetUi.isSelected and self.shiftDown:
@@ -93,20 +102,35 @@ class HandTool(BaseTool):
             self.stackView.SelectUiView(self.targetUi, self.shiftDown)
 
         self.oldFrames = {}
-        for ui in self.stackView.selectedViews:
-            self.oldFrames[ui.model.GetProperty("name")] = ui.model.GetFrame()
+        selected = self.stackView.GetSelectedUiViews()
+        if self.targetUi not in selected:
+            selected.append(self.targetUi)
+        for ui in selected:
+            frame = ui.model.GetFrame()
+            if ui.model.type == "button":
+                # Button views are bigger than specified???
+                frame.Position.x -= BUTTON_OFFSET_HACK
+                frame.Position.y -= BUTTON_OFFSET_HACK
+            self.oldFrames[ui.model.GetProperty("name")] = frame
 
 
     def OnMouseMove(self, uiView, event):
         if self.mode:
             pos = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
             origSize = self.oldFrames[self.targetUi.model.GetProperty("name")].Size
+            if uiView.model.type == "button":
+                # Button views are bigger than specified???
+                pos.x -= BUTTON_OFFSET_HACK
+                pos.y -= BUTTON_OFFSET_HACK
+                origSize.Width += BUTTON_OFFSET_HACK * 2
+                origSize.Height += BUTTON_OFFSET_HACK * 2
+
             if self.mode == "click":
-                if dist(list(pos), list(self.absOrigin)) > 5:
+                if dist(list(pos), list(self.absOrigin)) > MOVE_THRESHOLD:
                     rpx, rpy = self.relOrigin
-                    hackOffset = 5 if self.targetUi.model.type == "button" else 0  # Buttons are bigger than specified???
-                    if origSize.Width - rpx + hackOffset < 10 and origSize.Height - rpy + hackOffset < 10 and \
-                            origSize.Width + hackOffset > rpx and origSize.Height + hackOffset > rpy:
+                    if origSize.Width - rpx < RESIZE_BOX_SIZE and \
+                            origSize.Height - rpy < RESIZE_BOX_SIZE and \
+                            origSize.Width > rpx and origSize.Height > rpy:
                         self.StartResize()
                     else:
                         if self.targetUi.model.type == "card":
@@ -124,7 +148,10 @@ class HandTool(BaseTool):
 
             offset = (pos.x - self.absOrigin.x, pos.y - self.absOrigin.y)
             if self.mode == "move":
-                for ui in self.stackView.selectedViews:
+                selectedViews = self.stackView.GetSelectedUiViews()
+                if len(selectedViews) == 1 and selectedViews[0].parent.model.type == "group":
+                    selectedViews = [self.targetUi]
+                for ui in selectedViews:
                     origPos = self.oldFrames[ui.model.GetProperty("name")].Position
                     ui.model.SetProperty("position", [origPos.x + offset[0], origPos.y + offset[1]])
             elif self.mode == "resize":
@@ -159,7 +186,10 @@ class HandTool(BaseTool):
             viewOrigin = self.oldFrames[self.targetUi.model.GetProperty("name")].Position
             offset = (pos[0] - viewOrigin.x, pos[1] - viewOrigin.y)
             if offset != (0, 0):
-                models = [ui.model for ui in self.stackView.selectedViews]
+                selectedViews = self.stackView.GetSelectedUiViews()
+                if len(selectedViews) == 1 and selectedViews[0].parent.model.type == "group":
+                    selectedViews = [self.targetUi]
+                models = [ui.model for ui in selectedViews]
                 command = MoveUiViewsCommand(True, 'Move', self.stackView, self.stackView.cardIndex,
                                              models, offset)
                 for m in models:
