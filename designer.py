@@ -434,21 +434,21 @@ class DesignerFrame(wx.Frame):
     def OnCut(self, event):
         f = self.FindFocus()
         if f == self.stackView:
-            self.stackView.CutView()
+            self.stackView.CutSelectedViews()
         elif f and hasattr(f, "Cut"):
             f.Cut()
 
     def OnCopy(self, event):
         f = self.FindFocus()
         if f == self.stackView:
-            self.stackView.CopyView()
+            self.stackView.CopySelectedViews()
         elif f and hasattr(f, "Copy"):
             f.Copy()
 
     def OnPaste(self, event):
         f = self.FindFocus()
         if f == self.stackView:
-            self.stackView.PasteView()
+            self.stackView.PasteViews()
         elif f and hasattr(f, "Paste"):
             f.Paste()
 

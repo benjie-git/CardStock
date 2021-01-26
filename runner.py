@@ -14,6 +14,7 @@ class Runner():
         self.clientVars = {
             "Wait": self.Wait,
             "Time": self.Time,
+            "Paste": self.Paste,
             "Alert": self.Alert,
             "Ask": self.Ask,
             "GotoCard": self.GotoCard,
@@ -145,6 +146,8 @@ class Runner():
             if self.statusBar:
                 self.statusBar.SetStatusText(msg)
 
+    # --------- User-accessible view functions -----------
+
     def SetFocus(self, model):
         uiView = self.stackView.GetUiViewByModel(model)
         if uiView:
@@ -201,3 +204,6 @@ class Runner():
 
     def StopSound(self):
         Sound.Stop()
+
+    def Paste(self):
+        return self.stackView.PasteViews(False)

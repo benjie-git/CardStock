@@ -396,13 +396,20 @@ class ViewModel(object):
     def Delete(self):
         if self.type != "card":
             self.stackView.RemoveUiViewByModel(self)
+            self.stackView.uiCard.model.RemoveChild(self)
         else:
             self.stackView.RemoveCard()
+
+    def Cut(self): self.stackView.CutModels([self], False)
+    def Copy(self): self.stackView.CopyModels([self])
+    #   Paste is in the runner
 
     def Show(self): self.SetProperty("hidden", False)
     def Hide(self): self.SetProperty("hidden", True)
     def SetVisible(self, visible): self.SetProperty("hidden", not visible)
     def GetVisible(self): return not self.GetProperty("hidden")
+
+    def GetName(self): return self.GetProperty("name")
 
     def GetSize(self): return list(self.GetProperty("size"))
     def SetSize(self, size): self.SetProperty("size", size)

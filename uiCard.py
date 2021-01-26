@@ -166,15 +166,19 @@ class CardModel(ViewModel):
                 names.remove(n)
         return names
 
-    def DeduplicateNameInCard(self, name, exclude=None):
+    def DeduplicateNameInCard(self, name, exclude=None, include=None):
         if exclude is None: exclude = []
+        if include is None: include = []
         names = self.GetDedupNameList(name, exclude)
+        names.extend(include)
         return super().DeduplicateName(name, names)
 
     def GetNextAvailableNameInCard(self, name, exclude=None):
         if exclude is None: exclude = []
         names = self.GetDedupNameList(name, exclude)
         return super().GetNextAvailableName(name, names)
+
+    # --------- User-accessible view methods -----------
 
     def GetSize(self): return list(self.stackModel.GetProperty("size"))
     def SetSize(self, size): pass

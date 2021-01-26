@@ -64,6 +64,8 @@ class ButtonModel(ViewModel):
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "title", "border", "position", "size"]
 
+    # --------- User-accessible view methods -----------
+
     def GetTitle(self): return self.GetProperty("title")
     def SetTitle(self, text): self.SetProperty("title", text)
     def GetText(self): return self.GetProperty("title")

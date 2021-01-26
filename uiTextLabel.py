@@ -100,6 +100,8 @@ class TextLabelModel(ViewModel):
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "position", "size"]
 
+    # --------- User-accessible view methods -----------
+
     def GetText(self): return self.GetProperty("text")
     def SetText(self, text): self.SetProperty("text", str(text))
     def AppendText(self, text): self.SetProperty("text", self.GetProperty("text") + str(text))

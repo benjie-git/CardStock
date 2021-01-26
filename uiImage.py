@@ -79,6 +79,8 @@ class ImageModel(ViewModel):
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "file", "fit", "bgColor", "position", "size"]
 
+    # --------- User-accessible view methods -----------
+
     def GetFile(self): return self.GetProperty("file")
     def SetFile(self, text): self.SetProperty("file", text)
 

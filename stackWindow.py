@@ -177,30 +177,37 @@ class StackWindow(wx.Window):
     def SetDesigner(self, designer):
         self.designer = designer
 
-    def CopyView(self):
+    def CopyModels(self, models):
         clipData = wx.CustomDataObject("org.cardstock.models")
-        list = [ui.model.GetData() for ui in self.selectedViews]
+        list = [model.GetData() for model in models]
         data = bytes(json.dumps(list).encode('utf8'))
         clipData.SetData(data)
         wx.TheClipboard.Open()
         wx.TheClipboard.SetData(clipData)
         wx.TheClipboard.Close()
 
+    def CopySelectedViews(self):
+        self.CopyModels([ui.model for ui in self.selectedViews])
+
     def SelectAll(self):
         self.SelectUiView(None)
         for ui in self.uiViews:
             self.SelectUiView(ui, True)
 
-    def CutView(self):
-        self.CopyView()
-        if len(self.selectedViews) == 1 and self.selectedViews[0].model.type == "card":
+    def CutModels(self, models, canUndo=True):
+        self.CopyModels(models)
+        if len(models) == 1 and models[0].type == "card":
             self.RemoveCard()
-        elif len(self.selectedViews) > 0:
-            deleteViews = [ui for ui in self.selectedViews if ui.model.parent.type != "group"]
-            command = RemoveUiViewsCommand(True, "Cut", self, self.cardIndex, [ui.model for ui in deleteViews])
-            self.command_processor.Submit(command)
+        elif len(models) > 0:
+            deleteModels = [m for m in models if m.parent.type != "group"]
+            command = RemoveUiViewsCommand(True, "Cut", self, self.cardIndex, deleteModels)
+            self.command_processor.Submit(command, storeIt=canUndo)
 
-    def PasteView(self):
+    def CutSelectedViews(self, canUndo=True):
+        self.CutModels([ui.model for ui in self.selectedViews], canUndo)
+
+    def PasteViews(self, canUndo=True):
+        models = []
         if not wx.TheClipboard.IsOpened():  # may crash, otherwise
             if wx.TheClipboard.Open():
                 if wx.TheClipboard.IsSupported(wx.DataFormat("org.cardstock.models")):
@@ -214,14 +221,17 @@ class StackWindow(wx.Window):
                                                                             [m.GetProperty("name") for m in
                                                                              self.stackModel.cardModels]))
                             command = AddNewUiViewCommand(True, "Paste Card", self, self.cardIndex + 1, "card", models[0])
-                            self.command_processor.Submit(command)
+                            self.command_processor.Submit(command, storeIt=canUndo)
                         else:
+                            names = []
                             for model in models:
                                 model.SetProperty("name",
-                                                  self.uiCard.model.DeduplicateNameInCard(model.GetProperty("name")))
+                                                  self.uiCard.model.DeduplicateNameInCard(model.GetProperty("name"), None, names))
+                                names.append(model.GetProperty("name"))
                             command = AddUiViewsCommand(True, 'Add Views', self, self.cardIndex, models)
-                            self.command_processor.Submit(command)
+                            self.command_processor.Submit(command, storeIt=canUndo)
                 wx.TheClipboard.Close()
+        return models
 
     def GroupSelectedViews(self):
         models = []
