@@ -7,7 +7,6 @@ import ast
 import re
 import generator
 
-
 class UiView(object):
     def __init__(self, parent, stackView, model, view):
         super().__init__()
@@ -195,6 +194,16 @@ class ViewModel(object):
         self.stackView = stackView
         self.isDirty = False
 
+    def CreateCopy(self):
+        data = self.GetData()
+        newModel = generator.StackGenerator.ModelFromData(self.stackView, data)
+        if newModel.type != "card":
+            newModel.SetProperty("name", self.stackView.uiCard.model.DeduplicateNameInCard(newModel.GetProperty("name")))
+        else:
+            newModel.SetProperty("name", newModel.DeduplicateName("card_1",
+                [m.GetProperty("name") for m in self.stackView.stackModel.cardModels]))
+        return newModel
+
     def GetType(self):
         return self.type
 
@@ -366,6 +375,8 @@ class ViewModel(object):
             if name not in existingNames:
                 return name
 
+    # --------- User-accessible view methods -----------
+
     def SendMessage(self, message):
         if self.stackView.runner:
             self.stackView.runner.RunHandler(self, "OnMessage", None, message)
@@ -373,6 +384,20 @@ class ViewModel(object):
     def Focus(self):
         if self.stackView.runner:
             self.stackView.runner.SetFocus(self)
+
+    def Clone(self):
+        newModel = self.CreateCopy()
+        if newModel.type != "card":
+            self.stackView.AddUiViewsFromModels([newModel], False)
+        else:
+            self.stackView.DuplicateCard()
+        return newModel
+
+    def Delete(self):
+        if self.type != "card":
+            self.stackView.RemoveUiViewByModel(self)
+        else:
+            self.stackView.RemoveCard()
 
     def Show(self): self.SetProperty("hidden", False)
     def Hide(self): self.SetProperty("hidden", True)

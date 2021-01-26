@@ -38,6 +38,7 @@ class StackWindow(wx.Window):
         self.cacheView = wx.Window(self, size=(0,0))  # just an offscreen holder for cached uiView.views
         self.cacheView.Hide()
         self.uiViewCache = {}
+        self.uiViewCachePendingDelete = []
         self.globalCursor = None
         self.lastMousePos = wx.Point(0,0)
         self.runner = None
@@ -58,14 +59,22 @@ class StackWindow(wx.Window):
 
         # When the window is destroyed, clean up resources.
         self.Bind(wx.EVT_WINDOW_DESTROY, self.Cleanup)
+        self.Bind(wx.EVT_IDLE, self.CleanViewCache)
 
-    def Cleanup(self, evt):
-        if evt.GetEventObject() == self:
+    def Cleanup(self, event):
+        if event.GetEventObject() == self:
             if hasattr(self, "menu"):
                 self.menu.Destroy()
                 del self.menu
             if self.timer:
                 self.timer.Stop()
+
+    def CleanViewCache(self, event):
+        for ui in self.uiViewCachePendingDelete.copy():
+            self.cacheView.RemoveChild(ui.view)
+            ui.DestroyView()
+            self.uiViewCache.pop(ui.model)
+            self.uiViewCachePendingDelete.remove(ui)
 
     def RefreshNow(self):
         self.Refresh()
@@ -263,6 +272,8 @@ class StackWindow(wx.Window):
 
         if model and model in self.uiViewCache:
             uiView = self.uiViewCache.pop(model)
+            if uiView in self.uiViewCachePendingDelete:
+                self.uiViewCachePendingDelete.remove(uiView)
             uiView.view.Reparent(self)
         else:
             if type == "button":
@@ -373,8 +384,9 @@ class StackWindow(wx.Window):
                 if ui.model.type == "group":
                     ui.RemoveChildViews()
                 self.uiViews.remove(ui)
-                self.uiCard.model.RemoveChild(ui.model)
-                ui.DestroyView()
+                ui.view.Reparent(self.cacheView)
+                self.uiViewCache[ui.model] = ui
+                self.uiViewCachePendingDelete.append(ui)
                 return
 
     def ReorderSelectedViews(self, direction):
