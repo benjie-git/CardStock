@@ -31,10 +31,9 @@ class UiShape(UiView):
         points = self.model.GetScaledPoints()
 
         if self.model.type in ["pen", "line"]:
-            lastPos = None
+            lastPos = points[0]
             for coords in points:
-                if lastPos:
-                    dc.DrawLine(lastPos[0], lastPos[1], coords[0], coords[1])
+                dc.DrawLine(lastPos[0], lastPos[1], coords[0], coords[1])
                 lastPos = coords
         elif len(points) == 2:
             rect = self.model.RectFromPoints(points)
@@ -196,6 +195,9 @@ class LineModel(ViewModel):
         # adjust view rect
         self.SetProperty("position", rect.Position)
         offset = padding*2 - self.oldThickness
+        if rect.Width < 20: rect.Width = 20
+        if rect.Height < 20: rect.Height = 20
+
         if oldSize:
             self.SetProperty("size", [oldSize[0] + offset, oldSize[1] + offset])
         else:
