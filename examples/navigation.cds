@@ -2,7 +2,6 @@
   "type": "stack",
   "handlers": {},
   "properties": {
-    "name": "",
     "size": [
       500,
       500
@@ -12,7 +11,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "from random import randint\n"
+        "OnSetup": "from random import randint\n"
       },
       "properties": {
         "name": "home",
@@ -34,7 +33,8 @@
               278,
               226
             ],
-            "title": "-"
+            "title": "-",
+            "border": true
           }
         },
         {
@@ -52,7 +52,8 @@
               278,
               146
             ],
-            "title": "+"
+            "title": "+",
+            "border": true
           }
         },
         {
@@ -70,7 +71,8 @@
               278,
               306
             ],
-            "title": "*"
+            "title": "*",
+            "border": true
           }
         },
         {
@@ -88,7 +90,8 @@
               278,
               386
             ],
-            "title": "/"
+            "title": "/",
+            "border": true
           }
         },
         {
@@ -158,7 +161,8 @@
               11,
               12
             ],
-            "title": "Home"
+            "title": "Home",
+            "border": true
           }
         },
         {
@@ -269,7 +273,8 @@
               11,
               12
             ],
-            "title": "Home"
+            "title": "Home",
+            "border": true
           }
         },
         {
@@ -380,7 +385,8 @@
               11,
               12
             ],
-            "title": "Home"
+            "title": "Home",
+            "border": true
           }
         },
         {
@@ -491,7 +497,8 @@
               11,
               12
             ],
-            "title": "Home"
+            "title": "Home",
+            "border": true
           }
         },
         {

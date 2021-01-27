@@ -163,24 +163,24 @@ class Runner():
 
     def GotoCard(self, cardName):
         index = None
-        for m in self.stackView.stackModel.cardModels:
+        for m in self.stackView.stackModel.childModels:
             if m.GetProperty("name") == cardName:
-                index = self.stackView.stackModel.cardModels.index(m)
+                index = self.stackView.stackModel.childModels.index(m)
         if index is not None:
             self.stackView.LoadCardAtIndex(index)
 
     def GotoCardNumber(self, cardIndex):
-        if cardIndex > 0 and cardIndex <= len(self.stackView.stackModel.cardModels):
+        if cardIndex > 0 and cardIndex <= len(self.stackView.stackModel.childModels):
             self.stackView.LoadCardAtIndex(cardIndex-1)
 
     def GotoNextCard(self):
         cardIndex = self.stackView.cardIndex + 1
-        if cardIndex >= len(self.stackView.stackModel.cardModels): cardIndex = 0
+        if cardIndex >= len(self.stackView.stackModel.childModels): cardIndex = 0
         self.stackView.LoadCardAtIndex(cardIndex)
 
     def GotoPreviousCard(self):
         cardIndex = self.stackView.cardIndex - 1
-        if cardIndex < 0: cardIndex = len(self.stackView.stackModel.cardModels) - 1
+        if cardIndex < 0: cardIndex = len(self.stackView.stackModel.childModels) - 1
         self.stackView.LoadCardAtIndex(cardIndex)
 
     def Wait(self, delay):

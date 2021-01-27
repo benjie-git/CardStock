@@ -146,6 +146,9 @@ class UiView(object):
         dc.DrawRectangle((1, 1), (self.selectionBox.GetSize()[0]-1, self.selectionBox.GetSize()[1]-1))
 
     handlerDisplayNames = {
+        'OnSetup':      "OnSetup():",
+        'OnShowCard':   "OnShowCard():",
+        'OnHideCard':   "OnHideCard():",
         'OnClick':      "OnClick():",
         'OnTextEnter':  "OnTextEnter():",
         'OnTextChanged':"OnTextChanged():",
@@ -155,12 +158,9 @@ class UiView(object):
         'OnMouseEnter': "OnMouseEnter(mouseX, mouseY):",
         'OnMouseExit':  "OnMouseExit(mouseX, mouseY):",
         'OnMessage':    "OnMessage(message):",
-        'OnStackStart': "OnStackStart():",
-        'OnShowCard':   "OnShowCard():",
-        'OnHideCard':   "OnHideCard():",
-        'OnIdle':       "OnIdle():",
         'OnKeyDown':    "OnKeyDown(keyName):",
-        'OnKeyUp':      "OnKeyUp(keyName):"
+        'OnKeyUp':      "OnKeyUp(keyName):",
+        'OnIdle':       "OnIdle():",
     }
 
 
@@ -171,7 +171,8 @@ class ViewModel(object):
         super().__init__()
         self.type = None
         self.parent = None
-        self.handlers = {"OnMouseDown": "",
+        self.handlers = {"OnSetup": "",
+                         "OnMouseDown": "",
                          "OnMouseMove": "",
                          "OnMouseUp": "",
                          "OnMouseEnter": "",
@@ -191,6 +192,7 @@ class ViewModel(object):
                               "hidden": "bool"}
         self.propertyChoices = {}
 
+        self.childModels = []
         self.stackView = stackView
         self.isDirty = False
 
@@ -201,7 +203,7 @@ class ViewModel(object):
             newModel.SetProperty("name", self.stackView.uiCard.model.DeduplicateNameInCard(newModel.GetProperty("name")))
         else:
             newModel.SetProperty("name", newModel.DeduplicateName("card_1",
-                [m.GetProperty("name") for m in self.stackView.stackModel.cardModels]))
+                                                                  [m.GetProperty("name") for m in self.stackView.stackModel.childModels]))
         return newModel
 
     def GetType(self):
@@ -217,7 +219,7 @@ class ViewModel(object):
                         "line": "Line",
                         "rect": "Rectangle",
                         "oval": "Oval",
-                        "round_rect": "Round Retangle",
+                        "round_rect": "Round Rectangle",
                         "group": "Group"}
         return displayTypes[self.type]
 

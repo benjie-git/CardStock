@@ -1,10 +1,7 @@
 {
   "type": "stack",
-  "handlers": {
-    "OnStackStart": "shouldReplaceText = False"
-  },
+  "handlers": {},
   "properties": {
-    "name": "",
     "size": [
       313,
       267
@@ -13,7 +10,9 @@
   "cards": [
     {
       "type": "card",
-      "handlers": {},
+      "handlers": {
+        "OnSetup": "shouldReplaceText = False"
+      },
       "properties": {
         "name": "card_1",
         "bgColor": "#555555"
@@ -53,7 +52,8 @@
               220,
               72
             ],
-            "title": "+"
+            "title": "+",
+            "border": true
           }
         },
         {
@@ -71,7 +71,8 @@
               220,
               162
             ],
-            "title": "*"
+            "title": "*",
+            "border": true
           }
         },
         {
@@ -89,7 +90,8 @@
               220,
               200
             ],
-            "title": "/"
+            "title": "/",
+            "border": true
           }
         },
         {
@@ -107,7 +109,8 @@
               100,
               200
             ],
-            "title": "="
+            "title": "=",
+            "border": true
           }
         },
         {
@@ -125,7 +128,8 @@
               41,
               73
             ],
-            "title": "1"
+            "title": "1",
+            "border": true
           }
         },
         {
@@ -143,7 +147,8 @@
               100,
               72
             ],
-            "title": "2"
+            "title": "2",
+            "border": true
           }
         },
         {
@@ -161,7 +166,8 @@
               160,
               72
             ],
-            "title": "3"
+            "title": "3",
+            "border": true
           }
         },
         {
@@ -179,7 +185,8 @@
               40,
               119
             ],
-            "title": "4"
+            "title": "4",
+            "border": true
           }
         },
         {
@@ -197,7 +204,8 @@
               100,
               118
             ],
-            "title": "5"
+            "title": "5",
+            "border": true
           }
         },
         {
@@ -215,7 +223,8 @@
               160,
               119
             ],
-            "title": "6"
+            "title": "6",
+            "border": true
           }
         },
         {
@@ -233,7 +242,8 @@
               40,
               162
             ],
-            "title": "7"
+            "title": "7",
+            "border": true
           }
         },
         {
@@ -251,7 +261,8 @@
               100,
               162
             ],
-            "title": "8"
+            "title": "8",
+            "border": true
           }
         },
         {
@@ -269,7 +280,8 @@
               160,
               162
             ],
-            "title": "9"
+            "title": "9",
+            "border": true
           }
         },
         {
@@ -287,7 +299,8 @@
               40,
               200
             ],
-            "title": "0"
+            "title": "0",
+            "border": true
           }
         },
         {
@@ -305,7 +318,8 @@
               220,
               118
             ],
-            "title": "-"
+            "title": "-",
+            "border": true
           }
         }
       ]

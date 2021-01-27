@@ -51,7 +51,7 @@ class StackWindow(wx.Window):
         self.selectedViews = []
         self.uiViews = []
         self.cardIndex = None
-        self.uiCard = UiCard(None, self, stackModel.cardModels[0])
+        self.uiCard = UiCard(None, self, stackModel.childModels[0])
         self.LoadCardAtIndex(0)
 
         self.uiCard.model.SetDirty(False)
@@ -154,7 +154,7 @@ class StackWindow(wx.Window):
     def LoadCardAtIndex(self, index, reload=False):
         if index != self.cardIndex or reload == True:
             if not self.isEditing and self.cardIndex is not None and not reload:
-                oldCardModel = self.stackModel.cardModels[self.cardIndex]
+                oldCardModel = self.stackModel.childModels[self.cardIndex]
                 if self.runner:
                     self.runner.RunHandler(oldCardModel, "OnHideCard", None)
             self.cardIndex = index
@@ -218,8 +218,8 @@ class StackWindow(wx.Window):
                         models = [generator.StackGenerator.ModelFromData(self, dict) for dict in list]
                         if len(models) == 1 and models[0].type == "card":
                             models[0].SetProperty("name", models[0].DeduplicateName(models[0].GetProperty("name"),
-                                                                            [m.GetProperty("name") for m in
-                                                                             self.stackModel.cardModels]))
+                                                                                    [m.GetProperty("name") for m in
+                                                                                     self.stackModel.childModels]))
                             command = AddNewUiViewCommand(True, "Paste Card", self, self.cardIndex + 1, "card", models[0])
                             self.command_processor.Submit(command, storeIt=canUndo)
                         else:
@@ -436,7 +436,7 @@ class StackWindow(wx.Window):
         elif direction == "back": newIndex = currentIndex - 1
 
         if newIndex < 0: newIndex = 0
-        if newIndex >= len(self.stackModel.cardModels): newIndex = len(self.stackModel.cardModels) - 1
+        if newIndex >= len(self.stackModel.childModels): newIndex = len(self.stackModel.childModels) - 1
 
         if newIndex != currentIndex:
             command = ReorderCardCommand(True, "Reorder Card", self, self.cardIndex, newIndex)
@@ -445,22 +445,22 @@ class StackWindow(wx.Window):
     def AddCard(self):
         newCard = CardModel(self)
         newCard.SetProperty("name", newCard.DeduplicateName("card_1",
-                                                            [m.GetProperty("name") for m in self.stackModel.cardModels]))
+                                                            [m.GetProperty("name") for m in self.stackModel.childModels]))
         command = AddNewUiViewCommand(True, "Add Card", self, self.cardIndex+1, "card", newCard)
         self.command_processor.Submit(command)
 
     def DuplicateCard(self):
         newCard = CardModel(self)
-        newCard.SetData(self.stackModel.cardModels[self.cardIndex].GetData())
+        newCard.SetData(self.stackModel.childModels[self.cardIndex].GetData())
         newCard.SetProperty("name", newCard.DeduplicateName(newCard.GetProperty("name"),
-                                                            [m.GetProperty("name") for m in self.stackModel.cardModels]))
+                                                            [m.GetProperty("name") for m in self.stackModel.childModels]))
         command = AddNewUiViewCommand(True, "Duplicate Card", self, self.cardIndex+1, "card", newCard)
         self.command_processor.Submit(command)
 
     def RemoveCard(self):
         index = self.cardIndex
-        if len(self.stackModel.cardModels) > 1:
-            command = RemoveUiViewsCommand(True, "Remove Card", self, index, [self.stackModel.cardModels[index]])
+        if len(self.stackModel.childModels) > 1:
+            command = RemoveUiViewsCommand(True, "Remove Card", self, index, [self.stackModel.childModels[index]])
             self.command_processor.Submit(command)
 
     def OnMouseDown(self, uiView, event):

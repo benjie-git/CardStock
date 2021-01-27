@@ -62,7 +62,7 @@ class CardModel(ViewModel):
         self.stackModel = None  # For setting stack size
 
         # Add custom handlers to the top of the list
-        handlers = {"OnShowCard": "", "OnHideCard": "","OnIdle": "", "OnKeyDown": "", "OnKeyUp": ""}
+        handlers = {"OnSetup": "", "OnShowCard": "", "OnHideCard": "", "OnKeyDown": "", "OnKeyUp": ""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
@@ -72,8 +72,6 @@ class CardModel(ViewModel):
         self.propertyKeys = ["name", "bgColor", "stackSize"]
         self.propertyTypes["stackSize"] = "point"
         self.propertyTypes["bgColor"] = "color"
-
-        self.childModels = []
 
     def SetProperty(self, key, value, notify=True):
         if key == "stackSize":
@@ -86,24 +84,6 @@ class CardModel(ViewModel):
             return self.stackModel.GetProperty("size")
         else:
             return super().GetProperty(key)
-
-    def GetHandlers(self):
-        h = {"OnStackStart": ""}
-        for k,v in self.handlers.items():
-            h[k] = v
-        return h
-
-    def GetHandler(self, key):
-        if key == "OnStackStart":
-            return self.stackModel.GetHandler(key)
-        else:
-            return super().GetHandler(key)
-
-    def SetHandler(self, key, value):
-        if key == "OnStackStart":
-            self.stackModel.SetHandler("OnStackStart", value)
-        else:
-            super().SetHandler(key, value)
 
     def GetFrame(self):
         p = wx.Point(self.stackModel.GetProperty("position"))

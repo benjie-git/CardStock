@@ -14,7 +14,7 @@ class UiImage(UiView):
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("image_"), False)
 
         img = self.GetImg(model)
-        container = generator.TransparentWindow(parent.view)
+        container = wx.Window(parent.view)
         container.Enable(True)
         self.imgView = wx.StaticBitmap(container, bitmap=img)
         self.imgView.Enable(True)

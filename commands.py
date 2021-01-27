@@ -121,7 +121,7 @@ class RemoveUiViewsCommand(Command):
             self.stackView.LoadCardAtIndex(None)
             self.stackView.stackModel.RemoveCardModel(self.viewModels[0])
             index = self.cardIndex
-            if index >= len(self.stackView.stackModel.cardModels)-1: index = len(self.stackView.stackModel.cardModels)-1
+            if index >= len(self.stackView.stackModel.childModels)-1: index = len(self.stackView.stackModel.childModels) - 1
             self.stackView.LoadCardAtIndex(index)
         else:
             self.stackView.LoadCardAtIndex(self.cardIndex)
@@ -159,13 +159,13 @@ class ReorderCardCommand(Command):
         self.newIndex = args[4]
 
     def Do(self):
-        cardList = self.stackView.stackModel.cardModels
+        cardList = self.stackView.stackModel.childModels
         cardList.insert(self.newIndex, cardList.pop(self.cardIndex))
         self.stackView.LoadCardAtIndex(self.newIndex)
         return True
 
     def Undo(self):
-        cardList = self.stackView.stackModel.cardModels
+        cardList = self.stackView.stackModel.childModels
         cardList.insert(self.cardIndex, cardList.pop(self.newIndex))
         self.stackView.LoadCardAtIndex(self.cardIndex)
         return True
@@ -181,7 +181,7 @@ class ReorderUiViewsCommand(Command):
 
     def Do(self):
         models = []
-        viewList = self.stackView.stackModel.cardModels[self.cardIndex].childModels
+        viewList = self.stackView.stackModel.childModels[self.cardIndex].childModels
         for i in reversed(self.oldIndexes):
             models.append(viewList.pop(i))
         for i in self.newIndexes:
@@ -195,7 +195,7 @@ class ReorderUiViewsCommand(Command):
 
     def Undo(self):
         models = []
-        viewList = self.stackView.stackModel.cardModels[self.cardIndex].childModels
+        viewList = self.stackView.stackModel.childModels[self.cardIndex].childModels
         for i in reversed(self.newIndexes):
             models.append(viewList.pop(i))
         for i in self.oldIndexes:

@@ -88,7 +88,7 @@ class HandTool(BaseTool):
 
         self.absOrigin = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         self.relOrigin = self.targetUi.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        if uiView.model.type == "button":
+        if uiView.model.type == "button" and uiView.model.GetProperty("border"):
             self.absOrigin.x -= BUTTON_OFFSET_HACK
             self.absOrigin.y -= BUTTON_OFFSET_HACK
             self.relOrigin.x -= BUTTON_OFFSET_HACK
@@ -107,7 +107,7 @@ class HandTool(BaseTool):
             selected.append(self.targetUi)
         for ui in selected:
             frame = ui.model.GetFrame()
-            if ui.model.type == "button":
+            if ui.model.type == "button" and uiView.model.GetProperty("border"):
                 # Button views are bigger than specified???
                 frame.Position.x -= BUTTON_OFFSET_HACK
                 frame.Position.y -= BUTTON_OFFSET_HACK
@@ -118,7 +118,7 @@ class HandTool(BaseTool):
         if self.mode:
             pos = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
             origSize = self.oldFrames[self.targetUi.model.GetProperty("name")].Size
-            if uiView.model.type == "button":
+            if uiView.model.type == "button" and uiView.model.GetProperty("border"):
                 # Button views are bigger than specified???
                 pos.x -= BUTTON_OFFSET_HACK
                 pos.y -= BUTTON_OFFSET_HACK

@@ -1,10 +1,7 @@
 {
   "type": "stack",
-  "handlers": {
-    "OnStackStart": "from random import randint\n\ndx = 0\ndy = 0"
-  },
+  "handlers": {},
   "properties": {
-    "name": "card_1",
     "size": [
       637,
       715
@@ -14,6 +11,7 @@
     {
       "type": "card",
       "handlers": {
+        "OnSetup": "from random import randint\n\ndx = 0\ndy = 0",
         "OnKeyDown": "if keyName == \"Space\":\n   # Only start a game if the ball wasn't already moving\n   if dx == 0 and dy == 0:\n      ball.SendMessage(\"StartGame\")\n",
         "OnMouseDown": "if dx == 0 and dy == 0:\n   # Only start a game if the ball wasn't already moving\n  ball.SendMessage(\"StartGame\")\n",
         "OnMouseMove": "# Make the paddle follow the mouse's X position\noldPos = paddle.GetCenter()\npaddle.SetCenter([mouseX, oldPos[1]])\n"
@@ -23,24 +21,6 @@
         "bgColor": "white"
       },
       "childModels": [
-        {
-          "type": "image",
-          "handlers": {},
-          "properties": {
-            "name": "paddle",
-            "size": [
-              226,
-              20
-            ],
-            "position": [
-              211,
-              655
-            ],
-            "file": "",
-            "fit": "Stretch",
-            "bgColor": "Blue"
-          }
-        },
         {
           "type": "textlabel",
           "handlers": {},
@@ -93,6 +73,38 @@
             [
               33.0,
               33
+            ]
+          ]
+        },
+        {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "paddle",
+            "size": [
+              237,
+              24
+            ],
+            "position": [
+              208,
+              646
+            ],
+            "originalSize": [
+              232,
+              28
+            ],
+            "penColor": "#000000",
+            "penThickness": 1,
+            "fillColor": "#0A5FFF"
+          },
+          "points": [
+            [
+              1,
+              1
+            ],
+            [
+              231,
+              27
             ]
           ]
         }

@@ -2,7 +2,6 @@
   "type": "stack",
   "handlers": {},
   "properties": {
-    "name": "",
     "size": [
       500,
       500
@@ -12,7 +11,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "import requests\nimport json\n"
+        "OnSetup": "import requests\nimport json\n"
       },
       "properties": {
         "name": "card_1",
@@ -34,7 +33,8 @@
               187,
               71
             ],
-            "title": "Get it"
+            "title": "Get it",
+            "border": true
           }
         },
         {

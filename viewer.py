@@ -151,7 +151,13 @@ class ViewerFrame(wx.Frame):
         self.SetClientSize(self.stackView.stackModel.GetProperty("size"))
         self.Show(True)
 
-        runner.RunHandler(self.stackView.stackModel, "OnStackStart", None)
+        def RunAllSetupHandlers(model):
+            print(model.GetProperty("name"))
+            runner.RunHandler(model, "OnSetup", None)
+            if hasattr(model, "childModels"):
+                for m in model.childModels:
+                    RunAllSetupHandlers(m)
+        RunAllSetupHandlers(self.stackView.stackModel)
 
         self.MakeMenu()
         self.stackView.LoadCardAtIndex(0, reload=True)

@@ -83,8 +83,6 @@ class GroupModel(ViewModel):
         self.type = "group"
         self.origFrame = None
 
-        self.childModels = []
-
     def GetAllChildModels(self):
         allModels = []
         for child in self.childModels:

@@ -1,10 +1,7 @@
 {
   "type": "stack",
-  "handlers": {
-    "OnStackStart": "import math\n"
-  },
+  "handlers": {},
   "properties": {
-    "name": "",
     "size": [
       500,
       495
@@ -14,7 +11,8 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "field.Focus()\n"
+        "OnShowCard": "field.Focus()\n",
+        "OnSetup": "import math\n"
       },
       "properties": {
         "name": "card_1",
@@ -57,7 +55,8 @@
               261,
               80
             ],
-            "title": "Find!"
+            "title": "Find!",
+            "border": true
           }
         },
         {

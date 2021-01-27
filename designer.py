@@ -115,7 +115,7 @@ class DesignerFrame(wx.Frame):
         stackModel = StackModel(self.stackView)
         newCard = CardModel(self.stackView)
         newCard.SetProperty("name", newCard.DeduplicateName("card_1",
-                                                            [m.GetProperty("name") for m in stackModel.cardModels]), False)
+                                                            [m.GetProperty("name") for m in stackModel.childModels]), False)
         stackModel.AppendCardModel(newCard)
         self.stackView.SetStackModel(stackModel)
         self.stackView.SetEditing(True)
@@ -385,7 +385,7 @@ class DesignerFrame(wx.Frame):
 
     def OnMenuNextCard(self, event):
         index = self.stackView.cardIndex+1
-        if index < len(self.stackView.stackModel.cardModels):
+        if index < len(self.stackView.stackModel.childModels):
             self.stackView.LoadCardAtIndex(index)
 
     def OnMenuPrevCard(self, event):
@@ -408,8 +408,8 @@ class DesignerFrame(wx.Frame):
     def UpdateCardList(self):
         choices = []
         i = 1
-        numCards = len(self.stackView.stackModel.cardModels)
-        for m in self.stackView.stackModel.cardModels:
+        numCards = len(self.stackView.stackModel.childModels)
+        for m in self.stackView.stackModel.childModels:
             choices.append(f"Card {i} of {numCards}: {m.GetProperty('name')}")
             i += 1
         self.cardPicker.SetItems(choices)
