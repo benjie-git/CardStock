@@ -39,7 +39,6 @@ class ViewerFrame(wx.Frame):
         wx.Frame.__init__(self, parent, -1, self.title, size=(800,600),
                          style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
         self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/mondrian.ico')))
-        self.MakeMenu()
         self.filename = None
 
         self.stackView = StackWindow(self, -1, None)
@@ -52,33 +51,47 @@ class ViewerFrame(wx.Frame):
             if data:
                 self.stackView.stackModel.SetData(data)
                 self.stackView.SetStackModel(self.stackView.stackModel)
-                self.SetClientSize(self.stackView.uiCard.model.GetProperty("size"))
+                self.SetClientSize(self.stackView.stackModel.GetProperty("size"))
                 self.filename = filename
+
+    def SaveFile(self):
+        if self.filename:
+            data = self.stackView.stackModel.GetData()
+            try:
+                jsonData = json.dumps(data, indent=2)
+                with open(self.filename, 'w') as f:
+                    f.write(jsonData)
+                self.stackView.stackModel.SetDirty(False)
+            except TypeError:
+                pass
 
     def MakeMenu(self):
         # create the file menu
-        menu1 = wx.Menu()
-        menu1.Append(wx.ID_CLOSE, "&Close\tCtrl-W", "Close Window")
+        fileMenu = wx.Menu()
+        if self.filename:
+            fileMenu.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save Stack")
+        fileMenu.Append(wx.ID_CLOSE, "&Close\tCtrl-W", "Close Stack")
 
-        menu2 = wx.Menu()
-        menu2.Append(wx.ID_UNDO, "&Undo\tCtrl-Z", "Undo Action")
-        menu2.Append(wx.ID_REDO, "&Redo\tCtrl-Shift-Z", "Redo Action")
-        menu2.AppendSeparator()
-        menu2.Append(wx.ID_CUT,  "C&ut\tCtrl-X", "Cut Selection")
-        menu2.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
-        menu2.Append(wx.ID_PASTE,"&Paste\tCtrl-V", "Paste Selection")
+        editMenu = wx.Menu()
+        editMenu.Append(wx.ID_UNDO, "&Undo\tCtrl-Z", "Undo Action")
+        editMenu.Append(wx.ID_REDO, "&Redo\tCtrl-Shift-Z", "Redo Action")
+        editMenu.AppendSeparator()
+        editMenu.Append(wx.ID_CUT,  "C&ut\tCtrl-X", "Cut Selection")
+        editMenu.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
+        editMenu.Append(wx.ID_PASTE,"&Paste\tCtrl-V", "Paste Selection")
 
         # and the help menu
-        menu3 = wx.Menu()
-        menu3.Append(wx.ID_ABOUT, "&About\tCtrl-H", "Display the gratuitous 'about this app' thingamajig")
+        helpMenu = wx.Menu()
+        helpMenu.Append(wx.ID_ABOUT, "&About\tCtrl-H", "Display the gratuitous 'about this app' thingamajig")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
-        menuBar.Append(menu1, "&File")
-        menuBar.Append(menu2, "&Edit")
-        menuBar.Append(menu3, "&Help")
+        menuBar.Append(fileMenu, "&File")
+        menuBar.Append(editMenu, "&Edit")
+        menuBar.Append(helpMenu, "&Help")
         self.SetMenuBar(menuBar)
 
+        self.Bind(wx.EVT_MENU,   self.OnMenuSave, id=wx.ID_SAVE)
         self.Bind(wx.EVT_MENU,   self.OnMenuClose, id=wx.ID_CLOSE)
 
         self.Bind(wx.EVT_MENU,  self.OnMenuAbout, id=wx.ID_ABOUT)
@@ -88,6 +101,9 @@ class ViewerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnCut, id=wx.ID_CUT)
         self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
+
+    def OnMenuSave(self, event):
+        self.SaveFile()
 
     def OnMenuClose(self, event):
         self.Close()
@@ -132,10 +148,12 @@ class ViewerFrame(wx.Frame):
         runner = Runner(self.stackView, sb)
         self.stackView.runner = runner
         self.stackView.SetEditing(False)
+        self.SetClientSize(self.stackView.stackModel.GetProperty("size"))
         self.Show(True)
 
         runner.RunHandler(self.stackView.stackModel, "OnStackStart", None)
 
+        self.MakeMenu()
         self.stackView.LoadCardAtIndex(0, reload=True)
 
 
@@ -185,12 +203,13 @@ cellpadding="0" border="1">
 
 class ViewerApp(wx.App, InspectionMixin):
     def OnInit(self):
-        self.Init(self) # for InspectionMixin
+        self.Init(self)  # for InspectionMixin
 
         self.frame = ViewerFrame(None)
         self.statusbar = self.frame.CreateStatusBar()
         self.SetTopWindow(self.frame)
         self.SetAppDisplayName('CardStock')
+        self.frame.Show(True)
 
         return True
 
@@ -220,4 +239,3 @@ if __name__ == '__main__':
     app.frame.RunViewer(app.statusbar)
 
     app.MainLoop()
-

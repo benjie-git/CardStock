@@ -394,6 +394,7 @@ class StackWindow(wx.Window):
                 if ui.model.type == "group":
                     ui.RemoveChildViews()
                 self.uiViews.remove(ui)
+                self.uiCard.model.RemoveChild(ui.model)
                 ui.view.Reparent(self.cacheView)
                 self.uiViewCache[ui.model] = ui
                 self.uiViewCachePendingDelete.append(ui)
