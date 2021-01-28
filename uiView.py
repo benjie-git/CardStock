@@ -181,8 +181,8 @@ class ViewModel(object):
                          "OnIdle": ""
                          }
         self.properties = {"name": "",
-                           "size": (0,0),
-                           "position": (0,0),
+                           "size": [0,0],
+                           "position": [0,0],
                            "hidden": False,
                            }
         self.propertyKeys = ["name", "position", "size"]
@@ -230,7 +230,8 @@ class ViewModel(object):
         return self.isDirty
 
     def GetAbsolutePosition(self):
-        pos = self.GetProperty("position").copy()  # Copy so we don't edit the model's position
+        pos = self.GetProperty("position")
+        pos = pos.copy()  # Copy so we don't edit the model's position
         parent = self.parent
         while parent and parent.type != "card":
             parentPos = parent.GetProperty("position")
@@ -318,7 +319,7 @@ class ViewModel(object):
         self.stackView.OnPropertyChanged(self, key)
 
     def SetProperty(self, key, value, notify=True):
-        if key in self.propertyTypes and self.propertyTypes[key] == "point":
+        if (key in self.propertyTypes and self.propertyTypes[key] == "point") or isinstance(value, tuple):
             value = list(value)
 
         if key == "name":

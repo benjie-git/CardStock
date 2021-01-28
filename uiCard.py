@@ -69,18 +69,17 @@ class CardModel(ViewModel):
 
         # Custom property order and mask for the inspector
         self.properties["bgColor"] = "white"
-        self.propertyKeys = ["name", "bgColor", "stackSize"]
-        self.propertyTypes["stackSize"] = "point"
+        self.propertyKeys = ["name", "bgColor", "size"]
         self.propertyTypes["bgColor"] = "color"
 
     def SetProperty(self, key, value, notify=True):
-        if key == "stackSize":
+        if key == "size":
             self.stackModel.SetProperty("size", value, notify)
         else:
             super().SetProperty(key, value, notify)
 
     def GetProperty(self, key):
-        if key == "stackSize":
+        if key == "size":
             return self.stackModel.GetProperty("size")
         else:
             return super().GetProperty(key)

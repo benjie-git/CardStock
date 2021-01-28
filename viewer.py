@@ -152,7 +152,6 @@ class ViewerFrame(wx.Frame):
         self.Show(True)
 
         def RunAllSetupHandlers(model):
-            print(model.GetProperty("name"))
             runner.RunHandler(model, "OnSetup", None)
             if hasattr(model, "childModels"):
                 for m in model.childModels:
