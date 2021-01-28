@@ -164,3 +164,5 @@ class CardModel(ViewModel):
 
     def GetBgColor(self): return self.GetProperty("bgColor")
     def SetBgColor(self, colorStr): self.SetProperty("bgColor", colorStr)
+
+    def GetCardIndex(self): return self.stackModel.childModels.index(self)

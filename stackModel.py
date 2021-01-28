@@ -53,3 +53,7 @@ class StackModel(ViewModel):
             m = CardModel(self.stackView)
             m.SetData(data)
             self.AppendCardModel(m)
+
+    # --------- User-accessible view methods -----------
+
+    def GetNumCards(self): return len(self.childModels)

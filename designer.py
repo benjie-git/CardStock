@@ -1,6 +1,6 @@
 # designer.py
 """
-This module implements the PyStackDesigner application.  It takes the
+This module implements the CardStock Designer application.  It takes the
 StackWindow and reuses it in a much more
 intelligent Frame.  This one has a menu and a statusbar, is able to
 save and reload stacks, clear the workspace, and has a simple control
@@ -12,6 +12,7 @@ implemented using an wx.html.HtmlWindow.
 import os
 import sys
 import json
+import configparser
 import wx
 import wx.html
 from tools import *
@@ -54,6 +55,11 @@ class DesignerFrame(wx.Frame):
     title = "CardStock"
 
     def __init__(self, parent):
+        config_folder = os.path.join(os.path.expanduser("~"), '.config')
+        os.makedirs(config_folder, exist_ok=True)
+        settings_file = "cardstock.conf"
+        self.full_config_file_path = os.path.join(config_folder, settings_file)
+
         super().__init__(parent, -1, self.title, size=(800,600),
                          style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
         self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/mondrian.ico')))
@@ -138,20 +144,27 @@ class DesignerFrame(wx.Frame):
             except TypeError:
                 pass
 
-    def ReadFile(self):
-        if self.filename:
-            with open(self.filename, 'r') as f:
-                data = json.load(f)
-            if data:
-                stackModel = StackModel(self.stackView)
-                stackModel.SetData(data)
-                self.stackView.SetDesigner(self)
-                self.stackView.SetStackModel(stackModel)
-                self.stackView.SetEditing(True)
-                self.stackView.SelectUiView(self.stackView.uiCard)
-                self.SetFrameSizeFromModel()
-                self.UpdateCardList()
-                self.stackView.SetFocus()
+    def ReadFile(self, filename):
+        if filename:
+            try:
+                with open(filename, 'r') as f:
+                    data = json.load(f)
+                if data:
+                    stackModel = StackModel(self.stackView)
+                    stackModel.SetData(data)
+                    self.stackView.SetDesigner(self)
+                    self.stackView.SetStackModel(stackModel)
+                    self.stackView.SetEditing(True)
+                    self.stackView.SelectUiView(self.stackView.uiCard)
+                    self.SetFrameSizeFromModel()
+                    self.UpdateCardList()
+                    self.stackView.SetFocus()
+                    self.filename = filename
+                    self.SetTitle(self.title + ' -- ' + self.filename)
+                    self.WriteConfig()
+            except:
+                pass
+
 
     def SetFrameSizeFromModel(self):
         self.stackContainer.SetSize(self.stackView.GetSize())
@@ -300,13 +313,8 @@ class DesignerFrame(wx.Frame):
                            style=wx.FD_OPEN, wildcard = self.wildcard)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
-            self.OpenFile(filename)
+            self.ReadFile(filename)
         dlg.Destroy()
-
-    def OpenFile(self, filename):
-        self.filename = filename
-        self.ReadFile()
-        self.SetTitle(self.title + ' -- ' + self.filename)
 
     def OnMenuSave(self, event):
         if not self.filename:
@@ -325,6 +333,7 @@ class DesignerFrame(wx.Frame):
             self.filename = filename
             self.SaveFile()
             self.SetTitle(self.title + ' -- ' + self.filename)
+            self.WriteConfig()
         dlg.Destroy()
 
     def OnMenuRun(self, event):
@@ -476,9 +485,31 @@ class DesignerFrame(wx.Frame):
         dlg.ShowModal()
         dlg.Destroy()
 
+    def FinishedStarting(self):
+        if not self.filename:
+            config = self.ReadConfig()
+            if config["last_open_file"]:
+                self.ReadFile(config["last_open_file"])
+
+    def WriteConfig(self):
+        config = configparser.ConfigParser()
+        config['User'] = {"last_open_file": self.filename}
+        with open(self.full_config_file_path, 'w') as configfile:
+            config.write(configfile)
+
+    def ReadConfig(self):
+        last_open_file = None
+        if not os.path.exists(self.full_config_file_path) \
+                or os.stat(self.full_config_file_path).st_size == 0:
+            self.WriteConfig()
+        if os.path.exists(self.full_config_file_path) and os.stat(self.full_config_file_path).st_size > 0:
+            config = configparser.ConfigParser()
+            config.read(self.full_config_file_path)
+            last_open_file = config['User'].get('last_open_file', None)
+        return {"last_open_file": last_open_file}
+
 
 # ----------------------------------------------------------------------
-
 
 
 class CardStockAbout(wx.Dialog):
@@ -520,6 +551,7 @@ cellpadding="0" border="1">
 
 # ----------------------------------------------------------------------
 
+
 class DesignerApp(wx.App, InspectionMixin):
     def OnInit(self):
         self.Init() # for InspectionMixin
@@ -549,6 +581,6 @@ if __name__ == '__main__':
     app = DesignerApp(redirect=False)
     if len(sys.argv) > 1:
         filename = sys.argv[1]
-        app.frame.OpenFile(filename)
+        app.frame.ReadFile(filename)
+    app.frame.FinishedStarting()
     app.MainLoop()
-

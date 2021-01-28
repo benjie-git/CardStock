@@ -1,6 +1,6 @@
 # designer.py
 """
-This module implements the PyStackDesigner application.  It takes the
+This module implements the CardStock Viewer application.  It takes the
 StackWindow and reuses it in a much more
 intelligent Frame.  This one has a menu and a statusbar, is able to
 save and reload stacks, clear the workspace, and has a simple control

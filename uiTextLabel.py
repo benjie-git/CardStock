@@ -57,7 +57,7 @@ class UiTextLabel(UiView):
         elif key == "alignment":
             self.stackView.SelectUiView(None)
             self.view.Destroy()
-            newLabel = self.CreateLabel(self.parent, self.model)
+            newLabel = self.CreateLabel(self.parent, self.stackView, self.model)
             self.SetView(newLabel)
             self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
             self.stackView.SelectUiView(self)

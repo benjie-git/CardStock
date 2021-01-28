@@ -23,7 +23,8 @@ class Runner():
             "GotoCardNumber": self.GotoCardNumber,
             "PlaySound": self.PlaySound,
             "StopSound": self.StopSound,
-            "BroadcastMessage": self.BroadcastMessage
+            "BroadcastMessage": self.BroadcastMessage,
+            "stack": self.stackView.stackModel,
         }
 
         self.keyCodeStringMap = {
@@ -65,7 +66,7 @@ class Runner():
         line_number = None
         detail = None
 
-        noValue = ["no value"]  # Use this if this var didn't exist/had no value (not even None)
+        noValue = ("no", "value")  # Use this if this var didn't exist/had no value (not even None)
 
         # Keep this method re-entrant, by storing old values (or lack thereof) of anything we set here,
         # (like self, key, etc.) and replacing or deleting them at the end of the run.
