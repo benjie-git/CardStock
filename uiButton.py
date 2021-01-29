@@ -66,10 +66,12 @@ class ButtonModel(ViewModel):
 
     # --------- User-accessible view methods -----------
 
-    def GetTitle(self): return self.GetProperty("title")
-    def SetTitle(self, text): self.SetProperty("title", text)
-    def GetText(self): return self.GetProperty("title")
-    def SetText(self, text): self.SetProperty("title", text)
+    @property
+    def title(self):
+        return self.GetProperty("title")
+    @title.setter
+    def title(self, val):
+        self.SetProperty("title", val)
 
     def DoClick(self):
         if self.stackView.runner:

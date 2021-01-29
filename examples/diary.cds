@@ -11,7 +11,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "i = card.GetCardIndex()+1\ntotal = stack.GetNumCards()\ncardNum.SetText(str(i) + '/' + str(total))"
+        "OnShowCard": "i = card.index+1\ntotal = stack.numCards\ncardNum.text = str(i) + '/' + str(total)\n"
       },
       "properties": {
         "name": "card_1",

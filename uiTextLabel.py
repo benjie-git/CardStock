@@ -102,9 +102,16 @@ class TextLabelModel(ViewModel):
 
     # --------- User-accessible view methods -----------
 
-    def GetText(self): return self.GetProperty("text")
-    def SetText(self, text): self.SetProperty("text", str(text))
-    def AppendText(self, text): self.SetProperty("text", self.GetProperty("text") + str(text))
+    @property
+    def text(self):
+        return self.GetProperty("text")
+    @text.setter
+    def text(self, val):
+        self.SetProperty("text", val)
 
-    def GetTextColor(self): return self.GetProperty("textColor")
-    def SetTextColor(self, colorStr): self.SetProperty("textColor", colorStr)
+    @property
+    def textColor(self):
+        return self.GetProperty("textColor")
+    @textColor.setter
+    def textColor(self, val):
+        self.SetProperty("textColor", val)

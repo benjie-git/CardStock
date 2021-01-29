@@ -21,7 +21,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "r = requests.get('https://geek-jokes.sameerkumar.website/api?format=json')\nd = json.loads(r.text)\nfield_1.SetText(d[\"joke\"])"
+            "OnClick": "result = requests.get('https://geek-jokes.sameerkumar.website/api?format=json')\ndict = json.loads(result.text)\nfield_1.text = dict[\"joke\"]\n"
           },
           "properties": {
             "name": "button_1",

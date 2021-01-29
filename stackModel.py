@@ -56,4 +56,6 @@ class StackModel(ViewModel):
 
     # --------- User-accessible view methods -----------
 
-    def GetNumCards(self): return len(self.childModels)
+    @property
+    def numCards(self):
+        return len(self.childModels)

@@ -139,7 +139,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "label_1.SetText(randint(0,100))\nlabel_2.SetText(randint(0,100))\n\nanswer.SetText(\"\")\nanswer.Focus()\n"
+        "OnShowCard": "label_1.text = randint(0,100)\nlabel_2.text = randint(0,100)\n\nanswer.text = \"\"\nanswer.Focus()\n"
       },
       "properties": {
         "name": "plus",
@@ -168,7 +168,7 @@
         {
           "type": "textfield",
           "handlers": {
-            "OnTextEnter": "num1 = int(label_1.GetText())\nnum2 = int(label_2.GetText())\nansNum = int(answer.GetText())\n\nif ansNum == num1 + num2:\n   lastCardName = \"plus\"\n   GotoCard(\"correct\")\nelse:\n   Alert(\"Hmmm.. Not quite right.  Try again!\")\n   self.SetText(\"\")\n"
+            "OnTextEnter": "num1 = int(label_1.text)\nnum2 = int(label_2.text)\nansNum = int(answer.text)\n\nif ansNum == num1 + num2:\n   lastCardName = \"plus\"\n   GotoCard(\"correct\")\nelse:\n   Alert(\"Hmmm.. Not quite right.  Try again!\")\n   self.text = \"\"\n"
           },
           "properties": {
             "name": "answer",
@@ -251,7 +251,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "label_1.SetText(randint(0,100))\nlabel_2.SetText(randint(0,100))\n\nanswer.SetText(\"\")\nanswer.Focus()\n"
+        "OnShowCard": "label_1.text = randint(0,100)\nlabel_2.text = randint(0,100)\n\nanswer.text = \"\"\nanswer.Focus()\n"
       },
       "properties": {
         "name": "minus",
@@ -280,7 +280,7 @@
         {
           "type": "textfield",
           "handlers": {
-            "OnTextEnter": "num1 = int(label_1.GetText())\nnum2 = int(label_2.GetText())\nansNum = int(answer.GetText())\n\nif ansNum == num1 - num2:\n   lastCardName = \"minus\"\n   GotoCard(\"correct\")\nelse:\n   Alert(\"Hmmm.. Not quite right.  Try again!\")\n   self.SetText(\"\")\n"
+            "OnTextEnter": "num1 = int(label_1.text)\nnum2 = int(label_2.text)\nansNum = int(answer.text)\n\nif ansNum == num1 - num2:\n   lastCardName = \"minus\"\n   GotoCard(\"correct\")\nelse:\n   Alert(\"Hmmm.. Not quite right.  Try again!\")\n   self.text = \"\"\n"
           },
           "properties": {
             "name": "answer",
@@ -363,7 +363,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "label_1.SetText(randint(0,100))\nlabel_2.SetText(randint(0,100))\n\nanswer.SetText(\"\")\nanswer.Focus()\n"
+        "OnShowCard": "label_1.text = randint(1,13)\nlabel_2.text = randint(0,13)\n\nanswer.text = \"\"\nanswer.Focus()\n"
       },
       "properties": {
         "name": "times",
@@ -392,7 +392,7 @@
         {
           "type": "textfield",
           "handlers": {
-            "OnTextEnter": "num1 = int(label_1.GetText())\nnum2 = int(label_2.GetText())\nansNum = int(answer.GetText())\n\nif ansNum == num1 * num2:\n   lastCardName = \"times\"\n   GotoCard(\"correct\")\nelse:\n   Alert(\"Hmmm.. Not quite right.  Try again!\")\n   self.SetText(\"\")\n"
+            "OnTextEnter": "num1 = int(label_1.text)\nnum2 = int(label_2.text)\nansNum = int(answer.text)\n\nif ansNum == num1 * num2:\n   lastCardName = \"times\"\n   GotoCard(\"correct\")\nelse:\n   Alert(\"Hmmm.. Not quite right.  Try again!\")\n   self.text = \"\"\n"
           },
           "properties": {
             "name": "answer",
@@ -475,7 +475,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "a = randint(1,12)\nb = a * randint(1,12)\nlabel_1.SetText(b)\nlabel_2.SetText(a)\n\nanswer.SetText(\"\")\nanswer.Focus()\n"
+        "OnShowCard": "a = randint(1,12)\nb = a * randint(1,12)\nlabel_1.text = b\nlabel_2.text = a\n\nanswer.text = \"\"\nanswer.Focus()\n"
       },
       "properties": {
         "name": "divide",
@@ -504,7 +504,7 @@
         {
           "type": "textfield",
           "handlers": {
-            "OnTextEnter": "num1 = int(label_1.GetText())\nnum2 = int(label_2.GetText())\nansNum = int(answer.GetText())\n\nif ansNum == num1 / num2:\n   lastCardName = \"divide\"\n   GotoCard(\"correct\")\nelse:\n   Alert(\"Hmmm.. Not quite right.  Try again!\")\n   self.SetText(\"\")\n"
+            "OnTextEnter": "num1 = int(label_1.text)\nnum2 = int(label_2.text)\nansNum = int(answer.text)\n\nif ansNum == num1 / num2:\n   lastCardName = \"divide\"\n   GotoCard(\"correct\")\nelse:\n   Alert(\"Hmmm.. Not quite right.  Try again!\")\n   self.text = \"\"\n"
           },
           "properties": {
             "name": "answer",

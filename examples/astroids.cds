@@ -14,7 +14,7 @@
         "OnSetup": "pressedKeys = []",
         "OnKeyDown": "if keyName not in pressedKeys:\n   pressedKeys.append(keyName)\n",
         "OnKeyUp": "if keyName in pressedKeys:\n   pressedKeys.remove(keyName)\n",
-        "OnIdle": "if \"Left\" in pressedKeys:\n   dx -= 1\nif \"Right\" in pressedKeys:\n   dx += 1\nif \"Up\" in pressedKeys:\n   dy -= 1\nif \"Down\" in pressedKeys:\n   dy += 1\n\nguy.MoveBy([dx,dy])\n\nsize = card.GetSize()\n\nedge = guy.IsTouchingEdge(card)\nguyPos = guy.GetPosition()\nguySize = guy.GetSize()\n\nif edge == \"Top\":\n   guy.SetPosition([guyPos[0], size[1]-guySize[1]])\nelif edge == \"Bottom\":\n   guy.SetPosition([guyPos[0], 0])\nelif edge == \"Left\":\n   guy.SetPosition([size[0]-guySize[0], guyPos[1]])\nelif edge == \"Right\":\n   guy.SetPosition([0, guyPos[1]])\n"
+        "OnIdle": "if \"Left\" in pressedKeys:\n   dx -= 1\nif \"Right\" in pressedKeys:\n   dx += 1\nif \"Up\" in pressedKeys:\n   dy -= 1\nif \"Down\" in pressedKeys:\n   dy += 1\n\nguy.position += [dx,dy]\n\nsize = card.size\n\nedge = guy.IsTouchingEdge(card)\nguyPos = guy.position\nguySize = guy.size\n\nif edge == \"Top\":\n   guy.position = [guyPos[0], size[1]-guySize[1]]\nelif edge == \"Bottom\":\n   guyposition = [guyPos[0], 0]\nelif edge == \"Left\":\n   guy.position = [size[0]-guySize[0], guyPos[1]]\nelif edge == \"Right\":\n   guy.position = [0, guyPos[1]]\n"
       },
       "properties": {
         "name": "card_1",

@@ -406,28 +406,42 @@ class ViewModel(object):
     def Copy(self): self.stackView.CopyModels([self])
     #   Paste is in the runner
 
-    def Show(self): self.SetProperty("hidden", False)
-    def Hide(self): self.SetProperty("hidden", True)
-    def SetVisible(self, visible): self.SetProperty("hidden", not visible)
-    def IsVisible(self): return not self.GetProperty("hidden")
+    @property
+    def name(self):
+        return self.GetProperty("name")
 
-    def GetName(self): return self.GetProperty("name")
+    @property
+    def size(self):
+        return wx.Size(self.GetProperty("size"))
+    @size.setter
+    def size(self, val):
+        self.SetProperty("size", val)
 
-    def GetSize(self): return list(self.GetProperty("size"))
-    def SetSize(self, size): self.SetProperty("size", size)
+    @property
+    def position(self):
+        return wx.Point(self.GetAbsolutePosition())
+    @position.setter
+    def position(self, val):
+        self.SetAbsolutePosition(val)
 
-    def GetPosition(self): return self.GetAbsolutePosition()
-    def SetPosition(self, pos): self.SetAbsolutePosition(pos)
-    def GetCenter(self):
+    @property
+    def center(self):
         p = self.GetAbsolutePosition()
         s = self.GetProperty("size")
-        return [p[0]+s[0]/2, p[1]+s[1]/2]
-    def SetCenter(self, center):
+        return wx.Point([p[0]+s[0]/2, p[1]+s[1]/2])
+    @center.setter
+    def center(self, center):
         s = self.GetProperty("size")
         self.SetAbsolutePosition([center[0]-s[0]/2, center[1]-s[1]/2])
-    def MoveBy(self, delta):
-        pos = self.GetProperty("position")
-        self.SetProperty("position", (pos[0]+delta[0], pos[1]+delta[1]))
+
+    def Show(self): self.SetProperty("hidden", False)
+    def Hide(self): self.SetProperty("hidden", True)
+    @property
+    def visible(self):
+        return not self.GetProperty("hidden")
+    @visible.setter
+    def visible(self, val):
+        self.SetProperty("hidden", not bool(val))
 
     def IsTouching(self, model):
         sf = self.GetAbsoluteFrame() # self frame in card coords

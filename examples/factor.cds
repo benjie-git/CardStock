@@ -11,8 +11,8 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "field.Focus()\n",
-        "OnSetup": "import math\n"
+        "OnSetup": "import math\n",
+        "OnShowCard": "field.Focus()\n"
       },
       "properties": {
         "name": "card_1",
@@ -43,7 +43,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "num = int(field.GetText())\noutput.SetText(\"\")\n\ndef factor(n):\n   if n < 0:\n      output.AppendText(\"-1\\n\")\n      factor(-n)\n      return\n   if n <= 1: return\n   divisors = [2]\n   divisors.extend(range(3, n+1, 2))\n   for d in divisors:\n      if n % d == 0:\n         output.AppendText(str(d) + \"\\n\")\n         factor(int(n/d))\n         return\n\nfactor(num)\n"
+            "OnClick": "num = int(field.text)\noutput.text = \"\"\n\ndef factor(n):\n   if n < 0:\n      output.text += \"-1\\n\"\n      factor(-n)\n      return\n   if n <= 1: return\n   divisors = [2]\n   divisors.extend(range(3, n+1, 2))\n   for d in divisors:\n      if n % d == 0:\n         output.text += str(d) + \"\\n\"\n         factor(int(n/d))\n         return\n\nfactor(num)\n"
           },
           "properties": {
             "name": "button",

@@ -159,10 +159,13 @@ class CardModel(ViewModel):
 
     # --------- User-accessible view methods -----------
 
-    def GetSize(self): return list(self.stackModel.GetProperty("size"))
-    def SetSize(self, size): pass
+    @property
+    def bgColor(self):
+        return self.GetProperty("bgColor")
+    @bgColor.setter
+    def bgColor(self, val):
+        self.SetProperty("bgColor", val)
 
-    def GetBgColor(self): return self.GetProperty("bgColor")
-    def SetBgColor(self, colorStr): self.SetProperty("bgColor", colorStr)
-
-    def GetCardIndex(self): return self.stackModel.childModels.index(self)
+    @property
+    def index(self):
+        return self.stackModel.childModels.index(self)

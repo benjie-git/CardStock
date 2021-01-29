@@ -2,7 +2,6 @@
   "type": "stack",
   "handlers": {},
   "properties": {
-    "name": "",
     "size": [
       519,
       506
@@ -220,8 +219,8 @@
         {
           "type": "round_rect",
           "handlers": {
-            "OnMouseMove": "self.SetPosition([mouseX-24, mouseY-24])\n",
-            "OnMessage": "if message == \"reset\":\n   PlaySound(\"click.wav\")\n   self.SetPosition((8, 445))\nelif message == \"win\":\n   PlaySound(\"yay.wav\")\n   self.SetPosition((8, 445))\n"
+            "OnMouseMove": "self.center = [mouseX, mouseY]\n",
+            "OnMessage": "if message == \"reset\":\n   PlaySound(\"click.wav\")\n   self.center = (30, 465)\nelif message == \"win\":\n   PlaySound(\"yay.wav\")\n   self.center = (30, 465)\n"
           },
           "properties": {
             "name": "ball",

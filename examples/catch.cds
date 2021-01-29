@@ -2,7 +2,6 @@
   "type": "stack",
   "handlers": {},
   "properties": {
-    "name": "",
     "size": [
       598,
       400
@@ -13,9 +12,9 @@
       "type": "card",
       "handlers": {
         "OnShowCard": "from random import randint\nscore = 0\npressedKeys = []\nnextMoveTime = Time() + 3\n",
-        "OnIdle": "if \"Left\" in pressedKeys:\n   guy.MoveBy([-8,0])\nif \"Right\" in pressedKeys:\n   guy.MoveBy([8,0])\nif \"Up\" in pressedKeys:\n   guy.MoveBy([0,-8])\nif \"Down\" in pressedKeys:\n   guy.MoveBy([0,8])\n\nsize = card.GetSize()\n\nif guy.IsTouching(goal):\n   score += 1\n   label.SetText(score)\n   goal.SetPosition([randint(0,size[0]-80),\\\n      randint(0,size[1]-80)])\n   nextMoveTime = Time() + 3\n\nif Time() >= nextMoveTime:\n   score -= 1\n   label.SetText(score)\n   goal.SetPosition([randint(0,size[0]-80),\\\n      randint(0,size[1]-80)])\n   nextMoveTime = Time() + 3\n      ",
         "OnKeyDown": "if keyName not in pressedKeys:\n   pressedKeys.append(keyName)\n",
-        "OnKeyUp": "if keyName in pressedKeys:\n   pressedKeys.remove(keyName)\n"
+        "OnKeyUp": "if keyName in pressedKeys:\n   pressedKeys.remove(keyName)\n",
+        "OnIdle": "if \"Left\" in pressedKeys:\n   guy.position += [-8,0]\nif \"Right\" in pressedKeys:\n   guy.position += [8,0]\nif \"Up\" in pressedKeys:\n   guy.position += [0,-8]\nif \"Down\" in pressedKeys:\n   guy.position += [0,8]\n\nsize = card.size\n\nif guy.IsTouching(goal):\n   score += 1\n   label.text = score\n   goal.position = [randint(0,size[0]-80),\\\n      randint(0,size[1]-80)]\n   nextMoveTime = Time() + 3\n\nif Time() >= nextMoveTime:\n   score -= 1\n   label.text = score\n   goal.position = [randint(0,size[0]-80),\\\n      randint(0,size[1]-80)]\n   nextMoveTime = Time() + 3\n      "
       },
       "properties": {
         "name": "main",

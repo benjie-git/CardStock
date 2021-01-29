@@ -214,6 +214,21 @@ class LineModel(ViewModel):
 
         self.DidUpdateShape()
 
+    @property
+    def penColor(self):
+        return self.GetProperty("penColor")
+    @penColor.setter
+    def penColor(self, val):
+        self.SetProperty("penColor", val)
+
+    @property
+    def penThickness(self):
+        return self.GetProperty("penThickness")
+    @penThickness.setter
+    def penThickness(self, val):
+        self.SetProperty("penThickness", val)
+
+
 
 class ShapeModel(LineModel):
     def __init__(self, stackView):
@@ -230,6 +245,14 @@ class ShapeModel(LineModel):
         self.properties["fillColor"] = shape["fillColor"]
         super().SetShape(shape)
 
+    @property
+    def fillColor(self):
+        return self.GetProperty("fillColor")
+    @fillColor.setter
+    def fillColor(self, val):
+        self.SetProperty("fillColor", val)
+
+
 
 class RoundRectModel(ShapeModel):
     def __init__(self, stackView):
@@ -245,3 +268,10 @@ class RoundRectModel(ShapeModel):
     def SetShape(self, shape):
         self.properties["cornerRadius"] = shape["cornerRadius"] if "cornerRadius" in shape else 8
         super().SetShape(shape)
+
+    @property
+    def cornerRadius(self):
+        return self.GetProperty("cornerRadius")
+    @cornerRadius.setter
+    def cornerRadius(self, val):
+        self.SetProperty("cornerRadius", val)

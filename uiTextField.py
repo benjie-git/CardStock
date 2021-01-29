@@ -118,9 +118,13 @@ class TextFieldModel(ViewModel):
 
     # --------- User-accessible view methods -----------
 
-    def GetText(self): return self.GetProperty("text")
-    def SetText(self, text): self.SetProperty("text", str(text))
-    def AppendText(self, text): self.SetProperty("text", self.GetProperty("text") + str(text))
+    @property
+    def text(self):
+        return self.GetProperty("text")
+    @text.setter
+    def text(self, val):
+        self.SetProperty("text", val)
+
     def SelectAll(self): self.Notify("selectAll")
 
     def DoEnter(self):

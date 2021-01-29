@@ -81,8 +81,16 @@ class ImageModel(ViewModel):
 
     # --------- User-accessible view methods -----------
 
-    def GetFile(self): return self.GetProperty("file")
-    def SetFile(self, text): self.SetProperty("file", text)
+    @property
+    def file(self):
+        return self.GetProperty("file")
+    @file.setter
+    def file(self, val):
+        self.SetProperty("file", val)
 
-    def GetBgColor(self): return self.GetProperty("bgColor")
-    def SetBgColor(self, colorStr): self.SetProperty("bgColor", colorStr)
+    @property
+    def bgColor(self):
+        return self.GetProperty("bgColor")
+    @bgColor.setter
+    def bgColor(self, val):
+        self.SetProperty("bgColor", val)

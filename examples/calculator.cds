@@ -11,7 +11,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "shouldReplaceText = False"
+        "OnSetup": "shouldReplaceText = False\nop = \"\""
       },
       "properties": {
         "name": "card_1",
@@ -40,7 +40,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "oldVal = float(f.GetText())\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\nop = \"+\"\n"
+            "OnClick": "oldVal = float(f.text)\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\nop = \"+\"\n"
           },
           "properties": {
             "name": "button_16",
@@ -59,7 +59,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "oldVal = float(f.GetText())\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\nop = \"*\"\n"
+            "OnClick": "oldVal = float(f.text)\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\nop = \"*\"\n"
           },
           "properties": {
             "name": "button_1",
@@ -78,7 +78,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "oldVal = float(f.GetText())\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\nop = \"/\"\n"
+            "OnClick": "oldVal = float(f.text)\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\nop = \"/\"\n"
           },
           "properties": {
             "name": "button_3",
@@ -97,7 +97,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "newVal = float(f.GetText())\n\nif op==\"+\":\n  ans = oldVal+newVal\nif op==\"-\":\n  ans = oldVal-newVal\nif op==\"*\":\n  ans = oldVal*newVal\nif op==\"/\":\n  ans = oldVal/newVal\n\noldVal = newVal\n\nf.SetText(ans)\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\n"
+            "OnClick": "newVal = float(f.text)\n\nif op==\"+\":\n  ans = oldVal+newVal\nif op==\"-\":\n  ans = oldVal-newVal\nif op==\"*\":\n  ans = oldVal*newVal\nif op==\"/\":\n  ans = oldVal/newVal\nelse:\n   ans = 0\n   \noldVal = newVal\n\nf.text = ans\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\n"
           },
           "properties": {
             "name": "button_4",
@@ -116,7 +116,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.SetText(\"1\")\n   shouldReplaceText = False\nelse:\n   f.AppendText(\"1\")"
+            "OnClick": "if shouldReplaceText:\n   f.text = \"1\"\n   shouldReplaceText = False\nelse:\n   f.text += \"1\""
           },
           "properties": {
             "name": "button_5",
@@ -135,7 +135,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.SetText(\"2\")\n   shouldReplaceText = False\nelse:\n   f.AppendText(\"2\")"
+            "OnClick": "if shouldReplaceText:\n   f.text = \"2\"\n   shouldReplaceText = False\nelse:\n   f.text += \"2\""
           },
           "properties": {
             "name": "button_6",
@@ -154,7 +154,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.SetText(\"3\")\n   shouldReplaceText = False\nelse:\n   f.AppendText(\"3\")"
+            "OnClick": "if shouldReplaceText:\n   f.text = \"3\"\n   shouldReplaceText = False\nelse:\n   f.text += \"3\""
           },
           "properties": {
             "name": "button_7",
@@ -173,7 +173,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.SetText(\"4\")\n   shouldReplaceText = False\nelse:\n   f.AppendText(\"4\")"
+            "OnClick": "if shouldReplaceText:\n   f.text = \"4\"\n   shouldReplaceText = False\nelse:\n   f.text += \"4\""
           },
           "properties": {
             "name": "button_8",
@@ -192,7 +192,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.SetText(\"5\")\n   shouldReplaceText = False\nelse:\n   f.AppendText(\"5\")"
+            "OnClick": "if shouldReplaceText:\n   f.text = \"5\"\n   shouldReplaceText = False\nelse:\n   f.text += \"5\""
           },
           "properties": {
             "name": "button_9",
@@ -211,7 +211,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.SetText(\"6\")\n   shouldReplaceText = False\nelse:\n   f.AppendText(\"6\")"
+            "OnClick": "if shouldReplaceText:\n   f.text = \"6\"\n   shouldReplaceText = False\nelse:\n   f.text += \"6\""
           },
           "properties": {
             "name": "button_10",
@@ -230,7 +230,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.SetText(\"7\")\n   shouldReplaceText = False\nelse:\n   f.AppendText(\"7\")"
+            "OnClick": "if shouldReplaceText:\n   f.text = \"7\"\n   shouldReplaceText = False\nelse:\n   f.text += \"7\""
           },
           "properties": {
             "name": "button_11",
@@ -249,7 +249,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.SetText(\"8\")\n   shouldReplaceText = False\nelse:\n   f.AppendText(\"8\")"
+            "OnClick": "if shouldReplaceText:\n   f.text = \"8\"\n   shouldReplaceText = False\nelse:\n   f.text += \"8\""
           },
           "properties": {
             "name": "button_12",
@@ -268,7 +268,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.SetText(\"9\")\n   shouldReplaceText = False\nelse:\n   f.AppendText(\"9\")"
+            "OnClick": "if shouldReplaceText:\n   f.text = \"9\"\n   shouldReplaceText = False\nelse:\n   f.text += \"9\""
           },
           "properties": {
             "name": "button_13",
@@ -287,7 +287,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.SetText(\"0\")\n   shouldReplaceText = False\nelse:\n   f.AppendText(\"0\")"
+            "OnClick": "if shouldReplaceText:\n   f.text = \"0\"\n   shouldReplaceText = False\nelse:\n   f.text += \"0\""
           },
           "properties": {
             "name": "button_14",
@@ -306,7 +306,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "oldVal = float(f.GetText())\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\nop = \"-\"\n"
+            "OnClick": "oldVal = float(f.text)\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\nop = \"-\"\n"
           },
           "properties": {
             "name": "button_15",

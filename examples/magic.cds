@@ -2,7 +2,6 @@
   "type": "stack",
   "handlers": {},
   "properties": {
-    "name": "",
     "size": [
       827,
       260
@@ -12,7 +11,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnMouseMove": "_,appleY = apple.GetCenter()\n_,nextY = next.GetCenter()\ntubeX,_ = tube.GetCenter()\n\nappleX = mouseX\nnextX = mouseX\n\nif appleX > tubeX: appleX = tubeX\nif nextX < tubeX: nextX = tubeX\n\napple.SetCenter([appleX, appleY])\nnext.SetCenter([nextX, nextY])\n"
+        "OnMouseMove": "_,appleY = apple.center\n_,nextY = next.center\ntubeX,_ = tube.center\n\nappleX = mouseX\nnextX = mouseX\n\nif appleX > tubeX: appleX = tubeX\nif nextX < tubeX: nextX = tubeX\n\napple.center = [appleX, appleY]\nnext.center = [nextX, nextY]\n"
       },
       "properties": {
         "name": "card_1",
