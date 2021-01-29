@@ -14,18 +14,17 @@ import sys
 import json
 import configparser
 import wx
-import wx.html
 from tools import *
 from stackWindow import StackWindow
 from controlPanel import ControlPanel
 from viewer import ViewerFrame
-import version
+import helpDialogs
 from stackModel import StackModel
 from uiCard import CardModel
 
 from wx.lib.mixins.inspection import InspectionMixin
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.realpath(__file__))
 
 # ----------------------------------------------------------------------
 
@@ -62,7 +61,7 @@ class DesignerFrame(wx.Frame):
 
         super().__init__(parent, -1, self.title, size=(800,600),
                          style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
-        self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/mondrian.ico')))
+        # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.png')))
         self.CreateStatusBar()
         self.editMenu = None
         self.MakeMenu()
@@ -244,6 +243,7 @@ class DesignerFrame(wx.Frame):
         # and the help menu
         helpMenu = wx.Menu()
         helpMenu.Append(wx.ID_ABOUT, "&About", "About")
+        helpMenu.Append(wx.ID_HELP, "&Help", "Help")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
@@ -262,6 +262,7 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,   self.OnMenuExit, id=wx.ID_EXIT)
 
         self.Bind(wx.EVT_MENU,  self.OnMenuAbout, id=wx.ID_ABOUT)
+        self.Bind(wx.EVT_MENU,  self.OnMenuHelp, id=wx.ID_HELP)
 
         self.Bind(wx.EVT_MENU,  self.OnUndo, id=wx.ID_UNDO)
         self.Bind(wx.EVT_MENU,  self.OnRedo, id=wx.ID_REDO)
@@ -481,9 +482,17 @@ class DesignerFrame(wx.Frame):
         event.Skip()
 
     def OnMenuAbout(self, event):
-        dlg = CardStockAbout(self)
+        dlg = helpDialogs.CardStockAbout(self)
         dlg.ShowModal()
         dlg.Destroy()
+
+    def OnMenuHelp(self, event):
+        dlg = helpDialogs.CardStockReference(self)
+        dlg.Bind(wx.EVT_CLOSE, self.OnHelpClose)
+        dlg.Show()
+
+    def OnHelpClose(self, event):
+        event.GetEventObject().Destroy()
 
     def FinishedStarting(self):
         if not self.filename:
@@ -507,47 +516,6 @@ class DesignerFrame(wx.Frame):
             config.read(self.full_config_file_path)
             last_open_file = config['User'].get('last_open_file', None)
         return {"last_open_file": last_open_file}
-
-
-# ----------------------------------------------------------------------
-
-
-class CardStockAbout(wx.Dialog):
-    """ An about box that uses an HTML view """
-
-    text = '''
-<html>
-<body bgcolor="#60acac">
-<center><table bgcolor="#455481" width="100%%" cellspacing="0"
-cellpadding="0" border="1">
-<tr>
-    <td align="center"><h1>CardStock %s</h1></td>
-</tr>
-</table>
-</center>
-<p><b>CardStock</b> is a tool for learning python using a GUI framework inspired by HyperCard of old.</p>
-</body>
-</html>
-'''
-
-    def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, 'About CardStock',
-                          size=(420, 380) )
-
-        html = wx.html.HtmlWindow(self, -1)
-        html.SetPage(self.text % version.VERSION)
-        button = wx.Button(self, wx.ID_OK, "Okay")
-
-        # Set up the layout with a Sizer
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(html, wx.SizerFlags(1).Expand().Border(wx.ALL, 5))
-        sizer.Add(button, wx.SizerFlags(0).Align(wx.ALIGN_CENTER).Border(wx.BOTTOM, 5))
-        self.SetSizer(sizer)
-        self.Layout()
-
-        self.CentreOnParent(wx.BOTH)
-        wx.CallAfter(button.SetFocus)
-
 
 # ----------------------------------------------------------------------
 

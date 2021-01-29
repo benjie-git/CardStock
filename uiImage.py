@@ -10,7 +10,7 @@ from uiView import UiView, ViewModel
 class UiImage(UiView):
     def __init__(self, parent, stackView, model=None):
         if not model:
-            model = ImageModel()
+            model = ImageModel(stackView)
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("image_"), False)
 
         img = self.GetImg(model)

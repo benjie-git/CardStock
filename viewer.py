@@ -38,7 +38,7 @@ class ViewerFrame(wx.Frame):
     def __init__(self, parent):
         wx.Frame.__init__(self, parent, -1, self.title, size=(800,600),
                          style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
-        self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/mondrian.ico')))
+        # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.ico')))
         self.filename = None
 
         self.stackView = StackWindow(self, -1, None)
