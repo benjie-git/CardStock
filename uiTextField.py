@@ -3,7 +3,7 @@
 # This is a draggable View, for adding a UI elements from the palate to the Card.
 
 import wx
-from uiView import UiView, ViewModel
+from uiView import *
 import wx.stc as stc
 
 
@@ -95,6 +95,7 @@ class TextFieldModel(ViewModel):
     def __init__(self, stackView):
         super().__init__(stackView)
         self.type = "textfield"
+        self.proxyClass = TextFieldProxy
 
         # Add custom handlers to the top of the list
         handlers = {"OnTextEnter": "", "OnTextChanged": ""}
@@ -116,17 +117,17 @@ class TextFieldModel(ViewModel):
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "text", "alignment", "editable", "multiline", "position", "size"]
 
-    # --------- User-accessible view methods -----------
 
+class TextFieldProxy(ViewProxy):
     @property
     def text(self):
-        return self.GetProperty("text")
+        return self._model.GetProperty("text")
     @text.setter
     def text(self, val):
-        self.SetProperty("text", val)
+        self._model.SetProperty("text", val)
 
-    def SelectAll(self): self.Notify("selectAll")
+    def SelectAll(self): self._model.Notify("selectAll")
 
     def DoEnter(self):
-        if self.stackView.runner:
-            self.stackView.runner.RunHandler(self, "OnTextEnter", None)
+        if self._model.stackView.runner:
+            self._model.stackView.runner.RunHandler(self._model, "OnTextEnter", None)

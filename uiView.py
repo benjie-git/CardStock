@@ -76,10 +76,11 @@ class UiView(object):
 
     def OnPropertyChanged(self, model, key):
         if key == "size":
-            s = list(self.model.GetProperty(key))
+            s = self.model.GetProperty(key)
             self.view.SetSize(s)
         elif key == "position":
-            self.view.SetPosition(self.model.GetProperty(key))
+            pos = self.model.GetProperty(key)
+            self.view.SetPosition([int(pos[0]), int(pos[1])])
         elif key == "hidden":
             self.view.Show(not self.model.GetProperty(key))
 
@@ -135,6 +136,10 @@ class UiView(object):
         event.Skip()
 
     def OnIdle(self, event):
+        if self.model.type not in ["stack", "card"]:
+            pos = self.model.properties["position"]
+            speed = self.model.properties["speed"]
+            self.model.SetProperty("position", [pos[0] + speed[0], pos[1] + speed[1]])
         if self.stackView.runner and "OnIdle" in self.model.handlers:
             self.stackView.runner.RunHandler(self.model, "OnIdle", event)
 
@@ -165,7 +170,7 @@ class UiView(object):
 
 
 class ViewModel(object):
-    minSize = (20,20)
+    minSize = wx.Size(20,20)
 
     def __init__(self, stackView):
         super().__init__()
@@ -181,20 +186,24 @@ class ViewModel(object):
                          "OnIdle": ""
                          }
         self.properties = {"name": "",
-                           "size": [0,0],
-                           "position": [0,0],
+                           "size": wx.Size(0,0),
+                           "position": wx.Point(0,0),
+                           "speed": wx.Point(0,0),
                            "hidden": False,
                            }
         self.propertyKeys = ["name", "position", "size"]
         self.propertyTypes = {"name": "string",
                               "position": "point",
-                              "size": "point",
+                              "size": "size",
+                              "speed": "point",
                               "hidden": "bool"}
         self.propertyChoices = {}
 
         self.childModels = []
         self.stackView = stackView
         self.isDirty = False
+        self.proxy = None
+        self.proxyClass = ViewProxy
 
     def CreateCopy(self):
         data = self.GetData()
@@ -231,12 +240,11 @@ class ViewModel(object):
 
     def GetAbsolutePosition(self):
         pos = self.GetProperty("position")
-        pos = pos.copy()  # Copy so we don't edit the model's position
+        pos = wx.Point(pos)  # Copy so we don't edit the model's position
         parent = self.parent
         while parent and parent.type != "card":
             parentPos = parent.GetProperty("position")
-            pos[0] += parentPos[0]
-            pos[1] += parentPos[1]
+            pos += parentPos
             parent = parent.parent
         return pos
 
@@ -244,19 +252,18 @@ class ViewModel(object):
         parent = self.parent
         while parent and parent.type != "card":
             parentPos = parent.GetProperty("position")
-            pos[0] -= parentPos[0]
-            pos[1] -= parentPos[1]
+            pos -= parentPos
             parent = parent.parent
         self.SetProperty("position", pos)
 
     def GetFrame(self):
-        p = wx.Point(self.GetProperty("position"))
-        s = wx.Size(self.GetProperty("size"))
+        p = self.GetProperty("position")
+        s = self.GetProperty("size")
         return wx.Rect(p, s)
 
     def GetAbsoluteFrame(self):
-        p = wx.Point(self.GetAbsolutePosition())
-        s = wx.Size(self.GetProperty("size"))
+        p = self.GetAbsolutePosition()
+        s = self.GetProperty("size")
         return wx.Rect(p, s)
 
     def SetFrame(self, rect):
@@ -270,7 +277,11 @@ class ViewModel(object):
                 handlers[k] = v
 
         props = self.properties.copy()
+        for k,v in self.propertyTypes.items():
+            if v in ["point", "size"]:
+                props[k] = list(props[k])
         props.pop("hidden")
+        props.pop("speed")
 
         return {"type": self.type,
                 "handlers": handlers,
@@ -280,13 +291,23 @@ class ViewModel(object):
         for k, v in data["handlers"].items():
             self.handlers[k] = v
         for k, v in data["properties"].items():
-            self.SetProperty(k, v, False)
+            if self.propertyTypes[k] == "point":
+                self.SetProperty(k, wx.Point(v), False)
+            elif self.propertyTypes[k] == "size":
+                self.SetProperty(k, wx.Size(v), False)
+            else:
+                self.SetProperty(k, v, False)
 
     def SetFromModel(self, model):
         for k, v in model.handlers.items():
             self.handlers[k] = v
         for k, v in model.properties.items():
-            self.SetProperty(k, v)
+            if self.propertyTypes[k] == "point":
+                self.SetProperty(k, wx.Point(v), False)
+            elif self.propertyTypes[k] == "size":
+                self.SetProperty(k, wx.Size(v), False)
+            else:
+                self.SetProperty(k, v, False)
 
     # Custom property order and mask for the inspector
     def PropertyKeys(self):
@@ -319,8 +340,10 @@ class ViewModel(object):
         self.stackView.OnPropertyChanged(self, key)
 
     def SetProperty(self, key, value, notify=True):
-        if (key in self.propertyTypes and self.propertyTypes[key] == "point") or isinstance(value, tuple):
-            value = list(value)
+        if key in self.propertyTypes and self.propertyTypes[key] == "point" and not isinstance(value, wx.Point):
+            value = wx.Point(value)
+        elif key in self.propertyTypes and self.propertyTypes[key] == "size" and not isinstance(value, wx.Size):
+            value = wx.Size(value)
 
         if key == "name":
             value = re.sub(r'\W+', '', value)
@@ -329,8 +352,8 @@ class ViewModel(object):
                     self.Notify(key)
                 return
         elif key == "size":
-            if value[0] < self.minSize[0]: value[0] = self.minSize[0]
-            if value[1] < self.minSize[1]: value[1] = self.minSize[1]
+            if value.width < self.minSize.width: value.width = self.minSize.width
+            if value.height < self.minSize.height: value.height = self.minSize.height
 
         if self.properties[key] != value:
             self.properties[key] = value
@@ -349,6 +372,10 @@ class ViewModel(object):
             elif propType == "float":
                 val = float(valStr)
             elif propType == "point":
+                val = ast.literal_eval(valStr)
+                if not isinstance(val, list) or len(val) != 2:
+                    raise Exception()
+            elif propType == "size":
                 val = ast.literal_eval(valStr)
                 if not isinstance(val, list) or len(val) != 2:
                     raise Exception()
@@ -378,79 +405,99 @@ class ViewModel(object):
             if name not in existingNames:
                 return name
 
-    # --------- User-accessible view methods -----------
+    def GetProxy(self):
+        if not self.proxy:
+            self.proxy = self.proxyClass(self)
+        return self.proxy
+
+
+class ViewProxy(object):
+    """
+     This class and its subclasses are the user-accessible objects exposed in event handlers.
+     They purposefully contain no attributes for users to mess with, except a single _model reference.
+    """
+    def __init__(self, model):
+        super().__init__()
+        self._model = model
 
     def SendMessage(self, message):
-        if self.stackView.runner:
-            self.stackView.runner.RunHandler(self, "OnMessage", None, message)
+        if self._model.stackView.runner:
+            self._model.stackView.runner.RunHandler(self._model, "OnMessage", None, message)
 
     def Focus(self):
-        if self.stackView.runner:
-            self.stackView.runner.SetFocus(self)
+        if self._model.stackView.runner:
+            self._model.stackView.runner.SetFocus(self)
 
     def Clone(self):
-        newModel = self.CreateCopy()
+        newModel = self._model.CreateCopy()
         if newModel.type != "card":
-            self.stackView.AddUiViewsFromModels([newModel], False)
+            self._model.stackView.AddUiViewsFromModels([newModel], False)
         else:
-            self.stackView.DuplicateCard()
-        return newModel
+            self._model.stackView.DuplicateCard()
+        return newModel.GetProxy()
 
     def Delete(self):
-        if self.type != "card":
-            self.stackView.RemoveUiViewByModel(self)
+        if self._model.type != "card":
+            self._model.stackView.RemoveUiViewByModel(self._model)
         else:
-            self.stackView.RemoveCard()
+            self._model.stackView.RemoveCard()
 
-    def Cut(self): self.stackView.CutModels([self], False)
-    def Copy(self): self.stackView.CopyModels([self])
+    def Cut(self): self._model.stackView.CutModels([self._model], False)
+    def Copy(self): self._model.stackView.CopyModels([self._model])
     #   Paste is in the runner
 
     @property
     def name(self):
-        return self.GetProperty("name")
+        return self._model.GetProperty("name")
 
     @property
     def size(self):
-        return wx.Size(self.GetProperty("size"))
+        return self._model.GetProperty("size")
     @size.setter
     def size(self, val):
-        self.SetProperty("size", val)
+        self._model.SetProperty("size", val)
 
     @property
     def position(self):
-        return wx.Point(self.GetAbsolutePosition())
+        return self._model.GetAbsolutePosition()
     @position.setter
     def position(self, val):
-        self.SetAbsolutePosition(val)
+        self._model.SetAbsolutePosition(val)
+
+    @property
+    def speed(self):
+        return self._model.GetProperty("speed")
+    @speed.setter
+    def speed(self, val):
+        self._model.SetProperty("speed", val)
 
     @property
     def center(self):
-        p = self.GetAbsolutePosition()
-        s = self.GetProperty("size")
+        p = self._model.GetAbsolutePosition()
+        s = self._model.GetProperty("size")
         return wx.Point([p[0]+s[0]/2, p[1]+s[1]/2])
     @center.setter
     def center(self, center):
-        s = self.GetProperty("size")
-        self.SetAbsolutePosition([center[0]-s[0]/2, center[1]-s[1]/2])
+        s = self._model.GetProperty("size")
+        self._model.SetAbsolutePosition([center[0]-s[0]/2, center[1]-s[1]/2])
 
-    def Show(self): self.SetProperty("hidden", False)
-    def Hide(self): self.SetProperty("hidden", True)
+    def Show(self): self._model.SetProperty("hidden", False)
+    def Hide(self): self._model.SetProperty("hidden", True)
     @property
     def visible(self):
-        return not self.GetProperty("hidden")
+        return not self._model.GetProperty("hidden")
     @visible.setter
     def visible(self, val):
-        self.SetProperty("hidden", not bool(val))
+        self._model.SetProperty("hidden", not bool(val))
 
-    def IsTouching(self, model):
-        sf = self.GetAbsoluteFrame() # self frame in card coords
-        f = model.GetAbsoluteFrame() # other frame in card soords
+    def IsTouching(self, obj):
+        sf = self._model.GetAbsoluteFrame() # self frame in card coords
+        f = obj._model.GetAbsoluteFrame() # other frame in card soords
         return sf.Intersects(f)
 
-    def IsTouchingEdge(self, model):
-        sf = self.GetAbsoluteFrame() # self frame in card coords
-        f = model.GetAbsoluteFrame() # other frame in card soords
+    def IsTouchingEdge(self, obj):
+        sf = self._model.GetAbsoluteFrame() # self frame in card coords
+        f = obj._model.GetAbsoluteFrame() # other frame in card soords
         top = wx.Rect(f.Left, f.Top, f.Width, 1)
         bottom = wx.Rect(f.Left, f.Bottom, f.Width, 1)
         left = wx.Rect(f.Left, f.Top, 1, f.Height)

@@ -5,26 +5,29 @@
     "size": [
       500,
       500
+    ],
+    "speed": [
+      0,
+      0
     ]
   },
   "cards": [
     {
       "type": "card",
-      "handlers": {
-        "OnSetup": "pressedKeys = []",
-        "OnKeyDown": "if keyName not in pressedKeys:\n   pressedKeys.append(keyName)\n",
-        "OnKeyUp": "if keyName in pressedKeys:\n   pressedKeys.remove(keyName)\n",
-        "OnIdle": "if \"Left\" in pressedKeys:\n   dx -= 1\nif \"Right\" in pressedKeys:\n   dx += 1\nif \"Up\" in pressedKeys:\n   dy -= 1\nif \"Down\" in pressedKeys:\n   dy += 1\n\nguy.position += [dx,dy]\n\nsize = card.size\n\nedge = guy.IsTouchingEdge(card)\nguyPos = guy.position\nguySize = guy.size\n\nif edge == \"Top\":\n   guy.position = [guyPos[0], size[1]-guySize[1]]\nelif edge == \"Bottom\":\n   guyposition = [guyPos[0], 0]\nelif edge == \"Left\":\n   guy.position = [size[0]-guySize[0], guyPos[1]]\nelif edge == \"Right\":\n   guy.position = [0, guyPos[1]]\n"
-      },
+      "handlers": {},
       "properties": {
         "name": "card_1",
+        "speed": [
+          0,
+          0
+        ],
         "bgColor": "white"
       },
       "childModels": [
         {
           "type": "oval",
           "handlers": {
-            "OnSetup": "dx = 0\ndy = 0\n"
+            "OnIdle": "if IsKeyPressed(\"Left\"):\n   self.speed -= [1, 0]\nif IsKeyPressed(\"Right\"):\n   self.speed += [1, 0]\nif IsKeyPressed(\"Up\"):\n   self.speed -= [0, 1]\nif IsKeyPressed(\"Down\"):\n   self.speed += [0, 1]\n\ncardSize = card.size\n\npos = self.position\nsize = self.size\n\nedge = self.IsTouchingEdge(card)\nif edge == \"Top\":\n   self.position = [pos.x, cardSize.y-size.y]\nelif edge == \"Bottom\":\n   self.position = [pos.x, 0]\nelif edge == \"Left\":\n   self.position = [cardSize.x-size.x, pos.y]\nelif edge == \"Right\":\n   self.position = [0, pos.y]\n"
           },
           "properties": {
             "name": "guy",
@@ -35,6 +38,10 @@
             "position": [
               218,
               199
+            ],
+            "speed": [
+              0,
+              0
             ],
             "originalSize": [
               80,

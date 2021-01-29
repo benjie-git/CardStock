@@ -5,19 +5,25 @@
     "size": [
       598,
       400
+    ],
+    "speed": [
+      0,
+      0
     ]
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "from random import randint\nscore = 0\npressedKeys = []\nnextMoveTime = Time() + 3\n",
-        "OnKeyDown": "if keyName not in pressedKeys:\n   pressedKeys.append(keyName)\n",
-        "OnKeyUp": "if keyName in pressedKeys:\n   pressedKeys.remove(keyName)\n",
-        "OnIdle": "if \"Left\" in pressedKeys:\n   guy.position += [-8,0]\nif \"Right\" in pressedKeys:\n   guy.position += [8,0]\nif \"Up\" in pressedKeys:\n   guy.position += [0,-8]\nif \"Down\" in pressedKeys:\n   guy.position += [0,8]\n\nsize = card.size\n\nif guy.IsTouching(goal):\n   score += 1\n   label.text = score\n   goal.position = [randint(0,size[0]-80),\\\n      randint(0,size[1]-80)]\n   nextMoveTime = Time() + 3\n\nif Time() >= nextMoveTime:\n   score -= 1\n   label.text = score\n   goal.position = [randint(0,size[0]-80),\\\n      randint(0,size[1]-80)]\n   nextMoveTime = Time() + 3\n      "
+        "OnSetup": "from random import randint\nscore = 0\nnextMoveTime = Time() + 3\n",
+        "OnIdle": "if IsKeyPressed(\"Left\"):\n   guy.position += [-8,0]\nif IsKeyPressed(\"Right\"):\n   guy.position += [8,0]\nif IsKeyPressed(\"Up\"):\n   guy.position += [0,-8]\nif IsKeyPressed(\"Down\"):\n   guy.position += [0,8]\n\nsize = card.size\n\nif guy.IsTouching(goal):\n   score += 1\n   label.text = score\n   goal.position = [randint(0,size.x-80),\\\n      randint(0,size.y-80)]\n   nextMoveTime = Time() + 3\n\nif Time() >= nextMoveTime:\n   score -= 1\n   label.text = score\n   goal.position = [randint(0,size.x-80),\\\n      randint(0,size.y-80)]\n   nextMoveTime = Time() + 3\n"
       },
       "properties": {
         "name": "main",
+        "speed": [
+          0,
+          0
+        ],
         "bgColor": "white"
       },
       "childModels": [
@@ -33,6 +39,10 @@
             "position": [
               86,
               155
+            ],
+            "speed": [
+              0,
+              0
             ],
             "file": "",
             "fit": "Scale",
@@ -52,6 +62,10 @@
               258,
               105
             ],
+            "speed": [
+              0,
+              0
+            ],
             "file": "",
             "fit": "Scale",
             "bgColor": "red"
@@ -69,6 +83,10 @@
             "position": [
               95,
               19
+            ],
+            "speed": [
+              0,
+              0
             ],
             "text": "0",
             "alignment": "Left",
@@ -89,6 +107,10 @@
             "position": [
               25,
               18
+            ],
+            "speed": [
+              0,
+              0
             ],
             "text": "Score:",
             "alignment": "Left",

@@ -4,7 +4,7 @@
 
 import wx
 import generator
-from uiView import UiView, ViewModel
+from uiView import *
 
 
 class UiShape(UiView):
@@ -95,6 +95,7 @@ class LineModel(ViewModel):
     def __init__(self, stackView):
         super().__init__(stackView)
         self.type = "line"  # Gets rewritten on SetShape (to "line" or "pen")
+        self.proxyClass = LineProxy
         self.points = []
         self.scaledPoints = None
 
@@ -214,26 +215,28 @@ class LineModel(ViewModel):
 
         self.DidUpdateShape()
 
+
+class LineProxy(ViewProxy):
     @property
     def penColor(self):
-        return self.GetProperty("penColor")
+        return self._model.GetProperty("penColor")
     @penColor.setter
     def penColor(self, val):
-        self.SetProperty("penColor", val)
+        self._model.SetProperty("penColor", val)
 
     @property
     def penThickness(self):
-        return self.GetProperty("penThickness")
+        return self._model.GetProperty("penThickness")
     @penThickness.setter
     def penThickness(self, val):
-        self.SetProperty("penThickness", val)
-
+        self._model.SetProperty("penThickness", val)
 
 
 class ShapeModel(LineModel):
     def __init__(self, stackView):
         super().__init__(stackView)
         self.type = "shape"  # Gets rewritten on SetShape (to "oval" or "rect")
+        self.proxyClass = ShapeProxy
 
         self.properties["fillColor"] = ""
         self.propertyTypes["fillColor"] = "color"
@@ -245,19 +248,21 @@ class ShapeModel(LineModel):
         self.properties["fillColor"] = shape["fillColor"]
         super().SetShape(shape)
 
+
+class ShapeProxy(LineProxy):
     @property
     def fillColor(self):
-        return self.GetProperty("fillColor")
+        return self._model.GetProperty("fillColor")
     @fillColor.setter
     def fillColor(self, val):
-        self.SetProperty("fillColor", val)
-
+        self._model.SetProperty("fillColor", val)
 
 
 class RoundRectModel(ShapeModel):
     def __init__(self, stackView):
         super().__init__(stackView)
         self.type = "round_rect"
+        self.proxyClass = RoundRectProxy
 
         self.properties["cornerRadius"] = 8
         self.propertyTypes["cornerRadius"] = "int"
@@ -269,9 +274,11 @@ class RoundRectModel(ShapeModel):
         self.properties["cornerRadius"] = shape["cornerRadius"] if "cornerRadius" in shape else 8
         super().SetShape(shape)
 
+
+class RoundRectProxy(ShapeProxy):
     @property
     def cornerRadius(self):
-        return self.GetProperty("cornerRadius")
+        return self._model.GetProperty("cornerRadius")
     @cornerRadius.setter
     def cornerRadius(self, val):
-        self.SetProperty("cornerRadius", val)
+        self._model.SetProperty("cornerRadius", val)

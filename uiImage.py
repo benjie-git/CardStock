@@ -5,7 +5,8 @@
 import os
 import wx
 import generator
-from uiView import UiView, ViewModel
+from uiView import *
+
 
 class UiImage(UiView):
     def __init__(self, parent, stackView, model=None):
@@ -66,6 +67,7 @@ class ImageModel(ViewModel):
     def __init__(self, stackView):
         super().__init__(stackView)
         self.type = "image"
+        self.proxyClass = ImageProxy
 
         self.properties["file"] = ""
         self.properties["fit"] = "Scale"
@@ -79,18 +81,18 @@ class ImageModel(ViewModel):
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "file", "fit", "bgColor", "position", "size"]
 
-    # --------- User-accessible view methods -----------
 
+class ImageProxy(ViewProxy):
     @property
     def file(self):
-        return self.GetProperty("file")
+        return self._model.GetProperty("file")
     @file.setter
     def file(self, val):
-        self.SetProperty("file", val)
+        self._model.SetProperty("file", val)
 
     @property
     def bgColor(self):
-        return self.GetProperty("bgColor")
+        return self._model.GetProperty("bgColor")
     @bgColor.setter
     def bgColor(self, val):
-        self.SetProperty("bgColor", val)
+        self._model.SetProperty("bgColor", val)

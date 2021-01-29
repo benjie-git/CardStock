@@ -183,7 +183,10 @@ class ControlPanel(wx.Panel):
             keys = uiView.model.PropertyKeys()
             r = 0
             for k in keys:
-                self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
+                if uiView.model.GetPropertyType(k) in ["point", "size"]:
+                    self.inspector.SetCellValue(r, 1, str(list(uiView.model.GetProperty(k))))
+                else:
+                    self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
                 r += 1
 
     def UpdateInspectorForUiViews(self, uiViews):
@@ -211,7 +214,10 @@ class ControlPanel(wx.Panel):
         for k in keys:
             self.inspector.SetCellValue(r, 0, k)
             self.inspector.SetReadOnly(r, 0)
-            self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
+            if uiView.model.GetPropertyType(k) in ["point", "size"]:
+                self.inspector.SetCellValue(r, 1, str(list(uiView.model.GetProperty(k))))
+            else:
+                self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
             if uiView.model.GetPropertyType(k) == "bool":
                 editor = wx.grid.GridCellChoiceEditor(["True", "False"])
                 self.inspector.SetCellEditor(r, 1, editor)

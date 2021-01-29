@@ -3,7 +3,7 @@
 # This is a draggable View, for adding a UI elements from the palate to the Card.
 
 import wx
-from uiView import UiView, ViewModel
+from uiView import *
 import generator
 
 

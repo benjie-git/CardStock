@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from uiView import ViewModel
+from uiView import ViewModel, ViewProxy
 from uiCard import CardModel
 
 
@@ -8,6 +8,8 @@ class StackModel(ViewModel):
     def __init__(self, stackView):
         super().__init__(stackView)
         self.type = "stack"
+        self.proxyClass = StackProxy
+
         self.handlers = {"OnSetup": ""}
         self.propertyKeys = ["size"]
         self.properties["size"] = [500, 500]
@@ -54,8 +56,8 @@ class StackModel(ViewModel):
             m.SetData(data)
             self.AppendCardModel(m)
 
-    # --------- User-accessible view methods -----------
 
+class StackProxy(ViewProxy):
     @property
     def numCards(self):
-        return len(self.childModels)
+        return len(self._model.childModels)

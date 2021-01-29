@@ -3,7 +3,7 @@
 # This is a draggable View, for adding a UI elements from the palate to the Card.
 
 import wx
-from uiView import UiView, ViewModel
+from uiView import *
 import generator
 
 
@@ -54,13 +54,13 @@ class UiCard(UiView):
 
 
 class CardModel(ViewModel):
-    minSize = (200, 200)
+    minSize = wx.Size(200, 200)
 
     def __init__(self, stackView):
         super().__init__(stackView)
         self.type = "card"
         self.stackModel = None  # For setting stack size
-
+        self.proxyClass = CardProxy
         # Add custom handlers to the top of the list
         handlers = {"OnSetup": "", "OnShowCard": "", "OnHideCard": "", "OnKeyDown": "", "OnKeyUp": ""}
         for k,v in self.handlers.items():
@@ -157,15 +157,15 @@ class CardModel(ViewModel):
         names = self.GetDedupNameList(name, exclude)
         return super().GetNextAvailableName(name, names)
 
-    # --------- User-accessible view methods -----------
 
+class CardProxy(ViewProxy):
     @property
     def bgColor(self):
-        return self.GetProperty("bgColor")
+        return self._model.GetProperty("bgColor")
     @bgColor.setter
     def bgColor(self, val):
-        self.SetProperty("bgColor", val)
+        self._model.SetProperty("bgColor", val)
 
     @property
     def index(self):
-        return self.stackModel.childModels.index(self)
+        return self._model.stackModel.childModels.index(self._model)

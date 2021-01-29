@@ -504,6 +504,7 @@ class StackWindow(wx.Window):
                 self.designer.cPanel.SetToolByName("hand")
             self.tool.OnKeyDown(uiView, event)
         else:
+            self.runner.OnKeyDown(event)
             self.uiCard.OnKeyDown(event)
             if uiView.model.type == "textfield":
                 event.Skip()
@@ -512,6 +513,7 @@ class StackWindow(wx.Window):
         if self.tool and self.isEditing:
             self.tool.OnKeyUp(uiView, event)
         else:
+            self.runner.OnKeyUp(event)
             self.uiCard.OnKeyUp(event)
             if uiView.model.type == "textfield":
                 event.Skip()

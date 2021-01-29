@@ -10,6 +10,7 @@ class Runner():
         self.stackView = stackView
         self.statusBar = sb
         self.cardVarKeys = []  # store names of views on the current card, to remove from clientVars before setting up the next card
+        self.pressedKeys = []
 
         self.clientVars = {
             "Wait": self.Wait,
@@ -24,7 +25,8 @@ class Runner():
             "PlaySound": self.PlaySound,
             "StopSound": self.StopSound,
             "BroadcastMessage": self.BroadcastMessage,
-            "stack": self.stackView.stackModel,
+            "IsKeyPressed": self.IsKeyPressed,
+            "stack": self.stackView.stackModel.GetProxy(),
         }
 
         self.keyCodeStringMap = {
@@ -50,13 +52,13 @@ class Runner():
 
     def SetupForCurrentCard(self):
         # Setup clientVars with the current card's view names as variables
-        self.clientVars["card"] = self.stackView.uiCard.model
+        self.clientVars["card"] = self.stackView.uiCard.model.GetProxy()
         for k in self.cardVarKeys.copy():
             self.clientVars.pop(k)
             self.cardVarKeys.remove(k)
         for ui in self.stackView.GetAllUiViews():
             name = ui.model.GetProperty("name")
-            self.clientVars[name] = ui.model
+            self.clientVars[name] = ui.model.GetProxy()
             self.cardVarKeys.append(name)
 
     def RunHandler(self, uiModel, handlerName, event, message=None):
@@ -76,7 +78,7 @@ class Runner():
             oldVars["self"] = self.clientVars["self"]
         else:
             oldVars["self"] = noValue
-        self.clientVars["self"] = uiModel
+        self.clientVars["self"] = uiModel.GetProxy()
 
         if message:
             if "message" in self.clientVars:
@@ -99,15 +101,13 @@ class Runner():
             self.clientVars["mouseY"] = mouseY
 
         if event and handlerName.startswith("OnKey"):
-            code = event.GetKeyCode()
             if "keyName" in self.clientVars:
                 oldVars["keyName"] = self.clientVars["keyName"]
             else:
                 oldVars["keyName"] = noValue
-            if code in self.keyCodeStringMap:
-                self.clientVars["keyName"] = self.keyCodeStringMap[code]
-            elif event.GetUnicodeKey() != wx.WXK_NONE:
-                self.clientVars["keyName"] = chr(event.GetUnicodeKey())
+            keyName = self.KeyNameForEvent(event)
+            if keyName:
+                self.clientVars["keyName"] = keyName
             else:
                 for k,v in oldVars.items():
                     if v == noValue:
@@ -147,10 +147,29 @@ class Runner():
             if self.statusBar:
                 self.statusBar.SetStatusText(msg)
 
+    def KeyNameForEvent(self, event):
+        code = event.GetKeyCode()
+        if code in self.keyCodeStringMap:
+            return self.keyCodeStringMap[code]
+        elif event.GetUnicodeKey() != wx.WXK_NONE:
+            return chr(event.GetUnicodeKey())
+        return None
+
+    def OnKeyDown(self, event):
+        keyName = self.KeyNameForEvent(event)
+        if keyName and keyName not in self.pressedKeys:
+            self.pressedKeys.append(keyName)
+
+    def OnKeyUp(self, event):
+        keyName = self.KeyNameForEvent(event)
+        if keyName and keyName in self.pressedKeys:
+            self.pressedKeys.remove(keyName)
+
+
     # --------- User-accessible view functions -----------
 
-    def SetFocus(self, model):
-        uiView = self.stackView.GetUiViewByModel(model)
+    def SetFocus(self, obj):
+        uiView = self.stackView.GetUiViewByModel(obj._model)
         if uiView:
             uiView.view.SetFocus()
 
@@ -207,4 +226,8 @@ class Runner():
         Sound.Stop()
 
     def Paste(self):
-        return self.stackView.PasteViews(False)
+        models = self.stackView.PasteViews(False)
+        return [m.GetProxy() for m in models]
+
+    def IsKeyPressed(self, name):
+        return name in self.pressedKeys

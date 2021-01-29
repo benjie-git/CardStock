@@ -3,7 +3,7 @@
 # This is a draggable View, for adding a UI elements from the palate to the Card.
 
 import wx
-from uiView import UiView, ViewModel
+from uiView import *
 
 
 class UiTextLabel(UiView):
@@ -82,6 +82,7 @@ class TextLabelModel(ViewModel):
     def __init__(self, stackView):
         super().__init__(stackView)
         self.type = "textlabel"
+        self.proxyClass = TextLabelProxy
 
         self.properties["text"] = "Text"
         self.properties["alignment"] = "Left"
@@ -100,18 +101,18 @@ class TextLabelModel(ViewModel):
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "position", "size"]
 
-    # --------- User-accessible view methods -----------
 
+class TextLabelProxy(ViewProxy):
     @property
     def text(self):
-        return self.GetProperty("text")
+        return self._model.GetProperty("text")
     @text.setter
     def text(self, val):
-        self.SetProperty("text", val)
+        self._model.SetProperty("text", val)
 
     @property
     def textColor(self):
-        return self.GetProperty("textColor")
+        return self._model.GetProperty("textColor")
     @textColor.setter
     def textColor(self, val):
-        self.SetProperty("textColor", val)
+        self._model.SetProperty("textColor", val)

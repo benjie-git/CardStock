@@ -97,7 +97,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "newVal = float(f.text)\n\nif op==\"+\":\n  ans = oldVal+newVal\nif op==\"-\":\n  ans = oldVal-newVal\nif op==\"*\":\n  ans = oldVal*newVal\nif op==\"/\":\n  ans = oldVal/newVal\nelse:\n   ans = 0\n   \noldVal = newVal\n\nf.text = ans\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\n"
+            "OnClick": "newVal = float(f.text)\n\nif op==\"+\":\n  ans = oldVal+newVal\nelif op==\"-\":\n  ans = oldVal-newVal\nelif op==\"*\":\n  ans = oldVal*newVal\nelif op==\"/\":\n  ans = oldVal/newVal\nelse:\n   ans = 0\n   \noldVal = newVal\n\nf.text = ans\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\n"
           },
           "properties": {
             "name": "button_4",
