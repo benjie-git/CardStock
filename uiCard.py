@@ -85,9 +85,8 @@ class CardModel(ViewModel):
             return super().GetProperty(key)
 
     def GetFrame(self):
-        p = wx.Point(self.stackModel.GetProperty("position"))
-        s = wx.Size(self.stackModel.GetProperty("size"))
-        return wx.Rect(p, s)
+        s = self.stackModel.GetProperty("size")
+        return wx.Rect((0,0), s)
 
     def GetAbsoluteFrame(self):
         return self.GetFrame()

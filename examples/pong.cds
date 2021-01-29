@@ -5,10 +5,6 @@
     "size": [
       637,
       715
-    ],
-    "speed": [
-      0,
-      0
     ]
   },
   "cards": [
@@ -18,14 +14,10 @@
         "OnSetup": "from random import randint\n",
         "OnKeyDown": "if keyName == \"Space\":\n   # Only start a game if the ball wasn't already moving\n   if ball.speed.x == 0 and ball.speed.y == 0:\n      ball.SendMessage(\"StartGame\")\n",
         "OnMouseDown": "if ball.speed.x == 0 and ball.speed.y == 0:\n   # Only start a game if the ball wasn't already moving\n  ball.SendMessage(\"StartGame\")\n",
-        "OnMouseMove": "# Make the paddle follow the mouse's X position\npaddle.center = [mouseX, paddle.center.y]\n"
+        "OnMouseMove": "# Make the paddle follow the mouse's X position\npaddle.center.x = mouseX\n"
       },
       "properties": {
         "name": "card_1",
-        "speed": [
-          0,
-          0
-        ],
         "bgColor": "white"
       },
       "childModels": [
@@ -39,12 +31,8 @@
               42
             ],
             "position": [
-              12,
-              17
-            ],
-            "speed": [
-              0,
-              0
+              12.0,
+              17.0
             ],
             "text": "0",
             "alignment": "Left",
@@ -56,8 +44,9 @@
         {
           "type": "oval",
           "handlers": {
-            "OnMessage": "if message == \"StartGame\":\n   self.speed.x = randint(10,20)\n   self.speed.y = 30 - self.speed.x\n   self.position = [100,100]\n   score = 0\n   label.text = score\n",
-            "OnIdle": "if self.IsTouching(paddle):\n   # Switch vertical sign\n   self.speed.y = -self.speed.y\n   \n   # Speed up or slow down horizontally\n   # based on which side of the paddle\n   # we hit\n   if ball.center.x < paddle.center.x:\n      self.speed.x = self.speed.x - randint(2,6)\n   elif ball.center.x > paddle.center.x:\n      self.speed.x = self.speed.x + randint(2,6)\n   # keep the ball from getting too fast\n   self.speed.x = min(self.speed.x, 30)\n   self.speed.x = max(self.speed.x, -30)\n   \n   score += 1\n   label.text = score\n\nedge = self.IsTouchingEdge(card)\nif edge == \"Top\":\n   self.speed.y = -self.speed.y\nelif edge == \"Left\" or edge == \"Right\":\n   self.speed.x = -self.speed.x\nelif edge == \"Bottom\":\n   # Lose if we hit the bottm of the card\n   self.speed.x = 0\n   self.speed.y = 0\n   label.text = \"Oh no!\"\n"
+            "OnSetup": "self.Hide()",
+            "OnMessage": "if message == \"StartGame\":\n   self.speed.x = randint(200,400)\n   self.speed.y = 600 - self.speed.x\n   self.position = [50,50]\n   self.Show()\n   score = 0\n   label.text = score\n",
+            "OnIdle": "if self.IsTouching(paddle) and self.speed.y > 0:\n   # We hit the ball with the paddle!\n   # Switch vertical sign and inrease the score\n   self.speed.y = -self.speed.y\n   score += 1\n   label.text = score\n\n   # Speed up or slow down horizontally\n   # based on which side of the paddle\n   # we hit\n   if ball.center.x < paddle.center.x:\n      self.speed.x -= randint(50,100)\n   elif ball.center.x > paddle.center.x:\n      self.speed.x += randint(50,100)\n   # keep the ball from getting too fast\n   self.speed.x = min(self.speed.x, 500)\n   self.speed.x = max(self.speed.x, -500)\n   \nedge = self.IsTouchingEdge(card)\n\n# Bounce if we hit a top or side\nif edge == \"Top\" and self.speed.y < 0:\n   self.speed.y = -self.speed.y\nelif edge == \"Left\" and self.speed.x < 0:\n   self.speed.x = -self.speed.x\nelif edge == \"Right\" and self.speed.x > 0:\n   self.speed.x = -self.speed.x\n\n# Lose if we hit the bottom of the card\nelif edge == \"Bottom\" and self.speed.y > 0:\n   self.speed.x = 0\n   self.speed.y = 0\n   self.Hide()\n   label.text = \"Oh no!\"\n"
           },
           "properties": {
             "name": "ball",
@@ -66,12 +55,8 @@
               35
             ],
             "position": [
-              86,
-              66
-            ],
-            "speed": [
-              0,
-              0
+              50.0,
+              50.0
             ],
             "originalSize": [
               35,
@@ -102,12 +87,8 @@
               24
             ],
             "position": [
-              208,
-              646
-            ],
-            "speed": [
-              0,
-              0
+              208.0,
+              646.0
             ],
             "originalSize": [
               232,

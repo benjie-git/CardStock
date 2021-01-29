@@ -61,7 +61,7 @@ class Runner():
             self.clientVars[name] = ui.model.GetProxy()
             self.cardVarKeys.append(name)
 
-    def RunHandler(self, uiModel, handlerName, event, message=None):
+    def RunHandler(self, uiModel, handlerName, event, arg=None):
         handlerStr = uiModel.handlers[handlerName]
 
         error_class = None
@@ -80,12 +80,19 @@ class Runner():
             oldVars["self"] = noValue
         self.clientVars["self"] = uiModel.GetProxy()
 
-        if message:
+        if arg and handlerName == "OnMessage":
             if "message" in self.clientVars:
                 oldVars["message"] = self.clientVars["message"]
             else:
                 oldVars["message"] = noValue
-            self.clientVars["message"] = message
+            self.clientVars["message"] = arg
+
+        if arg and handlerName == "OnIdle":
+            if "elapsedTime" in self.clientVars:
+                oldVars["elapsedTime"] = self.clientVars["elapsedTime"]
+            else:
+                oldVars["elapsedTime"] = noValue
+            self.clientVars["elapsedTime"] = arg
 
         if event and handlerName.startswith("OnMouse"):
             mouseX, mouseY = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))

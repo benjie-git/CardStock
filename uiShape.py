@@ -104,7 +104,7 @@ class LineModel(ViewModel):
         self.properties["penThickness"] = 0
         self.oldThickness = 0
 
-        self.propertyTypes["originalSize"] = "point"
+        self.propertyTypes["originalSize"] = "size"
         self.propertyTypes["penColor"] = "color"
         self.propertyTypes["penThickness"] = "int"
 

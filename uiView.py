@@ -6,6 +6,7 @@ import wx
 import ast
 import re
 import generator
+from time import time
 
 class UiView(object):
     def __init__(self, parent, stackView, model, view):
@@ -63,7 +64,7 @@ class UiView(object):
         mSize = self.model.GetProperty("size")
         if mSize[0] > 0 and mSize[1] > 0:
             self.view.SetSize(mSize)
-            self.view.SetPosition(self.model.GetProperty("position"))
+            self.view.SetPosition(wx.Point(self.model.GetProperty("position")))
 
         self.view.Show(not self.model.GetProperty("hidden"))
 
@@ -136,12 +137,23 @@ class UiView(object):
         event.Skip()
 
     def OnIdle(self, event):
-        if self.model.type not in ["stack", "card"]:
-            pos = self.model.properties["position"]
-            speed = self.model.properties["speed"]
-            self.model.SetProperty("position", [pos[0] + speed[0], pos[1] + speed[1]])
-        if self.stackView.runner and "OnIdle" in self.model.handlers:
-            self.stackView.runner.RunHandler(self.model, "OnIdle", event)
+        # Determine elapsed time since last OnIdle call to this object
+        elapsedTime = 0
+        now = time()
+        if self.model.lastIdleTime:
+            elapsedTime = now - self.model.lastIdleTime
+        self.model.lastIdleTime = now
+
+        if elapsedTime:
+            # Move the object by speed.x and speed.y pixels per second
+            if self.model.type not in ["stack", "card"]:
+                speed = self.model.properties["speed"]
+                if speed != (0,0):
+                    pos = self.model.properties["position"]
+                    self.model.SetProperty("position", [pos.x + speed.x*elapsedTime, pos.y + speed.y*elapsedTime])
+
+            if self.stackView.runner and "OnIdle" in self.model.handlers:
+                self.stackView.runner.RunHandler(self.model, "OnIdle", event, elapsedTime)
 
 
     def OnPaintSelectionBox(self, event):
@@ -165,7 +177,7 @@ class UiView(object):
         'OnMessage':    "OnMessage(message):",
         'OnKeyDown':    "OnKeyDown(keyName):",
         'OnKeyUp':      "OnKeyUp(keyName):",
-        'OnIdle':       "OnIdle():",
+        'OnIdle':       "OnIdle(elapsedTime):",
     }
 
 
@@ -187,13 +199,14 @@ class ViewModel(object):
                          }
         self.properties = {"name": "",
                            "size": wx.Size(0,0),
-                           "position": wx.Point(0,0),
+                           "position": wx.RealPoint(0,0),
                            "speed": wx.Point(0,0),
                            "hidden": False,
                            }
         self.propertyKeys = ["name", "position", "size"]
         self.propertyTypes = {"name": "string",
-                              "position": "point",
+                              "position": "floatpoint",
+                              "center": "floatpoint",
                               "size": "size",
                               "speed": "point",
                               "hidden": "bool"}
@@ -203,6 +216,7 @@ class ViewModel(object):
         self.stackView = stackView
         self.isDirty = False
         self.proxy = None
+        self.lastIdleTime = None
         self.proxyClass = ViewProxy
 
     def CreateCopy(self):
@@ -239,8 +253,7 @@ class ViewModel(object):
         return self.isDirty
 
     def GetAbsolutePosition(self):
-        pos = self.GetProperty("position")
-        pos = wx.Point(pos)  # Copy so we don't edit the model's position
+        pos = wx.RealPoint(self.GetProperty("position"))  # Copy so we don't edit the model's position
         parent = self.parent
         while parent and parent.type != "card":
             parentPos = parent.GetProperty("position")
@@ -250,19 +263,30 @@ class ViewModel(object):
 
     def SetAbsolutePosition(self, pos):
         parent = self.parent
+        pos = wx.RealPoint(pos)
         while parent and parent.type != "card":
             parentPos = parent.GetProperty("position")
             pos -= parentPos
             parent = parent.parent
         self.SetProperty("position", pos)
 
+    def GetCenter(self):
+        p = self.GetAbsolutePosition()
+        s = self.GetProperty("size")
+        center = [p.x + s.width/2, p.y + s.height/2]
+        return center
+
+    def SetCenter(self, center):
+        s = self.GetProperty("size")
+        self.SetAbsolutePosition([center[0]-s[0]/2, center[1]-s[1]/2])
+
     def GetFrame(self):
-        p = self.GetProperty("position")
+        p = wx.Point(self.GetProperty("position"))
         s = self.GetProperty("size")
         return wx.Rect(p, s)
 
     def GetAbsoluteFrame(self):
-        p = self.GetAbsolutePosition()
+        p = wx.Point(self.GetAbsolutePosition())
         s = self.GetProperty("size")
         return wx.Rect(p, s)
 
@@ -278,7 +302,7 @@ class ViewModel(object):
 
         props = self.properties.copy()
         for k,v in self.propertyTypes.items():
-            if v in ["point", "size"]:
+            if v in ["point", "floatpoint", "size"] and k in props:
                 props[k] = list(props[k])
         props.pop("hidden")
         props.pop("speed")
@@ -293,6 +317,8 @@ class ViewModel(object):
         for k, v in data["properties"].items():
             if self.propertyTypes[k] == "point":
                 self.SetProperty(k, wx.Point(v), False)
+            elif self.propertyTypes[k] == "floatpoint":
+                self.SetProperty(k, wx.RealPoint(v), False)
             elif self.propertyTypes[k] == "size":
                 self.SetProperty(k, wx.Size(v), False)
             else:
@@ -304,6 +330,8 @@ class ViewModel(object):
         for k, v in model.properties.items():
             if self.propertyTypes[k] == "point":
                 self.SetProperty(k, wx.Point(v), False)
+            elif self.propertyTypes[k] == "floatpoint":
+                self.SetProperty(k, wx.RealPoint(v), False)
             elif self.propertyTypes[k] == "size":
                 self.SetProperty(k, wx.Size(v), False)
             else:
@@ -313,7 +341,7 @@ class ViewModel(object):
     def PropertyKeys(self):
         return self.propertyKeys
 
-    # Options currently are string, bool, int, float, point, choice
+    # Options currently are string, bool, int, float, point, realpoint, size, choice
     def GetPropertyType(self, key):
         return self.propertyTypes[key]
 
@@ -336,13 +364,25 @@ class ViewModel(object):
     def GetHandlers(self):
         return self.handlers
 
+    def FramePartChanged(self, cdsFramePart):
+        if cdsFramePart.role == "position":
+            self.SetAbsolutePosition(cdsFramePart)
+        elif cdsFramePart.role == "size":
+            self.SetProperty("size", cdsFramePart)
+        elif cdsFramePart.role == "center":
+            self.SetCenter(cdsFramePart)
+        elif cdsFramePart.role == "speed":
+            self.SetProperty("speed", cdsFramePart)
+
     def Notify(self, key):
         self.stackView.OnPropertyChanged(self, key)
 
     def SetProperty(self, key, value, notify=True):
         if key in self.propertyTypes and self.propertyTypes[key] == "point" and not isinstance(value, wx.Point):
             value = wx.Point(value)
-        elif key in self.propertyTypes and self.propertyTypes[key] == "size" and not isinstance(value, wx.Size):
+        elif key in self.propertyTypes and self.propertyTypes[key] == "floatpoint" and not isinstance(value, wx.RealPoint):
+            value = wx.RealPoint(value[0], value[1])
+        elif key in self.propertyTypes and self.propertyTypes[key] == "size" and not isinstance(value, wx.Point):
             value = wx.Size(value)
 
         if key == "name":
@@ -371,7 +411,7 @@ class ViewModel(object):
                 val = int(valStr)
             elif propType == "float":
                 val = float(valStr)
-            elif propType == "point":
+            elif propType in ["point", "floatpoint"]:
                 val = ast.literal_eval(valStr)
                 if not isinstance(val, list) or len(val) != 2:
                     raise Exception()
@@ -452,34 +492,32 @@ class ViewProxy(object):
 
     @property
     def size(self):
-        return self._model.GetProperty("size")
+        return CDSSize(self._model.GetProperty("size"), model=self._model, role="size")
     @size.setter
     def size(self, val):
-        self._model.SetProperty("size", val)
+        self._model.SetProperty("size", wx.Size(val))
 
     @property
     def position(self):
-        return self._model.GetAbsolutePosition()
+        return CDSRealPoint(self._model.GetAbsolutePosition(), model=self._model, role="position")
     @position.setter
     def position(self, val):
-        self._model.SetAbsolutePosition(val)
+        self._model.SetAbsolutePosition(wx.RealPoint(val))
 
     @property
     def speed(self):
-        return self._model.GetProperty("speed")
+        speed = CDSPoint(self._model.GetProperty("speed"), model=self._model, role="speed")
+        return speed
     @speed.setter
     def speed(self, val):
         self._model.SetProperty("speed", val)
 
     @property
     def center(self):
-        p = self._model.GetAbsolutePosition()
-        s = self._model.GetProperty("size")
-        return wx.Point([p[0]+s[0]/2, p[1]+s[1]/2])
+        return CDSRealPoint(self._model.GetCenter(), model=self._model, role="center")
     @center.setter
     def center(self, center):
-        s = self._model.GetProperty("size")
-        self._model.SetAbsolutePosition([center[0]-s[0]/2, center[1]-s[1]/2])
+        self._model.SetCenter(wx.RealPoint(center))
 
     def Show(self): self._model.SetProperty("hidden", False)
     def Hide(self): self._model.SetProperty("hidden", True)
@@ -507,3 +545,78 @@ class ViewProxy(object):
         if sf.Intersects(left): return "Left"
         if sf.Intersects(right): return "Right"
         return False
+
+
+class CDSPoint(wx.Point):
+    def __init__(self, *args, **kwargs):
+        model = kwargs.pop("model")
+        role = kwargs.pop("role")
+        super().__init__(*args, **kwargs)
+        self.model = model
+        self.role = role
+
+    @property
+    def x(self):
+        return super().x
+    @x.setter
+    def x(self, val):
+        self += [val-self.x, 0]
+        self.model.FramePartChanged(self)
+
+    @property
+    def y(self):
+        return super().y
+    @y.setter
+    def y(self, val):
+        self += [0, val-self.y]
+        self.model.FramePartChanged(self)
+
+
+class CDSRealPoint(wx.RealPoint):
+    def __init__(self, *args, **kwargs):
+        model = kwargs.pop("model")
+        role = kwargs.pop("role")
+        super().__init__(*args, **kwargs)
+        self.model = model
+        self.role = role
+
+    @property
+    def x(self):
+        return super().x
+    @x.setter
+    def x(self, val):
+        self += [val-self.x, 0]
+        self.model.FramePartChanged(self)
+
+    @property
+    def y(self):
+        return super().y
+    @y.setter
+    def y(self, val):
+        self += [0, val-self.y]
+        self.model.FramePartChanged(self)
+
+
+class CDSSize(wx.Size):
+    def __init__(self, *args, **kwargs):
+        model = kwargs.pop("model")
+        role = kwargs.pop("role")
+        super().__init__(*args, **kwargs)
+        self.model = model
+        self.role = role
+
+    @property
+    def width(self):
+        return super().width
+    @width.setter
+    def width(self, val):
+        self += [val-self.width, 0]
+        self.model.FramePartChanged(self)
+
+    @property
+    def height(self):
+        return super().height
+    @height.setter
+    def height(self, val):
+        self += [0, val-self.height]
+        self.model.FramePartChanged(self)

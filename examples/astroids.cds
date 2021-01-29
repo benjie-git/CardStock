@@ -3,12 +3,8 @@
   "handlers": {},
   "properties": {
     "size": [
-      500,
-      500
-    ],
-    "speed": [
-      0,
-      0
+      800,
+      800
     ]
   },
   "cards": [
@@ -17,49 +13,78 @@
       "handlers": {},
       "properties": {
         "name": "card_1",
-        "speed": [
-          0,
-          0
-        ],
         "bgColor": "white"
       },
       "childModels": [
         {
-          "type": "oval",
-          "handlers": {
-            "OnIdle": "if IsKeyPressed(\"Left\"):\n   self.speed -= [1, 0]\nif IsKeyPressed(\"Right\"):\n   self.speed += [1, 0]\nif IsKeyPressed(\"Up\"):\n   self.speed -= [0, 1]\nif IsKeyPressed(\"Down\"):\n   self.speed += [0, 1]\n\ncardSize = card.size\n\npos = self.position\nsize = self.size\n\nedge = self.IsTouchingEdge(card)\nif edge == \"Top\":\n   self.position = [pos.x, cardSize.y-size.y]\nelif edge == \"Bottom\":\n   self.position = [pos.x, 0]\nelif edge == \"Left\":\n   self.position = [cardSize.x-size.x, pos.y]\nelif edge == \"Right\":\n   self.position = [0, pos.y]\n"
-          },
+          "type": "group",
+          "handlers": {},
           "properties": {
-            "name": "guy",
+            "name": "ship",
             "size": [
-              80,
-              77
+              269,
+              266
             ],
             "position": [
-              218,
-              199
-            ],
-            "speed": [
-              0,
-              0
-            ],
-            "originalSize": [
-              80,
-              77
-            ],
-            "penColor": "#000000",
-            "penThickness": 1,
-            "fillColor": "#00FF00"
-          },
-          "points": [
-            [
-              1,
-              1
-            ],
-            [
-              79,
-              76
+              146.0,
+              105.0
             ]
+          },
+          "childModels": [
+            {
+              "type": "image",
+              "handlers": {
+                "OnSetup": "import math\n\ndef rotate(list, angle):\n   angle = math.radians(angle)\n   px, py = list\n   return [math.cos(angle) * px - math.sin(angle) * py,\n           math.sin(angle) * px + math.cos(angle) * py]\n",
+                "OnIdle": "if IsKeyPressed(\"Left\"):\n   self.rotation -= 3\nif IsKeyPressed(\"Right\"):\n   self.rotation += 3\nif IsKeyPressed(\"Up\"):\n   ship.speed += rotate((0, -10), self.rotation)\n\ncardSize = card.size\n\npos = solid.position\nsize = solid.size\n\nedge = solid.IsTouchingEdge(card)\nif edge == \"Top\" and ship.speed.y < 0:\n   ship.position = [pos.x, cardSize.y-size.y]\nelif edge == \"Bottom\" and ship.speed.y > 0:\n   ship.position = [pos.x, -50]\nelif edge == \"Left\" and ship.speed.x < 0:\n   ship.position = [cardSize.x-size.x, pos.y]\nelif edge == \"Right\" and ship.speed.x > 0:\n   ship.position = [-50, pos.y]\n"
+              },
+              "properties": {
+                "name": "image",
+                "size": [
+                  269,
+                  266
+                ],
+                "position": [
+                  0.0,
+                  0.0
+                ],
+                "file": "ship.png",
+                "fit": "Center",
+                "bgColor": "",
+                "rotation": 0
+              }
+            },
+            {
+              "type": "oval",
+              "handlers": {},
+              "properties": {
+                "name": "solid",
+                "size": [
+                  109,
+                  109
+                ],
+                "position": [
+                  80.0,
+                  72.0
+                ],
+                "originalSize": [
+                  109,
+                  109
+                ],
+                "penColor": "#00000000",
+                "penThickness": 1,
+                "fillColor": "#00000000"
+              },
+              "points": [
+                [
+                  1.0,
+                  1.0
+                ],
+                [
+                  108.0,
+                  108.0
+                ]
+              ]
+            }
           ]
         }
       ]

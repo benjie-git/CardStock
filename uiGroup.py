@@ -71,8 +71,7 @@ class UiGroup(UiView):
             self.uiViews.append(uiView)
 
     def OnIdle(self, event):
-        if self.stackView.runner and "OnIdle" in self.model.handlers:
-            self.stackView.runner.RunHandler(self.model, "OnIdle", event)
+        super().OnIdle(event)
         for child in self.uiViews:
             child.OnIdle(event)
 
