@@ -169,11 +169,11 @@ class UiView(object):
         'OnClick':      "OnClick():",
         'OnTextEnter':  "OnTextEnter():",
         'OnTextChanged':"OnTextChanged():",
-        'OnMouseDown':  "OnMouseDown(mouseX, mouseY):",
-        'OnMouseMove':  "OnMouseMove(mouseX, mouseY):",
-        'OnMouseUp':    "OnMouseUp(mouseX, mouseY):",
-        'OnMouseEnter': "OnMouseEnter(mouseX, mouseY):",
-        'OnMouseExit':  "OnMouseExit(mouseX, mouseY):",
+        'OnMouseDown':  "OnMouseDown(mousePos):",
+        'OnMouseMove':  "OnMouseMove(mousePos):",
+        'OnMouseUp':    "OnMouseUp(mousePos):",
+        'OnMouseEnter': "OnMouseEnter(mousePos):",
+        'OnMouseExit':  "OnMouseExit(mousePos):",
         'OnMessage':    "OnMessage(message):",
         'OnKeyDown':    "OnKeyDown(keyName):",
         'OnKeyUp':      "OnKeyUp(keyName):",
@@ -489,6 +489,20 @@ class ViewProxy(object):
     @property
     def name(self):
         return self._model.GetProperty("name")
+
+    @property
+    def type(self):
+        return self._model.type
+
+    @property
+    def parent(self):
+        parent = self._model.parent
+        if parent: parent = parent.GetProxy()
+        return parent
+
+    @property
+    def children(self):
+        return [m.GetProxy() for m in self._model.childModels]
 
     @property
     def size(self):

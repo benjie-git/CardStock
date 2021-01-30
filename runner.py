@@ -95,17 +95,12 @@ class Runner():
             self.clientVars["elapsedTime"] = arg
 
         if event and handlerName.startswith("OnMouse"):
-            mouseX, mouseY = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-            if "mouseX" in self.clientVars:
-                oldVars["mouseX"] = self.clientVars["mouseX"]
+            mousePos = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+            if "mousePos" in self.clientVars:
+                oldVars["mousePos"] = self.clientVars["mousePos"]
             else:
-                oldVars["mouseX"] = noValue
-            self.clientVars["mouseX"] = mouseX
-            if "mouseY" in self.clientVars:
-                oldVars["mouseY"] = self.clientVars["mouseY"]
-            else:
-                oldVars["mouseY"] = noValue
-            self.clientVars["mouseY"] = mouseY
+                oldVars["mousePos"] = noValue
+            self.clientVars["mousePos"] = mousePos
 
         if event and handlerName.startswith("OnKey"):
             if "keyName" in self.clientVars:

@@ -28,12 +28,13 @@
               233
             ],
             "position": [
-              63,
-              273
+              63.0,
+              273.0
             ],
             "file": "",
             "fit": "Scale",
-            "bgColor": "black"
+            "bgColor": "black",
+            "rotation": 0
           }
         },
         {
@@ -48,12 +49,13 @@
               21
             ],
             "position": [
-              406,
-              0
+              406.0,
+              0.0
             ],
             "file": "",
             "fit": "Scale",
-            "bgColor": "green"
+            "bgColor": "green",
+            "rotation": 0
           }
         },
         {
@@ -68,12 +70,13 @@
               233
             ],
             "position": [
-              63,
-              -28
+              63.0,
+              -28.0
             ],
             "file": "",
             "fit": "Scale",
-            "bgColor": "black"
+            "bgColor": "black",
+            "rotation": 0
           }
         },
         {
@@ -88,12 +91,13 @@
               111
             ],
             "position": [
-              218,
-              84
+              218.0,
+              84.0
             ],
             "file": "",
             "fit": "Scale",
-            "bgColor": "black"
+            "bgColor": "black",
+            "rotation": 0
           }
         },
         {
@@ -108,12 +112,13 @@
               233
             ],
             "position": [
-              317,
-              -23
+              317.0,
+              -23.0
             ],
             "file": "",
             "fit": "Scale",
-            "bgColor": "black"
+            "bgColor": "black",
+            "rotation": 0
           }
         },
         {
@@ -128,12 +133,13 @@
               387
             ],
             "position": [
-              396,
-              -3
+              396.0,
+              -3.0
             ],
             "file": "",
             "fit": "Scale",
-            "bgColor": "black"
+            "bgColor": "black",
+            "rotation": 0
           }
         },
         {
@@ -148,12 +154,13 @@
               20
             ],
             "position": [
-              78,
-              273
+              78.0,
+              273.0
             ],
             "file": "",
             "fit": "Scale",
-            "bgColor": "black"
+            "bgColor": "black",
+            "rotation": 0
           }
         },
         {
@@ -168,12 +175,13 @@
               20
             ],
             "position": [
-              158,
-              75
+              158.0,
+              75.0
             ],
             "file": "",
             "fit": "Scale",
-            "bgColor": "black"
+            "bgColor": "black",
+            "rotation": 0
           }
         },
         {
@@ -188,12 +196,13 @@
               20
             ],
             "position": [
-              80,
-              185
+              80.0,
+              185.0
             ],
             "file": "",
             "fit": "Scale",
-            "bgColor": "black"
+            "bgColor": "black",
+            "rotation": 0
           }
         },
         {
@@ -208,18 +217,19 @@
               20
             ],
             "position": [
-              163,
-              381
+              163.0,
+              381.0
             ],
             "file": "",
             "fit": "Scale",
-            "bgColor": "black"
+            "bgColor": "black",
+            "rotation": 0
           }
         },
         {
           "type": "round_rect",
           "handlers": {
-            "OnMouseMove": "self.center = [mouseX, mouseY]\n",
+            "OnMouseMove": "self.center = mousePos\n",
             "OnMessage": "if message == \"reset\":\n   PlaySound(\"click.wav\")\n   self.center = (30, 465)\nelif message == \"win\":\n   PlaySound(\"yay.wav\")\n   self.center = (30, 465)\n"
           },
           "properties": {
@@ -229,8 +239,8 @@
               47
             ],
             "position": [
-              9,
-              448
+              9.0,
+              448.0
             ],
             "originalSize": [
               46,
@@ -264,12 +274,13 @@
               507
             ],
             "position": [
-              500,
-              1
+              500.0,
+              1.0
             ],
             "file": "",
             "fit": "Scale",
-            "bgColor": "black"
+            "bgColor": "black",
+            "rotation": 0
           }
         },
         {
@@ -284,12 +295,13 @@
               25
             ],
             "position": [
-              80,
-              487
+              80.0,
+              487.0
             ],
             "file": "",
             "fit": "Scale",
-            "bgColor": "black"
+            "bgColor": "black",
+            "rotation": 0
           }
         }
       ]
