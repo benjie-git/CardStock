@@ -15,13 +15,14 @@ class UiImage(UiView):
             model = ImageModel(stackView)
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("image_"), False)
 
-        container = generator.TransparentWindow(parent.view)
+        container = wx.Window(parent.view)
         container.Enable(True)
+        container.SetBackgroundColour(model.GetProperty("bgColor"))
         self.origBitmap = self.GetImg(model)
         rotatedBitmap = self.RotatedBitmap(model)
         self.imgView = wx.StaticBitmap(container, bitmap=rotatedBitmap)
         self.imgView.Enable(True)
-        self.imgView.SetBackgroundColour(model.GetProperty("bgColor"))
+        self.imgView.SetBackgroundColour(None)
         self.imgView.SetScaleMode(self.AspectStrToInt(model.GetProperty("fit")))
         self.imgView.Show(model.GetProperty("file") != "")
 
@@ -69,7 +70,7 @@ class UiImage(UiView):
         elif key == "fit":
             self.imgView.SetScaleMode(self.AspectStrToInt(model.GetProperty(key)))
         elif key == "bgColor":
-            self.imgView.SetBackgroundColour(model.GetProperty(key))
+            self.view.SetBackgroundColour(model.GetProperty(key))
             self.view.Refresh()
         elif key == "rotation":
             if model.GetProperty("file") != "":
