@@ -152,6 +152,17 @@ class UiView(object):
                     pos = self.model.properties["position"]
                     self.model.SetProperty("position", [pos.x + speed.x*elapsedTime, pos.y + speed.y*elapsedTime])
 
+            # Run any in-progress animations
+            for anim in self.model.animations.copy():
+                if now < anim["startTime"] + anim["duration"]:
+                    progress = (now - anim["startTime"]) / anim["duration"]
+                    anim["function"](progress)
+                else:
+                    anim["function"](1.0)
+                    self.model.animations.remove(anim)
+                    if anim["onFinished"]:
+                        anim["onFinished"]()
+
             if self.stackView.runner and "OnIdle" in self.model.handlers:
                 self.stackView.runner.RunHandler(self.model, "OnIdle", event, elapsedTime)
 
@@ -161,6 +172,15 @@ class UiView(object):
         dc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
         dc.SetBrush(wx.TRANSPARENT_BRUSH)
         dc.DrawRectangle((1, 1), (self.selectionBox.GetSize()[0]-1, self.selectionBox.GetSize()[1]-1))
+
+    def SaveAsImage(self, filename):
+        width, height = self.view.GetClientSize()
+        bitmap = wx.Bitmap.FromRGBA(width, height, 0xFF, 0xFF, 0xFF, 0xFF)
+        wdc = wx.ClientDC(self.view)
+        mdc = wx.MemoryDC(bitmap)
+        mgc = wx.GCDC(mdc)
+        mgc.Blit(0, 0, width, height, wdc, 0, 0)
+        bitmap.ConvertToImage().SaveFile(filename, wx.BITMAP_TYPE_PNG)
 
     handlerDisplayNames = {
         'OnSetup':      "OnSetup():",
@@ -217,6 +237,7 @@ class ViewModel(object):
         self.isDirty = False
         self.proxy = None
         self.lastIdleTime = None
+        self.animations = []
         self.proxyClass = ViewProxy
 
     def CreateCopy(self):
@@ -271,14 +292,10 @@ class ViewModel(object):
         self.SetProperty("position", pos)
 
     def GetCenter(self):
-        p = self.GetAbsolutePosition()
-        s = self.GetProperty("size")
-        center = [p.x + s.width/2, p.y + s.height/2]
-        return center
+        return self.GetProperty("center")
 
     def SetCenter(self, center):
-        s = self.GetProperty("size")
-        self.SetAbsolutePosition([center[0]-s[0]/2, center[1]-s[1]/2])
+        self.SetProperty("center", center)
 
     def GetFrame(self):
         p = wx.Point(self.GetProperty("position"))
@@ -349,7 +366,12 @@ class ViewModel(object):
         return self.propertyChoices[key]
 
     def GetProperty(self, key):
-        if key in self.properties:
+        if key == "center":
+            p = self.GetAbsolutePosition()
+            s = self.GetProperty("size")
+            center = [p.x + s.width / 2, p.y + s.height / 2]
+            return center
+        elif key in self.properties:
             return self.properties[key]
         return None
 
@@ -394,6 +416,10 @@ class ViewModel(object):
         elif key == "size":
             if value.width < self.minSize.width: value.width = self.minSize.width
             if value.height < self.minSize.height: value.height = self.minSize.height
+        elif key == "center":
+            s = self.GetProperty("size")
+            self.SetAbsolutePosition([value.x - s.width / 2, value.y - s.height / 2])
+            return
 
         if self.properties[key] != value:
             self.properties[key] = value
@@ -427,6 +453,19 @@ class ViewModel(object):
         if self.handlers[key] != value:
             self.handlers[key] = value
             self.isDirty = True
+
+    def AddAnimation(self, type, duration, func, onFinished=None):
+        for d in self.animations.copy():
+            if d["type"] == type:
+                self.animations.remove(d)
+        self.animations.append({"type":type,
+                                "duration": duration,
+                                "startTime": time(),
+                                "function": func,
+                                "onFinished": onFinished})
+
+    def CancelAllAnimations(self):
+        self.animations = []
 
     def DeduplicateName(self, name, existingNames):
         existingNames.extend(["card", "self", "keyName", "mouseX",  "mouseY", "message"]) # disallow globals
@@ -560,7 +599,34 @@ class ViewProxy(object):
         if sf.Intersects(right): return "Right"
         return False
 
+    def AnimatePosition(self, duration, endPosition, onFinished=None):
+        origPosition = wx.Point(self.position)
+        offset = wx.Point(endPosition-origPosition)
+        def f(progress):
+            self.position = [origPosition.x + offset.x * progress,
+                             origPosition.y + offset.y * progress]
+        self._model.AddAnimation("position", duration, f, onFinished)
 
+    def AnimateCenter(self, duration, endCenter, onFinished=None):
+        origCenter = wx.Point(self.center)
+        offset = wx.Point(endCenter - origCenter)
+        def f(progress):
+            self.center = [origCenter.x + offset.x * progress,
+                           origCenter.y + offset.y * progress]
+        self._model.AddAnimation("position", duration, f, onFinished)
+
+    def AnimateSize(self, duration, endSize, onFinished=None):
+        origSize = wx.Size(self.size)
+        offset = wx.Size(endSize-origSize)
+        def f(progress):
+            self.size = [origSize.width + offset.width * progress,
+                           origSize.height + offset.height * progress]
+        self._model.AddAnimation("size", duration, f, onFinished)
+
+
+# CardStock-specific Point, Size, RealPoint subclasses
+# These notify their model when their components are changed, so that, for example:
+# button.center.x = 100  will notify the button's model that the center changed.
 class CDSPoint(wx.Point):
     def __init__(self, *args, **kwargs):
         model = kwargs.pop("model")

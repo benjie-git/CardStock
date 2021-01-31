@@ -35,7 +35,7 @@
               "type": "image",
               "handlers": {
                 "OnSetup": "import math\n\ndef rotate(list, angle):\n   angle = math.radians(angle)\n   px, py = list\n   return [math.cos(angle) * px - math.sin(angle) * py,\n           math.sin(angle) * px + math.cos(angle) * py]\n",
-                "OnIdle": "if IsKeyPressed(\"Left\"):\n   self.rotation -= 5\nif IsKeyPressed(\"Right\"):\n   self.rotation += 5\nif IsKeyPressed(\"Up\"):\n   self.parent.speed += rotate((0, -15), self.rotation)\n\ncardSize = card.size\n\npos = solid.position\nsize = solid.size\n\nedge = solid.IsTouchingEdge(card)\nif edge == \"Top\" and ship.speed.y < 0:\n   ship.position = [pos.x, cardSize.y-size.y]\nelif edge == \"Bottom\" and ship.speed.y > 0:\n   ship.position = [pos.x, -50]\nelif edge == \"Left\" and ship.speed.x < 0:\n   ship.position = [cardSize.x-size.x, pos.y]\nelif edge == \"Right\" and ship.speed.x > 0:\n   ship.position = [-50, pos.y]\n"
+                "OnIdle": "if IsKeyPressed(\"Left\"):\n   self.rotation -= 5\nif IsKeyPressed(\"Right\"):\n   self.rotation += 5\nif IsKeyPressed(\"Up\"):\n   self.parent.speed += rotate((0, -15), self.rotation)\n   self.file = \"ship-on.png\"\n   PlaySound(\"puff.wav\")\nelse:\n   self.file = \"ship-off.png\"\n\ncardSize = card.size\n\npos = solid.position\nsize = solid.size\n\nedge = solid.IsTouchingEdge(card)\nif edge == \"Top\" and ship.speed.y < 0:\n   ship.position = [pos.x, cardSize.y-size.y]\nelif edge == \"Bottom\" and ship.speed.y > 0:\n   ship.position = [pos.x, -50]\nelif edge == \"Left\" and ship.speed.x < 0:\n   ship.position = [cardSize.x-size.x, pos.y]\nelif edge == \"Right\" and ship.speed.x > 0:\n   ship.position = [-50, pos.y]\n"
               },
               "properties": {
                 "name": "image",
@@ -47,7 +47,7 @@
                   0.0,
                   0.0
                 ],
-                "file": "ship.png",
+                "file": "ship-off.png",
                 "fit": "Center",
                 "bgColor": "",
                 "rotation": 0
@@ -59,12 +59,12 @@
               "properties": {
                 "name": "solid",
                 "size": [
-                  55,
-                  73
+                  62,
+                  82
                 ],
                 "position": [
-                  52.0,
-                  14.0
+                  48.0,
+                  36.0
                 ],
                 "originalSize": [
                   109,

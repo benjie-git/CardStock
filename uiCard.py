@@ -47,10 +47,9 @@ class UiCard(UiView):
             self.stackView.runner.RunHandler(self.model, "OnKeyUp", event)
 
     def OnIdle(self, event):
-        if self.stackView.runner and "OnIdle" in self.model.handlers:
-            self.stackView.runner.RunHandler(self.model, "OnIdle", event)
-        for ui in self.stackView.uiViews:
-            ui.OnIdle(event)
+        super().OnIdle(event)
+        for child in self.stackView.uiViews:
+            child.OnIdle(event)
 
 
 class CardModel(ViewModel):
