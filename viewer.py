@@ -43,6 +43,7 @@ class ViewerFrame(wx.Frame):
 
         self.stackView = StackWindow(self, -1, None)
         self.stackView.SetEditing(False)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnClose)
 
     def ReadFile(self, filename):
         if filename:
@@ -107,6 +108,10 @@ class ViewerFrame(wx.Frame):
 
     def OnMenuClose(self, event):
         self.Close()
+
+    def OnClose(self, event):
+        self.stackView.runner.CleanupFromRun()
+        event.Skip()
 
     def OnCut(self, event):
         f = self.FindFocus()

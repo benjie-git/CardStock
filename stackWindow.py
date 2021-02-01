@@ -68,6 +68,7 @@ class StackWindow(wx.Window):
                 del self.menu
             if self.timer:
                 self.timer.Stop()
+        event.Skip()
 
     def CleanViewCache(self, event):
         for ui in self.uiViewCachePendingDelete.copy():

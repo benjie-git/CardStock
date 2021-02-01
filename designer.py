@@ -162,6 +162,7 @@ class DesignerFrame(wx.Frame):
                     self.SetTitle(self.title + ' -- ' + self.filename)
                     self.WriteConfig()
             except:
+                wx.MessageDialog(None, str("Couldn't save file"), None, wx.OK).ShowModal()
                 pass
 
 

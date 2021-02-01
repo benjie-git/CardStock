@@ -11,9 +11,11 @@ class Runner():
         self.statusBar = sb
         self.cardVarKeys = []  # store names of views on the current card, to remove from clientVars before setting up the next card
         self.pressedKeys = []
+        self.timers = []
 
         self.clientVars = {
             "Wait": self.Wait,
+            "RunAfterDelay": self.RunAfterDelay,
             "Time": self.Time,
             "Paste": self.Paste,
             "Alert": self.Alert,
@@ -60,6 +62,11 @@ class Runner():
             name = ui.model.GetProperty("name")
             self.clientVars[name] = ui.model.GetProxy()
             self.cardVarKeys.append(name)
+
+    def CleanupFromRun(self):
+        for t in self.timers:
+            t.Stop()
+        self.timers = []
 
     def RunHandler(self, uiModel, handlerName, event, arg=None):
         handlerStr = uiModel.handlers[handlerName]
@@ -233,3 +240,11 @@ class Runner():
 
     def IsKeyPressed(self, name):
         return name in self.pressedKeys
+
+    def RunAfterDelay(self, duration, func):
+        timer = wx.Timer()
+        def onTimer(event):
+            func()
+        timer.Bind(wx.EVT_TIMER, onTimer)
+        timer.StartOnce(int(duration*1000))
+        self.timers.append(timer)

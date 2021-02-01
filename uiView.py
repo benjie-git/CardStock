@@ -274,7 +274,8 @@ class ViewModel(object):
         return self.isDirty
 
     def GetAbsolutePosition(self):
-        pos = wx.RealPoint(self.GetProperty("position"))  # Copy so we don't edit the model's position
+        p = self.GetProperty("position")
+        pos = wx.RealPoint(p[0], p[1])  # Copy so we don't edit the model's position
         parent = self.parent
         while parent and parent.type != "card":
             parentPos = parent.GetProperty("position")
@@ -284,7 +285,7 @@ class ViewModel(object):
 
     def SetAbsolutePosition(self, pos):
         parent = self.parent
-        pos = wx.RealPoint(pos)
+        pos = wx.RealPoint(pos[0], pos[1])
         while parent and parent.type != "card":
             parentPos = parent.GetProperty("position")
             pos -= parentPos
@@ -335,7 +336,7 @@ class ViewModel(object):
             if self.propertyTypes[k] == "point":
                 self.SetProperty(k, wx.Point(v), False)
             elif self.propertyTypes[k] == "floatpoint":
-                self.SetProperty(k, wx.RealPoint(v), False)
+                self.SetProperty(k, wx.RealPoint(v[0], v[1]), False)
             elif self.propertyTypes[k] == "size":
                 self.SetProperty(k, wx.Size(v), False)
             else:
@@ -348,7 +349,7 @@ class ViewModel(object):
             if self.propertyTypes[k] == "point":
                 self.SetProperty(k, wx.Point(v), False)
             elif self.propertyTypes[k] == "floatpoint":
-                self.SetProperty(k, wx.RealPoint(v), False)
+                self.SetProperty(k, wx.RealPoint(v[0], v[1]), False)
             elif self.propertyTypes[k] == "size":
                 self.SetProperty(k, wx.Size(v), False)
             else:
@@ -555,7 +556,7 @@ class ViewProxy(object):
         return CDSRealPoint(self._model.GetAbsolutePosition(), model=self._model, role="position")
     @position.setter
     def position(self, val):
-        self._model.SetAbsolutePosition(wx.RealPoint(val))
+        self._model.SetAbsolutePosition(wx.RealPoint(val[0], val[1]))
 
     @property
     def speed(self):
@@ -570,7 +571,7 @@ class ViewProxy(object):
         return CDSRealPoint(self._model.GetCenter(), model=self._model, role="center")
     @center.setter
     def center(self, center):
-        self._model.SetCenter(wx.RealPoint(center))
+        self._model.SetCenter(wx.RealPoint(center[0], center[1]))
 
     def Show(self): self._model.SetProperty("hidden", False)
     def Hide(self): self._model.SetProperty("hidden", True)
@@ -601,27 +602,32 @@ class ViewProxy(object):
 
     def AnimatePosition(self, duration, endPosition, onFinished=None):
         origPosition = wx.Point(self.position)
-        offset = wx.Point(endPosition-origPosition)
-        def f(progress):
-            self.position = [origPosition.x + offset.x * progress,
-                             origPosition.y + offset.y * progress]
-        self._model.AddAnimation("position", duration, f, onFinished)
+        if origPosition != wx.Point(endPosition):
+            offsetp = endPosition - origPosition
+            offset = wx.RealPoint(offsetp[0], offsetp[1])
+            def f(progress):
+                self.position = [origPosition.x + offset.x * progress,
+                                 origPosition.y + offset.y * progress]
+            self._model.AddAnimation("position", duration, f, onFinished)
 
     def AnimateCenter(self, duration, endCenter, onFinished=None):
-        origCenter = wx.Point(self.center)
-        offset = wx.Point(endCenter - origCenter)
-        def f(progress):
-            self.center = [origCenter.x + offset.x * progress,
-                           origCenter.y + offset.y * progress]
-        self._model.AddAnimation("position", duration, f, onFinished)
+        origCenter = self.center
+        if origCenter != endCenter:
+            offsetp = endCenter - origCenter
+            offset = wx.RealPoint(offsetp[0], offsetp[1])
+            def f(progress):
+                self.center = [origCenter.x + offset.x * progress,
+                               origCenter.y + offset.y * progress]
+            self._model.AddAnimation("position", duration, f, onFinished)
 
     def AnimateSize(self, duration, endSize, onFinished=None):
         origSize = wx.Size(self.size)
-        offset = wx.Size(endSize-origSize)
-        def f(progress):
-            self.size = [origSize.width + offset.width * progress,
-                           origSize.height + offset.height * progress]
-        self._model.AddAnimation("size", duration, f, onFinished)
+        if origSize != wx.Size(endSize):
+            offset = wx.Size(endSize-origSize)
+            def f(progress):
+                self.size = [origSize.width + offset.width * progress,
+                               origSize.height + offset.height * progress]
+            self._model.AddAnimation("size", duration, f, onFinished)
 
 
 # CardStock-specific Point, Size, RealPoint subclasses
