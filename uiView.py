@@ -601,8 +601,8 @@ class ViewProxy(object):
         return None
 
     def AnimatePosition(self, duration, endPosition, onFinished=None):
-        origPosition = wx.Point(self.position)
-        if origPosition != wx.Point(endPosition):
+        origPosition = self.position
+        if wx.Point(origPosition) != wx.Point(endPosition):
             offsetp = endPosition - origPosition
             offset = wx.RealPoint(offsetp[0], offsetp[1])
             def f(progress):
@@ -612,7 +612,7 @@ class ViewProxy(object):
 
     def AnimateCenter(self, duration, endCenter, onFinished=None):
         origCenter = self.center
-        if origCenter != endCenter:
+        if wx.Point(origCenter) != wx.Point(endCenter):
             offsetp = endCenter - origCenter
             offset = wx.RealPoint(offsetp[0], offsetp[1])
             def f(progress):
@@ -621,8 +621,8 @@ class ViewProxy(object):
             self._model.AddAnimation("position", duration, f, onFinished)
 
     def AnimateSize(self, duration, endSize, onFinished=None):
-        origSize = wx.Size(self.size)
-        if origSize != wx.Size(endSize):
+        origSize = self.size
+        if wx.Size(origSize) != wx.Size(endSize):
             offset = wx.Size(endSize-origSize)
             def f(progress):
                 self.size = [origSize.width + offset.width * progress,
