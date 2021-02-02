@@ -23,6 +23,8 @@ class ControlPanel(wx.Panel):
 
     toolNames = ["hand", "button", "field", "label", "image",
                  "pen", "oval", "rect", "round_rect", "line"]
+    tooltips = ["Hand", "Button", "Text Field", "Text Label", "Image",
+                "Pen", "Oval", "Rectangle", "Round Rectangle", "Line"]
 
     def __init__(self, parent, ID, stackView):
         wx.Panel.__init__(self, parent, ID, style=wx.RAISED_BORDER)
@@ -147,6 +149,16 @@ class ControlPanel(wx.Panel):
         self.UpdateHelpText("-")
         self.SetSizer(self.box)
         self.SetAutoLayout(True)
+
+        i = 0
+        for k,b in self.toolBtns.items():
+            tooltip = wx.ToolTip(self.tooltips[i])
+            tooltip.SetAutoPop(2000)
+            tooltip.SetDelay(200)
+            tooltip.Enable(True)
+            b.SetToolTip(tooltip)
+            i += 1
+        wx.ToolTip.Enable(True)
 
     def UpdateHelpText(self, helpText):
         if helpText:

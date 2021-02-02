@@ -208,7 +208,7 @@ class DesignerFrame(wx.Frame):
         fileMenu.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save the Stack")
         fileMenu.Append(wx.ID_SAVEAS, "Save &As", "Save the Stack in a new file")
         fileMenu.AppendSeparator()
-        fileMenu.Append(ID_RUN, "&Run Card\tCtrl-R", "Run the current Stack")
+        fileMenu.Append(ID_RUN, "&Run Stack\tCtrl-R", "Run the current Stack")
         fileMenu.AppendSeparator()
         fileMenu.Append(wx.ID_EXIT, "E&xit", "Terminate the application")
 
@@ -246,6 +246,7 @@ class DesignerFrame(wx.Frame):
         helpMenu = wx.Menu()
         helpMenu.Append(wx.ID_ABOUT, "&About", "About")
         helpMenu.Append(wx.ID_HELP, "&Help", "Help")
+        helpMenu.Append(wx.ID_REFRESH, "&Reference", "Reference")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
@@ -265,6 +266,7 @@ class DesignerFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU,  self.OnMenuAbout, id=wx.ID_ABOUT)
         self.Bind(wx.EVT_MENU,  self.OnMenuHelp, id=wx.ID_HELP)
+        self.Bind(wx.EVT_MENU,  self.OnMenuReference, id=wx.ID_REFRESH)
 
         self.Bind(wx.EVT_MENU,  self.OnUndo, id=wx.ID_UNDO)
         self.Bind(wx.EVT_MENU,  self.OnRedo, id=wx.ID_REDO)
@@ -489,6 +491,11 @@ class DesignerFrame(wx.Frame):
         dlg.Destroy()
 
     def OnMenuHelp(self, event):
+        dlg = helpDialogs.CardStockHelp(self)
+        dlg.Bind(wx.EVT_CLOSE, self.OnHelpClose)
+        dlg.Show()
+
+    def OnMenuReference(self, event):
         dlg = helpDialogs.CardStockReference(self)
         dlg.Bind(wx.EVT_CLOSE, self.OnHelpClose)
         dlg.Show()

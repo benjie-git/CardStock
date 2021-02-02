@@ -33,16 +33,22 @@ class HelpData():
     @classmethod
     def PropertyTable(cls, typeStr):
         data = cls.ForType(typeStr)
-        text = "<table border=1><tr><th align='left'>Property</th> <th>Type</th> <th>Description</th></tr>\n"
+        text =  "<table border='0' cellpadding='5' cellspacing='0'>\n"
+        text += "<tr><th align='left' valign='top'>Property</th> <th align='left' valign='top'>Type</th> <th align='left' valign='top'>Description</th></tr>\n"
+        bgcolors = [" bgcolor='#D0DFEE'", " bgcolor='#CCCCCC'"]
+        bg = bgcolors[0]
+        hasRows = False
         while data:
             for key in data.properties:
                 prop = data.properties[key]
-                text += "<tr><th align='left'>"+key+"</th><td><i>" + prop["type"] + "</i></td><td>" + prop["info"] + "</td></tr>\n"
+                bg = bgcolors[0 if bg==bgcolors[1] else 1]
+                hasRows = True
+                text += "<tr><th align='left' valign='top'"+bg+">"+key+"</th><td align='left' valign='top'"+bg+"><i>" + prop["type"] + "</i></td><td align='left' valign='top'"+bg+">" + prop["info"] + "</td></tr>\n"
             data = data.parent
             if data == HelpDataObject:
                 break
         text += "</table>"
-        return text
+        return text if hasRows else "<p>No additional properties for this object type.</p>"
 
     @classmethod
     def GetHandlerHelp(cls, obj, key):
@@ -52,7 +58,7 @@ class HelpData():
                 handler = data.handlers[key]
                 argText = ""
                 for name, arg in handler["args"].items():
-                    argText += "<b>" + name + "</b>:<i>" + arg["type"] + "</i> - " + arg["info"] + "<br/>"
+                    argText += "<b>" + name + "</b>:<i>" + arg["type"] + " </i> - " + arg["info"] + "<br/>"
                 text = "<b>" + UiView.handlerDisplayNames[key] + "</b><br/>" + argText + "<br/>" + handler["info"]
                 return text
             data = data.parent
@@ -61,35 +67,83 @@ class HelpData():
     @classmethod
     def HandlerTable(cls, typeStr):
         data = cls.ForType(typeStr)
-        text = "<table border=1><tr><th align='left'>Event</th> <th>Arguments</th> <th>Description</th></tr>\n"
+        text =  "<table border='0' cellpadding='5' cellspacing='0'>\n"
+        text += "<tr><th align='left' valign='top'>Event</th> <th align='left' valign='top'>Arguments</th> <th align='left' valign='top'>Description</th></tr>\n"
+        bgcolors = [" bgcolor='#D0DFEE'", " bgcolor='#CCCCCC'"]
+        bg = bgcolors[0]
+        hasRows = False
         while data:
             for key in data.handlers:
                 handler = data.handlers[key]
+                bg = bgcolors[0 if bg==bgcolors[1] else 1]
+                hasRows = True
                 argText = ""
                 for name, arg in handler["args"].items():
-                    argText += "<b>" + name + "</b>:<i>" + arg["type"] + "</i> - " + arg["info"] + "<br/>"
-                text += "<tr><th align='left'>"+UiView.handlerDisplayNames[key]+"</th><td><i>" + argText + "</i></td><td>" + handler["info"] + "</td></tr>\n"
+                    argText += "<b>" + name + "</b>:<i>" + arg["type"] + " </i> - " + arg["info"] + "<br/>"
+                text += "<tr><th align='left' valign='top'"+bg+">"+UiView.handlerDisplayNames[key]+"</th><td align='left' valign='top'"+bg+">" + argText + "</td><td align='left' valign='top'"+bg+">" + handler["info"] + "</td></tr>\n"
             data = data.parent
             if data == HelpDataObject:
                 break
         text += "</table>"
-        return text
+        return text if hasRows else "<p>No additional events for this object type.</p>"
 
     @classmethod
     def MethodTable(cls, typeStr):
         data = cls.ForType(typeStr)
-        text = "<table border=1><tr><th align='left'>Method</th> <th>Arguments</th> <th>Return</th> <th>Description</th></tr>\n"
+        text =  "<table border='0' cellpadding='5' cellspacing='0'>\n"
+        text += "<tr><th align='left' valign='top'>Method</th> <th align='left' valign='top'>Arguments</th> <th align='left' valign='top'>Return</th> <th align='left' valign='top'>Description</th></tr>\n"
+        bgcolors = [" bgcolor='#D0DFEE'", " bgcolor='#CCCCCC'"]
+        bg = bgcolors[0]
+        hasRows = False
         while data:
             for key in data.methods:
                 method = data.methods[key]
+                bg = bgcolors[0 if bg==bgcolors[1] else 1]
+                hasRows = True
                 argText = ""
                 for name, arg in method["args"].items():
-                    argText += "<b>" + name + "</b>:<i>" + arg["type"] + "</i> - " + arg["info"] + "<br/>"
+                    argText += "<b>" + name + "</b>:<i>" + arg["type"] + " </i> - " + arg["info"] + "<br/>"
                 ret = method["return"] if method["return"] else ""
-                text += "<tr><th align='left'>"+key+"</th><td>" + argText + "</td><td><i>" + ret + "</i></td><td>" + method["info"] + "</td></tr>\n"
+                text += "<tr><th align='left' valign='top'"+bg+">"+key+"</th><td align='left' valign='top'"+bg+">" + argText + "</td><td align='left' valign='top'"+bg+"><i>" + ret + "</i></td><td align='left' valign='top'"+bg+">" + method["info"] + "</td></tr>\n"
             data = data.parent
             if data == HelpDataObject:
                 break
+        text += "</table>"
+        return text if hasRows else "<p>No additional methods for this object type.</p>"
+
+    @classmethod
+    def GlobalVariablesTable(cls):
+        data = HelpDataGlobals
+        text =  "<table border='0' cellpadding='5' cellspacing='0'>\n"
+        text += "<tr><th align='left' valign='top'>Variable</th> <th align='left' valign='top'>Type</th> <th align='left' valign='top'>Description</th></tr>\n"
+        bgcolors = [" bgcolor='#D0DFEE'", " bgcolor='#CCCCCC'"]
+        bg = bgcolors[0]
+        hasRows = False
+        for key in data.variables:
+            var = data.variables[key]
+            bg = bgcolors[0 if bg == bgcolors[1] else 1]
+            hasRows = True
+            text += "<tr><th align='left' valign='top'"+bg+">" + key + "</th><td align='left' valign='top'"+bg+"><i>" + var["type"] + " </i></td><td align='left' valign='top'"+bg+">" + var["info"] + "</td></tr>\n"
+        text += "</table>"
+        return text
+
+    @classmethod
+    def GlobalFunctionsTable(cls):
+        data = HelpDataGlobals
+        text =  "<table border='0' cellpadding='5' cellspacing='0'>\n"
+        text += "<tr><th align='left' valign='top'>Function</th> <th align='left' valign='top'>Arguments</th> <th align='left' valign='top'>Return</th> <th align='left' valign='top'>Description</th></tr>\n"
+        bgcolors = [" bgcolor='#D0DFEE'", " bgcolor='#CCCCCC'"]
+        bg = bgcolors[0]
+        hasRows = False
+        for key in data.functions:
+            func = data.functions[key]
+            bg = bgcolors[0 if bg == bgcolors[1] else 1]
+            hasRows = True
+            argText = ""
+            for name, arg in func["args"].items():
+                argText += "<b>" + name + "</b>:<i>" + arg["type"] + " </i> - " + arg["info"] + "<br/>"
+            ret = func["return"] if func["return"] else ""
+            text += "<tr><th align='left' valign='top'"+bg+">"+key+"</th><td align='left' valign='top'"+bg+">" + argText + "</td><td align='left' valign='top'"+bg+"><i>" + ret + "</i></td><td align='left' valign='top'"+bg+">" + func["info"] + "</td></tr>\n"
         text += "</table>"
         return text
 
@@ -101,44 +155,24 @@ class HelpData():
         return f"""
 <h2>{title}</h2>
 {text}
+<br/>
 <h3>Properties</h3>
 {HelpData.PropertyTable(typeStr)}
+<br/><br/>
 <h3>Methods</h3>
 {HelpData.MethodTable(typeStr)}
-</table>
+<br/><br/>
 <h3>Events</h3>
 {HelpData.HandlerTable(typeStr)}
 <br/><br/>
+<br/><br/>
 """
-
-    @classmethod
-    def GlobalVariablesTable(cls):
-        data = HelpDataGlobals
-        text = "<table border=1><tr><th align='left'>Variable</th> <th>Type</th> <th>Description</th></tr>\n"
-        for key in data.variables:
-            var = data.variables[key]
-            text += "<tr><th align='left'>" + key + "</th><td><i>" + var["type"] + "</i></td><td>" + var["info"] + "</td></tr>\n"
-        text += "</table>"
-        return text
-
-    @classmethod
-    def GlobalFunctionsTable(cls):
-        data = HelpDataGlobals
-        text = "<table border=1><tr><th align='left'>Function</th> <th>Arguments</th> <th>Return</th> <th>Description</th></tr>\n"
-        for key in data.functions:
-            func = data.functions[key]
-            argText = ""
-            for name, arg in func["args"].items():
-                argText += "<b>" + name + "</b>:<i>" + arg["type"] + "</i> - " + arg["info"] + "<br/>"
-            ret = func["return"] if func["return"] else ""
-            text += "<tr><th align='left'>"+key+"</th><td>" + argText + "</td><td><i>" + ret + "</i></td><td>" + func["info"] + "</td></tr>\n"
-        text += "</table>"
-        return text
-
 
 
 class HelpDataGlobals():
     variables = {
+        "self": {"type": "object",
+                  "info": "In any object's event code, <b>self</b> always refers to the object that contains this code."},
         "stack": {"type": "object",
                   "info": "The <b>stack</b> is the object that represents your whole program."},
         "card": {"type": "object",
@@ -149,6 +183,54 @@ class HelpDataGlobals():
         "Wait": {"args": {"duration": {"type": "float", "info": "Number of seconds to delay."}}, "return": None,
                  "info": "Delays the program from running for <b>duration</b> seconds.  No movements or animations "
                          "will happen during this time."},
+        "RunAfterDelay": {"args": {"duration": {"type": "float", "info": "Number of seconds to delay."},
+                                   "func": {"type": "function", "info": "A function to call after the delay."}}, "return": None,
+                          "info": "This function lets your program continue running while a timer waits for <b>duration</b> seconds, "
+                                  "and then runs the functions <b>func</b>.  Movements, animations, and user interaction "
+                                  "will all continue during this time."},
+        "Time": {"args": {}, "return": "float",
+                 "info": "Returns the time in seconds since 'The Unix Epoch', midnight UTC on January 1st, 1970.  That "
+                         "date doesn't usually matter, since most often, you'll store the time at one point in your "
+                         "program, and then compare it to the new time somewhere else, to determine the difference."},
+        "Paste": {"args": {}, "return": "list",
+                  "info": "Pastes any CardStock objects in the clipboard from previous Copy or Cut commands, and returns "
+                          "a list of these pasted objects."},
+        "Alert": {"args": {"title": {"type": "string", "info": "Text to show in the Alert dialog."}}, "return": None,
+                  "info": "Shows an alert dialog to the user, with the <b>title</b> you provide, and offers an OK button."},
+        "Ask": {"args": {"title": {"type": "string", "info": "Text to show in the Alert dialog."}}, "return": "bool",
+                "info": "Shows an alert dialog to the user, with the <b>title</b> you provide, and offers Yes and No "
+                        "buttons.  Returns True if Yes is clicked, and False if No is clicked."},
+        "GotoCard": {"args": {"cardName": {"type": "string", "info": "The name of the card to go to."}}, "return": None,
+                     "info": "Goes to the card with the name passed in as <b>cardName</b>.  This sends the OnHideCard event"
+                             "for the current card, and then the OnShowCard event for the new card, or does nothing if "
+                             "there is no card with that name."},
+        "GotoCardIndex": {"args": {"cardIndex": {"type": "int", "info": "The number of the card to go to, with 0 meaning the first card."}}, "return": None,
+                          "info": "Goes to the card with the index passed in as <b>cardIndex</b>.  This sends the OnHideCard event"
+                                  "for the current card, and then the OnShowCard event for the new card, or does nothing "
+                                  "if the index is less than 0, or larger than the number of cards-1."},
+        "GotoNextCard": {"args": {}, "return": None,
+                         "info": "Goes to the next card in the stack.  If we're already on the last card, then loop back to "
+                                 "the first card.  This sends the OnHideCard event for the current card, and then the "
+                                 "OnShowCard event for the new card."},
+        "GotoPreviousCard": {"args": {}, "return": None,
+                             "info": "Goes to the previous card in the stack.  If we're already on the first card, then loop back to "
+                                     "the last card.  This sends the OnHideCard event for the current card, and then the "
+                                     "OnShowCard event for the new card."},
+        "PlaySound": {"args": {"file": {"type": "string",
+                                        "info": "This is the filename of the .wav format audio file to play, relative to where the stack file lives."}},
+                      "return": None,
+                      "info": "Starts playing the .wav formatted sound file at location <b>file</b>."},
+        "StopSound": {"args": {},
+                      "return": None,
+                      "info": "Stops all currently playing sounds."},
+        "BroadcastMessage": {"args": {"message": {"type": "string",
+                                        "info": "This is the message to send to all objects on this card, including the card itself."}},
+                      "return": None,
+                      "info": "Sends the <b>message</b> to this card, and all objects on this card, causing each of their "
+                              "OnMessage events to run with this <b>message</b>."},
+        "IsKeyPressed": {"args": {"keyName": {"type": "string", "info": "The name of the key to check."}},
+                         "return": "bool",
+                         "info": "Returns true if the named keyboard key is currently pressed down."},
     }
 
 
