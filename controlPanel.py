@@ -59,13 +59,13 @@ class ControlPanel(wx.Panel):
         l.SetFont(wx.Font(wx.FontInfo(12).Weight(wx.FONTWEIGHT_BOLD).Family(wx.FONTFAMILY_DEFAULT)))
         self.cGrid.Add(l, wx.SizerFlags().CenterVertical())
         self.penColorPicker = wx.ColourPickerCtrl(parent=self, colour="black", style=wx.CLRP_SHOW_ALPHA, name="Pen")
-        self.penColorPicker.Bind(wx.EVT_COLOURPICKER_CURRENT_CHANGED, self.OnSetPenColor)
+        self.penColorPicker.Bind(wx.EVT_COLOURPICKER_CHANGED, self.OnSetPenColor)
         self.cGrid.Add(self.penColorPicker)
         l = wx.StaticText(parent=self, label="Fill Color:")
         l.SetFont(wx.Font(wx.FontInfo(12).Weight(wx.FONTWEIGHT_BOLD).Family(wx.FONTFAMILY_DEFAULT)))
         self.cGrid.Add(l, wx.SizerFlags().CenterVertical())
         self.fillColorPicker = wx.ColourPickerCtrl(parent=self, colour="white", style=wx.CLRP_SHOW_ALPHA, name="Fill")
-        self.fillColorPicker.Bind(wx.EVT_COLOURPICKER_CURRENT_CHANGED, self.OnSetFillColor)
+        self.fillColorPicker.Bind(wx.EVT_COLOURPICKER_CHANGED, self.OnSetFillColor)
         self.cGrid.Add(self.fillColorPicker)
 
         # Make a grid of buttons for the thicknesses.  Attach each button
@@ -404,9 +404,13 @@ class ControlPanel(wx.Panel):
                 tool.SetPenColor(self.penColor)
                 tool.SetFillColor(self.fillColor)
                 tool.SetThickness(self.penThickness)
-            else:
+            elif tool.name == "hand":
                 self.box.Hide(self.drawBox)
                 self.box.Show(self.editBox)
+            else:
+                self.box.Hide(self.drawBox)
+                self.box.Hide(self.editBox)
+
 
             self.Layout()
 
