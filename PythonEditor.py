@@ -25,8 +25,8 @@ else:
 
 
 class PythonEditor(stc.StyledTextCtrl):
-    def __init__(self, parent):
-        super().__init__(id=wx.ID_ANY, parent=parent)
+    def __init__(self, parent, **kwargs):
+        super().__init__(id=wx.ID_ANY, parent=parent, **kwargs)
 
         self.SetAutoLayout(True)
         # self.SetConstraints(stc.LayoutAnchors(self, True, True, True, True))

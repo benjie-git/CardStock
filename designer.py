@@ -247,6 +247,7 @@ class DesignerFrame(wx.Frame):
         helpMenu.Append(wx.ID_ABOUT, "&About", "About")
         helpMenu.Append(wx.ID_HELP, "&Help", "Help")
         helpMenu.Append(wx.ID_REFRESH, "&Reference", "Reference")
+        helpMenu.Append(wx.ID_CONTEXT_HELP, "&Toggle Context Help", "Toggle Context Help")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
@@ -267,6 +268,7 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnMenuAbout, id=wx.ID_ABOUT)
         self.Bind(wx.EVT_MENU,  self.OnMenuHelp, id=wx.ID_HELP)
         self.Bind(wx.EVT_MENU,  self.OnMenuReference, id=wx.ID_REFRESH)
+        self.Bind(wx.EVT_MENU,  self.OnMenuContextHelp, id=wx.ID_CONTEXT_HELP)
 
         self.Bind(wx.EVT_MENU,  self.OnUndo, id=wx.ID_UNDO)
         self.Bind(wx.EVT_MENU,  self.OnRedo, id=wx.ID_REDO)
@@ -500,6 +502,10 @@ class DesignerFrame(wx.Frame):
         dlg.Bind(wx.EVT_CLOSE, self.OnHelpClose)
         dlg.Show()
 
+    def OnMenuContextHelp(self, event):
+        self.cPanel.ToggleContextHelp()
+        self.WriteConfig()
+
     def OnHelpClose(self, event):
         event.GetEventObject().Destroy()
 
@@ -508,15 +514,17 @@ class DesignerFrame(wx.Frame):
             config = self.ReadConfig()
             if config["last_open_file"]:
                 self.ReadFile(config["last_open_file"])
+            self.cPanel.ShowContextHelp(config["show_context_help"] == "True")
 
     def WriteConfig(self):
         config = configparser.ConfigParser()
-        config['User'] = {"last_open_file": self.filename}
+        config['User'] = {"last_open_file": self.filename, "show_context_help": self.cPanel.IsContextHelpShown()}
         with open(self.full_config_file_path, 'w') as configfile:
             config.write(configfile)
 
     def ReadConfig(self):
         last_open_file = None
+        context_help = True
         if not os.path.exists(self.full_config_file_path) \
                 or os.stat(self.full_config_file_path).st_size == 0:
             self.WriteConfig()
@@ -524,7 +532,8 @@ class DesignerFrame(wx.Frame):
             config = configparser.ConfigParser()
             config.read(self.full_config_file_path)
             last_open_file = config['User'].get('last_open_file', None)
-        return {"last_open_file": last_open_file}
+            context_help = config['User'].get('show_context_help', True)
+        return {"last_open_file": last_open_file, "show_context_help": context_help}
 
 # ----------------------------------------------------------------------
 

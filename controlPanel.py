@@ -108,14 +108,14 @@ class ControlPanel(wx.Panel):
         self.inspector.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnGridCellSelected)
         self.inspector.Bind(wx.EVT_SIZE, self.OnGridResized)
 
-        self.panelHelp = wx.html.HtmlWindow(self, size=(200, 70))
+        self.panelHelp = wx.html.HtmlWindow(self, size=(200, 70), style=wx.BORDER_SUNKEN)
 
         self.handlerPicker = wx.Choice(parent=self, id=wx.ID_ANY)
         self.handlerPicker.Enable(False)
         self.handlerPicker.Bind(wx.EVT_CHOICE, self.OnHandlerChoice)
         self.currentHandler = None
 
-        self.codeEditor = PythonEditor(self)
+        self.codeEditor = PythonEditor(self, style=wx.BORDER_SUNKEN)
         self.codeEditor.SetSize((150,2000))
         self.codeEditor.Bind(wx.EVT_IDLE, self.CodeEditorOnIdle)
         self.codeEditor.Bind(wx.EVT_SET_FOCUS, self.CodeEditorFocused)
@@ -159,6 +159,19 @@ class ControlPanel(wx.Panel):
             b.SetToolTip(tooltip)
             i += 1
         wx.ToolTip.Enable(True)
+
+    def ShowContextHelp(self, show):
+        self.panelHelp.Show(show)
+        self.box.Layout()
+
+    def ToggleContextHelp(self):
+        if self.IsContextHelpShown():
+            self.ShowContextHelp(False)
+        else:
+            self.ShowContextHelp(True)
+
+    def IsContextHelpShown(self):
+        return self.panelHelp.IsShown()
 
     def UpdateHelpText(self, helpText):
         if helpText:
