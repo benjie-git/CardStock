@@ -267,7 +267,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "stacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nShowStacks(True)"
+            "OnClick": "stacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nsteps = []\nShowStacks(True)"
           },
           "properties": {
             "name": "reset",

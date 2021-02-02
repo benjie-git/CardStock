@@ -1,12 +1,13 @@
 import wx
 import wx.grid
+import wx.html
 from tools import *
 from commands import *
 from wx.lib import buttons # for generic button classes
 from PythonEditor import PythonEditor
 from uiView import UiView
 from embeddedImages import embeddedImages
-
+from helpData import HelpData
 
 class ControlPanel(wx.Panel):
     """
@@ -102,7 +103,10 @@ class ControlPanel(wx.Panel):
         self.inspector.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnInspectorValueChanged)
         self.inspector.Bind(wx.EVT_KEY_DOWN, self.OnGridEnter)
         self.inspector.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnGridClick)
+        self.inspector.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnGridCellSelected)
         self.inspector.Bind(wx.EVT_SIZE, self.OnGridResized)
+
+        self.panelHelp = wx.html.HtmlWindow(self, size=(200, 70))
 
         self.handlerPicker = wx.Choice(parent=self, id=wx.ID_ANY)
         self.handlerPicker.Enable(False)
@@ -112,6 +116,7 @@ class ControlPanel(wx.Panel):
         self.codeEditor = PythonEditor(self)
         self.codeEditor.SetSize((150,2000))
         self.codeEditor.Bind(wx.EVT_IDLE, self.CodeEditorOnIdle)
+        self.codeEditor.Bind(wx.EVT_SET_FOCUS, self.CodeEditorFocused)
 
         self.lastSelectedUiView = None
         self.UpdateInspectorForUiViews([])
@@ -126,7 +131,9 @@ class ControlPanel(wx.Panel):
 
         self.editBox = wx.BoxSizer(wx.VERTICAL)
         self.editBox.Add(self.inspector, 0, wx.EXPAND|wx.ALL, spacing)
-        self.editBox.AddSpacer(10)
+        self.editBox.AddSpacer(4)
+        self.editBox.Add(self.panelHelp, 0, wx.EXPAND|wx.ALL, spacing)
+        self.editBox.AddSpacer(4)
         self.editBox.Add(self.handlerPicker, 0, wx.EXPAND|wx.ALL, spacing)
         self.editBox.Add(self.codeEditor, 1, wx.EXPAND|wx.ALL, spacing)
         self.editBox.SetSizeHints(self)
@@ -137,13 +144,32 @@ class ControlPanel(wx.Panel):
         self.box.Add(self.editBox, 1, wx.EXPAND|wx.ALL, spacing)
         self.box.SetSizeHints(self)
 
+        self.UpdateHelpText("-")
         self.SetSizer(self.box)
         self.SetAutoLayout(True)
 
+    def UpdateHelpText(self, helpText):
+        if helpText:
+            self.panelHelp.SetPage("<body bgColor='#EEEEEE'>" + helpText + "</body>")
+        else:
+            self.panelHelp.SetPage("<body bgColor='#EEEEEE'></body>")
+        self.panelHelp.SetSize(self.panelHelp.Size.x, self.panelHelp.GetVirtualSize().y)
+        self.editBox.Layout()
+        self.box.Layout()
+
     def OnGridClick(self, event):
         self.inspector.SetGridCursor(event.Row, event.Col)
+        self.inspector.ClearSelection()
         if self.inspector.GetGridCursorCol() == 1:
             self.inspector.EnableCellEditControl()
+
+    def OnGridCellSelected(self, event):
+        self.inspector.ClearSelection()
+        uiView = self.lastSelectedUiView
+        if uiView:
+            keys = uiView.model.PropertyKeys()
+            helpText = HelpData.GetPropertyHelp(uiView, keys[event.GetRow()])
+            self.UpdateHelpText(helpText)
         event.Skip()
 
     def OnGridEnter(self, event):
@@ -192,7 +218,7 @@ class ControlPanel(wx.Panel):
                 r += 1
 
     def UpdateInspectorForUiViews(self, uiViews):
-        # Catch a still-open editor and handle it before we move on to a newly selectd uiView
+        # Catch a still-open editor and handle it before we move on to a newly selected uiView
         if self.inspector.IsCellEditControlShown():
             ed = self.inspector.GetCellEditor(self.inspector.GetGridCursorRow(), self.inspector.GetGridCursorCol())
             val = ed.GetValue()
@@ -271,6 +297,9 @@ class ControlPanel(wx.Panel):
         self.handlerPicker.Enable(True)
         uiView = uiViews[0]
 
+        helpText = HelpData.GetHandlerHelp(uiView, handlerName)
+        self.UpdateHelpText(helpText)
+
         if handlerName == None:
             handlerName = uiView.lastEditedHandler
         if not handlerName:
@@ -307,6 +336,11 @@ class ControlPanel(wx.Panel):
                     command = SetHandlerCommand(True, "Set Handler", self, self.stackView.cardIndex, uiView.model,
                                                 self.currentHandler, newVal)
                     self.stackView.command_processor.Submit(command)
+
+    def CodeEditorFocused(self, event):
+        helpText = HelpData.GetHandlerHelp(self.lastSelectedUiView, self.currentHandler)
+        self.UpdateHelpText(helpText)
+        event.Skip()
 
     def CodeEditorOnIdle(self, event):
         if self.currentHandler:

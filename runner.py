@@ -69,7 +69,9 @@ class Runner():
         self.timers = []
 
     def RunHandler(self, uiModel, handlerName, event, arg=None):
-        handlerStr = uiModel.handlers[handlerName]
+        handlerStr = uiModel.handlers[handlerName].strip()
+
+        if handlerStr == "": return
 
         error_class = None
         line_number = None

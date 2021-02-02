@@ -1,6 +1,7 @@
 import wx
 import wx.html
 import version
+from helpData import HelpData
 
 
 class CardStockAbout(wx.Dialog):
@@ -85,79 +86,33 @@ when you do this (which will be often!), you set up the starting value of your v
 events, to make sure that it will always have a value, from the very start of your program running.</p>
 <br/><br/>
 
-<h2>Properties, Events, and Functions</h2>
-
-<h3>All objects</h3>
-<table border=1><tr>
-<tr><th>Property</th> <th>Type</th> <th>Description</th></tr>
-<tr><td>name</td> <td>string</td> <td>Every object has a name property.  These are forced to be unique within each card, since these become
-the names of your object variables that you access from your code.</td></tr>
-<tr><td>position</td> <td>point</td> <td>The position property is a point (a list of 2 numbers) that describes where on the
-card this object's top-left corner is'.  The first number is how many pixels the object is from the left edge of the card.
-The second number is how far down from the top.  All objects except for cards have a position.</td></tr>
-<tr><td>size</td> <td>point</td> <td>The size property is a point (a list of 2 numbers) that describes how big this object is'.
-The first number is how wide the object is, and the second number is how tall.</td></tr>
-</table>
+<h2>Global Variables</h2>
+<p>Global variables are objects that are available in all of your event handlers' code.</p>
+{HelpData.GlobalVariablesTable()}
 <br/><br/>
 
-<h3>Card</h3>
-<table border=1><tr>
-<tr><th>Property</th> <th>Type</th> <th>Description</th></tr>
-<tr><td>bgColor</td> <td>color</td> <td>Color to use for the background of the card</td></tr>
-</table>
+<h2>Global Functions</h2>
+<p>These global functions are available in all of your event handlers' code.</p>
+{HelpData.GlobalFunctionsTable()}
 <br/><br/>
 
-<h3>Button</h3>
-<table border=1><tr>
-<tr><th>Property</th> <th>Type</th> <th>Description</th></tr>
-<tr><td>title</td> <td>string</td> <td>The visible text that appears on the button.</td></tr>
-<tr><td>border</td> <td>bool</td> <td>Should the button show a border around it?</td></tr>
-</table>
-<br/><br/>
+{HelpData.ObjectSection("object", "All Objects", "Many properties, methods, and event handlers apply to objects of all types, so we'll list those all here just once.")}
 
-<h3>Text Field</h3>
-<table border=1><tr>
-<tr><th>Property</th> <th>Type</th> <th>Description</th></tr>
-<tr><td>text</td> <td>string</td> <td>The visible text that appears in the text field</td></tr>
-<tr><td>alignment</td> <td>(Left, Center, Right)</td> <td>Text alignment Left, Center, or Right.</td></tr>
-<tr><td>editable</td> <td>bool</td> <td>Should your users be able to edit this text field?</td></tr>
-<tr><td>multiline</td> <td>bool</td> <td>Can this text field show more than 1 line of text?</td></tr>
-</table>
-<br/><br/>
+{HelpData.ObjectSection("card", "Cards", None)}
 
-<h3>Text Label</h3>
-<table border=1><tr>
-<tr><th>Property</th> <th>Type</th> <th>Description</th></tr>
-<tr><td>text</td> <td>string</td> <td>The visible text that appears in the text field</td></tr>
-<tr><td>alignment</td> <td>(Left, Center, Right)</td> <td>Text alignment Left, Center, or Right.</td></tr>
-<tr><td>font</td> <td>font</td> <td>Which font should this label use?</td></tr>
-<tr><td>fontSize</td> <td>int</td> <td>And what font size?</td></tr>
-<tr><td>textColor</td> <td>color</td> <td>Color to use for the text</td></tr>
-</table>
-<br/><br/>
+{HelpData.ObjectSection("button", "Buttons", None)}
 
-<h3>Image</h3>
-<table border=1><tr>
-<tr><th>Property</th> <th>Type</th> <th>Description</th></tr>
-<tr><td>file</td> <td>string</td> <td>The filename of the image file to show in this image object</td></tr>
-<tr><td>fit</td> <td>(Center, Stretch, Fill)</td> <td>How to fit the original image into the image object.
-Center will just center the image, and show it full size, and only show the section that fits inside of the image
-object.  Fill will resize the image to fit it into your image object, keeping the original aspect-ratio, so it doesn't
-look stretched.  Stretch fits the image exactly into you image object by stretching it horizontally or vertically if
-needed.</td></tr>
-<tr><td>bgColor</td> <td>color</td> <td>Color to use for the background</td></tr>
-</table>
-<br/><br/>
+{HelpData.ObjectSection("textfield", "Text Fields", None)}
 
-<h3>Shape</h3>
-<table border=1><tr>
-<tr><th>Property</th> <th>Type</th> <th>Description</th></tr>
-<tr><td>penColor</td> <td>color</td> <td>Color to use for the line/edge of the shape</td></tr>
-<tr><td>penThickness</td> <td>int</td> <td>Thickness for the line/edge of the shape</td></tr>
-<tr><td>fillColor</td> <td>color</td> <td>Color to use to fill the shape (not available for line or pen shapes)</td></tr>
-<tr><td>cornerRadius</td> <td>int</td> <td>For rounded rectangles, this is the radius of the circle used for the corners.</td></tr>
-</table>
-<br/><br/>
+{HelpData.ObjectSection("textlabel", "Text Labels", None)}
+
+{HelpData.ObjectSection("image", "Images", None)}
+
+{HelpData.ObjectSection("line", "Shapes - Line and Pen", None)}
+
+{HelpData.ObjectSection("shape", "Shapes - Oval and Rectangle", None)}
+
+{HelpData.ObjectSection("round_rect", "Shapes - Round Rectangle", None)}
 
 </body>
 </html>

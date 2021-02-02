@@ -39,11 +39,11 @@ class UiCard(UiView):
             self.view.Refresh()
 
     def OnKeyDown(self, event):
-        if self.stackView.runner and "OnKeyDown" in self.model.handlers:
+        if self.stackView.runner and self.model.GetHandler("OnKeyDown"):
             self.stackView.runner.RunHandler(self.model, "OnKeyDown", event)
 
     def OnKeyUp(self, event):
-        if self.stackView.runner and "OnKeyUp" in self.model.handlers:
+        if self.stackView.runner and self.model.GetHandler("OnKeyUp"):
             self.stackView.runner.RunHandler(self.model, "OnKeyUp", event)
 
     def OnIdle(self, event):

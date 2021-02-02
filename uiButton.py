@@ -41,7 +41,7 @@ class UiButton(UiView):
 
     def OnButton(self, event):
         if not self.stackView.isEditing:
-            if self.stackView.runner and "OnClick" in self.model.handlers:
+            if self.stackView.runner and self.model.GetHandler("OnClick"):
                 self.stackView.runner.RunHandler(self.model, "OnClick", event)
 
 

@@ -112,27 +112,27 @@ class UiView(object):
         self.view.Update()
 
     def OnMouseDown(self, event):
-        if self.stackView.runner and "OnMouseDown" in self.model.handlers:
+        if self.stackView.runner and self.model.GetHandler("OnMouseDown"):
             self.stackView.runner.RunHandler(self.model, "OnMouseDown", event)
         event.Skip()
 
     def OnMouseMove(self, event):
-        if self.stackView.runner and "OnMouseMove" in self.model.handlers:
+        if self.stackView.runner and self.model.GetHandler("OnMouseMove"):
             self.stackView.runner.RunHandler(self.model, "OnMouseMove", event)
         event.Skip()
 
     def OnMouseUp(self, event):
-        if self.stackView.runner and "OnMouseUp" in self.model.handlers:
+        if self.stackView.runner and self.model.GetHandler("OnMouseUp"):
             self.stackView.runner.RunHandler(self.model, "OnMouseUp", event)
         event.Skip()
 
     def OnMouseEnter(self, event):
-        if self.stackView.runner and "OnMouseEnter" in self.model.handlers:
+        if self.stackView.runner and self.model.GetHandler("OnMouseEnter"):
             self.stackView.runner.RunHandler(self.model, "OnMouseEnter", event)
         event.Skip()
 
     def OnMouseExit(self, event):
-        if self.stackView.runner and "OnMouseExit" in self.model.handlers:
+        if self.stackView.runner and self.model.GetHandler("OnMouseExit"):
             self.stackView.runner.RunHandler(self.model, "OnMouseExit", event)
         event.Skip()
 
@@ -163,7 +163,7 @@ class UiView(object):
                     if anim["onFinished"]:
                         anim["onFinished"]()
 
-            if self.stackView.runner and "OnIdle" in self.model.handlers:
+            if self.stackView.runner and self.model.GetHandler("OnIdle"):
                 self.stackView.runner.RunHandler(self.model, "OnIdle", event, elapsedTime)
 
 
@@ -598,7 +598,7 @@ class ViewProxy(object):
         if sf.Intersects(bottom): return "Bottom"
         if sf.Intersects(left): return "Left"
         if sf.Intersects(right): return "Right"
-        return False
+        return None
 
     def AnimatePosition(self, duration, endPosition, onFinished=None):
         origPosition = wx.Point(self.position)

@@ -161,6 +161,7 @@ class DesignerFrame(wx.Frame):
                     self.filename = filename
                     self.SetTitle(self.title + ' -- ' + self.filename)
                     self.WriteConfig()
+                    self.cPanel.SetToolByName("hand")
             except:
                 wx.MessageDialog(None, str("Couldn't save file"), None, wx.OK).ShowModal()
                 pass

@@ -87,7 +87,7 @@ class TextLabelModel(ViewModel):
         self.properties["text"] = "Text"
         self.properties["alignment"] = "Left"
         self.properties["textColor"] = "black"
-        self.properties["font"] = "Helvetica"
+        self.properties["font"] = "Default"
         self.properties["fontSize"] = "18"
 
         self.propertyTypes["text"] = "string"
