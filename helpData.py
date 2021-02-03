@@ -8,15 +8,15 @@ class HelpData():
 
     @classmethod
     def ForType(cls, typeStr):
-        if typeStr == "button": return HelpDataButton
-        if typeStr == "textfield": return HelpDataTextField
-        if typeStr == "textlabel": return HelpDataTextLabel
-        if typeStr == "image": return HelpDataImage
-        if typeStr in ["line", "pen"]: return HelpDataLine
-        if typeStr in ["shape", "oval", "rect"]: return HelpDataShape
-        if typeStr == "round_rect": return HelpDataRoundRectangle
-        if typeStr == "card": return HelpDataCard
-        if typeStr == "stack": return HelpDataStack
+        if typeStr == "button":                 return HelpDataButton
+        if typeStr == "textfield":              return HelpDataTextField
+        if typeStr == "textlabel":              return HelpDataTextLabel
+        if typeStr == "image":                  return HelpDataImage
+        if typeStr in ["line", "pen"]:          return HelpDataLine
+        if typeStr in ["shape", "oval", "rect"]:return HelpDataShape
+        if typeStr == "round_rect":             return HelpDataRoundRectangle
+        if typeStr == "card":                   return HelpDataCard
+        if typeStr == "stack":                  return HelpDataStack
         return HelpDataObject
 
     @classmethod
@@ -31,24 +31,46 @@ class HelpData():
         return None
 
     @classmethod
-    def PropertyTable(cls, typeStr):
-        data = cls.ForType(typeStr)
+    def HtmlTableFromLists(cls, rows):
+        if len(rows) < 2:
+            return ""
+
         text =  "<table border='0' cellpadding='5' cellspacing='0'>\n"
-        text += "<tr><th align='left' valign='top'>Property</th> <th align='left' valign='top'>Type</th> <th align='left' valign='top'>Description</th></tr>\n"
+
+        text += "<tr>"
+        for cell in rows[0]:
+            text += "<th align='left' valign='top'>" + cell + "</th>"
+        text += "</tr>\n"
+
         bgcolors = [" bgcolor='#D0DFEE'", " bgcolor='#CCCCCC'"]
         bg = bgcolors[0]
-        hasRows = False
+        for row in rows[1:]:
+            bg = bgcolors[0 if bg==bgcolors[1] else 1]
+            text += "<tr>"
+            text += "<th align='left' valign='top'"+bg+">" + row[0] + "</th>"
+            for cell in row[1:]:
+                text += "<td align='left' valign='top'"+bg+">" + cell + "</td>"
+            text += "</tr>\n"
+        text += "</table>"
+        return text
+
+
+    @classmethod
+    def PropertyTable(cls, typeStr):
+        data = cls.ForType(typeStr)
+        rows = []
+        rows.append(["Property", "Type", "Description"])
         while data:
             for key in data.properties:
                 prop = data.properties[key]
-                bg = bgcolors[0 if bg==bgcolors[1] else 1]
-                hasRows = True
-                text += "<tr><th align='left' valign='top'"+bg+">"+key+"</th><td align='left' valign='top'"+bg+"><i>" + prop["type"] + "</i></td><td align='left' valign='top'"+bg+">" + prop["info"] + "</td></tr>\n"
+                rows.append([key, "<i>" + prop["type"] + "</i>", prop["info"]])
             data = data.parent
             if data == HelpDataObject:
                 break
-        text += "</table>"
-        return text if hasRows else "<p>No additional properties for this object type.</p>"
+        if len(rows) > 2:
+            return cls.HtmlTableFromLists(rows)
+        else:
+            return "<p>No additional properties for this object type.</p>"
 
     @classmethod
     def GetHandlerHelp(cls, obj, key):
@@ -67,85 +89,67 @@ class HelpData():
     @classmethod
     def HandlerTable(cls, typeStr):
         data = cls.ForType(typeStr)
-        text =  "<table border='0' cellpadding='5' cellspacing='0'>\n"
-        text += "<tr><th align='left' valign='top'>Event</th> <th align='left' valign='top'>Arguments</th> <th align='left' valign='top'>Description</th></tr>\n"
-        bgcolors = [" bgcolor='#D0DFEE'", " bgcolor='#CCCCCC'"]
-        bg = bgcolors[0]
-        hasRows = False
+        rows = []
+        rows.append(["Event", "Arguments", "Description"])
         while data:
             for key in data.handlers:
                 handler = data.handlers[key]
-                bg = bgcolors[0 if bg==bgcolors[1] else 1]
-                hasRows = True
                 argText = ""
                 for name, arg in handler["args"].items():
                     argText += "<b>" + name + "</b>:<i>" + arg["type"] + " </i> - " + arg["info"] + "<br/>"
-                text += "<tr><th align='left' valign='top'"+bg+">"+UiView.handlerDisplayNames[key]+"</th><td align='left' valign='top'"+bg+">" + argText + "</td><td align='left' valign='top'"+bg+">" + handler["info"] + "</td></tr>\n"
+                rows.append([UiView.handlerDisplayNames[key], argText, handler["info"]])
             data = data.parent
             if data == HelpDataObject:
                 break
-        text += "</table>"
-        return text if hasRows else "<p>No additional events for this object type.</p>"
+        if len(rows) > 2:
+            return cls.HtmlTableFromLists(rows)
+        else:
+            return "<p>No additional events for this object type.</p>"
 
     @classmethod
     def MethodTable(cls, typeStr):
         data = cls.ForType(typeStr)
-        text =  "<table border='0' cellpadding='5' cellspacing='0'>\n"
-        text += "<tr><th align='left' valign='top'>Method</th> <th align='left' valign='top'>Arguments</th> <th align='left' valign='top'>Return</th> <th align='left' valign='top'>Description</th></tr>\n"
-        bgcolors = [" bgcolor='#D0DFEE'", " bgcolor='#CCCCCC'"]
-        bg = bgcolors[0]
-        hasRows = False
+        rows = []
+        rows.append(["Method", "Arguments", "Return", "Description"])
         while data:
             for key in data.methods:
                 method = data.methods[key]
-                bg = bgcolors[0 if bg==bgcolors[1] else 1]
-                hasRows = True
                 argText = ""
                 for name, arg in method["args"].items():
                     argText += "<b>" + name + "</b>:<i>" + arg["type"] + " </i> - " + arg["info"] + "<br/>"
                 ret = method["return"] if method["return"] else ""
-                text += "<tr><th align='left' valign='top'"+bg+">"+key+"</th><td align='left' valign='top'"+bg+">" + argText + "</td><td align='left' valign='top'"+bg+"><i>" + ret + "</i></td><td align='left' valign='top'"+bg+">" + method["info"] + "</td></tr>\n"
+                rows.append([key, argText, "<i>"+ret+"</i>", method["info"]])
             data = data.parent
             if data == HelpDataObject:
                 break
-        text += "</table>"
-        return text if hasRows else "<p>No additional methods for this object type.</p>"
+        if len(rows) > 2:
+            return cls.HtmlTableFromLists(rows)
+        else:
+            return "<p>No additional methods for this object type.</p>"
 
     @classmethod
     def GlobalVariablesTable(cls):
         data = HelpDataGlobals
-        text =  "<table border='0' cellpadding='5' cellspacing='0'>\n"
-        text += "<tr><th align='left' valign='top'>Variable</th> <th align='left' valign='top'>Type</th> <th align='left' valign='top'>Description</th></tr>\n"
-        bgcolors = [" bgcolor='#D0DFEE'", " bgcolor='#CCCCCC'"]
-        bg = bgcolors[0]
-        hasRows = False
+        rows = []
+        rows.append(["Variable", "Type", "Description"])
         for key in data.variables:
             var = data.variables[key]
-            bg = bgcolors[0 if bg == bgcolors[1] else 1]
-            hasRows = True
-            text += "<tr><th align='left' valign='top'"+bg+">" + key + "</th><td align='left' valign='top'"+bg+"><i>" + var["type"] + " </i></td><td align='left' valign='top'"+bg+">" + var["info"] + "</td></tr>\n"
-        text += "</table>"
-        return text
+            rows.append([key, "<i>" + var["type"] + "</i>", var["info"]])
+        return cls.HtmlTableFromLists(rows)
 
     @classmethod
     def GlobalFunctionsTable(cls):
         data = HelpDataGlobals
-        text =  "<table border='0' cellpadding='5' cellspacing='0'>\n"
-        text += "<tr><th align='left' valign='top'>Function</th> <th align='left' valign='top'>Arguments</th> <th align='left' valign='top'>Return</th> <th align='left' valign='top'>Description</th></tr>\n"
-        bgcolors = [" bgcolor='#D0DFEE'", " bgcolor='#CCCCCC'"]
-        bg = bgcolors[0]
-        hasRows = False
+        rows = []
+        rows.append(["Method", "Arguments", "Return", "Description"])
         for key in data.functions:
             func = data.functions[key]
-            bg = bgcolors[0 if bg == bgcolors[1] else 1]
-            hasRows = True
             argText = ""
             for name, arg in func["args"].items():
                 argText += "<b>" + name + "</b>:<i>" + arg["type"] + " </i> - " + arg["info"] + "<br/>"
             ret = func["return"] if func["return"] else ""
-            text += "<tr><th align='left' valign='top'"+bg+">"+key+"</th><td align='left' valign='top'"+bg+">" + argText + "</td><td align='left' valign='top'"+bg+"><i>" + ret + "</i></td><td align='left' valign='top'"+bg+">" + func["info"] + "</td></tr>\n"
-        text += "</table>"
-        return text
+            rows.append([key, argText, "<i>"+ret+"</i>", func["info"]])
+        return cls.HtmlTableFromLists(rows)
 
     @classmethod
     def ObjectSection(cls, typeStr, title, description):
@@ -167,6 +171,22 @@ class HelpData():
 <br/><br/>
 <br/><br/>
 """
+
+
+HelpDataTypes = [["Type", "Description"],
+                 ["<i>bool</i>", "A bool or boolean value holds either True or False"],
+                 ["<i>int</i>", "An int or integer value holds any whole number, positive or negative"],
+                 ["<i>float</i>", "A float or floating point value holds any number, including with a decimal point"],
+                 ["<i>string</i>", "A string value holds text"],
+                 ["<i>object</i>", "An object value holds a CardStock object, like a button, card, or oval"],
+                 ["<i>list</i>", "A list value is a container that holds a list of other values"],
+                 ["<i>point</i>", "A point value is like a list of two numbers, x and y, that describes a location in "
+                                  "the card.  For a point variable p, you can access the x value as p[0] or p.x, and "
+                                  "the y value as either p[1] or p.y."],
+                 ["<i>size</i>", "A size value is like a list of two numbers, width and height, that describes the "
+                                 "size of an object in the card.  For a size variable s, you can access the width "
+                                 "value as s[0] or s.width, and the height value as either s[1] or s.height."],
+                 ]
 
 
 class HelpDataGlobals():

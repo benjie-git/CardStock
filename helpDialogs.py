@@ -1,7 +1,7 @@
 import wx
 import wx.html
 import version
-from helpData import HelpData
+from helpData import HelpData, HelpDataTypes
 
 
 class CardStockAbout(wx.Dialog):
@@ -149,34 +149,39 @@ available to you in your CardStock code.  Additionally, you can import other pyt
 like, to make network connections, control other software or hardware, or perform other calculations.  For more
 information on how to use CardStock, see the CardStock Help documentation in the Help menu.</p>
 <br/><br/>
-
+<hr/>
+<h2>Data Types Used in CardStock</h2>
+<p>These are the data types used by the properties, functions, and events in CardStock.</p>
+{HelpData.HtmlTableFromLists(HelpDataTypes)}
+<br/><br/>
+<hr/>
 <h2>Global Variables</h2>
 <p>Global variables are objects that are available in all of your event handler code.</p>
 {HelpData.GlobalVariablesTable()}
 <br/><br/>
-
+<hr/>
 <h2>Global Functions</h2>
 <p>These global functions are available in all of your event handlers' code.</p>
 {HelpData.GlobalFunctionsTable()}
 <br/><br/>
-
+<hr/>
 {HelpData.ObjectSection("object", "All Objects", "Many properties, methods, and event handlers apply to objects of all "
                                                  "types, so we'll list those all here just once.")}
-
+<hr/>
 {HelpData.ObjectSection("card", "Cards", None)}
-
+<hr/>
 {HelpData.ObjectSection("button", "Buttons", None)}
-
+<hr/>
 {HelpData.ObjectSection("textfield", "Text Fields", None)}
-
+<hr/>
 {HelpData.ObjectSection("textlabel", "Text Labels", None)}
-
+<hr/>
 {HelpData.ObjectSection("image", "Images", None)}
-
+<hr/>
 {HelpData.ObjectSection("line", "Shapes - Line and Pen", None)}
-
+<hr/>
 {HelpData.ObjectSection("shape", "Shapes - Oval and Rectangle", None)}
-
+<hr/>
 {HelpData.ObjectSection("round_rect", "Shapes - Round Rectangle", None)}
 
 </body>
