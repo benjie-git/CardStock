@@ -99,6 +99,10 @@ class ImageModel(ViewModel):
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "file", "fit", "bgColor", "rotation", "position", "size"]
 
+    def SetProperty(self, key, value, notify=True):
+        if key == "rotation":
+            value = value % 360
+        super().SetProperty(key, value, notify)
 
 class ImageProxy(ViewProxy):
     @property
@@ -121,3 +125,11 @@ class ImageProxy(ViewProxy):
     @rotation.setter
     def rotation(self, val):
         self._model.SetProperty("rotation", val)
+
+    def AnimateRotation(self, duration, endRotation, onFinished=None):
+        origRotation = self.rotation
+        if endRotation != origRotation:
+            offset = endRotation - origRotation
+            def f(progress):
+                self.rotation = origRotation + offset * progress
+            self._model.AddAnimation("rotation", duration, f, onFinished)

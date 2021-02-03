@@ -231,6 +231,14 @@ class LineProxy(ViewProxy):
     def penThickness(self, val):
         self._model.SetProperty("penThickness", val)
 
+    def AnimatePenThickness(self, duration, endVal, onFinished=None):
+        origVal = self.penThickness
+        if endVal != origVal:
+            offset = endVal - origVal
+            def f(progress):
+                self.penThickness = origVal + offset * progress
+            self._model.AddAnimation("penThickness", duration, f, onFinished)
+
 
 class ShapeModel(LineModel):
     def __init__(self, stackView):
@@ -282,3 +290,11 @@ class RoundRectProxy(ShapeProxy):
     @cornerRadius.setter
     def cornerRadius(self, val):
         self._model.SetProperty("cornerRadius", val)
+
+    def AnimateCornerRadius(self, duration, endVal, onFinished=None):
+        origVal = self.cornerRadius
+        if endVal != origVal:
+            offset = endVal - origVal
+            def f(progress):
+                self.cornerRadius = origVal + offset * progress
+            self._model.AddAnimation("cornerRadius", duration, f, onFinished)

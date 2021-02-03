@@ -298,7 +298,7 @@ class HelpDataObject():
                 "return": None,
                 "info": "Copies this object onto the clipboard and then deletes it, same as the Edit Menu Cut command."},
         "Clone": {"args": {},
-                  "return": "Object",
+                  "return": "object",
                   "info": "Duplicates this object, and updates the new object's name to be different than "
                           "this object's name. and returns the new object for you to store into a variable."},
         "Delete": {"args": {},
@@ -319,10 +319,10 @@ class HelpDataObject():
         "Hide": {"args": {},
                  "return": None,
                  "info": "Hides this object if it was visible."},
-        "IsTouching": {"args": {"other": {"type": "Object", "info":"The other object to compare to this one"}},
-                       "return": "Bool",
+        "IsTouching": {"args": {"other": {"type": "object", "info":"The other object to compare to this one"}},
+                       "return": "bool",
                        "info": "Returns True if this object is touching the <b>other</b> object passed into this function"},
-        "IsTouchingEdge": {"args": {"other": {"type": "Object", "info":"The other object to compare to this one"}},
+        "IsTouchingEdge": {"args": {"other": {"type": "object", "info":"The other object to compare to this one"}},
                            "return": "string",
                            "info": "Returns None if this object is not touching any edges of the <b>other</b> object passed into this function.  "
                            "If this object is touching any edges of the other object, the return value will be "
