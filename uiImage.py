@@ -126,6 +126,17 @@ class ImageProxy(ViewProxy):
     def rotation(self, val):
         self._model.SetProperty("rotation", val)
 
+    def AnimateBgColor(self, duration, endVal, onFinished=None):
+        origVal = wx.Colour(self.bgColor)
+        endVal = wx.Colour(endVal)
+        if origVal.IsOk() and endVal.IsOk() and endVal != origVal:
+            origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
+            endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
+            offsets = [endParts[i]-origParts[i] for i in range(4)]
+            def f(progress):
+                self.bgColor = [origParts[i]+offsets[i]*progress for i in range(4)]
+            self._model.AddAnimation("bgColor", duration, f, onFinished)
+
     def AnimateRotation(self, duration, endRotation, onFinished=None):
         origRotation = self.rotation
         if endRotation != origRotation:

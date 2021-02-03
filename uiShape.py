@@ -239,6 +239,17 @@ class LineProxy(ViewProxy):
                 self.penThickness = origVal + offset * progress
             self._model.AddAnimation("penThickness", duration, f, onFinished)
 
+    def AnimatePenColor(self, duration, endVal, onFinished=None):
+        origVal = wx.Colour(self.penColor)
+        endVal = wx.Colour(endVal)
+        if origVal.IsOk() and endVal.IsOk() and endVal != origVal:
+            origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
+            endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
+            offsets = [endParts[i]-origParts[i] for i in range(4)]
+            def f(progress):
+                self.penColor = [origParts[i]+offsets[i]*progress for i in range(4)]
+            self._model.AddAnimation("penColor", duration, f, onFinished)
+
 
 class ShapeModel(LineModel):
     def __init__(self, stackView):
@@ -264,6 +275,17 @@ class ShapeProxy(LineProxy):
     @fillColor.setter
     def fillColor(self, val):
         self._model.SetProperty("fillColor", val)
+
+    def AnimateFillColor(self, duration, endVal, onFinished=None):
+        origVal = wx.Colour(self.fillColor)
+        endVal = wx.Colour(endVal)
+        if origVal.IsOk() and endVal.IsOk() and endVal != origVal:
+            origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
+            endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
+            offsets = [endParts[i]-origParts[i] for i in range(4)]
+            def f(progress):
+                self.fillColor = [origParts[i]+offsets[i]*progress for i in range(4)]
+            self._model.AddAnimation("fillColor", duration, f, onFinished)
 
 
 class RoundRectModel(ShapeModel):
