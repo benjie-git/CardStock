@@ -42,6 +42,7 @@ class StackWindow(wx.Window):
         self.globalCursor = None
         self.lastMousePos = wx.Point(0,0)
         self.runner = None
+        self.filename = None
 
         if not stackModel:
             stackModel = StackModel(self)
@@ -63,9 +64,6 @@ class StackWindow(wx.Window):
 
     def Cleanup(self, event):
         if event.GetEventObject() == self:
-            if hasattr(self, "menu"):
-                self.menu.Destroy()
-                del self.menu
             if self.timer:
                 self.timer.Stop()
         event.Skip()
@@ -74,11 +72,12 @@ class StackWindow(wx.Window):
         for ui in self.uiViewCachePendingDelete.copy():
             self.cacheView.RemoveChild(ui.view)
             ui.DestroyView()
-            self.uiViewCache.pop(ui.model)
+            if ui.model in self.uiViewCache:
+                self.uiViewCache.pop(ui.model)
             self.uiViewCachePendingDelete.remove(ui)
 
     def RefreshNow(self):
-        self.Refresh()
+        self.Refresh(True)
         self.Update()
         self.noIdling = True
         wx.GetApp().Yield()
@@ -128,6 +127,8 @@ class StackWindow(wx.Window):
                 self.uiViews.remove(ui)
                 ui.view.Reparent(self.cacheView)
                 self.uiViewCache[ui.model] = ui
+                if ui.doNotCache:
+                    self.uiViewCachePendingDelete.append(ui)
 
     def CreateViews(self, cardModel):
         self.uiCard.SetModel(cardModel)
@@ -164,8 +165,7 @@ class StackWindow(wx.Window):
                 cardModel = self.stackModel.GetCardModel(index)
                 self.CreateViews(cardModel)
                 self.SelectUiView(self.uiCard)
-                self.Refresh()
-                self.Update()
+                self.Refresh(True)
                 if self.designer:
                     self.designer.UpdateCardList()
                 if not self.isEditing and self.runner:
@@ -283,11 +283,14 @@ class StackWindow(wx.Window):
         uiView = None
 
         if model and model in self.uiViewCache:
-            uiView = self.uiViewCache.pop(model)
-            if uiView in self.uiViewCachePendingDelete:
-                self.uiViewCachePendingDelete.remove(uiView)
-            uiView.view.Reparent(self)
-        else:
+            uiView = self.uiViewCache[model]
+            if uiView not in self.uiViewCachePendingDelete:
+                uiView = self.uiViewCache.pop(model)
+                uiView.view.Reparent(self)
+            else:
+                uiView = None
+
+        if not uiView:
             if type == "button":
                 uiView = UiButton(self.uiCard, self, model)
             elif type == "textfield" or type == "field":
@@ -524,8 +527,8 @@ class StackWindow(wx.Window):
         self.command_processor.Undo()
         if not self.command_processor.CanUndo():
             self.stackModel.SetDirty(False)
-        self.Refresh()
+        self.Refresh(True)
 
     def Redo(self):
         self.command_processor.Redo()
-        self.Refresh()
+        self.Refresh(True)

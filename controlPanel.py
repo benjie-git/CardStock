@@ -110,7 +110,7 @@ class ControlPanel(wx.Panel):
 
         self.panelHelp = wx.html.HtmlWindow(self, size=(200, 70), style=wx.BORDER_SUNKEN)
 
-        self.handlerPicker = wx.Choice(parent=self, id=wx.ID_ANY)
+        self.handlerPicker = wx.Choice(parent=self)
         self.handlerPicker.Enable(False)
         self.handlerPicker.Bind(wx.EVT_CHOICE, self.OnHandlerChoice)
         self.currentHandler = None

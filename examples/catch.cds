@@ -5,10 +5,6 @@
     "size": [
       598,
       400
-    ],
-    "speed": [
-      0,
-      0
     ]
   },
   "cards": [
@@ -20,57 +16,9 @@
       },
       "properties": {
         "name": "main",
-        "speed": [
-          0,
-          0
-        ],
         "bgColor": "white"
       },
       "childModels": [
-        {
-          "type": "image",
-          "handlers": {},
-          "properties": {
-            "name": "goal",
-            "size": [
-              80,
-              80
-            ],
-            "position": [
-              86,
-              155
-            ],
-            "speed": [
-              0,
-              0
-            ],
-            "file": "",
-            "fit": "Scale",
-            "bgColor": "green"
-          }
-        },
-        {
-          "type": "image",
-          "handlers": {},
-          "properties": {
-            "name": "guy",
-            "size": [
-              38,
-              36
-            ],
-            "position": [
-              258,
-              105
-            ],
-            "speed": [
-              0,
-              0
-            ],
-            "file": "",
-            "fit": "Scale",
-            "bgColor": "red"
-          }
-        },
         {
           "type": "textlabel",
           "handlers": {},
@@ -81,12 +29,8 @@
               28
             ],
             "position": [
-              95,
-              19
-            ],
-            "speed": [
-              0,
-              0
+              95.0,
+              19.0
             ],
             "text": "0",
             "alignment": "Left",
@@ -105,12 +49,8 @@
               30
             ],
             "position": [
-              25,
-              18
-            ],
-            "speed": [
-              0,
-              0
+              25.0,
+              18.0
             ],
             "text": "Score:",
             "alignment": "Left",
@@ -118,6 +58,70 @@
             "font": "Mono",
             "fontSize": "18"
           }
+        },
+        {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "guy",
+            "size": [
+              44,
+              44
+            ],
+            "position": [
+              289.0,
+              116.0
+            ],
+            "originalSize": [
+              41,
+              36
+            ],
+            "penColor": "#000000",
+            "penThickness": 1,
+            "fillColor": "red"
+          },
+          "points": [
+            [
+              1.0,
+              1.0
+            ],
+            [
+              40.0,
+              35.0
+            ]
+          ]
+        },
+        {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "goal",
+            "size": [
+              118,
+              118
+            ],
+            "position": [
+              100.0,
+              120.0
+            ],
+            "originalSize": [
+              118,
+              118
+            ],
+            "penColor": "#000000",
+            "penThickness": 1,
+            "fillColor": "green"
+          },
+          "points": [
+            [
+              1.0,
+              1.0
+            ],
+            [
+              117.0,
+              117.0
+            ]
+          ]
         }
       ]
     }

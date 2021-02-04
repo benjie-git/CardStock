@@ -474,9 +474,6 @@ class HelpDataImage():
                         "the image full size, centered in the image object, and clipped at the image object border. "
                         "Stretch sizes and stretches the image to fit exactly into the image object. Fill sizes the "
                         "image to fit inside the image object, while keeping the original image aspect ratio."},
-        "bgColor": {"type": "string",
-                    "info": "The color used for the background of this image object.  This can be a color word like "
-                            "red, or an HTML color like #FF0000 for pure red."},
         "rotation": {"type": "float",
                      "info": "This is the angle in degrees clockwise to rotate this image.  0 is upright."},
     }

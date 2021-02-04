@@ -15,19 +15,18 @@ class UiImage(UiView):
             model = ImageModel(stackView)
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("image_"), False)
 
-        container = wx.Window(parent.view)
+        container = generator.TransparentWindow(parent.view)
         container.Enable(True)
-        container.SetBackgroundColour(model.GetProperty("bgColor"))
-        self.origBitmap = self.GetImg(model)
+        self.stackView = stackView
+        self.origImage = self.GetImg(model)
         rotatedBitmap = self.RotatedBitmap(model)
         self.imgView = wx.StaticBitmap(container, bitmap=rotatedBitmap)
         self.imgView.Enable(True)
-        self.imgView.SetBackgroundColour(None)
         self.imgView.SetScaleMode(self.AspectStrToInt(model.GetProperty("fit")))
         self.imgView.Show(model.GetProperty("file") != "")
+        self.BindEvents(self.imgView)
 
         super().__init__(parent, stackView, model, container)
-        self.BindEvents(self.imgView)
 
     def AspectStrToInt(self, str):
         if str == "Center":
@@ -41,42 +40,43 @@ class UiImage(UiView):
 
     def GetImg(self, model):
         file = model.GetProperty("file")
+        if file and self.stackView.filename:
+            dir = os.path.dirname(self.stackView.filename)
+            file = os.path.join(dir, file)
         if os.path.exists(file):
-            bmp = wx.Image(file, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+            img = wx.Image(file, wx.BITMAP_TYPE_ANY)
         else:
-            bmp = wx.Image(20,20, True).ConvertToBitmap()
-        return bmp
+            img = wx.Image(20,20, True)
+        return img
 
     def RotatedBitmap(self, model):
-        img = self.origBitmap.ConvertToImage()
+        img = self.origImage
         val = float(model.GetProperty("rotation") * -pi/180)  # make positive value rotate clockwise
         img = img.Rotate(val, list(model.GetProperty("size")/2))   # use orignal center
-        # img = img.Scale(self._W, self._H)  ## use original size
-        return img.ConvertToBitmap()
+        return img.ConvertToBitmap(32)
 
     def OnResize(self, event):
         super().OnResize(event)
         self.imgView.SetSize(self.view.GetSize())
-        event.Skip()
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "file":
-            self.origBitmap = self.GetImg(self.model)
+            self.origImage = self.GetImg(self.model)
             rotatedBitmap = self.RotatedBitmap(model)
             self.imgView.SetBitmap(rotatedBitmap)
             self.imgView.SetSize(self.view.GetSize())
             self.imgView.Show(model.GetProperty(key) != "")
+            self.view.Refresh(True)
         elif key == "fit":
             self.imgView.SetScaleMode(self.AspectStrToInt(model.GetProperty(key)))
-        elif key == "bgColor":
-            self.view.SetBackgroundColour(model.GetProperty(key))
-            self.view.Refresh()
+            self.view.Refresh(True)
         elif key == "rotation":
             if model.GetProperty("file") != "":
                 rotatedBitmap = self.RotatedBitmap(model)
                 self.imgView.SetBitmap(rotatedBitmap)
                 self.imgView.SetSize(self.view.GetSize())
+                self.view.Refresh(True)
 
 
 class ImageModel(ViewModel):
@@ -87,17 +87,15 @@ class ImageModel(ViewModel):
 
         self.properties["file"] = ""
         self.properties["fit"] = "Scale"
-        self.properties["bgColor"] = ""
         self.properties["rotation"] = 0
 
         self.propertyTypes["file"] = "string"
         self.propertyTypes["fit"] = "choice"
-        self.propertyTypes["bgColor"] = "color"
         self.propertyChoices["fit"] = ["Center", "Stretch", "Fill"]
         self.propertyTypes["rotation"] = "int"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "file", "fit", "bgColor", "rotation", "position", "size"]
+        self.propertyKeys = ["name", "file", "fit", "rotation", "position", "size"]
 
     def SetProperty(self, key, value, notify=True):
         if key == "rotation":
@@ -113,29 +111,11 @@ class ImageProxy(ViewProxy):
         self._model.SetProperty("file", val)
 
     @property
-    def bgColor(self):
-        return self._model.GetProperty("bgColor")
-    @bgColor.setter
-    def bgColor(self, val):
-        self._model.SetProperty("bgColor", val)
-
-    @property
     def rotation(self):
         return self._model.GetProperty("rotation")
     @rotation.setter
     def rotation(self, val):
         self._model.SetProperty("rotation", val)
-
-    def AnimateBgColor(self, duration, endVal, onFinished=None):
-        origVal = wx.Colour(self.bgColor)
-        endVal = wx.Colour(endVal)
-        if origVal.IsOk() and endVal.IsOk() and endVal != origVal:
-            origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
-            endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
-            offsets = [endParts[i]-origParts[i] for i in range(4)]
-            def f(progress):
-                self.bgColor = [origParts[i]+offsets[i]*progress for i in range(4)]
-            self._model.AddAnimation("bgColor", duration, f, onFinished)
 
     def AnimateRotation(self, duration, endRotation, onFinished=None):
         origRotation = self.rotation

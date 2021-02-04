@@ -12,32 +12,49 @@ class UiButton(UiView):
             model = ButtonModel(stackView)
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("button_"), False)
 
-        button = self.CreateButton(parent, model)
+        container = generator.TransparentWindow(parent.view)
+        container.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
+        container.Enable(True)
+        container.SetCursor(wx.Cursor(self.GetCursor()))
 
-        button.SetCursor(wx.Cursor())
-        super().__init__(parent, stackView, model, button)
+        self.stackView = stackView
+        self.button = self.CreateButton(container, model)
+
+        super().__init__(parent, stackView, model, container)
 
     def CreateButton(self, parent, model):
-        return wx.Button(parent=parent.view, label="Button",
+        button = wx.Button(parent=parent, label="Button",
                          style=(wx.BORDER_DEFAULT if model.GetProperty("border") else wx.BORDER_NONE))
-
-    def SetView(self, view):
-        super().SetView(view)
-        view.SetLabel(self.model.GetProperty("title"))
-        view.Bind(wx.EVT_BUTTON, self.OnButton)
+        button.SetLabel(model.GetProperty("title"))
+        button.Bind(wx.EVT_BUTTON, self.OnButton)
+        button.SetCursor(wx.Cursor(self.GetCursor()))
+        self.BindEvents(button)
+        return button
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "title":
-            self.view.SetLabel(str(self.model.GetProperty(key)))
+            self.button.SetLabel(str(self.model.GetProperty(key)))
         elif key == "border":
             self.stackView.SelectUiView(None)
-            self.view.Destroy()
-            newButton = self.CreateButton(self.parent, self.model)
-            self.SetView(newButton)
+            self.view.RemoveChild(self.button)
+            self.button.Destroy()
+            self.button = None
+            self.doNotCache = True
             self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
-            self.stackView.SelectUiView(self)
+            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.model))
 
+    def OnResize(self, event):
+        super().OnResize(event)
+        if self.button:
+            if wx.Platform == '__WXMAC__':
+                self.button.SetPosition([0, 0])
+                self.button.SetSize(self.view.GetSize() - [3,2])
+            else:
+                self.button.SetSize(self.view.GetSize())
+
+    def OnFocus(self, event):
+        self.field.SetFocus()
 
     def OnButton(self, event):
         if not self.stackView.isEditing:

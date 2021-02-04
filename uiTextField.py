@@ -13,9 +13,14 @@ class UiTextField(UiView):
             model = TextFieldModel(stackView)
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("field_"), False)
 
-        field = self.CreateField(parent, stackView, model)
+        container = generator.TransparentWindow(parent.view)
+        container.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
+        container.Enable(True)
 
-        super().__init__(parent, stackView, model, field)
+        self.stackView = stackView
+        self.field = self.CreateField(container, stackView, model)
+
+        super().__init__(parent, stackView, model, container)
 
     def CreateField(self, parent, stackView, model):
         text = model.GetProperty("text")
@@ -26,7 +31,7 @@ class UiTextField(UiView):
             alignment = wx.TE_CENTER
 
         if model.GetProperty("multiline"):
-            field = stc.StyledTextCtrl(parent=parent.view, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
+            field = stc.StyledTextCtrl(parent=parent, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
             field.SetUseHorizontalScrollBar(False)
             field.SetWrapMode(stc.STC_WRAP_WORD)
             field.SetMarginWidth(1, 0)
@@ -34,10 +39,12 @@ class UiTextField(UiView):
             field.Bind(stc.EVT_STC_CHANGE, self.OnTextChanged)
             field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
         else:
-            field = wx.TextCtrl(parent=parent.view, id=wx.ID_ANY, value="TextField", style=wx.TE_PROCESS_ENTER | alignment)
+            field = wx.TextCtrl(parent=parent, value="TextField", style=wx.TE_PROCESS_ENTER | alignment)
             field.Bind(wx.EVT_TEXT, self.OnTextChanged)
             field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
             field.ChangeValue(text)
+
+        self.BindEvents(field)
 
         if stackView.isEditing:
             field.SetEditable(False)
@@ -47,7 +54,6 @@ class UiTextField(UiView):
 
     def SetView(self, view):
         super().SetView(view)
-        view.ChangeValue(self.model.GetProperty("text"))
 
     def GetCursor(self):
         if self.stackView.isEditing:
@@ -55,29 +61,35 @@ class UiTextField(UiView):
         else:
             return None
 
+    def OnFocus(self, event):
+        self.field.SetFocus()
+
     def OnResize(self, event):
         super().OnResize(event)
-        if self.model.GetProperty("multiline"):
-            self.view.SetScrollWidth(self.view.GetSize().Width-6)
+        if self.field:
+            self.field.SetSize(self.view.GetSize())
+            if self.model.GetProperty("multiline"):
+                self.field.SetScrollWidth(self.field.GetSize().Width-6)
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "text":
-            wasEditable = self.view.IsEditable()
+            wasEditable = self.field.IsEditable()
             if not wasEditable:
-                self.view.SetEditable(True)
-            self.view.ChangeValue(str(self.model.GetProperty(key)))
-            self.view.SetEditable(wasEditable)
-            self.view.Refresh()
+                self.field.SetEditable(True)
+            self.field.ChangeValue(str(self.model.GetProperty(key)))
+            self.field.SetEditable(wasEditable)
+            self.field.Refresh(True)
         elif key == "alignment" or key == "multiline":
             self.stackView.SelectUiView(None)
-            self.view.Destroy()
-            newField = self.CreateField(self.parent, self.stackView, self.model)
-            self.SetView(newField)
+            self.view.RemoveChild(self.field)
+            self.field.Destroy()
+            self.field = None
+            self.doNotCache = True
             self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
-            self.stackView.SelectUiView(self)
+            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.model))
         elif key == "selectAll":
-            self.view.SelectAll()
+            self.field.SelectAll()
 
     def OnTextEnter(self, event):
         if not self.stackView.isEditing:
@@ -86,7 +98,7 @@ class UiTextField(UiView):
 
     def OnTextChanged(self, event):
         if not self.stackView.isEditing:
-            self.model.SetProperty("text", self.view.GetValue(), notify=False)
+            self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
             if self.stackView.runner and self.model.GetHandler("OnTextChanged"):
                 self.stackView.runner.RunHandler(self.model, "OnTextChanged", event)
 

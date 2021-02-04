@@ -78,8 +78,7 @@ class UiShape(UiView):
         super().OnPropertyChanged(model, key)
         if key in ["shape", "penColor", "penThickness", "fillColor", "cornerRadius"]:
             # self.needsUpdate = True
-            self.view.Refresh()
-            self.view.Update()
+            self.view.Refresh(True)
 
     @staticmethod
     def CreateModelForType(stackView, name):

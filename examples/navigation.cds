@@ -30,8 +30,8 @@
               21
             ],
             "position": [
-              278,
-              226
+              278.0,
+              226.0
             ],
             "title": "-",
             "border": true
@@ -49,8 +49,8 @@
               21
             ],
             "position": [
-              278,
-              146
+              278.0,
+              146.0
             ],
             "title": "+",
             "border": true
@@ -68,8 +68,8 @@
               21
             ],
             "position": [
-              278,
-              306
+              278.0,
+              306.0
             ],
             "title": "*",
             "border": true
@@ -87,8 +87,8 @@
               21
             ],
             "position": [
-              278,
-              386
+              278.0,
+              386.0
             ],
             "title": "/",
             "border": true
@@ -104,8 +104,8 @@
               53
             ],
             "position": [
-              54,
-              40
+              54.0,
+              40.0
             ],
             "text": "Choose a Math Operation",
             "alignment": "Left",
@@ -124,8 +124,8 @@
               43
             ],
             "position": [
-              57,
-              100
+              57.0,
+              100.0
             ],
             "text": "To Practice",
             "alignment": "Left",
@@ -158,8 +158,8 @@
               21
             ],
             "position": [
-              11,
-              12
+              11.0,
+              12.0
             ],
             "title": "Home",
             "border": true
@@ -177,8 +177,8 @@
               22
             ],
             "position": [
-              198,
-              202
+              198.0,
+              202.0
             ],
             "text": "0",
             "alignment": "Right",
@@ -196,8 +196,8 @@
               25
             ],
             "position": [
-              213,
-              158
+              213.0,
+              158.0
             ],
             "text": "+",
             "alignment": "Left",
@@ -216,8 +216,8 @@
               20
             ],
             "position": [
-              242,
-              159
+              242.0,
+              159.0
             ],
             "text": "0",
             "alignment": "Right",
@@ -236,8 +236,8 @@
               20
             ],
             "position": [
-              242,
-              123
+              242.0,
+              123.0
             ],
             "text": "0",
             "alignment": "Right",
@@ -270,8 +270,8 @@
               21
             ],
             "position": [
-              11,
-              12
+              11.0,
+              12.0
             ],
             "title": "Home",
             "border": true
@@ -289,8 +289,8 @@
               22
             ],
             "position": [
-              198,
-              203
+              198.0,
+              203.0
             ],
             "text": "0",
             "alignment": "Right",
@@ -308,8 +308,8 @@
               25
             ],
             "position": [
-              213,
-              158
+              213.0,
+              158.0
             ],
             "text": "-",
             "alignment": "Left",
@@ -328,8 +328,8 @@
               20
             ],
             "position": [
-              242,
-              159
+              242.0,
+              159.0
             ],
             "text": "0",
             "alignment": "Right",
@@ -348,8 +348,8 @@
               20
             ],
             "position": [
-              242,
-              123
+              242.0,
+              123.0
             ],
             "text": "0",
             "alignment": "Right",
@@ -382,8 +382,8 @@
               21
             ],
             "position": [
-              11,
-              12
+              11.0,
+              12.0
             ],
             "title": "Home",
             "border": true
@@ -401,8 +401,8 @@
               22
             ],
             "position": [
-              198,
-              203
+              198.0,
+              203.0
             ],
             "text": "0",
             "alignment": "Right",
@@ -420,8 +420,8 @@
               25
             ],
             "position": [
-              213,
-              158
+              213.0,
+              158.0
             ],
             "text": "X",
             "alignment": "Left",
@@ -440,8 +440,8 @@
               20
             ],
             "position": [
-              242,
-              159
+              242.0,
+              159.0
             ],
             "text": "0",
             "alignment": "Right",
@@ -460,8 +460,8 @@
               20
             ],
             "position": [
-              242,
-              123
+              242.0,
+              123.0
             ],
             "text": "0",
             "alignment": "Right",
@@ -494,8 +494,8 @@
               21
             ],
             "position": [
-              11,
-              12
+              11.0,
+              12.0
             ],
             "title": "Home",
             "border": true
@@ -513,8 +513,8 @@
               22
             ],
             "position": [
-              198,
-              203
+              198.0,
+              203.0
             ],
             "text": "0",
             "alignment": "Right",
@@ -532,8 +532,8 @@
               25
             ],
             "position": [
-              213,
-              158
+              213.0,
+              158.0
             ],
             "text": "/",
             "alignment": "Left",
@@ -552,8 +552,8 @@
               20
             ],
             "position": [
-              242,
-              159
+              242.0,
+              159.0
             ],
             "text": "0",
             "alignment": "Right",
@@ -572,8 +572,8 @@
               20
             ],
             "position": [
-              242,
-              123
+              242.0,
+              123.0
             ],
             "text": "0",
             "alignment": "Right",
@@ -587,7 +587,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "PlaySound(\"yay.wav\")\nWait(3)\nGotoCard(lastCardName)\n"
+        "OnShowCard": "PlaySound(\"yay.wav\")\nWait(2)\nGotoCard(lastCardName)\n"
       },
       "properties": {
         "name": "correct",
@@ -604,8 +604,8 @@
               49
             ],
             "position": [
-              41,
-              58
+              41.0,
+              58.0
             ],
             "text": "Good Job!!!",
             "alignment": "Center",
@@ -624,8 +624,8 @@
               53
             ],
             "position": [
-              38,
-              117
+              38.0,
+              117.0
             ],
             "text": "You did it!",
             "alignment": "Center",

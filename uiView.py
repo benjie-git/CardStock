@@ -15,6 +15,7 @@ class UiView(object):
         self.parent = parent
         self.view = view
         self.model = None
+        self.doNotCache = False
         self.SetModel(model)
 
         self.isSelected = False
@@ -33,8 +34,6 @@ class UiView(object):
         view.Bind(wx.EVT_KEY_DOWN, self.FwdOnKeyDown)
         view.Bind(wx.EVT_KEY_UP, self.FwdOnKeyUp)
 
-        view.Bind(wx.EVT_SIZE, self.OnResize)
-
     def FwdOnMouseDown( self, event): self.stackView.OnMouseDown( self, event)
     def FwdOnMouseMove( self, event): self.stackView.OnMouseMove( self, event)
     def FwdOnMouseUp(   self, event): self.stackView.OnMouseUp(   self, event)
@@ -46,20 +45,23 @@ class UiView(object):
     def SetView(self, view):
         self.view = view
         self.BindEvents(view)
+        view.Bind(wx.EVT_SIZE, self.OnResize)
 
-        if self.GetCursor():
-            self.view.SetCursor(wx.Cursor(self.GetCursor()))
-
-        viewSize = list(self.view.GetSize())
-        self.selectionBox = generator.TransparentWindow(parent=self.view, id=wx.ID_ANY, pos=(0,0), size=viewSize)
+        viewSize = self.view.GetSize()
+        self.selectionBox = generator.TransparentWindow(parent=self.view, size=viewSize)
         self.selectionBox.Bind(wx.EVT_PAINT, self.OnPaintSelectionBox)
         self.selectionBox.Enable(False)
         self.selectionBox.Hide()
 
-        self.resizeBox = wx.Window(parent=self.view, id=wx.ID_ANY, pos=(viewSize[0]-10, viewSize[1]-10), size=(10,10), style=0)
+        self.resizeBox = wx.Window(parent=self.view, pos=wx.Point(viewSize.x-10, viewSize.y-10), size=wx.Size(10,10), style=0)
         self.resizeBox.SetBackgroundColour('Blue')
         self.resizeBox.Enable(False)
         self.resizeBox.Hide()
+
+        if self.GetCursor():
+            self.view.SetCursor(wx.Cursor(self.GetCursor()))
+            self.selectionBox.SetCursor(wx.Cursor(self.GetCursor()))
+            self.resizeBox.SetCursor(wx.Cursor(self.GetCursor()))
 
         mSize = self.model.GetProperty("size")
         if mSize[0] > 0 and mSize[1] > 0:
@@ -79,9 +81,11 @@ class UiView(object):
         if key == "size":
             s = self.model.GetProperty(key)
             self.view.SetSize(s)
+            self.view.Refresh(True)
         elif key == "position":
             pos = self.model.GetProperty(key)
             self.view.SetPosition([int(pos[0]), int(pos[1])])
+            self.view.Refresh(True)
         elif key == "hidden":
             self.view.Show(not self.model.GetProperty(key))
 
@@ -91,12 +95,14 @@ class UiView(object):
         x,y = self.view.GetPosition()
         if self.resizeBox:
             self.resizeBox.SetRect((w-10, h-10, 10, 10))
-        event.Skip()
 
     def DestroyView(self):
+        self.view.RemoveChild(self.selectionBox)
         self.selectionBox.Destroy()
-        if self.resizeBox:
-            self.resizeBox.Destroy()
+        self.selectionBox = None
+        self.view.RemoveChild(self.resizeBox)
+        self.resizeBox.Destroy()
+        self.resizeBox = None
         self.view.Destroy()
         self.view = None
 
@@ -108,8 +114,7 @@ class UiView(object):
         self.selectionBox.Show(selected)
         if self.resizeBox:
             self.resizeBox.Show(selected)
-        self.view.Refresh()
-        self.view.Update()
+        self.view.Refresh(True)
 
     def OnMouseDown(self, event):
         if self.stackView.runner and self.model.GetHandler("OnMouseDown"):
@@ -333,14 +338,15 @@ class ViewModel(object):
         for k, v in data["handlers"].items():
             self.handlers[k] = v
         for k, v in data["properties"].items():
-            if self.propertyTypes[k] == "point":
-                self.SetProperty(k, wx.Point(v), False)
-            elif self.propertyTypes[k] == "floatpoint":
-                self.SetProperty(k, wx.RealPoint(v[0], v[1]), False)
-            elif self.propertyTypes[k] == "size":
-                self.SetProperty(k, wx.Size(v), False)
-            else:
-                self.SetProperty(k, v, False)
+            if k in self.propertyTypes:
+                if self.propertyTypes[k] == "point":
+                    self.SetProperty(k, wx.Point(v), False)
+                elif self.propertyTypes[k] == "floatpoint":
+                    self.SetProperty(k, wx.RealPoint(v[0], v[1]), False)
+                elif self.propertyTypes[k] == "size":
+                    self.SetProperty(k, wx.Size(v), False)
+                else:
+                    self.SetProperty(k, v, False)
 
     def SetFromModel(self, model):
         for k, v in model.handlers.items():
@@ -465,7 +471,7 @@ class ViewModel(object):
                                 "function": func,
                                 "onFinished": onFinished})
 
-    def CancelAllAnimations(self):
+    def StopAnimations(self):
         self.animations = []
 
     def DeduplicateName(self, name, existingNames):
@@ -628,6 +634,9 @@ class ViewProxy(object):
                 self.size = [origSize.width + offset.width * progress,
                                origSize.height + offset.height * progress]
             self._model.AddAnimation("size", duration, f, onFinished)
+
+    def StopAnimations(self):
+        self._model.StopAnimations()
 
 
 # CardStock-specific Point, Size, RealPoint subclasses

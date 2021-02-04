@@ -40,8 +40,6 @@ class UiGroup(UiView):
     def OnResize(self, event):
         super().OnResize(event)
         self.model.ResizeChildModels()
-        self.view.Refresh()
-        self.view.Update()
 
     def OnPaintGroup(self, event):
         if self.stackView.isEditing:
@@ -60,11 +58,13 @@ class UiGroup(UiView):
     def RemoveChildViews(self):
         for ui in self.uiViews.copy():
             self.view.RemoveChild(ui.view)
+            ui.view.Destroy()
             self.uiViews.remove(ui)
 
     def RebuildViews(self):
         for ui in self.uiViews.copy():
             self.view.RemoveChild(ui.view)
+            ui.view.Destroy()
             self.uiViews.remove(ui)
         for m in self.model.childModels.copy():
             uiView = generator.StackGenerator.UiViewFromModel(self, self.stackView, m)

@@ -5,7 +5,7 @@ import math
 
 MOVE_THRESHOLD = 5
 RESIZE_BOX_SIZE = 10
-BUTTON_OFFSET_HACK = 5
+MAC_BUTTON_OFFSET_HACK = wx.Point(6,4)
 
 
 # quick function to return the manhattan distance between two points, as lists
@@ -87,13 +87,13 @@ class HandTool(BaseTool):
                 self.targetUi = self.targetUi.parent
 
         self.absOrigin = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        self.relOrigin = self.targetUi.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        if uiView.model.type == "button" and uiView.model.GetProperty("border"):
-            self.absOrigin.x -= BUTTON_OFFSET_HACK
-            self.absOrigin.y -= BUTTON_OFFSET_HACK
-            self.relOrigin.x -= BUTTON_OFFSET_HACK
-            self.relOrigin.y -= BUTTON_OFFSET_HACK
-        self.targetUi.view.CaptureMouse()
+        self.relOrigin = event.GetPosition()
+        if wx.Platform == '__WXMAC__' and uiView.model.type == "button" and uiView.model.GetProperty("border"):
+            self.absOrigin.x -= MAC_BUTTON_OFFSET_HACK.x
+            self.absOrigin.y -= MAC_BUTTON_OFFSET_HACK.y
+            self.relOrigin.x -= MAC_BUTTON_OFFSET_HACK.x
+            self.relOrigin.y -= MAC_BUTTON_OFFSET_HACK.y
+        event.GetEventObject().CaptureMouse()
 
         if self.targetUi.isSelected and self.shiftDown:
             self.deselectTarget = True
@@ -107,23 +107,20 @@ class HandTool(BaseTool):
             selected.append(self.targetUi)
         for ui in selected:
             frame = ui.model.GetFrame()
-            if ui.model.type == "button" and uiView.model.GetProperty("border"):
+            if wx.Platform == '__WXMAC__' and ui.model.type == "button" and uiView.model.GetProperty("border"):
                 # Button views are bigger than specified???
-                frame.Position.x -= BUTTON_OFFSET_HACK
-                frame.Position.y -= BUTTON_OFFSET_HACK
+                frame.Position.x -= MAC_BUTTON_OFFSET_HACK.x
+                frame.Position.y -= MAC_BUTTON_OFFSET_HACK.y
             self.oldFrames[ui.model.GetProperty("name")] = frame
-
 
     def OnMouseMove(self, uiView, event):
         if self.mode:
             pos = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
             origSize = self.oldFrames[self.targetUi.model.GetProperty("name")].Size
-            if uiView.model.type == "button" and uiView.model.GetProperty("border"):
+            if wx.Platform == '__WXMAC__' and uiView.model.type == "button" and uiView.model.GetProperty("border"):
                 # Button views are bigger than specified???
-                pos.x -= BUTTON_OFFSET_HACK
-                pos.y -= BUTTON_OFFSET_HACK
-                origSize.Width += BUTTON_OFFSET_HACK * 2
-                origSize.Height += BUTTON_OFFSET_HACK * 2
+                pos.x -= MAC_BUTTON_OFFSET_HACK.x
+                pos.y -= MAC_BUTTON_OFFSET_HACK.y
 
             if self.mode == "click":
                 if dist(list(pos), list(self.absOrigin)) > MOVE_THRESHOLD:
@@ -172,14 +169,15 @@ class HandTool(BaseTool):
         self.mode = "resize"
 
     def OnMouseUp(self, uiView, event):
-        if self.targetUi and self.targetUi.view.HasCapture():
-            self.targetUi.view.ReleaseMouse()
+        if event.GetEventObject().HasCapture():
+            event.GetEventObject().ReleaseMouse()
 
         if self.mode == "click":
             if self.deselectTarget and self.targetUi.isSelected:
                 self.stackView.SelectUiView(self.targetUi, True)
         elif self.mode == "box":
             self.stackView.RemoveChild(self.selectionBox)
+            self.selectionBox.Destroy()
             self.selectionBox = None
         elif self.mode == "move":
             pos = self.targetUi.view.GetPosition()

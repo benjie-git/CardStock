@@ -1,5 +1,6 @@
 import traceback
 import sys
+import os
 import wx
 from wx.adv import Sound
 from time import sleep, time
@@ -11,6 +12,7 @@ class Runner():
         self.statusBar = sb
         self.cardVarKeys = []  # store names of views on the current card, to remove from clientVars before setting up the next card
         self.pressedKeys = []
+        self.soundCache = {}
         self.timers = []
 
         self.clientVars = {
@@ -185,6 +187,7 @@ class Runner():
             uiView.view.SetFocus()
 
     def StopRunning(self):
+        self.soundCache = {}
         Sound.Stop()
 
     def BroadcastMessage(self, message):
@@ -231,7 +234,16 @@ class Runner():
         return (r == wx.ID_YES)
 
     def PlaySound(self, filepath):
-        Sound.PlaySound(filepath)
+        if filepath and self.stackView.filename:
+            dir = os.path.dirname(self.stackView.filename)
+            filepath = os.path.join(dir, filepath)
+        if filepath in self.soundCache:
+            s = self.soundCache[filepath]
+        else:
+            s = Sound(filepath)
+            self.soundCache[filepath] = s
+        if s.IsOk():
+            s.Play()
 
     def StopSound(self):
         Sound.Stop()

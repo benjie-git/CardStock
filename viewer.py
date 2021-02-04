@@ -54,6 +54,7 @@ class ViewerFrame(wx.Frame):
                 self.stackView.SetStackModel(self.stackView.stackModel)
                 self.SetClientSize(self.stackView.stackModel.GetProperty("size"))
                 self.filename = filename
+                self.stackView.filename = filename
 
     def SaveFile(self):
         if self.filename:

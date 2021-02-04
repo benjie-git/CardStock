@@ -73,7 +73,7 @@ class DesignerFrame(wx.Frame):
 
         toolbar.AddStretchableSpace()
 
-        self.cardPicker = wx.Choice(parent=toolbar, id=wx.ID_ANY, choices=["Card 1", "Card 2"], size=(200,20))
+        self.cardPicker = wx.Choice(parent=toolbar, choices=["Card 1", "Card 2"], size=(200,20))
         self.cardPicker.Bind(wx.EVT_CHOICE, self.OnPickCard)
         toolbar.AddControl(self.cardPicker)
 
@@ -83,7 +83,7 @@ class DesignerFrame(wx.Frame):
 
         self.Bind(wx.EVT_TOOL, self.OnMenuRun, id=ID_RUN)
 
-        self.splitter = wx.SplitterWindow(self, id=wx.ID_ANY, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
+        self.splitter = wx.SplitterWindow(self, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
 
         self.stackContainer = wx.Window(self.splitter)
         self.stackContainer.SetBackgroundColour("#E0E0E0")
@@ -141,7 +141,9 @@ class DesignerFrame(wx.Frame):
                     f.write(jsonData)
                 self.stackView.stackModel.SetDirty(False)
             except TypeError:
-                pass
+                # e = sys.exc_info()
+                # print(e)
+                wx.MessageDialog(None, str("Couldn't save file"), "", wx.OK).ShowModal()
 
     def ReadFile(self, filename):
         if filename:
@@ -152,19 +154,21 @@ class DesignerFrame(wx.Frame):
                     stackModel = StackModel(self.stackView)
                     stackModel.SetData(data)
                     self.stackView.SetDesigner(self)
+                    self.filename = filename
+                    self.stackView.filename = filename
                     self.stackView.SetStackModel(stackModel)
                     self.stackView.SetEditing(True)
                     self.stackView.SelectUiView(self.stackView.uiCard)
                     self.SetFrameSizeFromModel()
                     self.UpdateCardList()
                     self.stackView.SetFocus()
-                    self.filename = filename
                     self.SetTitle(self.title + ' -- ' + self.filename)
                     self.WriteConfig()
                     self.cPanel.SetToolByName("hand")
             except:
-                wx.MessageDialog(None, str("Couldn't save file"), None, wx.OK).ShowModal()
-                pass
+                # e = sys.exc_info()
+                # print(e)
+                wx.MessageDialog(None, str("Couldn't read file"), "", wx.OK).ShowModal()
 
 
     def SetFrameSizeFromModel(self):
@@ -338,6 +342,7 @@ class DesignerFrame(wx.Frame):
             if not os.path.splitext(filename)[1]:
                 filename = filename + '.cds'
             self.filename = filename
+            self.stackView.filename = filename
             self.SaveFile()
             self.SetTitle(self.title + ' -- ' + self.filename)
             self.WriteConfig()
@@ -353,6 +358,7 @@ class DesignerFrame(wx.Frame):
 
         stack = StackModel(self.viewer.stackView)
         stack.SetData(data)
+        self.viewer.stackView.filename = self.filename
         self.viewer.stackView.SetStackModel(stack)
         self.viewer.stackView.SetEditing(False)
         self.viewer.Bind(wx.EVT_CLOSE, self.OnViewerClose)
@@ -518,13 +524,14 @@ class DesignerFrame(wx.Frame):
 
     def WriteConfig(self):
         config = configparser.ConfigParser()
-        config['User'] = {"last_open_file": self.filename, "show_context_help": self.cPanel.IsContextHelpShown()}
+        config['User'] = {"last_open_file": self.filename if self.filename else "",
+                          "show_context_help": str(self.cPanel.IsContextHelpShown())}
         with open(self.full_config_file_path, 'w') as configfile:
             config.write(configfile)
 
     def ReadConfig(self):
         last_open_file = None
-        context_help = True
+        context_help = "True"
         if not os.path.exists(self.full_config_file_path) \
                 or os.stat(self.full_config_file_path).st_size == 0:
             self.WriteConfig()
@@ -532,7 +539,7 @@ class DesignerFrame(wx.Frame):
             config = configparser.ConfigParser()
             config.read(self.full_config_file_path)
             last_open_file = config['User'].get('last_open_file', None)
-            context_help = config['User'].get('show_context_help', True)
+            context_help = config['User'].get('show_context_help', "True")
         return {"last_open_file": last_open_file, "show_context_help": context_help}
 
 # ----------------------------------------------------------------------

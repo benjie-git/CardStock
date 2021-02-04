@@ -169,7 +169,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "card.Clone()\nfield.text = \"\"\n"
+            "OnClick": "card.Delete()\n"
           },
           "properties": {
             "name": "deleteButton",

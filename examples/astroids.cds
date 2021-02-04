@@ -49,41 +49,26 @@
                 ],
                 "file": "ship-off.png",
                 "fit": "Center",
-                "bgColor": "",
                 "rotation": 0
               }
             },
             {
-              "type": "oval",
+              "type": "image",
               "handlers": {},
               "properties": {
                 "name": "solid",
                 "size": [
-                  62,
-                  82
+                  74,
+                  68
                 ],
                 "position": [
-                  48.0,
-                  36.0
+                  43.0,
+                  38.0
                 ],
-                "originalSize": [
-                  109,
-                  109
-                ],
-                "penColor": "#00000000",
-                "penThickness": 1,
-                "fillColor": "#00000000"
-              },
-              "points": [
-                [
-                  1.0,
-                  1.0
-                ],
-                [
-                  108.0,
-                  108.0
-                ]
-              ]
+                "file": "",
+                "fit": "Scale",
+                "rotation": 0
+              }
             }
           ]
         }
