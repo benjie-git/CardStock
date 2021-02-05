@@ -430,7 +430,7 @@ class ViewModel(object):
 
         if key == "name":
             value = re.sub(r'\W+', '', value)
-            if not re.match(r'[A-Za-z_][A-Za-z_0-9]*', value):
+            if not re.match(r'[A-Za-z][A-Za-z_0-9]*', value):
                 if notify:
                     self.Notify(key)
                 return
