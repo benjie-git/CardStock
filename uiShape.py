@@ -237,6 +237,8 @@ class LineProxy(ViewProxy):
             def f(progress):
                 self.penThickness = origVal + offset * progress
             self._model.AddAnimation("penThickness", duration, f, onFinished)
+        else:
+            self._model.AddAnimation("none", duration, None, onFinished)
 
     def AnimatePenColor(self, duration, endVal, onFinished=None):
         origVal = wx.Colour(self.penColor)
@@ -248,6 +250,8 @@ class LineProxy(ViewProxy):
             def f(progress):
                 self.penColor = [origParts[i]+offsets[i]*progress for i in range(4)]
             self._model.AddAnimation("penColor", duration, f, onFinished)
+        else:
+            self._model.AddAnimation("none", duration, None, onFinished)
 
 
 class ShapeModel(LineModel):
@@ -285,6 +289,8 @@ class ShapeProxy(LineProxy):
             def f(progress):
                 self.fillColor = [origParts[i]+offsets[i]*progress for i in range(4)]
             self._model.AddAnimation("fillColor", duration, f, onFinished)
+        else:
+            self._model.AddAnimation("none", duration, None, onFinished)
 
 
 class RoundRectModel(ShapeModel):
@@ -319,3 +325,5 @@ class RoundRectProxy(ShapeProxy):
             def f(progress):
                 self.cornerRadius = origVal + offset * progress
             self._model.AddAnimation("cornerRadius", duration, f, onFinished)
+        else:
+            self._model.AddAnimation("none", duration, None, onFinished)

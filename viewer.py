@@ -155,7 +155,10 @@ class ViewerFrame(wx.Frame):
         self.stackView.runner = runner
         self.stackView.SetEditing(False)
         self.SetClientSize(self.stackView.stackModel.GetProperty("size"))
+        self.MakeMenu()
         self.Show(True)
+
+        self.stackView.LoadCardAtIndex(None)
 
         def RunAllSetupHandlers(model):
             if model.GetHandler("OnSetup"):
@@ -165,8 +168,7 @@ class ViewerFrame(wx.Frame):
                     RunAllSetupHandlers(m)
         RunAllSetupHandlers(self.stackView.stackModel)
 
-        self.MakeMenu()
-        self.stackView.LoadCardAtIndex(0, reload=True)
+        self.stackView.LoadCardAtIndex(0)
 
 
 

@@ -131,3 +131,5 @@ class ImageProxy(ViewProxy):
             def f(progress):
                 self.rotation = origRotation + offset * progress
             self._model.AddAnimation("rotation", duration, f, onFinished)
+        else:
+            self._model.AddAnimation("none", duration, None, onFinished)

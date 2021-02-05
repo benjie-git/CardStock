@@ -167,13 +167,15 @@ class UiView(object):
             # Run any in-progress animations
             for anim in self.model.animations.copy():
                 if now < anim["startTime"] + anim["duration"]:
-                    progress = (now - anim["startTime"]) / anim["duration"]
-                    anim["function"](progress)
+                    if anim["function"]:
+                        progress = (now - anim["startTime"]) / anim["duration"]
+                        anim["function"](progress)
                 else:
-                    anim["function"](1.0)
+                    if anim["function"]:
+                        anim["function"](1.0)
                     self.model.animations.remove(anim)
                     if anim["onFinished"]:
-                        anim["onFinished"]()
+                        wx.CallAfter(anim["onFinished"])
 
             if self.stackView.runner and self.model.GetHandler("OnIdle"):
                 self.stackView.runner.RunHandler(self.model, "OnIdle", event, elapsedTime)
@@ -649,6 +651,8 @@ class ViewProxy(object):
                 self.position = [origPosition.x + offset.x * progress,
                                  origPosition.y + offset.y * progress]
             self._model.AddAnimation("position", duration, f, internalOnFinished)
+        else:
+            self._model.AddAnimation("none", duration, None, onFinished)
 
     def AnimateCenter(self, duration, endCenter, onFinished=None):
         origCenter = self.center
@@ -667,6 +671,9 @@ class ViewProxy(object):
                 self.center = [origCenter.x + offset.x * progress,
                                origCenter.y + offset.y * progress]
             self._model.AddAnimation("position", duration, f, internalOnFinished)
+        else:
+            self._model.AddAnimation("none", duration, None, onFinished)
+
 
     def AnimateSize(self, duration, endSize, onFinished=None):
         origSize = self.size
@@ -676,6 +683,8 @@ class ViewProxy(object):
                 self.size = [origSize.width + offset.width * progress,
                                origSize.height + offset.height * progress]
             self._model.AddAnimation("size", duration, f, onFinished)
+        else:
+            self._model.AddAnimation("none", duration, None, onFinished)
 
     def StopAnimations(self):
         self._model.StopAnimations()

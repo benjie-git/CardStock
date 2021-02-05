@@ -11,7 +11,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "pegs = [peg1, peg2, peg3]\ndisks = [disk1, disk2, disk3, disk4, disk5]\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nisRunning = False\n\ndef PlaceDisk(disk, peg, height, animate):\n   center = [peg.center.x,\n      peg.position.y + peg.size.height - (height + 1)*40]\n   if animate:\n      disk.AnimateCenter(0.5, center)\n   else:\n      disk.center = center\n\ndef ShowStacks(animate):\n   for p in range(3):\n      for d in range(len(stacks[p])):\n         PlaceDisk(stacks[p][d], pegs[p], d, animate)\n\nShowStacks(False)"
+        "OnShowCard": "pegs = [peg1, peg2, peg3]\ndisks = [disk1, disk2, disk3, disk4, disk5]\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nisRunning = False\nisSetup = False\n\ndef PlaceDisk(disk, peg, height, animate, onFinished):\n   center = [peg.center.x,\n      peg.position.y + peg.size.height - (height + 1)*40]\n   if animate:\n      disk.AnimateCenter(0.5, center, onFinished)\n   else:\n      disk.center = center\n      if onFinished: onFinished()\n\ndef ShowStacks(animate, onFinished=None):\n   i = 0\n   for p in range(3):\n      for d in range(len(stacks[p])):\n         i += 1\n         PlaceDisk(stacks[p][d], pegs[p], d, animate, onFinished if (i == len(disks)) else None)\n\ndef MoveTower(disk, source, dest, spare):\n   if disk == 0:\n      steps.append([disk, source, dest])\n   else:\n      MoveTower(disk-1, source, spare, dest)\n      steps.append([disk, source, dest])\n      MoveTower(disk-1, spare, dest, source)\n\ndef MakeNextMove():\n   if len(steps):\n      disk, source, dest = steps.pop(0)\n      stacks[source].remove(disks[disk])\n      stacks[dest].append(disks[disk])\n      ShowStacks(True, MakeNextMove)\n   else:\n      isRunning = False\n\nShowStacks(False)\nisSetup = True"
       },
       "properties": {
         "name": "card_1",
@@ -248,7 +248,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if isRunning:\n   for d in disks:\n      d.StopAnimations()\n   reset.DoClick()\n\nisRunning = True\nsteps = []  # disk, from, to\nn = len(disks)\n\ndef MoveTower(disk, source, dest, spare):\n   if disk == 0:\n      steps.append([disk, source, dest])\n   else:\n      MoveTower(disk-1, source, spare, dest)\n      steps.append([disk, source, dest])\n      MoveTower(disk-1, spare, dest, source)\n\ndef MakeNextMove():\n   if len(steps):\n      disk, source, dest = steps.pop(0)\n      stacks[source].remove(disks[disk])\n      stacks[dest].append(disks[disk])\n      ShowStacks(True)\n      RunAfterDelay(0.75, MakeNextMove)\n   else:\n      isRunning = False\n\n   \nMoveTower(n-1, 0, 1, 2)\nMakeNextMove()\n"
+            "OnClick": "if isRunning:\n   for d in disks:\n      d.StopAnimations()\n\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nsteps = []\nMoveTower(len(disks)-1, 0, 1, 2)\n\nif not isSetup:\n   ShowStacks(True, MakeNextMove)\nelse:\n   MakeNextMove()\n\nisSetup = False"
           },
           "properties": {
             "name": "solve",
@@ -267,7 +267,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "stacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nsteps = []\nShowStacks(True)"
+            "OnClick": "stacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nsteps = []\nisSetup = True\nShowStacks(True)"
           },
           "properties": {
             "name": "reset",
