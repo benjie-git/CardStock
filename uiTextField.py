@@ -82,12 +82,14 @@ class UiTextField(UiView):
             self.field.Refresh(True)
         elif key == "alignment" or key == "multiline":
             self.stackView.SelectUiView(None)
-            self.view.RemoveChild(self.field)
-            self.field.Destroy()
-            self.field = None
             self.doNotCache = True
             self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
             self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.model))
+        elif key == "editable":
+            if self.stackView.isEditing:
+                self.field.SetEditable(False)
+            else:
+                self.field.SetEditable(model.GetProperty(key))
         elif key == "selectAll":
             self.field.SelectAll()
 
@@ -136,7 +138,28 @@ class TextFieldProxy(ViewProxy):
         return self._model.GetProperty("text")
     @text.setter
     def text(self, val):
-        self._model.SetProperty("text", val)
+        self._model.SetProperty("text", str(val))
+
+    @property
+    def alignment(self):
+        return self._model.GetProperty("alignment")
+    @alignment.setter
+    def alignment(self, val):
+        self._model.SetProperty("alignment", val)
+
+    @property
+    def editable(self):
+        return self._model.GetProperty("editable")
+    @editable.setter
+    def editable(self, val):
+        self._model.SetProperty("editable", val)
+
+    @property
+    def multiline(self):
+        return self._model.GetProperty("multiline")
+    @multiline.setter
+    def multiline(self, val):
+        self._model.SetProperty("multiline", val)
 
     def SelectAll(self): self._model.Notify("selectAll")
 

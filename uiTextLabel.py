@@ -35,13 +35,16 @@ class UiTextLabel(UiView):
         label = wx.StaticText(parent=parent, size=(60,20),
                               style=alignment|wx.ST_NO_AUTORESIZE)
         label.SetLabelText(text)
-        famimlyName = model.GetProperty("font")
+        familyName = model.GetProperty("font")
         size = int(model.GetProperty("fontSize"))
-        label.SetFont(wx.Font(wx.FontInfo(size).Family(self.FamilyForName(famimlyName))))
+        label.SetFont(wx.Font(wx.FontInfo(size).Family(self.FamilyForName(familyName))))
         label.SetForegroundColour(model.GetProperty("textColor"))
         label.SetCursor(wx.Cursor(wx.CURSOR_HAND))
-        self.BindEvents(label)
         return label
+
+    def BindEvents(self, view):
+        if view == self.view:
+            super().BindEvents(self.label)
 
     def OnResize(self, event):
         super().OnResize(event)
@@ -54,18 +57,16 @@ class UiTextLabel(UiView):
         super().OnPropertyChanged(model, key)
         if key == "text":
             self.label.SetLabelText(str(self.model.GetProperty(key)))
+            self.OnResize(None)
         elif key == "font" or key == "fontSize":
-            famimlyName = self.model.GetProperty("font")
+            familyName = self.model.GetProperty("font")
             size = int(self.model.GetProperty("fontSize"))
-            self.label.SetFont(wx.Font(wx.FontInfo(size).Family(self.FamilyForName(famimlyName))))
+            self.label.SetFont(wx.Font(wx.FontInfo(size).Family(self.FamilyForName(familyName))))
         elif key == "textColor":
             self.label.SetForegroundColour(model.GetProperty(key))
             self.label.Refresh(True)
         elif key == "alignment":
             self.stackView.SelectUiView(None)
-            self.view.RemoveChild(self.label)
-            self.label.Destroy()
-            self.label = None
             self.doNotCache = True
             self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
             self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.model))
@@ -116,7 +117,14 @@ class TextLabelProxy(ViewProxy):
         return self._model.GetProperty("text")
     @text.setter
     def text(self, val):
-        self._model.SetProperty("text", val)
+        self._model.SetProperty("text", str(val))
+
+    @property
+    def alignment(self):
+        return self._model.GetProperty("alignment")
+    @alignment.setter
+    def alignment(self, val):
+        self._model.SetProperty("alignment", val)
 
     @property
     def textColor(self):
@@ -124,3 +132,18 @@ class TextLabelProxy(ViewProxy):
     @textColor.setter
     def textColor(self, val):
         self._model.SetProperty("textColor", val)
+
+    @property
+    def font(self):
+        return self._model.GetProperty("font")
+    @font.setter
+    def font(self, val):
+        self._model.SetProperty("font", val)
+
+    @property
+    def fontSize(self):
+        return self._model.GetProperty("fontSize")
+    @fontSize.setter
+    def fontSize(self, val):
+        self._model.SetProperty("fontSize", val)
+

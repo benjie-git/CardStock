@@ -22,13 +22,16 @@ class UiButton(UiView):
 
         super().__init__(parent, stackView, model, container)
 
+    def BindEvents(self, view):
+        if view == self.view:
+            super().BindEvents(self.button)
+
     def CreateButton(self, parent, model):
         button = wx.Button(parent=parent, label="Button",
                          style=(wx.BORDER_DEFAULT if model.GetProperty("border") else wx.BORDER_NONE))
         button.SetLabel(model.GetProperty("title"))
         button.Bind(wx.EVT_BUTTON, self.OnButton)
         button.SetCursor(wx.Cursor(self.GetCursor()))
-        self.BindEvents(button)
         return button
 
     def OnPropertyChanged(self, model, key):
@@ -37,9 +40,6 @@ class UiButton(UiView):
             self.button.SetLabel(str(self.model.GetProperty(key)))
         elif key == "border":
             self.stackView.SelectUiView(None)
-            self.view.RemoveChild(self.button)
-            self.button.Destroy()
-            self.button = None
             self.doNotCache = True
             self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
             self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.model))
@@ -54,7 +54,7 @@ class UiButton(UiView):
                 self.button.SetSize(self.view.GetSize())
 
     def OnFocus(self, event):
-        self.field.SetFocus()
+        self.button.SetFocus()
 
     def OnButton(self, event):
         if not self.stackView.isEditing:
@@ -90,6 +90,13 @@ class ProxyButton(ViewProxy):
     @title.setter
     def title(self, val):
         self._model.SetProperty("title", val)
+
+    @property
+    def border(self):
+        return self._model.GetProperty("border")
+    @border.setter
+    def border(self, val):
+        self._model.SetProperty("border", val)
 
     def DoClick(self):
         if self._model.stackView.runner:

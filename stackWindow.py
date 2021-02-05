@@ -69,12 +69,13 @@ class StackWindow(wx.Window):
         event.Skip()
 
     def CleanViewCache(self, event):
-        for ui in self.uiViewCachePendingDelete.copy():
-            self.cacheView.RemoveChild(ui.view)
-            ui.DestroyView()
-            if ui.model in self.uiViewCache:
-                self.uiViewCache.pop(ui.model)
-            self.uiViewCachePendingDelete.remove(ui)
+        if not self.noIdling:
+            for ui in self.uiViewCachePendingDelete.copy():
+                self.cacheView.RemoveChild(ui.view)
+                ui.DestroyView()
+                if ui.model in self.uiViewCache:
+                    self.uiViewCache.pop(ui.model)
+                self.uiViewCachePendingDelete.remove(ui)
 
     def RefreshNow(self):
         self.Refresh(True)
@@ -170,8 +171,9 @@ class StackWindow(wx.Window):
                     self.designer.UpdateCardList()
                 if not self.isEditing and self.runner:
                     self.runner.SetupForCurrentCard()
-                    if self.uiCard.model.GetHandler("OnShowCard"):
-                        self.runner.RunHandler(self.uiCard.model, "OnShowCard", None)
+                    if not reload:
+                        if self.uiCard.model.GetHandler("OnShowCard"):
+                            self.runner.RunHandler(self.uiCard.model, "OnShowCard", None)
                     self.noIdling = True
                     wx.GetApp().Yield()
                     self.noIdling = False

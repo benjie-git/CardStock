@@ -117,6 +117,13 @@ class ImageProxy(ViewProxy):
     def rotation(self, val):
         self._model.SetProperty("rotation", val)
 
+    @property
+    def fit(self):
+        return self._model.GetProperty("fit")
+    @fit.setter
+    def fit(self, val):
+        self._model.SetProperty("fit", val)
+
     def AnimateRotation(self, duration, endRotation, onFinished=None):
         origRotation = self.rotation
         if endRotation != origRotation:

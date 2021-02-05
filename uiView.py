@@ -425,6 +425,8 @@ class ViewModel(object):
             value = wx.RealPoint(value[0], value[1])
         elif key in self.propertyTypes and self.propertyTypes[key] == "size" and not isinstance(value, wx.Point):
             value = wx.Size(value)
+        elif key in self.propertyTypes and self.propertyTypes[key] == "choice" and value not in self.propertyChoices[key]:
+            return
 
         if key == "name":
             value = re.sub(r'\W+', '', value)
