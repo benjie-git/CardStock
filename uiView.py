@@ -7,6 +7,8 @@ import ast
 import re
 import generator
 from time import time
+import keyword
+
 
 class UiView(object):
     def __init__(self, parent, stackView, model, view):
@@ -213,13 +215,13 @@ class UiView(object):
 
 class ViewModel(object):
     minSize = wx.Size(20,20)
-    reservedNames = ["if", "else", "elif", "for", "True", "False", "None", "def", "class", "__init__", "eventHandlers",
-                     "stack", "card", "self", "keyName", "mousePos", "message", "_model", "bgColor", "index",
+    reservedNames = ["eventHandlers", "stack", "card", "self", "keyName", "mousePos", "message", "bgColor", "index",
                      "name", "type", "position", "size", "center", "speed", "visible", "parent", "children",
                      "Cut", "Copy", "Paste", "Delete", "Clone", "Focus", "SendMessage", "Show", "Hide", "IsTouching",
                      "IsTouchingEdge", "AnimatePosition", "AnimateCenter", "AnimateSize", "StopAnimations",
                      "BroadcastMessage", "GotoCard", "GotoCardNumber", "GotoNextCard", "GotoPreviousCard",
                      "Wait", "Time", "Alert", "Ask", "PlaySound", "StopSound", "IsKeyPressed", "RunAfterDelay"]
+    reservedNames.extend(keyword.kwlist)
 
     def __init__(self, stackView):
         super().__init__()
