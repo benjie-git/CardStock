@@ -154,8 +154,13 @@ class UiView(object):
             if self.model.type not in ["stack", "card"]:
                 speed = self.model.properties["speed"]
                 if speed != (0,0):
-                    pos = self.model.properties["position"]
-                    self.model.SetProperty("position", [pos.x + speed.x*elapsedTime, pos.y + speed.y*elapsedTime])
+                    isAnimatingPos = False
+                    for anim in self.model.animations:
+                        if anim["type"] == "position":
+                            isAnimatingPos = True
+                    if not isAnimatingPos:
+                        pos = self.model.properties["position"]
+                        self.model.SetProperty("position", [pos.x + speed.x*elapsedTime, pos.y + speed.y*elapsedTime])
 
             # Run any in-progress animations
             for anim in self.model.animations.copy():
@@ -608,23 +613,39 @@ class ViewProxy(object):
 
     def AnimatePosition(self, duration, endPosition, onFinished=None):
         origPosition = self.position
+        endPosition = wx.RealPoint(endPosition)
         if wx.Point(origPosition) != wx.Point(endPosition):
             offsetp = endPosition - origPosition
             offset = wx.RealPoint(offsetp[0], offsetp[1])
+
+            self._model.SetProperty("speed", offset*(1.0/duration))
+
+            def internalOnFinished():
+                self._model.SetProperty("speed", (0,0))
+                if onFinished: onFinished()
+
             def f(progress):
                 self.position = [origPosition.x + offset.x * progress,
                                  origPosition.y + offset.y * progress]
-            self._model.AddAnimation("position", duration, f, onFinished)
+            self._model.AddAnimation("position", duration, f, internalOnFinished)
 
     def AnimateCenter(self, duration, endCenter, onFinished=None):
         origCenter = self.center
+        endCenter = wx.RealPoint(endCenter)
         if wx.Point(origCenter) != wx.Point(endCenter):
             offsetp = endCenter - origCenter
             offset = wx.RealPoint(offsetp[0], offsetp[1])
+
+            self._model.SetProperty("speed", offset*(1.0/duration))
+
+            def internalOnFinished():
+                self._model.SetProperty("speed", (0,0))
+                if onFinished: onFinished()
+
             def f(progress):
                 self.center = [origCenter.x + offset.x * progress,
                                origCenter.y + offset.y * progress]
-            self._model.AddAnimation("position", duration, f, onFinished)
+            self._model.AddAnimation("position", duration, f, internalOnFinished)
 
     def AnimateSize(self, duration, endSize, onFinished=None):
         origSize = self.size
