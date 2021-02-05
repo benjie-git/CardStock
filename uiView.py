@@ -652,7 +652,7 @@ class ViewProxy(object):
                                  origPosition.y + offset.y * progress]
             self._model.AddAnimation("position", duration, f, internalOnFinished)
         else:
-            self._model.AddAnimation("none", duration, None, onFinished)
+            self._model.AddAnimation("position", duration, None, onFinished)
 
     def AnimateCenter(self, duration, endCenter, onFinished=None):
         origCenter = self.center
@@ -672,7 +672,7 @@ class ViewProxy(object):
                                origCenter.y + offset.y * progress]
             self._model.AddAnimation("position", duration, f, internalOnFinished)
         else:
-            self._model.AddAnimation("none", duration, None, onFinished)
+            self._model.AddAnimation("position", duration, None, onFinished)
 
 
     def AnimateSize(self, duration, endSize, onFinished=None):
@@ -684,7 +684,7 @@ class ViewProxy(object):
                                origSize.height + offset.height * progress]
             self._model.AddAnimation("size", duration, f, onFinished)
         else:
-            self._model.AddAnimation("none", duration, None, onFinished)
+            self._model.AddAnimation("size", duration, None, onFinished)
 
     def StopAnimations(self):
         self._model.StopAnimations()

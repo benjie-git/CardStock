@@ -1,6 +1,7 @@
 import wx
 import wx.html
 import version
+import platform
 from helpData import HelpData, HelpDataTypes
 
 
@@ -9,11 +10,14 @@ class CardStockAbout(wx.Dialog):
 
     text = f'''
 <html>
-<body bgcolor="#60acac">
-<center><table bgcolor="#778899" width="100%%" cellspacing="0"
-cellpadding="4" border="1">
+<body bgcolor="#EEEEEE">
+<center><table bgcolor='#D0DFEE' cellspacing="0" cellpadding="4" border="0">
 <tr>
-    <td align="center"><h1>CardStock {version.VERSION} </h1></td>
+    <td align="center"><h1>CardStock</h1>
+    CardStock version {version.VERSION} | 
+    Python version {platform.python_version()} |  
+    wxPython version {wx.__version__}
+    </td>
 </tr>
 </table>
 </center>
@@ -24,7 +28,7 @@ cellpadding="4" border="1">
 
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, 'About CardStock',
-                          size=(420, 380) )
+                          size=(500, 200) )
 
         html = wx.html.HtmlWindow(self, -1)
         html.SetPage(self.text)
@@ -41,16 +45,19 @@ cellpadding="4" border="1">
         wx.CallAfter(button.SetFocus)
 
 
-class CardStockHelp(wx.Frame):
+class CardStockManual(wx.Frame):
     """ A help window that uses an HTML view """
 
     text = f'''
 <html>
 <body bgcolor="#EEEEEE">
-<center><table bgcolor="#778899" width="100%%" cellspacing="0"
-cellpadding="4" border="1">
+<center><table bgcolor='#D0DFEE' cellspacing="0" cellpadding="4" border="0">
 <tr>
-    <td align="center"><h1>CardStock {version.VERSION} Help</h1></td>
+    <td align="center"><h1>CardStock Manual</h1>
+    CardStock version {version.VERSION} | 
+    Python version {platform.python_version()} |  
+    wxPython version {wx.__version__}
+    </td>
 </tr>
 </table>
 </center>
@@ -73,11 +80,13 @@ are the drawing tools, which let you draw with a pen, drag out an oval, a rectan
 The area in the control panel below the tools changes depending on which tool you're using, and which objects are 
 selected in the card. When a drawing tool is selected, the control panel offers you settings to choose the pen color,
 pen thickness, and fill color of the shapes you draw next.  When the hand tool is enabled, and you select one object 
-in your card, the control panel will show the two main object editing areas.  The inspector shows, and lets you edit, a
-list of the selected object's properties, like name, size, position on the card, colors, etc.  Below the inspector is 
-the code editor.  The code editor lets you choose an event for the selected object what you want to edit, and 
+in your card, the control panel will show the two main object editing areas.  The property editor shows, and lets you edit, a
+list of the selected object's properties, like name, size, position on the card, colors, etc.  Below the property editor is 
+the code editor.  The code editor lets you choose an event for the selected object that you want to edit, and 
 gives you space to write your code that runs when that event is triggered.  For example, if you select a button object,
-you could edit the code for its OnClicked event, which runs when that button is clicked.</p>
+you could edit the code for its OnClicked event, which runs when that button is clicked.  In between the two editors is 
+the Context Help box.  This shows information about the most recently selected property or event.  You can hide the 
+Context Help box in CardStock's Help Menu.</p>
 
 <p>Each object in your stack, including each card, button, text field, shape, group, etc., has properties that
 you can change in the property editor when that object is selected. You can change things like the object's
@@ -115,7 +124,7 @@ program (instead of in the Designer). which lets a user run the program, but not
 '''
 
     def __init__(self, parent):
-        super().__init__(parent, -1, 'CardStock Reference',
+        super().__init__(parent, -1, 'CardStock Manual',
                           size=(800, 600))
 
         html = wx.html.HtmlWindow(self, -1)
@@ -136,15 +145,18 @@ class CardStockReference(wx.Frame):
     text = f'''
 <html>
 <body bgcolor="#EEEEEE">
-<center><table bgcolor="#778899" width="100%%" cellspacing="0"
-cellpadding="4" border="1">
+<center><table bgcolor='#D0DFEE' cellspacing="0" cellpadding="4" border="0">
 <tr>
-    <td align="center"><h1>CardStock {version.VERSION} Reference</h1></td>
+    <td align="center"><h1>CardStock Reference</h1>
+    CardStock version {version.VERSION} | 
+    Python version {platform.python_version()} |  
+    wxPython version {wx.__version__}
+    </td>
 </tr>
 </table>
 </center>
 
-<p>Below is a full listing of the CardStock-specific variables, functions, objects, methods and event handlers 
+<p>Below is a full listing of the CardStock-specific variables, functions, objects, methods and events 
 available to you in your CardStock code.  Additionally, you can import other python packages and use them however you'd
 like, to make network connections, control other software or hardware, or perform other calculations.  For more
 information on how to use CardStock, see the CardStock Help documentation in the Help menu.</p>
@@ -156,16 +168,16 @@ information on how to use CardStock, see the CardStock Help documentation in the
 <br/><br/>
 <hr/>
 <h2>Global Variables</h2>
-<p>Global variables are objects that are available in all of your event handler code.</p>
+<p>Global variables are objects that are available in all of your event code.</p>
 {HelpData.GlobalVariablesTable()}
 <br/><br/>
 <hr/>
 <h2>Global Functions</h2>
-<p>These global functions are available in all of your event handlers' code.</p>
+<p>These global functions are available in all of your event code.</p>
 {HelpData.GlobalFunctionsTable()}
 <br/><br/>
 <hr/>
-{HelpData.ObjectSection("object", "All Objects", "Many properties, methods, and event handlers apply to objects of all "
+{HelpData.ObjectSection("object", "All Objects", "Many properties, methods, and events apply to objects of all "
                                                  "types, so we'll list those all here just once.")}
 <hr/>
 {HelpData.ObjectSection("card", "Cards", None)}
@@ -177,6 +189,8 @@ information on how to use CardStock, see the CardStock Help documentation in the
 {HelpData.ObjectSection("textlabel", "Text Labels", None)}
 <hr/>
 {HelpData.ObjectSection("image", "Images", None)}
+<hr/>
+{HelpData.ObjectSection("group", "Groups", None)}
 <hr/>
 {HelpData.ObjectSection("line", "Shapes - Line and Pen", None)}
 <hr/>

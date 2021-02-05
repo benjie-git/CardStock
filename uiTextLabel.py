@@ -147,3 +147,15 @@ class TextLabelProxy(ViewProxy):
     def fontSize(self, val):
         self._model.SetProperty("fontSize", val)
 
+    def AnimateTextColor(self, duration, endVal, onFinished=None):
+        origVal = wx.Colour(self.textColor)
+        endVal = wx.Colour(endVal)
+        if origVal.IsOk() and endVal.IsOk() and endVal != origVal:
+            origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
+            endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
+            offsets = [endParts[i]-origParts[i] for i in range(4)]
+            def f(progress):
+                self.textColor = [origParts[i]+offsets[i]*progress for i in range(4)]
+            self._model.AddAnimation("textColor", duration, f, onFinished)
+        else:
+            self._model.AddAnimation("textColor", duration, None, onFinished)

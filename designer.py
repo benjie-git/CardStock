@@ -249,9 +249,9 @@ class DesignerFrame(wx.Frame):
         # and the help menu
         helpMenu = wx.Menu()
         helpMenu.Append(wx.ID_ABOUT, "&About", "About")
-        helpMenu.Append(wx.ID_HELP, "&Help", "Help")
+        helpMenu.Append(wx.ID_HELP, "&Manual", "Manual")
         helpMenu.Append(wx.ID_REFRESH, "&Reference", "Reference")
-        helpMenu.Append(wx.ID_CONTEXT_HELP, "&Toggle Context Help", "Toggle Context Help")
+        helpMenu.Append(wx.ID_CONTEXT_HELP, "&Show/Hide Context Help", "Toggle Context Help")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
@@ -259,7 +259,7 @@ class DesignerFrame(wx.Frame):
         menuBar.Append(editMenu, "&Edit")
         menuBar.Append(cardMenu, "&Card")
         menuBar.Append(viewMenu, "&Object")
-        menuBar.Append(helpMenu, "&Help")
+        menuBar.Append(helpMenu, "&Help ")  # Add the space to avoid magically adding platform-specific help menu items
         self.SetMenuBar(menuBar)
 
         self.Bind(wx.EVT_MENU,  self.OnMenuNew, id=wx.ID_NEW)
@@ -499,7 +499,7 @@ class DesignerFrame(wx.Frame):
         dlg.Destroy()
 
     def OnMenuHelp(self, event):
-        dlg = helpDialogs.CardStockHelp(self)
+        dlg = helpDialogs.CardStockManual(self)
         dlg.Bind(wx.EVT_CLOSE, self.OnHelpClose)
         dlg.Show()
 
