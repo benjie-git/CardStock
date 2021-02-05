@@ -213,7 +213,7 @@ class UiView(object):
 
 class ViewModel(object):
     minSize = wx.Size(20,20)
-    reservedNames = ["if", "else", "elif", "for", "True", "False", "None", "def", "class", "__init__",
+    reservedNames = ["if", "else", "elif", "for", "True", "False", "None", "def", "class", "__init__", "eventHandlers",
                      "stack", "card", "self", "keyName", "mousePos", "message", "_model", "bgColor", "index",
                      "name", "type", "position", "size", "center", "speed", "visible", "parent", "children",
                      "Cut", "Copy", "Paste", "Delete", "Clone", "Focus", "SendMessage", "Show", "Hide", "IsTouching",
@@ -605,6 +605,10 @@ class ViewProxy(object):
     @visible.setter
     def visible(self, val):
         self._model.SetProperty("hidden", not bool(val))
+
+    @property
+    def eventHandlers(self):
+        return self._model.handlers
 
     def IsTouching(self, obj):
         sf = self._model.GetAbsoluteFrame() # self frame in card coords
