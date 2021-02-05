@@ -213,6 +213,11 @@ class UiView(object):
 
 class ViewModel(object):
     minSize = wx.Size(20,20)
+    reservedNames = ["if", "else", "elif", "for", "True", "False", "None", "def", "class", "__init__",
+                     "stack", "card", "self", "keyName", "mousePos", "message", "_model", "bgColor", "index",
+                     "name", "type", "position", "size", "center", "speed", "visible", "parent", "children",
+                     "Cut", "Copy", "Delete", "Clone", "Focus", "SendMessage", "Show", "Hide", "IsTouching",
+                     "IsTouchingEdge", "AnimatePosition", "AnimateCenter", "AnimateSize", "StopAnimations"]
 
     def __init__(self, stackView):
         super().__init__()
@@ -480,7 +485,7 @@ class ViewModel(object):
         self.animations = []
 
     def DeduplicateName(self, name, existingNames):
-        existingNames.extend(["card", "self", "keyName", "mouseX",  "mouseY", "message"]) # disallow globals
+        existingNames.extend(self.reservedNames) # disallow globals
         if name in existingNames:
             name = name.rstrip("0123456789")
             if name[-1:] != "_":
@@ -510,6 +515,12 @@ class ViewProxy(object):
     def __init__(self, model):
         super().__init__()
         self._model = model
+
+    def __getattr__(self, item):
+        for model in self._model.childModels:
+            if model.properties["name"] == item:
+                return model.GetProxy()
+        return super().__getattr__(item)
 
     def SendMessage(self, message):
         if self._model.stackView.runner:
