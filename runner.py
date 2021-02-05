@@ -178,17 +178,16 @@ class Runner():
         if keyName and keyName in self.pressedKeys:
             self.pressedKeys.remove(keyName)
 
-
-    # --------- User-accessible view functions -----------
+    def StopRunning(self):
+        self.soundCache = {}
+        Sound.Stop()
 
     def SetFocus(self, obj):
         uiView = self.stackView.GetUiViewByModel(obj._model)
         if uiView:
             uiView.view.SetFocus()
 
-    def StopRunning(self):
-        self.soundCache = {}
-        Sound.Stop()
+    # --------- User-accessible view functions -----------
 
     def BroadcastMessage(self, message):
         self.RunHandler(self.stackView.uiCard.model, "OnMessage", None, message)

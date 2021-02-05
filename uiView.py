@@ -216,8 +216,10 @@ class ViewModel(object):
     reservedNames = ["if", "else", "elif", "for", "True", "False", "None", "def", "class", "__init__",
                      "stack", "card", "self", "keyName", "mousePos", "message", "_model", "bgColor", "index",
                      "name", "type", "position", "size", "center", "speed", "visible", "parent", "children",
-                     "Cut", "Copy", "Delete", "Clone", "Focus", "SendMessage", "Show", "Hide", "IsTouching",
-                     "IsTouchingEdge", "AnimatePosition", "AnimateCenter", "AnimateSize", "StopAnimations"]
+                     "Cut", "Copy", "Paste", "Delete", "Clone", "Focus", "SendMessage", "Show", "Hide", "IsTouching",
+                     "IsTouchingEdge", "AnimatePosition", "AnimateCenter", "AnimateSize", "StopAnimations",
+                     "BroadcastMessage", "GotoCard", "GotoCardNumber", "GotoNextCard", "GotoPreviousCard",
+                     "Wait", "Time", "Alert", "Ask", "PlaySound", "StopSound", "IsKeyPressed", "RunAfterDelay"]
 
     def __init__(self, stackView):
         super().__init__()
@@ -520,7 +522,7 @@ class ViewProxy(object):
         for model in self._model.childModels:
             if model.properties["name"] == item:
                 return model.GetProxy()
-        return super().__getattr__(item)
+        return super().__getattribute__(item)
 
     def SendMessage(self, message):
         if self._model.stackView.runner:
