@@ -375,6 +375,8 @@ class StackWindow(wx.Window):
         else:
             uiView = self.GetUiViewByModel(model)
         modelView = self.GetUiViewByModel(model)
+        if not modelView and model in self.uiViewCache:
+            modelView = self.uiViewCache[model]
         if modelView:
             modelView.OnPropertyChanged(model, key)
         if self.designer:

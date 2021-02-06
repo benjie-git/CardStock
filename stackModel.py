@@ -2,7 +2,7 @@
 
 from uiView import ViewModel, ViewProxy
 from uiCard import CardModel
-
+import version
 
 class StackModel(ViewModel):
     def __init__(self, stackView):
@@ -10,10 +10,15 @@ class StackModel(ViewModel):
         self.type = "stack"
         self.proxyClass = StackProxy
 
-        self.handlers = {"OnSetup": ""}
-        self.propertyKeys = ["size"]
         self.properties["size"] = [500, 500]
         self.properties["name"] = "stack"
+        self.properties["canSave"] = False
+
+        self.propertyTypes["canSave"] = 'bool'
+
+        self.propertyKeys = []
+
+        self.handlers = {"OnSetup": ""}
 
     def AppendCardModel(self, cardModel):
         cardModel.stackModel = self
@@ -46,6 +51,7 @@ class StackModel(ViewModel):
         data["properties"].pop("position")
         data["properties"].pop("name")
         data["CardStock_stack_format"] = 1
+        data["CardStock_stack_version"] = version.VERSION
         return data
 
     def SetData(self, stackData):

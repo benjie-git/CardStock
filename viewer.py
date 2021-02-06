@@ -19,6 +19,7 @@ from stackModel import StackModel
 from uiCard import CardModel
 import version
 from runner import Runner
+import helpDialogs
 
 from wx.lib.mixins.inspection import InspectionMixin
 
@@ -39,38 +40,49 @@ class ViewerFrame(wx.Frame):
         wx.Frame.__init__(self, parent, -1, self.title, size=(800,600),
                          style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
         # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.ico')))
-        self.filename = None
 
         self.stackView = StackWindow(self, -1, None)
         self.stackView.SetEditing(False)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnClose)
 
-    def ReadFile(self, filename):
-        if filename:
-            with open(filename, 'r') as f:
-                data = json.load(f)
-            if data:
-                self.stackView.stackModel.SetData(data)
-                self.stackView.SetStackModel(self.stackView.stackModel)
-                self.SetClientSize(self.stackView.stackModel.GetProperty("size"))
-                self.filename = filename
-                self.stackView.filename = filename
-
     def SaveFile(self):
-        if self.filename:
+        if self.stackView.filename:
             data = self.stackView.stackModel.GetData()
             try:
                 jsonData = json.dumps(data, indent=2)
-                with open(self.filename, 'w') as f:
+                with open(self.stackView.filename, 'w') as f:
                     f.write(jsonData)
                 self.stackView.stackModel.SetDirty(False)
             except TypeError:
-                pass
+                # e = sys.exc_info()
+                # print(e)
+                wx.MessageDialog(None, str("Couldn't save file"), "", wx.OK).ShowModal()
+
+    def ReadFile(self, filename):
+        if filename:
+            try:
+                with open(filename, 'r') as f:
+                    data = json.load(f)
+                if data:
+                    stackModel = StackModel(self.stackView)
+                    stackModel.SetData(data)
+                    self.stackView.SetDesigner(self)
+                    self.stackView.filename = filename
+                    self.stackView.SetStackModel(stackModel)
+                    self.stackView.SetEditing(True)
+                    self.stackView.SelectUiView(self.stackView.uiCard)
+                    self.SetClientSize(self.stackView.stackModel.GetProperty("size"))
+                    self.stackView.SetFocus()
+                    self.SetTitle(self.title + ' -- ' + self.stackView.filename)
+            except TypeError:
+                # e = sys.exc_info()
+                # print(e)
+                wx.MessageDialog(None, str("Couldn't read file"), "", wx.OK).ShowModal()
 
     def MakeMenu(self):
         # create the file menu
         fileMenu = wx.Menu()
-        if self.filename:
+        if self.stackView.filename and self.stackView.stackModel.GetProperty("canSave"):
             fileMenu.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save Stack")
         fileMenu.Append(wx.ID_CLOSE, "&Close\tCtrl-W", "Close Stack")
 
@@ -146,7 +158,7 @@ class ViewerFrame(wx.Frame):
         event.Skip()
 
     def OnMenuAbout(self, event):
-        dlg = CardStockAbout(self)
+        dlg = helpDialogs.CardStockAbout(self)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -169,48 +181,6 @@ class ViewerFrame(wx.Frame):
         RunAllSetupHandlers(self.stackView.stackModel)
 
         self.stackView.LoadCardAtIndex(0)
-
-
-
-
-# ----------------------------------------------------------------------
-
-
-class CardStockAbout(wx.Dialog):
-    """ An about box that uses an HTML view """
-
-    text = '''
-<html>
-<body bgcolor="#60acac">
-<center><table bgcolor="#455481" width="100%%" cellspacing="0"
-cellpadding="0" border="1">
-<tr>
-    <td align="center"><h1>CardStock %s</h1></td>
-</tr>
-</table>
-</center>
-<p><b>CardStock</b> is a tool for learning python using a GUI framework inspired by HyperCard of old.</p>
-</body>
-</html>
-'''
-
-    def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, 'About CardStock',
-                          size=(420, 380) )
-
-        html = wx.html.HtmlWindow(self, -1)
-        html.SetPage(self.text % version.VERSION)
-        button = wx.Button(self, wx.ID_OK, "Okay")
-
-        # Set up the layout with a Sizer
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(html, wx.SizerFlags(1).Expand().Border(wx.ALL, 5))
-        sizer.Add(button, wx.SizerFlags(0).Align(wx.ALIGN_CENTER).Border(wx.BOTTOM, 5))
-        self.SetSizer(sizer)
-        self.Layout()
-
-        self.CentreOnParent(wx.BOTH)
-        wx.CallAfter(button.SetFocus)
 
 
 # ----------------------------------------------------------------------
