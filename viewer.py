@@ -43,9 +43,13 @@ class ViewerFrame(wx.Frame):
 
         self.stackView = StackWindow(self, -1, None)
         self.stackView.SetEditing(False)
+        self.designer = None
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnClose)
 
     def SaveFile(self):
+        if self.designer:
+            self.designer.OnViewerSave(self.stackView.stackModel)
+
         if self.stackView.filename:
             data = self.stackView.stackModel.GetData()
             try:
@@ -120,6 +124,13 @@ class ViewerFrame(wx.Frame):
         self.SaveFile()
 
     def OnMenuClose(self, event):
+        if self.stackView.filename and self.stackView.stackModel.GetProperty("canSave") and self.stackView.stackModel.GetDirty():
+            r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
+                                 "Save before Quitting?", wx.YES_NO | wx.CANCEL).ShowModal()
+            if r == wx.ID_CANCEL:
+                return
+            if r == wx.ID_YES:
+                self.SaveFile()
         self.Close()
 
     def OnClose(self, event):
@@ -168,7 +179,6 @@ class ViewerFrame(wx.Frame):
         self.stackView.SetEditing(False)
         self.SetClientSize(self.stackView.stackModel.GetProperty("size"))
         self.MakeMenu()
-        self.Show(True)
 
         self.stackView.LoadCardAtIndex(None)
 
@@ -221,5 +231,6 @@ if __name__ == '__main__':
         print("Usage: python3 viewer.py filename")
         exit(1)
     app.frame.RunViewer(app.statusbar)
+    app.frame.Show(True)
 
     app.MainLoop()

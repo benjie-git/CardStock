@@ -6,7 +6,7 @@
       637,
       715
     ],
-    "canSave": true
+    "canSave": false
   },
   "cards": [
     {

@@ -352,6 +352,7 @@ class DesignerFrame(wx.Frame):
         if self.viewer:
             self.viewer.Destroy()
         self.viewer = ViewerFrame(self)
+        self.viewer.designer = self
         sb = self.viewer.CreateStatusBar()
 
         data = self.stackView.stackModel.GetData()
@@ -364,10 +365,18 @@ class DesignerFrame(wx.Frame):
         self.viewer.Bind(wx.EVT_CLOSE, self.OnViewerClose)
         self.viewer.SetClientSize(self.stackView.stackModel.GetProperty("size"))
         self.viewer.RunViewer(sb)
+        self.viewer.Show(True)
+        self.Hide()
+
+    def OnViewerSave(self, stackModel):
+        newModel = StackModel(self.stackView)
+        newModel.SetData(stackModel.GetData())
+        self.stackView.SetStackModel(newModel)
 
     def OnViewerClose(self, event):
         self.viewer.Destroy()
         self.viewer = None
+        self.Show()
 
     def OnMenuExit(self, event):
         if self.stackView.stackModel.GetDirty():

@@ -611,7 +611,7 @@ class HelpDataCard():
                   "info": "This is the card number of this card.  The first card has <b>index</b> 0.  You can "
                           "read this value, but not set it."},
         "canSave": {"type": "bool",
-                  "info": "If <b>canSave</b> is <b>True</b>, the user can save the stack while running it."
+                  "info": "If <b>canSave</b> is <b>True</b>, the user can save the stack while running it. "
                           "If it's <b>False</b>, the user can't save, so the stack will always start out in the same "
                           "state."},
     }
