@@ -245,6 +245,8 @@ class SetHandlerCommand(Command):
         self.model = args[4]
         self.key = args[5]
         self.newVal = args[6]
+        self.oldSel = args[7]
+        self.newSel = args[8]
         self.oldVal = self.model.GetHandler(self.key)
         self.hasRun = False
 
@@ -258,6 +260,7 @@ class SetHandlerCommand(Command):
 
         if self.hasRun:
             self.cPanel.UpdateHandlerForUiViews([uiView], self.key)
+            self.cPanel.codeEditor.SetSelection(*self.newSel)
 
         self.hasRun = True
         return True
@@ -270,6 +273,7 @@ class SetHandlerCommand(Command):
         self.model.SetHandler(self.key, self.oldVal)
 
         self.cPanel.UpdateHandlerForUiViews([uiView], self.key)
+        self.cPanel.codeEditor.SetSelection(*self.oldSel)
         return True
 
 

@@ -345,6 +345,7 @@ class ControlPanel(wx.Panel):
 
         self.handlerPicker.SetSelection(list(uiView.model.GetHandlers().keys()).index(self.currentHandler))
         self.codeEditor.SetText(uiView.model.GetHandler(self.currentHandler))
+        self.lastCursorSel = self.codeEditor.GetSelection()
         self.codeEditor.EmptyUndoBuffer()
         self.handlerPicker.Enable(True)
         self.codeEditor.Enable(True)
@@ -356,11 +357,13 @@ class ControlPanel(wx.Panel):
             if uiView:
                 oldVal = uiView.model.GetHandler(self.currentHandler)
                 newVal = self.codeEditor.GetText()
+                newCursorSel = self.codeEditor.GetSelection()
 
                 if newVal != oldVal:
                     command = SetHandlerCommand(True, "Set Handler", self, self.stackView.cardIndex, uiView.model,
-                                                self.currentHandler, newVal)
+                                                self.currentHandler, newVal, self.lastCursorSel, newCursorSel)
                     self.stackView.command_processor.Submit(command)
+                self.lastCursorSel = newCursorSel
 
     def CodeEditorFocused(self, event):
         helpText = HelpData.GetHandlerHelp(self.lastSelectedUiView, self.currentHandler)
