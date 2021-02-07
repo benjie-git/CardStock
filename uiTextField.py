@@ -5,6 +5,7 @@
 import wx
 from uiView import *
 import wx.stc as stc
+from wx.lib.docview import CommandProcessor, Command
 
 
 class UiTextField(UiView):
@@ -39,7 +40,7 @@ class UiTextField(UiView):
             field.Bind(stc.EVT_STC_CHANGE, self.OnTextChanged)
             field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
         else:
-            field = wx.TextCtrl(parent=parent, value="TextField", style=wx.TE_PROCESS_ENTER | alignment)
+            field = CDSTextCtrl(parent=parent, style=wx.TE_PROCESS_ENTER | alignment)
             field.Bind(wx.EVT_TEXT, self.OnTextChanged)
             field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
             field.ChangeValue(text)
@@ -103,6 +104,64 @@ class UiTextField(UiView):
             self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
             if self.stackView.runner and self.model.GetHandler("OnTextChanged"):
                 self.stackView.runner.RunHandler(self.model, "OnTextChanged", event)
+        event.Skip()
+
+
+class CDSTextCtrl(wx.TextCtrl):
+    '''TextCtrl only handles Undo/Redo on Windows, not Mac or Liunx, so add that functionality here.'''
+    def __init__(self, *args, **kwards):
+        super().__init__(*args, **kwards)
+        if wx.Platform != '__WXMSW__':
+            self.command_processor = CommandProcessor()
+            self.Bind(wx.EVT_TEXT, self.OnTextChanged)
+            self.oldText = self.GetValue()
+            self.oldSel = self.GetSelection()
+
+    def OnTextChanged(self, event):
+        newText = self.GetValue()
+        newSel = self.GetSelection()
+        command = TextEditCommand(True, "Change Text", self, self.oldText, newText, self.oldSel, newSel)
+        self.command_processor.Submit(command)
+        self.oldText = newText
+        self.oldSel = newSel
+        event.Skip()
+
+    def CanUndo(self):
+        return True
+
+    def CanRedo(self):
+        return True
+
+    def Undo(self):
+        self.command_processor.Undo()
+        self.oldText = self.GetValue()
+
+    def Redo(self):
+        self.command_processor.Redo()
+        self.oldText = self.GetValue()
+
+
+class TextEditCommand(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.textView = args[2]
+        self.oldText = args[3]
+        self.newText = args[4]
+        self.oldSel = args[5]
+        self.newSel = args[6]
+        self.didRun = False
+
+    def Do(self):
+        if self.didRun:
+            self.textView.ChangeValue(self.newText)
+            self.textView.SetSelection(*self.newSel)
+        self.didRun = True
+        return True
+
+    def Undo(self):
+        self.textView.ChangeValue(self.oldText)
+        self.textView.SetSelection(*self.oldSel)
+        return True
 
 
 class TextFieldModel(ViewModel):
