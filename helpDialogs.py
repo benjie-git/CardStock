@@ -8,7 +8,8 @@ from helpData import HelpData, HelpDataTypes
 class CardStockAbout(wx.Dialog):
     """ An about box that uses an HTML view """
 
-    text = f'''
+    def GetHTML(self):
+        return f'''
 <html>
 <body bgcolor="#EEEEEE">
 <center><table bgcolor='#D0DFEE' cellspacing="0" cellpadding="4" border="0">
@@ -31,7 +32,7 @@ class CardStockAbout(wx.Dialog):
                           size=(500, 200) )
 
         html = wx.html.HtmlWindow(self, -1)
-        html.SetPage(self.text)
+        html.SetPage(self.GetHTML())
         button = wx.Button(self, wx.ID_OK, "Okay")
 
         # Set up the layout with a Sizer
@@ -48,7 +49,8 @@ class CardStockAbout(wx.Dialog):
 class CardStockManual(wx.Frame):
     """ A help window that uses an HTML view """
 
-    text = f'''
+    def GetTHML(self):
+        return f'''
 <html>
 <body bgcolor="#EEEEEE">
 <center><table bgcolor='#D0DFEE' cellspacing="0" cellpadding="4" border="0">
@@ -128,7 +130,7 @@ program (instead of in the Designer). which lets a user run the program, but not
                           size=(800, 600))
 
         html = wx.html.HtmlWindow(self, -1)
-        html.SetPage(self.text)
+        html.SetPage(self.GetHTML())
 
         # Set up the layout with a Sizer
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -142,9 +144,11 @@ program (instead of in the Designer). which lets a user run the program, but not
 class CardStockReference(wx.Frame):
     """ A help window that uses an HTML view """
 
-    text = f'''
+    def GetHTML(self):
+        return f'''
 <html>
 <body bgcolor="#EEEEEE">
+<a name="#top"/>
 <center><table bgcolor='#D0DFEE' cellspacing="0" cellpadding="4" border="0">
 <tr>
     <td align="center"><h1>CardStock Reference</h1>
@@ -162,41 +166,86 @@ like, to make network connections, control other software or hardware, or perfor
 information on how to use CardStock, see the CardStock Help documentation in the Help menu.</p>
 <br/><br/>
 <hr/>
+<a name="#dataTypes"/>
 <h2>Data Types Used in CardStock</h2>
 <p>These are the data types used by the properties, functions, and events in CardStock.</p>
 {HelpData.HtmlTableFromLists(HelpDataTypes)}
 <br/><br/>
 <hr/>
+<a name="#globalVars"/>
 <h2>Global Variables</h2>
 <p>Global variables are objects that are available in all of your event code.</p>
 {HelpData.GlobalVariablesTable()}
 <br/><br/>
 <hr/>
+<a name="#globalFuncs"/>
 <h2>Global Functions</h2>
 <p>These global functions are available in all of your event code.</p>
 {HelpData.GlobalFunctionsTable()}
 <br/><br/>
 <hr/>
 {HelpData.ObjectSection("object", "All Objects", "Many properties, methods, and events apply to objects of all "
-                                                 "types, so we'll list those all here just once.")}
+                                                 "types, so we'll list those all here just once.  Access an object's "
+                                                 "properties or methods as, for example, objectName.size or "
+                                                 "objectName.Focus()")}
 <hr/>
-{HelpData.ObjectSection("card", "Cards", None)}
+{HelpData.ObjectSection("card", "Cards", "Cards are the pages of your stack.  Each card has its own set of objects, and"
+                                         "its own code for handling events.  The below properties, methods, and "
+                                         "events, in addition to those in the All Objects section, apply to card "
+                                         "objects.  Access an object's properties or methods as, for example, "
+                                         "objectName.size or objectName.Focus()")}
 <hr/>
-{HelpData.ObjectSection("button", "Buttons", None)}
+{HelpData.ObjectSection("button", "Buttons", "Buttons show their title, and when clicked, run their OnClicked event "
+                                             "code.  The below properties, methods, and events, in addition to those "
+                                             "in the All Objects section, apply to button objects.  Access an object's "
+                                             "properties or methods as, for example, objectName.size or "
+                                             "objectName.Focus()")}
 <hr/>
-{HelpData.ObjectSection("textfield", "Text Fields", None)}
+{HelpData.ObjectSection("textfield", "Text Fields", "Text fields are object where your stack's users can enter or "
+                                                    "edit text.  The below properties, methods, and events, in "
+                                                    "addition to those in the All Objects section, apply to text field "
+                                                    "objects.  Access an object's properties or methods as, for "
+                                                    "example, objectName.size or objectName.Focus()")}
 <hr/>
-{HelpData.ObjectSection("textlabel", "Text Labels", None)}
+{HelpData.ObjectSection("textlabel", "Text Labels", "Text labels are objects that show text on the card, but are not "
+                                                    "editable by users. The below properties, methods, and events, in "
+                                                    "addition to those in the All Objects section, apply to text label "
+                                                    "objects.  Access an object's properties or methods as, for "
+                                                    "example, objectName.size or objectName.Focus()")}
 <hr/>
-{HelpData.ObjectSection("image", "Images", None)}
+{HelpData.ObjectSection("image", "Images", "Image objects show an image from an image file, and can be rotated.  "
+                                           "The below properties, methods, and events, in addition to those in the "
+                                           "All Objects section, apply to image objects.  Access an object's "
+                                           "properties or methods as, for example, objectName.size or "
+                                           "objectName.Focus()")}
 <hr/>
-{HelpData.ObjectSection("group", "Groups", None)}
+{HelpData.ObjectSection("group", "Groups", "A group object is created when you group other objects together.  It can "
+                                           "then be moved and resized like other objects, and can contain code to "
+                                           "handle the common events, but beware that ungrouping a group destroys any "
+                                           "code in the group object itself.  (But all code in the objects inside the "
+                                           "group remains intact.)  Group objects don't have their own specific "
+                                           "properties, methods, or events, but respond to everything in the "
+                                           "All Objects section.  Access an object's properties or methods as, for "
+                                           "example, objectName.size or objectName.Focus()")}
 <hr/>
-{HelpData.ObjectSection("line", "Shapes - Line and Pen", None)}
+{HelpData.ObjectSection("line", "Shapes - Line and Pen", "A line shape is a stright line connecting two points.  A "
+                                                         "pen shape is whatever shape you draw out with the pen tool. "
+                                                         "Both have a penColor and a penThickness.  "
+                                                         "The below properties, methods, and events, in addition to "
+                                                         "those in the All Objects section, apply to these shape "
+                                                         "objects.")}
 <hr/>
-{HelpData.ObjectSection("shape", "Shapes - Oval and Rectangle", None)}
+{HelpData.ObjectSection("shape", "Shapes - Oval and Rectangle", "Oval and rectangle shapes have a penColor and "
+                                                                "penThickness like Line and Pen objects, but also have "
+                                                                "a fillColor.  The below properties, methods, and "
+                                                                "events, in addition to those in the "
+                                                                "All Objects section, apply to these shape objects.")}
 <hr/>
-{HelpData.ObjectSection("round_rect", "Shapes - Round Rectangle", None)}
+{HelpData.ObjectSection("round_rect", "Shapes - Round Rectangle", "A round rectangle shape has a Rectangle shape's "
+                                                                  "properties, and additionally has a cornerRadius. "
+                                                                  "The below properties, methods, and events, in "
+                                                                  "addition to those in the All Objects section, apply "
+                                                                  "to round rectangle objects.")}
 
 </body>
 </html>
@@ -204,15 +253,25 @@ information on how to use CardStock, see the CardStock Help documentation in the
 
     def __init__(self, parent):
         super().__init__(parent, -1, 'CardStock Reference',
-                          size=(800, 600))
+                          size=(900, 800))
 
-        html = wx.html.HtmlWindow(self, -1)
-        html.SetPage(self.text)
+        self.splitter = wx.SplitterWindow(self, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
 
-        # Set up the layout with a Sizer
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(html, wx.SizerFlags(1).Expand().Border(wx.ALL, 5))
-        self.SetSizer(sizer)
+        self.html = wx.html.HtmlWindow(self.splitter, -1)
+        self.html.SetPage(self.GetHTML())
+
+        toc = wx.html.HtmlWindow(self.splitter)
+        toc.SetPage(HelpData.TOCPage())
+        toc.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.TOCLinkClicked)
+
+        self.splitter.SplitVertically(toc, self.html)
+        self.splitter.SetMinimumPaneSize(120)
+        self.splitter.SetSashPosition(150)
+        self.splitter.SetSashGravity(0.0)
+
         self.Layout()
-
         self.CentreOnParent(wx.BOTH)
+
+    def TOCLinkClicked(self, event):
+        self.html.ScrollToAnchor(event.GetLinkInfo().Href)
+        return True

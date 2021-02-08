@@ -158,19 +158,53 @@ class HelpData():
         if description:
             text = "<p>" + description + "</p>\n"
         return f"""
+<a name="#{typeStr}"/>
 <h2>{title}</h2>
 {text}
-<br/>
+<br/><br/>
+<a name="#{typeStr}.props"/>
 <h3>Properties</h3>
 {HelpData.PropertyTable(typeStr)}
 <br/><br/>
+<a name="#{typeStr}.methods"/>
 <h3>Methods</h3>
 {HelpData.MethodTable(typeStr)}
 <br/><br/>
+<a name="#{typeStr}.events"/>
 <h3>Events</h3>
 {HelpData.HandlerTable(typeStr)}
 <br/><br/>
 """
+
+    @classmethod
+    def TOCPage(cls):
+        types = [["All Objects", "object"], ["Cards", "card"], ["Buttons", "button"], ["Text Fields", "textfield"],
+                 ["Text Labels", "textlabel"], ["Images", "image"], ["Groups", "group"], ["Line & Pen", "line"],
+                 ["Oval & Rectangle", "shape"], ["Round Rectangle", "round_rect"]]
+        text = """
+<html>
+<body bgcolor="#EEEEEE">
+<h2>Contents</h2>
+<li><a href="#top">Reference</a><br/>
+<li><a href="#dataTypes">Data Types</a><br/>
+<li><a href="#globalVars">Global Variables</a><br/>
+<li><a href="#globalFuncs">Global Functions</a><br/>
+"""
+        for type in types:
+            text += f"""
+<li><a href="#{type[1]}">{type[0]}</a><br/>
+<ul>
+<li><a href="#{type[1]}">Properties</a></li>
+<li><a href="#{type[1]+".methods"}">Methods</a></li>
+<li><a href="#{type[1]+".events"}">Events</a></li>
+</ul>
+</li>
+</ul>
+"""
+        text += """
+</body></html>
+        """
+        return text
 
 
 HelpDataTypes = [["Type", "Description"],
