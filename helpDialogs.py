@@ -193,7 +193,8 @@ information on how to use CardStock, see the CardStock Help documentation in the
                                          "its own code for handling events.  The below properties, methods, and "
                                          "events, in addition to those in the All Objects section, apply to card "
                                          "objects.  Access an object's properties or methods as, for example, "
-                                         "objectName.size or objectName.Focus()")}
+                                         "objectName.size or objectName.Focus().  You can also access a child object "
+                                         "of this card as card.objectName.")}
 <hr/>
 {HelpData.ObjectSection("button", "Buttons", "Buttons show their title, and when clicked, run their OnClicked event "
                                              "code.  The below properties, methods, and events, in addition to those "
@@ -226,7 +227,8 @@ information on how to use CardStock, see the CardStock Help documentation in the
                                            "group remains intact.)  Group objects don't have their own specific "
                                            "properties, methods, or events, but respond to everything in the "
                                            "All Objects section.  Access an object's properties or methods as, for "
-                                           "example, objectName.size or objectName.Focus()")}
+                                           "example, objectName.size or objectName.Focus().  You can also access a "
+                                           "child object of this group as groupName.objectName")}
 <hr/>
 {HelpData.ObjectSection("line", "Shapes - Line and Pen", "A line shape is a stright line connecting two points.  A "
                                                          "pen shape is whatever shape you draw out with the pen tool. "
@@ -253,7 +255,7 @@ information on how to use CardStock, see the CardStock Help documentation in the
 
     def __init__(self, parent):
         super().__init__(parent, -1, 'CardStock Reference',
-                          size=(900, 800))
+                          size=(900, 950))
 
         self.splitter = wx.SplitterWindow(self, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
 
@@ -266,7 +268,7 @@ information on how to use CardStock, see the CardStock Help documentation in the
 
         self.splitter.SplitVertically(toc, self.html)
         self.splitter.SetMinimumPaneSize(120)
-        self.splitter.SetSashPosition(150)
+        self.splitter.SetSashPosition(200)
         self.splitter.SetSashGravity(0.0)
 
         self.Layout()

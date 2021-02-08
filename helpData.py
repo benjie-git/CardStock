@@ -185,10 +185,11 @@ class HelpData():
 <html>
 <body bgcolor="#EEEEEE">
 <h2>Contents</h2>
-<li><a href="#top">Reference</a><br/>
-<li><a href="#dataTypes">Data Types</a><br/>
-<li><a href="#globalVars">Global Variables</a><br/>
-<li><a href="#globalFuncs">Global Functions</a><br/>
+<li><a href="#top">Reference</a><br>
+<ul>
+<li><a href="#dataTypes">Data Types</a>
+<li><a href="#globalVars">Global Variables</a>
+<li><a href="#globalFuncs">Global Functions</a>
 """
         for type in types:
             text += f"""
@@ -199,9 +200,10 @@ class HelpData():
 <li><a href="#{type[1]+".events"}">Events</a></li>
 </ul>
 </li>
-</ul>
 """
         text += """
+</ul>
+</ul>
 </body></html>
         """
         return text
@@ -228,9 +230,11 @@ class HelpDataGlobals():
         "self": {"type": "object",
                   "info": "In any object's event code, <b>self</b> always refers to the object that contains this code."},
         "stack": {"type": "object",
-                  "info": "The <b>stack</b> is the object that represents your whole program."},
+                  "info": "The <b>stack</b> is the object that represents your whole program.  You can access cards "
+                          "in this stack as stack.cardName."},
         "card": {"type": "object",
-                 "info": "The <b>card</b> is the object that represents the currently loaded card in your stack."},
+                 "info": "The <b>card</b> is the object that represents the currently loaded card in your stack.  You "
+                         "can access child objects of this card as card.objectName."},
     }
 
     functions = {
