@@ -13,11 +13,11 @@ class UiTextLabel(UiView):
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("label_"), False)
 
         self.stackView = stackView
-        self.label = self.CreateLabel(parent.view, model)
+        self.label = self.CreateLabel(stackView, model)
 
         super().__init__(parent, stackView, model, self.label)
 
-    def CreateLabel(self, parent, model):
+    def CreateLabel(self, stackView, model):
         if model:
             text = model.GetProperty("text")
             alignment = wx.ALIGN_LEFT
@@ -29,7 +29,7 @@ class UiTextLabel(UiView):
             text = "Text"
             alignment = wx.ALIGN_LEFT
 
-        label = wx.StaticText(parent=parent, size=(60,20),
+        label = wx.StaticText(parent=stackView, size=(60,20),
                               style=alignment|wx.ST_NO_AUTORESIZE)
         label.SetLabelText(text)
         familyName = model.GetProperty("font")

@@ -111,14 +111,14 @@ class HandTool(BaseTool):
         if self.mode:
             pos = event.GetPosition()
             origSize = self.oldFrames[self.targetUi.model.GetProperty("name")].Size
-            if wx.Platform == '__WXMAC__' and uiView.model.type == "button" and uiView.model.GetProperty("border"):
+            if wx.Platform == '__WXMAC__' and self.targetUi.model.type == "button" and self.targetUi.model.GetProperty("border"):
                 # Button views are bigger than specified???
                 pos.x += MAC_BUTTON_OFFSET_HACK.x
                 pos.y += MAC_BUTTON_OFFSET_HACK.y
 
             if self.mode == "click":
                 if dist(list(pos), list(self.absOrigin)) > MOVE_THRESHOLD:
-                    if uiView.GetResizeBoxRect().Inflate(4).Contains(self.relOrigin):
+                    if self.targetUi.GetResizeBoxRect().Inflate(4).Contains(self.relOrigin):
                           self.StartResize()
                     else:
                         if self.targetUi.model.type == "card":

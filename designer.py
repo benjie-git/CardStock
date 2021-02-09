@@ -93,6 +93,7 @@ class DesignerFrame(wx.Frame):
 
         self.stackView.command_processor.SetEditMenu(self.editMenu)
         self.stackContainer.Bind(wx.EVT_LEFT_DOWN, self.FwdOnMouseDown)
+        self.stackContainer.Bind(wx.EVT_LEFT_DCLICK, self.FwdOnMouseDown)
         self.stackContainer.Bind(wx.EVT_MOVE, self.FwdOnMouseMove)
         self.stackContainer.Bind(wx.EVT_LEFT_UP, self.FwdOnMouseDown)
         self.Bind(wx.EVT_KEY_DOWN, self.FwdOnKeyDown)

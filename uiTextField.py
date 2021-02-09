@@ -15,11 +15,11 @@ class UiTextField(UiView):
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("field_"), False)
 
         self.stackView = stackView
-        self.field = self.CreateField(parent.view, stackView, model)
+        self.field = self.CreateField(stackView, model)
 
         super().__init__(parent, stackView, model, self.field)
 
-    def CreateField(self, parent, stackView, model):
+    def CreateField(self, stackView, model):
         text = model.GetProperty("text")
         alignment = wx.TE_LEFT
         if model.GetProperty("alignment") == "Right":
@@ -28,7 +28,7 @@ class UiTextField(UiView):
             alignment = wx.TE_CENTER
 
         if model.GetProperty("multiline"):
-            field = stc.StyledTextCtrl(parent=parent, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
+            field = stc.StyledTextCtrl(parent=stackView, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
             field.SetUseHorizontalScrollBar(False)
             field.SetWrapMode(stc.STC_WRAP_WORD)
             field.SetMarginWidth(1, 0)
@@ -37,7 +37,7 @@ class UiTextField(UiView):
             field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
             field.EmptyUndoBuffer()
         else:
-            field = CDSTextCtrl(parent=parent, style=wx.TE_PROCESS_ENTER | alignment)
+            field = CDSTextCtrl(parent=stackView, style=wx.TE_PROCESS_ENTER | alignment)
             field.ChangeValue(text)
             field.Bind(wx.EVT_TEXT, self.OnTextChanged)
             field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)

@@ -13,10 +13,8 @@ class UiGroup(UiView):
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("group_"), False)
 
         self.uiViews = []
-        view = generator.TransparentWindow(parent.view)
-        view.SetBackgroundColour(None)
 
-        super().__init__(parent, stackView, model, view)
+        super().__init__(parent, stackView, model, None)
 
     def GetCursor(self):
         if self.stackView.isEditing:
@@ -28,6 +26,14 @@ class UiGroup(UiView):
         super().SetModel(model)
         self.RebuildViews()
 
+    def DestroyView(self):
+        for uiView in self.uiViews:
+            uiView.DestroyView()
+
+    def ReparentView(self, newParent):
+        for uiView in self.uiViews:
+            uiView.ReparentView(newParent)
+
     def GetAllUiViews(self):
         allUiViews = []
         for uiView in self.uiViews:
@@ -36,31 +42,53 @@ class UiGroup(UiView):
                 allUiViews.extend(uiView.GetAllUiViews())
         return allUiViews
 
-    def OnResize(self, event):
-        self.model.ResizeChildModels()
+    def HitTest(self, pt):
+        if not self.hitRegion:
+            self.MakeHitRegion()
+        if self.hitRegion.Contains(pt):
+            for ui in reversed(self.uiViews):
+                hit = ui.HitTest(pt-wx.Point(ui.model.GetProperty("position")))
+                if hit:
+                    return hit
+            return self
+        return None
 
     def Paint(self, gc):
         if self.stackView.isEditing:
             gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
             gc.DrawRectangle(self.model.GetAbsoluteFrame())
+        for uiView in self.uiViews:
+            uiView.Paint(gc)
+
+    def PaintSelectionBox(self, gc):
+        super().PaintSelectionBox(gc)
+        for uiView in self.uiViews:
+            uiView.PaintSelectionBox(gc)
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key == "child":
+        if key == "position":
+            for ui in self.uiViews:
+                ui.OnPropertyChanged(ui.model, key)
+        elif key == "size":
+            self.model.ResizeChildModels()
+        elif key == "child":
             self.RebuildViews()
 
     def RemoveChildViews(self):
         for ui in self.uiViews.copy():
             if ui.view:
-                self.view.RemoveChild(ui.view)
+                self.stackView.RemoveChild(ui.view)
                 ui.view.Destroy()
+            if ui.model.type == "group":
+                ui.RemoveChildViews()
             self.uiViews.remove(ui)
 
     def RebuildViews(self):
         for ui in self.uiViews.copy():
             if ui.view:
-                self.view.RemoveChild(ui.view)
+                self.stackView.RemoveChild(ui.view)
                 ui.view.Destroy()
             self.uiViews.remove(ui)
         for m in self.model.childModels.copy():

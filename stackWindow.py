@@ -130,8 +130,7 @@ class StackWindow(wx.Window):
         for ui in self.uiViews.copy():
             if ui.model.type != "card":
                 self.uiViews.remove(ui)
-                if ui.view:
-                    ui.view.Reparent(self.cacheView)
+                ui.ReparentView(self.cacheView)
                 self.uiViewCache[ui.model] = ui
                 if ui.doNotCache:
                     self.uiViewCachePendingDelete.append(ui)
@@ -293,8 +292,7 @@ class StackWindow(wx.Window):
             uiView = self.uiViewCache[model]
             if uiView not in self.uiViewCachePendingDelete:
                 uiView = self.uiViewCache.pop(model)
-                if uiView.view:
-                    uiView.view.Reparent(self)
+                uiView.ReparentView(self)
             else:
                 uiView = None
 
@@ -411,8 +409,7 @@ class StackWindow(wx.Window):
                     ui.RemoveChildViews()
                 self.uiViews.remove(ui)
                 self.uiCard.model.RemoveChild(ui.model)
-                if ui.view:
-                    ui.view.Reparent(self.cacheView)
+                ui.ReparentView(self.cacheView)
                 self.uiViewCache[ui.model] = ui
                 self.uiViewCachePendingDelete.append(ui)
                 return
@@ -548,10 +545,16 @@ class StackWindow(wx.Window):
         event.Skip()
 
     def HitTest(self, pt):
+        for uiView in self.selectedViews:
+            if uiView.model.type != "card":
+                hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
+                if hit == uiView:
+                    return hit
         for uiView in reversed(self.uiViews):
             if not uiView.model.GetProperty("hidden"):
-                if uiView.HitTest(pt - wx.Point(uiView.model.GetProperty("position"))):
-                    return uiView
+                hit = uiView.HitTest(pt - wx.Point(uiView.model.GetProperty("position")))
+                if hit:
+                    return hit
         return self.uiCard
 
     def OnKeyDown(self, uiView, event):

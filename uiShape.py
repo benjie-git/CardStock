@@ -51,7 +51,7 @@ class UiShape(UiView):
         thickness = self.model.GetProperty("penThickness")
         fillColor = self.model.GetProperty("fillColor")
         penColor = self.model.GetProperty("penColor")
-        offset = wx.Point(self.model.GetProperty("position"))
+        offset = wx.Point(self.model.GetAbsolutePosition())
         self.DrawShape(gc, thickness, penColor, fillColor, offset)
         super().Paint(gc)
 

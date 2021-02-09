@@ -27,10 +27,14 @@ class UiView(object):
         self.lastEditedHandler = None
         self.delta = ((0, 0))
 
+    def __repr__(self):
+        return "<"+str(self.__class__.__name__) + ":" + self.model.type + ":'" + self.model.GetProperty("name")+"'>"
+
     def BindEvents(self, view):
         view.Bind(wx.EVT_ENTER_WINDOW, self.FwdOnMouseEnter)
         view.Bind(wx.EVT_LEAVE_WINDOW, self.FwdOnMouseExit)
         view.Bind(wx.EVT_LEFT_DOWN, self.FwdOnMouseDown)
+        view.Bind(wx.EVT_LEFT_DCLICK, self.FwdOnMouseDown)
         view.Bind(wx.EVT_MOTION, self.FwdOnMouseMove)
         view.Bind(wx.EVT_LEFT_UP, self.FwdOnMouseUp)
         view.Bind(wx.EVT_KEY_DOWN, self.FwdOnKeyDown)
@@ -56,7 +60,7 @@ class UiView(object):
             mSize = self.model.GetProperty("size")
             if mSize[0] > 0 and mSize[1] > 0:
                 self.view.SetSize(mSize)
-                self.view.SetPosition(wx.Point(self.model.GetProperty("position")))
+                self.view.SetPosition(wx.Point(self.model.GetAbsolutePosition()))
 
             self.view.Show(not self.model.GetProperty("hidden"))
 
@@ -79,9 +83,9 @@ class UiView(object):
             else:
                 self.stackView.Refresh(True, self.model.GetRefreshFrame())
         elif key == "position":
-            pos = self.model.GetProperty(key)
+            pos = self.model.GetAbsolutePosition()
             if self.view:
-                self.view.SetPosition([int(pos[0]), int(pos[1])])
+                self.view.SetPosition(wx.Point(pos))
                 self.view.Refresh(True)
             else:
                 self.stackView.Refresh(True, self.model.GetRefreshFrame())
@@ -96,6 +100,10 @@ class UiView(object):
         if self.view:
             self.view.Destroy()
             self.view = None
+
+    def ReparentView(self, newParent):
+        if self.view:
+            self.view.Reparent(newParent)
 
     def GetSelected(self):
         return self.isSelected
@@ -184,7 +192,9 @@ class UiView(object):
     def HitTest(self, pt):
         if not self.hitRegion:
             self.MakeHitRegion()
-        return self.hitRegion.Contains(pt)
+        if self.hitRegion.Contains(pt):
+            return self
+        return None
 
     def GetResizeBoxRect(self):
         # the resize box/handle should hang out of the frame, to allow grabbing it from behind
@@ -262,6 +272,9 @@ class ViewModel(object):
         self.lastIdleTime = None
         self.animations = []
         self.proxyClass = ViewProxy
+
+    def __repr__(self):
+        return "<"+str(self.__class__.__name__) + ":" + self.type + ":'" + self.GetProperty("name")+"'>"
 
     def CreateCopy(self):
         data = self.GetData()

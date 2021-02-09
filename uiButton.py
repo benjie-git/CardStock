@@ -13,7 +13,7 @@ class UiButton(UiView):
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("button_"), False)
 
         self.stackView = stackView
-        self.button = self.CreateButton(parent.view, model)
+        self.button = self.CreateButton(stackView, model)
 
         super().__init__(parent, stackView, model, self.button)
 
@@ -21,8 +21,8 @@ class UiButton(UiView):
         if view == self.view:
             super().BindEvents(self.button)
 
-    def CreateButton(self, parent, model):
-        button = wx.Button(parent=parent, label="Button",
+    def CreateButton(self, stackView, model):
+        button = wx.Button(parent=stackView, label="Button",
                          style=(wx.BORDER_DEFAULT if model.GetProperty("border") else wx.BORDER_NONE))
         button.SetLabel(model.GetProperty("title"))
         button.Bind(wx.EVT_BUTTON, self.OnButton)

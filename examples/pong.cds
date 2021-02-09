@@ -28,8 +28,8 @@
           "properties": {
             "name": "label",
             "size": [
-              107,
-              42
+              198,
+              53
             ],
             "position": [
               12.0,
@@ -43,6 +43,38 @@
           }
         },
         {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "paddle",
+            "size": [
+              235,
+              22
+            ],
+            "position": [
+              193.0,
+              662.0
+            ],
+            "originalSize": [
+              250,
+              31
+            ],
+            "penColor": "#000000",
+            "penThickness": 1,
+            "fillColor": "#0A5FFF"
+          },
+          "points": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              250.0,
+              31.0
+            ]
+          ]
+        },
+        {
           "type": "oval",
           "handlers": {
             "OnSetup": "self.Hide()\n",
@@ -52,61 +84,29 @@
           "properties": {
             "name": "ball",
             "size": [
-              35,
-              35
+              32,
+              32
             ],
             "position": [
               50.0,
-              50.0
+              52.0
             ],
             "originalSize": [
-              35,
-              35
-            ],
-            "penColor": "#000000",
-            "penThickness": 0,
-            "fillColor": "#FF2222"
-          },
-          "points": [
-            [
-              2,
-              2
-            ],
-            [
-              33.0,
-              33
-            ]
-          ]
-        },
-        {
-          "type": "rect",
-          "handlers": {},
-          "properties": {
-            "name": "paddle",
-            "size": [
-              237,
-              24
-            ],
-            "position": [
-              328.0,
-              651.0
-            ],
-            "originalSize": [
-              232,
-              28
+              32,
+              32
             ],
             "penColor": "#000000",
             "penThickness": 1,
-            "fillColor": "#0A5FFF"
+            "fillColor": "#FB0207"
           },
           "points": [
             [
-              1,
-              1
+              0.0,
+              0.0
             ],
             [
-              231,
-              27
+              32.0,
+              32.0
             ]
           ]
         }
@@ -114,5 +114,5 @@
     }
   ],
   "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.5"
+  "CardStock_stack_version": "0.7"
 }
