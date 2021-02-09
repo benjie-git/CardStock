@@ -530,7 +530,8 @@ class StackWindow(wx.Window):
             uiView.OnMouseExit(event)
 
     def OnPaint(self, event):
-        buffer = wx.Bitmap.FromRGBA(self.GetSize().Width, self.GetSize().Height, 0xFF, 0xFF, 0xFF, 0xFF)
+        bg = wx.Colour(self.uiCard.model.GetProperty("bgColor"))
+        buffer = wx.Bitmap.FromRGBA(self.GetSize().Width, self.GetSize().Height, bg.red, bg.green, bg.blue, 0xFF)
         dc = wx.BufferedPaintDC(self, buffer)
         gc = wx.GCDC(dc)
         for uiView in self.uiViews:

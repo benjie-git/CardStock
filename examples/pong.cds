@@ -28,18 +28,18 @@
           "properties": {
             "name": "label",
             "size": [
-              198,
-              53
+              111,
+              27
             ],
             "position": [
-              12.0,
-              17.0
+              1.0,
+              1.0
             ],
             "text": "0",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 28
+            "fontSize": 18
           }
         },
         {

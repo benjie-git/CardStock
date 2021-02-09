@@ -33,7 +33,8 @@ class UiTextLabel(UiView):
                               style=alignment|wx.ST_NO_AUTORESIZE)
         label.SetLabelText(text)
         familyName = model.GetProperty("font")
-        size = int(model.GetProperty("fontSize"))
+        platformScale = 1.4 if (wx.Platform == '__WXMAC__') else 1.0
+        size = int(model.GetProperty("fontSize") * platformScale)
         label.SetFont(wx.Font(wx.FontInfo(size).Family(self.FamilyForName(familyName))))
         label.SetForegroundColour(model.GetProperty("textColor"))
         label.SetCursor(wx.Cursor(wx.CURSOR_HAND))
@@ -54,7 +55,8 @@ class UiTextLabel(UiView):
             self.OnResize(None)
         elif key == "font" or key == "fontSize":
             familyName = self.model.GetProperty("font")
-            size = int(self.model.GetProperty("fontSize"))
+            platformScale = 1.4 if (wx.Platform == '__WXMAC__') else 1.0
+            size = int(model.GetProperty("fontSize") * platformScale)
             self.label.SetFont(wx.Font(wx.FontInfo(size).Family(self.FamilyForName(familyName))))
         elif key == "textColor":
             self.label.SetForegroundColour(model.GetProperty(key))
