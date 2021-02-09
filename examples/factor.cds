@@ -5,7 +5,8 @@
     "size": [
       500,
       495
-    ]
+    ],
+    "canSave": false
   },
   "cards": [
     {
@@ -31,8 +32,8 @@
               22
             ],
             "position": [
-              136,
-              79
+              136.0,
+              79.0
             ],
             "text": "",
             "alignment": "Right",
@@ -52,8 +53,8 @@
               21
             ],
             "position": [
-              261,
-              80
+              261.0,
+              80.0
             ],
             "title": "Find!",
             "border": true
@@ -69,8 +70,8 @@
               305
             ],
             "position": [
-              52,
-              136
+              52.0,
+              136.0
             ],
             "text": "",
             "alignment": "Left",
@@ -84,22 +85,23 @@
           "properties": {
             "name": "label_1",
             "size": [
-              295,
-              35
+              377,
+              33
             ],
             "position": [
-              105,
-              32
+              58.0,
+              34.0
             ],
             "text": "Enter a number to Prime Factor:",
             "alignment": "Center",
             "textColor": "black",
-            "font": "Helvetica",
-            "fontSize": "18"
+            "font": "Default",
+            "fontSize": 16
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 1
+  "CardStock_stack_format": 1,
+  "CardStock_stack_version": "0.7"
 }

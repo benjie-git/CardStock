@@ -34,7 +34,7 @@ class UiTextLabel(UiView):
         label.SetLabelText(text)
         familyName = model.GetProperty("font")
         platformScale = 1.4 if (wx.Platform == '__WXMAC__') else 1.0
-        size = int(model.GetProperty("fontSize") * platformScale)
+        size = int(model.GetProperty("fontSize")) * platformScale
         label.SetFont(wx.Font(wx.FontInfo(size).Family(self.FamilyForName(familyName))))
         label.SetForegroundColour(model.GetProperty("textColor"))
         label.SetCursor(wx.Cursor(wx.CURSOR_HAND))
@@ -93,7 +93,7 @@ class TextLabelModel(ViewModel):
         self.properties["alignment"] = "Left"
         self.properties["textColor"] = "black"
         self.properties["font"] = "Default"
-        self.properties["fontSize"] = "18"
+        self.properties["fontSize"] = 18
 
         self.propertyTypes["text"] = "string"
         self.propertyTypes["alignment"] = "choice"
