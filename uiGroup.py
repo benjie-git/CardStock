@@ -14,7 +14,6 @@ class UiGroup(UiView):
 
         self.uiViews = []
         view = generator.TransparentWindow(parent.view)
-        view.Bind(wx.EVT_PAINT, self.OnPaintGroup)
         view.SetBackgroundColour(None)
 
         super().__init__(parent, stackView, model, view)
@@ -38,17 +37,13 @@ class UiGroup(UiView):
         return allUiViews
 
     def OnResize(self, event):
-        super().OnResize(event)
         self.model.ResizeChildModels()
 
-    def OnPaintGroup(self, event):
+    def Paint(self, gc):
         if self.stackView.isEditing:
-            dc = wx.PaintDC(self.view)
-            dc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
-            dc.SetBrush(wx.TRANSPARENT_BRUSH)
-            dc.DrawRectangle((1, 1), (self.view.GetSize()[0]-1, self.view.GetSize()[1]-1))
-        event.Skip()
-
+            gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
+            gc.SetBrush(wx.TRANSPARENT_BRUSH)
+            gc.DrawRectangle(self.model.GetAbsoluteFrame())
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
@@ -57,14 +52,16 @@ class UiGroup(UiView):
 
     def RemoveChildViews(self):
         for ui in self.uiViews.copy():
-            self.view.RemoveChild(ui.view)
-            ui.view.Destroy()
+            if ui.view:
+                self.view.RemoveChild(ui.view)
+                ui.view.Destroy()
             self.uiViews.remove(ui)
 
     def RebuildViews(self):
         for ui in self.uiViews.copy():
-            self.view.RemoveChild(ui.view)
-            ui.view.Destroy()
+            if ui.view:
+                self.view.RemoveChild(ui.view)
+                ui.view.Destroy()
             self.uiViews.remove(ui)
         for m in self.model.childModels.copy():
             uiView = generator.StackGenerator.UiViewFromModel(self, self.stackView, m)

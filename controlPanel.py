@@ -187,6 +187,7 @@ class ControlPanel(wx.Panel):
         self.inspector.ClearSelection()
         if self.inspector.GetGridCursorCol() == 1:
             self.inspector.EnableCellEditControl()
+        event.Skip()
 
     def OnGridCellSelected(self, event):
         self.inspector.ClearSelection()

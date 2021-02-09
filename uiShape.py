@@ -9,76 +9,98 @@ from uiView import *
 
 class UiShape(UiView):
     def __init__(self, parent, stackView, shapeType, model=None):
-        view = generator.TransparentWindow(parent=parent.view)
-        # self.needsUpdate = True
-        # self.buffer = None
-
         if not model:
             model = self.CreateModelForType(stackView, shapeType)
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("shape_"), False)
 
-        super().__init__(parent, stackView, model, view)
+        super().__init__(parent, stackView, model, None)
 
-    def SetView(self, view):
-        super().SetView(view)
-        view.SetBackgroundColour(None)
-        view.Bind(wx.EVT_PAINT, self.OnPaint)
-
-    def DrawShape(self, dc):
-        thickness = self.model.GetProperty("penThickness")
-        pen = wx.Pen(self.model.GetProperty("penColor"), thickness, wx.PENSTYLE_SOLID)
+    def DrawShape(self, dc, thickness, penColor, fillColor, offset):
+        pen = wx.Pen(penColor, thickness, wx.PENSTYLE_SOLID)
         dc.SetPen(pen)
 
         points = self.model.GetScaledPoints()
 
         if self.model.type in ["pen", "line"]:
-            lastPos = points[0]
+            lastPos = points[0] + offset
             for coords in points:
+                coords = coords + offset
                 dc.DrawLine(lastPos[0], lastPos[1], coords[0], coords[1])
                 lastPos = coords
         elif len(points) == 2:
             rect = self.model.RectFromPoints(points)
-            p1 = rect.TopLeft
-            p2 = rect.BottomRight
+            p1 = rect.TopLeft + offset
+            p2 = rect.BottomRight + offset
             if thickness == 0:
-                dc.SetPen(wx.Pen("white", 0, wx.PENSTYLE_TRANSPARENT))
-            fillColor = self.model.GetProperty("fillColor")
+                pen = wx.TRANSPARENT_PEN
+                dc.SetPen(pen)
             dc.SetBrush(wx.Brush(fillColor, wx.BRUSHSTYLE_SOLID))
             if self.model.type == "rect":
                 pen.SetJoin(wx.JOIN_MITER)
                 dc.SetPen(pen)
                 dc.DrawRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
             elif self.model.type == "round_rect":
-                dc.DrawRoundedRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1],
-                                        self.model.GetProperty("cornerRadius"))
+                radius = self.model.GetProperty("cornerRadius")
+                radius = min(radius, abs(p1[0]-p2[0])/2)
+                radius = min(radius, abs(p1[1]-p2[1])/2)
+                dc.DrawRoundedRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1], radius)
             elif self.model.type == "oval":
                 dc.DrawEllipse(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
 
-    # def UpdateBuffer(self):
-    #     size = self.view.GetSize()
-    #     self.buffer = wx.Bitmap.FromRGBA(max(1,size.width), max(1,size.height))
-    #     bdc = wx.BufferedDC(None, self.buffer)
-    #     dc = wx.GCDC(bdc)
-    #     self.DrawShape(dc)
-    #     self.needsUpdate = False
-    #
-    # def OnResize(self, event):
-    #     super().OnResize(event)
-    #     self.needsUpdate = True
+    def Paint(self, gc):
+        thickness = self.model.GetProperty("penThickness")
+        fillColor = self.model.GetProperty("fillColor")
+        penColor = self.model.GetProperty("penColor")
+        offset = wx.Point(self.model.GetProperty("position"))
+        self.DrawShape(gc, thickness, penColor, fillColor, offset)
+        super().Paint(gc)
 
-    def OnPaint(self, event):
-        # if self.needsUpdate:
-        #     self.UpdateBuffer()
-        # wx.BufferedPaintDC(self.view, self.buffer)
-        dc = wx.PaintDC(self.view)
-        self.DrawShape(dc)
-        event.Skip()
+    def PaintSelectionBox(self, gc):
+        if self.isSelected:
+            f = self.model.GetAbsoluteFrame()
+            f = wx.Rect(f.TopLeft - wx.Point(1,1), f.Size)
+            gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
+            gc.SetBrush(wx.TRANSPARENT_BRUSH)
+            if self.model.type in ["line", "pen"]:
+                points = self.model.GetScaledPoints()
+                thickness = self.model.GetProperty("penThickness")
+                gc.SetPen(wx.Pen('Blue', 3 + thickness, wx.PENSTYLE_SHORT_DASH))
+                lastPos = points[0] + f.TopLeft
+                for coords in points:
+                    coords = coords + f.TopLeft
+                    gc.DrawLine(lastPos[0], lastPos[1], coords[0], coords[1])
+                    lastPos = coords
+            elif self.model.type == "rect":
+                gc.DrawRectangle(f.Inflate(2))
+            elif self.model.type == "oval":
+                gc.DrawEllipse(f.Inflate(2))
+            elif self.model.type == "round_rect":
+                radius = self.model.GetProperty("cornerRadius")
+                gc.DrawRoundedRectangle(f.Inflate(2), radius)
+            gc.SetPen(wx.TRANSPARENT_PEN)
+            gc.SetBrush(wx.Brush('blue', wx.BRUSHSTYLE_SOLID))
+            box = self.GetResizeBoxRect()
+            gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
+
+    def MakeHitRegion(self):
+        s = self.model.GetProperty("size")
+        bmp = wx.Bitmap(width=s.width+10, height=s.height+10, depth=1)
+        dc = wx.MemoryDC(bmp)
+        dc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
+        dc.Clear()
+        thickness = self.model.GetProperty("penThickness") + 4
+        penColor = 'white'
+        fillColor = 'white'
+        self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(0,0))
+        f = self.model.GetAbsoluteFrame()
+        dc.DrawRectangle(self.GetResizeBoxRect().Inflate(2))
+        self.hitRegion = bmp.ConvertToImage().ConvertToRegion(0,0,0)
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key in ["shape", "penColor", "penThickness", "fillColor", "cornerRadius"]:
-            # self.needsUpdate = True
-            self.view.Refresh(True)
+            self.hitRegion = None
+            self.stackView.Refresh(True, self.model.GetRefreshFrame())
 
     @staticmethod
     def CreateModelForType(stackView, name):
@@ -143,6 +165,9 @@ class LineModel(ViewModel):
         self.scaledPoints = None
         self.Notify("shape")
 
+    def GetRefreshFrame(self):
+        return self.GetAbsoluteFrame().Inflate(8 + self.properties["penThickness"])
+
     # scale from originalSize to Size
     # take into account thickness/2 border on each side
     def GetScaledPoints(self):
@@ -150,14 +175,13 @@ class LineModel(ViewModel):
             return self.scaledPoints
         if not self.properties["originalSize"] or self.properties["originalSize"][0] == 0 or self.properties["originalSize"][1] == 0:
             return self.points
-        padding = int(self.properties["penThickness"] / 2 + 0.5)
         scaleX = 1
         scaleY = 1
-        if (self.properties["originalSize"][0] - 2*padding) != 0:
-            scaleX = (self.properties["size"][0] - 2*padding) / (self.properties["originalSize"][0] - 2*padding)
-        if (self.properties["originalSize"][1] - 2*padding) != 0:
-            scaleY = (self.properties["size"][1] - 2*padding) / (self.properties["originalSize"][1] - 2*padding)
-        self.scaledPoints = [(((p[0] - padding) * scaleX) + padding, ((p[1] - padding) * scaleY) + padding) for p in self.points]
+        if self.properties["originalSize"][0] != 0:
+            scaleX = self.properties["size"][0] / self.properties["originalSize"][0]
+        if self.properties["originalSize"][1] != 0:
+            scaleY = self.properties["size"][1] / self.properties["originalSize"][1]
+        self.scaledPoints = [(p[0] * scaleX, p[1] * scaleY) for p in self.points]
         return self.scaledPoints
 
     @staticmethod
@@ -172,7 +196,6 @@ class LineModel(ViewModel):
         if len(self.points) == 0:
             return
 
-        padding = max(1, int(self.properties["penThickness"] / 2 + 0.5))
         oldSize = self.properties["size"] if self.properties["originalSize"] else None
 
         # First move all points to be relative to the card origin
@@ -187,20 +210,19 @@ class LineModel(ViewModel):
         if len(self.points) > 0:
             # calculate bounding rect
             if not rect:
-                rect = wx.Rect(self.points[0][0]-padding, self.points[0][1]-padding, max(1,padding*2), max(1,padding*2))
+                rect = wx.Rect(self.points[0][0], self.points[0][1], 1, 1)
             for x,y in self.points:
-                rect = rect.Union(wx.Rect(x-padding, y-padding, padding*2, padding*2))
+                rect = rect.Union(wx.Rect(x, y, 1, 1))
 
-        rect = wx.Rect(rect.Left, rect.Top, rect.Width, rect.Height)
+        rect = wx.Rect(rect.Left, rect.Top, rect.Width-1, rect.Height-1)
 
         # adjust view rect
         self.SetProperty("position", rect.Position)
-        offset = padding*2 - self.oldThickness
         if rect.Width < 20: rect.Width = 20
         if rect.Height < 20: rect.Height = 20
 
         if oldSize:
-            self.SetProperty("size", [oldSize[0] + offset, oldSize[1] + offset])
+            self.SetProperty("size", [oldSize[0], oldSize[1]])
         else:
             self.SetProperty("size", rect.Size)
         self.SetProperty("originalSize", rect.Size)

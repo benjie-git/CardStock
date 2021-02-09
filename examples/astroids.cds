@@ -5,7 +5,8 @@
     "size": [
       800,
       800
-    ]
+    ],
+    "canSave": false
   },
   "cards": [
     {
@@ -17,63 +18,29 @@
       },
       "childModels": [
         {
-          "type": "group",
-          "handlers": {},
+          "type": "image",
+          "handlers": {
+            "OnSetup": "import math\n\ndef rotate(list, angle):\n   angle = math.radians(angle)\n   px, py = list\n   return [math.cos(angle) * px - math.sin(angle) * py,\n           math.sin(angle) * px + math.cos(angle) * py]\n",
+            "OnIdle": "if IsKeyPressed(\"Left\"):\n   self.rotation -= 5\nif IsKeyPressed(\"Right\"):\n   self.rotation += 5\n   \nif IsKeyPressed(\"Up\"):\n   self.speed += rotate((0, -15), self.rotation)\n   self.file = \"ship-on.png\"\n   PlaySound(\"puff.wav\")\nelse:\n   self.file = \"ship-off.png\"\n\nif ship.center.y <= 0 and ship.speed.y < 0:\n   # Off the Top edge\n   ship.center = [self.center.x, card.size.y]\nelif ship.center.y >= card.size.height and ship.speed.y > 0:\n   # Off the Bottom edge\n   ship.center = [self.center.x, 0]\nelif ship.center.x <= 0 and ship.speed.x < 0:\n   # Off the Left edge\n   ship.center = [card.size.x, self.center.y]\nelif ship.center.x >= card.size.width and ship.speed.x > 0:\n   # Off the Right edge\n   ship.center = [0, self.center.y]\n"
+          },
           "properties": {
             "name": "ship",
             "size": [
-              160,
-              160
+              114,
+              114
             ],
             "position": [
-              310.0,
-              284.0
-            ]
-          },
-          "childModels": [
-            {
-              "type": "image",
-              "handlers": {
-                "OnSetup": "import math\n\ndef rotate(list, angle):\n   angle = math.radians(angle)\n   px, py = list\n   return [math.cos(angle) * px - math.sin(angle) * py,\n           math.sin(angle) * px + math.cos(angle) * py]\n",
-                "OnIdle": "if IsKeyPressed(\"Left\"):\n   self.rotation -= 5\nif IsKeyPressed(\"Right\"):\n   self.rotation += 5\nif IsKeyPressed(\"Up\"):\n   self.parent.speed += rotate((0, -15), self.rotation)\n   self.file = \"ship-on.png\"\n   PlaySound(\"puff.wav\")\nelse:\n   self.file = \"ship-off.png\"\n\ncardSize = card.size\n\npos = solid.position\nsize = solid.size\n\nedge = solid.IsTouchingEdge(card)\nif edge == \"Top\" and ship.speed.y < 0:\n   ship.position = [pos.x, cardSize.y-size.y]\nelif edge == \"Bottom\" and ship.speed.y > 0:\n   ship.position = [pos.x, -50]\nelif edge == \"Left\" and ship.speed.x < 0:\n   ship.position = [cardSize.x-size.x, pos.y]\nelif edge == \"Right\" and ship.speed.x > 0:\n   ship.position = [-50, pos.y]\n"
-              },
-              "properties": {
-                "name": "image",
-                "size": [
-                  160,
-                  160
-                ],
-                "position": [
-                  0.0,
-                  0.0
-                ],
-                "file": "ship-off.png",
-                "fit": "Center",
-                "rotation": 0
-              }
-            },
-            {
-              "type": "image",
-              "handlers": {},
-              "properties": {
-                "name": "solid",
-                "size": [
-                  74,
-                  68
-                ],
-                "position": [
-                  43.0,
-                  38.0
-                ],
-                "file": "",
-                "fit": "Scale",
-                "rotation": 0
-              }
-            }
-          ]
+              286.0,
+              290.0
+            ],
+            "file": "ship-off.png",
+            "fit": "Center",
+            "rotation": 0
+          }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 1
+  "CardStock_stack_format": 1,
+  "CardStock_stack_version": "0.6"
 }

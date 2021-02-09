@@ -19,7 +19,7 @@ class UiView(object):
         self.model = None
         self.doNotCache = False
         self.SetModel(model)
-
+        self.hitRegion = None
         self.isSelected = False
 
         self.SetView(view)
@@ -46,31 +46,19 @@ class UiView(object):
 
     def SetView(self, view):
         self.view = view
-        self.BindEvents(view)
-        view.Bind(wx.EVT_SIZE, self.OnResize)
+        if view:
+            self.BindEvents(view)
+            view.Bind(wx.EVT_SIZE, self.OnResize)
 
-        viewSize = self.view.GetSize()
-        self.selectionBox = generator.TransparentWindow(parent=self.view, size=viewSize)
-        self.selectionBox.Bind(wx.EVT_PAINT, self.OnPaintSelectionBox)
-        self.selectionBox.Enable(False)
-        self.selectionBox.Hide()
+            if self.GetCursor():
+                self.view.SetCursor(wx.Cursor(self.GetCursor()))
 
-        self.resizeBox = wx.Window(parent=self.view, pos=wx.Point(viewSize.x-10, viewSize.y-10), size=wx.Size(10,10), style=0)
-        self.resizeBox.SetBackgroundColour('Blue')
-        self.resizeBox.Enable(False)
-        self.resizeBox.Hide()
+            mSize = self.model.GetProperty("size")
+            if mSize[0] > 0 and mSize[1] > 0:
+                self.view.SetSize(mSize)
+                self.view.SetPosition(wx.Point(self.model.GetProperty("position")))
 
-        if self.GetCursor():
-            self.view.SetCursor(wx.Cursor(self.GetCursor()))
-            self.selectionBox.SetCursor(wx.Cursor(self.GetCursor()))
-            self.resizeBox.SetCursor(wx.Cursor(self.GetCursor()))
-
-        mSize = self.model.GetProperty("size")
-        if mSize[0] > 0 and mSize[1] > 0:
-            self.view.SetSize(mSize)
-            self.view.SetPosition(wx.Point(self.model.GetProperty("position")))
-
-        self.view.Show(not self.model.GetProperty("hidden"))
+            self.view.Show(not self.model.GetProperty("hidden"))
 
     def SetModel(self, model):
         self.model = model
@@ -80,43 +68,41 @@ class UiView(object):
         return wx.CURSOR_HAND
 
     def OnPropertyChanged(self, model, key):
-        if key == "size":
+        if key in ["pre-size", "pre-position"]:
+            self.stackView.Refresh(True, self.model.GetRefreshFrame())
+        elif key == "size":
             s = self.model.GetProperty(key)
-            self.view.SetSize(s)
-            self.view.Refresh(True)
+            self.hitRegion = None
+            if self.view:
+                self.view.SetSize(s)
+                self.view.Refresh(True)
+            else:
+                self.stackView.Refresh(True, self.model.GetRefreshFrame())
         elif key == "position":
             pos = self.model.GetProperty(key)
-            self.view.SetPosition([int(pos[0]), int(pos[1])])
-            self.view.Refresh(True)
+            if self.view:
+                self.view.SetPosition([int(pos[0]), int(pos[1])])
+                self.view.Refresh(True)
+            else:
+                self.stackView.Refresh(True, self.model.GetRefreshFrame())
         elif key == "hidden":
-            self.view.Show(not self.model.GetProperty(key))
+            if self.view:
+                self.view.Show(not self.model.GetProperty(key))
 
     def OnResize(self, event):
-        w, h = self.view.GetSize()
-        self.selectionBox.SetSize(w, h)
-        x,y = self.view.GetPosition()
-        if self.resizeBox:
-            self.resizeBox.SetRect((w-10, h-10, 10, 10))
+        pass
 
     def DestroyView(self):
-        self.view.RemoveChild(self.selectionBox)
-        self.selectionBox.Destroy()
-        self.selectionBox = None
-        self.view.RemoveChild(self.resizeBox)
-        self.resizeBox.Destroy()
-        self.resizeBox = None
-        self.view.Destroy()
-        self.view = None
+        if self.view:
+            self.view.Destroy()
+            self.view = None
 
     def GetSelected(self):
         return self.isSelected
 
     def SetSelected(self, selected):
         self.isSelected = selected
-        self.selectionBox.Show(selected)
-        if self.resizeBox:
-            self.resizeBox.Show(selected)
-        self.view.Refresh(True)
+        self.stackView.Refresh(True, self.model.GetRefreshFrame())
 
     def OnMouseDown(self, event):
         if self.stackView.runner and self.model.GetHandler("OnMouseDown"):
@@ -180,21 +166,37 @@ class UiView(object):
             if self.stackView.runner and self.model.GetHandler("OnIdle"):
                 self.stackView.runner.RunHandler(self.model, "OnIdle", event, elapsedTime)
 
+    def PaintSelectionBox(self, gc):
+        if self.isSelected:
+            f = self.model.GetAbsoluteFrame()
+            gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
+            gc.SetBrush(wx.TRANSPARENT_BRUSH)
+            gc.DrawRectangle(f.Inflate(2))
 
-    def OnPaintSelectionBox(self, event):
-        dc = wx.PaintDC(self.selectionBox)
-        dc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
-        dc.SetBrush(wx.TRANSPARENT_BRUSH)
-        dc.DrawRectangle((1, 1), (self.selectionBox.GetSize()[0]-1, self.selectionBox.GetSize()[1]-1))
+            gc.SetPen(wx.TRANSPARENT_PEN)
+            gc.SetBrush(wx.Brush('blue', wx.BRUSHSTYLE_SOLID))
+            box = self.GetResizeBoxRect()
+            gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
 
-    def SaveAsImage(self, filename):
-        width, height = self.view.GetClientSize()
-        bitmap = wx.Bitmap.FromRGBA(width, height, 0xFF, 0xFF, 0xFF, 0xFF)
-        wdc = wx.ClientDC(self.view)
-        mdc = wx.MemoryDC(bitmap)
-        mgc = wx.GCDC(mdc)
-        mgc.Blit(0, 0, width, height, wdc, 0, 0)
-        bitmap.ConvertToImage().SaveFile(filename, wx.BITMAP_TYPE_PNG)
+    def Paint(self, gc):
+        pass
+
+    def HitTest(self, pt):
+        if not self.hitRegion:
+            self.MakeHitRegion()
+        return self.hitRegion.Contains(pt)
+
+    def GetResizeBoxRect(self):
+        # the resize box/handle should hang out of the frame, to allow grabbing it from behind
+        # native widgets which can obscure the full frame.
+        s = self.model.GetProperty("size")
+        return wx.Rect(s.width-4, s.height-4, 12, 12)
+
+    def MakeHitRegion(self):
+        s = self.model.GetProperty("size")
+        reg = wx.Region(wx.Rect(0, 0, s.width, s.height))
+        reg.Union(wx.Region(self.GetResizeBoxRect().Inflate(2)))
+        self.hitRegion = reg
 
     handlerDisplayNames = {
         'OnSetup':      "OnSetup():",
@@ -329,6 +331,9 @@ class ViewModel(object):
         s = self.GetProperty("size")
         return wx.Rect(p, s)
 
+    def GetRefreshFrame(self):
+        return self.GetAbsoluteFrame().Inflate(8)
+
     def SetFrame(self, rect):
         self.SetProperty("position", rect.Position)
         self.SetProperty("size", rect.Size)
@@ -447,6 +452,8 @@ class ViewModel(object):
             return
 
         if self.properties[key] != value:
+            if notify:
+                self.Notify("pre-"+key)
             self.properties[key] = value
             if notify:
                 self.Notify(key)

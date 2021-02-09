@@ -58,11 +58,12 @@ class StackWindow(wx.Window):
         self.uiCard.model.SetDirty(False)
         self.command_processor.ClearCommands()
 
-        # When the window is destroyed, clean up resources.
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.Cleanup)
         self.Bind(wx.EVT_IDLE, self.CleanViewCache)
 
     def Cleanup(self, event):
+        """When the window is destroyed, clean up resources."""
         if event.GetEventObject() == self:
             if self.timer:
                 self.timer.Stop()
@@ -71,7 +72,8 @@ class StackWindow(wx.Window):
     def CleanViewCache(self, event):
         if not self.noIdling:
             for ui in self.uiViewCachePendingDelete.copy():
-                self.cacheView.RemoveChild(ui.view)
+                if ui.view:
+                    self.cacheView.RemoveChild(ui.view)
                 ui.DestroyView()
                 if ui.model in self.uiViewCache:
                     self.uiViewCache.pop(ui.model)
@@ -105,13 +107,15 @@ class StackWindow(wx.Window):
         if self.globalCursor:
             self.SetCursor(wx.Cursor(self.globalCursor))
             for uiView in allUiViews:
-                uiView.view.SetCursor(wx.Cursor(self.globalCursor))
+                if uiView.view:
+                    uiView.view.SetCursor(wx.Cursor(self.globalCursor))
         else:
             cursor = wx.CURSOR_ARROW
             self.SetCursor(wx.Cursor(cursor))
             for uiView in allUiViews:
                 viewCursor = uiView.GetCursor()
-                uiView.view.SetCursor(wx.Cursor(viewCursor if viewCursor else cursor))
+                if uiView.view:
+                    uiView.view.SetCursor(wx.Cursor(viewCursor if viewCursor else cursor))
 
     def OnIdleTimer(self, event):
         if not self.isEditing and not self.noIdling:
@@ -126,7 +130,8 @@ class StackWindow(wx.Window):
         for ui in self.uiViews.copy():
             if ui.model.type != "card":
                 self.uiViews.remove(ui)
-                ui.view.Reparent(self.cacheView)
+                if ui.view:
+                    ui.view.Reparent(self.cacheView)
                 self.uiViewCache[ui.model] = ui
                 if ui.doNotCache:
                     self.uiViewCachePendingDelete.append(ui)
@@ -288,7 +293,8 @@ class StackWindow(wx.Window):
             uiView = self.uiViewCache[model]
             if uiView not in self.uiViewCachePendingDelete:
                 uiView = self.uiViewCache.pop(model)
-                uiView.view.Reparent(self)
+                if uiView.view:
+                    uiView.view.Reparent(self)
             else:
                 uiView = None
 
@@ -307,7 +313,7 @@ class StackWindow(wx.Window):
                 uiView = UiShape(self.uiCard, self, type, model)
 
         if uiView:
-            if not model:
+            if uiView.view and not model:
                 uiView.view.Center()
                 uiView.model.SetProperty("position", uiView.view.GetPosition())
                 uiView.model.SetProperty("size", uiView.view.GetSize())
@@ -318,7 +324,8 @@ class StackWindow(wx.Window):
                 self.uiCard.model.AddChild(uiView.model)
 
             if self.globalCursor:
-                uiView.view.SetCursor(wx.Cursor(self.globalCursor))
+                if uiView.view:
+                    uiView.view.SetCursor(wx.Cursor(self.globalCursor))
         return uiView
 
     def AddUiViewsFromModels(self, models, canUndo=True):
@@ -345,25 +352,25 @@ class StackWindow(wx.Window):
     def GetSelectedUiViews(self):
         return self.selectedViews.copy()
 
-    def SelectUiView(self, view, extend=False):
+    def SelectUiView(self, uiView, extend=False):
         if self.isEditing:
-            if extend and view and view.parent and view.parent.model.type == "group":
+            if extend and uiView and uiView.parent and uiView.parent.model.type == "group":
                 extend = False
             if extend and len(self.selectedViews) and self.selectedViews[0].parent and self.selectedViews[0].parent.model.type == "group":
                 extend = False
-            if extend and ((view.model.type == "card") != (len(self.selectedViews) and self.selectedViews[0].model.type == "card")):
+            if extend and ((uiView.model.type == "card") != (len(self.selectedViews) and self.selectedViews[0].model.type == "card")):
                 extend = False
             if len(self.selectedViews) and not extend:
                 for ui in self.selectedViews:
                     ui.SetSelected(False)
                 self.selectedViews = []
-            if view:
-                if extend and view in self.selectedViews:
-                    view.SetSelected(False)
-                    self.selectedViews.remove(view)
+            if uiView:
+                if extend and uiView in self.selectedViews:
+                    uiView.SetSelected(False)
+                    self.selectedViews.remove(uiView)
                 else:
-                    view.SetSelected(True)
-                    self.selectedViews.append(view)
+                    uiView.SetSelected(True)
+                    self.selectedViews.append(uiView)
             if self.designer:
                 self.designer.SetSelectedUiViews(self.selectedViews)
 
@@ -404,7 +411,8 @@ class StackWindow(wx.Window):
                     ui.RemoveChildViews()
                 self.uiViews.remove(ui)
                 self.uiCard.model.RemoveChild(ui.model)
-                ui.view.Reparent(self.cacheView)
+                if ui.view:
+                    ui.view.Reparent(self.cacheView)
                 self.uiViewCache[ui.model] = ui
                 self.uiViewCachePendingDelete.append(ui)
                 return
@@ -473,6 +481,10 @@ class StackWindow(wx.Window):
             self.command_processor.Submit(command)
 
     def OnMouseDown(self, uiView, event):
+        if uiView.model.type == "card":
+            uiView = self.HitTest(event.GetPosition())
+            # event.SetPosition(event.GetPosition()-wx.Point(uiView.model.GetProperty("position")))
+
         if self.tool and self.isEditing:
             self.tool.OnMouseDown(uiView, event)
         else:
@@ -481,6 +493,10 @@ class StackWindow(wx.Window):
     def OnMouseMove(self, uiView, event):
         pos = self.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         if pos == self.lastMousePos: return
+
+        if uiView.model.type == "card":
+            uiView = self.HitTest(event.GetPosition())
+            # event.SetPosition(event.GetPosition()-wx.Point(uiView.model.GetProperty("position")))
 
         if self.tool and self.isEditing:
             self.tool.OnMouseMove(uiView, event)
@@ -493,18 +509,50 @@ class StackWindow(wx.Window):
         self.lastMousePos = pos
 
     def OnMouseUp(self, uiView, event):
+        if uiView.model.type == "card":
+            uiView = self.HitTest(event.GetPosition())
+            # event.SetPosition(event.GetPosition()-wx.Point(uiView.model.GetProperty("position")))
+
         if self.tool and self.isEditing:
             self.tool.OnMouseUp(uiView, event)
         else:
             uiView.OnMouseUp(event)
 
     def OnMouseEnter(self, uiView, event):
+        if uiView.model.type == "card":
+            uiView = self.HitTest(event.GetPosition())
+
         if not self.isEditing:
             uiView.OnMouseEnter(event)
 
     def OnMouseExit(self, uiView, event):
+        if uiView.model.type == "card":
+            uiView = self.HitTest(event.GetPosition())
+
         if not self.isEditing:
             uiView.OnMouseExit(event)
+
+    def OnPaint(self, event):
+        buffer = wx.Bitmap.FromRGBA(self.GetSize().Width, self.GetSize().Height, 0xFF, 0xFF, 0xFF, 0xFF)
+        dc = wx.BufferedPaintDC(self, buffer)
+        gc = wx.GCDC(dc)
+        for uiView in self.uiViews:
+            if not uiView.model.GetProperty("hidden"):
+                uiView.Paint(gc)
+        if self.isEditing:
+            for uiView in self.uiViews:
+                uiView.PaintSelectionBox(gc)
+            self.uiCard.PaintSelectionBox(gc)
+        if self.tool:
+            self.tool.Paint(gc)
+        event.Skip()
+
+    def HitTest(self, pt):
+        for uiView in reversed(self.uiViews):
+            if not uiView.model.GetProperty("hidden"):
+                if uiView.HitTest(pt - wx.Point(uiView.model.GetProperty("position"))):
+                    return uiView
+        return self.uiCard
 
     def OnKeyDown(self, uiView, event):
         if self.tool and self.isEditing:

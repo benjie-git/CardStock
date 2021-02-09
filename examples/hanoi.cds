@@ -5,7 +5,8 @@
     "size": [
       655,
       434
-    ]
+    ],
+    "canSave": false
   },
   "cards": [
     {
@@ -18,38 +19,6 @@
         "bgColor": "white"
       },
       "childModels": [
-        {
-          "type": "rect",
-          "handlers": {},
-          "properties": {
-            "name": "shape_1",
-            "size": [
-              585,
-              34
-            ],
-            "position": [
-              33.0,
-              387.0
-            ],
-            "originalSize": [
-              585,
-              34
-            ],
-            "penColor": "#000000",
-            "penThickness": 0,
-            "fillColor": "#926143"
-          },
-          "points": [
-            [
-              1.0,
-              1.0
-            ],
-            [
-              584.0,
-              33.0
-            ]
-          ]
-        },
         {
           "type": "rect",
           "handlers": {},
@@ -126,6 +95,38 @@
             "position": [
               506.0,
               167.0
+            ],
+            "originalSize": [
+              585,
+              34
+            ],
+            "penColor": "#000000",
+            "penThickness": 0,
+            "fillColor": "#926143"
+          },
+          "points": [
+            [
+              1.0,
+              1.0
+            ],
+            [
+              584.0,
+              33.0
+            ]
+          ]
+        },
+        {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "shape_1",
+            "size": [
+              585,
+              34
+            ],
+            "position": [
+              33.0,
+              387.0
             ],
             "originalSize": [
               585,
@@ -257,8 +258,8 @@
               37
             ],
             "position": [
-              11.0,
-              10.0
+              16.0,
+              15.0
             ],
             "title": "Solve",
             "border": true
@@ -276,7 +277,7 @@
               37
             ],
             "position": [
-              198.0,
+              201.0,
               15.0
             ],
             "title": "Reset",
@@ -352,5 +353,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 1
+  "CardStock_stack_format": 1,
+  "CardStock_stack_version": "0.6"
 }

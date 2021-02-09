@@ -12,15 +12,10 @@ class UiButton(UiView):
             model = ButtonModel(stackView)
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("button_"), False)
 
-        container = generator.TransparentWindow(parent.view)
-        container.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
-        container.Enable(True)
-        container.SetCursor(wx.Cursor(self.GetCursor()))
-
         self.stackView = stackView
-        self.button = self.CreateButton(container, model)
+        self.button = self.CreateButton(parent.view, model)
 
-        super().__init__(parent, stackView, model, container)
+        super().__init__(parent, stackView, model, self.button)
 
     def BindEvents(self, view):
         if view == self.view:
@@ -43,15 +38,6 @@ class UiButton(UiView):
             self.doNotCache = True
             self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
             self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.model))
-
-    def OnResize(self, event):
-        super().OnResize(event)
-        if self.button:
-            if wx.Platform == '__WXMAC__':
-                self.button.SetPosition([0, 0])
-                self.button.SetSize(self.view.GetSize() - [3,2])
-            else:
-                self.button.SetSize(self.view.GetSize())
 
     def OnFocus(self, event):
         self.button.SetFocus()

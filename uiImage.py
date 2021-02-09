@@ -15,18 +15,9 @@ class UiImage(UiView):
             model = ImageModel(stackView)
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("image_"), False)
 
-        container = generator.TransparentWindow(parent.view)
-        container.Enable(True)
-        self.stackView = stackView
+        super().__init__(parent, stackView, model, None)
+        self.rotatedBitmap = None
         self.origImage = self.GetImg(model)
-        rotatedBitmap = self.RotatedBitmap(model)
-        self.imgView = wx.StaticBitmap(container, bitmap=rotatedBitmap)
-        self.imgView.Enable(True)
-        self.imgView.SetScaleMode(self.AspectStrToInt(model.GetProperty("fit")))
-        self.imgView.Show(model.GetProperty("file") != "")
-        self.BindEvents(self.imgView)
-
-        super().__init__(parent, stackView, model, container)
 
     def AspectStrToInt(self, str):
         if str == "Center":
@@ -46,37 +37,75 @@ class UiImage(UiView):
         if os.path.exists(file):
             img = wx.Image(file, wx.BITMAP_TYPE_ANY)
         else:
-            img = wx.Image(20,20, True)
+            img = None
         return img
 
-    def RotatedBitmap(self, model):
+    def MakeScaledAndRotatedBitmap(self):
         img = self.origImage
-        val = float(model.GetProperty("rotation") * -pi/180)  # make positive value rotate clockwise
-        img = img.Rotate(val, list(model.GetProperty("size")/2))   # use orignal center
-        return img.ConvertToBitmap(32)
+        if not img:
+            return None
 
-    def OnResize(self, event):
-        super().OnResize(event)
-        self.imgView.SetSize(self.view.GetSize())
+        rot = self.model.GetProperty("rotation")
+        imgSize = img.GetSize()
+        viewSize = self.model.GetProperty("size")
+        fit = self.model.GetProperty("fit")
+
+        if rot != 0:
+            val = float(rot * -pi/180)  # make positive value rotate clockwise
+            img = img.Rotate(val, list(img.GetSize()/2))   # use original center
+            imgSize = img.GetSize()
+
+        if fit == "Stretch":
+            img = img.Scale(viewSize.width, viewSize.height, quality=wx.IMAGE_QUALITY_HIGH)
+        elif fit == "Fit":
+            scaleX = viewSize.width / imgSize.width
+            scaleY = viewSize.height / imgSize.height
+            scale = min(scaleX, scaleY)
+            img = img.Scale(imgSize.width * scale, imgSize.height * scale, quality=wx.IMAGE_QUALITY_HIGH)
+        elif fit == "Fill":
+            scaleX = viewSize.width / imgSize.width
+            scaleY = viewSize.height / imgSize.height
+            scale = max(scaleX, scaleY)
+            img = img.Scale(imgSize.width * scale, imgSize.height * scale, quality=wx.IMAGE_QUALITY_HIGH)
+            imgSize = img.GetSize()
+
+        if fit in ["Center", "Fill"]:
+            offX = 0 if imgSize.Width <= viewSize.Width else ((imgSize.Width - viewSize.Width) / 2)
+            offY = 0 if imgSize.Height <= viewSize.Height else ((imgSize.Height - viewSize.Height) / 2)
+            w = imgSize.width if imgSize.Width <= viewSize.Width else viewSize.Width
+            h = imgSize.height if imgSize.Height <= viewSize.Height else viewSize.Height
+            img = img.GetSubImage(wx.Rect(offX, offY, w, h))
+
+        self.rotatedBitmap = img.ConvertToBitmap(32)
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
+
+        if key in ["size", "rotation", "fit", "file"]:
+            self.rotatedBitmap = None
+
         if key == "file":
             self.origImage = self.GetImg(self.model)
-            rotatedBitmap = self.RotatedBitmap(model)
-            self.imgView.SetBitmap(rotatedBitmap)
-            self.imgView.SetSize(self.view.GetSize())
-            self.imgView.Show(model.GetProperty(key) != "")
-            self.view.Refresh(True)
+            self.rotatedBitmap = None
+            self.stackView.Refresh(True, self.model.GetRefreshFrame())
         elif key == "fit":
-            self.imgView.SetScaleMode(self.AspectStrToInt(model.GetProperty(key)))
-            self.view.Refresh(True)
+            self.stackView.Refresh(True, self.model.GetRefreshFrame())
         elif key == "rotation":
             if model.GetProperty("file") != "":
-                rotatedBitmap = self.RotatedBitmap(model)
-                self.imgView.SetBitmap(rotatedBitmap)
-                self.imgView.SetSize(self.view.GetSize())
-                self.view.Refresh(True)
+                self.stackView.Refresh(True, self.model.GetRefreshFrame())
+
+    def Paint(self, gc):
+        if self.origImage:
+            if not self.rotatedBitmap:
+                self.MakeScaledAndRotatedBitmap()
+            r = self.model.GetAbsoluteFrame()
+
+            imgSize = self.rotatedBitmap.GetSize()
+            viewSize = r.Size
+            offX = 0 if (imgSize.Width >= viewSize.Width) else ((viewSize.Width - imgSize.Width) / 2)
+            offY = 0 if (imgSize.Height >= viewSize.Height) else ((viewSize.Height - imgSize.Height) / 2)
+            gc.DrawBitmap(self.rotatedBitmap, r.Left + offX, r.Top + offY)
+        super().Paint(gc)
 
 
 class ImageModel(ViewModel):
@@ -86,12 +115,12 @@ class ImageModel(ViewModel):
         self.proxyClass = ImageProxy
 
         self.properties["file"] = ""
-        self.properties["fit"] = "Scale"
+        self.properties["fit"] = "Fill"
         self.properties["rotation"] = 0
 
         self.propertyTypes["file"] = "string"
         self.propertyTypes["fit"] = "choice"
-        self.propertyChoices["fit"] = ["Center", "Stretch", "Fill"]
+        self.propertyChoices["fit"] = ["Center", "Stretch", "Fit", "Fill"]
         self.propertyTypes["rotation"] = "int"
 
         # Custom property order and mask for the inspector

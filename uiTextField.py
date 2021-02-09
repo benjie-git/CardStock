@@ -14,14 +14,10 @@ class UiTextField(UiView):
             model = TextFieldModel(stackView)
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("field_"), False)
 
-        container = generator.TransparentWindow(parent.view)
-        container.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
-        container.Enable(True)
-
         self.stackView = stackView
-        self.field = self.CreateField(container, stackView, model)
+        self.field = self.CreateField(parent.view, stackView, model)
 
-        super().__init__(parent, stackView, model, container)
+        super().__init__(parent, stackView, model, self.field)
 
     def CreateField(self, parent, stackView, model):
         text = model.GetProperty("text")
@@ -39,11 +35,13 @@ class UiTextField(UiView):
             field.ChangeValue(text)
             field.Bind(stc.EVT_STC_CHANGE, self.OnTextChanged)
             field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
+            field.EmptyUndoBuffer()
         else:
             field = CDSTextCtrl(parent=parent, style=wx.TE_PROCESS_ENTER | alignment)
+            field.ChangeValue(text)
             field.Bind(wx.EVT_TEXT, self.OnTextChanged)
             field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
-            field.ChangeValue(text)
+            field.EmptyUndoBuffer()
 
         self.BindEvents(field)
 
@@ -66,10 +64,7 @@ class UiTextField(UiView):
         self.field.SetFocus()
 
     def OnResize(self, event):
-        super().OnResize(event)
-        if self.field:
-            self.field.SetSize(self.view.GetSize())
-            if self.model.GetProperty("multiline"):
+        if self.field and self.model.GetProperty("multiline"):
                 self.field.SetScrollWidth(self.field.GetSize().Width-6)
 
     def OnPropertyChanged(self, model, key):
@@ -116,6 +111,8 @@ class CDSTextCtrl(wx.TextCtrl):
             self.Bind(wx.EVT_TEXT, self.OnTextChanged)
             self.oldText = self.GetValue()
             self.oldSel = self.GetSelection()
+        else:
+            self.command_processor = None
 
     def OnTextChanged(self, event):
         newText = self.GetValue()
@@ -126,19 +123,35 @@ class CDSTextCtrl(wx.TextCtrl):
         self.oldSel = newSel
         event.Skip()
 
+    def EmptyUndoBuffer(self):
+        if self.command_processor:
+            self.command_processor.ClearCommands()
+
     def CanUndo(self):
-        return True
+        if wx.Platform != '__WXMSW__':
+            return True
+        return super().CanUndo()
 
     def CanRedo(self):
-        return True
+        if wx.Platform != '__WXMSW__':
+            return True
+        return super().CanRedo()
 
     def Undo(self):
-        self.command_processor.Undo()
-        self.oldText = self.GetValue()
+        if wx.Platform != '__WXMSW__':
+            if self.IsEditable():
+                self.command_processor.Undo()
+                self.oldText = self.GetValue()
+        else:
+            super().Undo()
 
     def Redo(self):
-        self.command_processor.Redo()
-        self.oldText = self.GetValue()
+        if wx.Platform != '__WXMSW__':
+            if self.IsEditable():
+                self.command_processor.Redo()
+                self.oldText = self.GetValue()
+        else:
+            super().Redo()
 
 
 class TextEditCommand(Command):

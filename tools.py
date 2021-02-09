@@ -1,10 +1,10 @@
 import wx
 from commands import *
+from uiShape import ShapeModel
 import math
 
 
 MOVE_THRESHOLD = 5
-RESIZE_BOX_SIZE = 10
 MAC_BUTTON_OFFSET_HACK = wx.Point(6,4)
 
 
@@ -52,13 +52,16 @@ class BaseTool(object):
     def OnKeyUp(self, uiView, event):
         event.Skip()
 
+    def Paint(self, gc):
+        pass
+
 
 class HandTool(BaseTool):
     def __init__(self, stackView):
         super().__init__(stackView)
         self.cursor = None
         self.name = "hand"
-        self.selectionBox = None
+        self.selectionRect = None
         self.mode = None  # click, box, move, resize
         self.shiftDown = False
 
@@ -87,13 +90,8 @@ class HandTool(BaseTool):
                 self.targetUi = self.targetUi.parent
 
         self.absOrigin = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        self.relOrigin = event.GetPosition()
-        if wx.Platform == '__WXMAC__' and uiView.model.type == "button" and uiView.model.GetProperty("border"):
-            self.absOrigin.x -= MAC_BUTTON_OFFSET_HACK.x
-            self.absOrigin.y -= MAC_BUTTON_OFFSET_HACK.y
-            self.relOrigin.x -= MAC_BUTTON_OFFSET_HACK.x
-            self.relOrigin.y -= MAC_BUTTON_OFFSET_HACK.y
-        event.GetEventObject().CaptureMouse()
+        self.relOrigin = self.absOrigin - wx.Point(self.targetUi.model.GetAbsolutePosition())
+        self.stackView.CaptureMouse()
 
         if self.targetUi.isSelected and self.shiftDown:
             self.deselectTarget = True
@@ -107,28 +105,21 @@ class HandTool(BaseTool):
             selected.append(self.targetUi)
         for ui in selected:
             frame = ui.model.GetFrame()
-            if wx.Platform == '__WXMAC__' and ui.model.type == "button" and uiView.model.GetProperty("border"):
-                # Button views are bigger than specified???
-                frame.Position.x -= MAC_BUTTON_OFFSET_HACK.x
-                frame.Position.y -= MAC_BUTTON_OFFSET_HACK.y
             self.oldFrames[ui.model.GetProperty("name")] = frame
 
     def OnMouseMove(self, uiView, event):
         if self.mode:
-            pos = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+            pos = event.GetPosition()
             origSize = self.oldFrames[self.targetUi.model.GetProperty("name")].Size
             if wx.Platform == '__WXMAC__' and uiView.model.type == "button" and uiView.model.GetProperty("border"):
                 # Button views are bigger than specified???
-                pos.x -= MAC_BUTTON_OFFSET_HACK.x
-                pos.y -= MAC_BUTTON_OFFSET_HACK.y
+                pos.x += MAC_BUTTON_OFFSET_HACK.x
+                pos.y += MAC_BUTTON_OFFSET_HACK.y
 
             if self.mode == "click":
                 if dist(list(pos), list(self.absOrigin)) > MOVE_THRESHOLD:
-                    rpx, rpy = self.relOrigin
-                    if origSize.Width - rpx < RESIZE_BOX_SIZE and \
-                            origSize.Height - rpy < RESIZE_BOX_SIZE and \
-                            origSize.Width > rpx and origSize.Height > rpy:
-                        self.StartResize()
+                    if uiView.GetResizeBoxRect().Inflate(4).Contains(self.relOrigin):
+                          self.StartResize()
                     else:
                         if self.targetUi.model.type == "card":
                             self.StartBoxSelect()
@@ -138,8 +129,9 @@ class HandTool(BaseTool):
                     return
 
             if self.mode == "box":
-                self.selectionBox.endPoint = pos
-                self.selectionBox.UpdateFrame()
+                self.stackView.Refresh(True, self.selectionRect.Inflate(2))
+                self.selectionRect = ShapeModel.RectFromPoints([self.absOrigin, pos])
+                self.stackView.Refresh(True, self.selectionRect.Inflate(2))
                 self.UpdateSelection()
                 return
 
@@ -157,10 +149,14 @@ class HandTool(BaseTool):
 
     def StartBoxSelect(self):
         self.mode = "box"
-        self.selectionBox = SelectionBox(self.stackView)
-        self.selectionBox.startPoint = self.absOrigin
-        self.selectionBox.endPoint = self.absOrigin
-        self.selectionBox.UpdateFrame()
+        self.selectionRect = ShapeModel.RectFromPoints([self.absOrigin])
+        self.stackView.Refresh(True, self.selectionRect.Inflate(2))
+
+    def Paint(self, gc):
+        if self.selectionRect:
+            gc.SetPen(wx.Pen('Blue', 1, wx.PENSTYLE_DOT))
+            gc.SetBrush(wx.TRANSPARENT_BRUSH)
+            gc.DrawRectangle(self.selectionRect)
 
     def StartMove(self):
         self.mode = "move"
@@ -169,18 +165,17 @@ class HandTool(BaseTool):
         self.mode = "resize"
 
     def OnMouseUp(self, uiView, event):
-        if event.GetEventObject().HasCapture():
-            event.GetEventObject().ReleaseMouse()
+        if self.stackView.HasCapture():
+            self.stackView.ReleaseMouse()
 
         if self.mode == "click":
             if self.deselectTarget and self.targetUi.isSelected:
                 self.stackView.SelectUiView(self.targetUi, True)
         elif self.mode == "box":
-            self.stackView.RemoveChild(self.selectionBox)
-            self.selectionBox.Destroy()
-            self.selectionBox = None
+            self.stackView.Refresh(True, self.selectionRect.Inflate(2))
+            self.selectionRect = None
         elif self.mode == "move":
-            pos = self.targetUi.view.GetPosition()
+            pos = self.targetUi.model.GetAbsolutePosition()
             viewOrigin = self.oldFrames[self.targetUi.model.GetProperty("name")].Position
             offset = (pos[0] - viewOrigin.x, pos[1] - viewOrigin.y)
             if offset != (0, 0):
@@ -195,7 +190,7 @@ class HandTool(BaseTool):
                     m.SetProperty("position", viewOrigin)
                 self.stackView.command_processor.Submit(command)
         elif self.mode == "resize":
-            endw, endh = self.targetUi.view.GetSize()
+            endw, endh = self.targetUi.model.GetProperty("size")
             origSize = self.oldFrames[self.targetUi.model.GetProperty("name")].Size
             offset = (endw-origSize[0], endh-origSize[1])
             if offset != (0, 0):
@@ -211,7 +206,7 @@ class HandTool(BaseTool):
     def UpdateSelection(self):
         self.stackView.SelectUiView(None)
         for ui in self.stackView.uiViews:
-            select = self.selectionBox.GetRect().Contains(ui.model.GetCenter())
+            select = self.selectionRect.Contains(ui.model.GetCenter())
             if select:
                 self.stackView.SelectUiView(ui, True)
 
@@ -318,7 +313,7 @@ class ViewTool(BaseTool):
         if self.stackView.HasCapture():
             self.stackView.ReleaseMouse()
             if self.targetUi:
-                endw, endh = self.targetUi.view.GetSize()
+                endw, endh = self.targetUi.model.GetProperty("size")
                 offset = (endw-self.origSize[0], endh-self.origSize[1])
                 if offset != (0, 0):
                     model = self.targetUi.model
@@ -359,13 +354,13 @@ class PenTool(BaseTool):
         self.targetUi.model.SetProperty("position", [0,0])
         self.targetUi.model.SetProperty("size", self.stackView.stackModel.GetProperty("size"))
 
-        self.targetUi.view.CaptureMouse()
+        self.stackView.CaptureMouse()
         self.curLine = []
         self.curLine.append(list(self.pos))
         self.targetUi.model.SetShape({"type": "pen", "penColor": self.penColor, "thickness": self.thickness, "points": self.curLine})
 
     def OnMouseMove(self, uiView, event):
-        if self.targetUi and self.targetUi.view.HasCapture():
+        if self.targetUi and self.stackView.HasCapture():
             pos = event.GetPosition()
             coords = (pos.x, pos.y)
             if coords != (self.pos.x, self.pos.y):
@@ -377,10 +372,10 @@ class PenTool(BaseTool):
                 self.pos = pos
 
     def OnMouseUp(self, uiView, event):
-        if self.targetUi and self.targetUi.view.HasCapture():
+        if self.targetUi and self.stackView.HasCapture():
             model = self.targetUi.model
             self.curLine = []
-            self.targetUi.view.ReleaseMouse()
+            self.stackView.ReleaseMouse()
             self.targetUi = None
 
             model.ReCropShape()

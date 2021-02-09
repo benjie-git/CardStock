@@ -27,8 +27,25 @@ class UiCard(UiView):
             self.view.SetBackgroundColour(self.model.GetProperty("bgColor"))
 
     def OnResize(self, event):
-        super().OnResize(event)
         self.stackView.stackModel.SetProperty("size", self.view.GetSize())
+
+    def PaintSelectionBox(self, gc):
+        if self.isSelected:
+            f = self.model.GetAbsoluteFrame()
+            gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
+            gc.SetBrush(wx.TRANSPARENT_BRUSH)
+            gc.DrawRectangle(f.Deflate(1))
+
+            gc.SetPen(wx.TRANSPARENT_PEN)
+            gc.SetBrush(wx.Brush('blue', wx.BRUSHSTYLE_SOLID))
+            box = self.GetResizeBoxRect()
+            gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
+
+    def GetResizeBoxRect(self):
+        # the resize box/handle should hang out of the frame, to allow grabbing it from behind
+        # native widgets which can obscure the full frame.
+        s = self.model.GetProperty("size")
+        return wx.Rect(s.width-12, s.height-12, 12, 12)
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)

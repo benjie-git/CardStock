@@ -12,15 +12,12 @@ class UiTextLabel(UiView):
             model = TextLabelModel(stackView)
             model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("label_"), False)
 
-        container = generator.TransparentWindow(parent.view)
-        container.Enable(True)
-
         self.stackView = stackView
-        self.label = self.CreateLabel(container, stackView, model)
+        self.label = self.CreateLabel(parent.view, model)
 
-        super().__init__(parent, stackView, model, container)
+        super().__init__(parent, stackView, model, self.label)
 
-    def CreateLabel(self, parent, stackView, model):
+    def CreateLabel(self, parent, model):
         if model:
             text = model.GetProperty("text")
             alignment = wx.ALIGN_LEFT
@@ -47,9 +44,6 @@ class UiTextLabel(UiView):
             super().BindEvents(self.label)
 
     def OnResize(self, event):
-        super().OnResize(event)
-        self.label.SetSize(self.view.GetSize())
-
         self.label.SetLabel(self.model.GetProperty("text"))
         self.label.Wrap(self.view.GetSize().Width)
 

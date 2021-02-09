@@ -5,7 +5,8 @@
     "size": [
       519,
       506
-    ]
+    ],
+    "canSave": false
   },
   "cards": [
     {
@@ -60,12 +61,12 @@
           "properties": {
             "name": "goal",
             "size": [
-              103,
-              25
+              20,
+              92
             ],
             "position": [
-              403.0,
-              0.0
+              106.0,
+              -12.0
             ],
             "originalSize": [
               102,
@@ -92,65 +93,31 @@
             "OnIdle": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
           },
           "properties": {
-            "name": "wall",
-            "size": [
-              25,
-              229
-            ],
-            "position": [
-              92.0,
-              284.0
-            ],
-            "originalSize": [
-              25,
-              229
-            ],
-            "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "black"
-          },
-          "points": [
-            [
-              2.0,
-              2.0
-            ],
-            [
-              23.0,
-              227.0
-            ]
-          ]
-        },
-        {
-          "type": "rect",
-          "handlers": {
-            "OnIdle": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
-          },
-          "properties": {
             "name": "wall_1",
             "size": [
-              26,
-              185
+              360,
+              20
             ],
             "position": [
-              91.0,
-              -4.0
+              88.0,
+              74.0
             ],
             "originalSize": [
-              25,
-              229
+              211,
+              66
             ],
             "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "black"
+            "penThickness": 1,
+            "fillColor": "#000000"
           },
           "points": [
             [
-              2.0,
-              2.0
+              0.0,
+              0.0
             ],
             [
-              23.0,
-              227.0
+              211.0,
+              66.0
             ]
           ]
         },
@@ -162,29 +129,29 @@
           "properties": {
             "name": "wall_2",
             "size": [
-              200,
-              28
+              20,
+              86
             ],
             "position": [
-              91.0,
-              178.0
+              88.0,
+              -8.0
             ],
             "originalSize": [
-              25,
-              229
+              211,
+              66
             ],
             "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "black"
+            "penThickness": 1,
+            "fillColor": "#000000"
           },
           "points": [
             [
-              2.0,
-              2.0
+              0.0,
+              0.0
             ],
             [
-              23.0,
-              227.0
+              211.0,
+              66.0
             ]
           ]
         },
@@ -196,29 +163,29 @@
           "properties": {
             "name": "wall_3",
             "size": [
-              22,
-              129
+              196,
+              20
             ],
             "position": [
-              285.0,
-              178.0
+              104.0,
+              184.0
             ],
             "originalSize": [
-              25,
-              229
+              211,
+              66
             ],
             "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "black"
+            "penThickness": 1,
+            "fillColor": "#000000"
           },
           "points": [
             [
-              2.0,
-              2.0
+              0.0,
+              0.0
             ],
             [
-              23.0,
-              227.0
+              211.0,
+              66.0
             ]
           ]
         },
@@ -230,29 +197,29 @@
           "properties": {
             "name": "wall_4",
             "size": [
-              224,
-              20
+              20,
+              362
             ],
             "position": [
-              197.0,
-              387.0
+              90.0,
+              184.0
             ],
             "originalSize": [
-              25,
-              229
+              211,
+              66
             ],
             "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "black"
+            "penThickness": 1,
+            "fillColor": "#000000"
           },
           "points": [
             [
-              2.0,
-              2.0
+              0.0,
+              0.0
             ],
             [
-              23.0,
-              227.0
+              211.0,
+              66.0
             ]
           ]
         },
@@ -264,29 +231,29 @@
           "properties": {
             "name": "wall_5",
             "size": [
-              26,
-              185
+              196,
+              20
             ],
             "position": [
-              394.0,
-              -4.0
+              236.0,
+              307.0
             ],
             "originalSize": [
-              25,
-              229
+              211,
+              66
             ],
             "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "black"
+            "penThickness": 1,
+            "fillColor": "#000000"
           },
           "points": [
             [
-              2.0,
-              2.0
+              0.0,
+              0.0
             ],
             [
-              23.0,
-              227.0
+              211.0,
+              66.0
             ]
           ]
         },
@@ -298,29 +265,29 @@
           "properties": {
             "name": "wall_6",
             "size": [
-              30,
-              518
+              20,
+              236
             ],
             "position": [
-              499.0,
-              -8.0
+              428.0,
+              91.0
             ],
             "originalSize": [
-              25,
-              229
+              211,
+              66
             ],
             "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "black"
+            "penThickness": 1,
+            "fillColor": "#000000"
           },
           "points": [
             [
-              2.0,
-              2.0
+              0.0,
+              0.0
             ],
             [
-              23.0,
-              227.0
+              211.0,
+              66.0
             ]
           ]
         },
@@ -332,29 +299,29 @@
           "properties": {
             "name": "wall_7",
             "size": [
-              26,
-              185
+              20,
+              117
             ],
             "position": [
-              91.0,
-              -4.0
+              429.0,
+              417.0
             ],
             "originalSize": [
-              25,
-              229
+              211,
+              66
             ],
             "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "black"
+            "penThickness": 1,
+            "fillColor": "#000000"
           },
           "points": [
             [
-              2.0,
-              2.0
+              0.0,
+              0.0
             ],
             [
-              23.0,
-              227.0
+              211.0,
+              66.0
             ]
           ]
         },
@@ -366,29 +333,29 @@
           "properties": {
             "name": "wall_8",
             "size": [
-              394,
-              20
+              20,
+              98
             ],
             "position": [
-              112.0,
-              489.0
+              236.0,
+              309.0
             ],
             "originalSize": [
-              25,
-              229
+              211,
+              66
             ],
             "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "black"
+            "penThickness": 1,
+            "fillColor": "#000000"
           },
           "points": [
             [
-              2.0,
-              2.0
+              0.0,
+              0.0
             ],
             [
-              23.0,
-              227.0
+              211.0,
+              66.0
             ]
           ]
         },
@@ -400,68 +367,35 @@
           "properties": {
             "name": "wall_9",
             "size": [
-              190,
-              28
+              86,
+              20
             ],
             "position": [
+              351.0,
+              417.0
+            ],
+            "originalSize": [
+              211,
+              66
+            ],
+            "penColor": "#000000",
+            "penThickness": 1,
+            "fillColor": "#000000"
+          },
+          "points": [
+            [
+              0.0,
+              0.0
+            ],
+            [
               211.0,
-              75.0
-            ],
-            "originalSize": [
-              25,
-              229
-            ],
-            "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "black"
-          },
-          "points": [
-            [
-              2.0,
-              2.0
-            ],
-            [
-              23.0,
-              227.0
-            ]
-          ]
-        },
-        {
-          "type": "rect",
-          "handlers": {
-            "OnIdle": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
-          },
-          "properties": {
-            "name": "wall_10",
-            "size": [
-              21,
-              234
-            ],
-            "position": [
-              399.0,
-              261.0
-            ],
-            "originalSize": [
-              25,
-              229
-            ],
-            "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "black"
-          },
-          "points": [
-            [
-              2.0,
-              2.0
-            ],
-            [
-              23.0,
-              227.0
+              66.0
             ]
           ]
         }
       ]
     }
   ],
-  "CardStock_stack_format": 1
+  "CardStock_stack_format": 1,
+  "CardStock_stack_version": "0.6"
 }

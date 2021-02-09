@@ -521,11 +521,13 @@ class HelpDataImage():
     properties = {
         "file": {"type": "string",
                  "info": "The path of the image file to display in this image object."},
-        "fit": {"type": "[Center, Stretch, Fill]",
+        "fit": {"type": "[Center, Stretch, Fit, Fill]",
                 "info": "This property controls how the image is resized to fit into the image object.  Center shows "
                         "the image full size, centered in the image object, and clipped at the image object border. "
-                        "Stretch sizes and stretches the image to fit exactly into the image object. Fill sizes the "
-                        "image to fit inside the image object, while keeping the original image aspect ratio."},
+                        "Stretch sizes and stretches the image to fit exactly into the image object. Fit sizes the "
+                        "image to fit inside the image object, while keeping the original image aspect ratio. Fill "
+                        "sizes the image to just barely fill the image object, while keeping the original image "
+                        "aspect ratio."},
         "rotation": {"type": "float",
                      "info": "This is the angle in degrees clockwise to rotate this image.  0 is upright."},
     }
