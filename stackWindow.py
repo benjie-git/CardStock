@@ -345,7 +345,8 @@ class StackWindow(wx.Window):
 
         if self.globalCursor:
             for uiView in uiViews:
-                uiView.view.SetCursor(wx.Cursor(self.globalCursor))
+                if uiView.view:
+                    uiView.view.SetCursor(wx.Cursor(self.globalCursor))
 
         return uiViews
 
@@ -604,30 +605,35 @@ class StackWindow(wx.Window):
         cardIndex = self.stackModel.childModels.index(cardModel)
         uiView = cPanel.lastSelectedUiView
         model = uiView.model if uiView else None
-        if model and (cPanel.inspector.IsCellEditControlShown() or cPanel.inspector.HasFocus()):
-            propName = cPanel.lastSelectedUiView.model.PropertyKeys()[cPanel.inspector.GetGridCursorRow()]
-            return (str(cardIndex) + "." + model.GetProperty("name") + ".property." + propName, None)
 
+        start, end, text = self.designer.cPanel.GetInspectorSelection()
+        if text:
+            propName = cPanel.lastSelectedUiView.model.PropertyKeys()[cPanel.inspector.GetGridCursorRow()]
+            return (str(cardIndex) + "." + model.GetProperty("name") + ".property." + propName, (start, end))
+
+        start, end, text = self.designer.cPanel.GetCodeEditorSelection()
         handlerName = cPanel.currentHandler
         if model and handlerName:
-            sel = cPanel.codeEditor.GetSelection()
-            if sel and len(sel) == 2:
-                handlerSel = sel
-            else:
-                handlerSel = (0,0)
-            return (str(cardIndex) + "." + model.GetProperty("name") + ".handler." + handlerName, handlerSel)
+            return (str(cardIndex) + "." + model.GetProperty("name") + ".handler." + handlerName, (start, end))
 
         if not model:
             model = self.uiCard.model
-        return (str(cardIndex) + "." + model.GetProperty("name") + ".property." + model.GetPropertyKeys()[0], None)
+        return (str(cardIndex) + "." + model.GetProperty("name") + ".property." + model.PropertyKeys()[0], (0, 0))
+
+    def GetSelectedText(self):
+        start, end, text = self.designer.cPanel.GetInspectorSelection()
+        if not text:
+            start, end, text = self.designer.cPanel.GetCodeEditorSelection()
+        return (start, end, text)
 
     def ShowFindPath(self, findPath, selectStart, selectEnd):
         if findPath:
             parts = findPath.split(".")
             # cardIndex, objectName, property|handler, key
+            self.designer.cPanel.inspector.EnableCellEditControl(False)
             self.LoadCardAtIndex(int(parts[0]))
             self.SelectUiView(self.GetUiViewByName(parts[1]))
             if parts[2] == "property":
-                self.designer.cPanel.SelectInInspectorForPropertyName(parts[3], selectStart, selectEnd)
+                wx.CallAfter(self.designer.cPanel.SelectInInspectorForPropertyName, parts[3], selectStart, selectEnd)
             elif parts[2] == "handler":
-                self.designer.cPanel.SelectInCodeForHandlerName(parts[3], selectStart, selectEnd)
+                wx.CallAfter(self.designer.cPanel.SelectInCodeForHandlerName, parts[3], selectStart, selectEnd)

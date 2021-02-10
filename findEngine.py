@@ -28,56 +28,58 @@ class FindEngine(object):
     def __init__(self, stackView):
         super().__init__()
         self.stackView = stackView
-        self.currentPath = None
-        self.searchDict = None
+        self.findData = wx.FindReplaceData(1)   # initializes and holds search parameters
 
-    def AddDictItemsForModel(self, i, model):
+    def AddDictItemsForModel(self, searchDict, i, model):
         for key in model.PropertyKeys():
             if key in SEARCHABLE_PROPERTIES:
                 path = ".".join([str(i), model.GetProperty("name"), "property", key])
-                self.searchDict[path] = model.GetProperty(key)
+                searchDict[path] = model.GetProperty(key)
         for key, code in model.handlers.items():
-            if len(code) > 0:
-                path = ".".join([str(i), model.GetProperty("name"), "handler", key])
-                self.searchDict[path] = model.handlers[key]
+            path = ".".join([str(i), model.GetProperty("name"), "handler", key])
+            searchDict[path] = model.handlers[key]
         for m in model.childModels:
-            self.AddDictItemsForModel(i, m)
+            self.AddDictItemsForModel(searchDict, i, m)
 
     def GenerateSearchDict(self):
-        self.searchDict = {}
+        searchDict = {}
         i = 0
         for card in self.stackView.stackModel.childModels:
-            self.AddDictItemsForModel(i, card)
+            self.AddDictItemsForModel(searchDict, i, card)
             i += 1
+        return searchDict
 
-    def Find(self, findData):
-        flags = findData.GetFlags()
-        findStr = findData.GetFindString()
-        self.startPath, textSel = self.stackView.GetFindPath()
-        self.GenerateSearchDict()
-        path, start, end = self.DoFindNext(findStr, textSel, flags)
-        self.stackView.ShowFindPath(path, start, end)
+    def UpdateFindTextFromSelection(self):
+        findStr = self.stackView.GetSelectedText()
+        self.findData.SetFindString(findStr)
 
-    def Replace(self, findData):
-        flags = findData.GetFlags()
-        findStr = findData.GetFindString()
-        self.replaceStr = findData.GetReplaceString()
+    def Find(self):
+        findStr = self.findData.GetFindString()
+        if len(findStr):
+            searchDict = self.GenerateSearchDict()
+            startPath, textSel = self.stackView.GetFindPath()
+            path, start, end = self.DoFindNext(searchDict, startPath, textSel)
+            if path:
+                self.stackView.ShowFindPath(path, start, end)
+
+    def Replace(self):
+        self.replaceStr = self.findData.GetReplaceString()
         self.startPath, self.textSel = self.stackView.GetFindPath()
         self.GenerateSearchDict()
 
-    def ReplaceAll(self, findData):
-        flags = findData.GetFlags()
-        findStr = findData.GetFindString()
-        self.replaceStr = findData.GetReplaceString()
+    def ReplaceAll(self):
+        self.replaceStr = self.findData.GetReplaceString()
         self.GenerateSearchDict()
 
-    def DoFindNext(self, findStr, textSel, flags):
+    def DoFindNext(self, searchDict, startPath, textSel):
+        flags = self.findData.GetFlags()
+        findStr = self.findData.GetFindString()
         findBackwards = not (flags & 1)
         findWholeWord = flags & 2
         findMatchCase = flags & 4
 
-        keyList = list(self.searchDict.keys())
-        index = keyList.index(self.startPath)
+        keyList = list(searchDict.keys())
+        index = keyList.index(startPath)
 
         slicedKeys = keyList[index:]
         slicedKeys.extend(keyList[:index])
@@ -85,11 +87,11 @@ class FindEngine(object):
         if findBackwards:
             slicedKeys.reverse()
 
-        if not findMatchCase and not findWholeWord:
-            findStr = findStr.lower()
-
         for key in slicedKeys:
-            text = self.searchDict[key]
+            text = searchDict[key]
+            if len(text) == 0:
+                textSel = None
+                continue
 
             offset = 0
             if textSel and not findBackwards:
@@ -99,13 +101,14 @@ class FindEngine(object):
                 text = text[:textSel[0]]
             textSel = None
 
-            start = -1
             flags = (re.MULTILINE) if (findMatchCase) else (re.IGNORECASE | re.MULTILINE)
             if findWholeWord:
                 p = re.compile(r'\b{searchStr}\b'.format(searchStr=findStr), flags)
             else:
                 p = re.compile(r'{searchStr}'.format(searchStr=findStr), flags)
 
+            start = -1
+            end = -1
             matches = [m for m in p.finditer(text)]
             if len(matches):
                 if not findBackwards:

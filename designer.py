@@ -29,6 +29,9 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 ID_RUN = wx.NewIdRef()
 ID_EDIT = wx.NewIdRef()
 ID_MENU_FIND = wx.NewIdRef()
+ID_MENU_FIND_SEL = wx.NewIdRef()
+ID_MENU_FIND_NEXT = wx.NewIdRef()
+ID_MENU_FIND_PREV = wx.NewIdRef()
 ID_MENU_REPLACE = wx.NewIdRef()
 ID_NEXT_CARD = wx.NewIdRef()
 ID_PREV_CARD = wx.NewIdRef()
@@ -66,9 +69,6 @@ class DesignerFrame(wx.Frame):
         self.MakeMenu()
         self.filename = None
         self.app = None
-
-        self.findDlg = None
-        self.findData = wx.FindReplaceData(1)   # initializes and holds search parameters
 
         toolbar = self.CreateToolBar(style=wx.TB_TEXT)
         toolbar.AddTool(ID_RUN, 'Run', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
@@ -117,6 +117,9 @@ class DesignerFrame(wx.Frame):
         self.cPanel.Layout()
 
         self.cPanel.SetToolByName("hand")
+
+        self.findDlg = None
+        self.findEngine = FindEngine(self.stackView)
 
         self.viewer = None
         self.NewFile()
@@ -232,7 +235,10 @@ class DesignerFrame(wx.Frame):
         editMenu.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
         editMenu.Append(wx.ID_PASTE,"&Paste\tCtrl-V", "Paste Selection")
         editMenu.AppendSeparator()
-        editMenu.Append(ID_MENU_FIND, "&Find...\tCtrl-Shift-F", "Find in stack")
+        editMenu.Append(ID_MENU_FIND, "&Find...\tCtrl-F", "Find... in stack")
+        editMenu.Append(ID_MENU_FIND_SEL, "&Find Selection\tCtrl-E", "Find Selection")
+        editMenu.Append(ID_MENU_FIND_NEXT, "&Find Next\tCtrl-G", "Find Next in stack")
+        editMenu.Append(ID_MENU_FIND_PREV, "&Find Previous\tCtrl-Shift-G", "Find Previous in stack")
         editMenu.Append(ID_MENU_REPLACE, "&Replace...\tCtrl-Shift-R", "Replace in stack")
         self.editMenu = editMenu
 
@@ -248,13 +254,13 @@ class DesignerFrame(wx.Frame):
         cardMenu.Append(ID_MOVE_CARD_BACK, "Move Card Bac&k\tCtrl-Alt-B", "Move Card Back")
 
         viewMenu = wx.Menu()
-        viewMenu.Append(ID_GROUP, "&Group Objects\tCtrl-G", "Group Objects")
-        viewMenu.Append(ID_UNGROUP, "&Ungroup Objects\tCtrl-U", "Ungroup Objects")
+        viewMenu.Append(ID_GROUP, "&Group Objects\tAlt-G", "Group Objects")
+        viewMenu.Append(ID_UNGROUP, "&Ungroup Objects\tAlt-U", "Ungroup Objects")
         viewMenu.AppendSeparator()
-        viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Alt-F", "Move to Front")
-        viewMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward\tCtrl-F", "Move Forward")
-        viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&k\tCtrl-B", "Move Back")
-        viewMenu.Append(ID_MOVE_VIEW_END, "Move to Back\tCtrl-Alt-B", "Move to Back")
+        viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Shift-Up", "Move to Front")
+        viewMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward\tCtrl-Up", "Move Forward")
+        viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&k\tCtrl-Down", "Move Back")
+        viewMenu.Append(ID_MOVE_VIEW_END, "Move to Back\tCtrl-Shift-Down", "Move to Back")
 
         # and the help menu
         helpMenu = wx.Menu()
@@ -291,6 +297,9 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU, self.OnPaste, id=wx.ID_PASTE)
         self.Bind(wx.EVT_MENU, self.OnMenuFind, id=ID_MENU_FIND)
+        self.Bind(wx.EVT_MENU, self.OnMenuFindSel, id=ID_MENU_FIND_SEL)
+        self.Bind(wx.EVT_MENU, self.OnMenuFindNext, id=ID_MENU_FIND_NEXT)
+        self.Bind(wx.EVT_MENU, self.OnMenuFindPrevious, id=ID_MENU_FIND_PREV)
         self.Bind(wx.EVT_MENU, self.OnMenuReplace, id=ID_MENU_REPLACE)
 
         self.Bind(wx.EVT_MENU, self.OnMenuNextCard, id=ID_NEXT_CARD)
@@ -514,7 +523,7 @@ class DesignerFrame(wx.Frame):
     def OnMenuFind(self, event):
         if self.findDlg:
             self.findDlg.Close(True)
-        self.findDlg = wx.FindReplaceDialog(self, self.findData, 'Find', style=0)
+        self.findDlg = wx.FindReplaceDialog(self, self.findEngine.findData, 'Find', style=0)
         self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
         self.findDlg.Bind(wx.EVT_CLOSE, self.OnFindClose)
         self.findDlg.Show()
@@ -522,27 +531,38 @@ class DesignerFrame(wx.Frame):
     def OnMenuReplace(self, event):
         if self.findDlg:
             self.findDlg.Close(True)
-        self.findDlg = wx.FindReplaceDialog(self, self.findData, 'Replace', style=1)
+        self.findDlg = wx.FindReplaceDialog(self, self.findEngine.findData, 'Replace', style=1)
         self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
         self.findDlg.Bind(wx.EVT_CLOSE, self.OnFindClose)
         self.findDlg.Show()
 
     def OnFindClose(self, event):
-        self.findData = self.findDlg.GetData()
         self.findDlg.Destroy()
         self.findDlg = None
 
+    def OnMenuFindSel(self, event):
+        self.findEngine.UpdateFindTextFromSelection()
+
+    def OnMenuFindNext(self, event):
+        flags = self.findEngine.findData.GetFlags()
+        self.findEngine.findData.SetFlags(flags | 1)
+        self.findEngine.Find()
+        self.findEngine.findData.SetFlags(flags)
+
+    def OnMenuFindPrevious(self, event):
+        flags = self.findEngine.findData.GetFlags()
+        self.findEngine.findData.SetFlags(flags & ~1)
+        self.findEngine.Find()
+        self.findEngine.findData.SetFlags(flags)
+
     def OnFindEvent(self, event):
-        self.findDlg.CardStockFindEngine = FindEngine(self.stackView)
-        self.findDlg.CardStockFindEngine.Find(self.findDlg.GetData())
+        self.findEngine.Find()
 
     def OnReplaceEvent(self, event):
-        self.findDlg.CardStockFindEngine = FindEngine(self.stackView)
-        self.findDlg.CardStockFindEngine.Replace(self.findDlg.GetData())
+        self.findEngine.Replace()
 
     def OnReplaceAllEvent(self, event):
-        self.findDlg.CardStockFindEngine = FindEngine(self.stackView)
-        self.findDlg.CardStockFindEngine.ReplaceAll(self.findDlg.GetData())
+        self.findEngine.ReplaceAll()
 
     def OnMenuAbout(self, event):
         dlg = helpDialogs.CardStockAbout(self)

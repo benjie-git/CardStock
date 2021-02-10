@@ -186,7 +186,7 @@ class ControlPanel(wx.Panel):
         self.inspector.SetGridCursor(event.Row, event.Col)
         self.inspector.ClearSelection()
         if self.inspector.GetGridCursorCol() == 1:
-            self.inspector.EnableCellEditControl()
+            self.inspector.EnableCellEditControl(True)
         event.Skip()
 
     def SelectInInspectorForPropertyName(self, key, selectStart, selectEnd):
@@ -196,10 +196,24 @@ class ControlPanel(wx.Panel):
         keys = lastUi.model.PropertyKeys()
         self.inspector.ClearSelection()
         self.inspector.SetGridCursor(keys.index(key), 1)
-        self.inspector.EnableCellEditControl()
         editor = self.inspector.GetCellEditor(keys.index(key), 1)
+        self.inspector.EnableCellEditControl(True)
         control = editor.GetControl()
         control.SetSelection(selectStart, selectEnd)
+
+    def GetInspectorSelection(self):
+        lastUi = self.lastSelectedUiView
+        if not lastUi:
+            return (None, None, None)
+        if self.inspector.IsCellEditControlShown():
+            row = self.inspector.GetGridCursorRow()
+            editor = self.inspector.GetCellEditor(row, 1)
+            control = editor.GetControl()
+            if control:
+                start, end = control.GetSelection()
+                text = control.GetStringSelection()
+                return (start, end, text)
+        return (None, None, None)
 
     def OnGridCellSelected(self, event):
         self.inspector.ClearSelection()
@@ -215,7 +229,7 @@ class ControlPanel(wx.Panel):
                 (event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER):
             if self.inspector.GetGridCursorCol() == 0:
                 self.inspector.SetGridCursor(self.inspector.GetGridCursorRow(), 1)
-            self.inspector.EnableCellEditControl()
+            self.inspector.EnableCellEditControl(True)
         else:
             event.Skip()
 
@@ -232,6 +246,12 @@ class ControlPanel(wx.Panel):
         self.UpdateHandlerForUiViews(self.stackView.GetSelectedUiViews(), key)
         self.codeEditor.SetSelection(selectStart, selectEnd)
         self.codeEditor.ScrollRange(selectStart, selectEnd)
+        self.codeEditor.SetFocus()
+
+    def GetCodeEditorSelection(self):
+        start, end = self.codeEditor.GetSelection()
+        text = self.codeEditor.GetSelectedText()
+        return (start, end, text)
 
     def UpdateForUiViews(self, uiViews):
         if len(uiViews) == 1:
