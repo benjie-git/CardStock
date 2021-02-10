@@ -426,6 +426,15 @@ class ViewModel(object):
             return self.handlers[key]
         return None
 
+    def GetChildModelByName(self, name):
+        if self.properties["name"] == name:
+            return self
+        for child in self.childModels:
+            result = child.GetChildModelByName(name)
+            if result:
+                return result
+        return None
+
     def GetProperties(self):
         return self.properties
 

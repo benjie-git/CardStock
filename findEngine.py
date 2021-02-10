@@ -1,6 +1,7 @@
 import wx
 import stackWindow
 from uiView import ViewModel
+from commands import SetPropertyCommand, SetHandlerCommand, CommandGroup
 import re
 
 SEARCHABLE_PROPERTIES = ["name", "text", "title", "file",
@@ -29,6 +30,7 @@ class FindEngine(object):
         super().__init__()
         self.stackView = stackView
         self.findData = wx.FindReplaceData(1)   # initializes and holds search parameters
+        self.didReplace = False
 
     def AddDictItemsForModel(self, searchDict, i, model):
         for key in model.PropertyKeys():
@@ -60,16 +62,24 @@ class FindEngine(object):
             startPath, textSel = self.stackView.GetFindPath()
             path, start, end = self.DoFindNext(searchDict, startPath, textSel)
             if path:
+                self.didReplace = False
                 self.stackView.ShowFindPath(path, start, end)
 
     def Replace(self):
-        self.replaceStr = self.findData.GetReplaceString()
-        self.startPath, self.textSel = self.stackView.GetFindPath()
-        self.GenerateSearchDict()
-
-    def ReplaceAll(self):
-        self.replaceStr = self.findData.GetReplaceString()
-        self.GenerateSearchDict()
+        if not self.didReplace:
+            replaceStr = self.findData.GetReplaceString()
+            findPath, textSel = self.stackView.GetFindPath()
+            command = self.DoReplaceAtPath(findPath, textSel, replaceStr)
+            if command:
+                self.stackView.command_processor.Submit(command)
+            parts = findPath.split(".")
+            key = parts[3]
+            if parts[2] == "handler":
+                self.stackView.designer.cPanel.UpdateHandlerForUiViews([self.stackView.designer.cPanel.lastSelectedUiView], key)
+                pos = textSel[0] + len(replaceStr)
+                self.stackView.designer.cPanel.codeEditor.SetSelection(pos, pos)
+                self.stackView.designer.cPanel.codeEditor.ScrollRange(pos, pos)
+            self.didReplace = True
 
     def DoFindNext(self, searchDict, startPath, textSel):
         flags = self.findData.GetFlags()
@@ -121,3 +131,59 @@ class FindEngine(object):
             if start != -1:
                 return (key, start+offset, end+offset)
         return (None, None, None)
+
+    def DoReplaceAtPath(self, findPath, textSel, replaceStr):
+        parts = findPath.split(".")
+        # cardIndex, objectName, property|handler, key
+        cardIndex = int(parts[0])
+        card = self.stackView.stackModel.childModels[cardIndex]
+        model = card.GetChildModelByName(parts[1])
+        key = parts[3]
+        command = None
+        if parts[2] == "property":
+            val = str(model.GetProperty(key))
+            val = val[:textSel[0]] + replaceStr + val[textSel[1]:]
+            command = SetPropertyCommand(True, "Set Property", self.stackView.designer.cPanel,
+                                         cardIndex, model, key, val, False)
+        elif parts[2] == "handler":
+            val = model.handlers[key]
+            val = val[:textSel[0]] + replaceStr + val[textSel[1]:]
+            command = SetHandlerCommand(True, "Set Handler", self.stackView.designer.cPanel,
+                                        cardIndex, model, key, val, None, None, False)
+        return command
+
+    def ReplaceAll(self):
+        selectedUiViews = self.stackView.GetSelectedUiViews()
+        self.stackView.SelectUiView(None)
+
+        searchDict = self.GenerateSearchDict()
+        findStr = self.findData.GetFindString()
+        replaceStr = self.findData.GetReplaceString()
+        flags = self.findData.GetFlags()
+        findWholeWord = flags & 2
+        findMatchCase = flags & 4
+
+        commands = []
+
+        for path, text in searchDict.items():
+            if len(text) == 0:
+                continue
+
+            flags = (re.MULTILINE) if (findMatchCase) else (re.IGNORECASE | re.MULTILINE)
+            if findWholeWord:
+                p = re.compile(r'\b{searchStr}\b'.format(searchStr=findStr), flags)
+            else:
+                p = re.compile(r'{searchStr}'.format(searchStr=findStr), flags)
+
+            matches = [m for m in p.finditer(text)]
+            for match in reversed(matches):
+                command = self.DoReplaceAtPath(path, (match.start(), match.end()), replaceStr)
+                if command:
+                    commands.append(command)
+
+        if len(commands):
+            command = CommandGroup(True, "Replace All", commands)
+            self.stackView.command_processor.Submit(command)
+
+        for ui in selectedUiViews:
+            self.stackView.SelectUiView(ui, selectedUiViews.index(ui)>0)

@@ -216,23 +216,28 @@ class SetPropertyCommand(Command):
         self.model = args[4]
         self.key = args[5]
         self.newVal = args[6]
+        self.interactive = args[7] if len(args) >= 8 else True
         self.oldVal = self.model.GetProperty(self.key)
         self.hasRun = False
 
     def Do(self):
-        self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
-        if self.hasRun:
-            uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
-            self.cPanel.stackView.SelectUiView(uiView)
+        if self.interactive:
+            self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
+            if self.hasRun:
+                uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
+                self.cPanel.stackView.SelectUiView(uiView)
+
         self.model.SetProperty(self.key, self.newVal)
         self.hasRun = True
         return True
 
     def Undo(self):
-        self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
-        if self.hasRun:
-            uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
-            self.cPanel.stackView.SelectUiView(uiView)
+        if self.interactive:
+            self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
+            if self.hasRun:
+                uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
+                self.cPanel.stackView.SelectUiView(uiView)
+
         self.model.SetProperty(self.key, self.oldVal)
         return True
 
@@ -247,33 +252,41 @@ class SetHandlerCommand(Command):
         self.newVal = args[6]
         self.oldSel = args[7]
         self.newSel = args[8]
+        self.interactive = args[9] if len(args) >= 10 else True
         self.oldVal = self.model.GetHandler(self.key)
         self.hasRun = False
 
     def Do(self):
-        self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
-        if self.hasRun:
-            uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
-            self.cPanel.stackView.SelectUiView(uiView)
+        uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
+        if self.interactive:
+            self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
+            if self.hasRun:
+                self.cPanel.stackView.SelectUiView(uiView)
 
         self.model.SetHandler(self.key, self.newVal)
 
-        if self.hasRun:
+        if self.hasRun and uiView:
             self.cPanel.UpdateHandlerForUiViews([uiView], self.key)
-            self.cPanel.codeEditor.SetSelection(*self.newSel)
+        if self.interactive:
+            if self.newSel:
+                self.cPanel.codeEditor.SetSelection(*self.newSel)
 
         self.hasRun = True
         return True
 
     def Undo(self):
-        self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
         uiView = self.cPanel.stackView.GetUiViewByModel(self.model)
-        self.cPanel.stackView.SelectUiView(uiView)
+        if self.interactive:
+            self.cPanel.stackView.LoadCardAtIndex(self.cardIndex)
+            self.cPanel.stackView.SelectUiView(uiView)
 
         self.model.SetHandler(self.key, self.oldVal)
 
-        self.cPanel.UpdateHandlerForUiViews([uiView], self.key)
-        self.cPanel.codeEditor.SetSelection(*self.oldSel)
+        if uiView:
+            self.cPanel.UpdateHandlerForUiViews([uiView], self.key)
+        if self.interactive:
+            if self.oldSel:
+                self.cPanel.codeEditor.SetSelection(*self.oldSel)
         return True
 
 

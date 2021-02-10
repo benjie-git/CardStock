@@ -258,8 +258,8 @@ class ControlPanel(wx.Panel):
             lastUi = self.lastSelectedUiView
             if uiViews[0] != lastUi:
                 self.UpdateInspectorForUiViews(uiViews)
-                self.UpdateHandlerForUiViews(uiViews, None)
                 self.lastSelectedUiView = uiViews[0]
+                self.UpdateHandlerForUiViews(uiViews, None)
         else:
             self.UpdateInspectorForUiViews(uiViews)
             self.UpdateHandlerForUiViews(uiViews, None)
@@ -267,8 +267,6 @@ class ControlPanel(wx.Panel):
 
     def UpdatedProperty(self, uiView, key):
         lastUi = self.lastSelectedUiView
-        if not lastUi:
-            lastUi = self.stackView.uiCard
         if uiView == lastUi:
             keys = uiView.model.PropertyKeys()
             r = 0
@@ -355,6 +353,9 @@ class ControlPanel(wx.Panel):
             self.codeEditor.SetText("")
             self.codeEditor.Enable(False)
             self.handlerPicker.Enable(False)
+            return
+
+        if uiViews[0] != self.lastSelectedUiView:
             return
 
         self.codeEditor.Enable(True)

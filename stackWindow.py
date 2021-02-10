@@ -609,16 +609,16 @@ class StackWindow(wx.Window):
         start, end, text = self.designer.cPanel.GetInspectorSelection()
         if text:
             propName = cPanel.lastSelectedUiView.model.PropertyKeys()[cPanel.inspector.GetGridCursorRow()]
-            return (str(cardIndex) + "." + model.GetProperty("name") + ".property." + propName, (start, end))
+            return (str(cardIndex) + "." + model.GetProperty("name") + ".property." + propName, (start, end, text))
 
         start, end, text = self.designer.cPanel.GetCodeEditorSelection()
         handlerName = cPanel.currentHandler
         if model and handlerName:
-            return (str(cardIndex) + "." + model.GetProperty("name") + ".handler." + handlerName, (start, end))
+            return (str(cardIndex) + "." + model.GetProperty("name") + ".handler." + handlerName, (start, end, text))
 
         if not model:
             model = self.uiCard.model
-        return (str(cardIndex) + "." + model.GetProperty("name") + ".property." + model.PropertyKeys()[0], (0, 0))
+        return (str(cardIndex) + "." + model.GetProperty("name") + ".property." + model.PropertyKeys()[0], (0, 0, ""))
 
     def GetSelectedText(self):
         start, end, text = self.designer.cPanel.GetInspectorSelection()
