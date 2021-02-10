@@ -1,12 +1,10 @@
+#!/usr/bin/python3
+
 # designer.py
 """
-This module implements the CardStock Designer application.  It takes the
-StackWindow and reuses it in a much more
-intelligent Frame.  This one has a menu and a statusbar, is able to
-save and reload stacks, clear the workspace, and has a simple control
-panel for setting color and line thickness in addition to the popup
-menu that StackWindow provides.  There is also a nice About dialog
-implemented using an wx.html.HtmlWindow.
+This is the root of the main CardStock stack designer application.
+It allows building and editing a stack, and running it to test it.
+Use the viewer.py app to run and use a stack, without being able to edit it.
 """
 
 import os
@@ -21,7 +19,7 @@ from viewer import ViewerFrame
 import helpDialogs
 from stackModel import StackModel
 from uiCard import CardModel
-
+from findEngine import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -30,6 +28,8 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 
 ID_RUN = wx.NewIdRef()
 ID_EDIT = wx.NewIdRef()
+ID_MENU_FIND = wx.NewIdRef()
+ID_MENU_REPLACE = wx.NewIdRef()
 ID_NEXT_CARD = wx.NewIdRef()
 ID_PREV_CARD = wx.NewIdRef()
 ID_ADD_CARD = wx.NewIdRef()
@@ -59,14 +59,16 @@ class DesignerFrame(wx.Frame):
         settings_file = "cardstock.conf"
         self.full_config_file_path = os.path.join(config_folder, settings_file)
 
-        super().__init__(parent, -1, self.title, size=(800,600),
-                         style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
+        super().__init__(parent, -1, self.title, size=(800,600), style=wx.DEFAULT_FRAME_STYLE)
         # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.png')))
         self.CreateStatusBar()
         self.editMenu = None
         self.MakeMenu()
         self.filename = None
         self.app = None
+
+        self.findDlg = None
+        self.findData = wx.FindReplaceData(1)   # initializes and holds search parameters
 
         toolbar = self.CreateToolBar(style=wx.TB_TEXT)
         toolbar.AddTool(ID_RUN, 'Run', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
@@ -82,7 +84,10 @@ class DesignerFrame(wx.Frame):
         toolbar.Realize()
 
         self.Bind(wx.EVT_TOOL, self.OnMenuRun, id=ID_RUN)
-
+        self.Bind(wx.EVT_FIND, self.OnFindEvent)
+        self.Bind(wx.EVT_FIND_NEXT, self.OnFindEvent)
+        self.Bind(wx.EVT_FIND_REPLACE, self.OnReplaceEvent)
+        self.Bind(wx.EVT_FIND_REPLACE_ALL, self.OnReplaceAllEvent)
         self.splitter = wx.SplitterWindow(self, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
 
         self.stackContainer = wx.Window(self.splitter)
@@ -105,10 +110,10 @@ class DesignerFrame(wx.Frame):
 
         self.splitter.SplitVertically(self.stackContainer, self.cPanel)
         self.splitter.SetMinimumPaneSize(120)
-        self.splitter.SetSashPosition(self.splitter.GetSize()[0]-400)
-        self.splitter.SetSashGravity(1.0)
+        self.splitter.SetSashPosition(self.splitter.GetSize()[0]-600)
+        self.splitter.SetSashGravity(0.0)
 
-        self.cPanel.SetSize([400,400])
+        self.cPanel.SetSize([600,600])
         self.cPanel.Layout()
 
         self.cPanel.SetToolByName("hand")
@@ -178,6 +183,7 @@ class DesignerFrame(wx.Frame):
                       self.stackView.GetSize().Height)
         self.splitter.SetSize(clientSize)
         self.SetClientSize(clientSize)
+        self.splitter.SetSashPosition(self.stackView.GetSize().Width)
 
     def SetSelectedUiViews(self, views):
         self.cPanel.UpdateForUiViews(views)
@@ -219,12 +225,15 @@ class DesignerFrame(wx.Frame):
 
         editMenu = wx.Menu()
         editMenu.Append(wx.ID_UNDO, "&Undo\tCtrl-Z", "Undo Action")
-        editMenu.Append(wx.ID_REDO, "&Redo\tCtrl-Shift-Z", "Redo Action")
+        editMenu.Append(wx.ID_REDO, "Re&do\tCtrl-Shift-Z", "Redo Action")
         editMenu.AppendSeparator()
         editMenu.Append(wx.ID_SELECTALL,  "Select A&ll\tCtrl-A", "Select All")
         editMenu.Append(wx.ID_CUT,  "C&ut\tCtrl-X", "Cut Selection")
         editMenu.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
         editMenu.Append(wx.ID_PASTE,"&Paste\tCtrl-V", "Paste Selection")
+        editMenu.AppendSeparator()
+        editMenu.Append(ID_MENU_FIND, "&Find...\tCtrl-Shift-F", "Find in stack")
+        editMenu.Append(ID_MENU_REPLACE, "&Replace...\tCtrl-Shift-R", "Replace in stack")
         self.editMenu = editMenu
 
         cardMenu = wx.Menu()
@@ -242,10 +251,10 @@ class DesignerFrame(wx.Frame):
         viewMenu.Append(ID_GROUP, "&Group Objects\tCtrl-G", "Group Objects")
         viewMenu.Append(ID_UNGROUP, "&Ungroup Objects\tCtrl-U", "Ungroup Objects")
         viewMenu.AppendSeparator()
-        viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Shift-F", "Move to Front")
+        viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Alt-F", "Move to Front")
         viewMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward\tCtrl-F", "Move Forward")
         viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&k\tCtrl-B", "Move Back")
-        viewMenu.Append(ID_MOVE_VIEW_END, "Move to Back\tCtrl-Shift-B", "Move to Back")
+        viewMenu.Append(ID_MOVE_VIEW_END, "Move to Back\tCtrl-Alt-B", "Move to Back")
 
         # and the help menu
         helpMenu = wx.Menu()
@@ -263,39 +272,41 @@ class DesignerFrame(wx.Frame):
         menuBar.Append(helpMenu, "&Help ")  # Add the space to avoid magically adding platform-specific help menu items
         self.SetMenuBar(menuBar)
 
-        self.Bind(wx.EVT_MENU,  self.OnMenuNew, id=wx.ID_NEW)
-        self.Bind(wx.EVT_MENU,   self.OnMenuOpen, id=wx.ID_OPEN)
-        self.Bind(wx.EVT_MENU,   self.OnMenuSave, id=wx.ID_SAVE)
+        self.Bind(wx.EVT_MENU, self.OnMenuNew, id=wx.ID_NEW)
+        self.Bind(wx.EVT_MENU, self.OnMenuOpen, id=wx.ID_OPEN)
+        self.Bind(wx.EVT_MENU, self.OnMenuSave, id=wx.ID_SAVE)
         self.Bind(wx.EVT_MENU, self.OnMenuSaveAs, id=wx.ID_SAVEAS)
-        self.Bind(wx.EVT_MENU,  self.OnMenuRun, id=ID_RUN)
-        self.Bind(wx.EVT_MENU,   self.OnMenuExit, id=wx.ID_EXIT)
+        self.Bind(wx.EVT_MENU, self.OnMenuRun, id=ID_RUN)
+        self.Bind(wx.EVT_MENU, self.OnMenuExit, id=wx.ID_EXIT)
 
-        self.Bind(wx.EVT_MENU,  self.OnMenuAbout, id=wx.ID_ABOUT)
-        self.Bind(wx.EVT_MENU,  self.OnMenuHelp, id=wx.ID_HELP)
-        self.Bind(wx.EVT_MENU,  self.OnMenuReference, id=wx.ID_REFRESH)
-        self.Bind(wx.EVT_MENU,  self.OnMenuContextHelp, id=wx.ID_CONTEXT_HELP)
+        self.Bind(wx.EVT_MENU, self.OnMenuAbout, id=wx.ID_ABOUT)
+        self.Bind(wx.EVT_MENU, self.OnMenuHelp, id=wx.ID_HELP)
+        self.Bind(wx.EVT_MENU, self.OnMenuReference, id=wx.ID_REFRESH)
+        self.Bind(wx.EVT_MENU, self.OnMenuContextHelp, id=wx.ID_CONTEXT_HELP)
 
-        self.Bind(wx.EVT_MENU,  self.OnUndo, id=wx.ID_UNDO)
-        self.Bind(wx.EVT_MENU,  self.OnRedo, id=wx.ID_REDO)
-        self.Bind(wx.EVT_MENU,  self.OnSelectAll, id=wx.ID_SELECTALL)
-        self.Bind(wx.EVT_MENU,  self.OnCut, id=wx.ID_CUT)
-        self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
-        self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
+        self.Bind(wx.EVT_MENU, self.OnUndo, id=wx.ID_UNDO)
+        self.Bind(wx.EVT_MENU, self.OnRedo, id=wx.ID_REDO)
+        self.Bind(wx.EVT_MENU, self.OnSelectAll, id=wx.ID_SELECTALL)
+        self.Bind(wx.EVT_MENU, self.OnCut, id=wx.ID_CUT)
+        self.Bind(wx.EVT_MENU, self.OnCopy, id=wx.ID_COPY)
+        self.Bind(wx.EVT_MENU, self.OnPaste, id=wx.ID_PASTE)
+        self.Bind(wx.EVT_MENU, self.OnMenuFind, id=ID_MENU_FIND)
+        self.Bind(wx.EVT_MENU, self.OnMenuReplace, id=ID_MENU_REPLACE)
 
-        self.Bind(wx.EVT_MENU,  self.OnMenuNextCard, id=ID_NEXT_CARD)
-        self.Bind(wx.EVT_MENU,  self.OnMenuPrevCard, id=ID_PREV_CARD)
-        self.Bind(wx.EVT_MENU,  self.OnMenuAddCard, id=ID_ADD_CARD)
-        self.Bind(wx.EVT_MENU,  self.OnMenuDuplicateCard, id=ID_DUPLICATE_CARD)
-        self.Bind(wx.EVT_MENU,  self.OnMenuRemoveCard, id=ID_REMOVE_CARD)
-        self.Bind(wx.EVT_MENU,  self.OnMenuMoveCard, id=ID_MOVE_CARD_FWD)
-        self.Bind(wx.EVT_MENU,  self.OnMenuMoveCard, id=ID_MOVE_CARD_BACK)
+        self.Bind(wx.EVT_MENU, self.OnMenuNextCard, id=ID_NEXT_CARD)
+        self.Bind(wx.EVT_MENU, self.OnMenuPrevCard, id=ID_PREV_CARD)
+        self.Bind(wx.EVT_MENU, self.OnMenuAddCard, id=ID_ADD_CARD)
+        self.Bind(wx.EVT_MENU, self.OnMenuDuplicateCard, id=ID_DUPLICATE_CARD)
+        self.Bind(wx.EVT_MENU, self.OnMenuRemoveCard, id=ID_REMOVE_CARD)
+        self.Bind(wx.EVT_MENU, self.OnMenuMoveCard, id=ID_MOVE_CARD_FWD)
+        self.Bind(wx.EVT_MENU, self.OnMenuMoveCard, id=ID_MOVE_CARD_BACK)
 
-        self.Bind(wx.EVT_MENU,  self.OnMenuGroup, id=ID_GROUP)
-        self.Bind(wx.EVT_MENU,  self.OnMenuUngroup, id=ID_UNGROUP)
-        self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_FRONT)
-        self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_FWD)
-        self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_BACK)
-        self.Bind(wx.EVT_MENU,  self.OnMenuMoveView, id=ID_MOVE_VIEW_END)
+        self.Bind(wx.EVT_MENU, self.OnMenuGroup, id=ID_GROUP)
+        self.Bind(wx.EVT_MENU, self.OnMenuUngroup, id=ID_UNGROUP)
+        self.Bind(wx.EVT_MENU, self.OnMenuMoveView, id=ID_MOVE_VIEW_FRONT)
+        self.Bind(wx.EVT_MENU, self.OnMenuMoveView, id=ID_MOVE_VIEW_FWD)
+        self.Bind(wx.EVT_MENU, self.OnMenuMoveView, id=ID_MOVE_VIEW_BACK)
+        self.Bind(wx.EVT_MENU, self.OnMenuMoveView, id=ID_MOVE_VIEW_END)
 
 
     wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
@@ -352,19 +363,16 @@ class DesignerFrame(wx.Frame):
     def OnMenuRun(self, event):
         if self.viewer:
             self.viewer.Destroy()
-        self.viewer = ViewerFrame(self)
+
+        data = self.stackView.stackModel.GetData()
+        stackModel = StackModel(None)
+        stackModel.SetData(data)
+
+        self.viewer = ViewerFrame(self, stackModel, self.filename)
         self.viewer.designer = self
         sb = self.viewer.CreateStatusBar()
 
-        data = self.stackView.stackModel.GetData()
-
-        stack = StackModel(self.viewer.stackView)
-        stack.SetData(data)
-        self.viewer.stackView.filename = self.filename
-        self.viewer.stackView.SetStackModel(stack)
-        self.viewer.stackView.SetEditing(False)
         self.viewer.Bind(wx.EVT_CLOSE, self.OnViewerClose)
-        self.viewer.SetClientSize(self.stackView.stackModel.GetProperty("size"))
         self.viewer.RunViewer(sb)
         self.viewer.Show(True)
         self.Hide()
@@ -502,6 +510,39 @@ class DesignerFrame(wx.Frame):
                 f.Redo()
                 return
         event.Skip()
+
+    def OnMenuFind(self, event):
+        if self.findDlg:
+            self.findDlg.Close(True)
+        self.findDlg = wx.FindReplaceDialog(self, self.findData, 'Find', style=0)
+        self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
+        self.findDlg.Bind(wx.EVT_CLOSE, self.OnFindClose)
+        self.findDlg.Show()
+
+    def OnMenuReplace(self, event):
+        if self.findDlg:
+            self.findDlg.Close(True)
+        self.findDlg = wx.FindReplaceDialog(self, self.findData, 'Replace', style=1)
+        self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
+        self.findDlg.Bind(wx.EVT_CLOSE, self.OnFindClose)
+        self.findDlg.Show()
+
+    def OnFindClose(self, event):
+        self.findData = self.findDlg.GetData()
+        self.findDlg.Destroy()
+        self.findDlg = None
+
+    def OnFindEvent(self, event):
+        self.findDlg.CardStockFindEngine = FindEngine(self.stackView)
+        self.findDlg.CardStockFindEngine.Find(self.findDlg.GetData())
+
+    def OnReplaceEvent(self, event):
+        self.findDlg.CardStockFindEngine = FindEngine(self.stackView)
+        self.findDlg.CardStockFindEngine.Replace(self.findDlg.GetData())
+
+    def OnReplaceAllEvent(self, event):
+        self.findDlg.CardStockFindEngine = FindEngine(self.stackView)
+        self.findDlg.CardStockFindEngine.ReplaceAll(self.findDlg.GetData())
 
     def OnMenuAbout(self, event):
         dlg = helpDialogs.CardStockAbout(self)

@@ -189,6 +189,18 @@ class ControlPanel(wx.Panel):
             self.inspector.EnableCellEditControl()
         event.Skip()
 
+    def SelectInInspectorForPropertyName(self, key, selectStart, selectEnd):
+        lastUi = self.lastSelectedUiView
+        if not lastUi:
+            return
+        keys = lastUi.model.PropertyKeys()
+        self.inspector.ClearSelection()
+        self.inspector.SetGridCursor(keys.index(key), 1)
+        self.inspector.EnableCellEditControl()
+        editor = self.inspector.GetCellEditor(keys.index(key), 1)
+        control = editor.GetControl()
+        control.SetSelection(selectStart, selectEnd)
+
     def OnGridCellSelected(self, event):
         self.inspector.ClearSelection()
         uiView = self.lastSelectedUiView
@@ -214,6 +226,12 @@ class ControlPanel(wx.Panel):
         vals = list(UiView.handlerDisplayNames.values())
         self.SaveCurrentHandler()
         self.UpdateHandlerForUiViews(self.stackView.GetSelectedUiViews(), keys[vals.index(displayName)])
+
+    def SelectInCodeForHandlerName(self, key, selectStart, selectEnd):
+        self.SaveCurrentHandler()
+        self.UpdateHandlerForUiViews(self.stackView.GetSelectedUiViews(), key)
+        self.codeEditor.SetSelection(selectStart, selectEnd)
+        self.codeEditor.ScrollRange(selectStart, selectEnd)
 
     def UpdateForUiViews(self, uiViews):
         if len(uiViews) == 1:
@@ -512,7 +530,7 @@ class GridCellColorRenderer(wx.grid.GridCellStringRenderer):
         dc.DrawRectangle(rect)
         dc.SetPen(wx.Pen('black', 1, wx.PENSTYLE_SOLID))
         dc.SetBrush(wx.Brush(color, wx.SOLID))
-        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH, rect.Top, COLOR_PATCH_WIDTH, rect.Height))
+        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH, rect.Top+1, COLOR_PATCH_WIDTH, rect.Height-1))
 
         hAlign, vAlign = attr.GetAlignment()
         dc.SetFont(attr.GetFont())

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import wx
 from uiView import ViewModel, ViewProxy
 from uiCard import CardModel
 import version
@@ -10,11 +11,13 @@ class StackModel(ViewModel):
         self.type = "stack"
         self.proxyClass = StackProxy
 
-        self.properties["size"] = [500, 500]
+        self.properties["size"] = wx.Size(500, 500)
         self.properties["name"] = "stack"
         self.properties["canSave"] = False
+        self.properties["canResize"] = True
 
         self.propertyTypes["canSave"] = 'bool'
+        self.propertyTypes["canResize"] = 'bool'
 
         self.propertyKeys = []
 

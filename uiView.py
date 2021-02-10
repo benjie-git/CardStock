@@ -309,6 +309,11 @@ class ViewModel(object):
     def GetDirty(self):
         return self.isDirty
 
+    def SetStackView(self, stackView):
+        self.stackView = stackView
+        for m in self.childModels:
+            m.SetStackView(stackView)
+
     def GetAbsolutePosition(self):
         p = self.GetProperty("position")
         pos = wx.RealPoint(p[0], p[1])  # Copy so we don't edit the model's position

@@ -1,12 +1,10 @@
-# designer.py
+#!/usr/bin/python3
+
+# viewer.py
 """
-This module implements the CardStock Viewer application.  It takes the
-StackWindow and reuses it in a much more
-intelligent Frame.  This one has a menu and a statusbar, is able to
-save and reload stacks, clear the workspace, and has a simple control
-panel for setting color and line thickness in addition to the popup
-menu that StackWindow provides.  There is also a nice About dialog
-implemented using an wx.html.HtmlWindow.
+This is the root of the CardStock stack viewer application.
+It allows running and using a stack, and even saving its updated state,
+if the stack has its canSave flag set to True.
 """
 
 import os
@@ -36,14 +34,20 @@ class ViewerFrame(wx.Frame):
     """
     title = "CardStock"
 
-    def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, self.title, size=(800,600),
-                         style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
+    def __init__(self, parent, stackModel, filename):
+        if stackModel.GetProperty("canResize"):
+            style = wx.DEFAULT_FRAME_STYLE
+        else:
+            style = wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
+
+        wx.Frame.__init__(self, parent, -1, self.title, size=(500,500), style=style)
         # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.ico')))
 
         self.stackView = StackWindow(self, -1, None)
         self.stackView.SetEditing(False)
         self.designer = None
+        self.stackView.filename = filename
+        self.SetStackModel(stackModel)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnClose)
 
     def SaveFile(self):
@@ -62,26 +66,13 @@ class ViewerFrame(wx.Frame):
                 # print(e)
                 wx.MessageDialog(None, str("Couldn't save file"), "", wx.OK).ShowModal()
 
-    def ReadFile(self, filename):
-        if filename:
-            try:
-                with open(filename, 'r') as f:
-                    data = json.load(f)
-                if data:
-                    stackModel = StackModel(self.stackView)
-                    stackModel.SetData(data)
-                    self.stackView.SetDesigner(self)
-                    self.stackView.filename = filename
-                    self.stackView.SetStackModel(stackModel)
-                    self.stackView.SetEditing(True)
-                    self.stackView.SelectUiView(self.stackView.uiCard)
-                    self.SetClientSize(self.stackView.stackModel.GetProperty("size"))
-                    self.stackView.SetFocus()
-                    self.SetTitle(self.title + ' -- ' + self.stackView.filename)
-            except TypeError:
-                # e = sys.exc_info()
-                # print(e)
-                wx.MessageDialog(None, str("Couldn't read file"), "", wx.OK).ShowModal()
+    def SetStackModel(self, stackModel):
+        self.stackView.SetStackModel(stackModel)
+        self.stackView.SetEditing(False)
+        self.SetClientSize(self.stackView.stackModel.GetProperty("size"))
+        self.stackView.SetFocus()
+        if self.stackView.filename:
+            self.SetTitle(self.title + ' -- ' + self.stackView.filename)
 
     def MakeMenu(self):
         # create the file menu
@@ -199,13 +190,28 @@ class ViewerApp(wx.App, InspectionMixin):
     def OnInit(self):
         self.Init(self)  # for InspectionMixin
 
-        self.frame = ViewerFrame(None)
-        self.statusbar = self.frame.CreateStatusBar()
-        self.SetTopWindow(self.frame)
         self.SetAppDisplayName('CardStock')
-        self.frame.Show(True)
+        self.frame = None
 
         return True
+
+    def OpenFile(self, filename):
+        if filename:
+            try:
+                with open(filename, 'r') as f:
+                    data = json.load(f)
+                if data:
+                    stackModel = StackModel(None)
+                    stackModel.SetData(data)
+                    self.frame = ViewerFrame(None, stackModel, filename)
+                    self.statusbar = self.frame.CreateStatusBar()
+                    self.SetTopWindow(self.frame)
+                    self.frame.stackView.filename = filename
+                    self.frame.Show(True)
+            except TypeError:
+                # e = sys.exc_info()
+                # print(e)
+                wx.MessageDialog(None, str("Couldn't read file"), "", wx.OK).ShowModal()
 
     def MacReopenApp(self):
         """
@@ -226,7 +232,7 @@ if __name__ == '__main__':
     app = ViewerApp(redirect=False)
     if len(sys.argv) > 1:
         filename = sys.argv[1]
-        app.frame.ReadFile(filename)
+        app.OpenFile(filename)
     else:
         print("Usage: python3 viewer.py filename")
         exit(1)

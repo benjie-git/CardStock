@@ -654,6 +654,9 @@ class HelpDataCard():
                   "info": "If <b>canSave</b> is <b>True</b>, the user can save the stack while running it. "
                           "If it's <b>False</b>, the user can't save, so the stack will always start out in the same "
                           "state."},
+        "canResize": {"type": "bool",
+                    "info": "If <b>canResize</b> is <b>True</b>, the user can resize the stack window while running it. "
+                            "If it's <b>False</b>, the user can't resize the window while the stack runs."},
     }
 
     methods = {
