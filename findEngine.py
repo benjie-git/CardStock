@@ -100,24 +100,21 @@ class FindEngine(object):
             textSel = None
 
             start = -1
-            if not findWholeWord:
-                if not findMatchCase:
-                    text = text.lower()
-
-                if not findBackwards:
-                    start = text.find(findStr)
-                else:
-                    start = text.rfind(findStr)
-            else:
-                flags = (re.MULTILINE) if (findMatchCase) else (re.IGNORECASE | re.MULTILINE)
+            flags = (re.MULTILINE) if (findMatchCase) else (re.IGNORECASE | re.MULTILINE)
+            if findWholeWord:
                 p = re.compile(r'\b{searchStr}\b'.format(searchStr=findStr), flags)
-                matches = [m for m in p.finditer(text)]
-                if len(matches):
-                    if not findBackwards:
-                        start = matches[0].start()
-                    else:
-                        start = matches[-1].start()
+            else:
+                p = re.compile(r'{searchStr}'.format(searchStr=findStr), flags)
+
+            matches = [m for m in p.finditer(text)]
+            if len(matches):
+                if not findBackwards:
+                    start = matches[0].start()
+                    end = matches[0].end()
+                else:
+                    start = matches[-1].start()
+                    end = matches[-1].end()
 
             if start != -1:
-                return (key, start+offset, start+offset+len(findStr))
+                return (key, start+offset, end+offset)
         return (None, None, None)
