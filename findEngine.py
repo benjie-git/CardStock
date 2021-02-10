@@ -1,6 +1,7 @@
 import wx
 import stackWindow
 from uiView import ViewModel
+import re
 
 SEARCHABLE_PROPERTIES = ["name", "text", "title", "file",
                          "bgColor", "textColor", "penColor", "fillColor",
@@ -84,25 +85,39 @@ class FindEngine(object):
         if findBackwards:
             slicedKeys.reverse()
 
-        if not findMatchCase:
+        if not findMatchCase and not findWholeWord:
             findStr = findStr.lower()
 
         for key in slicedKeys:
-            start = -1
             text = self.searchDict[key]
-            if not findMatchCase:
-                text = text.lower()
-            if not findBackwards:
-                if textSel:
-                    start = text.find(findStr, textSel[1])
-                else:
+
+            offset = 0
+            if textSel and not findBackwards:
+                text = text[textSel[1]:]
+                offset = textSel[1]
+            elif textSel:
+                text = text[:textSel[0]]
+            textSel = None
+
+            start = -1
+            if not findWholeWord:
+                if not findMatchCase:
+                    text = text.lower()
+
+                if not findBackwards:
                     start = text.find(findStr)
-            else:
-                if textSel:
-                    start = text.rfind(findStr, 0, textSel[0])
                 else:
                     start = text.rfind(findStr)
-            textSel = None
+            else:
+                flags = (re.MULTILINE) if (findMatchCase) else (re.IGNORECASE | re.MULTILINE)
+                p = re.compile(r'\b{searchStr}\b'.format(searchStr=findStr), flags)
+                matches = [m for m in p.finditer(text)]
+                if len(matches):
+                    if not findBackwards:
+                        start = matches[0].start()
+                    else:
+                        start = matches[-1].start()
+
             if start != -1:
-                return (key, start, start+len(findStr))
+                return (key, start+offset, start+offset+len(findStr))
         return (None, None, None)
