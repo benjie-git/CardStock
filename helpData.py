@@ -321,6 +321,10 @@ class HelpDataObject():
                           "<b>y</b> directions."},
         "visible": {"type": "bool",
                     "info": "<b>True</b> if this object is <b>visible</b>, or <b>False</b> if it is hidden."},
+        "hasFocus": {"type": "bool",
+                     "info": "<b>True</b> if this object is focused (if it is selected for typing), otherwise <b>False</b>. "
+                             "This value is not settable, but you can call the method Focus() to try to focus this "
+                             "object."},
         "parent": {"type": "string",
                    "info": "<b>parent</b> is the object that contains this object.  For most objects, it is the card, unless this "
                            "object has been grouped, in which case its <b>parent</b> is the group object  A card's "
