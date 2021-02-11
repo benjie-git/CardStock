@@ -49,7 +49,7 @@ class CardStockAbout(wx.Dialog):
 class CardStockManual(wx.Frame):
     """ A help window that uses an HTML view """
 
-    def GetTHML(self):
+    def GetHTML(self):
         return f'''
 <html>
 <body bgcolor="#EEEEEE">
