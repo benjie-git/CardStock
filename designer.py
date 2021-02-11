@@ -381,8 +381,8 @@ class DesignerFrame(wx.Frame):
         self.viewer.designer = self
 
         self.viewer.Bind(wx.EVT_CLOSE, self.OnViewerClose)
-        self.viewer.RunViewer()
         self.viewer.Show(True)
+        self.viewer.RunViewer()
         self.Hide()
 
     def OnViewerSave(self, stackModel):
