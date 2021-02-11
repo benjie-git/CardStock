@@ -537,6 +537,7 @@ class DesignerFrame(wx.Frame):
 
     def OnMenuReplace(self, event):
         self.ShowFindDialog(True)
+
     def OnFindClose(self, event):
         self.findDlg.Destroy()
         self.findDlg = None
