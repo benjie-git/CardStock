@@ -21,7 +21,7 @@ class UiView(object):
         self.SetModel(model)
         self.hitRegion = None
         self.isSelected = False
-
+        self.hasMouseMoved = False
         self.SetView(view)
 
         self.lastEditedHandler = None
@@ -118,8 +118,7 @@ class UiView(object):
         event.Skip()
 
     def OnMouseMove(self, event):
-        if self.stackView.runner and self.model.GetHandler("OnMouseMove"):
-            self.stackView.runner.RunHandler(self.model, "OnMouseMove", event)
+        self.hasMouseMoved = True
         event.Skip()
 
     def OnMouseUp(self, event):
@@ -138,6 +137,11 @@ class UiView(object):
         event.Skip()
 
     def OnIdle(self, event):
+        if self.hasMouseMoved:
+            self.hasMouseMoved = False
+            if self.stackView.runner and self.model.GetHandler("OnMouseMove"):
+                self.stackView.runner.RunHandler(self.model, "OnMouseMove", event)
+
         # Determine elapsed time since last OnIdle call to this object
         elapsedTime = 0
         now = time()
@@ -201,6 +205,11 @@ class UiView(object):
         # native widgets which can obscure the full frame.
         s = self.model.GetProperty("size")
         return wx.Rect(s.width-4, s.height-4, 12, 12)
+
+    def GetHitRegion(self):
+        if not self.hitRegion:
+            self.MakeHitRegion()
+        return self.hitRegion
 
     def MakeHitRegion(self):
         s = self.model.GetProperty("size")

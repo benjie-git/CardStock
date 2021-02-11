@@ -106,7 +106,7 @@ class Runner():
             self.clientVars["elapsedTime"] = arg
 
         if event and handlerName.startswith("OnMouse"):
-            mousePos = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+            mousePos = self.stackView.ScreenToClient(wx.GetMousePosition())
             if "mousePos" in self.clientVars:
                 oldVars["mousePos"] = self.clientVars["mousePos"]
             else:

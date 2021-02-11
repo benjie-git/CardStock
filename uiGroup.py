@@ -58,13 +58,9 @@ class UiGroup(UiView):
             gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
             gc.DrawRectangle(self.model.GetAbsoluteFrame())
-        for uiView in self.uiViews:
-            uiView.Paint(gc)
 
     def PaintSelectionBox(self, gc):
         super().PaintSelectionBox(gc)
-        for uiView in self.uiViews:
-            uiView.PaintSelectionBox(gc)
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)

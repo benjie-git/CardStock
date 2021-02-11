@@ -542,17 +542,34 @@ class StackWindow(wx.Window):
             uiView.OnMouseExit(event)
 
     def OnPaint(self, event):
+        uiViews = self.GetAllUiViews()
+        upd = wx.RegionIterator(self.GetUpdateRegion())
+        paintUiViews = []
+        while upd.HaveRects():
+            updRect = upd.GetRect()
+            for ui in uiViews:
+                if ui not in paintUiViews:
+                    updRegion = wx.Region(wx.Rect(updRect.TopLeft - wx.Point(ui.model.GetAbsolutePosition()),
+                                                  updRect.Size))
+
+                    uiRegion = ui.GetHitRegion()
+                    updRegion.Intersect(uiRegion)
+                    if not uiRegion.IsEmpty():
+                        paintUiViews.append(ui)
+            upd.Next()
+
         bg = wx.Colour(self.uiCard.model.GetProperty("bgColor"))
         buffer = wx.Bitmap.FromRGBA(self.GetSize().Width, self.GetSize().Height, bg.red, bg.green, bg.blue, 0xFF)
         dc = wx.BufferedPaintDC(self, buffer)
         gc = wx.GCDC(dc)
-        for uiView in self.uiViews:
-            if not uiView.model.GetProperty("hidden"):
-                uiView.Paint(gc)
-        if self.isEditing:
-            for uiView in self.uiViews:
-                uiView.PaintSelectionBox(gc)
-            self.uiCard.PaintSelectionBox(gc)
+        if len(paintUiViews):
+            for uiView in paintUiViews:
+                if not uiView.model.GetProperty("hidden"):
+                    uiView.Paint(gc)
+            if self.isEditing:
+                for uiView in paintUiViews:
+                    uiView.PaintSelectionBox(gc)
+        self.uiCard.PaintSelectionBox(gc)
         if self.tool:
             self.tool.Paint(gc)
         event.Skip()
