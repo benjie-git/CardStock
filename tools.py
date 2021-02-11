@@ -211,6 +211,10 @@ class HandTool(BaseTool):
                 self.stackView.SelectUiView(ui, True)
 
     def OnKeyDown(self, uiViewIn, event):
+        if event.RawControlDown() or event.CmdDown():
+            event.Skip()
+            return
+
         uiViews = []
         if uiViewIn and uiViewIn.model.type == "card":
             uiViews = self.stackView.GetSelectedUiViews()

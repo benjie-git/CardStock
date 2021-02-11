@@ -239,7 +239,7 @@ class DesignerFrame(wx.Frame):
         editMenu.Append(ID_MENU_FIND_SEL, "&Find Selection\tCtrl-E", "Find Selection")
         editMenu.Append(ID_MENU_FIND_NEXT, "&Find Next\tCtrl-G", "Find Next in stack")
         editMenu.Append(ID_MENU_FIND_PREV, "&Find Previous\tCtrl-Shift-G", "Find Previous in stack")
-        editMenu.Append(ID_MENU_REPLACE, "&Replace...\tCtrl-Shift-R", "Replace in stack")
+        editMenu.Append(ID_MENU_REPLACE, "&Replace...\tCtrl-Shift-F", "Replace in stack")
         self.editMenu = editMenu
 
         cardMenu = wx.Menu()
@@ -250,17 +250,17 @@ class DesignerFrame(wx.Frame):
         cardMenu.Append(ID_DUPLICATE_CARD, "&Duplicate Card", "Duplicate Card")
         cardMenu.Append(ID_REMOVE_CARD, "&Remove Card", "Remove Card")
         cardMenu.AppendSeparator()
-        cardMenu.Append(ID_MOVE_CARD_FWD, "Move Card &Forward\tCtrl-Alt-F", "Move Card Forward")
-        cardMenu.Append(ID_MOVE_CARD_BACK, "Move Card Bac&k\tCtrl-Alt-B", "Move Card Back")
+        cardMenu.Append(ID_MOVE_CARD_FWD, "Move Card &Forward\tCtrl-Shift-]", "Move Card Forward")
+        cardMenu.Append(ID_MOVE_CARD_BACK, "Move Card Bac&k\tCtrl-Shift-[", "Move Card Back")
 
         viewMenu = wx.Menu()
-        viewMenu.Append(ID_GROUP, "&Group Objects\tAlt-G", "Group Objects")
-        viewMenu.Append(ID_UNGROUP, "&Ungroup Objects\tAlt-U", "Ungroup Objects")
+        viewMenu.Append(ID_GROUP, "&Group Objects\tCtrl-3", "Group Objects")
+        viewMenu.Append(ID_UNGROUP, "&Ungroup Objects\tCtrl-Shift-3", "Ungroup Objects")
         viewMenu.AppendSeparator()
-        viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Shift-Up", "Move to Front")
-        viewMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward\tCtrl-Up", "Move Forward")
-        viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&k\tCtrl-Down", "Move Back")
-        viewMenu.Append(ID_MOVE_VIEW_END, "Move to Back\tCtrl-Shift-Down", "Move to Back")
+        viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Shift-1", "Move to Front")
+        viewMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward\tCtrl-1", "Move Forward")
+        viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&k\tCtrl-2", "Move Back")
+        viewMenu.Append(ID_MOVE_VIEW_END, "Move to Back\tCtrl-Shift-2", "Move to Back")
 
         # and the help menu
         helpMenu = wx.Menu()

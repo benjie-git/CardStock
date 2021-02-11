@@ -26,11 +26,11 @@
           "properties": {
             "name": "header",
             "size": [
-              211,
-              31
+              122,
+              29
             ],
             "position": [
-              140.0,
+              190.0,
               8.0
             ],
             "text": "My Diary",
@@ -154,15 +154,15 @@
           "properties": {
             "name": "cardNum",
             "size": [
-              57,
-              27
+              76,
+              26
             ],
             "position": [
-              337.0,
+              332.0,
               8.0
             ],
             "text": "1/1",
-            "alignment": "Left",
+            "alignment": "Right",
             "textColor": "black",
             "font": "Serif",
             "fontSize": 18
