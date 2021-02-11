@@ -13,7 +13,7 @@ import json
 from tools import *
 from commands import *
 import generator
-import findEngine
+import findEngineDesigner
 from stackModel import StackModel
 from uiCard import UiCard, CardModel
 from uiButton import UiButton
@@ -42,6 +42,7 @@ class StackWindow(wx.Window):
         self.uiViewCachePendingDelete = []
         self.globalCursor = None
         self.lastMousePos = wx.Point(0,0)
+        self.lastFocusedTextField = None
         self.runner = None
         self.filename = None
 
@@ -168,6 +169,7 @@ class StackWindow(wx.Window):
                     self.runner.RunHandler(oldCardModel, "OnHideCard", None)
             self.cardIndex = index
             self.ClearAllViews()
+            self.lastFocusedTextField = None
             if index is not None:
                 cardModel = self.stackModel.GetCardModel(index)
                 self.CreateViews(cardModel)
@@ -599,7 +601,7 @@ class StackWindow(wx.Window):
         self.command_processor.Redo()
         self.Refresh(True)
 
-    def GetFindPath(self):
+    def GetDesignerFindPath(self):
         cPanel = self.designer.cPanel
         cardModel = self.uiCard.model
         cardIndex = self.stackModel.childModels.index(cardModel)
@@ -620,13 +622,7 @@ class StackWindow(wx.Window):
             model = self.uiCard.model
         return (str(cardIndex) + "." + model.GetProperty("name") + ".property." + model.PropertyKeys()[0], (0, 0, ""))
 
-    def GetSelectedText(self):
-        start, end, text = self.designer.cPanel.GetInspectorSelection()
-        if not text:
-            start, end, text = self.designer.cPanel.GetCodeEditorSelection()
-        return (start, end, text)
-
-    def ShowFindPath(self, findPath, selectStart, selectEnd):
+    def ShowDesignerFindPath(self, findPath, selectStart, selectEnd):
         if findPath:
             parts = findPath.split(".")
             # cardIndex, objectName, property|handler, key
@@ -637,3 +633,37 @@ class StackWindow(wx.Window):
                 wx.CallAfter(self.designer.cPanel.SelectInInspectorForPropertyName, parts[3], selectStart, selectEnd)
             elif parts[2] == "handler":
                 wx.CallAfter(self.designer.cPanel.SelectInCodeForHandlerName, parts[3], selectStart, selectEnd)
+
+    def GetViewerFindPath(self):
+        cardModel = self.uiCard.model
+        cardIndex = self.stackModel.childModels.index(cardModel)
+        uiViews = self.GetAllUiViews()
+        uiView = None
+        if self.lastFocusedTextField in uiViews:
+            uiView = self.lastFocusedTextField
+        if not uiView:
+            for ui in uiViews:
+                if ui.model.type == "textfield" and ui.view.HasFocus():
+                    uiView = ui
+                    break
+        if not uiView:
+            for ui in uiView:
+                if ui.model.type == "textfield":
+                    uiView = ui
+                    break
+
+        if uiView:
+            start, end = uiView.view.GetSelection()
+            text = uiView.view.GetStringSelection()
+            return (str(cardIndex) + "." + uiView.model.GetProperty("name") + ".property.text", (start, end, text))
+        return None
+
+    def ShowViewerFindPath(self, findPath, selectStart, selectEnd):
+        if findPath:
+            cardIndex, objectName, pathType, key = findPath.split(".")
+            self.LoadCardAtIndex(int(cardIndex))
+            uiView = self.GetUiViewByName(objectName)
+            if uiView and uiView.view:
+                uiView.view.SetFocus()
+                uiView.view.SetSelection(selectStart, selectEnd)
+

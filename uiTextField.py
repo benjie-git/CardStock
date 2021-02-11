@@ -35,12 +35,14 @@ class UiTextField(UiView):
             field.ChangeValue(text)
             field.Bind(stc.EVT_STC_CHANGE, self.OnTextChanged)
             field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
+            field.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
             field.EmptyUndoBuffer()
         else:
             field = CDSTextCtrl(parent=stackView, style=wx.TE_PROCESS_ENTER | alignment)
             field.ChangeValue(text)
             field.Bind(wx.EVT_TEXT, self.OnTextChanged)
             field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
+            field.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
             field.EmptyUndoBuffer()
 
         self.BindEvents(field)
@@ -61,7 +63,9 @@ class UiTextField(UiView):
             return None
 
     def OnFocus(self, event):
-        self.field.SetFocus()
+        if not self.stackView.isEditing:
+            self.stackView.lastFocusedTextField = self
+        event.Skip()
 
     def OnResize(self, event):
         if self.field and self.model.GetProperty("multiline"):

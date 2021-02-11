@@ -19,7 +19,7 @@ from viewer import ViewerFrame
 import helpDialogs
 from stackModel import StackModel
 from uiCard import CardModel
-from findEngine import FindEngine
+from findEngineDesigner import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -379,10 +379,9 @@ class DesignerFrame(wx.Frame):
 
         self.viewer = ViewerFrame(self, stackModel, self.filename)
         self.viewer.designer = self
-        sb = self.viewer.CreateStatusBar()
 
         self.viewer.Bind(wx.EVT_CLOSE, self.OnViewerClose)
-        self.viewer.RunViewer(sb)
+        self.viewer.RunViewer()
         self.viewer.Show(True)
         self.Hide()
 
@@ -520,22 +519,24 @@ class DesignerFrame(wx.Frame):
                 return
         event.Skip()
 
-    def OnMenuFind(self, event):
+    def ShowFindDialog(self, isReplace):
         if self.findDlg:
             self.findDlg.Close(True)
-        self.findDlg = wx.FindReplaceDialog(self, self.findEngine.findData, 'Find', style=0)
+        self.findDlg = wx.FindReplaceDialog(self, self.findEngine.findData,
+                                            'Replace' if isReplace else 'Find', style=int(isReplace))
         self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
+        self.findDlg.Bind(wx.EVT_FIND, self.OnFindEvent)
+        self.findDlg.Bind(wx.EVT_FIND_NEXT, self.OnFindEvent)
+        self.findDlg.Bind(wx.EVT_FIND_REPLACE, self.OnReplaceEvent)
+        self.findDlg.Bind(wx.EVT_FIND_REPLACE_ALL, self.OnReplaceAllEvent)
         self.findDlg.Bind(wx.EVT_CLOSE, self.OnFindClose)
         self.findDlg.Show()
+
+    def OnMenuFind(self, event):
+        self.ShowFindDialog(False)
 
     def OnMenuReplace(self, event):
-        if self.findDlg:
-            self.findDlg.Close(True)
-        self.findDlg = wx.FindReplaceDialog(self, self.findEngine.findData, 'Replace', style=1)
-        self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
-        self.findDlg.Bind(wx.EVT_CLOSE, self.OnFindClose)
-        self.findDlg.Show()
-
+        self.ShowFindDialog(True)
     def OnFindClose(self, event):
         self.findDlg.Destroy()
         self.findDlg = None

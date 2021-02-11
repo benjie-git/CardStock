@@ -572,6 +572,12 @@ class ViewProxy(object):
         if self._model.stackView.runner:
             self._model.stackView.runner.SetFocus(self)
 
+    @property
+    def hasFocus(self):
+        uiView = self._model.stackView.GetUiViewByModel(self._model)
+        if uiView and uiView.view:
+            return uiView.view.HasFocus()
+
     def Clone(self):
         newModel = self._model.CreateCopy()
         if newModel.type != "card":

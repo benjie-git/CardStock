@@ -1,28 +1,23 @@
 import wx
 import stackWindow
 from uiView import ViewModel
-from commands import SetPropertyCommand, SetHandlerCommand, CommandGroup
+from commands import SetPropertyCommand, CommandGroup
 import re
-
-SEARCHABLE_PROPERTIES = ["name", "text", "title", "file",
-                         "bgColor", "textColor", "penColor", "fillColor",
-                         "fit", "alignment"]
 
 """
 Find and Replace logic.
 The search order is:
-- Cards, first to last
+- Current card only
   - Recursively find cardModel's childModels (obj1, obj2, obj2.child1, obj2.child2, obj3, etc.)
-    - Property text, in model.PropertyKeys() order (this is display order in the inspector)
-    - Handlers in model.handlers order (this is display order in the handlerPicker)
-      - handler text, start to end
+    - Only search TextField.text properties
+    - For replace, only replace if TextField.editable
 
-Create a searchable dict of item paths on every search if we don't have one, or if models are Dirty?
-  (cardIndex.objectName.property.propertyName or cardIndex.objectName.handler.handlerName)
-Determine our currently selected findPath, and start searching there
-search each item in order, and add stackView.SelectFindPath(findpath, selectionStart, selectionEnd) to show matches
+Create a dict of searchable item paths and values on every Find. Paths are of the form:
+  - cardIndex.objectName.property.text
+Determine our currently selected findPath, and selection inside it, and start searching there.
+Search each item in order, and call stackView.ShowViewerFindPath(findpath, selectionStart, selectionEnd) to show matches.
 
-
+Only allow Replacing once per Find, to avoid duplicated replaceText.
 """
 
 class FindEngine(object):
@@ -33,52 +28,41 @@ class FindEngine(object):
         self.didReplace = False
 
     def AddDictItemsForModel(self, searchDict, i, model):
-        for key in model.PropertyKeys():
-            if key in SEARCHABLE_PROPERTIES:
-                path = ".".join([str(i), model.GetProperty("name"), "property", key])
-                searchDict[path] = model.GetProperty(key)
-        for key, code in model.handlers.items():
-            path = ".".join([str(i), model.GetProperty("name"), "handler", key])
-            searchDict[path] = model.handlers[key]
+        if model.type == "textfield":
+            path = ".".join([str(i), model.GetProperty("name"), "property", "text"])
+            searchDict[path] = model.GetProperty("text")
         for m in model.childModels:
             self.AddDictItemsForModel(searchDict, i, m)
 
     def GenerateSearchDict(self):
         searchDict = {}
-        i = 0
-        for card in self.stackView.stackModel.childModels:
-            self.AddDictItemsForModel(searchDict, i, card)
-            i += 1
+        cardModel = self.stackView.uiCard.model
+        self.AddDictItemsForModel(searchDict, self.stackView.stackModel.childModels.index(cardModel), cardModel)
         return searchDict
 
     def UpdateFindTextFromSelection(self):
-        findStr = self.stackView.GetSelectedText()
-        self.findData.SetFindString(findStr)
+        _, textSel = self.stackView.GetViewerFindPath()
+        start, end, findStr = textSel
+        if findStr and len(findStr):
+            self.findData.SetFindString(findStr)
 
     def Find(self):
         findStr = self.findData.GetFindString()
         if len(findStr):
             searchDict = self.GenerateSearchDict()
-            startPath, textSel = self.stackView.GetFindPath()
+            startPath, textSel = self.stackView.GetViewerFindPath()
             path, start, end = self.DoFindNext(searchDict, startPath, textSel)
             if path:
                 self.didReplace = False
-                self.stackView.ShowFindPath(path, start, end)
+                self.stackView.ShowViewerFindPath(path, start, end)
 
     def Replace(self):
         if not self.didReplace:
             replaceStr = self.findData.GetReplaceString()
-            findPath, textSel = self.stackView.GetFindPath()
+            findPath, textSel = self.stackView.GetViewerFindPath()
             command = self.DoReplaceAtPath(findPath, textSel, replaceStr)
             if command:
                 self.stackView.command_processor.Submit(command)
-            parts = findPath.split(".")
-            key = parts[3]
-            if parts[2] == "handler":
-                self.stackView.designer.cPanel.UpdateHandlerForUiViews([self.stackView.designer.cPanel.lastSelectedUiView], key)
-                pos = textSel[0] + len(replaceStr)
-                self.stackView.designer.cPanel.codeEditor.SetSelection(pos, pos)
-                self.stackView.designer.cPanel.codeEditor.ScrollRange(pos, pos)
             self.didReplace = True
 
     def DoFindNext(self, searchDict, startPath, textSel):
@@ -139,31 +123,18 @@ class FindEngine(object):
         card = self.stackView.stackModel.childModels[cardIndex]
         model = card.GetChildModelByName(parts[1])
         key = parts[3]
-        command = None
-        if parts[2] == "property":
+        if model.GetProperty("editable"):
             val = str(model.GetProperty(key))
             val = val[:textSel[0]] + replaceStr + val[textSel[1]:]
-            command = SetPropertyCommand(True, "Set Property", self.stackView.designer.cPanel,
-                                         cardIndex, model, key, val, False)
-        elif parts[2] == "handler":
-            val = model.handlers[key]
-            val = val[:textSel[0]] + replaceStr + val[textSel[1]:]
-            command = SetHandlerCommand(True, "Set Handler", self.stackView.designer.cPanel,
-                                        cardIndex, model, key, val, None, None, False)
-        return command
+            model.SetProperty(key, val)
 
     def ReplaceAll(self):
-        selectedUiViews = self.stackView.GetSelectedUiViews()
-        self.stackView.SelectUiView(None)
-
         searchDict = self.GenerateSearchDict()
         findStr = self.findData.GetFindString()
         replaceStr = self.findData.GetReplaceString()
         flags = self.findData.GetFlags()
         findWholeWord = flags & 2
         findMatchCase = flags & 4
-
-        commands = []
 
         for path, text in searchDict.items():
             if len(text) == 0:
@@ -177,13 +148,4 @@ class FindEngine(object):
 
             matches = [m for m in p.finditer(text)]
             for match in reversed(matches):
-                command = self.DoReplaceAtPath(path, (match.start(), match.end()), replaceStr)
-                if command:
-                    commands.append(command)
-
-        if len(commands):
-            command = CommandGroup(True, "Replace All", commands)
-            self.stackView.command_processor.Submit(command)
-
-        for ui in selectedUiViews:
-            self.stackView.SelectUiView(ui, selectedUiViews.index(ui)>0)
+                self.DoReplaceAtPath(path, (match.start(), match.end()), replaceStr)

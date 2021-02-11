@@ -18,10 +18,16 @@ from uiCard import CardModel
 import version
 from runner import Runner
 import helpDialogs
-
+from findEngineViewer import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+
+ID_MENU_FIND = wx.NewIdRef()
+ID_MENU_FIND_SEL = wx.NewIdRef()
+ID_MENU_FIND_NEXT = wx.NewIdRef()
+ID_MENU_FIND_PREV = wx.NewIdRef()
+ID_MENU_REPLACE = wx.NewIdRef()
 
 # ----------------------------------------------------------------------
 
@@ -43,12 +49,17 @@ class ViewerFrame(wx.Frame):
         wx.Frame.__init__(self, parent, -1, self.title, size=(500,500), style=style)
         # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.ico')))
 
+        self.CreateStatusBar()
+
         self.stackView = StackWindow(self, -1, None)
         self.stackView.SetEditing(False)
         self.designer = None
         self.stackView.filename = filename
         self.SetStackModel(stackModel)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnClose)
+
+        self.findDlg = None
+        self.findEngine = FindEngine(self.stackView)
 
     def SaveFile(self):
         if self.designer:
@@ -88,6 +99,12 @@ class ViewerFrame(wx.Frame):
         editMenu.Append(wx.ID_CUT,  "C&ut\tCtrl-X", "Cut Selection")
         editMenu.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
         editMenu.Append(wx.ID_PASTE,"&Paste\tCtrl-V", "Paste Selection")
+        editMenu.AppendSeparator()
+        editMenu.Append(ID_MENU_FIND, "&Find...\tCtrl-F", "Find... in stack")
+        editMenu.Append(ID_MENU_FIND_SEL, "&Find Selection\tCtrl-E", "Find Selection")
+        editMenu.Append(ID_MENU_FIND_NEXT, "&Find Next\tCtrl-G", "Find Next in stack")
+        editMenu.Append(ID_MENU_FIND_PREV, "&Find Previous\tCtrl-Shift-G", "Find Previous in stack")
+        editMenu.Append(ID_MENU_REPLACE, "&Replace...\tCtrl-Shift-R", "Replace in stack")
 
         # and the help menu
         helpMenu = wx.Menu()
@@ -110,6 +127,12 @@ class ViewerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnCut, id=wx.ID_CUT)
         self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
+
+        self.Bind(wx.EVT_MENU, self.OnMenuFind, id=ID_MENU_FIND)
+        self.Bind(wx.EVT_MENU, self.OnMenuFindSel, id=ID_MENU_FIND_SEL)
+        self.Bind(wx.EVT_MENU, self.OnMenuFindNext, id=ID_MENU_FIND_NEXT)
+        self.Bind(wx.EVT_MENU, self.OnMenuFindPrevious, id=ID_MENU_FIND_PREV)
+        self.Bind(wx.EVT_MENU, self.OnMenuReplace, id=ID_MENU_REPLACE)
 
     def OnMenuSave(self, event):
         self.SaveFile()
@@ -159,13 +182,60 @@ class ViewerFrame(wx.Frame):
                 return
         event.Skip()
 
+    def ShowFindDialog(self, isReplace):
+        if self.findDlg:
+            self.findDlg.Close(True)
+        self.findDlg = wx.FindReplaceDialog(self, self.findEngine.findData,
+                                            'Replace' if isReplace else 'Find', style=int(isReplace))
+        self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
+        self.findDlg.Bind(wx.EVT_FIND, self.OnFindEvent)
+        self.findDlg.Bind(wx.EVT_FIND_NEXT, self.OnFindEvent)
+        self.findDlg.Bind(wx.EVT_FIND_REPLACE, self.OnReplaceEvent)
+        self.findDlg.Bind(wx.EVT_FIND_REPLACE_ALL, self.OnReplaceAllEvent)
+        self.findDlg.Bind(wx.EVT_CLOSE, self.OnFindClose)
+        self.findDlg.Show()
+
+    def OnMenuFind(self, event):
+        self.ShowFindDialog(False)
+
+    def OnMenuReplace(self, event):
+        self.ShowFindDialog(True)
+
+    def OnFindClose(self, event):
+        self.findDlg.Destroy()
+        self.findDlg = None
+
+    def OnMenuFindSel(self, event):
+        self.findEngine.UpdateFindTextFromSelection()
+
+    def OnMenuFindNext(self, event):
+        flags = self.findEngine.findData.GetFlags()
+        self.findEngine.findData.SetFlags(flags | 1)
+        self.findEngine.Find()
+        self.findEngine.findData.SetFlags(flags)
+
+    def OnMenuFindPrevious(self, event):
+        flags = self.findEngine.findData.GetFlags()
+        self.findEngine.findData.SetFlags(flags & ~1)
+        self.findEngine.Find()
+        self.findEngine.findData.SetFlags(flags)
+
+    def OnFindEvent(self, event):
+        self.findEngine.Find()
+
+    def OnReplaceEvent(self, event):
+        self.findEngine.Replace()
+
+    def OnReplaceAllEvent(self, event):
+        self.findEngine.ReplaceAll()
+
     def OnMenuAbout(self, event):
         dlg = helpDialogs.CardStockAbout(self)
         dlg.ShowModal()
         dlg.Destroy()
 
-    def RunViewer(self, sb):
-        runner = Runner(self.stackView, sb)
+    def RunViewer(self):
+        runner = Runner(self.stackView, self.GetStatusBar())
         self.stackView.runner = runner
         self.stackView.SetEditing(False)
         self.SetClientSize(self.stackView.stackModel.GetProperty("size"))
@@ -204,7 +274,6 @@ class ViewerApp(wx.App, InspectionMixin):
                     stackModel = StackModel(None)
                     stackModel.SetData(data)
                     self.frame = ViewerFrame(None, stackModel, filename)
-                    self.statusbar = self.frame.CreateStatusBar()
                     self.SetTopWindow(self.frame)
                     self.frame.stackView.filename = filename
                     self.frame.Show(True)
@@ -236,7 +305,7 @@ if __name__ == '__main__':
     else:
         print("Usage: python3 viewer.py filename")
         exit(1)
-    app.frame.RunViewer(app.statusbar)
+    app.frame.RunViewer()
     app.frame.Show(True)
 
     app.MainLoop()
