@@ -130,7 +130,8 @@ program (instead of in the Designer). which lets a user run the program, but not
                           size=(800, 600))
 
         html = wx.html.HtmlWindow(self, -1)
-        html.SetPage(self.GetHTML())
+        htmlStr = self.GetHTML()
+        html.SetPage(htmlStr)
 
         # Set up the layout with a Sizer
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -260,7 +261,8 @@ information on how to use CardStock, see the CardStock Help documentation in the
         self.splitter = wx.SplitterWindow(self, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
 
         self.html = wx.html.HtmlWindow(self.splitter, -1)
-        self.html.SetPage(self.GetHTML())
+        htmlStr = self.GetHTML()
+        self.html.SetPage(htmlStr)
 
         toc = wx.html.HtmlWindow(self.splitter)
         toc.SetPage(HelpData.TOCPage())

@@ -11,17 +11,24 @@ The guiding principles behind my vision for CardStock are the following, in orde
 1. Make it as capable as possible, without interfering with the previous priority.
 
 ## Features
+
 ### The Basics
 * CardStock works on MacOS, Windows, and GNU/Linux.
 * You can build programs using objects including text and graphics, images, buttons, and text entry fields.
 * You can use your own python code to manipulate the objects and respond to mouse and keyboard events.
+* You can play sound files from your code.
 * Design and build your stack in the CardStock Designer, and run it from there to test it out.  Or run your stack directly using the CardStock Viewer.
 * In-context help appears in the app, right where you need it.  And can be turned off when you no longer want it taking up space.
 * All of the creature comforts you've come to expect from a proper application, like full Undo/Redo, and a Find/Replace system that works throughout all of your code and object properties.
-### Advanced
-* You can animate most properties of objects to create games.
+
+### More Advanced
+* You can animate most properties of objects, to bring your creations to life.
 * You can **import** other python packages into your code, and use them make web requests and display the results, control robots, or run machine learning code, all from within your CardStock stack.
-* Coming Soon: I plan to allow exporting a stack into a standalone application that you can share.
+
+### Future Plans
+* A buil-in media library with some basic icons/images, and sound files.
+* Add code completion to the code editor.
+* Allow exporting a stack into a standalone application that you can share.
 
 ## Requirements
 CardStock requires Python 3.7 or newer, and wxPython 4.0 or newer.
@@ -36,6 +43,6 @@ Currently, you'll need to:
 When the first release is ready, there will also be prebuilt bundles ready for download for various platforms, built using pyinstaller.
 
 ## Reference
-* CardStock Wiki
-* CardStock Manual
-* CardStock Reference Guide
+* [CardStock Wiki](https://github.com/benjie-git/CardStock/wiki)
+* [CardStock Manual](https://github.com/benjie-git/CardStock/wiki/Manual)
+* [CardStock Reference Guide](https://github.com/benjie-git/CardStock/wiki/Reference)
