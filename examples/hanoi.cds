@@ -149,7 +149,7 @@
           ]
         },
         {
-          "type": "round_rect",
+          "type": "roundrect",
           "handlers": {},
           "properties": {
             "name": "disk3",
@@ -182,7 +182,7 @@
           ]
         },
         {
-          "type": "round_rect",
+          "type": "roundrect",
           "handlers": {},
           "properties": {
             "name": "disk2",
@@ -215,7 +215,7 @@
           ]
         },
         {
-          "type": "round_rect",
+          "type": "roundrect",
           "handlers": {},
           "properties": {
             "name": "disk1",
@@ -286,7 +286,7 @@
           }
         },
         {
-          "type": "round_rect",
+          "type": "roundrect",
           "handlers": {},
           "properties": {
             "name": "disk4",
@@ -319,7 +319,7 @@
           ]
         },
         {
-          "type": "round_rect",
+          "type": "roundrect",
           "handlers": {},
           "properties": {
             "name": "disk5",

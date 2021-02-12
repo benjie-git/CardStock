@@ -2,7 +2,7 @@
 
 ## About
 
-**CardStock** is a cross-platform tool for quickly and easily building graphical desktop applications, called **stacks**, which can be made up of multiple pages called **cards**.  It provides a drawing-program-like editor for building Graphical User Interfaces, and a code editor for adding event-driven python code, all within a live, GUI editor/IDE called the **Designer**.
+**CardStock** is a cross-platform tool for quickly and easily building graphical desktop applications, called **stacks**, which can be made up of multiple pages called **cards**.  It provides a drawing-program-like editor for building Graphical User Interfaces, and a code editor for adding event-driven python code.
 
 ![Pong example](https://github.com/benjie-git/CardStock/wiki/images/pong.png?raw=true)
 

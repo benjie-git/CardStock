@@ -588,7 +588,7 @@ rect = PyEmbeddedImage(
     "pZTvyeicYwihWvfTNN1IPnv8HhPSpN7hsDvuM/O8fwAAAABJRU5ErkJggg==")
 
 #----------------------------------------------------------------------
-round_rect = PyEmbeddedImage(
+roundrect = PyEmbeddedImage(
     "iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAMYmlDQ1BJQ0MgcHJvZmlsZQAA"
     "SImVVwdYU8kWnltSSWiBCEgJvYkiNYCUEFoEAamCqIQkkFBiTAgqdnRRwbWLKFZ0VUTR1RWQ"
     "tSBid1HsfbGgoqyLBRsqb0ICuvrK9873zZ0/Z878p2Tm3hkAdNr4MlkuqgtAnjRfHhcezBqT"
@@ -811,7 +811,7 @@ embeddedImages = {
     "image": image,
     "oval": oval,
     "rect": rect,
-    "round_rect": round_rect,
+    "roundrect": roundrect,
     "line": line,
     "pen": pen,
 }

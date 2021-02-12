@@ -15,7 +15,7 @@ class HelpData():
         if typeStr == "group":                  return HelpDataGroup
         if typeStr in ["line", "pen"]:          return HelpDataLine
         if typeStr in ["shape", "oval", "rect"]:return HelpDataShape
-        if typeStr == "round_rect":             return HelpDataRoundRectangle
+        if typeStr == "roundrect":             return HelpDataRoundRectangle
         if typeStr == "card":                   return HelpDataCard
         if typeStr == "stack":                  return HelpDataStack
         return HelpDataObject
@@ -119,7 +119,8 @@ class HelpData():
                 for name, arg in method["args"].items():
                     argText += "<b>" + name + "</b>:<i>" + arg["type"] + " </i> - " + arg["info"] + "<br/>"
                 ret = method["return"] if method["return"] else ""
-                rows.append([key, argText, "<i>"+ret+"</i>", method["info"]])
+                name = key + "(" + ', '.join(method["args"].keys()) + ")"
+                rows.append([name, argText, "<i>"+ret+"</i>", method["info"]])
             data = data.parent
             if data == HelpDataObject:
                 break
@@ -149,7 +150,8 @@ class HelpData():
             for name, arg in func["args"].items():
                 argText += "<b>" + name + "</b>:<i>" + arg["type"] + " </i> - " + arg["info"] + "<br/>"
             ret = func["return"] if func["return"] else ""
-            rows.append([key, argText, "<i>"+ret+"</i>", func["info"]])
+            name = key+"(" + ', '.join(func["args"].keys())  + ")"
+            rows.append([name, argText, "<i>"+ret+"</i>", func["info"]])
         return cls.HtmlTableFromLists(rows)
 
     @classmethod
@@ -178,9 +180,9 @@ class HelpData():
 
     @classmethod
     def TOCPage(cls):
-        types = [["All Objects", "object"], ["Cards", "card"], ["Buttons", "button"], ["Text Fields", "textfield"],
-                 ["Text Labels", "textlabel"], ["Images", "image"], ["Groups", "group"], ["Line & Pen", "line"],
-                 ["Oval & Rectangle", "shape"], ["Round Rectangle", "round_rect"]]
+        types = [["All Objects", "object"], ["Stack", "stack"], ["Card", "card"], ["Button", "button"],
+                 ["Text Field", "textfield"], ["Text Label", "textlabel"], ["Image", "image"], ["Line & Pen", "line"],
+                 ["Oval & Rectangle", "shape"], ["Round Rectangle", "roundrect"], ["Group", "group"]]
         text = """
 <html>
 <body bgcolor="#EEEEEE">
@@ -234,7 +236,7 @@ class HelpDataGlobals():
                           "in this stack as stack.cardName."},
         "card": {"type": "object",
                  "info": "The <b>card</b> is the object that represents the currently loaded card in your stack.  You "
-                         "can access child objects of this card as card.objectName."},
+                         "can access the objects on this card as card.objectName."},
     }
 
     functions = {
@@ -251,12 +253,12 @@ class HelpDataGlobals():
                          "date doesn't usually matter, since most often, you'll store the time at one point in your "
                          "program, and then compare it to the new time somewhere else, to determine the difference."},
         "Paste": {"args": {}, "return": "list",
-                  "info": "Pastes any CardStock objects in the clipboard from previous Copy or Cut commands, and returns "
-                          "a list of these pasted objects."},
-        "Alert": {"args": {"title": {"type": "string", "info": "Text to show in the Alert dialog."}}, "return": None,
-                  "info": "Shows an alert dialog to the user, with the <b>title</b> you provide, and offers an OK button."},
-        "Ask": {"args": {"title": {"type": "string", "info": "Text to show in the Alert dialog."}}, "return": "bool",
-                "info": "Shows an alert dialog to the user, with the <b>title</b> you provide, and offers Yes and No "
+                  "info": "Pastes any CardStock objects in the clipboard from a previous Copy or Cut command onto the "
+                          "current card, and returns a list of these pasted objects."},
+        "Alert": {"args": {"message": {"type": "string", "info": "Text to show in the Alert dialog."}}, "return": None,
+                  "info": "Shows an alert dialog to the user, with the <b>message</b> you provide, and offers an OK button."},
+        "Ask": {"args": {"message": {"type": "string", "info": "Text to show in the Ask dialog."}}, "return": "bool",
+                "info": "Shows an alert dialog to the user, with the <b>message</b> you provide, and offers Yes and No "
                         "buttons.  Returns True if Yes is clicked, and False if No is clicked."},
         "GotoCard": {"args": {"cardName": {"type": "string", "info": "The name of the card to go to."}}, "return": None,
                      "info": "Goes to the card with the name passed in as <b>cardName</b>.  This sends the OnHideCard event "
@@ -282,7 +284,7 @@ class HelpDataGlobals():
                       "return": None,
                       "info": "Stops all currently playing sounds."},
         "BroadcastMessage": {"args": {"message": {"type": "string",
-                                        "info": "This is the message to send to all objects on this card, including the card itself."}},
+                                        "info": "This is the message to send."}},
                       "return": None,
                       "info": "Sends the <b>message</b> to this card, and all objects on this card, causing each of their "
                               "OnMessage events to run with this <b>message</b>."},
@@ -298,33 +300,32 @@ class HelpDataObject():
     properties = {
         "name": {"type": "string",
                  "info": "Every object has a <b>name</b> property.  These are forced to be unique within each card, "
-                         "since these become the names of your object variables that you access from your code.  An object's "
-                         "name can be checked, but can not be set by your code."},
+                         "since these become the names of your object variables that you access from your code.  From "
+                         "your code, you can get an object's name, but you can not set it."},
         "type": {"type": "string",
                  "info": "Every object has a <b>type</b> property.  It will be one of 'button', 'textfield', 'textlabel', "
-                         "'image', 'line', 'oval', 'rect, 'round_rect', 'stack', 'card', 'group'."},
+                         "'image', 'line', 'oval', 'rect, 'roundrect', 'stack', 'card', 'group'."},
         "position": {"type": "point",
-                     "info": "The <b>position</b> property is a point object that describes where on the "
+                     "info": "The <b>position</b> property is a point value that describes where on the "
                              "card this object's top-left corner is'.  The first number, <b>x</b>, is how many pixels the object is "
-                             "from the left edge of the card.  The second number, <b>y</b>, is how far down from the top.  "
-                             "All objects except for cards and the stack have a position."},
+                             "from the left edge of the card.  The second number, <b>y</b>, is how far down from the top."},
         "size": {"type": "size",
-                 "info": "The <b>size</b> property is a size object that describes how big this object is on screen. "
+                 "info": "The <b>size</b> property is a size value that describes how big this object is on screen. "
                          "The first number, <b>width</b>, is how wide the object is, and the second number, <b>height</b>, is how tall."},
         "center": {"type": "point",
-                   "info": "The <b>center</b> property is a point object that describes where on the "
-                           "card this object's center is'.  The first number, <b>x</b>, is how many pixels the object's center"
-                           " is from the left edge of the card.  The second number, <b>y</b>, is how far down from the top.  "
-                           "This value is not stored, but computed based on position and size.  All objects have a center."},
+                   "info": "The <b>center</b> property is a point value that describes where on the "
+                           "card this object's center is'.  The first number, <b>x</b>, is how many pixels the object's center "
+                           "is from the left edge of the card.  The second number, <b>y</b>, is how far down from the top.  "
+                           "This value is not stored, but computed based on position and size."},
         "speed": {"type": "point",
-                  "info": "This is the currently set speed of the object, in pixels/second in both the <b>x</b> and "
-                          "<b>y</b> directions."},
+                  "info": "This is a point value corresponding to the current speed of the object, in pixels/second "
+                          "in both the <b>x</b> and <b>y</b> directions."},
         "visible": {"type": "bool",
                     "info": "<b>True</b> if this object is <b>visible</b>, or <b>False</b> if it is hidden."},
         "hasFocus": {"type": "bool",
-                     "info": "<b>True</b> if this object is focused (if it is selected for typing), otherwise <b>False</b>. "
-                             "This value is not settable, but you can call the method Focus() to try to focus this "
-                             "object."},
+                     "info": "<b>True</b> if this object is focused (if it is selected for typing into), otherwise "
+                             "<b>False</b>. This value is not settable, but you can call the method Focus() to try to "
+                             "focus this object."},
         "parent": {"type": "string",
                    "info": "<b>parent</b> is the object that contains this object.  For most objects, it is the card, unless this "
                            "object has been grouped, in which case its <b>parent</b> is the group object  A card's "
@@ -338,10 +339,10 @@ class HelpDataObject():
     methods = {
         "Copy": {"args": {},
                  "return": None,
-                 "info": "Copies this object onto the clipboard, same as the Edit Menu Copy command."},
+                 "info": "Copies this object onto the clipboard, just like the Edit menu Copy command."},
         "Cut": {"args": {},
                 "return": None,
-                "info": "Copies this object onto the clipboard and then deletes it, same as the Edit Menu Cut command."},
+                "info": "Copies this object onto the clipboard and then deletes it, just like the Edit menu Cut command."},
         "Clone": {"args": {},
                   "return": "object",
                   "info": "Duplicates this object, and updates the new object's name to be unique, and then returns "
@@ -356,15 +357,16 @@ class HelpDataObject():
                                 "it could check for whether <b>message</b> == 'reset', and then set some variables back to their initial values."},
         "Focus": {"args": {},
                   "return": None,
-                  "info": "Selects this object so that it will handle key presses.  A focused button will appear selected. "
-                          "Typed words will get entered into the currently focused TextField."},
+                  "info": "Selects this object so that it will handle key presses.  A focused button will appear "
+                          "selected, and typing Enter/Return will click it.  Typed words will get entered into the "
+                          "currently focused TextField."},
         "Show": {"args": {},
                  "return": None,
                  "info": "Shows this object if it was not visible."},
         "Hide": {"args": {},
                  "return": None,
                  "info": "Hides this object if it was visible."},
-        "IsTouching": {"args": {"other": {"type": "object", "info":"The other object to compare to this one"}},
+        "IsTouching": {"args": {"other": {"type": "object", "info": "The other object to compare to this one"}},
                        "return": "bool",
                        "info": "Returns <b>True</b> if this object is touching the <b>other</b> object passed into "
                                "this function, otherwise returns <b>False</b>."},
@@ -374,58 +376,60 @@ class HelpDataObject():
                                    "object passed into this function.  If this object is touching any edges of the "
                                    "other object, the return value will be 'Top', 'Bottom', 'Left', or 'Right', accordingly."},
 
-        "AnimatePosition": {"args": {"duration": {"type": "float", "info": "time in seconds to run the animation"},
+        "AnimatePosition": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                      "endPosition": {"type": "point",
                                                      "info": "the destination top-left corner position at the end of the animation"},
                                      "onFinished": {"type": "function",
-                                                    "info": "an optional function to run when the animation finishes."}},
+                                                    "info": "an optional function to run when the animation finishes"}},
                             "return": None,
                             "info": "Visually animates the movement of this object from its current position to <b>endPosition</b>, "
-                                    "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function "
-                                    "if one was passed in."},
+                                    "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                    "<b>onFinished</b> function, if one was passed in."},
 
-        "AnimateCenter": {"args": {"duration": {"type": "float", "info": "time in seconds to run the animation"},
+        "AnimateCenter": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                    "endPosition": {"type": "point",
                                                    "info": "the destination center position at the end of the animation"},
                                    "onFinished": {"type": "function",
-                                                  "info": "an optional function to run when the animation finishes."}},
+                                                  "info": "an optional function to run when the animation finishes"}},
                           "return": None,
                           "info": "Visually animates the movement of this object from its current position to have its center at <b>endCenter</b>, "
-                                  "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function "
-                                  "if one was passed in."},
+                                  "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                  "<b>onFinished</b> function, if one was passed in."},
 
-        "AnimateSize": {"args": {"duration": {"type": "float", "info": "time in seconds to run the animation"},
+        "AnimateSize": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                  "endSize": {"type": "size", "info": "the final size of this object at the end of the animation"},
-                                 "onFinished": {"type": "function", "info": "an optional function to run when the animation finishes."}},
+                                 "onFinished": {"type": "function", "info": "an optional function to run when the animation finishes"}},
                         "return": None,
-                        "info": "Visually animates the resizing of this object from its current size to <b>endSize</b>, "
-                                "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function "
-                                "if one was passed in."},
+                        "info": "Visually animates the <b>size</b> of this object from its current size to <b>endSize</b>, "
+                                "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                "<b>onFinished</b> function, if one was passed in."},
 
     }
 
     handlers = {
         "OnSetup": {"args": {},
-                    "info": "The <b>OnSetup</b> event is run once for every object in your stack immediately when the stack "
-                            "is run, before loading the first card.  This is a great place to run any imports that your "
+                    "info": "The <b>OnSetup</b> event is run once for every object in your stack, immediately when the stack "
+                            "starts running, before loading the first card.  This is a great place to run any imports that your "
                             "program needs, and to define functions, and set up any variables with their initial values."},
         "OnMouseDown": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                         "info": "The <b>OnMouseDown</b> event is run when the mouse button gets clicked down inside of this object, "
-                                "and gives you the current mouse position as the <b>mousePos</b> point."},
+                                "and gives you the current mouse position as the point <b>mousePos</b>."},
         "OnMouseMove": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                         "info": "The <b>OnMouseMove</b> event is run every time the mouse moves, while over this object, whether "
-                                "or not the mouse button is down, and gives you the current mouse position as the <b>mousePos</b> point."},
+                                "or not the mouse button is down, and gives you the current mouse position as the point <b>mousePos</b>."},
         "OnMouseUp": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                       "info": "The <b>OnMouseUp</b> event is run when the mouse button is released over this object, and "
-                              "gives you the current mouse position as the <b>mousePos</b> point."},
+                              "gives you the current mouse position as the point <b>mousePos</b>."},
         "OnMouseEnter": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                          "info": "The <b>OnMouseEnter</b> event is run when the mouse pointer moves onto this object."},
         "OnMouseExit": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                         "info": "The <b>OnMouseExit</b> event is run when the mouse pointer moves back off of this object."},
-        "OnMessage": {"args": {"message": {"type": "string", "info": "This is the message string that was passed into a SendMessage() call."}},
-                      "info": "The <b>OnMessage</b> event is run when SendMessage() is called on this object.  The <b>message</b> string "
-                              "passed into SendMessage() is delivered here."},
-        "OnIdle": {"args": {"elapsedTime": {"type": "float", "info": "This is the number of seconds since the last time this event was run."}},
+        "OnMessage": {"args": {"message": {"type": "string", "info": "This is the message string that was passed into "
+                                                                     "a SendMessage() or BroadcastMessage() call."}},
+                      "info": "The <b>OnMessage</b> event is run when BroadcastMessage() is called, or SendMessage() "
+                              "is called on this object.  The <b>message</b> string passed into SendMessage() or "
+                              "BroadcastMessage() is delivered here."},
+        "OnIdle": {"args": {"elapsedTime": {"type": "float", "info": "This is the number of seconds since the last time this event was run, normally about 0.03."}},
                    "info": "The <b>OnIdle</b> event is run approximately 30 times per second on every object on the current page, "
                            "and gives your object a chance to run periodic checks, for example checking for collisions using IsTouching()."},
     }
@@ -438,7 +442,8 @@ class HelpDataButton():
         "title": {"type": "string",
                   "info": "The <b>title</b> property is the visible text on the button."},
         "border": {"type": "bool",
-                   "info": "By default buttons show a rounded <b>border</b>.  But you can disable this border, so the "
+                   "info": "By default buttons show a rectangular or rounded <b>border</b>, depending on your "
+                           "computer's operating system.  But you can disable this border, so the "
                            "button is clear, just showing its title."},
     }
 
@@ -451,7 +456,8 @@ class HelpDataButton():
         "OnClick": {"args": {},
                     "info": "The <b>OnClick</b> event is run when a user clicks down on this button, and releases the "
                             "mouse, while still inside the button.  It is also run when the button's DoClick() "
-                            "method is called."},
+                            "method is called, or when the user pressed the Enter/Return key while the button is "
+                            "focused."},
     }
 
 
@@ -460,15 +466,16 @@ class HelpDataTextField():
 
     properties = {
         "text": {"type": "string",
-                 "info": "The <b>text</b> property is the text contents of this field."},
-        "alignment": {"type": "['Left', 'Center', 'Right']",
-                      "info": "By default text fields start text on the left, but you can change this property to make "
+                 "info": "The <b>text</b> property holds the contents of this field as a string."},
+        "alignment": {"type": "[Left, Center, Right]",
+                      "info": "By default, text fields start aligned to the left, but you can change this property to make "
                               "your text centered, or aligned to the right."},
         "editable": {"type": "bool",
-                     "info": "By default text fields can be edited by the user.  But you can disable this so that the "
-                             "text can not be edited, by setting this to <b>False</b>."},
+                     "info": "By default text fields can be edited by the user.  But you can set this to <b>False</b> "
+                             "so that the text can not be edited."},
         "multiline": {"type": "bool",
-                      "info": "By default text fields hold only one line of text.  But you can set them to be <b>multiline</b>."},
+                      "info": "By default, text fields hold only one line of text.  But you can set the "
+                              "<b>multiline</b> property to <b>True</b> to let them hold multiple lines of text."},
     }
 
     methods = {
@@ -493,11 +500,11 @@ class HelpDataTextLabel():
         "text": {"type": "string",
                  "info": "The <b>text</b> property is the text contents of this label."},
         "alignment": {"type": "[Left, Center, Right]",
-                      "info": "By default text fields start text on the left, but you can change this property to make "
+                      "info": "By default text fields start aligned to the left, but you can change this property to make "
                               "your text centered, or aligned to the right."},
         "textColor": {"type": "string",
                       "info": "The color used for the text in this label.  This can be a color word like red, or an "
-                              "HTML color like #FF0000 for pure red."},
+                              "HTML color like #333333 for dark gray."},
         "font": {"type": "[Default, Serif, Sans-Serif, Mono]",
                  "info": "The <b>font</b> used for the text in this label."},
         "fontSize": {"type": "int",
@@ -505,15 +512,15 @@ class HelpDataTextLabel():
     }
 
     methods = {
-        "AnimateTextColor": {"args": {"duration": {"type": "float", "info": "time in seconds to run the animation"},
-                                     "endColor": {"type": "string",
-                                                  "info": "the final text color at the end of the animation"},
-                                     "onFinished": {"type": "function",
-                                                    "info": "an optional function to run when the animation finishes."}},
-                            "return": None,
-                            "info": "Visually animates fading this object's text color to <b>endColor</b>, "
-                                    "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function "
-                                    "if one was passed in."},
+        "AnimateTextColor": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
+                                      "endColor": {"type": "string",
+                                                   "info": "the final textColor at the end of the animation"},
+                                      "onFinished": {"type": "function",
+                                                     "info": "an optional function to run when the animation finishes."}},
+                             "return": None,
+                             "info": "Visually animates fading this object's <b>textColor</b> to <b>endColor</b>, "
+                                     "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                     "<b>onFinished</b> function, if one was passed in."},
     }
 
     handlers = {}
@@ -524,13 +531,13 @@ class HelpDataImage():
 
     properties = {
         "file": {"type": "string",
-                 "info": "The path of the image file to display in this image object."},
+                 "info": "The file path of the image file to display in this image object."},
         "fit": {"type": "[Center, Stretch, Fit, Fill]",
                 "info": "This property controls how the image is resized to fit into the image object.  Center shows "
                         "the image full size, centered in the image object, and clipped at the image object border. "
-                        "Stretch sizes and stretches the image to fit exactly into the image object. Fit sizes the "
+                        "Stretch resizes and stretches the image to fit exactly into the image object. Fit sizes the "
                         "image to fit inside the image object, while keeping the original image aspect ratio. Fill "
-                        "sizes the image to just barely fill the image object, while keeping the original image "
+                        "sizes the image to just barely fill the entire image object, while keeping the original image "
                         "aspect ratio."},
         "rotation": {"type": "float",
                      "info": "This is the angle in degrees clockwise to rotate this image.  0 is upright."},
@@ -538,14 +545,15 @@ class HelpDataImage():
 
     methods = {
         "AnimateRotation": {"args": {"duration": {"type": "float", "info": "time in seconds to run the animation"},
-                                         "endRotation": {"type": "int",
-                                                             "info": "the final rotation angle in degrees clockwise at the end of the animation"},
-                                         "onFinished": {"type": "function",
-                                                        "info": "an optional function to run when the animation finishes."}},
-                                "return": None,
-                                "info": "Visually animates changing this image's rotation angle to <b>endRotation</b>, "
-                                        "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function "
-                                        "if one was passed in."},
+                                     "endRotation": {"type": "int",
+                                                             "info": "the final rotation angle in degrees clockwise at "
+                                                                     "the end of the animation"},
+                                     "onFinished": {"type": "function",
+                                                    "info": "an optional function to run when the animation finishes."}},
+                            "return": None,
+                            "info": "Visually animates changing this image's <b>rotation</b> angle to <b>endRotation</b>, "
+                                    "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                    "<b>onFinished</b> function, if one was passed in."},
     }
 
     handlers = {}
@@ -573,25 +581,25 @@ class HelpDataLine():
     }
 
     methods = {
-        "AnimatePenThickness": {"args": {"duration": {"type": "float", "info": "time in seconds to run the animation"},
+        "AnimatePenThickness": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                  "endThickness": {"type": "int",
-                                                 "info": "the final pen thickness at the end of the animation"},
+                                                 "info": "the final penThickness at the end of the animation"},
                                  "onFinished": {"type": "function",
                                                 "info": "an optional function to run when the animation finishes."}},
                         "return": None,
-                        "info": "Visually animates changing this object's pen thickness to <b>endThickness</b>, "
-                                "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function "
-                                "if one was passed in."},
+                        "info": "Visually animates changing this object's <b>penThickness</b> to <b>endThickness</b>, "
+                                "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                "<b>onFinished</b> function, if one was passed in."},
 
-        "AnimatePenColor": {"args": {"duration": {"type": "float", "info": "time in seconds to run the animation"},
+        "AnimatePenColor": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                  "endColor": {"type": "string",
                                                  "info": "the final pen color at the end of the animation"},
                                  "onFinished": {"type": "function",
                                                 "info": "an optional function to run when the animation finishes."}},
                         "return": None,
-                        "info": "Visually animates fading this object's pen color to <b>endColor</b>, "
-                                "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function "
-                                "if one was passed in."},
+                        "info": "Visually animates fading this object's <b>penColor</b> to <b>endColor</b>, "
+                                "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                "<b>onFinished</b> function, if one was passed in."},
     }
 
     handlers = {}
@@ -607,15 +615,15 @@ class HelpDataShape():
     }
 
     methods = {
-        "AnimateFillColor": {"args": {"duration": {"type": "float", "info": "time in seconds to run the animation"},
+        "AnimateFillColor": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                      "endColor": {"type": "string",
-                                                  "info": "the final fill color at the end of the animation"},
+                                                  "info": "the final fillColor at the end of the animation"},
                                      "onFinished": {"type": "function",
                                                     "info": "an optional function to run when the animation finishes."}},
                             "return": None,
-                            "info": "Visually animates fading this object's fill color to <b>endColor</b>, "
-                                    "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function "
-                                    "if one was passed in."},
+                            "info": "Visually animates fading this object's <b>fillColor</b> to <b>endColor</b>, "
+                                    "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                    "<b>onFinished</b> function, if one was passed in."},
     }
 
     handlers = {}
@@ -630,14 +638,14 @@ class HelpDataRoundRectangle():
     }
 
     methods = {
-        "AnimateCornerRadius": {"args": {"duration": {"type": "float", "info": "time in seconds to run the animation"},
+        "AnimateCornerRadius": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                          "endCornerRadius": {"type": "int",
-                                                          "info": "the final corner radius at the end of the animation"},
+                                                          "info": "the final cornerRadius at the end of the animation"},
                                          "onFinished": {"type": "function",
                                                         "info": "an optional function to run when the animation finishes."}},
                                 "return": None,
-                                "info": "Visually animates changing this round rectangle's corner radius to <b>endCornerRadius</b>, "
-                                        "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function "
+                                "info": "Visually animates changing this round rectangle's <b>cornerRadius</b> to <b>endCornerRadius</b>, "
+                                        "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function, "
                                         "if one was passed in."},
     }
 
@@ -649,8 +657,8 @@ class HelpDataCard():
 
     properties = {
         "bgColor": {"type": "string",
-                    "info": "The color used for the background of this card.  This can be a color word like grey, "
-                            "or an HTML color like #EEEEEE for light grey."},
+                    "info": "The color used for the background of this card.  This can be a color word like white, "
+                            "or an HTML color like #EEEEEE for a light grey."},
         "index": {"type": "int",
                   "info": "This is the card number of this card.  The first card has <b>index</b> 0.  You can "
                           "read this value, but not set it."},
@@ -664,14 +672,14 @@ class HelpDataCard():
     }
 
     methods = {
-        "AnimateBgColor": {"args": {"duration": {"type": "float", "info": "time in seconds to run the animation"},
+        "AnimateBgColor": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                       "endColor": {"type": "string",
-                                                   "info": "the final background color at the end of the animation"},
+                                                   "info": "the final backgroundColor at the end of the animation"},
                                       "onFinished": {"type": "function",
                                                      "info": "an optional function to run when the animation finishes."}},
                              "return": None,
-                             "info": "Visually animates this card's background color to <b>endColor</b>, "
-                                     "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function "
+                             "info": "Visually animates this card's <b>backgroundColor</b> to <b>endColor</b>, "
+                                     "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function, "
                                      "if one was passed in."},
     }
 
@@ -681,15 +689,15 @@ class HelpDataCard():
                                "first card is initially shown when the stack starts running."},
         "OnHideCard": {"args": {},
                        "info": "The <b>OnHideCard</b> event is run when a card is hidden, right before the new "
-                               "card's OnShowCard event is run."},
+                               "card's OnShowCard event is run, when going to another card."},
         "OnKeyDown": {"args": {"keyName": {"type": "string", "info": "The name of the pressed key"}},
                       "info": "The <b>OnKeyDown</b> event is run any time a keyboard key is pressed down.  Regular "
                               "keys are named as capital letters and digits, like 'A' or '1', and other keys have "
-                              "keyNames like 'Shift', 'Enter', 'Left', and 'Right'."},
+                              "keyNames like 'Shift', 'Return', 'Escape', 'Left', and 'Right'."},
         "OnKeyUp": {"args": {"keyName": {"type": "string", "info": "The name of the released key"}},
                     "info": "The <b>OnKeyUp</b> event is run any time a pressed keyboard key is released.  Regular "
                             "keys are named as capital letters and digits, like 'A' or '1', and other keys have "
-                            "keyNames like 'Shift', 'Enter', 'Left', and 'Right'."},
+                            "keyNames like 'Shift', 'Return', 'Escape', 'Left', and 'Right'."},
     }
 
 

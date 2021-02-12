@@ -311,7 +311,7 @@ class StackWindow(wx.Window):
                 uiView = UiImage(self.uiCard, self, model)
             elif type == "group":
                 uiView = UiGroup(self.uiCard, self, model)
-            elif type in ["pen", "line", "oval", "rect", "round_rect"]:
+            elif type in ["pen", "line", "oval", "rect", "roundrect"]:
                 uiView = UiShape(self.uiCard, self, type, model)
 
         if uiView:
@@ -596,7 +596,7 @@ class StackWindow(wx.Window):
         else:
             self.runner.OnKeyDown(event)
             self.uiCard.OnKeyDown(event)
-            if uiView.model.type == "textfield":
+            if uiView.model.type in ["textfield", "button"]:
                 event.Skip()
 
     def OnKeyUp(self, uiView, event):

@@ -223,13 +223,13 @@ class Runner():
     def Time(self):
         return time()
 
-    def Alert(self, title, message=""):
+    def Alert(self, message):
         self.stackView.RefreshNow()
-        wx.MessageDialog(None, str(message), str(title), wx.OK).ShowModal()
+        wx.MessageDialog(None, str(message), "", wx.OK).ShowModal()
 
-    def Ask(self, title, message=""):
+    def Ask(self, message):
         self.stackView.RefreshNow()
-        r = wx.MessageDialog(None, str(message), str(title), wx.YES_NO).ShowModal()
+        r = wx.MessageDialog(None, str(message), "", wx.YES_NO).ShowModal()
         return (r == wx.ID_YES)
 
     def PlaySound(self, filepath):

@@ -26,6 +26,7 @@ class UiButton(UiView):
                          style=(wx.BORDER_DEFAULT if model.GetProperty("border") else wx.BORDER_NONE))
         button.SetLabel(model.GetProperty("title"))
         button.Bind(wx.EVT_BUTTON, self.OnButton)
+        button.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         button.SetCursor(wx.Cursor(self.GetCursor()))
         return button
 
@@ -39,8 +40,10 @@ class UiButton(UiView):
             self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
             self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.model))
 
-    def OnFocus(self, event):
-        self.button.SetFocus()
+    def OnKeyDown(self, event):
+        if event.GetKeyCode() in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
+            self.OnButton(event)
+        event.Skip()
 
     def OnButton(self, event):
         if not self.stackView.isEditing:

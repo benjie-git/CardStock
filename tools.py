@@ -29,7 +29,7 @@ class BaseTool(object):
             return ViewTool(stackView, name)
         elif name == "pen":
             return PenTool(stackView)
-        elif name == "rect" or name == "round_rect" or name == "oval" or name == "line":
+        elif name == "rect" or name == "roundrect" or name == "oval" or name == "line":
             return ShapeTool(stackView, name)
         else:
             return HandTool(stackView)

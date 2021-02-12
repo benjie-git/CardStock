@@ -39,7 +39,7 @@ class UiShape(UiView):
                 pen.SetJoin(wx.JOIN_MITER)
                 dc.SetPen(pen)
                 dc.DrawRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
-            elif self.model.type == "round_rect":
+            elif self.model.type == "roundrect":
                 radius = self.model.GetProperty("cornerRadius")
                 radius = min(radius, abs(p1[0]-p2[0])/2)
                 radius = min(radius, abs(p1[1]-p2[1])/2)
@@ -74,7 +74,7 @@ class UiShape(UiView):
                 gc.DrawRectangle(f.Inflate(2))
             elif self.model.type == "oval":
                 gc.DrawEllipse(f.Inflate(2))
-            elif self.model.type == "round_rect":
+            elif self.model.type == "roundrect":
                 radius = self.model.GetProperty("cornerRadius")
                 gc.DrawRoundedRectangle(f.Inflate(2), radius)
             gc.SetPen(wx.TRANSPARENT_PEN)
@@ -108,7 +108,7 @@ class UiShape(UiView):
             return LineModel(stackView)
         if name == "rect" or name == "oval":
             return ShapeModel(stackView)
-        if name == "round_rect":
+        if name == "roundrect":
             return RoundRectModel(stackView)
 
 
@@ -318,7 +318,7 @@ class ShapeProxy(LineProxy):
 class RoundRectModel(ShapeModel):
     def __init__(self, stackView):
         super().__init__(stackView)
-        self.type = "round_rect"
+        self.type = "roundrect"
         self.proxyClass = RoundRectProxy
 
         self.properties["cornerRadius"] = 8
