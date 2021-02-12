@@ -171,7 +171,7 @@ class DesignerFrame(wx.Frame):
                     self.SetFrameSizeFromModel()
                     self.UpdateCardList()
                     self.stackView.SetFocus()
-                    self.SetTitle(self.title + ' -- ' + self.filename)
+                    self.SetTitle(self.title + ' -- ' + os.path.basename(self.filename))
                     self.WriteConfig()
                     self.cPanel.SetToolByName("hand")
             except:

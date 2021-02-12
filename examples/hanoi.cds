@@ -6,7 +6,8 @@
       655,
       434
     ],
-    "canSave": false
+    "canSave": false,
+    "canResize": false
   },
   "cards": [
     {
@@ -157,8 +158,8 @@
               36
             ],
             "position": [
-              3.0,
-              251.0
+              41.0,
+              269.0
             ],
             "originalSize": [
               163,
@@ -190,8 +191,8 @@
               36
             ],
             "position": [
-              7.0,
-              210.0
+              58.5,
+              229.0
             ],
             "originalSize": [
               163,
@@ -223,8 +224,8 @@
               36
             ],
             "position": [
-              13.0,
-              167.0
+              80.0,
+              189.0
             ],
             "originalSize": [
               163,
@@ -294,8 +295,8 @@
               36
             ],
             "position": [
-              3.0,
-              291.0
+              25.5,
+              309.0
             ],
             "originalSize": [
               163,
@@ -327,8 +328,8 @@
               36
             ],
             "position": [
-              3.0,
-              331.0
+              9.0,
+              349.0
             ],
             "originalSize": [
               163,
@@ -354,5 +355,5 @@
     }
   ],
   "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.6"
+  "CardStock_stack_version": "0.7"
 }

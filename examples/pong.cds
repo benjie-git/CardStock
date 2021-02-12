@@ -3,8 +3,8 @@
   "handlers": {},
   "properties": {
     "size": [
-      637,
-      715
+      549,
+      544
     ],
     "canSave": false,
     "canResize": true
@@ -16,7 +16,7 @@
         "OnSetup": "from random import randint\n",
         "OnKeyDown": "if keyName == \"Space\":\n   # Only start a game if the ball wasn't already moving\n   if ball.speed.x == 0 and ball.speed.y == 0:\n      ball.SendMessage(\"StartGame\")\n",
         "OnMouseDown": "if ball.speed.x == 0 and ball.speed.y == 0:\n   # Only start a game if the ball wasn't already moving\n   ball.SendMessage(\"StartGame\")\n",
-        "OnMouseMove": "# Make the paddle follow the mouse's X position\npaddle.center = [mousePos.x, card.size.height-50]\n"
+        "OnMouseMove": "# Make the paddle follow the mouse's X position\npaddle.center = [mousePos.x, card.size.height-40]\n"
       },
       "properties": {
         "name": "card_1",
@@ -53,8 +53,8 @@
               22
             ],
             "position": [
-              193.0,
-              662.0
+              205.5,
+              493.0
             ],
             "originalSize": [
               250,
@@ -85,19 +85,19 @@
           "properties": {
             "name": "ball",
             "size": [
-              32,
-              32
+              30,
+              30
             ],
             "position": [
-              50.0,
-              52.0
+              38.0,
+              36.0
             ],
             "originalSize": [
-              32,
-              32
+              36,
+              36
             ],
             "penColor": "#000000",
-            "penThickness": 1,
+            "penThickness": 2,
             "fillColor": "#FB0207"
           },
           "points": [
@@ -106,8 +106,8 @@
               0.0
             ],
             [
-              32.0,
-              32.0
+              36.0,
+              36.0
             ]
           ]
         }

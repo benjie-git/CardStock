@@ -83,7 +83,7 @@ class ViewerFrame(wx.Frame):
         self.SetClientSize(self.stackView.stackModel.GetProperty("size"))
         self.stackView.SetFocus()
         if self.stackView.filename:
-            self.SetTitle(self.title + ' -- ' + self.stackView.filename)
+            self.SetTitle(self.title + ' -- ' + os.path.basename(self.stackView.filename))
 
     def MakeMenu(self):
         # create the file menu

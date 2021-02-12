@@ -7,13 +7,13 @@
       293
     ],
     "canSave": false,
-    "canResize": true
+    "canResize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "from random import randint\n\ndef UpdateBox():\n   lineStart = line.position.x\n   lineWidth = line.size.width\n   box.position.x = lineStart + (lowerBound-1) * lineWidth/100.0\n   box.size.width = (upperBound-lowerBound+1) * lineWidth/100.0\n\nnumber = randint(1, 100)\nlowerBound = 1\nupperBound = 100\n\nUpdateBox()\n\nfield.Focus()\n"
+        "OnShowCard": "def UpdateBox():\n   lineStart = line.position.x\n   lineWidth = line.size.width\n   box.position.x = lineStart + (lowerBound-1) * lineWidth/100.0\n   box.size.width = (upperBound-lowerBound+1) * lineWidth/100.0\n\nresetButton.DoClick()\n"
       },
       "properties": {
         "name": "card_1",
@@ -31,7 +31,7 @@
             ],
             "position": [
               69.0,
-              25.0
+              5.0
             ],
             "text": "Guess a number from 1 - 100.",
             "alignment": "Center",
@@ -43,7 +43,7 @@
         {
           "type": "textfield",
           "handlers": {
-            "OnTextEnter": "guess = int(self.text)\n\nif guess == number:\n   title.text = \"Congratulations!  You guessed it.\"\nelif guess < number:\n   if guess > lowerBound:\n      lowerBound = guess\n   title.text = \"Higher...\"\n   UpdateBox()\nelif guess > number:\n   if guess < upperBound:\n      upperBound = guess\n   title.text = \"Lower...\"\n   UpdateBox()\n\nself.SelectAll()\n"
+            "OnTextEnter": "guess = int(self.text)\n\nif guess == number:\n   title.text = \"Congratulations, you guessed it!\"\n\nelif guess < number:\n   if guess > lowerBound:\n      lowerBound = guess\n   hint.text = \"Higher...\"\n   UpdateBox()\n\nelif guess > number:\n   if guess < upperBound:\n      upperBound = guess\n   hint.text = \"Lower...\"\n   UpdateBox()\n\nself.SelectAll()\n"
           },
           "properties": {
             "name": "field",
@@ -53,7 +53,7 @@
             ],
             "position": [
               230.0,
-              75.0
+              55.0
             ],
             "text": "",
             "alignment": "Right",
@@ -201,14 +201,14 @@
             "OnClick": "field.DoEnter()"
           },
           "properties": {
-            "name": "button",
+            "name": "enterButton",
             "size": [
               90,
               30
             ],
             "position": [
               303.0,
-              74.0
+              54.0
             ],
             "title": "Enter",
             "border": true
@@ -245,6 +245,45 @@
               46.0
             ]
           ]
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "from random import randint\n\nnumber = randint(1, 100)\nlowerBound = 1\nupperBound = 100\nUpdateBox()\n\ntitle.text = \"Guess a number from 1 - 100.\"\nhint.text = \"\"\n\nfield.text = \"\"\nfield.Focus()\n"
+          },
+          "properties": {
+            "name": "resetButton",
+            "size": [
+              67,
+              40
+            ],
+            "position": [
+              0.0,
+              0.0
+            ],
+            "title": "Reset",
+            "border": false
+          }
+        },
+        {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "hint",
+            "size": [
+              115,
+              23
+            ],
+            "position": [
+              210.0,
+              95.0
+            ],
+            "text": "",
+            "alignment": "Center",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 12
+          }
         }
       ]
     }

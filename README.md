@@ -4,6 +4,8 @@
 
 **CardStock** is a cross-platform tool for quickly and easily building graphical desktop applications, called **stacks**, which can be made up of multiple pages called **cards**.  It provides a drawing-program-like editor for building Graphical User Interfaces, and a code editor for adding event-driven python code, all within a live, GUI editor/IDE called the **Designer**.
 
+![Pong example](https://github.com/benjie-git/CardStock/wiki/images/pong.png?raw=true)
+
 There have been many open source projects in the past that tried to capture the fun and simplicity of building programs in HyperCard, but in my opinion, none of them offered the open-ended possibilities and ease of use that made HyperCard such a magical-feeling tool.  So in the grand open source tradition, I built my own.
 
 The guiding principles behind my vision for CardStock are the following, in order of importance:
@@ -26,7 +28,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * You can **import** other python packages into your code, and use them make web requests and display the results, control robots, or run machine learning code, all from within your CardStock stack.
 
 ### Future Plans
-* A buil-in media library with some basic icons/images, and sound files.
+* A built-in media library with some basic icons/images, and sound files.
 * Add code completion to the code editor.
 * Allow exporting a stack into a standalone application that you can share.
 
