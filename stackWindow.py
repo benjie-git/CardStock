@@ -60,6 +60,11 @@ class StackWindow(wx.Window):
         self.uiCard.model.SetDirty(False)
         self.command_processor.ClearCommands()
 
+        if wx.Platform != '__WXMAC__':
+            # Skip double-buffering on Mac, as it's much faster without it, and looks great
+            self.buffer = None
+            self.Bind(wx.EVT_SIZE, self.OnResize)
+
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.Cleanup)
         self.Bind(wx.EVT_IDLE, self.CleanViewCache)
@@ -541,14 +546,36 @@ class StackWindow(wx.Window):
         if not self.isEditing:
             uiView.OnMouseExit(event)
 
+    def OnResize(self, event):
+        self.UpdateBuffer()
+        event.Skip()
+
+    def UpdateBuffer(self):
+        self.buffer = wx.Bitmap.FromRGBA(self.GetSize().Width, self.GetSize().Height)
+
     def OnPaint(self, event):
+        if wx.Platform == '__WXMAC__':
+            # Skip double-buffering on Mac, as it's much faster without it, and looks great
+            dc = wx.PaintDC(self)
+        else:
+            if not self.buffer:
+                self.UpdateBuffer()
+            dc = wx.MemoryDC(self.buffer)
+
+        gc = wx.GCDC(dc)
+        bg = wx.Colour(self.uiCard.model.GetProperty("bgColor"))
+        gc.SetPen(wx.TRANSPARENT_PEN)
+        gc.SetBrush(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
+
         uiViews = self.GetAllUiViews()
         upd = wx.RegionIterator(self.GetUpdateRegion())
         paintUiViews = []
         while upd.HaveRects():
             updRect = upd.GetRect()
+            if wx.Platform != '__WXMAC__':
+                gc.DrawRectangle(updRect)
             for ui in uiViews:
-                if ui not in paintUiViews:
+                if ui not in paintUiViews and not ui.model.GetProperty("hidden"):
                     updRegion = wx.Region(wx.Rect(updRect.TopLeft - wx.Point(ui.model.GetAbsolutePosition()),
                                                   updRect.Size))
 
@@ -558,21 +585,18 @@ class StackWindow(wx.Window):
                         paintUiViews.append(ui)
             upd.Next()
 
-        bg = wx.Colour(self.uiCard.model.GetProperty("bgColor"))
-        buffer = wx.Bitmap.FromRGBA(self.GetSize().Width, self.GetSize().Height, bg.red, bg.green, bg.blue, 0xFF)
-        dc = wx.BufferedPaintDC(self, buffer)
-        gc = wx.GCDC(dc)
         if len(paintUiViews):
             for uiView in paintUiViews:
-                if not uiView.model.GetProperty("hidden"):
-                    uiView.Paint(gc)
+                uiView.Paint(gc)
             if self.isEditing:
                 for uiView in paintUiViews:
                     uiView.PaintSelectionBox(gc)
         self.uiCard.PaintSelectionBox(gc)
         if self.tool:
             self.tool.Paint(gc)
-        event.Skip()
+
+        if wx.Platform != '__WXMAC__':
+            wx.BufferedPaintDC(self, self.buffer)
 
     def HitTest(self, pt):
         for uiView in self.selectedViews:

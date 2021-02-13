@@ -109,8 +109,9 @@ class UiView(object):
         return self.isSelected
 
     def SetSelected(self, selected):
-        self.isSelected = selected
-        self.stackView.Refresh(True, self.model.GetRefreshFrame())
+        if self.isSelected != selected:
+            self.isSelected = selected
+            self.stackView.Refresh(True, self.model.GetRefreshFrame())
 
     def OnMouseDown(self, event):
         if self.stackView.runner and self.model.GetHandler("OnMouseDown"):
@@ -147,6 +148,7 @@ class UiView(object):
         now = time()
         if self.model.lastIdleTime:
             elapsedTime = now - self.model.lastIdleTime
+            # if self.model.type == "card" and elapsedTime>0.0: print(int(1.0/elapsedTime+0.5)) # print fps
         self.model.lastIdleTime = now
 
         if elapsedTime:
