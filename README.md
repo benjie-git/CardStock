@@ -33,12 +33,13 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * Allow exporting a stack into a standalone application that you can share.
 
 ## Requirements
-CardStock requires Python 3.7 or newer, and wxPython 4.0 or newer.
+CardStock requires Python 3.7 or newer, and wxPython 4.0 or newer.  And for more responsive Sound playing, you can optionally install the python module simpleaudio.
 
 ## Installation
 Currently, you'll need to:
 1. install python
 1. pip install wxPython
+1. pip install simpleaudio
 1. download or clone this repository
 1. run designer.py and viewer.py as desired
 

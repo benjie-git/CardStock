@@ -2,8 +2,14 @@ import traceback
 import sys
 import os
 import wx
-from wx.adv import Sound
 from time import sleep, time
+
+try:
+    import simpleaudio
+    SIMPLE_AUDIO_AVAILABLE = True
+except ModuleNotFoundError:
+    from wx.adv import Sound
+    SIMPLE_AUDIO_AVAILABLE = False
 
 
 class Runner():
@@ -12,8 +18,9 @@ class Runner():
         self.statusBar = sb
         self.cardVarKeys = []  # store names of views on the current card, to remove from clientVars before setting up the next card
         self.pressedKeys = []
-        self.soundCache = {}
         self.timers = []
+
+        self.soundCache = {}
 
         self.clientVars = {
             "Wait": self.Wait,
@@ -239,13 +246,26 @@ class Runner():
         if filepath in self.soundCache:
             s = self.soundCache[filepath]
         else:
-            s = Sound(filepath)
-            self.soundCache[filepath] = s
-        if s.IsOk():
-            s.Play()
+            if SIMPLE_AUDIO_AVAILABLE:
+                s = simpleaudio.WaveObject.from_wave_file(filepath)
+            else:
+                s = Sound(filepath)
+                if not s.IsOk():
+                    s = None
+            if s:
+                self.soundCache[filepath] = s
+        if s:
+            if SIMPLE_AUDIO_AVAILABLE:
+                s.play()
+            else:
+                s.Play()
 
     def StopSound(self):
-        Sound.Stop()
+            if SIMPLE_AUDIO_AVAILABLE:
+                simpleaudio.stop_all()
+            else:
+                for s in self.soundCache:
+                    s.Stop()
 
     def Paste(self):
         models = self.stackView.PasteViews(False)
