@@ -56,10 +56,15 @@ class ViewerFrame(wx.Frame):
         self.designer = None
         self.stackView.filename = filename
         self.SetStackModel(stackModel)
+        self.Bind(wx.EVT_SIZE, self.OnResize)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnClose)
 
         self.findDlg = None
         self.findEngine = FindEngine(self.stackView)
+
+    def OnResize(self, event):
+        self.stackView.SetSize(self.GetClientSize())
+        event.Skip()
 
     def SaveFile(self):
         if self.designer:

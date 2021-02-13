@@ -426,6 +426,7 @@ class StackWindow(wx.Window):
                 if ui.model.type == "group":
                     ui.RemoveChildViews()
                 self.uiViews.remove(ui)
+                self.Refresh(True, rect=ui.model.GetAbsoluteFrame())
                 self.uiCard.model.RemoveChild(ui.model)
                 ui.ReparentView(self.cacheView)
                 self.uiViewCache[ui.model] = ui
