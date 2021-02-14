@@ -497,9 +497,9 @@ class StackWindow(wx.Window):
             self.command_processor.Submit(command)
 
     def OnMouseDown(self, uiView, event):
-        if uiView.model.type == "card":
-            uiView = self.HitTest(event.GetPosition())
-            # event.SetPosition(event.GetPosition()-wx.Point(uiView.model.GetProperty("position")))
+        pos = self.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        uiView = self.HitTest(pos)
+        # event.SetPosition(event.GetPosition()-wx.Point(uiView.model.GetProperty("position")))
 
         if self.tool and self.isEditing:
             self.tool.OnMouseDown(uiView, event)
@@ -510,9 +510,8 @@ class StackWindow(wx.Window):
         pos = self.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         if pos == self.lastMousePos: return
 
-        if uiView.model.type == "card":
-            uiView = self.HitTest(event.GetPosition())
-            # event.SetPosition(event.GetPosition()-wx.Point(uiView.model.GetProperty("position")))
+        uiView = self.HitTest(pos)
+        # event.SetPosition(event.GetPosition()-wx.Point(uiView.model.GetProperty("position")))
 
         if self.tool and self.isEditing:
             self.tool.OnMouseMove(uiView, event)
@@ -525,9 +524,8 @@ class StackWindow(wx.Window):
         self.lastMousePos = pos
 
     def OnMouseUp(self, uiView, event):
-        if uiView.model.type == "card":
-            uiView = self.HitTest(event.GetPosition())
-            # event.SetPosition(event.GetPosition()-wx.Point(uiView.model.GetProperty("position")))
+        pos = self.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        uiView = self.HitTest(pos)
 
         if self.tool and self.isEditing:
             self.tool.OnMouseUp(uiView, event)
@@ -535,15 +533,15 @@ class StackWindow(wx.Window):
             uiView.OnMouseUp(event)
 
     def OnMouseEnter(self, uiView, event):
-        if uiView.model.type == "card":
-            uiView = self.HitTest(event.GetPosition())
+        pos = self.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        uiView = self.HitTest(pos)
 
         if not self.isEditing:
             uiView.OnMouseEnter(event)
 
     def OnMouseExit(self, uiView, event):
-        if uiView.model.type == "card":
-            uiView = self.HitTest(event.GetPosition())
+        pos = self.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        uiView = self.HitTest(pos)
 
         if not self.isEditing:
             uiView.OnMouseExit(event)

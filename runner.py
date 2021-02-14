@@ -37,6 +37,7 @@ class Runner():
             "StopSound": self.StopSound,
             "BroadcastMessage": self.BroadcastMessage,
             "IsKeyPressed": self.IsKeyPressed,
+            "IsMouseDown": self.IsMouseDown,
             "stack": self.stackView.stackModel.GetProxy(),
         }
 
@@ -273,6 +274,9 @@ class Runner():
 
     def IsKeyPressed(self, name):
         return name in self.pressedKeys
+
+    def IsMouseDown(self):
+        return wx.GetMouseState().LeftIsDown()
 
     def RunAfterDelay(self, duration, func):
         timer = wx.Timer()
