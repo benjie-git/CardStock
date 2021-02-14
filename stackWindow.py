@@ -389,13 +389,14 @@ class StackWindow(wx.Window):
                 self.SetSize(model.GetProperty(key))
         else:
             uiView = self.GetUiViewByModel(model)
-        modelView = self.GetUiViewByModel(model)
-        if not modelView and model in self.uiViewCache:
-            modelView = self.uiViewCache[model]
-        if modelView:
-            modelView.OnPropertyChanged(model, key)
-        if self.designer:
-            self.designer.cPanel.UpdatedProperty(uiView, key)
+        if uiView:
+            modelView = self.GetUiViewByModel(model)
+            if not modelView and model in self.uiViewCache:
+                modelView = self.uiViewCache[model]
+            if modelView:
+                modelView.OnPropertyChanged(model, key)
+            if self.designer:
+                self.designer.cPanel.UpdatedProperty(uiView, key)
 
     def UpdateSelectedUiView(self):
         if self.designer:

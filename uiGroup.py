@@ -102,6 +102,7 @@ class GroupModel(ViewModel):
         super().__init__(stackView)
         self.type = "group"
         self.origFrame = None
+        self.proxyClass = ProxyGroup
 
     def GetAllChildModels(self):
         allModels = []
@@ -148,6 +149,12 @@ class GroupModel(ViewModel):
             self.childModels.append(model)
             model.origGroupSubviewFrame = model.GetFrame()
         self.origFrame = self.GetFrame()
+
+    def SetProperty(self, key, value, notify=True):
+        super().SetProperty(key, value, notify)
+        if key == "hidden":
+            for m in self.childModels:
+                m.SetProperty(key, value, notify)
 
     def AddChildModels(self, models):
         selfPos = self.GetProperty("position")
@@ -200,3 +207,7 @@ class GroupModel(ViewModel):
             pos = wx.Point(pos.x * scaleX, pos.y * scaleY)
             size = wx.Size(size.Width * scaleX, size.Height * scaleY)
             m.SetFrame(wx.Rect(pos, size))
+
+
+class ProxyGroup(ViewProxy):
+    pass

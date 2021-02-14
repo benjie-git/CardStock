@@ -654,8 +654,8 @@ class ViewProxy(object):
     def center(self, center):
         self._model.SetCenter(wx.RealPoint(center[0], center[1]))
 
-    def Show(self): self._model.SetProperty("hidden", False)
-    def Hide(self): self._model.SetProperty("hidden", True)
+    def Show(self): self.visible = True
+    def Hide(self): self.visible = False
     @property
     def visible(self):
         return not self._model.GetProperty("hidden")
@@ -724,7 +724,6 @@ class ViewProxy(object):
             self._model.AddAnimation("position", duration, f, internalOnFinished)
         else:
             self._model.AddAnimation("position", duration, None, onFinished)
-
 
     def AnimateSize(self, duration, endSize, onFinished=None):
         origSize = self.size
