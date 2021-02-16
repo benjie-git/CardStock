@@ -498,8 +498,9 @@ class StackWindow(wx.Window):
 
     def OnMouseDown(self, uiView, event):
         pos = self.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        uiView = self.HitTest(pos)
-        # event.SetPosition(event.GetPosition()-wx.Point(uiView.model.GetProperty("position")))
+
+        if not uiView.view or uiView.model.type == "card":
+            uiView = self.HitTest(pos)
 
         if self.tool and self.isEditing:
             self.tool.OnMouseDown(uiView, event)
@@ -508,10 +509,11 @@ class StackWindow(wx.Window):
 
     def OnMouseMove(self, uiView, event):
         pos = self.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        if pos == self.lastMousePos: return
+        if pos == self.lastMousePos:
+            return
 
-        uiView = self.HitTest(pos)
-        # event.SetPosition(event.GetPosition()-wx.Point(uiView.model.GetProperty("position")))
+        if not uiView.view or uiView.model.type == "card":
+            uiView = self.HitTest(pos)
 
         if self.tool and self.isEditing:
             self.tool.OnMouseMove(uiView, event)
@@ -525,7 +527,9 @@ class StackWindow(wx.Window):
 
     def OnMouseUp(self, uiView, event):
         pos = self.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        uiView = self.HitTest(pos)
+
+        if not uiView.view or uiView.model.type == "card":
+            uiView = self.HitTest(pos)
 
         if self.tool and self.isEditing:
             self.tool.OnMouseUp(uiView, event)

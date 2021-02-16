@@ -5,7 +5,9 @@
     "size": [
       313,
       267
-    ]
+    ],
+    "canSave": false,
+    "canResize": false
   },
   "cards": [
     {
@@ -28,8 +30,8 @@
               28
             ],
             "position": [
-              40,
-              30
+              40.0,
+              30.0
             ],
             "text": "",
             "alignment": "Right",
@@ -49,8 +51,8 @@
               30
             ],
             "position": [
-              220,
-              72
+              220.0,
+              72.0
             ],
             "title": "+",
             "border": true
@@ -68,8 +70,8 @@
               30
             ],
             "position": [
-              220,
-              162
+              220.0,
+              162.0
             ],
             "title": "*",
             "border": true
@@ -87,8 +89,8 @@
               30
             ],
             "position": [
-              220,
-              200
+              220.0,
+              200.0
             ],
             "title": "/",
             "border": true
@@ -106,8 +108,8 @@
               30
             ],
             "position": [
-              100,
-              200
+              100.0,
+              200.0
             ],
             "title": "=",
             "border": true
@@ -125,8 +127,8 @@
               30
             ],
             "position": [
-              41,
-              73
+              41.0,
+              73.0
             ],
             "title": "1",
             "border": true
@@ -144,8 +146,8 @@
               30
             ],
             "position": [
-              100,
-              72
+              100.0,
+              72.0
             ],
             "title": "2",
             "border": true
@@ -163,8 +165,8 @@
               30
             ],
             "position": [
-              160,
-              72
+              160.0,
+              72.0
             ],
             "title": "3",
             "border": true
@@ -182,8 +184,8 @@
               30
             ],
             "position": [
-              40,
-              119
+              40.0,
+              119.0
             ],
             "title": "4",
             "border": true
@@ -201,8 +203,8 @@
               30
             ],
             "position": [
-              100,
-              118
+              100.0,
+              118.0
             ],
             "title": "5",
             "border": true
@@ -220,8 +222,8 @@
               30
             ],
             "position": [
-              160,
-              119
+              160.0,
+              119.0
             ],
             "title": "6",
             "border": true
@@ -239,8 +241,8 @@
               30
             ],
             "position": [
-              40,
-              162
+              40.0,
+              162.0
             ],
             "title": "7",
             "border": true
@@ -258,8 +260,8 @@
               30
             ],
             "position": [
-              100,
-              162
+              100.0,
+              162.0
             ],
             "title": "8",
             "border": true
@@ -277,8 +279,8 @@
               30
             ],
             "position": [
-              160,
-              162
+              160.0,
+              162.0
             ],
             "title": "9",
             "border": true
@@ -296,8 +298,8 @@
               30
             ],
             "position": [
-              40,
-              200
+              40.0,
+              200.0
             ],
             "title": "0",
             "border": true
@@ -315,8 +317,8 @@
               30
             ],
             "position": [
-              220,
-              118
+              220.0,
+              118.0
             ],
             "title": "-",
             "border": true
@@ -325,5 +327,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 1
+  "CardStock_stack_format": 1,
+  "CardStock_stack_version": "0.7"
 }
