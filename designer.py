@@ -75,11 +75,13 @@ class DesignerFrame(wx.Frame):
 
         toolbar.AddStretchableSpace()
 
-        self.cardPicker = wx.Choice(parent=toolbar, choices=["Card 1", "Card 2"], size=(200,20))
+        self.cardPicker = wx.Choice(parent=toolbar, size=(200,20))
         self.cardPicker.Bind(wx.EVT_CHOICE, self.OnPickCard)
         toolbar.AddControl(self.cardPicker)
 
+        toolbar.AddTool(ID_PREV_CARD, 'Previous Card', wx.ArtProvider.GetBitmap(wx.ART_GO_BACK), wx.NullBitmap)
         toolbar.AddTool(ID_ADD_CARD, 'Add Card', wx.ArtProvider.GetBitmap(wx.ART_PLUS), wx.NullBitmap)
+        toolbar.AddTool(ID_NEXT_CARD, 'Next Card', wx.ArtProvider.GetBitmap(wx.ART_GO_FORWARD), wx.NullBitmap)
 
         toolbar.Realize()
 

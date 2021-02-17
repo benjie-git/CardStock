@@ -179,6 +179,12 @@ class GroupModel(ViewModel):
         model.SetProperty("position", [pos[0]+selfPos[0], pos[1]+selfPos[1]], False)
         self.isDirty = True
 
+    def GetRefreshFrame(self):
+        f = super().GetRefreshFrame()
+        for m in self.childModels:
+            f = f.Union(m.GetRefreshFrame())
+        return f
+
     def UpdateFrame(self):
         if len(self.childModels):
             oldRect = self.GetFrame()

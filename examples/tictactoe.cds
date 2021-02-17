@@ -14,7 +14,7 @@
       "type": "card",
       "handlers": {
         "OnSetup": "pieces = []\n\ndef Reset():\n   global cells, player, moves, pieces\n   cells = [\"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\"]\n   player = 'X'\n   moves = 0\n   for p in pieces:\n      p.Delete()\n   pieces = []\n\ndef CheckBoard():\n   # Test across\n   if cells[0]+cells[1]+cells[2] in [\"XXX\", \"OOO\"]:\n      return cells[0]\n   if cells[3]+cells[4]+cells[5] in [\"XXX\", \"OOO\"]:\n      return cells[3]\n   if cells[6]+cells[7]+cells[8] in [\"XXX\", \"OOO\"]:\n      return cells[6]\n   \n   # Test down\n   if cells[0]+cells[3]+cells[6] in [\"XXX\", \"OOO\"]:\n      return cells[0]\n   if cells[1]+cells[4]+cells[7] in [\"XXX\", \"OOO\"]:\n      return cells[1]\n   if cells[2]+cells[5]+cells[8] in [\"XXX\", \"OOO\"]:\n      return cells[2]\n\n   # Test diagonals\n   if cells[0]+cells[4]+cells[8] in [\"XXX\", \"OOO\"]:\n      return cells[0]\n   if cells[2]+cells[4]+cells[6] in [\"XXX\", \"OOO\"]:\n      return cells[2]\n   \n   # No wins yet\n   return None",
-        "OnShowCard": "x.Hide()\no.Hide()\n\nbuttons = [button_1, button_2, button_3,\n          button_4, button_5, button_6, \n          button_7, button_8, button_9]\n\nReset()\n",
+        "OnShowCard": "x.Hide()\no.Hide()\n\nbuttons = [cell_1, cell_2, cell_3,\n          cell_4, cell_5, cell_6, \n          cell_7, cell_8, cell_9]\n\nReset()\n",
         "OnMessage": "cellIndex = int(message) - 1\n\nif cells[cellIndex] == \"\":\n   marker = x.Clone() if (player == 'X') else o.Clone()\n   marker.center = buttons[cellIndex].center\n   pieces.append(marker)\n   cells[cellIndex] = player\n   moves += 1\n   \n   winner = CheckBoard()\n   if winner == 'X':\n      Alert(\"X Wins!\")\n      Reset()\n   elif winner == 'O':\n      Alert(\"O Wins!\")\n      Reset()\n   elif moves == 9:\n      Alert(\"It's a Tie!\")\n      Reset()\n   else:\n      player = 'X' if (player == 'O') else 'O'\n\n"
       },
       "properties": {
@@ -22,6 +22,312 @@
         "bgColor": "white"
       },
       "childModels": [
+        {
+          "type": "rect",
+          "handlers": {
+            "OnMouseDown": "card.SendMessage(9)"
+          },
+          "properties": {
+            "name": "cell_9",
+            "size": [
+              127,
+              125
+            ],
+            "position": [
+              326.0,
+              335.0
+            ],
+            "originalSize": [
+              127,
+              125
+            ],
+            "penColor": "white",
+            "penThickness": 0,
+            "fillColor": "white"
+          },
+          "points": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              127.0,
+              125.0
+            ]
+          ]
+        },
+        {
+          "type": "rect",
+          "handlers": {
+            "OnMouseDown": "card.SendMessage(8)"
+          },
+          "properties": {
+            "name": "cell_8",
+            "size": [
+              127,
+              125
+            ],
+            "position": [
+              184.0,
+              335.0
+            ],
+            "originalSize": [
+              127,
+              125
+            ],
+            "penColor": "white",
+            "penThickness": 0,
+            "fillColor": "white"
+          },
+          "points": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              127.0,
+              125.0
+            ]
+          ]
+        },
+        {
+          "type": "rect",
+          "handlers": {
+            "OnMouseDown": "card.SendMessage(7)"
+          },
+          "properties": {
+            "name": "cell_7",
+            "size": [
+              127,
+              125
+            ],
+            "position": [
+              44.0,
+              335.0
+            ],
+            "originalSize": [
+              127,
+              125
+            ],
+            "penColor": "white",
+            "penThickness": 0,
+            "fillColor": "white"
+          },
+          "points": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              127.0,
+              125.0
+            ]
+          ]
+        },
+        {
+          "type": "rect",
+          "handlers": {
+            "OnMouseDown": "card.SendMessage(6)"
+          },
+          "properties": {
+            "name": "cell_6",
+            "size": [
+              127,
+              125
+            ],
+            "position": [
+              325.0,
+              196.0
+            ],
+            "originalSize": [
+              127,
+              125
+            ],
+            "penColor": "white",
+            "penThickness": 0,
+            "fillColor": "white"
+          },
+          "points": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              127.0,
+              125.0
+            ]
+          ]
+        },
+        {
+          "type": "rect",
+          "handlers": {
+            "OnMouseDown": "card.SendMessage(5)"
+          },
+          "properties": {
+            "name": "cell_5",
+            "size": [
+              127,
+              125
+            ],
+            "position": [
+              184.0,
+              197.0
+            ],
+            "originalSize": [
+              127,
+              125
+            ],
+            "penColor": "white",
+            "penThickness": 0,
+            "fillColor": "white"
+          },
+          "points": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              127.0,
+              125.0
+            ]
+          ]
+        },
+        {
+          "type": "rect",
+          "handlers": {
+            "OnMouseDown": "card.SendMessage(4)"
+          },
+          "properties": {
+            "name": "cell_4",
+            "size": [
+              127,
+              125
+            ],
+            "position": [
+              44.0,
+              196.0
+            ],
+            "originalSize": [
+              127,
+              125
+            ],
+            "penColor": "white",
+            "penThickness": 0,
+            "fillColor": "white"
+          },
+          "points": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              127.0,
+              125.0
+            ]
+          ]
+        },
+        {
+          "type": "rect",
+          "handlers": {
+            "OnMouseDown": "card.SendMessage(3)"
+          },
+          "properties": {
+            "name": "cell_3",
+            "size": [
+              127,
+              125
+            ],
+            "position": [
+              325.0,
+              59.0
+            ],
+            "originalSize": [
+              127,
+              125
+            ],
+            "penColor": "white",
+            "penThickness": 0,
+            "fillColor": "white"
+          },
+          "points": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              127.0,
+              125.0
+            ]
+          ]
+        },
+        {
+          "type": "rect",
+          "handlers": {
+            "OnMouseDown": "card.SendMessage(2)"
+          },
+          "properties": {
+            "name": "cell_2",
+            "size": [
+              137,
+              123
+            ],
+            "position": [
+              180.0,
+              60.0
+            ],
+            "originalSize": [
+              127,
+              125
+            ],
+            "penColor": "white",
+            "penThickness": 0,
+            "fillColor": "white"
+          },
+          "points": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              127.0,
+              125.0
+            ]
+          ]
+        },
+        {
+          "type": "rect",
+          "handlers": {
+            "OnMouseDown": "card.SendMessage(1)"
+          },
+          "properties": {
+            "name": "cell_1",
+            "size": [
+              127,
+              125
+            ],
+            "position": [
+              46.0,
+              60.0
+            ],
+            "originalSize": [
+              127,
+              125
+            ],
+            "penColor": "white",
+            "penThickness": 0,
+            "fillColor": "white"
+          },
+          "points": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              127.0,
+              125.0
+            ]
+          ]
+        },
         {
           "type": "line",
           "handlers": {},
@@ -256,177 +562,6 @@
               69.0
             ]
           ]
-        },
-        {
-          "type": "button",
-          "handlers": {
-            "OnClick": "card.SendMessage(1)"
-          },
-          "properties": {
-            "name": "button_1",
-            "size": [
-              131,
-              123
-            ],
-            "position": [
-              41.0,
-              62.0
-            ],
-            "title": "",
-            "border": false
-          }
-        },
-        {
-          "type": "button",
-          "handlers": {
-            "OnClick": "card.SendMessage(2)"
-          },
-          "properties": {
-            "name": "button_2",
-            "size": [
-              139,
-              128
-            ],
-            "position": [
-              177.0,
-              58.0
-            ],
-            "title": "",
-            "border": false
-          }
-        },
-        {
-          "type": "button",
-          "handlers": {
-            "OnClick": "card.SendMessage(3)"
-          },
-          "properties": {
-            "name": "button_3",
-            "size": [
-              139,
-              128
-            ],
-            "position": [
-              322.0,
-              58.0
-            ],
-            "title": "",
-            "border": false
-          }
-        },
-        {
-          "type": "button",
-          "handlers": {
-            "OnClick": "card.SendMessage(4)"
-          },
-          "properties": {
-            "name": "button_4",
-            "size": [
-              139,
-              135
-            ],
-            "position": [
-              32.0,
-              191.0
-            ],
-            "title": "",
-            "border": false
-          }
-        },
-        {
-          "type": "button",
-          "handlers": {
-            "OnClick": "card.SendMessage(5)"
-          },
-          "properties": {
-            "name": "button_5",
-            "size": [
-              139,
-              135
-            ],
-            "position": [
-              177.0,
-              191.0
-            ],
-            "title": "",
-            "border": false
-          }
-        },
-        {
-          "type": "button",
-          "handlers": {
-            "OnClick": "card.SendMessage(6)"
-          },
-          "properties": {
-            "name": "button_6",
-            "size": [
-              139,
-              135
-            ],
-            "position": [
-              320.0,
-              191.0
-            ],
-            "title": "",
-            "border": false
-          }
-        },
-        {
-          "type": "button",
-          "handlers": {
-            "OnClick": "card.SendMessage(7)"
-          },
-          "properties": {
-            "name": "button_7",
-            "size": [
-              139,
-              135
-            ],
-            "position": [
-              33.0,
-              331.0
-            ],
-            "title": "",
-            "border": false
-          }
-        },
-        {
-          "type": "button",
-          "handlers": {
-            "OnClick": "card.SendMessage(8)"
-          },
-          "properties": {
-            "name": "button_8",
-            "size": [
-              139,
-              135
-            ],
-            "position": [
-              177.0,
-              331.0
-            ],
-            "title": "",
-            "border": false
-          }
-        },
-        {
-          "type": "button",
-          "handlers": {
-            "OnClick": "card.SendMessage(9)"
-          },
-          "properties": {
-            "name": "button_9",
-            "size": [
-              139,
-              135
-            ],
-            "position": [
-              322.0,
-              331.0
-            ],
-            "title": "",
-            "border": false
-          }
         }
       ]
     }
