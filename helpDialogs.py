@@ -85,14 +85,22 @@ as one piece, and that group becomes a new object itself.</p>
 window is split into two main parts.  On the left is your stack, that shows the currently selected card and its objects.
 On the right
 is the control panel.  The top of the control panel lets you choose an editing tool.  The first is the hand tool, which
-lets you select, move, and resize objects.  The next four are the button, text field, text label, and image tools.  These each 
+lets you select, move, and resize objects, and edit their properties and code.  
+The next four are the button, text field, text label, and image tools.  These each 
 let you create that type of object, by drawing out the new object's shape on the card on the left.  The next five tools
 are the drawing tools, which let you draw with a pen, drag out an oval, a rectangle, a rounded rectangle, and a line.
 The area in the control panel below the tools changes depending on which tool you're using, and which objects are 
 selected in the card.</p>
 <p>When a drawing tool is selected, the control panel offers you settings to choose the pen color,
-pen thickness, and fill color for the shapes you draw next.</p>  
-<p>When the hand tool is enabled, and you select one object 
+pen thickness, and fill color for the shapes you draw next.  Then click and drag out the shape you want to add to the 
+card.  While creating a shape, you can hold down the Shift key to make ovals and rectangles stay circles and squares, 
+and to make new lines stay perfectly horizontal or vertical.</p>  
+<p>When the hand tool is enabled, you can select, move, and resize objects.  Select an object by clicking it, and add 
+more objects to the selection by Shift-clicking them.  You can also drag out a selection rectangle to select multiple
+objects.  While objects are selected, you can use the Object menu items to group them, or re-order them to adjust which
+objects are in front of, or behind which others.  But note that buttons, text fields, and text labels always stay in 
+front of shapes and images.</p>
+<p>When you select a single object 
 in your card, the control panel will show the two main object editing areas.  The property editor shows, and lets you edit, a
 list of the selected object's properties, like name, size, position on the card, colors, etc.  Below the property editor is 
 the code editor.  The code editor lets you choose an event for the selected object that you want to edit, and 

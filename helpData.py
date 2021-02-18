@@ -419,7 +419,10 @@ class HelpDataObject():
                         "info": "Visually animates the <b>size</b> of this object from its current size to <b>endSize</b>, "
                                 "over <b>duration</b> seconds.  When the animation completes, runs the "
                                 "<b>onFinished</b> function, if one was passed in."},
-
+        "StopAnimations": {"args": {},
+                           "return": None,
+                           "info": "Stops all animations running on this object. "
+                                   "Any animated properties are left at their current, mid-animation values."},
     }
 
     handlers = {
@@ -679,12 +682,12 @@ class HelpDataCard():
                   "info": "This is the card number of this card.  The first card has <b>index</b> 0.  You can "
                           "read this value, but not set it."},
         "canSave": {"type": "bool",
-                  "info": "If <b>canSave</b> is <b>True</b>, the user can save the stack while running it. "
-                          "If it's <b>False</b>, the user can't save, so the stack will always start out in the same "
-                          "state."},
+                    "info": "If <b>canSave</b> is <b>True</b>, the user can save the stack while running it. "
+                            "If it's <b>False</b>, the user can't save, so the stack will always start out in the same "
+                            "state."},
         "canResize": {"type": "bool",
-                    "info": "If <b>canResize</b> is <b>True</b>, the user can resize the stack window while running it. "
-                            "If it's <b>False</b>, the user can't resize the window while the stack runs."},
+                      "info": "If <b>canResize</b> is <b>True</b>, the user can resize the stack window while running it. "
+                              "If it's <b>False</b>, the user can't resize the window while the stack runs."},
     }
 
     methods = {
