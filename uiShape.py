@@ -84,21 +84,25 @@ class UiShape(UiView):
 
     def MakeHitRegion(self):
         s = self.model.GetProperty("size")
-        bmp = wx.Bitmap(width=s.width+10, height=s.height+10, depth=1)
+        extraThick = 6 if (self.model.type in ["pen", "line"]) else 0
+        thickness = self.model.GetProperty("penThickness") + extraThick
+        bmp = wx.Bitmap(width=s.width+thickness, height=s.height+thickness, depth=1)
         dc = wx.MemoryDC(bmp)
         dc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
         dc.Clear()
-        thickness = self.model.GetProperty("penThickness") + 4
         penColor = 'white'
         fillColor = 'white'
-        self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(0,0))
+        self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(thickness/2,thickness/2))
         f = self.model.GetAbsoluteFrame()
-        dc.DrawRectangle(self.GetResizeBoxRect().Inflate(2))
-        self.hitRegion = bmp.ConvertToImage().ConvertToRegion(0,0,0)
+        if self.stackView.isEditing:
+            dc.DrawRectangle(self.GetResizeBoxRect().Inflate(2))
+        reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
+        reg.Offset(-(thickness/2), -(thickness/2))
+        self.hitRegion = reg
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key in ["shape", "penColor", "penThickness", "fillColor", "cornerRadius"]:
+        if key in ["size", "shape", "penColor", "penThickness", "fillColor", "cornerRadius"]:
             self.hitRegion = None
             self.stackView.Refresh(True, self.model.GetRefreshFrame())
 

@@ -6,8 +6,8 @@ import wx
 import ast
 import re
 import generator
+import helpData
 from time import time
-import keyword
 
 
 class UiView(object):
@@ -216,7 +216,8 @@ class UiView(object):
     def MakeHitRegion(self):
         s = self.model.GetProperty("size")
         reg = wx.Region(wx.Rect(0, 0, s.width, s.height))
-        reg.Union(wx.Region(self.GetResizeBoxRect().Inflate(2)))
+        if self.stackView.isEditing:
+            reg.Union(wx.Region(self.GetResizeBoxRect().Inflate(2)))
         self.hitRegion = reg
 
     handlerDisplayNames = {
@@ -240,13 +241,7 @@ class UiView(object):
 
 class ViewModel(object):
     minSize = wx.Size(20,20)
-    reservedNames = ["eventHandlers", "stack", "card", "self", "keyName", "mousePos", "message", "bgColor", "index",
-                     "name", "type", "position", "size", "center", "speed", "visible", "parent", "children",
-                     "Cut", "Copy", "Paste", "Delete", "Clone", "Focus", "SendMessage", "Show", "Hide", "IsTouching",
-                     "IsTouchingEdge", "AnimatePosition", "AnimateCenter", "AnimateSize", "StopAnimations",
-                     "BroadcastMessage", "GotoCard", "GotoCardNumber", "GotoNextCard", "GotoPreviousCard",
-                     "Wait", "Time", "Alert", "Ask", "PlaySound", "StopSound", "IsKeyPressed", "RunAfterDelay"]
-    reservedNames.extend(keyword.kwlist)
+    reservedNames = helpData.HelpData.ReservedNames()
 
     def __init__(self, stackView):
         super().__init__()
@@ -668,9 +663,14 @@ class ViewProxy(object):
         return self._model.handlers
 
     def IsTouching(self, obj):
-        sf = self._model.GetAbsoluteFrame() # self frame in card coords
-        f = obj._model.GetAbsoluteFrame() # other frame in card soords
-        return sf.Intersects(f)
+        sreg = self._model.stackView.GetUiViewByModel(self._model).GetHitRegion()
+        oreg = self._model.stackView.GetUiViewByModel(obj._model).GetHitRegion()
+        sreg = wx.Region(sreg)
+        oreg = wx.Region(oreg)
+        sreg.Offset(*self._model.GetProperty("position"))
+        oreg.Offset(*obj._model.GetProperty("position"))
+        sreg.Intersect(oreg)
+        return not sreg.IsEmpty()
 
     def IsTouchingEdge(self, obj):
         sf = self._model.GetAbsoluteFrame() # self frame in card coords

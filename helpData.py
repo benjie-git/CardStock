@@ -1,7 +1,10 @@
-from uiView import UiView
+import uiView
+import keyword
 
 
 class HelpData():
+    reservedNames = None
+
     @classmethod
     def ForObject(cls, obj):
         return cls.ForType(obj.model.type)
@@ -82,7 +85,7 @@ class HelpData():
                 argText = ""
                 for name, arg in handler["args"].items():
                     argText += "<b>" + name + "</b>:<i>" + arg["type"] + " </i> - " + arg["info"] + "<br/>"
-                text = "<b>" + UiView.handlerDisplayNames[key] + "</b><br/>" + argText + "<br/>" + handler["info"]
+                text = "<b>" + uiView.UiView.handlerDisplayNames[key] + "</b><br/>" + argText + "<br/>" + handler["info"]
                 return text
             data = data.parent
         return None
@@ -98,7 +101,7 @@ class HelpData():
                 argText = ""
                 for name, arg in handler["args"].items():
                     argText += "<b>" + name + "</b>:<i>" + arg["type"] + " </i> - " + arg["info"] + "<br/>"
-                rows.append([UiView.handlerDisplayNames[key], argText, handler["info"]])
+                rows.append([uiView.UiView.handlerDisplayNames[key], argText, handler["info"]])
             data = data.parent
             if data == HelpDataObject:
                 break
@@ -210,6 +213,19 @@ class HelpData():
         """
         return text
 
+    @classmethod
+    def ReservedNames(cls):
+        if not cls.reservedNames:
+            cls.reservedNames = ["keyName", "mousePos", "message"]
+            cls.reservedNames.extend(HelpDataGlobals.variables.keys())
+            cls.reservedNames.extend(HelpDataGlobals.functions.keys())
+            cls.reservedNames.extend(HelpDataObject.properties.keys())
+            cls.reservedNames.extend(HelpDataObject.methods.keys())
+            cls.reservedNames.extend(HelpDataCard.properties.keys())
+            cls.reservedNames.extend(HelpDataCard.methods.keys())
+            cls.reservedNames.extend(HelpDataStack.properties.keys())
+            cls.reservedNames.extend(keyword.kwlist)
+        return cls.reservedNames
 
 HelpDataTypes = [["Type", "Description"],
                  ["<i>bool</i>", "A bool or boolean value holds a simple True or False"],
