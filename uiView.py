@@ -31,8 +31,6 @@ class UiView(object):
         return "<"+str(self.__class__.__name__) + ":" + self.model.type + ":'" + self.model.GetProperty("name")+"'>"
 
     def BindEvents(self, view):
-        view.Bind(wx.EVT_ENTER_WINDOW, self.FwdOnMouseEnter)
-        view.Bind(wx.EVT_LEAVE_WINDOW, self.FwdOnMouseExit)
         view.Bind(wx.EVT_LEFT_DOWN, self.FwdOnMouseDown)
         view.Bind(wx.EVT_LEFT_DCLICK, self.FwdOnMouseDown)
         view.Bind(wx.EVT_MOTION, self.FwdOnMouseMove)
@@ -43,8 +41,6 @@ class UiView(object):
     def FwdOnMouseDown( self, event): self.stackView.OnMouseDown( self, event)
     def FwdOnMouseMove( self, event): self.stackView.OnMouseMove( self, event)
     def FwdOnMouseUp(   self, event): self.stackView.OnMouseUp(   self, event)
-    def FwdOnMouseEnter(self, event): self.stackView.OnMouseEnter(self, event)
-    def FwdOnMouseExit( self, event): self.stackView.OnMouseExit( self, event)
     def FwdOnKeyDown(   self, event): self.stackView.OnKeyDown(   self, event)
     def FwdOnKeyUp(     self, event): self.stackView.OnKeyUp(     self, event)
 

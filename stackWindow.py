@@ -43,6 +43,7 @@ class StackWindow(wx.Window):
         self.globalCursor = None
         self.lastMousePos = wx.Point(0,0)
         self.lastFocusedTextField = None
+        self.lastMouseMovedUiView = None
         self.runner = None
         self.filename = None
 
@@ -66,6 +67,7 @@ class StackWindow(wx.Window):
             self.Bind(wx.EVT_SIZE, self.OnResize)
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.Cleanup)
         self.Bind(wx.EVT_IDLE, self.CleanViewCache)
 
@@ -515,11 +517,17 @@ class StackWindow(wx.Window):
         if self.tool and self.isEditing:
             self.tool.OnMouseMove(uiView, event)
         else:
+            if uiView != self.lastMouseMovedUiView:
+                if self.lastMouseMovedUiView:
+                    self.lastMouseMovedUiView.OnMouseExit(event)
+                if uiView:
+                    uiView.OnMouseEnter(event)
             uiView.OnMouseMove(event)
             parent = uiView.parent
             while parent:
                 parent.OnMouseMove(event)
                 parent = parent.parent
+            self.lastMouseMovedUiView = uiView
         self.lastMousePos = pos
 
     def OnMouseUp(self, uiView, event):
@@ -533,19 +541,10 @@ class StackWindow(wx.Window):
         else:
             uiView.OnMouseUp(event)
 
-    def OnMouseEnter(self, uiView, event):
-        pos = self.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        uiView = self.HitTest(pos)
-
-        if not self.isEditing:
-            uiView.OnMouseEnter(event)
-
-    def OnMouseExit(self, uiView, event):
-        pos = self.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        uiView = self.HitTest(pos)
-
-        if not self.isEditing:
-            uiView.OnMouseExit(event)
+    def OnMouseExit(self, event):
+        if self.lastMouseMovedUiView:
+            self.lastMouseMovedUiView.OnMouseExit(event)
+        self.lastMouseMovedUiView = None
 
     def OnResize(self, event):
         self.UpdateBuffer()
