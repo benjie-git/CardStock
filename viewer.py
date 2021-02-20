@@ -249,11 +249,12 @@ class ViewerFrame(wx.Frame):
         self.stackView.LoadCardAtIndex(None)
 
         def RunAllSetupHandlers(model):
+            if model.type == "card":
+                runner.SetupForCard(model)
             if model.GetHandler("OnSetup"):
                 runner.RunHandler(model, "OnSetup", None)
-            if hasattr(model, "childModels"):
-                for m in model.childModels:
-                    RunAllSetupHandlers(m)
+            for m in model.childModels:
+                RunAllSetupHandlers(m)
         RunAllSetupHandlers(self.stackView.stackModel)
 
         self.stackView.LoadCardAtIndex(0)

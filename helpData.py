@@ -428,7 +428,7 @@ class HelpDataObject():
     handlers = {
         "OnSetup": {"args": {},
                     "info": "The <b>OnSetup</b> event is run once for every object in your stack, immediately when the stack "
-                            "starts running, before loading the first card.  This is a great place to run any imports that your "
+                            "starts running, before showing the first card.  This is a great place to run any imports that your "
                             "program needs, and to define functions, and set up any variables with their initial values."},
         "OnMouseDown": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                         "info": "The <b>OnMouseDown</b> event is run when the mouse button gets clicked down inside of this object, "

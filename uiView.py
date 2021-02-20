@@ -69,7 +69,7 @@ class UiView(object):
         self.lastEditedHandler = None
 
     def GetCursor(self):
-        return wx.CURSOR_HAND
+        return None
 
     def OnPropertyChanged(self, model, key):
         if key in ["pre-size", "pre-position"]:
@@ -240,7 +240,7 @@ class UiView(object):
 
 
 class ViewModel(object):
-    minSize = wx.Size(20,20)
+    minSize = wx.Size(20, 20)
     reservedNames = helpData.HelpData.ReservedNames()
 
     def __init__(self, stackView):
@@ -440,6 +440,15 @@ class ViewModel(object):
             if result:
                 return result
         return None
+
+    def GetCard(self):
+        if self.type == 'stack':
+            return None
+
+        m = self
+        while m.parent and m.type != 'card':
+            m = m.parent
+        return m
 
     def GetProperties(self):
         return self.properties

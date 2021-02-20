@@ -183,7 +183,7 @@ class StackWindow(wx.Window):
                 if self.designer:
                     self.designer.UpdateCardList()
                 if not self.isEditing and self.runner:
-                    self.runner.SetupForCurrentCard()
+                    self.runner.SetupForCard(cardModel)
                     if not reload:
                         if self.uiCard.model.GetHandler("OnShowCard"):
                             self.runner.RunHandler(self.uiCard.model, "OnShowCard", None)
@@ -383,18 +383,17 @@ class StackWindow(wx.Window):
                 self.designer.SetSelectedUiViews(self.selectedViews)
 
     def OnPropertyChanged(self, model, key):
+        uiView = self.GetUiViewByModel(model)
         if model == self.stackModel:
             uiView = self.uiCard
             if key == "size":
                 self.SetSize(model.GetProperty(key))
-        else:
-            uiView = self.GetUiViewByModel(model)
-            if not uiView and model in self.uiViewCache:
-                uiView = self.uiViewCache[model]
-            if uiView:
-                uiView.OnPropertyChanged(model, key)
-            if self.designer:
-                self.designer.cPanel.UpdatedProperty(uiView, key)
+        if not uiView and model in self.uiViewCache:
+            uiView = self.uiViewCache[model]
+        if uiView:
+            uiView.OnPropertyChanged(model, key)
+        if uiView and self.designer:
+            self.designer.cPanel.UpdatedProperty(uiView, key)
 
     def UpdateSelectedUiView(self):
         if self.designer:

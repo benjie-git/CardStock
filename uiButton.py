@@ -17,6 +17,9 @@ class UiButton(UiView):
 
         super().__init__(parent, stackView, model, self.button)
 
+    def GetCursor(self):
+        return wx.CURSOR_HAND
+
     def BindEvents(self, view):
         if view == self.view:
             super().BindEvents(self.button)

@@ -5,14 +5,16 @@
     "size": [
       598,
       400
-    ]
+    ],
+    "canSave": false,
+    "canResize": true
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
         "OnSetup": "from random import randint\nscore = 0\nnextMoveTime = Time() + 3\n",
-        "OnIdle": "if IsKeyPressed(\"Left\"):\n   guy.position += [-8,0]\nif IsKeyPressed(\"Right\"):\n   guy.position += [8,0]\nif IsKeyPressed(\"Up\"):\n   guy.position += [0,-8]\nif IsKeyPressed(\"Down\"):\n   guy.position += [0,8]\n\nsize = card.size\n\nif guy.IsTouching(goal):\n   score += 1\n   label.text = score\n   goal.position = [randint(0,size.x-80),\\\n      randint(0,size.y-80)]\n   nextMoveTime = Time() + 3\n\nif Time() >= nextMoveTime:\n   score -= 1\n   label.text = score\n   goal.position = [randint(0,size.x-80),\\\n      randint(0,size.y-80)]\n   nextMoveTime = Time() + 3\n"
+        "OnIdle": "if IsKeyPressed(\"Left\"):\n   guy.position.x -= 8\nif IsKeyPressed(\"Right\"):\n   guy.position.x += 8\nif IsKeyPressed(\"Up\"):\n   guy.position.y -= 8\nif IsKeyPressed(\"Down\"):\n   guy.position.y += 8\n\nsize = card.size\n\nif guy.IsTouching(goal):\n   score += 1\n   label.text = score\n   goal.position = [randint(0,size.x-80),\\\n      randint(0,size.y-80)]\n   nextMoveTime = Time() + 3\n\nif Time() >= nextMoveTime:\n   score -= 1\n   label.text = score\n   goal.position = [randint(0,size.x-80),\\\n      randint(0,size.y-80)]\n   nextMoveTime = Time() + 3\n"
       },
       "properties": {
         "name": "main",
@@ -29,7 +31,7 @@
               28
             ],
             "position": [
-              95.0,
+              135.0,
               19.0
             ],
             "text": "0",
@@ -45,7 +47,7 @@
           "properties": {
             "name": "label_1",
             "size": [
-              69,
+              94,
               30
             ],
             "position": [
@@ -126,5 +128,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 1
+  "CardStock_stack_format": 1,
+  "CardStock_stack_version": "0.7"
 }

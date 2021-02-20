@@ -117,6 +117,8 @@ class UiShape(UiView):
 
 
 class LineModel(ViewModel):
+    minSize = wx.Size(2, 2)
+
     def __init__(self, stackView):
         super().__init__(stackView)
         self.type = "line"  # Gets rewritten on SetShape (to "line" or "pen")
@@ -222,8 +224,8 @@ class LineModel(ViewModel):
 
         # adjust view rect
         self.SetProperty("position", rect.Position)
-        if rect.Width < 20: rect.Width = 20
-        if rect.Height < 20: rect.Height = 20
+        if rect.Width < self.minSize.width: rect.Width = self.minSize.width
+        if rect.Height < self.minSize.height: rect.Height = self.minSize.height
 
         if oldSize:
             self.SetProperty("size", [oldSize[0], oldSize[1]])

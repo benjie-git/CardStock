@@ -62,15 +62,15 @@ class Runner():
             self.keyCodeStringMap[wx.WXK_CONTROL] = "Command"
             self.keyCodeStringMap[wx.WXK_RAW_CONTROL] = "Control"
 
-    def SetupForCurrentCard(self):
+    def SetupForCard(self, cardModel):
         # Setup clientVars with the current card's view names as variables
-        self.clientVars["card"] = self.stackView.uiCard.model.GetProxy()
+        self.clientVars["card"] = cardModel.GetProxy()
         for k in self.cardVarKeys.copy():
             self.clientVars.pop(k)
             self.cardVarKeys.remove(k)
-        for ui in self.stackView.GetAllUiViews():
-            name = ui.model.GetProperty("name")
-            self.clientVars[name] = ui.model.GetProxy()
+        for m in cardModel.GetAllChildModels():
+            name = m.GetProperty("name")
+            self.clientVars[name] = m.GetProxy()
             self.cardVarKeys.append(name)
 
     def CleanupFromRun(self):
