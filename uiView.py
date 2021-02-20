@@ -65,7 +65,10 @@ class UiView(object):
         self.lastEditedHandler = None
 
     def GetCursor(self):
-        return None
+        if self.stackView.isEditing:
+            return wx.CURSOR_HAND
+        else:
+            return None
 
     def OnPropertyChanged(self, model, key):
         if key in ["pre-size", "pre-position"]:

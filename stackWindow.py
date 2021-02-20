@@ -514,8 +514,15 @@ class StackWindow(wx.Window):
         if not uiView.view or uiView.model.type == "card":
             uiView = self.HitTest(pos)
 
-        if self.tool and self.isEditing:
-            self.tool.OnMouseMove(uiView, event)
+        if uiView != self.lastMouseMovedUiView:
+            if uiView and uiView.GetCursor():
+                self.SetCursor(wx.Cursor(uiView.GetCursor()))
+            else:
+                self.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
+
+        if self.isEditing:
+            if self.tool:
+                self.tool.OnMouseMove(uiView, event)
         else:
             if uiView != self.lastMouseMovedUiView:
                 if self.lastMouseMovedUiView:
@@ -527,7 +534,7 @@ class StackWindow(wx.Window):
             while parent:
                 parent.OnMouseMove(event)
                 parent = parent.parent
-            self.lastMouseMovedUiView = uiView
+        self.lastMouseMovedUiView = uiView
         self.lastMousePos = pos
 
     def OnMouseUp(self, uiView, event):

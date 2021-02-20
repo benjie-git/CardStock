@@ -60,7 +60,7 @@ class UiTextField(UiView):
         if self.stackView.isEditing:
             return wx.CURSOR_HAND
         else:
-            return None
+            return wx.CURSOR_IBEAM
 
     def OnFocus(self, event):
         if not self.stackView.isEditing:

@@ -16,12 +16,6 @@ class UiGroup(UiView):
 
         super().__init__(parent, stackView, model, None)
 
-    def GetCursor(self):
-        if self.stackView.isEditing:
-            return wx.CURSOR_HAND
-        else:
-            return None
-
     def SetModel(self, model):
         super().SetModel(model)
         self.RebuildViews()
@@ -52,6 +46,19 @@ class UiGroup(UiView):
                     return hit
             return self
         return None
+
+    def MakeHitRegion(self):
+        if self.stackView.isEditing:
+            # The group's whole rect is a click target while editing
+            super().MakeHitRegion()
+        else:
+            # Only the sub-objects are click targets while running
+            reg = wx.Region()
+            for ui in self.uiViews:
+                uiReg = wx.Region(ui.GetHitRegion())
+                uiReg.Offset(wx.Point(ui.model.GetProperty("position")))
+                reg.Union(uiReg)
+            self.hitRegion = reg
 
     def Paint(self, gc):
         if self.stackView.isEditing:

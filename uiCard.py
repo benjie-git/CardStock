@@ -26,6 +26,9 @@ class UiCard(UiView):
         if self.view:
             self.view.SetBackgroundColour(self.model.GetProperty("bgColor"))
 
+    def GetCursor(self):
+        return None
+
     def OnResize(self, event):
         self.stackView.stackModel.SetProperty("size", self.view.GetSize())
 
