@@ -256,13 +256,13 @@ class DesignerFrame(wx.Frame):
         cardMenu.Append(ID_MOVE_CARD_BACK, "Move Card Bac&k\tCtrl-Shift-[", "Move Card Back")
 
         viewMenu = wx.Menu()
-        viewMenu.Append(ID_GROUP, "&Group Objects\tCtrl-3", "Group Objects")
-        viewMenu.Append(ID_UNGROUP, "&Ungroup Objects\tCtrl-Shift-3", "Ungroup Objects")
+        viewMenu.Append(ID_GROUP, "&Group Objects\tCtrl-Alt-G", "Group Objects")
+        viewMenu.Append(ID_UNGROUP, "&Ungroup Objects\tCtrl-Alt-U", "Ungroup Objects")
         viewMenu.AppendSeparator()
-        viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Shift-1", "Move to Front")
-        viewMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward\tCtrl-1", "Move Forward")
-        viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&k\tCtrl-2", "Move Back")
-        viewMenu.Append(ID_MOVE_VIEW_END, "Move to Back\tCtrl-Shift-2", "Move to Back")
+        viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Alt-Shift-F", "Move to Front")
+        viewMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward\tCtrl-Alt-F", "Move Forward")
+        viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&k\tCtrl-Alt-B", "Move Back")
+        viewMenu.Append(ID_MOVE_VIEW_END, "Move to Back\tCtrl-Alt-Shift-B", "Move to Back")
 
         # and the help menu
         helpMenu = wx.Menu()
