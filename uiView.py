@@ -110,6 +110,7 @@ class UiView(object):
     def SetSelected(self, selected):
         if self.isSelected != selected:
             self.isSelected = selected
+            self.hitRegion = None
             self.stackView.Refresh(True, self.model.GetRefreshFrame())
 
     def OnMouseDown(self, event):
@@ -180,7 +181,7 @@ class UiView(object):
                 self.stackView.runner.RunHandler(self.model, "OnIdle", event, elapsedTime)
 
     def PaintSelectionBox(self, gc):
-        if self.isSelected:
+        if self.isSelected and self.stackView.tool.name == "hand":
             f = self.model.GetAbsoluteFrame()
             gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
@@ -215,7 +216,7 @@ class UiView(object):
     def MakeHitRegion(self):
         s = self.model.GetProperty("size")
         reg = wx.Region(wx.Rect(0, 0, s.width, s.height))
-        if self.stackView.isEditing:
+        if self.stackView.isEditing and self.isSelected and self.stackView.tool.name == "hand":
             reg.Union(wx.Region(self.GetResizeBoxRect().Inflate(2)))
         self.hitRegion = reg
 

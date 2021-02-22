@@ -114,10 +114,11 @@ class StackWindow(wx.Window):
 
         allUiViews = self.GetAllUiViews()
         if self.globalCursor:
-            self.SetCursor(wx.Cursor(self.globalCursor))
+            cur = wx.Cursor(self.globalCursor)
+            self.SetCursor(cur)
             for uiView in allUiViews:
                 if uiView.view:
-                    uiView.view.SetCursor(wx.Cursor(self.globalCursor))
+                    uiView.view.SetCursor(cur)
         else:
             cursor = wx.CURSOR_ARROW
             self.SetCursor(wx.Cursor(cursor))
@@ -131,7 +132,12 @@ class StackWindow(wx.Window):
             self.uiCard.OnIdle(event)
 
     def SetTool(self, tool):
+        if self.tool:
+            self.tool.Deactivate()
         self.tool = tool
+        if self.tool:
+            self.tool.Activate()
+        self.Refresh(True)
         self.UpdateCursor()
 
     def ClearAllViews(self):
@@ -368,7 +374,7 @@ class StackWindow(wx.Window):
                 extend = False
             if extend and len(self.selectedViews) and self.selectedViews[0].parent and self.selectedViews[0].parent.model.type == "group":
                 extend = False
-            if extend and ((uiView.model.type == "card") != (len(self.selectedViews) and self.selectedViews[0].model.type == "card")):
+            if extend and uiView and ((uiView.model.type == "card") != (len(self.selectedViews) and self.selectedViews[0].model.type == "card")):
                 extend = False
             if len(self.selectedViews) and not extend:
                 for ui in self.selectedViews:
@@ -515,10 +521,11 @@ class StackWindow(wx.Window):
             uiView = self.HitTest(pos)
 
         if uiView != self.lastMouseMovedUiView:
-            if uiView and uiView.GetCursor():
-                self.SetCursor(wx.Cursor(uiView.GetCursor()))
-            else:
-                self.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
+            if not self.globalCursor:
+                if uiView and uiView.GetCursor():
+                    self.SetCursor(wx.Cursor(uiView.GetCursor()))
+                else:
+                    self.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
 
         if self.isEditing:
             if self.tool:

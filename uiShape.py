@@ -56,7 +56,7 @@ class UiShape(UiView):
         super().Paint(gc)
 
     def PaintSelectionBox(self, gc):
-        if self.isSelected:
+        if self.isSelected and self.stackView.tool.name == "hand":
             f = self.model.GetAbsoluteFrame()
             f = wx.Rect(f.TopLeft - wx.Point(1,1), f.Size)
             gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
@@ -92,12 +92,12 @@ class UiShape(UiView):
         dc.Clear()
         penColor = 'white'
         fillColor = 'white'
-        self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(thickness/2,thickness/2))
+        self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(-thickness/2, -thickness/2))
         f = self.model.GetAbsoluteFrame()
-        if self.stackView.isEditing:
+        if self.stackView.isEditing and self.isSelected and self.stackView.tool.name == "hand":
             dc.DrawRectangle(self.GetResizeBoxRect().Inflate(2))
         reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
-        reg.Offset(-(thickness/2), -(thickness/2))
+        reg.Offset((thickness/2), (thickness/2))
         self.hitRegion = reg
 
     def OnPropertyChanged(self, model, key):
