@@ -328,7 +328,9 @@ class ViewTool(BaseTool):
 
             if self.targetUi:
                 offset = (pos.x-self.origMousePos[0], pos.y-self.origMousePos[1])
-                self.targetUi.model.SetProperty("size", [self.origSize[0]+offset[0], self.origSize[1]+offset[1]])
+                topLeft = (min(pos[0], self.origMousePos[0]), min(pos[1], self.origMousePos[1]))
+                self.targetUi.model.SetProperty("position", topLeft)
+                self.targetUi.model.SetProperty("size", [abs(self.origSize[0]+offset[0]), abs(self.origSize[1]+offset[1])])
         event.Skip()
 
     def OnMouseUp(self, uiView, event):
