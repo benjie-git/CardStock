@@ -128,7 +128,7 @@ class ImageModel(ViewModel):
         self.properties["fit"] = "Fill"
         self.properties["rotation"] = 0
 
-        self.propertyTypes["file"] = "string"
+        self.propertyTypes["file"] = "file"
         self.propertyTypes["fit"] = "choice"
         self.propertyChoices["fit"] = ["Center", "Stretch", "Fit", "Fill"]
         self.propertyTypes["rotation"] = "int"
