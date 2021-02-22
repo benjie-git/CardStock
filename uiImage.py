@@ -10,6 +10,9 @@ from uiView import *
 
 
 class UiImage(UiView):
+
+    imgCache = {}
+
     def __init__(self, parent, stackView, model=None):
         if not model:
             model = ImageModel(stackView)
@@ -31,13 +34,20 @@ class UiImage(UiView):
 
     def GetImg(self, model):
         file = model.GetProperty("file")
-        if file and self.stackView.filename:
-            dir = os.path.dirname(self.stackView.filename)
-            file = os.path.join(dir, file)
-        if os.path.exists(file):
-            img = wx.Image(file, wx.BITMAP_TYPE_ANY)
+        if file in self.imgCache:
+            img = self.imgCache[file]
         else:
-            img = None
+            if file and self.stackView.filename:
+                fileDir = os.path.dirname(self.stackView.filename)
+                path = os.path.join(fileDir, file)
+            else:
+                path = file
+
+            if os.path.exists(path):
+                img = wx.Image(path, wx.BITMAP_TYPE_ANY)
+                self.imgCache[file] = img
+            else:
+                img = None
         return img
 
     def MakeScaledAndRotatedBitmap(self):
