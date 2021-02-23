@@ -1,13 +1,15 @@
-#!/usr/bin/python
-
-# This is a draggable View, for adding a UI elements from the palate to the Card.
-
 import wx
 from uiView import *
 import generator
 
 
 class UiGroup(UiView):
+    """
+    This class is a controller that coordinates management of a group view, based on data from a GroupModel.
+    A group does not use its own wx.Window as a view, but instead draws itself onto the stack view.
+    Many of a group's methods just pass along messages to all of its children.
+    """
+
     def __init__(self, parent, stackManager, model):
         if not model.GetProperty("name"):
             model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("group_"), False)
@@ -105,11 +107,15 @@ class UiGroup(UiView):
 
 
 class GroupModel(ViewModel):
+    """
+    Model for a Group object.  Mostly forwards messages to all of its children.
+    """
+
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "group"
         self.origFrame = None
-        self.proxyClass = ProxyGroup
+        self.proxyClass = GroupProxy
 
     def GetAllChildModels(self):
         allModels = []
@@ -222,5 +228,9 @@ class GroupModel(ViewModel):
             m.SetFrame(wx.Rect(pos, size))
 
 
-class ProxyGroup(ViewProxy):
+class GroupProxy(ViewProxy):
+    """
+    Currently doesn't add anything to its superclass, ViewProxy.
+    """
+
     pass

@@ -1,7 +1,3 @@
-#!/usr/bin/python
-
-# This is a draggable View, for adding a UI elements from the palate to the Card.
-
 import wx
 from uiView import *
 import wx.stc as stc
@@ -9,6 +5,10 @@ from wx.lib.docview import CommandProcessor, Command
 
 
 class UiTextField(UiView):
+    """
+    This class is a controller that coordinates management of a TextField view, based on data from a TextFieldModel.
+    """
+
     def __init__(self, parent, stackManager, model=None):
         if not model:
             model = TextFieldModel(stackManager)
@@ -182,6 +182,10 @@ class TextEditCommand(Command):
 
 
 class TextFieldModel(ViewModel):
+    """
+    This is the model for a TextField object.
+    """
+
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "textfield"
@@ -209,6 +213,10 @@ class TextFieldModel(ViewModel):
 
 
 class TextFieldProxy(ViewProxy):
+    """
+    TextFieldProxy objects are the user-accessible objects exposed to event handler code for text field objects.
+    """
+
     @property
     def text(self):
         return self._model.GetProperty("text")

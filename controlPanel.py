@@ -10,13 +10,12 @@ from uiView import UiView
 from embeddedImages import embeddedImages
 from helpData import HelpData
 
+
 class ControlPanel(wx.Panel):
     """
-    This class implements a very simple control panel for the stackWindow.
-    It creates buttons for each of the colors and thickneses supported by
-    the stackWindow, and event handlers to set the selected values.  There is
-    also a little view that shows an example line in the selected
-    values.  Nested sizers are used for layout.
+    This class implements the control panel for the designer app.  It includes a tool palette for choosing a tool.
+    It includes thickness and pen and fill colors for drawing shapes, and an inspector and code editor for editing
+    objects.
     """
 
     BMP_SIZE = 25

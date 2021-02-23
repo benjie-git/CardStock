@@ -4,6 +4,7 @@
 """
 This module contains the StackManager class which manages painting, editing, and
 interacting with the stack.
+This class is very central to CardStock, and right now, probably contains a bit more than it should.  :)
 """
 
 

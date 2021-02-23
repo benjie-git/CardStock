@@ -13,6 +13,13 @@ except ModuleNotFoundError:
 
 
 class Runner():
+    """
+    The Runner object runs all of the stack's user-written event handlers.  It keeps track of user variables, so that they
+    can be shared between handlers, offers global variables and functions, and makes event arguments (message,
+    mousePos, etc.) available to the handlers that expect them, and then restores any old values of those variables upon
+    finishing those events.
+    """
+
     def __init__(self, stackManager, sb=None):
         self.stackManager = stackManager
         self.statusBar = sb

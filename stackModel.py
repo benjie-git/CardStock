@@ -6,6 +6,10 @@ from uiCard import CardModel
 import version
 
 class StackModel(ViewModel):
+    """
+    This is the model for the stack.  It mostly just contains the cards as its children.
+    """
+
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "stack"

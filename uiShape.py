@@ -1,13 +1,15 @@
-#!/usr/bin/python
-
-# This is a draggable View, for adding a UI elements from the palate to the Card.
-
 import wx
 import generator
 from uiView import *
 
 
 class UiShape(UiView):
+    """
+    This class is a controller that coordinates management of a shape view, based on data from an LineModel, ShapeModel,
+    or RoundRectModel.
+    A shape does not use its own wx.Window as a view, but instead draws itself onto the stack view.
+    """
+
     def __init__(self, parent, stackManager, shapeType, model=None):
         if not model:
             model = self.CreateModelForType(stackManager, shapeType)
@@ -125,6 +127,10 @@ class UiShape(UiView):
 
 
 class LineModel(ViewModel):
+    """
+    This is the model class for Line and Pen objects, and the superclass for models for the other shapes.
+    """
+
     minSize = wx.Size(2, 2)
 
     def __init__(self, stackManager):
@@ -252,6 +258,10 @@ class LineModel(ViewModel):
 
 
 class LineProxy(ViewProxy):
+    """
+    LineProxy objects are the user-accessible objects exposed to event handler code for line objects.
+    """
+
     @property
     def penColor(self):
         return self._model.GetProperty("penColor")
@@ -291,6 +301,10 @@ class LineProxy(ViewProxy):
 
 
 class ShapeModel(LineModel):
+    """
+    This is the model class for Oval and Rectangle objects, and the superclass for models for round-rects.
+    """
+
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "shape"  # Gets rewritten on SetShape (to "oval" or "rect")
@@ -308,6 +322,11 @@ class ShapeModel(LineModel):
 
 
 class ShapeProxy(LineProxy):
+    """
+    ShapeProxy objects are the user-accessible objects exposed to event handler code for oval and rect objects.
+    They're extended from LineProxy.
+    """
+
     @property
     def fillColor(self):
         return self._model.GetProperty("fillColor")
@@ -330,6 +349,10 @@ class ShapeProxy(LineProxy):
 
 
 class RoundRectModel(ShapeModel):
+    """
+    This is the model class for Round Rectangle objects.
+    """
+
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "roundrect"
@@ -347,6 +370,11 @@ class RoundRectModel(ShapeModel):
 
 
 class RoundRectProxy(ShapeProxy):
+    """
+    RoundRectProxy objects are the user-accessible objects exposed to event handler code for round rect objects.
+    They're extended from ShapeProxy, which is extended from LineProxy.
+    """
+
     @property
     def cornerRadius(self):
         return self._model.GetProperty("cornerRadius")

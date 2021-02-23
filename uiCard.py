@@ -1,13 +1,16 @@
-#!/usr/bin/python
-
-# This is a draggable View, for adding a UI elements from the palate to the Card.
-
 import wx
 from uiView import *
 import generator
 
 
 class UiCard(UiView):
+    """
+    This class is a controller that coordinates management of the stack view while this card is shown,
+    based on data from a CardModel.
+    The UiCard.view is the same wx.Window as the stackManager.view.
+    There is only ever one UiCard, and it gets its model replaced with another CardModel when switching cards.
+    """
+
     def __init__(self, parent, stackManager, model):
         if not model.GetProperty("name"):
             model.SetProperty("name", model.GetNextAvailableNameInCard("card_"), False)
@@ -85,6 +88,11 @@ class UiCard(UiView):
 
 
 class CardModel(ViewModel):
+    """
+    The CardModel allows access to a few properties that actually live in the stack.  This is because the Designer
+    allows editing cards, but not the stack model itself.  These properties are size, canSave, and canResize.
+    """
+
     minSize = wx.Size(200, 200)
 
     def __init__(self, stackManager):
@@ -192,6 +200,10 @@ class CardModel(ViewModel):
 
 
 class CardProxy(ViewProxy):
+    """
+    CardProxy objects are the user-accessible objects exposed to event handler code for card objects.
+    """
+
     @property
     def bgColor(self):
         return self._model.GetProperty("bgColor")

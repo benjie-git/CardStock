@@ -34,10 +34,9 @@ ID_MENU_REPLACE = wx.NewIdRef()
 
 class ViewerFrame(wx.Frame):
     """
-    A stackFrame contains a stackWindow and a ControlPanel and manages
-    their layout with a wx.BoxSizer.  A menu and associated event handlers
-    provides for saving a stackManager to a file, etc.
+    A ViewerFrame contains a stackManger's view, and handles menu commands.
     """
+
     title = "CardStock"
 
     def __init__(self, parent, stackModel, filename):

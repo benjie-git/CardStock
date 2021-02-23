@@ -1,6 +1,11 @@
 import uiView
 import keyword
 
+"""
+This file includes descriptions of all CardStock objects, properties, methods, and event handlers for use in
+context help, reference docs, and in the future, code completion.
+"""
+
 
 class HelpData():
     reservedNames = None
@@ -18,7 +23,7 @@ class HelpData():
         if typeStr == "group":                  return HelpDataGroup
         if typeStr in ["line", "pen"]:          return HelpDataLine
         if typeStr in ["shape", "oval", "rect"]:return HelpDataShape
-        if typeStr == "roundrect":             return HelpDataRoundRectangle
+        if typeStr == "roundrect":              return HelpDataRoundRectangle
         if typeStr == "card":                   return HelpDataCard
         if typeStr == "stack":                  return HelpDataStack
         return HelpDataObject

@@ -1,5 +1,11 @@
 from wx.lib.docview import Command
 
+"""
+These are the Undoable/Redoable commands used while editing the stack in the designer.  All modifications to the stack
+are done through these commands, so that everything is undoable.
+"""
+
+
 class MoveUiViewsCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)

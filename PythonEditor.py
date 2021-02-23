@@ -2,6 +2,11 @@ import wx
 import wx.stc as stc
 import keyword
 
+"""
+The PythonEditor is used for the CodeEditor in the Designer's ControlPanel.
+It offers syntax highlighting, brace pairing. 
+"""
+
 TAB_WIDTH = 3
 
 if wx.Platform == '__WXMSW__':

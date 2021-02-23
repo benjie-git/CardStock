@@ -1,12 +1,12 @@
-#!/usr/bin/python
-
-# This is a draggable View, for adding a UI elements from the palate to the Card.
-
 import wx
 from uiView import *
 
 
 class UiTextLabel(UiView):
+    """
+    This class is a controller that coordinates management of a TextLabel view, based on data from a TextLabelModel.
+    """
+
     def __init__(self, parent, stackManager, model=None):
         if not model:
             model = TextLabelModel(stackManager)
@@ -84,6 +84,10 @@ class UiTextLabel(UiView):
 
 
 class TextLabelModel(ViewModel):
+    """
+    This is the model for a TextLabel object.
+    """
+
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "textlabel"
@@ -108,6 +112,10 @@ class TextLabelModel(ViewModel):
 
 
 class TextLabelProxy(ViewProxy):
+    """
+    TextLabelProxy objects are the user-accessible objects exposed to event handler code for text label objects.
+    """
+
     @property
     def text(self):
         return self._model.GetProperty("text")

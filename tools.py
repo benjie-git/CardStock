@@ -3,6 +3,13 @@ from commands import *
 from uiShape import ShapeModel
 import math
 
+"""
+These are the tools that appear at the top of the Designer's ControlPanel.
+The currently selected tool gets to handle mouse Down/Move/Up events, as well as key Down/Up events while editing the
+stack in the Designer.  It also gets to Paint onto the stack window (used for showing the hand tool's selection
+rectangle).  Each tool can also have a dedicated cursor, which overrides the cursors of the individual objects. 
+"""
+
 
 MOVE_THRESHOLD = 5
 MAC_BUTTON_OFFSET_HACK = wx.Point(6,4)
@@ -14,6 +21,10 @@ def dist(a, b):
 
 
 class BaseTool(object):
+    """
+    Abstract Base for the real tool classes.
+    """
+
     def __init__(self, stackManager):
         super().__init__()
         self.stackManager = stackManager
@@ -35,9 +46,11 @@ class BaseTool(object):
             return HandTool(stackManager)
 
     def Activate(self):
+        # Do anything you need to do when starting to use this tool
         pass
 
     def Deactivate(self):
+        # Do anything you need to do when done with this tool
         pass
 
     def GetCursor(self):
@@ -63,6 +76,10 @@ class BaseTool(object):
 
 
 class HandTool(BaseTool):
+    """
+    The Hand tool allows selecting objects, moving and resizing them, and tabbing between them.
+    """
+
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.cursor = None
@@ -293,6 +310,10 @@ class HandTool(BaseTool):
 
 
 class ViewTool(BaseTool):
+    """
+    The View tool allows creating Buttons, Text Fields, Text Labels, and Images.
+    """
+
     def __init__(self, stackManager, name):
         super().__init__(stackManager)
         self.cursor = wx.CURSOR_CROSS
@@ -337,6 +358,10 @@ class ViewTool(BaseTool):
 
 
 class PenTool(BaseTool):
+    """
+    The View tool allows creating shape objects that are drawn freehand.
+    """
+
     SMOOTHING_DIST = 8
 
     def __init__(self, stackManager):
@@ -359,7 +384,7 @@ class PenTool(BaseTool):
         self.thickness = num
 
     def OnMouseDown(self, uiView, event):
-        self.pos = self.stackManager.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        self.pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
 
         self.targetUi = self.stackManager.AddUiViewInternal(self.name)
         self.targetUi.model.SetProperty("position", [0,0])
@@ -399,6 +424,10 @@ class PenTool(BaseTool):
 
 
 class ShapeTool(BaseTool):
+    """
+    The Shape tool allows drawing lines, ovals, rectangles, and round rectangles.
+    """
+
     def __init__(self, stackManager, name):
         super().__init__(stackManager)
         self.cursor = wx.CURSOR_CROSS
@@ -466,23 +495,3 @@ class ShapeTool(BaseTool):
                 self.stackManager.command_processor.Submit(command)
                 self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
         self.stackManager.view.SetFocus()
-
-
-class SelectionBox(wx.Window):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.startPoint = wx.Point(0,0)
-        self.endPoint = wx.Point(0,0)
-
-    def UpdateFrame(self):
-        rect = wx.Rect(self.startPoint, (1,1))
-        rect = rect.Union(wx.Rect(self.endPoint, (1,1)))
-        rect = wx.Rect(rect.Left-1, rect.Top-1, rect.Width, rect.Height)
-        self.SetRect(rect)
-
-    def OnPaint(self, event):
-        dc = wx.PaintDC(self)
-        dc.SetPen(wx.Pen('Blue', 1, wx.PENSTYLE_SHORT_DASH))
-        dc.SetBrush(wx.TRANSPARENT_BRUSH)
-        dc.DrawRectangle((1, 1), (self.GetSize()[0]-1, self.GetSize()[1]-1))

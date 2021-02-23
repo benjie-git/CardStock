@@ -50,13 +50,14 @@ ID_MOVE_VIEW_END = wx.NewIdRef()
 
 class DesignerFrame(wx.Frame):
     """
-    A stackFrame contains a stackWindow and a ControlPanel and manages
-    their layout with a wx.BoxSizer.  A menu and associated event handlers
-    provides for saving a stackManager to a file, etc.
+    A DesignerFrame contains a stackManger's window and a ControlPanel.  It opens and saves files, and handles or
+    delegates all menu commands.
     """
+
     title = "CardStock"
 
     def __init__(self, parent):
+        # Set up config file
         config_folder = os.path.join(os.path.expanduser("~"), '.config')
         os.makedirs(config_folder, exist_ok=True)
         settings_file = "cardstock.conf"

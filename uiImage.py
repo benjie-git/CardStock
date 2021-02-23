@@ -1,7 +1,3 @@
-#!/usr/bin/python
-
-# This is a draggable View, for adding a UI elements from the palate to the Card.
-
 import os
 import wx
 import generator
@@ -10,6 +6,10 @@ from uiView import *
 
 
 class UiImage(UiView):
+    """
+    This class is a controller that coordinates management of an image view, based on data from an ImageModel.
+    An image does not use its own wx.Window as a view, but instead draws itself onto the stack view.
+    """
 
     imgCache = {}
 
@@ -119,6 +119,10 @@ class UiImage(UiView):
 
 
 class ImageModel(ViewModel):
+    """
+    This is the model for an Image object.
+    """
+
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "image"
@@ -141,7 +145,12 @@ class ImageModel(ViewModel):
             value = value % 360
         super().SetProperty(key, value, notify)
 
+
 class ImageProxy(ViewProxy):
+    """
+    ImageProxy objects are the user-accessible objects exposed to event handler code for image objects.
+    """
+
     @property
     def file(self):
         return self._model.GetProperty("file")

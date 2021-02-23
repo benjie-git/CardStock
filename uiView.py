@@ -1,7 +1,3 @@
-#!/usr/bin/python
-
-# This is a draggable View, for adding a UI elements from the palate to the Card.
-
 import wx
 import ast
 import re
@@ -11,6 +7,11 @@ from time import time
 
 
 class UiView(object):
+    """
+    This class is an abstract base class for the other Ui objects (view controllers) that coordinate management of
+    their views and models.
+    """
+
     def __init__(self, parent, stackManager, model, view):
         super().__init__()
         self.stackManager = stackManager
@@ -240,6 +241,13 @@ class UiView(object):
 
 
 class ViewModel(object):
+    """
+    This is the abstract base class for the other model classes.
+    The model holds the property values and event handler text for each object.
+    It also holds the type of each property, and the ordered list of properties to display in the inspector.
+    It also handles animating properties of the object, like position, size, or color.
+    """
+
     minSize = wx.Size(20, 20)
     reservedNames = helpData.HelpData.ReservedNames()
 
@@ -415,7 +423,7 @@ class ViewModel(object):
             return keys
         return self.propertyKeys
 
-    # Options currently are string, bool, int, float, point, realpoint, size, choice
+    # Options currently are string, bool, int, float, point, floatpoint, size, choice, color, file
     def GetPropertyType(self, key):
         return self.propertyTypes[key]
 
@@ -571,9 +579,10 @@ class ViewModel(object):
 
 class ViewProxy(object):
     """
-     This class and its subclasses are the user-accessible objects exposed in event handlers.
-     They purposefully contain no attributes for users to mess with, except a single _model reference.
+    This class and its subclasses are the user-accessible objects exposed to event handler code.
+    They purposefully contain no attributes for users to avoid, except a single _model reference.
     """
+
     def __init__(self, model):
         super().__init__()
         self._model = model

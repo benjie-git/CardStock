@@ -1,12 +1,12 @@
-#!/usr/bin/python
-
-# This is a draggable View, for adding a UI elements from the palate to the Card.
-
 import wx
 from uiView import *
 
 
 class UiButton(UiView):
+    """
+    This class is a controller that coordinates management of a Button view, based on data from a ButtonModel.
+    """
+
     def __init__(self, parent, stackManager, model=None):
         if not model:
             model = ButtonModel(stackManager)
@@ -55,10 +55,14 @@ class UiButton(UiView):
 
 
 class ButtonModel(ViewModel):
+    """
+    This is the model for a Button object.
+    """
+
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "button"
-        self.proxyClass = ProxyButton
+        self.proxyClass = ButtonProxy
 
         # Add custom handlers to the top of the list
         handlers = {"OnClick": ""}
@@ -75,7 +79,12 @@ class ButtonModel(ViewModel):
         self.propertyKeys = ["name", "title", "border", "position", "size"]
 
 
-class ProxyButton(ViewProxy):
+class ButtonProxy(ViewProxy):
+    """
+    ButtonProxy objects are the user-accessible objects exposed to event handler code for button objects.
+    Based on ProxyView, and adds title, border, and DoClick().
+    """
+
     @property
     def title(self):
         return self._model.GetProperty("title")

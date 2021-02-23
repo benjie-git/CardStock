@@ -9,6 +9,11 @@ import uiCard
 
 
 class StackGenerator(object):
+    """
+    Just some simple class methods for creating UiViews by model,
+    and Models by data (a model serialized into a dictionary).
+    """
+
     @classmethod
     def UiViewFromModel(self, parent, stackManager, model):
         if model.type == "button":

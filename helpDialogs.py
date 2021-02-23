@@ -6,7 +6,7 @@ from helpData import HelpData, HelpDataTypes
 
 
 class CardStockAbout(wx.Dialog):
-    """ An about box that uses an HTML view """
+    """ An about box that uses an HTML view. """
 
     def GetHTML(self):
         return f'''
@@ -49,7 +49,7 @@ event-driven python code.  It is inspired by the simplicity and power of Apple's
 
 
 class CardStockManual(wx.Frame):
-    """ A help window that uses an HTML view """
+    """ A help window that uses an HTML view.  This is the manual, which explains how to use CardStock. """
 
     def GetHTML(self):
         return f'''
@@ -170,7 +170,8 @@ program (instead of in the Designer). which lets a user run the stack, but not e
 
 
 class CardStockReference(wx.Frame):
-    """ A help window that uses an HTML view """
+    """ A help window that uses an HTML view.  This is the Reference Guide, which lists and explains the details of
+     each kind of CardStock object. """
 
     def GetHTML(self):
         return f'''
