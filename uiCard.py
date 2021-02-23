@@ -93,8 +93,6 @@ class CardModel(ViewModel):
     allows editing cards, but not the stack model itself.  These properties are size, canSave, and canResize.
     """
 
-    minSize = wx.Size(200, 200)
-
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "card"
