@@ -1,9 +1,9 @@
 #!/usr/bin/python
-# stackWindow.py
+# stackManager.py
 
 """
-This module contains the StackWindow class which is a window that you
-can do simple drawings upon. and add Buttons and TextFields to.
+This module contains the StackManager class which manages painting, editing, and
+interacting with the stack.
 """
 
 
@@ -26,9 +26,9 @@ from uiGroup import UiGroup, GroupModel
 
 # ----------------------------------------------------------------------
 
-class StackWindow(wx.Window):
-    def __init__(self, parent, ID, stackModel):
-        wx.Window.__init__(self, parent, ID, style=wx.WANTS_CHARS)
+class StackManager(object):
+    def __init__(self, parentView):
+        self.view = wx.Window(parentView, style=wx.WANTS_CHARS)
         self.listeners = []
         self.designer = None
         self.isEditing = False  # Is in Editing mode (running from the designer), as opposed to just the viewer
@@ -36,7 +36,7 @@ class StackWindow(wx.Window):
         self.noIdling = False
         self.timer = None
         self.tool = None
-        self.cacheView = wx.Window(self, size=(0,0))  # just an offscreen holder for cached uiView.views
+        self.cacheView = wx.Window(self.view, size=(0,0))  # just an offscreen container for cached uiView.views
         self.cacheView.Hide()
         self.uiViewCache = {}
         self.uiViewCachePendingDelete = []
@@ -47,15 +47,13 @@ class StackWindow(wx.Window):
         self.runner = None
         self.filename = None
 
-        if not stackModel:
-            stackModel = StackModel(self)
-            stackModel.AppendCardModel(CardModel(self))
+        self.stackModel = StackModel(self)
+        self.stackModel.AppendCardModel(CardModel(self))
 
-        self.stackModel = stackModel
         self.selectedViews = []
         self.uiViews = []
         self.cardIndex = None
-        self.uiCard = UiCard(None, self, stackModel.childModels[0])
+        self.uiCard = UiCard(None, self, self.stackModel.childModels[0])
         self.LoadCardAtIndex(0)
 
         self.uiCard.model.SetDirty(False)
@@ -64,16 +62,16 @@ class StackWindow(wx.Window):
         if wx.Platform != '__WXMAC__':
             # Skip double-buffering on Mac, as it's much faster without it, and looks great
             self.buffer = None
-            self.Bind(wx.EVT_SIZE, self.OnResize)
+            self.view.Bind(wx.EVT_SIZE, self.OnResize)
 
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
-        self.Bind(wx.EVT_WINDOW_DESTROY, self.Cleanup)
-        self.Bind(wx.EVT_IDLE, self.CleanViewCache)
+        self.view.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.view.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
+        self.view.Bind(wx.EVT_WINDOW_DESTROY, self.Cleanup)
+        self.view.Bind(wx.EVT_IDLE, self.CleanViewCache)
 
     def Cleanup(self, event):
         """When the window is destroyed, clean up resources."""
-        if event.GetEventObject() == self:
+        if event.GetEventObject() == self.view:
             if self.timer:
                 self.timer.Stop()
         event.Skip()
@@ -89,18 +87,19 @@ class StackWindow(wx.Window):
                 self.uiViewCachePendingDelete.remove(ui)
 
     def RefreshNow(self):
-        self.Refresh(True)
-        self.Update()
-        self.noIdling = True
-        wx.GetApp().Yield()
-        self.noIdling = False
+        self.view.Refresh(True)
+        self.view.Update()
+        if wx.Platform == '__WXMAC__':
+            self.noIdling = True
+            wx.GetApp().Yield()
+            self.noIdling = False
 
     def SetEditing(self, editing):
         self.isEditing = editing
         if not editing:
             self.SelectUiView(None)
-            self.timer = wx.Timer(self)
-            self.Bind(wx.EVT_TIMER, self.OnIdleTimer, self.timer)
+            self.timer = wx.Timer(self.view)
+            self.view.Bind(wx.EVT_TIMER, self.OnIdleTimer, self.timer)
             self.timer.Start(33)
         else:
             if self.timer:
@@ -115,13 +114,13 @@ class StackWindow(wx.Window):
         allUiViews = self.GetAllUiViews()
         if self.globalCursor:
             cur = wx.Cursor(self.globalCursor)
-            self.SetCursor(cur)
+            self.view.SetCursor(cur)
             for uiView in allUiViews:
                 if uiView.view:
                     uiView.view.SetCursor(cur)
         else:
             cursor = wx.CURSOR_ARROW
-            self.SetCursor(wx.Cursor(cursor))
+            self.view.SetCursor(wx.Cursor(cursor))
             for uiView in allUiViews:
                 viewCursor = uiView.GetCursor()
                 if uiView.view:
@@ -137,7 +136,7 @@ class StackWindow(wx.Window):
         self.tool = tool
         if self.tool:
             self.tool.Activate()
-        self.Refresh(True)
+        self.view.Refresh(True)
         self.UpdateCursor()
 
     def ClearAllViews(self):
@@ -169,7 +168,7 @@ class StackWindow(wx.Window):
         self.stackModel = model
         self.cardIndex = None
         self.LoadCardAtIndex(0)
-        self.SetSize(self.stackModel.GetProperty("size"))
+        self.view.SetSize(self.stackModel.GetProperty("size"))
         self.command_processor.ClearCommands()
         self.stackModel.SetDirty(False)
         self.UpdateCursor()
@@ -187,7 +186,7 @@ class StackWindow(wx.Window):
                 cardModel = self.stackModel.GetCardModel(index)
                 self.CreateViews(cardModel)
                 self.SelectUiView(self.uiCard)
-                self.Refresh(True)
+                self.view.Refresh(True)
                 if self.designer:
                     self.designer.UpdateCardList()
                 if not self.isEditing and self.runner:
@@ -211,7 +210,7 @@ class StackWindow(wx.Window):
         wx.TheClipboard.SetData(clipData)
         wx.TheClipboard.Close()
 
-    def CopySelectedViews(self):
+    def Copy(self):
         self.CopyModels([ui.model for ui in self.selectedViews])
 
     def SelectAll(self):
@@ -228,10 +227,10 @@ class StackWindow(wx.Window):
             command = RemoveUiViewsCommand(True, "Cut", self, self.cardIndex, deleteModels)
             self.command_processor.Submit(command, storeIt=canUndo)
 
-    def CutSelectedViews(self, canUndo=True):
+    def Cut(self, canUndo=True):
         self.CutModels([ui.model for ui in self.selectedViews], canUndo)
 
-    def PasteViews(self, canUndo=True):
+    def Paste(self, canUndo=True):
         models = []
         if not wx.TheClipboard.IsOpened():  # may crash, otherwise
             if wx.TheClipboard.Open():
@@ -309,7 +308,7 @@ class StackWindow(wx.Window):
             uiView = self.uiViewCache[model]
             if uiView not in self.uiViewCachePendingDelete:
                 uiView = self.uiViewCache.pop(model)
-                uiView.ReparentView(self)
+                uiView.ReparentView(self.view)
             else:
                 uiView = None
 
@@ -395,17 +394,13 @@ class StackWindow(wx.Window):
         if model == self.stackModel:
             uiView = self.uiCard
             if key == "size":
-                self.SetSize(model.GetProperty(key))
+                self.view.SetSize(model.GetProperty(key))
         if not uiView and model in self.uiViewCache:
             uiView = self.uiViewCache[model]
         if uiView:
             uiView.OnPropertyChanged(model, key)
         if uiView and self.designer:
             self.designer.cPanel.UpdatedProperty(uiView, key)
-
-    def UpdateSelectedUiView(self):
-        if self.designer:
-            self.designer.UpdateSelectedUiView()
 
     def GetUiViewByModel(self, model):
         if model == self.uiCard.model:
@@ -432,7 +427,7 @@ class StackWindow(wx.Window):
                 if ui.model.type == "group":
                     ui.RemoveChildViews()
                 self.uiViews.remove(ui)
-                self.Refresh(True, rect=ui.model.GetRefreshFrame())
+                self.view.Refresh(True, rect=ui.model.GetRefreshFrame())
                 self.uiCard.model.RemoveChild(ui.model)
                 ui.ReparentView(self.cacheView)
                 self.uiViewCache[ui.model] = ui
@@ -502,7 +497,7 @@ class StackWindow(wx.Window):
             self.command_processor.Submit(command)
 
     def OnMouseDown(self, uiView, event):
-        pos = self.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
 
         if not uiView.view or uiView.model.type == "card":
             uiView = self.HitTest(pos)
@@ -513,7 +508,7 @@ class StackWindow(wx.Window):
             uiView.OnMouseDown(event)
 
     def OnMouseMove(self, uiView, event):
-        pos = self.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         if pos == self.lastMousePos:
             return
 
@@ -523,9 +518,9 @@ class StackWindow(wx.Window):
         if uiView != self.lastMouseMovedUiView:
             if not self.globalCursor:
                 if uiView and uiView.GetCursor():
-                    self.SetCursor(wx.Cursor(uiView.GetCursor()))
+                    self.view.SetCursor(wx.Cursor(uiView.GetCursor()))
                 else:
-                    self.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
+                    self.view.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
 
         if self.isEditing:
             if self.tool:
@@ -545,7 +540,7 @@ class StackWindow(wx.Window):
         self.lastMousePos = pos
 
     def OnMouseUp(self, uiView, event):
-        pos = self.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
 
         if not uiView.view or uiView.model.type == "card":
             uiView = self.HitTest(pos)
@@ -565,12 +560,12 @@ class StackWindow(wx.Window):
         event.Skip()
 
     def UpdateBuffer(self):
-        self.buffer = wx.Bitmap.FromRGBA(self.GetSize().Width, self.GetSize().Height)
+        self.buffer = wx.Bitmap.FromRGBA(self.view.GetSize().Width, self.view.GetSize().Height)
 
     def OnPaint(self, event):
         if wx.Platform == '__WXMAC__':
             # Skip double-buffering on Mac, as it's much faster without it, and looks great
-            dc = wx.PaintDC(self)
+            dc = wx.PaintDC(self.view)
         else:
             if not self.buffer:
                 self.UpdateBuffer()
@@ -584,7 +579,7 @@ class StackWindow(wx.Window):
         gc.SetBrush(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
 
         uiViews = self.GetAllUiViews()
-        upd = wx.RegionIterator(self.GetUpdateRegion())
+        upd = wx.RegionIterator(self.view.GetUpdateRegion())
         paintUiViews = []
         while upd.HaveRects():
             updRect = upd.GetRect()
@@ -612,7 +607,7 @@ class StackWindow(wx.Window):
             self.tool.Paint(gc)
 
         if wx.Platform != '__WXMAC__':
-            wx.BufferedPaintDC(self, self.buffer)
+            wx.BufferedPaintDC(self.view, self.buffer)
 
     def HitTest(self, pt):
         for uiView in self.selectedViews:
@@ -652,11 +647,11 @@ class StackWindow(wx.Window):
         self.command_processor.Undo()
         if not self.command_processor.CanUndo():
             self.stackModel.SetDirty(False)
-        self.Refresh(True)
+        self.view.Refresh(True)
 
     def Redo(self):
         self.command_processor.Redo()
-        self.Refresh(True)
+        self.view.Refresh(True)
 
     def GetDesignerFindPath(self):
         cPanel = self.designer.cPanel

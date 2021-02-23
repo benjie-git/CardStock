@@ -12,7 +12,7 @@ import sys
 import json
 import wx
 import wx.html
-from stackWindow import StackWindow
+from stackManager import StackManager
 from stackModel import StackModel
 from uiCard import CardModel
 import version
@@ -36,7 +36,7 @@ class ViewerFrame(wx.Frame):
     """
     A stackFrame contains a stackWindow and a ControlPanel and manages
     their layout with a wx.BoxSizer.  A menu and associated event handlers
-    provides for saving a stackView to a file, etc.
+    provides for saving a stackManager to a file, etc.
     """
     title = "CardStock"
 
@@ -51,49 +51,49 @@ class ViewerFrame(wx.Frame):
 
         self.CreateStatusBar()
 
-        self.stackView = StackWindow(self, -1, None)
-        self.stackView.SetEditing(False)
+        self.stackManager = StackManager(self)
+        self.stackManager.SetEditing(False)
         self.designer = None
-        self.stackView.filename = filename
+        self.stackManager.filename = filename
         self.SetStackModel(stackModel)
         self.Bind(wx.EVT_SIZE, self.OnResize)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnClose)
 
         self.findDlg = None
-        self.findEngine = FindEngine(self.stackView)
+        self.findEngine = FindEngine(self.stackManager)
 
     def OnResize(self, event):
-        self.stackView.SetSize(self.GetClientSize())
+        self.stackManager.view.SetSize(self.GetClientSize())
         event.Skip()
 
     def SaveFile(self):
         if self.designer:
-            self.designer.OnViewerSave(self.stackView.stackModel)
+            self.designer.OnViewerSave(self.stackManager.stackModel)
 
-        if self.stackView.filename:
-            data = self.stackView.stackModel.GetData()
+        if self.stackManager.filename:
+            data = self.stackManager.stackModel.GetData()
             try:
                 jsonData = json.dumps(data, indent=2)
-                with open(self.stackView.filename, 'w') as f:
+                with open(self.stackManager.filename, 'w') as f:
                     f.write(jsonData)
-                self.stackView.stackModel.SetDirty(False)
+                self.stackManager.stackModel.SetDirty(False)
             except TypeError:
                 # e = sys.exc_info()
                 # print(e)
                 wx.MessageDialog(None, str("Couldn't save file"), "", wx.OK).ShowModal()
 
     def SetStackModel(self, stackModel):
-        self.stackView.SetStackModel(stackModel)
-        self.stackView.SetEditing(False)
-        self.SetClientSize(self.stackView.stackModel.GetProperty("size"))
-        self.stackView.SetFocus()
-        if self.stackView.filename:
-            self.SetTitle(self.title + ' -- ' + os.path.basename(self.stackView.filename))
+        self.stackManager.SetStackModel(stackModel)
+        self.stackManager.SetEditing(False)
+        self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))
+        self.stackManager.view.SetFocus()
+        if self.stackManager.filename:
+            self.SetTitle(self.title + ' -- ' + os.path.basename(self.stackManager.filename))
 
     def MakeMenu(self):
         # create the file menu
         fileMenu = wx.Menu()
-        if self.stackView.filename and self.stackView.stackModel.GetProperty("canSave"):
+        if self.stackManager.filename and self.stackManager.stackModel.GetProperty("canSave"):
             fileMenu.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save Stack")
         fileMenu.Append(wx.ID_CLOSE, "&Close\tCtrl-W", "Close Stack")
 
@@ -143,7 +143,7 @@ class ViewerFrame(wx.Frame):
         self.SaveFile()
 
     def OnMenuClose(self, event):
-        if self.stackView.filename and self.stackView.stackModel.GetProperty("canSave") and self.stackView.stackModel.GetDirty():
+        if self.stackManager.filename and self.stackManager.stackModel.GetProperty("canSave") and self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before Quitting?", wx.YES_NO | wx.CANCEL).ShowModal()
             if r == wx.ID_CANCEL:
@@ -153,7 +153,7 @@ class ViewerFrame(wx.Frame):
         self.Close()
 
     def OnClose(self, event):
-        self.stackView.runner.CleanupFromRun()
+        self.stackManager.runner.CleanupFromRun()
         event.Skip()
 
     def OnCut(self, event):
@@ -240,13 +240,13 @@ class ViewerFrame(wx.Frame):
         dlg.Destroy()
 
     def RunViewer(self):
-        runner = Runner(self.stackView, self.GetStatusBar())
-        self.stackView.runner = runner
-        self.stackView.SetEditing(False)
-        self.SetClientSize(self.stackView.stackModel.GetProperty("size"))
+        runner = Runner(self.stackManager, self.GetStatusBar())
+        self.stackManager.runner = runner
+        self.stackManager.SetEditing(False)
+        self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))
         self.MakeMenu()
 
-        self.stackView.LoadCardAtIndex(None)
+        self.stackManager.LoadCardAtIndex(None)
 
         def RunAllSetupHandlers(model):
             if model.type == "card":
@@ -255,9 +255,9 @@ class ViewerFrame(wx.Frame):
                 runner.RunHandler(model, "OnSetup", None)
             for m in model.childModels:
                 RunAllSetupHandlers(m)
-        RunAllSetupHandlers(self.stackView.stackModel)
+        RunAllSetupHandlers(self.stackManager.stackModel)
 
-        self.stackView.LoadCardAtIndex(0)
+        self.stackManager.LoadCardAtIndex(0)
 
 
 # ----------------------------------------------------------------------
@@ -281,7 +281,7 @@ class ViewerApp(wx.App, InspectionMixin):
                     stackModel.SetData(data)
                     self.frame = ViewerFrame(None, stackModel, filename)
                     self.SetTopWindow(self.frame)
-                    self.frame.stackView.filename = filename
+                    self.frame.stackManager.filename = filename
                     self.frame.Show(True)
             except TypeError:
                 # e = sys.exc_info()

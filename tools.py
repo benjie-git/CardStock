@@ -14,25 +14,25 @@ def dist(a, b):
 
 
 class BaseTool(object):
-    def __init__(self, stackView):
+    def __init__(self, stackManager):
         super().__init__()
-        self.stackView = stackView
+        self.stackManager = stackManager
         self.targetUi = None
         self.cursor = None
         self.name = ""
 
     @classmethod
-    def ToolFromName(cls, name, stackView):
+    def ToolFromName(cls, name, stackManager):
         if name == "hand":
-            return HandTool(stackView)
+            return HandTool(stackManager)
         elif name == "button" or name == "field" or name == "label" or name == "image":
-            return ViewTool(stackView, name)
+            return ViewTool(stackManager, name)
         elif name == "pen":
-            return PenTool(stackView)
+            return PenTool(stackManager)
         elif name == "rect" or name == "roundrect" or name == "oval" or name == "line":
-            return ShapeTool(stackView, name)
+            return ShapeTool(stackManager, name)
         else:
-            return HandTool(stackView)
+            return HandTool(stackManager)
 
     def Activate(self):
         pass
@@ -63,8 +63,8 @@ class BaseTool(object):
 
 
 class HandTool(BaseTool):
-    def __init__(self, stackView):
-        super().__init__(stackView)
+    def __init__(self, stackManager):
+        super().__init__(stackManager)
         self.cursor = None
         self.name = "hand"
         self.selectionRect = None
@@ -76,37 +76,37 @@ class HandTool(BaseTool):
         self.shiftDown = event.ShiftDown()
         selectedGroupSubview = False
         self.deselectTarget = False
-        if uiView.parent == self.stackView.uiCard or not uiView.parent:
+        if uiView.parent == self.stackManager.uiCard or not uiView.parent:
             # Clicked on a top-level uiView or the card itself
             self.targetUi = uiView
         else:
             # Clicked on a group's subview
-            oldSelection = self.stackView.GetSelectedUiViews()
+            oldSelection = self.stackManager.GetSelectedUiViews()
             self.targetUi = uiView
             while self.targetUi.parent and self.targetUi.parent.parent:
                 if self.targetUi.parent.isSelected or (len(oldSelection) == 1 and \
                                                 oldSelection[0].parent == self.targetUi.parent and \
                                                 oldSelection[0] != self.targetUi):
                     # If the parent or a sibling of this subview was already selected
-                    self.stackView.SelectUiView(self.targetUi)
+                    self.stackManager.SelectUiView(self.targetUi)
                     selectedGroupSubview = True
                     break
                 self.targetUi = self.targetUi.parent
             while self.targetUi.parent and self.targetUi.parent.model.type == "group":
                 self.targetUi = self.targetUi.parent
 
-        self.absOrigin = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        self.absOrigin = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         self.relOrigin = self.absOrigin - wx.Point(self.targetUi.model.GetAbsolutePosition())
-        self.stackView.CaptureMouse()
+        self.stackManager.view.CaptureMouse()
 
         if self.targetUi.isSelected and self.shiftDown:
             self.deselectTarget = True
 
         if not selectedGroupSubview and not self.targetUi.isSelected:
-            self.stackView.SelectUiView(self.targetUi, self.shiftDown)
+            self.stackManager.SelectUiView(self.targetUi, self.shiftDown)
 
         self.oldFrames = {}
-        selected = self.stackView.GetSelectedUiViews()
+        selected = self.stackManager.GetSelectedUiViews()
         if self.targetUi not in selected:
             selected.append(self.targetUi)
         for ui in selected:
@@ -135,15 +135,15 @@ class HandTool(BaseTool):
                     return
 
             if self.mode == "box":
-                self.stackView.Refresh(True, self.selectionRect.Inflate(2))
+                self.stackManager.view.Refresh(True, self.selectionRect.Inflate(2))
                 self.selectionRect = ShapeModel.RectFromPoints([self.absOrigin, pos])
-                self.stackView.Refresh(True, self.selectionRect.Inflate(2))
+                self.stackManager.view.Refresh(True, self.selectionRect.Inflate(2))
                 self.UpdateSelection()
                 return
 
             offset = (pos.x - self.absOrigin.x, pos.y - self.absOrigin.y)
             if self.mode == "move":
-                selectedViews = self.stackView.GetSelectedUiViews()
+                selectedViews = self.stackManager.GetSelectedUiViews()
                 if len(selectedViews) == 1 and selectedViews[0].parent.model.type == "group":
                     selectedViews = [self.targetUi]
                 for ui in selectedViews:
@@ -156,7 +156,7 @@ class HandTool(BaseTool):
     def StartBoxSelect(self):
         self.mode = "box"
         self.selectionRect = ShapeModel.RectFromPoints([self.absOrigin])
-        self.stackView.Refresh(True, self.selectionRect.Inflate(2))
+        self.stackManager.view.Refresh(True, self.selectionRect.Inflate(2))
 
     def Paint(self, gc):
         if self.selectionRect:
@@ -171,50 +171,50 @@ class HandTool(BaseTool):
         self.mode = "resize"
 
     def OnMouseUp(self, uiView, event):
-        if self.stackView.HasCapture():
-            self.stackView.ReleaseMouse()
+        if self.stackManager.view.HasCapture():
+            self.stackManager.view.ReleaseMouse()
 
         if self.mode == "click":
             if self.deselectTarget and self.targetUi.isSelected:
-                self.stackView.SelectUiView(self.targetUi, True)
+                self.stackManager.SelectUiView(self.targetUi, True)
         elif self.mode == "box":
-            self.stackView.Refresh(True, self.selectionRect.Inflate(2))
+            self.stackManager.view.Refresh(True, self.selectionRect.Inflate(2))
             self.selectionRect = None
         elif self.mode == "move":
             pos = self.targetUi.model.GetAbsolutePosition()
             viewOrigin = self.oldFrames[self.targetUi.model.GetProperty("name")].Position
             offset = (pos[0] - viewOrigin.x, pos[1] - viewOrigin.y)
             if offset != (0, 0):
-                selectedViews = self.stackView.GetSelectedUiViews()
+                selectedViews = self.stackManager.GetSelectedUiViews()
                 if len(selectedViews) == 1 and selectedViews[0].parent.model.type == "group":
                     selectedViews = [self.targetUi]
                 models = [ui.model for ui in selectedViews]
-                command = MoveUiViewsCommand(True, 'Move', self.stackView, self.stackView.cardIndex,
+                command = MoveUiViewsCommand(True, 'Move', self.stackManager, self.stackManager.cardIndex,
                                              models, offset)
                 for m in models:
                     viewOrigin = self.oldFrames[m.GetProperty("name")].Position
                     m.SetProperty("position", viewOrigin)
-                self.stackView.command_processor.Submit(command)
+                self.stackManager.command_processor.Submit(command)
         elif self.mode == "resize":
             endw, endh = self.targetUi.model.GetProperty("size")
             origSize = self.oldFrames[self.targetUi.model.GetProperty("name")].Size
             offset = (endw-origSize[0], endh-origSize[1])
             if offset != (0, 0):
-                command = ResizeUiViewCommand(True, 'Resize', self.stackView, self.stackView.cardIndex, self.targetUi.model, offset)
+                command = ResizeUiViewCommand(True, 'Resize', self.stackManager, self.stackManager.cardIndex, self.targetUi.model, offset)
                 self.targetUi.model.SetProperty("size", origSize)
-                self.stackView.command_processor.Submit(command)
+                self.stackManager.command_processor.Submit(command)
 
         self.mode = None
-        self.stackView.SetFocus()
+        self.stackManager.view.SetFocus()
         self.targetUi = None
         event.Skip()
 
     def UpdateSelection(self):
-        self.stackView.SelectUiView(None)
-        for ui in self.stackView.uiViews:
+        self.stackManager.SelectUiView(None)
+        for ui in self.stackManager.uiViews:
             select = self.selectionRect.Contains(ui.model.GetCenter())
             if select:
-                self.stackView.SelectUiView(ui, True)
+                self.stackManager.SelectUiView(ui, True)
 
     def OnKeyDown(self, uiViewIn, event):
         if event.RawControlDown() or event.CmdDown():
@@ -223,35 +223,35 @@ class HandTool(BaseTool):
 
         uiViews = []
         if uiViewIn and uiViewIn.model.type == "card":
-            uiViews = self.stackView.GetSelectedUiViews()
+            uiViews = self.stackManager.GetSelectedUiViews()
 
         code = event.GetKeyCode()
 
         if code == wx.WXK_TAB:
-            allUiViews = self.stackView.GetAllUiViews()
+            allUiViews = self.stackManager.GetAllUiViews()
             searchReverse = event.ShiftDown()
             if len(uiViews) == 0:
-                nextUi = self.stackView.uiCard
-                self.stackView.SelectUiView(nextUi)
+                nextUi = self.stackManager.uiCard
+                self.stackManager.SelectUiView(nextUi)
             else:
                 ui = uiViews[-1]
                 if len(allUiViews) > 0:
                     if not searchReverse:
-                        if ui == self.stackView.uiCard:
-                            self.stackView.SelectUiView(allUiViews[0])
+                        if ui == self.stackManager.uiCard:
+                            self.stackManager.SelectUiView(allUiViews[0])
                         elif ui == allUiViews[-1]:
-                            self.stackView.SelectUiView(self.stackView.uiCard)
+                            self.stackManager.SelectUiView(self.stackManager.uiCard)
                         else:
                             nextUi = allUiViews[allUiViews.index(ui) + 1]
-                            self.stackView.SelectUiView(nextUi)
+                            self.stackManager.SelectUiView(nextUi)
                     else:
-                        if ui == self.stackView.uiCard:
-                            self.stackView.SelectUiView(allUiViews[-1])
+                        if ui == self.stackManager.uiCard:
+                            self.stackManager.SelectUiView(allUiViews[-1])
                         elif ui == allUiViews[0]:
-                            self.stackView.SelectUiView(self.stackView.uiCard)
+                            self.stackManager.SelectUiView(self.stackManager.uiCard)
                         else:
                             nextUi = allUiViews[allUiViews.index(ui) - 1]
-                            self.stackView.SelectUiView(nextUi)
+                            self.stackManager.SelectUiView(nextUi)
 
         for uiView in uiViews.copy():
             if uiView.model.type == "card":
@@ -267,48 +267,48 @@ class HandTool(BaseTool):
             models = [v.model for v in uiViews]
             command = None
             pos = sharedFrame.TopLeft
-            cardRect = self.stackView.GetRect()
+            cardRect = self.stackManager.view.GetRect()
             dist = 20 if event.AltDown() else (5 if event.ShiftDown() else 1)
             if code == wx.WXK_LEFT:
                 if pos.x-dist < 0: dist = pos.x
                 if dist > 0:
-                    command = MoveUiViewsCommand(True, 'Move', self.stackView, self.stackView.cardIndex, models, (-dist, 0))
+                    command = MoveUiViewsCommand(True, 'Move', self.stackManager, self.stackManager.cardIndex, models, (-dist, 0))
             elif code == wx.WXK_RIGHT:
                 if pos.x+dist > cardRect.Right-20: dist = cardRect.Right-20 - pos.x
                 if dist > 0:
-                    command = MoveUiViewsCommand(True, 'Move', self.stackView, self.stackView.cardIndex, models, (dist, 0))
+                    command = MoveUiViewsCommand(True, 'Move', self.stackManager, self.stackManager.cardIndex, models, (dist, 0))
             elif code == wx.WXK_UP:
                 if pos.y-dist < 0: dist = pos.y
                 if dist > 0:
-                    command = MoveUiViewsCommand(True, 'Move', self.stackView, self.stackView.cardIndex, models, (0, -dist))
+                    command = MoveUiViewsCommand(True, 'Move', self.stackManager, self.stackManager.cardIndex, models, (0, -dist))
             elif code == wx.WXK_DOWN:
                 if pos.y+dist > cardRect.Bottom-20: dist = cardRect.Bottom-20 - pos.y
                 if dist > 0:
-                    command = MoveUiViewsCommand(True, 'Move', self.stackView, self.stackView.cardIndex, models, (0, dist))
+                    command = MoveUiViewsCommand(True, 'Move', self.stackManager, self.stackManager.cardIndex, models, (0, dist))
 
             if command:
-                self.stackView.command_processor.Submit(command)
+                self.stackManager.command_processor.Submit(command)
 
         event.Skip()
 
 
 class ViewTool(BaseTool):
-    def __init__(self, stackView, name):
-        super().__init__(stackView)
+    def __init__(self, stackManager, name):
+        super().__init__(stackManager)
         self.cursor = wx.CURSOR_CROSS
         self.name = name  # button, field, label, or image
 
     def OnMouseDown(self, uiView, event):
         self.targetUi = None
-        x, y = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        x, y = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         self.origMousePos = (x, y)
-        self.stackView.CaptureMouse()
+        self.stackManager.view.CaptureMouse()
 
     def OnMouseMove(self, uiView, event):
-        if self.stackView.HasCapture():
-            pos = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        if self.stackManager.view.HasCapture():
+            pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
             if not self.targetUi and dist(self.origMousePos, pos) > MOVE_THRESHOLD:
-                self.targetUi = self.stackView.AddUiViewInternal(self.name)
+                self.targetUi = self.stackManager.AddUiViewInternal(self.name)
                 self.targetUi.model.SetProperty("position", self.origMousePos)
                 self.targetUi.model.SetProperty("size", [0,0])
                 self.origSize = [0,0]
@@ -321,26 +321,26 @@ class ViewTool(BaseTool):
         event.Skip()
 
     def OnMouseUp(self, uiView, event):
-        if self.stackView.HasCapture():
-            self.stackView.ReleaseMouse()
+        if self.stackManager.view.HasCapture():
+            self.stackManager.view.ReleaseMouse()
             if self.targetUi:
                 endw, endh = self.targetUi.model.GetProperty("size")
                 offset = (endw-self.origSize[0], endh-self.origSize[1])
                 if offset != (0, 0):
                     model = self.targetUi.model
-                    command = AddNewUiViewCommand(True, 'Add View', self.stackView, self.stackView.cardIndex, model.type, model)
-                    self.stackView.RemoveUiViewByModel(model)
-                    self.stackView.command_processor.Submit(command)
-                    self.stackView.SelectUiView(self.stackView.GetUiViewByModel(model))
-                self.stackView.SetFocus()
+                    command = AddNewUiViewCommand(True, 'Add View', self.stackManager, self.stackManager.cardIndex, model.type, model)
+                    self.stackManager.RemoveUiViewByModel(model)
+                    self.stackManager.command_processor.Submit(command)
+                    self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
+                self.stackManager.view.SetFocus()
                 self.targetUi = None
 
 
 class PenTool(BaseTool):
     SMOOTHING_DIST = 8
 
-    def __init__(self, stackView):
-        super().__init__(stackView)
+    def __init__(self, stackManager):
+        super().__init__(stackManager)
         self.cursor = wx.CURSOR_PENCIL
         self.name = "pen"
         self.curLine = []
@@ -359,19 +359,19 @@ class PenTool(BaseTool):
         self.thickness = num
 
     def OnMouseDown(self, uiView, event):
-        self.pos = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        self.pos = self.stackManager.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
 
-        self.targetUi = self.stackView.AddUiViewInternal(self.name)
+        self.targetUi = self.stackManager.AddUiViewInternal(self.name)
         self.targetUi.model.SetProperty("position", [0,0])
-        self.targetUi.model.SetProperty("size", self.stackView.stackModel.GetProperty("size"))
+        self.targetUi.model.SetProperty("size", self.stackManager.stackModel.GetProperty("size"))
 
-        self.stackView.CaptureMouse()
+        self.stackManager.view.CaptureMouse()
         self.curLine = []
         self.curLine.append(list(self.pos))
         self.targetUi.model.SetShape({"type": "pen", "penColor": self.penColor, "thickness": self.thickness, "points": self.curLine})
 
     def OnMouseMove(self, uiView, event):
-        if self.targetUi and self.stackView.HasCapture():
+        if self.targetUi and self.stackManager.view.HasCapture():
             pos = event.GetPosition()
             coords = (pos.x, pos.y)
             if coords != (self.pos.x, self.pos.y):
@@ -383,24 +383,24 @@ class PenTool(BaseTool):
                 self.pos = pos
 
     def OnMouseUp(self, uiView, event):
-        if self.targetUi and self.stackView.HasCapture():
+        if self.targetUi and self.stackManager.view.HasCapture():
             model = self.targetUi.model
             self.curLine = []
-            self.stackView.ReleaseMouse()
+            self.stackManager.view.ReleaseMouse()
             self.targetUi = None
 
             model.ReCropShape()
 
-            command = AddNewUiViewCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model.type, model)
-            self.stackView.RemoveUiViewByModel(model)
-            self.stackView.command_processor.Submit(command)
-            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(model))
-        self.stackView.SetFocus()
+            command = AddNewUiViewCommand(True, 'Add Shape', self.stackManager, self.stackManager.cardIndex, model.type, model)
+            self.stackManager.RemoveUiViewByModel(model)
+            self.stackManager.command_processor.Submit(command)
+            self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
+        self.stackManager.view.SetFocus()
 
 
 class ShapeTool(BaseTool):
-    def __init__(self, stackView, name):
-        super().__init__(stackView)
+    def __init__(self, stackManager, name):
+        super().__init__(stackManager)
         self.cursor = wx.CURSOR_CROSS
         self.name = name
         self.startPoint = None
@@ -419,18 +419,18 @@ class ShapeTool(BaseTool):
         self.thickness = num
 
     def OnMouseDown(self, uiView, event):
-        self.startPoint = list(self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition())))
+        self.startPoint = list(self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition())))
         self.targetUi = None
-        self.stackView.CaptureMouse()
+        self.stackManager.view.CaptureMouse()
         self.points = [self.startPoint, self.startPoint]
 
     def OnMouseMove(self, uiView, event):
-        if self.stackView.HasCapture():
-            pos = self.stackView.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        if self.stackManager.view.HasCapture():
+            pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
             if not self.targetUi and dist(self.startPoint, pos) > MOVE_THRESHOLD:
-                self.targetUi = self.stackView.AddUiViewInternal(self.name)
+                self.targetUi = self.stackManager.AddUiViewInternal(self.name)
                 self.targetUi.model.SetProperty("position", [0, 0])
-                self.targetUi.model.SetProperty("size", self.stackView.stackModel.GetProperty("size"))
+                self.targetUi.model.SetProperty("size", self.stackManager.stackModel.GetProperty("size"))
                 self.targetUi.model.SetShape({"type": self.name, "penColor": self.penColor, "fillColor": self.fillColor,
                                               "thickness": self.thickness, "points": self.points})
             if self.targetUi:
@@ -453,19 +453,19 @@ class ShapeTool(BaseTool):
                     self.targetUi.model.DidUpdateShape()
 
     def OnMouseUp(self, uiView, event):
-        if self.stackView.HasCapture():
-            self.stackView.ReleaseMouse()
+        if self.stackManager.view.HasCapture():
+            self.stackManager.view.ReleaseMouse()
             if self.targetUi:
                 model = self.targetUi.model
                 self.targetUi = None
 
                 model.ReCropShape()
 
-                command = AddNewUiViewCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model.type, model)
-                self.stackView.RemoveUiViewByModel(model)
-                self.stackView.command_processor.Submit(command)
-                self.stackView.SelectUiView(self.stackView.GetUiViewByModel(model))
-        self.stackView.SetFocus()
+                command = AddNewUiViewCommand(True, 'Add Shape', self.stackManager, self.stackManager.cardIndex, model.type, model)
+                self.stackManager.RemoveUiViewByModel(model)
+                self.stackManager.command_processor.Submit(command)
+                self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
+        self.stackManager.view.SetFocus()
 
 
 class SelectionBox(wx.Window):

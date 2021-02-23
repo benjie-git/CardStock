@@ -1,5 +1,5 @@
 import wx
-import stackWindow
+import stackManager
 from uiView import ViewModel
 from commands import SetPropertyCommand, CommandGroup
 import re
@@ -15,15 +15,15 @@ The search order is:
 Create a dict of searchable item paths and values on every Find. Paths are of the form:
   - cardIndex.objectName.property.text
 Determine our currently selected findPath, and selection inside it, and start searching there.
-Search each item in order, and call stackView.ShowViewerFindPath(findpath, selectionStart, selectionEnd) to show matches.
+Search each item in order, and call stackManager.ShowViewerFindPath(findpath, selectionStart, selectionEnd) to show matches.
 
 Only allow Replacing once per Find, to avoid duplicated replaceText.
 """
 
 class FindEngine(object):
-    def __init__(self, stackView):
+    def __init__(self, stackManager):
         super().__init__()
-        self.stackView = stackView
+        self.stackManager = stackManager
         self.findData = wx.FindReplaceData(1)   # initializes and holds search parameters
         self.didReplace = False
 
@@ -36,12 +36,12 @@ class FindEngine(object):
 
     def GenerateSearchDict(self):
         searchDict = {}
-        cardModel = self.stackView.uiCard.model
-        self.AddDictItemsForModel(searchDict, self.stackView.stackModel.childModels.index(cardModel), cardModel)
+        cardModel = self.stackManager.uiCard.model
+        self.AddDictItemsForModel(searchDict, self.stackManager.stackModel.childModels.index(cardModel), cardModel)
         return searchDict
 
     def UpdateFindTextFromSelection(self):
-        _, textSel = self.stackView.GetViewerFindPath()
+        _, textSel = self.stackManager.GetViewerFindPath()
         start, end, findStr = textSel
         if findStr and len(findStr):
             self.findData.SetFindString(findStr)
@@ -50,19 +50,19 @@ class FindEngine(object):
         findStr = self.findData.GetFindString()
         if len(findStr):
             searchDict = self.GenerateSearchDict()
-            startPath, textSel = self.stackView.GetViewerFindPath()
+            startPath, textSel = self.stackManager.GetViewerFindPath()
             path, start, end = self.DoFindNext(searchDict, startPath, textSel)
             if path:
                 self.didReplace = False
-                self.stackView.ShowViewerFindPath(path, start, end)
+                self.stackManager.ShowViewerFindPath(path, start, end)
 
     def Replace(self):
         if not self.didReplace:
             replaceStr = self.findData.GetReplaceString()
-            findPath, textSel = self.stackView.GetViewerFindPath()
+            findPath, textSel = self.stackManager.GetViewerFindPath()
             command = self.DoReplaceAtPath(findPath, textSel, replaceStr)
             if command:
-                self.stackView.command_processor.Submit(command)
+                self.stackManager.command_processor.Submit(command)
             self.didReplace = True
 
     def DoFindNext(self, searchDict, startPath, textSel):
@@ -120,7 +120,7 @@ class FindEngine(object):
         parts = findPath.split(".")
         # cardIndex, objectName, property|handler, key
         cardIndex = int(parts[0])
-        card = self.stackView.stackModel.childModels[cardIndex]
+        card = self.stackManager.stackModel.childModels[cardIndex]
         model = card.GetChildModelByName(parts[1])
         key = parts[3]
         if model.GetProperty("editable"):

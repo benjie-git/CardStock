@@ -11,9 +11,9 @@ from time import time
 
 
 class UiView(object):
-    def __init__(self, parent, stackView, model, view):
+    def __init__(self, parent, stackManager, model, view):
         super().__init__()
-        self.stackView = stackView
+        self.stackManager = stackManager
         self.parent = parent
         self.view = view
         self.model = None
@@ -38,11 +38,11 @@ class UiView(object):
         view.Bind(wx.EVT_KEY_DOWN, self.FwdOnKeyDown)
         view.Bind(wx.EVT_KEY_UP, self.FwdOnKeyUp)
 
-    def FwdOnMouseDown( self, event): self.stackView.OnMouseDown( self, event)
-    def FwdOnMouseMove( self, event): self.stackView.OnMouseMove( self, event)
-    def FwdOnMouseUp(   self, event): self.stackView.OnMouseUp(   self, event)
-    def FwdOnKeyDown(   self, event): self.stackView.OnKeyDown(   self, event)
-    def FwdOnKeyUp(     self, event): self.stackView.OnKeyUp(     self, event)
+    def FwdOnMouseDown( self, event): self.stackManager.OnMouseDown( self, event)
+    def FwdOnMouseMove( self, event): self.stackManager.OnMouseMove( self, event)
+    def FwdOnMouseUp(   self, event): self.stackManager.OnMouseUp(   self, event)
+    def FwdOnKeyDown(   self, event): self.stackManager.OnKeyDown(   self, event)
+    def FwdOnKeyUp(     self, event): self.stackManager.OnKeyUp(     self, event)
 
     def SetView(self, view):
         self.view = view
@@ -65,14 +65,14 @@ class UiView(object):
         self.lastEditedHandler = None
 
     def GetCursor(self):
-        if self.stackView.isEditing:
+        if self.stackManager.isEditing:
             return wx.CURSOR_HAND
         else:
             return None
 
     def OnPropertyChanged(self, model, key):
         if key in ["pre-size", "pre-position"]:
-            self.stackView.Refresh(True, self.model.GetRefreshFrame())
+            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
         elif key == "size":
             s = self.model.GetProperty(key)
             self.hitRegion = None
@@ -80,14 +80,14 @@ class UiView(object):
                 self.view.SetSize(s)
                 self.view.Refresh(True)
             else:
-                self.stackView.Refresh(True, self.model.GetRefreshFrame())
+                self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
         elif key == "position":
             pos = self.model.GetAbsolutePosition()
             if self.view:
                 self.view.SetPosition(wx.Point(pos))
                 self.view.Refresh(True)
             else:
-                self.stackView.Refresh(True, self.model.GetRefreshFrame())
+                self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
         elif key == "hidden":
             if self.view:
                 self.view.Show(not self.model.GetProperty(key))
@@ -111,11 +111,11 @@ class UiView(object):
         if self.isSelected != selected:
             self.isSelected = selected
             self.hitRegion = None
-            self.stackView.Refresh(True, self.model.GetRefreshFrame())
+            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
 
     def OnMouseDown(self, event):
-        if self.stackView.runner and self.model.GetHandler("OnMouseDown"):
-            self.stackView.runner.RunHandler(self.model, "OnMouseDown", event)
+        if self.stackManager.runner and self.model.GetHandler("OnMouseDown"):
+            self.stackManager.runner.RunHandler(self.model, "OnMouseDown", event)
         event.Skip()
 
     def OnMouseMove(self, event):
@@ -123,25 +123,25 @@ class UiView(object):
         event.Skip()
 
     def OnMouseUp(self, event):
-        if self.stackView.runner and self.model.GetHandler("OnMouseUp"):
-            self.stackView.runner.RunHandler(self.model, "OnMouseUp", event)
+        if self.stackManager.runner and self.model.GetHandler("OnMouseUp"):
+            self.stackManager.runner.RunHandler(self.model, "OnMouseUp", event)
         event.Skip()
 
     def OnMouseEnter(self, event):
-        if self.stackView.runner and self.model.GetHandler("OnMouseEnter"):
-            self.stackView.runner.RunHandler(self.model, "OnMouseEnter", event)
+        if self.stackManager.runner and self.model.GetHandler("OnMouseEnter"):
+            self.stackManager.runner.RunHandler(self.model, "OnMouseEnter", event)
         event.Skip()
 
     def OnMouseExit(self, event):
-        if self.stackView.runner and self.model.GetHandler("OnMouseExit"):
-            self.stackView.runner.RunHandler(self.model, "OnMouseExit", event)
+        if self.stackManager.runner and self.model.GetHandler("OnMouseExit"):
+            self.stackManager.runner.RunHandler(self.model, "OnMouseExit", event)
         event.Skip()
 
     def OnIdle(self, event):
         if self.hasMouseMoved:
             self.hasMouseMoved = False
-            if self.stackView.runner and self.model.GetHandler("OnMouseMove"):
-                self.stackView.runner.RunHandler(self.model, "OnMouseMove", event)
+            if self.stackManager.runner and self.model.GetHandler("OnMouseMove"):
+                self.stackManager.runner.RunHandler(self.model, "OnMouseMove", event)
 
         # Determine elapsed time since last OnIdle call to this object
         elapsedTime = 0
@@ -177,11 +177,11 @@ class UiView(object):
                     if anim["onFinished"]:
                         wx.CallAfter(anim["onFinished"])
 
-            if self.stackView.runner and self.model.GetHandler("OnIdle"):
-                self.stackView.runner.RunHandler(self.model, "OnIdle", event, elapsedTime)
+            if self.stackManager.runner and self.model.GetHandler("OnIdle"):
+                self.stackManager.runner.RunHandler(self.model, "OnIdle", event, elapsedTime)
 
     def PaintSelectionBox(self, gc):
-        if self.isSelected and self.stackView.tool.name == "hand":
+        if self.isSelected and self.stackManager.tool.name == "hand":
             f = self.model.GetAbsoluteFrame()
             gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
@@ -216,7 +216,7 @@ class UiView(object):
     def MakeHitRegion(self):
         s = self.model.GetProperty("size")
         reg = wx.Region(wx.Rect(0, 0, s.width, s.height))
-        if self.stackView.isEditing and self.isSelected and self.stackView.tool.name == "hand":
+        if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
             reg.Union(wx.Region(self.GetResizeBoxRect().Inflate(2)))
         self.hitRegion = reg
 
@@ -243,7 +243,7 @@ class ViewModel(object):
     minSize = wx.Size(20, 20)
     reservedNames = helpData.HelpData.ReservedNames()
 
-    def __init__(self, stackView):
+    def __init__(self, stackManager):
         super().__init__()
         self.type = None
         self.parent = None
@@ -272,7 +272,7 @@ class ViewModel(object):
         self.propertyChoices = {}
 
         self.childModels = []
-        self.stackView = stackView
+        self.stackManager = stackManager
         self.isDirty = False
         self.proxy = None
         self.lastIdleTime = None
@@ -284,12 +284,12 @@ class ViewModel(object):
 
     def CreateCopy(self):
         data = self.GetData()
-        newModel = generator.StackGenerator.ModelFromData(self.stackView, data)
+        newModel = generator.StackGenerator.ModelFromData(self.stackManager, data)
         if newModel.type != "card":
-            newModel.SetProperty("name", self.stackView.uiCard.model.DeduplicateNameInCard(newModel.GetProperty("name")))
+            newModel.SetProperty("name", self.stackManager.uiCard.model.DeduplicateNameInCard(newModel.GetProperty("name")))
         else:
             newModel.SetProperty("name", newModel.DeduplicateName("card_1",
-                                                                  [m.GetProperty("name") for m in self.stackView.stackModel.childModels]))
+                                                                  [m.GetProperty("name") for m in self.stackManager.stackModel.childModels]))
         return newModel
 
     def GetType(self):
@@ -315,10 +315,10 @@ class ViewModel(object):
     def GetDirty(self):
         return self.isDirty
 
-    def SetStackView(self, stackView):
-        self.stackView = stackView
+    def SetStackView(self, stackManager):
+        self.stackManager = stackManager
         for m in self.childModels:
-            m.SetStackView(stackView)
+            m.SetStackView(stackManager)
 
     def GetAbsolutePosition(self):
         p = self.GetProperty("position")
@@ -472,7 +472,7 @@ class ViewModel(object):
             self.SetProperty("speed", cdsFramePart)
 
     def Notify(self, key):
-        self.stackView.OnPropertyChanged(self, key)
+        self.stackManager.OnPropertyChanged(self, key)
 
     def SetProperty(self, key, value, notify=True):
         if key in self.propertyTypes and self.propertyTypes[key] == "point" and not isinstance(value, wx.Point):
@@ -585,35 +585,35 @@ class ViewProxy(object):
         return super().__getattribute__(item)
 
     def SendMessage(self, message):
-        if self._model.stackView.runner:
-            self._model.stackView.runner.RunHandler(self._model, "OnMessage", None, message)
+        if self._model.stackManager.runner:
+            self._model.stackManager.runner.RunHandler(self._model, "OnMessage", None, message)
 
     def Focus(self):
-        if self._model.stackView.runner:
-            self._model.stackView.runner.SetFocus(self)
+        if self._model.stackManager.runner:
+            self._model.stackManager.runner.SetFocus(self)
 
     @property
     def hasFocus(self):
-        uiView = self._model.stackView.GetUiViewByModel(self._model)
+        uiView = self._model.stackManager.GetUiViewByModel(self._model)
         if uiView and uiView.view:
             return uiView.view.HasFocus()
 
     def Clone(self):
         newModel = self._model.CreateCopy()
         if newModel.type != "card":
-            self._model.stackView.AddUiViewsFromModels([newModel], False)
+            self._model.stackManager.AddUiViewsFromModels([newModel], False)
         else:
-            self._model.stackView.DuplicateCard()
+            self._model.stackManager.DuplicateCard()
         return newModel.GetProxy()
 
     def Delete(self):
         if self._model.type != "card":
-            self._model.stackView.RemoveUiViewByModel(self._model)
+            self._model.stackManager.RemoveUiViewByModel(self._model)
         else:
-            self._model.stackView.RemoveCard()
+            self._model.stackManager.RemoveCard()
 
-    def Cut(self): self._model.stackView.CutModels([self._model], False)
-    def Copy(self): self._model.stackView.CopyModels([self._model])
+    def Cut(self): self._model.stackManager.CutModels([self._model], False)
+    def Copy(self): self._model.stackManager.CopyModels([self._model])
     #   Paste is in the runner
 
     @property
@@ -677,8 +677,8 @@ class ViewProxy(object):
         return self._model.handlers
 
     def IsTouching(self, obj):
-        sreg = self._model.stackView.GetUiViewByModel(self._model).GetHitRegion()
-        oreg = self._model.stackView.GetUiViewByModel(obj._model).GetHitRegion()
+        sreg = self._model.stackManager.GetUiViewByModel(self._model).GetHitRegion()
+        oreg = self._model.stackManager.GetUiViewByModel(obj._model).GetHitRegion()
         sreg = wx.Region(sreg)
         oreg = wx.Region(oreg)
         sreg.Offset(*self._model.GetProperty("position"))

@@ -7,17 +7,17 @@ from uiView import *
 
 
 class UiTextLabel(UiView):
-    def __init__(self, parent, stackView, model=None):
+    def __init__(self, parent, stackManager, model=None):
         if not model:
-            model = TextLabelModel(stackView)
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("label_"), False)
+            model = TextLabelModel(stackManager)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("label_"), False)
 
-        self.stackView = stackView
-        self.label = self.CreateLabel(stackView, model)
+        self.stackManager = stackManager
+        self.label = self.CreateLabel(stackManager, model)
 
-        super().__init__(parent, stackView, model, self.label)
+        super().__init__(parent, stackManager, model, self.label)
 
-    def CreateLabel(self, stackView, model):
+    def CreateLabel(self, stackManager, model):
         if model:
             text = model.GetProperty("text")
             alignment = wx.ALIGN_LEFT
@@ -29,7 +29,7 @@ class UiTextLabel(UiView):
             text = "Text"
             alignment = wx.ALIGN_LEFT
 
-        label = wx.StaticText(parent=stackView, size=(60,20),
+        label = wx.StaticText(parent=stackManager.view, size=(60,20),
                               style=alignment|wx.ST_NO_AUTORESIZE)
         label.SetLabelText(text)
         familyName = model.GetProperty("font")
@@ -62,10 +62,10 @@ class UiTextLabel(UiView):
             self.label.SetForegroundColour(model.GetProperty(key))
             self.label.Refresh(True)
         elif key == "alignment":
-            self.stackView.SelectUiView(None)
+            self.stackManager.SelectUiView(None)
             self.doNotCache = True
-            self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
-            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.model))
+            self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
+            self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.model))
 
     def FamilyForName(self, name):
         if name == "Serif":
@@ -84,8 +84,8 @@ class UiTextLabel(UiView):
 
 
 class TextLabelModel(ViewModel):
-    def __init__(self, stackView):
-        super().__init__(stackView)
+    def __init__(self, stackManager):
+        super().__init__(stackManager)
         self.type = "textlabel"
         self.proxyClass = TextLabelProxy
 

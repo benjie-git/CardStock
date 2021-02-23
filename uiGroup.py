@@ -8,13 +8,13 @@ import generator
 
 
 class UiGroup(UiView):
-    def __init__(self, parent, stackView, model):
+    def __init__(self, parent, stackManager, model):
         if not model.GetProperty("name"):
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("group_"), False)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("group_"), False)
 
         self.uiViews = []
 
-        super().__init__(parent, stackView, model, None)
+        super().__init__(parent, stackManager, model, None)
 
     def SetModel(self, model):
         super().SetModel(model)
@@ -48,7 +48,7 @@ class UiGroup(UiView):
         return None
 
     def MakeHitRegion(self):
-        if self.stackView.isEditing:
+        if self.stackManager.isEditing:
             # The group's whole rect is a click target while editing
             super().MakeHitRegion()
         else:
@@ -61,7 +61,7 @@ class UiGroup(UiView):
             self.hitRegion = reg
 
     def Paint(self, gc):
-        if self.stackView.isEditing:
+        if self.stackManager.isEditing:
             gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
             gc.DrawRectangle(self.model.GetAbsoluteFrame())
@@ -82,7 +82,7 @@ class UiGroup(UiView):
     def RemoveChildViews(self):
         for ui in self.uiViews.copy():
             if ui.view:
-                self.stackView.RemoveChild(ui.view)
+                self.stackManager.view.RemoveChild(ui.view)
                 ui.view.Destroy()
             if ui.model.type == "group":
                 ui.RemoveChildViews()
@@ -91,11 +91,11 @@ class UiGroup(UiView):
     def RebuildViews(self):
         for ui in self.uiViews.copy():
             if ui.view:
-                self.stackView.RemoveChild(ui.view)
+                self.stackManager.view.RemoveChild(ui.view)
                 ui.view.Destroy()
             self.uiViews.remove(ui)
         for m in self.model.childModels.copy():
-            uiView = generator.StackGenerator.UiViewFromModel(self, self.stackView, m)
+            uiView = generator.StackGenerator.UiViewFromModel(self, self.stackManager, m)
             self.uiViews.append(uiView)
 
     def OnIdle(self, event):
@@ -105,8 +105,8 @@ class UiGroup(UiView):
 
 
 class GroupModel(ViewModel):
-    def __init__(self, stackView):
-        super().__init__(stackView)
+    def __init__(self, stackManager):
+        super().__init__(stackManager)
         self.type = "group"
         self.origFrame = None
         self.proxyClass = ProxyGroup
@@ -151,7 +151,7 @@ class GroupModel(ViewModel):
     def SetData(self, data):
         super().SetData(data)
         for childData in data["childModels"]:
-            model = generator.StackGenerator.ModelFromData(self.stackView, childData)
+            model = generator.StackGenerator.ModelFromData(self.stackManager, childData)
             model.parent = self
             self.childModels.append(model)
             model.origGroupSubviewFrame = model.GetFrame()

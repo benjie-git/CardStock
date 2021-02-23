@@ -13,7 +13,7 @@ import json
 import configparser
 import wx
 from tools import *
-from stackWindow import StackWindow
+from stackManager import StackManager
 from controlPanel import ControlPanel
 from viewer import ViewerFrame
 import helpDialogs
@@ -52,7 +52,7 @@ class DesignerFrame(wx.Frame):
     """
     A stackFrame contains a stackWindow and a ControlPanel and manages
     their layout with a wx.BoxSizer.  A menu and associated event handlers
-    provides for saving a stackView to a file, etc.
+    provides for saving a stackManager to a file, etc.
     """
     title = "CardStock"
 
@@ -95,10 +95,10 @@ class DesignerFrame(wx.Frame):
         self.stackContainer = wx.Window(self.splitter)
         self.stackContainer.SetBackgroundColour("#E0E0E0")
         self.stackContainer.Bind(wx.EVT_SET_FOCUS, self.OnStackContainerFocus)
-        self.stackView = StackWindow(self.stackContainer, -1, None)
-        self.stackView.SetDesigner(self)
+        self.stackManager = StackManager(self.stackContainer)
+        self.stackManager.SetDesigner(self)
 
-        self.stackView.command_processor.SetEditMenu(self.editMenu)
+        self.stackManager.command_processor.SetEditMenu(self.editMenu)
         self.stackContainer.Bind(wx.EVT_LEFT_DOWN, self.FwdOnMouseDown)
         self.stackContainer.Bind(wx.EVT_LEFT_DCLICK, self.FwdOnMouseDown)
         self.stackContainer.Bind(wx.EVT_MOVE, self.FwdOnMouseMove)
@@ -106,7 +106,7 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_KEY_DOWN, self.FwdOnKeyDown)
         self.Bind(wx.EVT_KEY_UP, self.FwdOnKeyUp)
 
-        self.cPanel = ControlPanel(self.splitter, -1, self.stackView)
+        self.cPanel = ControlPanel(self.splitter, -1, self.stackManager)
         self.cPanel.Bind(wx.EVT_KEY_DOWN, self.FwdOnKeyDown)
         self.cPanel.Bind(wx.EVT_KEY_UP, self.FwdOnKeyUp)
 
@@ -121,36 +121,36 @@ class DesignerFrame(wx.Frame):
         self.cPanel.SetToolByName("hand")
 
         self.findDlg = None
-        self.findEngine = FindEngine(self.stackView)
+        self.findEngine = FindEngine(self.stackManager)
 
         self.viewer = None
         self.NewFile()
 
     def NewFile(self):
         self.filename = None
-        stackModel = StackModel(self.stackView)
-        newCard = CardModel(self.stackView)
+        stackModel = StackModel(self.stackManager)
+        newCard = CardModel(self.stackManager)
         newCard.SetProperty("name", newCard.DeduplicateName("card_1",
                                                             [m.GetProperty("name") for m in stackModel.childModels]), False)
         stackModel.AppendCardModel(newCard)
-        self.stackView.SetStackModel(stackModel)
-        self.stackView.SetEditing(True)
+        self.stackManager.SetStackModel(stackModel)
+        self.stackManager.SetEditing(True)
         self.Layout()
-        stackModel.SetProperty("size", self.stackView.GetSize())
-        self.stackView.stackModel.SetDirty(False)
-        self.stackView.SelectUiView(self.stackView.uiCard)
-        self.stackView.SetFocus()
+        stackModel.SetProperty("size", self.stackManager.view.GetSize())
+        self.stackManager.stackModel.SetDirty(False)
+        self.stackManager.SelectUiView(self.stackManager.uiCard)
+        self.stackManager.view.SetFocus()
         self.SetFrameSizeFromModel()
         self.UpdateCardList()
 
     def SaveFile(self):
         if self.filename:
-            data = self.stackView.stackModel.GetData()
+            data = self.stackManager.stackModel.GetData()
             try:
                 jsonData = json.dumps(data, indent=2)
                 with open(self.filename, 'w') as f:
                     f.write(jsonData)
-                self.stackView.stackModel.SetDirty(False)
+                self.stackManager.stackModel.SetDirty(False)
             except TypeError:
                 # e = sys.exc_info()
                 # print(e)
@@ -162,17 +162,17 @@ class DesignerFrame(wx.Frame):
                 with open(filename, 'r') as f:
                     data = json.load(f)
                 if data:
-                    stackModel = StackModel(self.stackView)
+                    stackModel = StackModel(self.stackManager)
                     stackModel.SetData(data)
-                    self.stackView.SetDesigner(self)
+                    self.stackManager.SetDesigner(self)
                     self.filename = filename
-                    self.stackView.filename = filename
-                    self.stackView.SetStackModel(stackModel)
-                    self.stackView.SetEditing(True)
-                    self.stackView.SelectUiView(self.stackView.uiCard)
+                    self.stackManager.filename = filename
+                    self.stackManager.SetStackModel(stackModel)
+                    self.stackManager.SetEditing(True)
+                    self.stackManager.SelectUiView(self.stackManager.uiCard)
                     self.SetFrameSizeFromModel()
                     self.UpdateCardList()
-                    self.stackView.SetFocus()
+                    self.stackManager.view.SetFocus()
                     self.SetTitle(self.title + ' -- ' + os.path.basename(self.filename))
                     self.WriteConfig()
                     self.cPanel.SetToolByName("hand")
@@ -183,34 +183,34 @@ class DesignerFrame(wx.Frame):
 
 
     def SetFrameSizeFromModel(self):
-        self.stackContainer.SetSize(self.stackView.GetSize())
-        clientSize = (self.stackView.GetSize().Width + self.splitter.GetSashSize() + self.cPanel.GetSize().Width,
-                      self.stackView.GetSize().Height)
+        self.stackContainer.SetSize(self.stackManager.view.GetSize())
+        clientSize = (self.stackManager.view.GetSize().Width + self.splitter.GetSashSize() + self.cPanel.GetSize().Width,
+                      self.stackManager.view.GetSize().Height)
         self.splitter.SetSize(clientSize)
         self.SetClientSize(clientSize)
-        self.splitter.SetSashPosition(self.stackView.GetSize().Width)
+        self.splitter.SetSashPosition(self.stackManager.view.GetSize().Width)
 
     def SetSelectedUiViews(self, views):
         self.cPanel.UpdateForUiViews(views)
 
     def UpdateSelectedUiViews(self):
-        self.cPanel.UpdateInspectorForUiViews(self.stackView.GetSelectedUiViews())
-        self.cPanel.UpdateHandlerForUiViews(self.stackView.GetSelectedUiViews(), None)
+        self.cPanel.UpdateInspectorForUiViews(self.stackManager.GetSelectedUiViews())
+        self.cPanel.UpdateHandlerForUiViews(self.stackManager.GetSelectedUiViews(), None)
 
     def FwdOnMouseDown(self, event):
-        self.stackView.OnMouseDown(self.stackView.uiCard, event)
+        self.stackManager.OnMouseDown(self.stackManager.uiCard, event)
 
     def FwdOnMouseMove(self, event):
-        self.stackView.OnMouseMove(self.stackView.uiCard, event)
+        self.stackManager.OnMouseMove(self.stackManager.uiCard, event)
 
     def FwdOnMouseUp(self, event):
-        self.stackView.OnMouseUp(self.stackView.uiCard, event)
+        self.stackManager.OnMouseUp(self.stackManager.uiCard, event)
 
     def FwdOnKeyDown(self, event):
-        self.stackView.OnKeyDown(None, event)
+        self.stackManager.OnKeyDown(None, event)
 
     def FwdOnKeyUp(self, event):
-        self.stackView.OnKeyUp(None, event)
+        self.stackManager.OnKeyUp(None, event)
 
     def MakeMenu(self):
         # create the file menu
@@ -323,7 +323,7 @@ class DesignerFrame(wx.Frame):
     wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
 
     def OnMenuNew(self, event):
-        if self.stackView.stackModel.GetDirty():
+        if self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before starting a New file?", wx.YES_NO | wx.CANCEL).ShowModal()
             if r == wx.ID_CANCEL:
@@ -335,7 +335,7 @@ class DesignerFrame(wx.Frame):
         self.SetTitle(self.title)
 
     def OnMenuOpen(self, event):
-        if self.stackView.stackModel.GetDirty():
+        if self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before Opening a file?", wx.YES_NO | wx.CANCEL).ShowModal()
             if r == wx.ID_CANCEL:
@@ -365,7 +365,7 @@ class DesignerFrame(wx.Frame):
             if not os.path.splitext(filename)[1]:
                 filename = filename + '.cds'
             self.filename = filename
-            self.stackView.filename = filename
+            self.stackManager.filename = filename
             self.SaveFile()
             self.SetTitle(self.title + ' -- ' + self.filename)
             self.WriteConfig()
@@ -375,7 +375,7 @@ class DesignerFrame(wx.Frame):
         if self.viewer:
             self.viewer.Destroy()
 
-        data = self.stackView.stackModel.GetData()
+        data = self.stackManager.stackModel.GetData()
         stackModel = StackModel(None)
         stackModel.SetData(data)
 
@@ -388,9 +388,9 @@ class DesignerFrame(wx.Frame):
         self.viewer.RunViewer()
 
     def OnViewerSave(self, stackModel):
-        newModel = StackModel(self.stackView)
+        newModel = StackModel(self.stackManager)
         newModel.SetData(stackModel.GetData())
-        self.stackView.SetStackModel(newModel)
+        self.stackManager.SetStackModel(newModel)
 
     def OnViewerClose(self, event):
         self.viewer.Destroy()
@@ -398,7 +398,7 @@ class DesignerFrame(wx.Frame):
         self.Show()
 
     def OnMenuExit(self, event):
-        if self.stackView.stackModel.GetDirty():
+        if self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before Quitting?", wx.YES_NO | wx.CANCEL).ShowModal()
             if r == wx.ID_CANCEL:
@@ -412,99 +412,93 @@ class DesignerFrame(wx.Frame):
         self.Close()
 
     def OnMenuGroup(self, event):
-        self.stackView.GroupSelectedViews()
+        self.stackManager.GroupSelectedViews()
 
     def OnMenuUngroup(self, event):
-        self.stackView.UngroupSelectedViews()
+        self.stackManager.UngroupSelectedViews()
 
     def OnMenuMoveView(self, event):
         if event.GetId() == ID_MOVE_VIEW_FRONT:
-            self.stackView.ReorderSelectedViews("front")
+            self.stackManager.ReorderSelectedViews("front")
         elif event.GetId() == ID_MOVE_VIEW_FWD:
-            self.stackView.ReorderSelectedViews("fwd")
+            self.stackManager.ReorderSelectedViews("fwd")
         elif event.GetId() == ID_MOVE_VIEW_BACK:
-            self.stackView.ReorderSelectedViews("back")
+            self.stackManager.ReorderSelectedViews("back")
         elif event.GetId() == ID_MOVE_VIEW_END:
-            self.stackView.ReorderSelectedViews("end")
+            self.stackManager.ReorderSelectedViews("end")
 
     def OnMenuMoveCard(self, event):
         if event.GetId() == ID_MOVE_CARD_FWD:
-            self.stackView.ReorderCurrentCard("fwd")
+            self.stackManager.ReorderCurrentCard("fwd")
         elif event.GetId() == ID_MOVE_CARD_BACK:
-            self.stackView.ReorderCurrentCard("back")
+            self.stackManager.ReorderCurrentCard("back")
 
     def OnMenuNextCard(self, event):
-        index = self.stackView.cardIndex+1
-        if index < len(self.stackView.stackModel.childModels):
-            self.stackView.LoadCardAtIndex(index)
+        index = self.stackManager.cardIndex+1
+        if index < len(self.stackManager.stackModel.childModels):
+            self.stackManager.LoadCardAtIndex(index)
 
     def OnMenuPrevCard(self, event):
-        index = self.stackView.cardIndex-1
+        index = self.stackManager.cardIndex-1
         if index >= 0:
-            self.stackView.LoadCardAtIndex(index)
+            self.stackManager.LoadCardAtIndex(index)
 
     def OnMenuAddCard(self, event):
-        self.stackView.AddCard()
+        self.stackManager.AddCard()
 
     def OnMenuDuplicateCard(self, event):
-        self.stackView.DuplicateCard()
+        self.stackManager.DuplicateCard()
 
     def OnMenuRemoveCard(self, event):
-        self.stackView.RemoveCard()
+        self.stackManager.RemoveCard()
 
     def OnPickCard(self, event):
-        self.stackView.LoadCardAtIndex(event.GetSelection())
+        self.stackManager.LoadCardAtIndex(event.GetSelection())
 
     def UpdateCardList(self):
         choices = []
         i = 1
-        numCards = len(self.stackView.stackModel.childModels)
-        for m in self.stackView.stackModel.childModels:
+        numCards = len(self.stackManager.stackModel.childModels)
+        for m in self.stackManager.stackModel.childModels:
             choices.append(f"Card {i} of {numCards}: {m.GetProperty('name')}")
             i += 1
         self.cardPicker.SetItems(choices)
-        self.cardPicker.SetSelection(self.stackView.cardIndex)
+        self.cardPicker.SetSelection(self.stackManager.cardIndex)
 
     def OnStackContainerFocus(self, event):
-        self.stackView.SetFocus()
+        self.stackManager.view.SetFocus()
 
-    def GetDesiredFocus(self):
+    def GetDesiredFocus(self, allowEditors):
         f = self.FindFocus()
-        if f == self.cPanel.inspector: f = self.stackView
-        if f == self.cPanel.codeEditor: f = self.stackView
+        views = [self.stackContainer, self.stackManager.view, self.splitter, self.cPanel.inspector, self.cPanel.codeEditor]
+        if allowEditors:
+            views = [self.stackContainer, self.stackManager.view, self.splitter]
+        if f in views:
+            f = self.stackManager
         return f
 
     def OnSelectAll(self, event):
-        f = self.FindFocus()
-        if f == self.stackView:
-            self.stackView.SelectAll()
-        elif f and hasattr(f, "SelectAll"):
+        f = self.GetDesiredFocus(True)
+        if f and hasattr(f, "SelectAll"):
             f.SelectAll()
 
     def OnCut(self, event):
-        f = self.FindFocus()
-        if f == self.stackView:
-            self.stackView.CutSelectedViews()
-        elif f and hasattr(f, "Cut"):
+        f = self.GetDesiredFocus(True)
+        if f and hasattr(f, "Cut"):
             f.Cut()
 
     def OnCopy(self, event):
-        f = self.FindFocus()
-        if f == self.stackView:
-            self.stackView.CopySelectedViews()
-        elif f and hasattr(f, "Copy"):
+        f = self.GetDesiredFocus(True)
+        if f and hasattr(f, "Copy"):
             f.Copy()
 
     def OnPaste(self, event):
-        f = self.FindFocus()
-        if f == self.stackView:
-            self.stackView.PasteViews()
-        elif f and hasattr(f, "Paste"):
+        f = self.GetDesiredFocus(True)
+        if f and hasattr(f, "Paste"):
             f.Paste()
 
     def OnUndo(self, event):
-        f = self.GetDesiredFocus()
-        if f == self.splitter: f = self.stackView
+        f = self.GetDesiredFocus(False)
         if f and hasattr(f, "Undo"):
             if not hasattr(f, "CanUndo") or f.CanUndo():
                 f.Undo()
@@ -512,9 +506,7 @@ class DesignerFrame(wx.Frame):
         event.Skip()
 
     def OnRedo(self, event):
-        f = self.GetDesiredFocus()
-        if f == self.splitter: f = self.stackView
-        if f == self.cPanel.codeEditor: f = self.stackView
+        f = self.GetDesiredFocus(False)
         if f and hasattr(f, "Redo"):
             if not hasattr(f, "CanRedo") or f.CanRedo():
                 f.Redo()

@@ -3,9 +3,11 @@
   "handlers": {},
   "properties": {
     "size": [
-      500,
-      500
-    ]
+      463,
+      381
+    ],
+    "canSave": false,
+    "canResize": false
   },
   "cards": [
     {
@@ -30,8 +32,8 @@
               21
             ],
             "position": [
-              187,
-              71
+              187.0,
+              71.0
             ],
             "title": "Get it",
             "border": true
@@ -47,8 +49,8 @@
               173
             ],
             "position": [
-              106,
-              144
+              106.0,
+              144.0
             ],
             "text": "Want to hear a joke?",
             "alignment": "Left",
@@ -59,5 +61,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 1
+  "CardStock_stack_format": 1,
+  "CardStock_stack_version": "0.7"
 }

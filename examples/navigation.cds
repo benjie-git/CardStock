@@ -5,7 +5,9 @@
     "size": [
       500,
       500
-    ]
+    ],
+    "canSave": false,
+    "canResize": false
   },
   "cards": [
     {
@@ -100,38 +102,18 @@
           "properties": {
             "name": "label_1",
             "size": [
-              397,
-              53
+              280,
+              129
             ],
             "position": [
               54.0,
               40.0
             ],
-            "text": "Choose a Math Operation",
+            "text": "Choose a Math Operation to Practice",
             "alignment": "Left",
             "textColor": "red",
-            "font": "Helvetica",
-            "fontSize": 30
-          }
-        },
-        {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
-            "name": "label_2",
-            "size": [
-              182,
-              43
-            ],
-            "position": [
-              57.0,
-              100.0
-            ],
-            "text": "To Practice",
-            "alignment": "Left",
-            "textColor": "red",
-            "font": "Helvetica",
-            "fontSize": 30
+            "font": "Default",
+            "fontSize": 24
           }
         }
       ]
@@ -192,17 +174,17 @@
           "properties": {
             "name": "op",
             "size": [
-              30,
-              25
+              31,
+              32
             ],
             "position": [
-              213.0,
-              158.0
+              209.0,
+              153.0
             ],
             "text": "+",
             "alignment": "Left",
             "textColor": "black",
-            "font": "Helvetica",
+            "font": "Default",
             "fontSize": "18"
           }
         },
@@ -212,18 +194,18 @@
           "properties": {
             "name": "label_2",
             "size": [
-              60,
-              20
+              64,
+              30
             ],
             "position": [
-              242.0,
+              238.0,
               159.0
             ],
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
-            "font": "Helvetica",
-            "fontSize": "18"
+            "font": "Default",
+            "fontSize": 16
           }
         },
         {
@@ -232,18 +214,18 @@
           "properties": {
             "name": "label_1",
             "size": [
-              60,
-              20
+              64,
+              30
             ],
             "position": [
-              242.0,
+              238.0,
               123.0
             ],
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
-            "font": "Helvetica",
-            "fontSize": "18"
+            "font": "Default",
+            "fontSize": 16
           }
         }
       ]
@@ -251,7 +233,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "label_1.text = randint(0,100)\nlabel_2.text = randint(0,100)\n\nanswer.text = \"\"\nanswer.Focus()\n"
+        "OnShowCard": "num1 = randint(0,100)\nnum2 = randint(0,num1)\nlabel_1.text = num1\nlabel_2.text = num2\n\nanswer.text = \"\"\nanswer.Focus()\n"
       },
       "properties": {
         "name": "minus",
@@ -314,7 +296,7 @@
             "text": "-",
             "alignment": "Left",
             "textColor": "black",
-            "font": "Helvetica",
+            "font": "Default",
             "fontSize": "18"
           }
         },
@@ -325,7 +307,7 @@
             "name": "label_2",
             "size": [
               60,
-              20
+              30
             ],
             "position": [
               242.0,
@@ -334,8 +316,8 @@
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
-            "font": "Helvetica",
-            "fontSize": "18"
+            "font": "Default",
+            "fontSize": 16
           }
         },
         {
@@ -345,7 +327,7 @@
             "name": "label_1",
             "size": [
               60,
-              20
+              28
             ],
             "position": [
               242.0,
@@ -354,8 +336,120 @@
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
-            "font": "Helvetica",
+            "font": "Default",
+            "fontSize": 16
+          }
+        }
+      ]
+    },
+    {
+      "type": "card",
+      "handlers": {
+        "OnShowCard": "label_1.text = randint(0,100)\nlabel_2.text = randint(0,100)\n\nanswer.text = \"\"\nanswer.Focus()\n"
+      },
+      "properties": {
+        "name": "minus_1",
+        "bgColor": "#DDCCBB"
+      },
+      "childModels": [
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoCard(\"home\")"
+          },
+          "properties": {
+            "name": "button_1",
+            "size": [
+              84,
+              21
+            ],
+            "position": [
+              11.0,
+              12.0
+            ],
+            "title": "Home",
+            "border": true
+          }
+        },
+        {
+          "type": "textfield",
+          "handlers": {
+            "OnTextEnter": "num1 = int(label_1.text)\nnum2 = int(label_2.text)\nansNum = int(answer.text)\n\nif ansNum == num1 - num2:\n   lastCardName = \"minus\"\n   GotoCard(\"correct\")\nelse:\n   Alert(\"Hmmm.. Not quite right.  Try again!\")\n   self.text = \"\"\n"
+          },
+          "properties": {
+            "name": "answer",
+            "size": [
+              105,
+              22
+            ],
+            "position": [
+              198.0,
+              203.0
+            ],
+            "text": "0",
+            "alignment": "Right",
+            "editable": true,
+            "multiline": false
+          }
+        },
+        {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "op",
+            "size": [
+              30,
+              25
+            ],
+            "position": [
+              213.0,
+              158.0
+            ],
+            "text": "-",
+            "alignment": "Left",
+            "textColor": "black",
+            "font": "Default",
             "fontSize": "18"
+          }
+        },
+        {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "label_2",
+            "size": [
+              60,
+              30
+            ],
+            "position": [
+              242.0,
+              159.0
+            ],
+            "text": "0",
+            "alignment": "Right",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 16
+          }
+        },
+        {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "label_1",
+            "size": [
+              60,
+              28
+            ],
+            "position": [
+              242.0,
+              123.0
+            ],
+            "text": "0",
+            "alignment": "Right",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 16
           }
         }
       ]
@@ -426,7 +520,7 @@
             "text": "X",
             "alignment": "Left",
             "textColor": "black",
-            "font": "Helvetica",
+            "font": "Default",
             "fontSize": "18"
           }
         },
@@ -436,18 +530,18 @@
           "properties": {
             "name": "label_2",
             "size": [
-              60,
-              20
+              61,
+              30
             ],
             "position": [
-              242.0,
+              241.0,
               159.0
             ],
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
-            "font": "Helvetica",
-            "fontSize": "18"
+            "font": "Default",
+            "fontSize": 16
           }
         },
         {
@@ -457,7 +551,7 @@
             "name": "label_1",
             "size": [
               60,
-              20
+              29
             ],
             "position": [
               242.0,
@@ -466,8 +560,8 @@
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
-            "font": "Helvetica",
-            "fontSize": "18"
+            "font": "Default",
+            "fontSize": 16
           }
         }
       ]
@@ -538,7 +632,7 @@
             "text": "/",
             "alignment": "Left",
             "textColor": "black",
-            "font": "Helvetica",
+            "font": "Default",
             "fontSize": "18"
           }
         },
@@ -549,7 +643,7 @@
             "name": "label_2",
             "size": [
               60,
-              20
+              29
             ],
             "position": [
               242.0,
@@ -558,8 +652,8 @@
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
-            "font": "Helvetica",
-            "fontSize": "18"
+            "font": "Default",
+            "fontSize": 16
           }
         },
         {
@@ -569,7 +663,7 @@
             "name": "label_1",
             "size": [
               60,
-              20
+              28
             ],
             "position": [
               242.0,
@@ -578,8 +672,8 @@
             "text": "0",
             "alignment": "Right",
             "textColor": "black",
-            "font": "Helvetica",
-            "fontSize": "18"
+            "font": "Default",
+            "fontSize": 16
           }
         }
       ]
@@ -600,8 +694,8 @@
           "properties": {
             "name": "label_1",
             "size": [
-              198,
-              49
+              396,
+              64
             ],
             "position": [
               41.0,
@@ -620,8 +714,8 @@
           "properties": {
             "name": "label_2",
             "size": [
-              202,
-              53
+              405,
+              85
             ],
             "position": [
               38.0,
@@ -630,12 +724,13 @@
             "text": "You did it!",
             "alignment": "Center",
             "textColor": "green",
-            "font": "Helvetica",
+            "font": "Default",
             "fontSize": 35
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 1
+  "CardStock_stack_format": 1,
+  "CardStock_stack_version": "0.7"
 }

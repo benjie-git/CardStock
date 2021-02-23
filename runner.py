@@ -13,8 +13,8 @@ except ModuleNotFoundError:
 
 
 class Runner():
-    def __init__(self, stackView, sb=None):
-        self.stackView = stackView
+    def __init__(self, stackManager, sb=None):
+        self.stackManager = stackManager
         self.statusBar = sb
         self.cardVarKeys = []  # store names of views on the current card, to remove from clientVars before setting up the next card
         self.pressedKeys = []
@@ -38,7 +38,7 @@ class Runner():
             "BroadcastMessage": self.BroadcastMessage,
             "IsKeyPressed": self.IsKeyPressed,
             "IsMouseDown": self.IsMouseDown,
-            "stack": self.stackView.stackModel.GetProxy(),
+            "stack": self.stackManager.stackModel.GetProxy(),
         }
 
         self.keyCodeStringMap = {
@@ -114,7 +114,7 @@ class Runner():
             self.clientVars["elapsedTime"] = arg
 
         if event and handlerName.startswith("OnMouse"):
-            mousePos = self.stackView.ScreenToClient(wx.GetMousePosition())
+            mousePos = self.stackManager.view.ScreenToClient(wx.GetMousePosition())
             if "mousePos" in self.clientVars:
                 oldVars["mousePos"] = self.clientVars["mousePos"]
             else:
@@ -191,58 +191,58 @@ class Runner():
         Sound.Stop()
 
     def SetFocus(self, obj):
-        uiView = self.stackView.GetUiViewByModel(obj._model)
+        uiView = self.stackManager.GetUiViewByModel(obj._model)
         if uiView:
             uiView.view.SetFocus()
 
     # --------- User-accessible view functions -----------
 
     def BroadcastMessage(self, message):
-        self.RunHandler(self.stackView.uiCard.model, "OnMessage", None, message)
-        for ui in self.stackView.GetAllUiViews():
+        self.RunHandler(self.stackManager.uiCard.model, "OnMessage", None, message)
+        for ui in self.stackManager.GetAllUiViews():
             self.RunHandler(ui.model, "OnMessage", None, message)
 
     def GotoCard(self, cardName):
         index = None
-        for m in self.stackView.stackModel.childModels:
+        for m in self.stackManager.stackModel.childModels:
             if m.GetProperty("name") == cardName:
-                index = self.stackView.stackModel.childModels.index(m)
+                index = self.stackManager.stackModel.childModels.index(m)
         if index is not None:
-            self.stackView.LoadCardAtIndex(index)
+            self.stackManager.LoadCardAtIndex(index)
 
     def GotoCardNumber(self, cardIndex):
-        if cardIndex > 0 and cardIndex <= len(self.stackView.stackModel.childModels):
-            self.stackView.LoadCardAtIndex(cardIndex-1)
+        if cardIndex > 0 and cardIndex <= len(self.stackManager.stackModel.childModels):
+            self.stackManager.LoadCardAtIndex(cardIndex-1)
 
     def GotoNextCard(self):
-        cardIndex = self.stackView.cardIndex + 1
-        if cardIndex >= len(self.stackView.stackModel.childModels): cardIndex = 0
-        self.stackView.LoadCardAtIndex(cardIndex)
+        cardIndex = self.stackManager.cardIndex + 1
+        if cardIndex >= len(self.stackManager.stackModel.childModels): cardIndex = 0
+        self.stackManager.LoadCardAtIndex(cardIndex)
 
     def GotoPreviousCard(self):
-        cardIndex = self.stackView.cardIndex - 1
-        if cardIndex < 0: cardIndex = len(self.stackView.stackModel.childModels) - 1
-        self.stackView.LoadCardAtIndex(cardIndex)
+        cardIndex = self.stackManager.cardIndex - 1
+        if cardIndex < 0: cardIndex = len(self.stackManager.stackModel.childModels) - 1
+        self.stackManager.LoadCardAtIndex(cardIndex)
 
     def Wait(self, delay):
-        self.stackView.RefreshNow()
+        self.stackManager.RefreshNow()
         sleep(delay)
 
     def Time(self):
         return time()
 
     def Alert(self, message):
-        self.stackView.RefreshNow()
+        self.stackManager.RefreshNow()
         wx.MessageDialog(None, str(message), "", wx.OK).ShowModal()
 
     def Ask(self, message):
-        self.stackView.RefreshNow()
+        self.stackManager.RefreshNow()
         r = wx.MessageDialog(None, str(message), "", wx.YES_NO).ShowModal()
         return (r == wx.ID_YES)
 
     def PlaySound(self, filepath):
-        if filepath and self.stackView.filename:
-            dir = os.path.dirname(self.stackView.filename)
+        if filepath and self.stackManager.filename:
+            dir = os.path.dirname(self.stackManager.filename)
             filepath = os.path.join(dir, filepath)
         if filepath in self.soundCache:
             s = self.soundCache[filepath]
@@ -269,7 +269,7 @@ class Runner():
                     s.Stop()
 
     def Paste(self):
-        models = self.stackView.PasteViews(False)
+        models = self.stackManager.Paste(False)
         return [m.GetProxy() for m in models]
 
     def IsKeyPressed(self, name):

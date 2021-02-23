@@ -6,8 +6,8 @@ from uiCard import CardModel
 import version
 
 class StackModel(ViewModel):
-    def __init__(self, stackView):
-        super().__init__(stackView)
+    def __init__(self, stackManager):
+        super().__init__(stackManager)
         self.type = "stack"
         self.proxyClass = StackProxy
 
@@ -61,7 +61,7 @@ class StackModel(ViewModel):
         super().SetData(stackData)
         self.childModels = []
         for data in stackData["cards"]:
-            m = CardModel(self.stackView)
+            m = CardModel(self.stackManager)
             m.SetData(data)
             self.AppendCardModel(m)
 

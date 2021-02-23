@@ -7,15 +7,15 @@ from uiView import *
 
 
 class UiButton(UiView):
-    def __init__(self, parent, stackView, model=None):
+    def __init__(self, parent, stackManager, model=None):
         if not model:
-            model = ButtonModel(stackView)
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("button_"), False)
+            model = ButtonModel(stackManager)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("button_"), False)
 
-        self.stackView = stackView
-        self.button = self.CreateButton(stackView, model)
+        self.stackManager = stackManager
+        self.button = self.CreateButton(stackManager, model)
 
-        super().__init__(parent, stackView, model, self.button)
+        super().__init__(parent, stackManager, model, self.button)
 
     def GetCursor(self):
         return wx.CURSOR_HAND
@@ -24,8 +24,8 @@ class UiButton(UiView):
         if view == self.view:
             super().BindEvents(self.button)
 
-    def CreateButton(self, stackView, model):
-        button = wx.Button(parent=stackView, label="Button",
+    def CreateButton(self, stackManager, model):
+        button = wx.Button(parent=stackManager.view, label="Button",
                          style=(wx.BORDER_DEFAULT if model.GetProperty("border") else wx.BORDER_NONE))
         button.SetLabel(model.GetProperty("title"))
         button.Bind(wx.EVT_BUTTON, self.OnButton)
@@ -38,10 +38,10 @@ class UiButton(UiView):
         if key == "title":
             self.button.SetLabel(str(self.model.GetProperty(key)))
         elif key == "border":
-            self.stackView.SelectUiView(None)
+            self.stackManager.SelectUiView(None)
             self.doNotCache = True
-            self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
-            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.model))
+            self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
+            self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.model))
 
     def OnKeyDown(self, event):
         if event.GetKeyCode() in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
@@ -49,14 +49,14 @@ class UiButton(UiView):
         event.Skip()
 
     def OnButton(self, event):
-        if not self.stackView.isEditing:
-            if self.stackView.runner and self.model.GetHandler("OnClick"):
-                self.stackView.runner.RunHandler(self.model, "OnClick", event)
+        if not self.stackManager.isEditing:
+            if self.stackManager.runner and self.model.GetHandler("OnClick"):
+                self.stackManager.runner.RunHandler(self.model, "OnClick", event)
 
 
 class ButtonModel(ViewModel):
-    def __init__(self, stackView):
-        super().__init__(stackView)
+    def __init__(self, stackManager):
+        super().__init__(stackManager)
         self.type = "button"
         self.proxyClass = ProxyButton
 
@@ -91,5 +91,5 @@ class ProxyButton(ViewProxy):
         self._model.SetProperty("border", val)
 
     def DoClick(self):
-        if self._model.stackView.runner:
-            self._model.stackView.runner.RunHandler(self._model, "OnClick", None)
+        if self._model.stackManager.runner:
+            self._model.stackManager.runner.RunHandler(self._model, "OnClick", None)

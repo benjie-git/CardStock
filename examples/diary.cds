@@ -7,7 +7,7 @@
       500
     ],
     "canSave": true,
-    "canResize": true
+    "canResize": false
   },
   "cards": [
     {
@@ -16,7 +16,7 @@
         "OnShowCard": "i = card.index+1\ntotal = stack.numCards\ncardNum.text = str(i) + '/' + str(total)\nfield.Focus()\n"
       },
       "properties": {
-        "name": "card_3",
+        "name": "card_1",
         "bgColor": "#C4ACA9"
       },
       "childModels": [

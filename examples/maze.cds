@@ -6,7 +6,8 @@
       519,
       506
     ],
-    "canSave": false
+    "canSave": false,
+    "canResize": false
   },
   "cards": [
     {
@@ -397,5 +398,5 @@
     }
   ],
   "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.6"
+  "CardStock_stack_version": "0.7"
 }

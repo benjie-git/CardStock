@@ -27,9 +27,9 @@ class ControlPanel(wx.Panel):
     tooltips = ["Hand", "Button", "Text Field", "Text Label", "Image",
                 "Pen", "Oval", "Rectangle", "Round Rectangle", "Line"]
 
-    def __init__(self, parent, ID, stackView):
+    def __init__(self, parent, ID, stackManager):
         wx.Panel.__init__(self, parent, ID, style=wx.RAISED_BORDER)
-        self.stackView = stackView
+        self.stackManager = stackManager
         self.penColor = wx.Colour("black")
         self.fillColor = wx.Colour("white")
         self.penThickness = 4
@@ -85,7 +85,7 @@ class ControlPanel(wx.Panel):
         self.thknsBtns[4].SetToggle(True)
 
         # Make a color indicator view, it is registerd as a listener
-        # with the stackView view so it will be notified when the settings
+        # with the stackManager view so it will be notified when the settings
         # change
         self.ci = ColorIndicator(self)
         self.ci.UpdateLine(self.penColor, self.penThickness)
@@ -240,11 +240,11 @@ class ControlPanel(wx.Panel):
         keys = list(UiView.handlerDisplayNames.keys())
         vals = list(UiView.handlerDisplayNames.values())
         self.SaveCurrentHandler()
-        self.UpdateHandlerForUiViews(self.stackView.GetSelectedUiViews(), keys[vals.index(displayName)])
+        self.UpdateHandlerForUiViews(self.stackManager.GetSelectedUiViews(), keys[vals.index(displayName)])
 
     def SelectInCodeForHandlerName(self, key, selectStart, selectEnd):
         self.SaveCurrentHandler()
-        self.UpdateHandlerForUiViews(self.stackView.GetSelectedUiViews(), key)
+        self.UpdateHandlerForUiViews(self.stackManager.GetSelectedUiViews(), key)
         self.codeEditor.SetSelection(selectStart, selectEnd)
         self.codeEditor.ScrollRange(selectStart, selectEnd)
         self.codeEditor.SetFocus()
@@ -327,7 +327,7 @@ class ControlPanel(wx.Panel):
         self.Layout()
 
     def OnInspectorValueChanged(self, event):
-        uiView = self.stackView.GetSelectedUiViews()[0]
+        uiView = self.stackManager.GetSelectedUiViews()[0]
         self.InspectorValueChanged(uiView, event.GetRow(),
                                    self.inspector.GetCellValue(event.GetRow(), 1))
 
@@ -338,10 +338,10 @@ class ControlPanel(wx.Panel):
         val = uiView.model.InterpretPropertyFromString(key, valStr)
         if val is not None and val != oldVal:
             if key == "name":
-                val = self.stackView.uiCard.model.DeduplicateNameInCard(val, [uiView.model.GetProperty("name")])
+                val = self.stackManager.uiCard.model.DeduplicateNameInCard(val, [uiView.model.GetProperty("name")])
 
-            command = SetPropertyCommand(True, "Set Property", self, self.stackView.cardIndex, uiView.model, key, val)
-            self.stackView.command_processor.Submit(command)
+            command = SetPropertyCommand(True, "Set Property", self, self.stackManager.cardIndex, uiView.model, key, val)
+            self.stackManager.command_processor.Submit(command)
         else:
             self.UpdatedProperty(uiView, "")
 
@@ -397,16 +397,16 @@ class ControlPanel(wx.Panel):
 
     def SaveCurrentHandler(self):
         if self.codeEditor.HasFocus():
-            uiView = self.stackView.GetSelectedUiViews()[0]
+            uiView = self.stackManager.GetSelectedUiViews()[0]
             if uiView:
                 oldVal = uiView.model.GetHandler(self.currentHandler)
                 newVal = self.codeEditor.GetText()
                 newCursorSel = self.codeEditor.GetSelection()
 
                 if newVal != oldVal:
-                    command = SetHandlerCommand(True, "Set Handler", self, self.stackView.cardIndex, uiView.model,
+                    command = SetHandlerCommand(True, "Set Handler", self, self.stackManager.cardIndex, uiView.model,
                                                 self.currentHandler, newVal, self.lastCursorSel, newCursorSel)
-                    self.stackView.command_processor.Submit(command)
+                    self.stackManager.command_processor.Submit(command)
                 self.lastCursorSel = newCursorSel
 
     def CodeEditorFocused(self, event):
@@ -446,21 +446,21 @@ class ControlPanel(wx.Panel):
         toolId = event.GetId()
         toolName = self.toolNames[toolId]
         self.SetToolByName(toolName)
-        self.stackView.SetFocus()
+        self.stackManager.view.SetFocus()
 
     def SetToolByName(self, toolName):
-        if self.stackView.tool:
-            self.toolBtns[self.stackView.tool.name].SetToggle(toolName == self.stackView.tool.name)
+        if self.stackManager.tool:
+            self.toolBtns[self.stackManager.tool.name].SetToggle(toolName == self.stackManager.tool.name)
         self.toolBtns[toolName].SetToggle(True)
 
-        if not self.stackView.tool or toolName != self.stackView.tool.name:
-            tool = BaseTool.ToolFromName(toolName, self.stackView)
-            self.stackView.SetTool(tool)
+        if not self.stackManager.tool or toolName != self.stackManager.tool.name:
+            tool = BaseTool.ToolFromName(toolName, self.stackManager)
+            self.stackManager.SetTool(tool)
 
             if tool.name == "pen" or tool.name == "oval" or tool.name == "rect" or tool.name == "line" or tool.name == "roundrect":
                 self.box.Show(self.drawBox)
                 self.box.Hide(self.editBox)
-                self.stackView.SelectUiView(None)
+                self.stackManager.SelectUiView(None)
                 tool.SetPenColor(self.penColor)
                 tool.SetFillColor(self.fillColor)
                 tool.SetThickness(self.penThickness)
@@ -478,16 +478,16 @@ class ControlPanel(wx.Panel):
         newColor = event.GetColour()
         self.penColor = newColor
         self.ci.UpdateLine(self.penColor, self.penThickness)
-        self.stackView.tool.SetPenColor(self.penColor)
+        self.stackManager.tool.SetPenColor(self.penColor)
 
     def OnSetFillColor(self, event):
         newColor = event.GetColour()
         self.fillColor = newColor
-        self.stackView.tool.SetFillColor(self.fillColor)
+        self.stackManager.tool.SetFillColor(self.fillColor)
 
     def OnSetThickness(self, event):
         """
-        Use the event ID to set the thickness in the stackView.
+        Use the event ID to set the thickness in the stackManager.
         """
         newThickness = event.GetId()
         # untoggle the old thickness button
@@ -495,7 +495,7 @@ class ControlPanel(wx.Panel):
         # set the new color
         self.penThickness = newThickness
         self.ci.UpdateLine(self.penColor, self.penThickness)
-        self.stackView.tool.SetThickness(self.penThickness)
+        self.stackManager.tool.SetThickness(self.penThickness)
 
 
 # ----------------------------------------------------------------------
@@ -503,7 +503,7 @@ class ControlPanel(wx.Panel):
 class ColorIndicator(wx.Window):
     """
     An instance of this class is used on the ControlPanel to show
-    a sample of what the current stackView line will look like.
+    a sample of what the current stackManager line will look like.
     """
     def __init__(self, parent):
         wx.Window.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
@@ -514,7 +514,7 @@ class ColorIndicator(wx.Window):
 
     def UpdateLine(self, color, thickness):
         """
-        The stackView view calls this method any time the color
+        The stackManager view calls this method any time the color
         or line thickness changes.
         """
         self.color = color
@@ -633,8 +633,8 @@ class GridCellFileEditor(wx.grid.GridCellTextEditor):
             startDir = os.getcwd()
             startFile = None
             if text:
-                if self.cPanel.stackView.filename:
-                    cdsFileDir = os.path.dirname(self.cPanel.stackView.filename)
+                if self.cPanel.stackManager.filename:
+                    cdsFileDir = os.path.dirname(self.cPanel.stackManager.filename)
                     path = os.path.join(cdsFileDir, text)
                     startDir = os.path.dirname(path)
                     startFile = os.path.basename(path)
@@ -642,8 +642,8 @@ class GridCellFileEditor(wx.grid.GridCellTextEditor):
                                 defaultFile=startFile, style=wx.FD_OPEN, wildcard=self.wildcard)
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath()
-                if self.cPanel.stackView.filename:
-                    cdsFileDir = os.path.dirname(self.cPanel.stackView.filename)
+                if self.cPanel.stackManager.filename:
+                    cdsFileDir = os.path.dirname(self.cPanel.stackManager.filename)
                     filename = os.path.relpath(filename, cdsFileDir)
                 self.UpdateFile(filename)
             dlg.Destroy()

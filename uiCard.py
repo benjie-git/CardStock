@@ -8,12 +8,12 @@ import generator
 
 
 class UiCard(UiView):
-    def __init__(self, parent, stackView, model):
+    def __init__(self, parent, stackManager, model):
         if not model.GetProperty("name"):
             model.SetProperty("name", model.GetNextAvailableNameInCard("card_"), False)
 
-        super().__init__(parent, stackView, model, stackView)
-        self.stackView.stackModel.SetProperty("size", self.view.GetSize(), False)
+        super().__init__(parent, stackManager, model, stackManager.view)
+        self.stackManager.stackModel.SetProperty("size", self.view.GetSize(), False)
         bg = wx.Colour(self.model.GetProperty("bgColor"))
         if not bg:
             bg = wx.Colour('white')
@@ -39,10 +39,10 @@ class UiCard(UiView):
         return None
 
     def OnResize(self, event):
-        self.stackView.stackModel.SetProperty("size", self.view.GetSize())
+        self.stackManager.stackModel.SetProperty("size", self.view.GetSize())
 
     def PaintSelectionBox(self, gc):
-        if self.isSelected:
+        if self.isSelected and self.stackManager.tool.name == "hand":
             f = self.model.GetAbsoluteFrame()
             gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
@@ -62,7 +62,7 @@ class UiCard(UiView):
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "name":
-            self.stackView.designer.UpdateCardList()
+            self.stackManager.designer.UpdateCardList()
         elif key == "bgColor":
             bg = wx.Colour(self.model.GetProperty(key))
             if not bg:
@@ -71,24 +71,24 @@ class UiCard(UiView):
             self.view.Refresh(True)
 
     def OnKeyDown(self, event):
-        if self.stackView.runner and self.model.GetHandler("OnKeyDown"):
-            self.stackView.runner.RunHandler(self.model, "OnKeyDown", event)
+        if self.stackManager.runner and self.model.GetHandler("OnKeyDown"):
+            self.stackManager.runner.RunHandler(self.model, "OnKeyDown", event)
 
     def OnKeyUp(self, event):
-        if self.stackView.runner and self.model.GetHandler("OnKeyUp"):
-            self.stackView.runner.RunHandler(self.model, "OnKeyUp", event)
+        if self.stackManager.runner and self.model.GetHandler("OnKeyUp"):
+            self.stackManager.runner.RunHandler(self.model, "OnKeyUp", event)
 
     def OnIdle(self, event):
         super().OnIdle(event)
-        for child in self.stackView.uiViews:
+        for child in self.stackManager.uiViews:
             child.OnIdle(event)
 
 
 class CardModel(ViewModel):
     minSize = wx.Size(200, 200)
 
-    def __init__(self, stackView):
-        super().__init__(stackView)
+    def __init__(self, stackManager):
+        super().__init__(stackManager)
         self.type = "card"
         self.stackModel = None  # For setting stack size
         self.proxyClass = CardProxy
@@ -161,7 +161,7 @@ class CardModel(ViewModel):
     def SetData(self, data):
         super().SetData(data)
         for childData in data["childModels"]:
-            self.childModels.append(generator.StackGenerator.ModelFromData(self.stackView, childData))
+            self.childModels.append(generator.StackGenerator.ModelFromData(self.stackManager, childData))
 
     def AddChild(self, model):
         self.childModels.append(model)

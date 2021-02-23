@@ -13,12 +13,12 @@ class UiImage(UiView):
 
     imgCache = {}
 
-    def __init__(self, parent, stackView, model=None):
+    def __init__(self, parent, stackManager, model=None):
         if not model:
-            model = ImageModel(stackView)
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("image_"), False)
+            model = ImageModel(stackManager)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("image_"), False)
 
-        super().__init__(parent, stackView, model, None)
+        super().__init__(parent, stackManager, model, None)
         self.rotatedBitmap = None
         self.origImage = self.GetImg(model)
 
@@ -37,8 +37,8 @@ class UiImage(UiView):
         if file in self.imgCache:
             img = self.imgCache[file]
         else:
-            if file and self.stackView.filename:
-                fileDir = os.path.dirname(self.stackView.filename)
+            if file and self.stackManager.filename:
+                fileDir = os.path.dirname(self.stackManager.filename)
                 path = os.path.join(fileDir, file)
             else:
                 path = file
@@ -97,12 +97,12 @@ class UiImage(UiView):
         if key == "file":
             self.origImage = self.GetImg(self.model)
             self.rotatedBitmap = None
-            self.stackView.Refresh(True, self.model.GetRefreshFrame())
+            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
         elif key == "fit":
-            self.stackView.Refresh(True, self.model.GetRefreshFrame())
+            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
         elif key == "rotation":
             if model.GetProperty("file") != "":
-                self.stackView.Refresh(True, self.model.GetRefreshFrame())
+                self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
 
     def Paint(self, gc):
         if self.origImage:
@@ -119,8 +119,8 @@ class UiImage(UiView):
 
 
 class ImageModel(ViewModel):
-    def __init__(self, stackView):
-        super().__init__(stackView)
+    def __init__(self, stackManager):
+        super().__init__(stackManager)
         self.type = "image"
         self.proxyClass = ImageProxy
 

@@ -6,7 +6,8 @@
       500,
       495
     ],
-    "canSave": false
+    "canSave": false,
+    "canResize": false
   },
   "cards": [
     {

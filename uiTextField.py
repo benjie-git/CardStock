@@ -9,17 +9,17 @@ from wx.lib.docview import CommandProcessor, Command
 
 
 class UiTextField(UiView):
-    def __init__(self, parent, stackView, model=None):
+    def __init__(self, parent, stackManager, model=None):
         if not model:
-            model = TextFieldModel(stackView)
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("field_"), False)
+            model = TextFieldModel(stackManager)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("field_"), False)
 
-        self.stackView = stackView
-        self.field = self.CreateField(stackView, model)
+        self.stackManager = stackManager
+        self.field = self.CreateField(stackManager, model)
 
-        super().__init__(parent, stackView, model, self.field)
+        super().__init__(parent, stackManager, model, self.field)
 
-    def CreateField(self, stackView, model):
+    def CreateField(self, stackManager, model):
         text = model.GetProperty("text")
         alignment = wx.TE_LEFT
         if model.GetProperty("alignment") == "Right":
@@ -28,7 +28,7 @@ class UiTextField(UiView):
             alignment = wx.TE_CENTER
 
         if model.GetProperty("multiline"):
-            field = stc.StyledTextCtrl(parent=stackView, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
+            field = stc.StyledTextCtrl(parent=stackManager.view, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
             field.SetUseHorizontalScrollBar(False)
             field.SetWrapMode(stc.STC_WRAP_WORD)
             field.SetMarginWidth(1, 0)
@@ -38,7 +38,7 @@ class UiTextField(UiView):
             field.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
             field.EmptyUndoBuffer()
         else:
-            field = CDSTextCtrl(parent=stackView, style=wx.TE_PROCESS_ENTER | alignment)
+            field = CDSTextCtrl(parent=stackManager.view, style=wx.TE_PROCESS_ENTER | alignment)
             field.ChangeValue(text)
             field.Bind(wx.EVT_TEXT, self.OnTextChanged)
             field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
@@ -47,7 +47,7 @@ class UiTextField(UiView):
 
         self.BindEvents(field)
 
-        if stackView.isEditing:
+        if stackManager.isEditing:
             field.SetEditable(False)
         else:
             field.SetEditable(model.GetProperty("editable"))
@@ -57,14 +57,14 @@ class UiTextField(UiView):
         super().SetView(view)
 
     def GetCursor(self):
-        if self.stackView.isEditing:
+        if self.stackManager.isEditing:
             return wx.CURSOR_HAND
         else:
             return wx.CURSOR_IBEAM
 
     def OnFocus(self, event):
-        if not self.stackView.isEditing:
-            self.stackView.lastFocusedTextField = self
+        if not self.stackManager.isEditing:
+            self.stackManager.lastFocusedTextField = self
         event.Skip()
 
     def OnResize(self, event):
@@ -81,12 +81,12 @@ class UiTextField(UiView):
             self.field.SetEditable(wasEditable)
             self.field.Refresh(True)
         elif key == "alignment" or key == "multiline":
-            self.stackView.SelectUiView(None)
+            self.stackManager.SelectUiView(None)
             self.doNotCache = True
-            self.stackView.LoadCardAtIndex(self.stackView.cardIndex, reload=True)
-            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(self.model))
+            self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
+            self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.model))
         elif key == "editable":
-            if self.stackView.isEditing:
+            if self.stackManager.isEditing:
                 self.field.SetEditable(False)
             else:
                 self.field.SetEditable(model.GetProperty(key))
@@ -94,15 +94,15 @@ class UiTextField(UiView):
             self.field.SelectAll()
 
     def OnTextEnter(self, event):
-        if not self.stackView.isEditing:
-            if self.stackView.runner and self.model.GetHandler("OnTextEnter"):
-                self.stackView.runner.RunHandler(self.model, "OnTextEnter", event)
+        if not self.stackManager.isEditing:
+            if self.stackManager.runner and self.model.GetHandler("OnTextEnter"):
+                self.stackManager.runner.RunHandler(self.model, "OnTextEnter", event)
 
     def OnTextChanged(self, event):
-        if not self.stackView.isEditing:
+        if not self.stackManager.isEditing:
             self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
-            if self.stackView.runner and self.model.GetHandler("OnTextChanged"):
-                self.stackView.runner.RunHandler(self.model, "OnTextChanged", event)
+            if self.stackManager.runner and self.model.GetHandler("OnTextChanged"):
+                self.stackManager.runner.RunHandler(self.model, "OnTextChanged", event)
         event.Skip()
 
 
@@ -182,8 +182,8 @@ class TextEditCommand(Command):
 
 
 class TextFieldModel(ViewModel):
-    def __init__(self, stackView):
-        super().__init__(stackView)
+    def __init__(self, stackManager):
+        super().__init__(stackManager)
         self.type = "textfield"
         self.proxyClass = TextFieldProxy
 
@@ -240,5 +240,5 @@ class TextFieldProxy(ViewProxy):
     def SelectAll(self): self._model.Notify("selectAll")
 
     def DoEnter(self):
-        if self._model.stackView.runner:
-            self._model.stackView.runner.RunHandler(self._model, "OnTextEnter", None)
+        if self._model.stackManager.runner:
+            self._model.stackManager.runner.RunHandler(self._model, "OnTextEnter", None)

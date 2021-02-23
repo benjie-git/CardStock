@@ -8,12 +8,12 @@ from uiView import *
 
 
 class UiShape(UiView):
-    def __init__(self, parent, stackView, shapeType, model=None):
+    def __init__(self, parent, stackManager, shapeType, model=None):
         if not model:
-            model = self.CreateModelForType(stackView, shapeType)
-            model.SetProperty("name", stackView.uiCard.model.GetNextAvailableNameInCard("shape_"), False)
+            model = self.CreateModelForType(stackManager, shapeType)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("shape_"), False)
 
-        super().__init__(parent, stackView, model, None)
+        super().__init__(parent, stackManager, model, None)
 
     def DrawShape(self, dc, thickness, penColor, fillColor, offset):
         penColor = wx.Colour(penColor)
@@ -64,7 +64,7 @@ class UiShape(UiView):
         super().Paint(gc)
 
     def PaintSelectionBox(self, gc):
-        if self.isSelected and self.stackView.tool.name == "hand":
+        if self.isSelected and self.stackManager.tool.name == "hand":
             f = self.model.GetAbsoluteFrame()
             f = wx.Rect(f.TopLeft - wx.Point(1,1), f.Size)
             gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
@@ -102,7 +102,7 @@ class UiShape(UiView):
         fillColor = 'white'
         self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(-thickness/2, -thickness/2))
         f = self.model.GetAbsoluteFrame()
-        if self.stackView.isEditing and self.isSelected and self.stackView.tool.name == "hand":
+        if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
             dc.DrawRectangle(self.GetResizeBoxRect().Inflate(2))
         reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
         reg.Offset((thickness/2), (thickness/2))
@@ -112,23 +112,23 @@ class UiShape(UiView):
         super().OnPropertyChanged(model, key)
         if key in ["size", "shape", "penColor", "penThickness", "fillColor", "cornerRadius"]:
             self.hitRegion = None
-            self.stackView.Refresh(True, self.model.GetRefreshFrame())
+            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
 
     @staticmethod
-    def CreateModelForType(stackView, name):
+    def CreateModelForType(stackManager, name):
         if name == "pen" or name == "line":
-            return LineModel(stackView)
+            return LineModel(stackManager)
         if name == "rect" or name == "oval":
-            return ShapeModel(stackView)
+            return ShapeModel(stackManager)
         if name == "roundrect":
-            return RoundRectModel(stackView)
+            return RoundRectModel(stackManager)
 
 
 class LineModel(ViewModel):
     minSize = wx.Size(2, 2)
 
-    def __init__(self, stackView):
-        super().__init__(stackView)
+    def __init__(self, stackManager):
+        super().__init__(stackManager)
         self.type = "line"  # Gets rewritten on SetShape (to "line" or "pen")
         self.proxyClass = LineProxy
         self.points = []
@@ -291,8 +291,8 @@ class LineProxy(ViewProxy):
 
 
 class ShapeModel(LineModel):
-    def __init__(self, stackView):
-        super().__init__(stackView)
+    def __init__(self, stackManager):
+        super().__init__(stackManager)
         self.type = "shape"  # Gets rewritten on SetShape (to "oval" or "rect")
         self.proxyClass = ShapeProxy
 
@@ -330,8 +330,8 @@ class ShapeProxy(LineProxy):
 
 
 class RoundRectModel(ShapeModel):
-    def __init__(self, stackView):
-        super().__init__(stackView)
+    def __init__(self, stackManager):
+        super().__init__(stackManager)
         self.type = "roundrect"
         self.proxyClass = RoundRectProxy
 
