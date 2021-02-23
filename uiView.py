@@ -408,6 +408,11 @@ class ViewModel(object):
 
     # Custom property order and mask for the inspector
     def PropertyKeys(self):
+        if self.parent and self.parent.type == 'group':
+            keys = self.propertyKeys.copy()
+            keys.remove('position')
+            keys.remove('size')
+            return keys
         return self.propertyKeys
 
     # Options currently are string, bool, int, float, point, realpoint, size, choice
