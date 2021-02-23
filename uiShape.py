@@ -16,6 +16,14 @@ class UiShape(UiView):
         super().__init__(parent, stackView, model, None)
 
     def DrawShape(self, dc, thickness, penColor, fillColor, offset):
+        penColor = wx.Colour(penColor)
+        if not penColor:
+            penColor = wx.Colour('black')
+
+        fillColor = wx.Colour(fillColor)
+        if not fillColor:
+            fillColor = wx.Colour('white')
+
         pen = wx.Pen(penColor, thickness, wx.PENSTYLE_SOLID)
         dc.SetPen(pen)
 

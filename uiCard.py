@@ -14,17 +14,26 @@ class UiCard(UiView):
 
         super().__init__(parent, stackView, model, stackView)
         self.stackView.stackModel.SetProperty("size", self.view.GetSize(), False)
-        self.view.SetBackgroundColour(self.model.GetProperty("bgColor"))
+        bg = wx.Colour(self.model.GetProperty("bgColor"))
+        if not bg:
+            bg = wx.Colour('white')
+        self.view.SetBackgroundColour(bg)
 
     def SetView(self, view):
         super().SetView(view)
         self.model.SetProperty("size", self.view.GetSize(), False)
-        self.view.SetBackgroundColour(self.model.GetProperty("bgColor"))
+        bg = wx.Colour(self.model.GetProperty("bgColor"))
+        if not bg:
+            bg = wx.Colour('white')
+        self.view.SetBackgroundColour(bg)
 
     def SetModel(self, model):
         super().SetModel(model)
         if self.view:
-            self.view.SetBackgroundColour(self.model.GetProperty("bgColor"))
+            bg = wx.Colour(self.model.GetProperty("bgColor"))
+            if not bg:
+                bg = wx.Colour('white')
+            self.view.SetBackgroundColour(bg)
 
     def GetCursor(self):
         return None
@@ -55,7 +64,10 @@ class UiCard(UiView):
         if key == "name":
             self.stackView.designer.UpdateCardList()
         elif key == "bgColor":
-            self.view.SetBackgroundColour(model.GetProperty(key))
+            bg = wx.Colour(self.model.GetProperty(key))
+            if not bg:
+                bg = wx.Colour('white')
+            self.view.SetBackgroundColour(bg)
             self.view.Refresh(True)
 
     def OnKeyDown(self, event):

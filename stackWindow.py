@@ -578,6 +578,8 @@ class StackWindow(wx.Window):
 
         gc = wx.GCDC(dc)
         bg = wx.Colour(self.uiCard.model.GetProperty("bgColor"))
+        if not bg:
+            bg = wx.Colour('white')
         gc.SetPen(wx.TRANSPARENT_PEN)
         gc.SetBrush(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
 
