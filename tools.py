@@ -297,19 +297,6 @@ class ViewTool(BaseTool):
         super().__init__(stackView)
         self.cursor = wx.CURSOR_CROSS
         self.name = name  # button, field, label, or image
-        self.selectedViews = None
-
-    def Activate(self):
-        self.selectedViews = self.stackView.GetSelectedUiViews()
-        self.stackView.SelectUiView(None)
-
-    def Deactivate(self):
-        subsequent = False
-        allUiViews = self.stackView.GetAllUiViews()
-        for ui in self.selectedViews:
-            if ui in allUiViews:
-                self.stackView.SelectUiView(ui, subsequent)
-                subsequent = True
 
     def OnMouseDown(self, uiView, event):
         self.targetUi = None
@@ -344,8 +331,7 @@ class ViewTool(BaseTool):
                     command = AddNewUiViewCommand(True, 'Add View', self.stackView, self.stackView.cardIndex, model.type, model)
                     self.stackView.RemoveUiViewByModel(model)
                     self.stackView.command_processor.Submit(command)
-                    self.selectedViews = [self.stackView.GetUiViewByModel(model)]
-                    self.stackView.SelectUiView(None)
+                    self.stackView.SelectUiView(self.stackView.GetUiViewByModel(model))
                 self.stackView.SetFocus()
                 self.targetUi = None
 
@@ -362,19 +348,6 @@ class PenTool(BaseTool):
         self.thickness = 0
         self.penColor = None
         self.targetUi = None
-        self.selectedViews = None
-
-    def Activate(self):
-        self.selectedViews = self.stackView.GetSelectedUiViews()
-        self.stackView.SelectUiView(None)
-
-    def Deactivate(self):
-        subsequent = False
-        allUiViews = self.stackView.GetAllUiViews()
-        for ui in self.selectedViews:
-            if ui in allUiViews:
-                self.stackView.SelectUiView(ui, subsequent)
-                subsequent = True
 
     def SetPenColor(self, color):
         self.penColor = color.GetAsString(flags=wx.C2S_HTML_SYNTAX)
@@ -421,8 +394,7 @@ class PenTool(BaseTool):
             command = AddNewUiViewCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model.type, model)
             self.stackView.RemoveUiViewByModel(model)
             self.stackView.command_processor.Submit(command)
-            self.stackView.SelectUiView(None)
-            self.selectedViews = [self.stackView.GetUiViewByModel(model)]
+            self.stackView.SelectUiView(self.stackView.GetUiViewByModel(model))
         self.stackView.SetFocus()
 
 
@@ -436,19 +408,6 @@ class ShapeTool(BaseTool):
         self.penColor = None
         self.fillColor = None
         self.targetUi = None
-        self.selectedViews = None
-
-    def Activate(self):
-        self.selectedViews = self.stackView.GetSelectedUiViews()
-        self.stackView.SelectUiView(None)
-
-    def Deactivate(self):
-        subsequent = False
-        allUiViews = self.stackView.GetAllUiViews()
-        for ui in self.selectedViews:
-            if ui in allUiViews:
-                self.stackView.SelectUiView(ui, subsequent)
-                subsequent = True
 
     def SetPenColor(self, color):
         self.penColor = color.GetAsString(flags=wx.C2S_HTML_SYNTAX)
@@ -505,8 +464,7 @@ class ShapeTool(BaseTool):
                 command = AddNewUiViewCommand(True, 'Add Shape', self.stackView, self.stackView.cardIndex, model.type, model)
                 self.stackView.RemoveUiViewByModel(model)
                 self.stackView.command_processor.Submit(command)
-                self.stackView.SelectUiView(None)
-                self.selectedViews = [self.stackView.GetUiViewByModel(model)]
+                self.stackView.SelectUiView(self.stackView.GetUiViewByModel(model))
         self.stackView.SetFocus()
 
 
