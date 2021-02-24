@@ -58,6 +58,7 @@ class UiTextLabel(UiView):
             platformScale = 1.4 if (wx.Platform == '__WXMAC__') else 1.0
             size = int(model.GetProperty("fontSize") * platformScale)
             self.label.SetFont(wx.Font(wx.FontInfo(size).Family(self.FamilyForName(familyName))))
+            self.OnResize(None)
         elif key == "textColor":
             self.label.SetForegroundColour(model.GetProperty(key))
             self.label.Refresh(True)

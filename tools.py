@@ -74,6 +74,47 @@ class BaseTool(object):
     def Paint(self, gc):
         pass
 
+    def ConstrainDragPoint(self, objType, startPoint, event):
+        pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        newPoint = pos
+        if event.ShiftDown():
+            dx = pos[0] - startPoint[0]
+            dy = pos[1] - startPoint[1]
+            if objType == "line":
+                if abs(dx) > abs(dy) and abs(abs(dx) - abs(dy)) < abs(dx) / 3:
+                    # Diagonal
+                    newPoint = [startPoint[0] + dx, startPoint[1] + math.copysign(dx, dy)]
+                elif abs(dx) < abs(dy) and abs(abs(dx) - abs(dy)) < abs(dy) / 3:
+                    # Diagonal
+                    newPoint = [startPoint[0] + math.copysign(dy, dx), startPoint[1] + dy]
+                elif abs(dx) > abs(dy):
+                    # Horizontal
+                    newPoint = [pos[0], startPoint[1]]
+                else:
+                    # Vertical
+                    newPoint = [startPoint[0], pos[1]]
+            else:
+                if abs(dx) > abs(dy):
+                    # Square/Circle, as wide as the mouse drag
+                    newPoint = [pos[0], startPoint[1] + (math.copysign(dx, dy))]
+                else:
+                    # Square/Circle, as tall as the mouse drag
+                    newPoint = [startPoint[0] + (math.copysign(dy, dx)), pos[1]]
+        return wx.Point(*newPoint)
+
+    def ConstrainDragPointAspect(self, startPoint, startSize, event):
+        pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        newPoint = pos
+        if event.ShiftDown():
+            dx = pos[0] - startPoint[0]
+            dy = pos[1] - startPoint[1]
+            scaleX = dx/startSize.width
+            scaleY = dy/startSize.height
+            scale = max(scaleX, scaleY)
+            newSize = startSize * scale
+            newPoint = [startPoint.x + newSize.width, startPoint.y + newSize.height]
+        return wx.Point(*newPoint)
+
 
 class HandTool(BaseTool):
     """
@@ -132,7 +173,7 @@ class HandTool(BaseTool):
 
     def OnMouseMove(self, uiView, event):
         if self.mode:
-            pos = event.GetPosition()
+            pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
             origSize = self.oldFrames[self.targetUi.model.GetProperty("name")].Size
             if wx.Platform == '__WXMAC__' and self.targetUi.model.type == "button" and self.targetUi.model.GetProperty("border"):
                 # Button views are bigger than specified???
@@ -158,15 +199,18 @@ class HandTool(BaseTool):
                 self.UpdateSelection()
                 return
 
-            offset = (pos.x - self.absOrigin.x, pos.y - self.absOrigin.y)
             if self.mode == "move":
                 selectedViews = self.stackManager.GetSelectedUiViews()
                 if len(selectedViews) == 1 and selectedViews[0].parent.model.type == "group":
                     selectedViews = [self.targetUi]
                 for ui in selectedViews:
+                    offset = (pos.x - self.absOrigin.x, pos.y - self.absOrigin.y)
                     origPos = self.oldFrames[ui.model.GetProperty("name")].Position
                     ui.model.SetProperty("position", [origPos.x + offset[0], origPos.y + offset[1]])
             elif self.mode == "resize":
+                origPos = self.oldFrames[self.targetUi.model.GetProperty("name")].Position
+                pos = self.ConstrainDragPointAspect(origPos, origSize, event)
+                offset = (pos.x - self.absOrigin.x, pos.y - self.absOrigin.y)
                 self.targetUi.model.SetProperty("size", [origSize.Width + offset[0], origSize.Height + offset[1]])
         event.Skip()
 
@@ -328,6 +372,8 @@ class ViewTool(BaseTool):
     def OnMouseMove(self, uiView, event):
         if self.stackManager.view.HasCapture():
             pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+            pos = self.ConstrainDragPoint(self.name, self.origMousePos, event)
+
             if not self.targetUi and dist(self.origMousePos, pos) > MOVE_THRESHOLD:
                 self.targetUi = self.stackManager.AddUiViewInternal(self.name)
                 self.targetUi.model.SetProperty("position", self.origMousePos)
@@ -464,21 +510,7 @@ class ShapeTool(BaseTool):
                                               "thickness": self.thickness, "points": self.points})
             if self.targetUi:
                 if pos != self.points[1]:
-                    if event.ShiftDown():
-                        dx = pos[0] - self.startPoint[0]
-                        dy = pos[1] - self.startPoint[1]
-                        if self.name == "line":
-                            if abs(dx) > abs(dy):
-                                self.points[1] = [pos[0], self.startPoint[1]]
-                            else:
-                                self.points[1] = [self.startPoint[0], pos[1]]
-                        else:
-                            if abs(dx) > abs(dy):
-                                self.points[1] = [pos[0], self.startPoint[1] + (math.copysign(dx, dy))]
-                            else:
-                                self.points[1] = [self.startPoint[0] + (math.copysign(dy, dx)), pos[1]]
-                    else:
-                        self.points[1] = pos
+                    self.points[1] = self.ConstrainDragPoint(self.name, self.startPoint, event)
                     self.targetUi.model.DidUpdateShape()
 
     def OnMouseUp(self, uiView, event):

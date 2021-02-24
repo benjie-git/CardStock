@@ -630,7 +630,7 @@ class GridCellFileEditor(wx.grid.GridCellTextEditor):
         x,y = self.grid.ScreenToClient(wx.GetMousePosition())
         if x > self.grid.GetSize().Width - COLOR_PATCH_WIDTH:
             startDir = os.getcwd()
-            startFile = None
+            startFile = ""
             if text:
                 if self.cPanel.stackManager.filename:
                     cdsFileDir = os.path.dirname(self.cPanel.stackManager.filename)
