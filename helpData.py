@@ -494,6 +494,13 @@ class HelpDataTextField():
         "alignment": {"type": "[Left, Center, Right]",
                       "info": "By default, text fields start aligned to the left, but you can change this property to make "
                               "your text centered, or aligned to the right."},
+        "textColor": {"type": "string",
+                      "info": "The color used for the text in this field.  This can be a color word like red, or an "
+                              "HTML color like #333333 for dark gray."},
+        "font": {"type": "[Default, Serif, Sans-Serif, Mono]",
+                 "info": "The <b>font</b> used for the text in this field."},
+        "fontSize": {"type": "int",
+                     "info": "The point size for the font used for the text in this field."},
         "editable": {"type": "bool",
                      "info": "By default text fields can be edited by the user.  But you can set this to <b>False</b> "
                              "so that the text can not be edited."},
@@ -503,6 +510,15 @@ class HelpDataTextField():
     }
 
     methods = {
+        "AnimateTextColor": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
+                                      "endColor": {"type": "string",
+                                                   "info": "the final textColor at the end of the animation"},
+                                      "onFinished": {"type": "function",
+                                                     "info": "an optional function to run when the animation finishes."}},
+                             "return": None,
+                             "info": "Visually animates fading this object's <b>textColor</b> to <b>endColor</b>, "
+                                     "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                     "<b>onFinished</b> function, if one was passed in."},
         "DoEnter": {"args": {}, "return": None,
                     "info": "Runs this text field's OnTextEnter event code."},
         "SelectAll": {"args": {}, "return": None,

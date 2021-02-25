@@ -1,5 +1,6 @@
 import wx
 from uiView import *
+from uiTextLabel import UiTextLabel
 import wx.stc as stc
 from wx.lib.docview import CommandProcessor, Command
 
@@ -45,12 +46,34 @@ class UiTextField(UiView):
         field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
         field.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
         field.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
+        self.UpdateFont(model, field)
 
         if stackManager.isEditing:
             field.SetEditable(False)
         else:
             field.SetEditable(model.GetProperty("editable"))
         return field
+
+    def UpdateFont(self, model, field):
+        familyName = model.GetProperty("font")
+        platformScale = 1.4 if (wx.Platform == '__WXMAC__') else 1.0
+        size = int(model.GetProperty("fontSize") * platformScale)
+        font = wx.Font(wx.FontInfo(size).Family(UiTextLabel.FamilyForName(familyName)))
+        color = wx.Colour(model.GetProperty("textColor"))
+        if color.IsOk():
+            colorStr = color.GetAsString(flags=wx.C2S_HTML_SYNTAX)
+        else:
+            colorStr = 'black'
+
+        if not model.GetProperty("multiline"):
+            field.SetFont(font)
+            field.SetForegroundColour(colorStr)
+        else:
+            fontName = font.GetNativeFontInfoUserDesc().split(' ')[0]
+            fontName.replace("'", "")
+            spec = f"fore:{colorStr},face:{fontName},size:{size}"
+            field.StyleSetSpec(stc.STC_STYLE_DEFAULT, spec)
+            field.StyleClearAll()
 
     def SetView(self, view):
         super().SetView(view)
@@ -95,6 +118,9 @@ class UiTextField(UiView):
                 self.field.SetEditable(False)
             else:
                 self.field.SetEditable(model.GetProperty(key))
+        elif key in ["font", "fontSize", "textColor"]:
+            self.UpdateFont(self.model, self.field)
+            self.field.Refresh(True)
         elif key == "selectAll":
             self.field.SelectAll()
 
@@ -206,15 +232,23 @@ class TextFieldModel(ViewModel):
         self.properties["alignment"] = "Left"
         self.properties["editable"] = True
         self.properties["multiline"] = False
+        self.properties["textColor"] = "black"
+        self.properties["font"] = "Default"
+        self.properties["fontSize"] = 10
 
         self.propertyTypes["text"] = "string"
         self.propertyTypes["alignment"] = "choice"
         self.propertyTypes["editable"] = "bool"
         self.propertyTypes["multiline"] = "bool"
+        self.propertyTypes["textColor"] = "color"
+        self.propertyTypes["font"] = "choice"
+        self.propertyTypes["fontSize"] = "int"
+
         self.propertyChoices["alignment"] = ["Left", "Center", "Right"]
+        self.propertyChoices["font"] = ["Default", "Serif", "Sans-Serif", "Mono"]
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "text", "alignment", "editable", "multiline", "position", "size"]
+        self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "editable", "multiline", "position", "size"]
 
 
 class TextFieldProxy(ViewProxy):
@@ -249,6 +283,40 @@ class TextFieldProxy(ViewProxy):
     @multiline.setter
     def multiline(self, val):
         self._model.SetProperty("multiline", val)
+
+    @property
+    def textColor(self):
+        return self._model.GetProperty("textColor")
+    @textColor.setter
+    def textColor(self, val):
+        self._model.SetProperty("textColor", val)
+
+    @property
+    def font(self):
+        return self._model.GetProperty("font")
+    @font.setter
+    def font(self, val):
+        self._model.SetProperty("font", val)
+
+    @property
+    def fontSize(self):
+        return self._model.GetProperty("fontSize")
+    @fontSize.setter
+    def fontSize(self, val):
+        self._model.SetProperty("fontSize", val)
+
+    def AnimateTextColor(self, duration, endVal, onFinished=None):
+        origVal = wx.Colour(self.textColor)
+        endVal = wx.Colour(endVal)
+        if origVal.IsOk() and endVal.IsOk() and endVal != origVal:
+            origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
+            endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
+            offsets = [endParts[i]-origParts[i] for i in range(4)]
+            def f(progress):
+                self.textColor = [origParts[i]+offsets[i]*progress for i in range(4)]
+            self._model.AddAnimation("textColor", duration, f, onFinished)
+        else:
+            self._model.AddAnimation("textColor", duration, None, onFinished)
 
     def SelectAll(self): self._model.Notify("selectAll")
 

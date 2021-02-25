@@ -37,7 +37,6 @@ class UiTextLabel(UiView):
         size = int(model.GetProperty("fontSize") * platformScale)
         label.SetFont(wx.Font(wx.FontInfo(size).Family(self.FamilyForName(familyName))))
         label.SetForegroundColour(model.GetProperty("textColor"))
-        label.SetCursor(wx.Cursor(wx.CURSOR_HAND))
         return label
 
     def BindEvents(self, view):
@@ -68,7 +67,8 @@ class UiTextLabel(UiView):
             self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
             self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.model))
 
-    def FamilyForName(self, name):
+    @staticmethod
+    def FamilyForName(name):
         if name == "Serif":
             return wx.FONTFAMILY_ROMAN
         if name == "Sans-Serif":
