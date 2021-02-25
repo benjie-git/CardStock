@@ -45,6 +45,7 @@ class StackManager(object):
         self.lastMousePos = wx.Point(0,0)
         self.lastFocusedTextField = None
         self.lastMouseMovedUiView = None
+        self.isDoubleClick = False
         self.runner = None
         self.filename = None
 
@@ -501,8 +502,15 @@ class StackManager(object):
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         uiView = self.HitTest(pos)
 
+        if uiView and uiView.model.type == "textfield" and uiView.view.IsEditable():
+            event.Skip()
+            return
+
         if self.tool and self.isEditing:
-            self.tool.OnMouseDown(uiView, event)
+            if uiView and uiView.model.type == "textfield" and event.LeftDClick():
+                self.isDoubleClick = True
+            else:
+                self.tool.OnMouseDown(uiView, event)
         else:
             uiView.OnMouseDown(event)
 
@@ -512,6 +520,10 @@ class StackManager(object):
             return
 
         uiView = self.HitTest(pos)
+
+        if uiView and uiView.model.type == "textfield" and uiView.view.IsEditable():
+            event.Skip()
+            return
 
         if uiView != self.lastMouseMovedUiView:
             if not self.globalCursor:
@@ -541,10 +553,19 @@ class StackManager(object):
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         uiView = self.HitTest(pos)
 
+        if uiView and uiView.model.type == "textfield" and uiView.view.IsEditable():
+            event.Skip()
+            return
+
         if self.tool and self.isEditing:
-            self.tool.OnMouseUp(uiView, event)
+            if uiView and uiView.model.type == "textfield" and self.isDoubleClick:
+                uiView.view.SetEditable(True)
+                uiView.view.SetFocus()
+            else:
+                self.tool.OnMouseUp(uiView, event)
         else:
             uiView.OnMouseUp(event)
+        self.isDoubleClick = False
 
     def OnMouseExit(self, event):
         if self.lastMouseMovedUiView:

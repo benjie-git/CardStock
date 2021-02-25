@@ -46,6 +46,7 @@ class UiTextField(UiView):
             field.EmptyUndoBuffer()
 
         self.BindEvents(field)
+        field.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
 
         if stackManager.isEditing:
             field.SetEditable(False)
@@ -65,6 +66,11 @@ class UiTextField(UiView):
     def OnFocus(self, event):
         if not self.stackManager.isEditing:
             self.stackManager.lastFocusedTextField = self
+        event.Skip()
+
+    def OnLoseFocus(self, event):
+        if self.stackManager.isEditing:
+            self.field.SetEditable(False)
         event.Skip()
 
     def OnResize(self, event):
@@ -99,8 +105,8 @@ class UiTextField(UiView):
                 self.stackManager.runner.RunHandler(self.model, "OnTextEnter", event)
 
     def OnTextChanged(self, event):
+        self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
         if not self.stackManager.isEditing:
-            self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
             if self.stackManager.runner and self.model.GetHandler("OnTextChanged"):
                 self.stackManager.runner.RunHandler(self.model, "OnTextChanged", event)
         event.Skip()
