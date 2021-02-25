@@ -34,18 +34,16 @@ class UiTextField(UiView):
             field.SetMarginWidth(1, 0)
             field.ChangeValue(text)
             field.Bind(stc.EVT_STC_CHANGE, self.OnTextChanged)
-            field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
-            field.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
             field.EmptyUndoBuffer()
         else:
             field = CDSTextCtrl(parent=stackManager.view, style=wx.TE_PROCESS_ENTER | alignment)
             field.ChangeValue(text)
             field.Bind(wx.EVT_TEXT, self.OnTextChanged)
-            field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
-            field.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
             field.EmptyUndoBuffer()
 
         self.BindEvents(field)
+        field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
+        field.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
         field.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
 
         if stackManager.isEditing:
@@ -75,7 +73,8 @@ class UiTextField(UiView):
 
     def OnResize(self, event):
         if self.field and self.model.GetProperty("multiline"):
-                self.field.SetScrollWidth(self.field.GetSize().Width-6)
+            self.field.SetScrollWidth(self.field.GetSize().Width-6)
+        event.Skip()
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
