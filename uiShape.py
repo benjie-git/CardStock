@@ -33,10 +33,12 @@ class UiShape(UiView):
 
         if self.model.type in ["pen", "line"]:
             lastPos = points[0] + offset
+            lines = []
             for coords in points:
                 coords = coords + offset
-                dc.DrawLine(lastPos[0], lastPos[1], coords[0], coords[1])
+                lines.append((lastPos[0], lastPos[1], coords[0], coords[1]))
                 lastPos = coords
+            dc.DrawLineList(lines)
         elif len(points) == 2:
             rect = self.model.RectFromPoints(points)
             p1 = rect.TopLeft + offset
@@ -69,46 +71,59 @@ class UiShape(UiView):
         if self.isSelected and self.stackManager.tool.name == "hand":
             f = self.model.GetAbsoluteFrame()
             f = wx.Rect(f.TopLeft - wx.Point(1,1), f.Size)
+            thickness = self.model.GetProperty("penThickness")
             gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
             if self.model.type in ["line", "pen"]:
                 points = self.model.GetScaledPoints()
-                thickness = self.model.GetProperty("penThickness")
                 gc.SetPen(wx.Pen('Blue', 3 + thickness, wx.PENSTYLE_SHORT_DASH))
                 lastPos = points[0] + f.TopLeft
+                lines = []
                 for coords in points:
                     coords = coords + f.TopLeft
-                    gc.DrawLine(lastPos[0], lastPos[1], coords[0], coords[1])
+                    lines.append((lastPos[0], lastPos[1], coords[0], coords[1]))
                     lastPos = coords
+                gc.DrawLineList(lines)
             elif self.model.type == "rect":
-                gc.DrawRectangle(f.Inflate(2))
+                gc.DrawRectangle(f.Inflate(2 + thickness/2))
             elif self.model.type == "oval":
-                gc.DrawEllipse(f.Inflate(2))
+                gc.DrawEllipse(f.Inflate(2 + thickness/2))
             elif self.model.type == "roundrect":
                 radius = self.model.GetProperty("cornerRadius")
-                gc.DrawRoundedRectangle(f.Inflate(2), radius)
+                gc.DrawRoundedRectangle(f.Inflate(2 + thickness/2), radius)
+
             gc.SetPen(wx.TRANSPARENT_PEN)
             gc.SetBrush(wx.Brush('blue', wx.BRUSHSTYLE_SOLID))
             box = self.GetResizeBoxRect()
+            if self.model.type not in ["line", "pen"]:
+                box.Offset((thickness / 2, thickness / 2))
             gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
 
     def MakeHitRegion(self):
         s = self.model.GetProperty("size")
         extraThick = 6 if (self.model.type in ["pen", "line"]) else 0
         thickness = self.model.GetProperty("penThickness") + extraThick
-        bmp = wx.Bitmap(width=s.width+thickness, height=s.height+thickness, depth=1)
+        bmp = wx.Bitmap(width=s.width+thickness+10, height=s.height+thickness+10, depth=1)
         dc = wx.MemoryDC(bmp)
         dc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
         dc.Clear()
         penColor = 'white'
         fillColor = 'white'
-        self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(-thickness/2, -thickness/2))
+        self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(thickness/2, thickness/2))
         f = self.model.GetAbsoluteFrame()
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
-            dc.DrawRectangle(self.GetResizeBoxRect().Inflate(2))
+            resizerRect = self.GetResizeBoxRect().Inflate(2)
+            resizerRect.Offset((thickness/2, thickness/2))
+            dc.DrawRectangle(resizerRect)
         reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
-        reg.Offset((thickness/2), (thickness/2))
+        reg.Offset(-thickness/2, -thickness/2)
         self.hitRegion = reg
+
+    def GetResizeBoxRect(self):
+        thickness = self.model.GetProperty("penThickness")
+        resizerRect = super().GetResizeBoxRect()
+        resizerRect.Offset((thickness/2, thickness/2))
+        return resizerRect
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
