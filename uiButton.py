@@ -1,6 +1,9 @@
 import wx
 from uiView import *
 
+# Native Button Mouse event positions on Mac are offset (?!?)
+MAC_BUTTON_OFFSET_HACK = wx.Point(6,4)
+
 
 class UiButton(UiView):
     """
@@ -23,6 +26,15 @@ class UiButton(UiView):
     def BindEvents(self, view):
         if view == self.view:
             super().BindEvents(self.button)
+
+    def HackEvent(self, event):
+        if wx.Platform == '__WXMAC__' and self.model.GetProperty("border"):
+            event.SetPosition(event.GetPosition() - MAC_BUTTON_OFFSET_HACK)
+        return event
+
+    def FwdOnMouseDown( self, event): self.stackManager.OnMouseDown( self, self.HackEvent(event))
+    def FwdOnMouseMove( self, event): self.stackManager.OnMouseMove( self, self.HackEvent(event))
+    def FwdOnMouseUp(   self, event): self.stackManager.OnMouseUp(   self, self.HackEvent(event))
 
     def CreateButton(self, stackManager, model):
         button = wx.Button(parent=stackManager.view, label="Button",

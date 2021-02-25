@@ -499,9 +499,7 @@ class StackManager(object):
 
     def OnMouseDown(self, uiView, event):
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-
-        if not uiView.view or uiView.model.type == "card":
-            uiView = self.HitTest(pos)
+        uiView = self.HitTest(pos)
 
         if self.tool and self.isEditing:
             self.tool.OnMouseDown(uiView, event)
@@ -513,8 +511,7 @@ class StackManager(object):
         if pos == self.lastMousePos:
             return
 
-        if not uiView.view or uiView.model.type == "card":
-            uiView = self.HitTest(pos)
+        uiView = self.HitTest(pos)
 
         if uiView != self.lastMouseMovedUiView:
             if not self.globalCursor:
@@ -542,9 +539,7 @@ class StackManager(object):
 
     def OnMouseUp(self, uiView, event):
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-
-        if not uiView.view or uiView.model.type == "card":
-            uiView = self.HitTest(pos)
+        uiView = self.HitTest(pos)
 
         if self.tool and self.isEditing:
             self.tool.OnMouseUp(uiView, event)
@@ -619,7 +614,7 @@ class StackManager(object):
                         return hit
         for uiView in reversed(self.uiViews):
             if not uiView.model.GetProperty("hidden"):
-                hit = uiView.HitTest(pt - wx.Point(uiView.model.GetProperty("position")))
+                hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
                 if hit:
                     return hit
         return self.uiCard

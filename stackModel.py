@@ -30,15 +30,15 @@ class StackModel(ViewModel):
         self.handlers = {"OnSetup": ""}
 
     def AppendCardModel(self, cardModel):
-        cardModel.stackModel = self
+        cardModel.parent = self
         self.childModels.append(cardModel)
 
     def InsertCardModel(self, index, cardModel):
-        cardModel.stackModel = self
+        cardModel.parent = self
         self.childModels.insert(index, cardModel)
 
     def RemoveCardModel(self, cardModel):
-        cardModel.stackModel = None
+        cardModel.parent = None
         self.childModels.remove(cardModel)
 
     def GetCardModel(self, i):

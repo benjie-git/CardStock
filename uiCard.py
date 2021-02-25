@@ -96,7 +96,6 @@ class CardModel(ViewModel):
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "card"
-        self.stackModel = None  # For setting stack size
         self.proxyClass = CardProxy
         # Add custom handlers to the top of the list
         handlers = {"OnSetup": "", "OnShowCard": "", "OnHideCard": "", "OnKeyDown": "", "OnKeyUp": ""}
@@ -114,18 +113,18 @@ class CardModel(ViewModel):
 
     def SetProperty(self, key, value, notify=True):
         if key in ["size", "canSave", "canResize"]:
-            self.stackModel.SetProperty(key, value, notify)
+            self.parent.SetProperty(key, value, notify)
         else:
             super().SetProperty(key, value, notify)
 
     def GetProperty(self, key):
         if key in ["size", "canSave", "canResize"]:
-            return self.stackModel.GetProperty(key)
+            return self.parent.GetProperty(key)
         else:
             return super().GetProperty(key)
 
     def GetFrame(self):
-        s = self.stackModel.GetProperty("size")
+        s = self.parent.GetProperty("size")
         return wx.Rect((0,0), s)
 
     def GetAbsoluteFrame(self):
@@ -211,7 +210,7 @@ class CardProxy(ViewProxy):
 
     @property
     def index(self):
-        return self._model.stackModel.childModels.index(self._model)
+        return self._model.parent.childModels.index(self._model)
 
     def AnimateBgColor(self, duration, endVal, onFinished=None):
         origVal = wx.Colour(self.bgColor)

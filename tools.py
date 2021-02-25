@@ -12,7 +12,6 @@ rectangle).  Each tool can also have a dedicated cursor, which overrides the cur
 
 
 MOVE_THRESHOLD = 5
-MAC_BUTTON_OFFSET_HACK = wx.Point(6,4)
 
 
 # quick function to return the manhattan distance between two points, as lists
@@ -175,10 +174,6 @@ class HandTool(BaseTool):
         if self.mode:
             pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
             origSize = self.oldFrames[self.targetUi.model.GetProperty("name")].Size
-            if wx.Platform == '__WXMAC__' and self.targetUi.model.type == "button" and self.targetUi.model.GetProperty("border"):
-                # Button views are bigger than specified???
-                pos.x += MAC_BUTTON_OFFSET_HACK.x
-                pos.y += MAC_BUTTON_OFFSET_HACK.y
 
             if self.mode == "click":
                 if dist(list(pos), list(self.absOrigin)) > MOVE_THRESHOLD:
@@ -245,7 +240,9 @@ class HandTool(BaseTool):
             if self.deselectTarget and self.targetUi.isSelected:
                 self.stackManager.SelectUiView(self.targetUi, True)
             else:
-                self.stackManager.SelectUiView(self.stackManager.HitTest(self.absOrigin, False))
+                topView = self.stackManager.HitTest(self.absOrigin, False)
+                if topView and topView.model.parent.type != "group":
+                    self.stackManager.SelectUiView(topView)
         elif self.mode == "box":
             self.stackManager.view.Refresh(True, self.selectionRect.Inflate(2))
             self.selectionRect = None
