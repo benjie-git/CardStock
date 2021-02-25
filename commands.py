@@ -58,6 +58,30 @@ class ResizeUiViewCommand(Command):
         return True
 
 
+class FlipShapeCommand(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.stackManager = args[2]
+        self.cardIndex = args[3]
+        self.viewModel = args[4]
+        self.xFlipped = args[5]
+        self.yFlipped = args[6]
+
+    def Do(self):
+        self.stackManager.LoadCardAtIndex(self.cardIndex)
+        self.viewModel.SetTempFlippedFlags(self.xFlipped, self.yFlipped)
+        self.viewModel.CommitFlips()
+        self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.viewModel))
+        return True
+
+    def Undo(self):
+        self.stackManager.LoadCardAtIndex(self.cardIndex)
+        self.viewModel.SetTempFlippedFlags(self.xFlipped, self.yFlipped)
+        self.viewModel.CommitFlips()
+        self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.viewModel))
+        return True
+
+
 class AddNewUiViewCommand(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)

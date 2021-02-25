@@ -154,6 +154,8 @@ class LineModel(ViewModel):
         self.proxyClass = LineProxy
         self.points = []
         self.scaledPoints = None
+        self.xFlipped = False
+        self.yFlipped = False
 
         self.properties["originalSize"] = None
         self.properties["penColor"] = ""
@@ -203,6 +205,26 @@ class LineModel(ViewModel):
     def GetRefreshFrame(self):
         return self.GetAbsoluteFrame().Inflate(8 + self.properties["penThickness"])
 
+    def SetTempFlippedFlags(self, fx, fy):
+        if self.type in ["line", "pen"]:
+            if fx is not self.xFlipped or fy is not self.yFlipped:
+                self.scaledPoints = None
+            if (self.xFlipped or self.yFlipped) and not (fx or fy):
+                print("huh?")
+            self.xFlipped = fx
+            self.yFlipped = fy
+
+    def CommitFlips(self):
+        if self.type in ["line", "pen"]:
+            origSize = self.properties["originalSize"]
+            fx = (self.xFlipped is True)
+            fy = (self.yFlipped is True)
+            if fx or fy:
+                self.points = [((origSize[0] - p[0]) if fx else p[0], (origSize[1] - p[1]) if fy else p[1]) for p in self.points]
+                self.xFlipped = False
+                self.yFlipped = False
+                self.scaledPoints = None
+
     # scale from originalSize to Size
     # take into account thickness/2 border on each side
     def GetScaledPoints(self):
@@ -212,11 +234,19 @@ class LineModel(ViewModel):
             return self.points
         scaleX = 1
         scaleY = 1
-        if self.properties["originalSize"][0] != 0:
-            scaleX = self.properties["size"][0] / self.properties["originalSize"][0]
-        if self.properties["originalSize"][1] != 0:
-            scaleY = self.properties["size"][1] / self.properties["originalSize"][1]
-        self.scaledPoints = [(p[0] * scaleX, p[1] * scaleY) for p in self.points]
+        origSize = self.properties["originalSize"]
+        if origSize[0] != 0:
+            scaleX = self.properties["size"][0] / origSize[0]
+        if origSize[1] != 0:
+            scaleY = self.properties["size"][1] / origSize[1]
+        points = self.points.copy()
+        if self.type in ["line", "pen"]:
+            fx = (self.xFlipped is True)
+            fy = (self.yFlipped is True)
+            if fx or fy:
+                points = [((origSize[0] - p[0]) if fx else p[0], (origSize[1] - p[1]) if fy else p[1]) for p in points]
+        points = [(p[0] * scaleX, p[1] * scaleY) for p in points]
+        self.scaledPoints = points
         return self.scaledPoints
 
     @staticmethod

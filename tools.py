@@ -211,7 +211,13 @@ class HandTool(BaseTool):
                 origPos = self.oldFrames[self.targetUi.model.GetProperty("name")].Position
                 pos = self.ConstrainDragPointAspect(origPos, origSize, event)
                 offset = (pos.x - self.absOrigin.x, pos.y - self.absOrigin.y)
-                self.targetUi.model.SetProperty("size", [origSize.Width + offset[0], origSize.Height + offset[1]])
+                topLeft = (min(pos[0], origPos[0]), min(pos[1], origPos[1]))
+                thickness = self.targetUi.model.GetProperty("penThickness")
+                self.targetUi.model.SetProperty("position", topLeft)
+                self.targetUi.model.SetProperty("size", [abs(origSize[0]+offset[0]), abs(origSize[1]+offset[1])])
+                if self.targetUi.model.type in ['line', 'pen']:
+                    (fx, fy) = ((pos[0] < origPos[0] + thickness/2), (pos[1] < origPos[1] + thickness/2))
+                    self.targetUi.model.SetTempFlippedFlags(fx, fy)
         event.Skip()
 
     def StartBoxSelect(self):
@@ -257,12 +263,28 @@ class HandTool(BaseTool):
                     m.SetProperty("position", viewOrigin)
                 self.stackManager.command_processor.Submit(command)
         elif self.mode == "resize":
+            pos = self.targetUi.model.GetAbsolutePosition()
+            viewOrigin = self.oldFrames[self.targetUi.model.GetProperty("name")].Position
+            moveOffset = (pos[0] - viewOrigin.x, pos[1] - viewOrigin.y)
+
             endw, endh = self.targetUi.model.GetProperty("size")
             origSize = self.oldFrames[self.targetUi.model.GetProperty("name")].Size
-            offset = (endw-origSize[0], endh-origSize[1])
-            if offset != (0, 0):
-                command = ResizeUiViewCommand(True, 'Resize', self.stackManager, self.stackManager.cardIndex, self.targetUi.model, offset)
+            sizeOffset = (endw-origSize[0], endh-origSize[1])
+
+            if moveOffset != (0, 0) or sizeOffset != (0, 0):
+                moveCommand = MoveUiViewsCommand(True, 'Resize-Move', self.stackManager, self.stackManager.cardIndex,
+                                                 [self.targetUi.model], moveOffset)
+                sizeCommand = ResizeUiViewCommand(True, 'Resize-Resize', self.stackManager, self.stackManager.cardIndex,
+                                                  self.targetUi.model, sizeOffset)
+                commands = [moveCommand, sizeCommand]
+                if self.targetUi.model.type in ['line', 'pen']:
+                    (fx, fy) = (self.targetUi.model.xFlipped, self.targetUi.model.yFlipped)
+                    flipCommand = FlipShapeCommand(True, 'Resize-Flip', self.stackManager, self.stackManager.cardIndex,
+                                                   self.targetUi.model, fx, fy)
+                    commands.append(flipCommand)
+                self.targetUi.model.SetProperty("position", viewOrigin)
                 self.targetUi.model.SetProperty("size", origSize)
+                command = CommandGroup(True, "Resize", commands)
                 self.stackManager.command_processor.Submit(command)
 
         self.mode = None
