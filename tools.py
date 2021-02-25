@@ -244,6 +244,8 @@ class HandTool(BaseTool):
         if self.mode == "click":
             if self.deselectTarget and self.targetUi.isSelected:
                 self.stackManager.SelectUiView(self.targetUi, True)
+            else:
+                self.stackManager.SelectUiView(self.stackManager.HitTest(self.absOrigin, False))
         elif self.mode == "box":
             self.stackManager.view.Refresh(True, self.selectionRect.Inflate(2))
             self.selectionRect = None

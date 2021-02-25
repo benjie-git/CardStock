@@ -610,12 +610,13 @@ class StackManager(object):
         if wx.Platform != '__WXMAC__':
             wx.BufferedPaintDC(self.view, self.buffer)
 
-    def HitTest(self, pt):
-        for uiView in self.selectedViews:
-            if uiView.model.type != "card":
-                hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
-                if hit == uiView:
-                    return hit
+    def HitTest(self, pt, selectedFirst=True):
+        if selectedFirst:
+            for uiView in self.selectedViews:
+                if uiView.model.type != "card":
+                    hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
+                    if hit == uiView:
+                        return hit
         for uiView in reversed(self.uiViews):
             if not uiView.model.GetProperty("hidden"):
                 hit = uiView.HitTest(pt - wx.Point(uiView.model.GetProperty("position")))
