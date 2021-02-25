@@ -29,8 +29,8 @@ class ControlPanel(wx.Panel):
     def __init__(self, parent, ID, stackManager):
         wx.Panel.__init__(self, parent, ID, style=wx.RAISED_BORDER)
         self.stackManager = stackManager
-        self.penColor = wx.Colour("black")
-        self.fillColor = wx.Colour("white")
+        self.penColor = "black"
+        self.fillColor = "white"
         self.penThickness = 4
         numCols = 10
         spacing = 6
@@ -87,7 +87,7 @@ class ControlPanel(wx.Panel):
         # with the stackManager view so it will be notified when the settings
         # change
         self.ci = ColorIndicator(self)
-        self.ci.UpdateLine(self.penColor, self.penThickness)
+        self.ci.UpdateLine(wx.Colour(self.penColor), self.penThickness)
 
         # ----------
 
@@ -475,13 +475,27 @@ class ControlPanel(wx.Panel):
 
     def OnSetPenColor(self, event):
         newColor = event.GetColour()
-        self.penColor = newColor
+        try:
+            colorName = newColor.GetAsString(flags=wx.C2S_NAME)
+            self.penColor = colorName
+        except:
+            colorStr = newColor.GetAsString(flags=wx.C2S_HTML_SYNTAX)
+            if colorStr == "#000000": colorStr = "black"
+            elif colorStr == "#FFFFFF": colorStr = "white"
+            self.penColor = colorStr
         self.ci.UpdateLine(self.penColor, self.penThickness)
         self.stackManager.tool.SetPenColor(self.penColor)
 
     def OnSetFillColor(self, event):
         newColor = event.GetColour()
-        self.fillColor = newColor
+        try:
+            colorName = newColor.GetAsString(flags=wx.C2S_NAME)
+            self.fillColor = colorName
+        except:
+            colorStr = newColor.GetAsString(flags=wx.C2S_HTML_SYNTAX)
+            if colorStr == "#000000": colorStr = "black"
+            elif colorStr == "#FFFFFF": colorStr = "white"
+            self.fillColor = colorStr
         self.stackManager.tool.SetFillColor(self.fillColor)
 
     def OnSetThickness(self, event):
@@ -493,7 +507,7 @@ class ControlPanel(wx.Panel):
         self.thknsBtns[self.penThickness].SetToggle(newThickness == self.penThickness)
         # set the new color
         self.penThickness = newThickness
-        self.ci.UpdateLine(self.penColor, self.penThickness)
+        self.ci.UpdateLine(wx.Colour(self.penColor), self.penThickness)
         self.stackManager.tool.SetThickness(self.penThickness)
 
 

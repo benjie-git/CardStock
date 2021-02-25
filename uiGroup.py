@@ -68,9 +68,6 @@ class UiGroup(UiView):
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
             gc.DrawRectangle(self.model.GetAbsoluteFrame())
 
-    def PaintSelectionBox(self, gc):
-        super().PaintSelectionBox(gc)
-
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "position":

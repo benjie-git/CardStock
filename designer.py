@@ -269,7 +269,7 @@ class DesignerFrame(wx.Frame):
         helpMenu = wx.Menu()
         helpMenu.Append(wx.ID_ABOUT, "&About", "About")
         helpMenu.Append(wx.ID_HELP, "&Manual", "Manual")
-        helpMenu.Append(wx.ID_REFRESH, "&Reference", "Reference")
+        helpMenu.Append(wx.ID_REFRESH, "&Reference Guide", "Reference Guide")
         helpMenu.Append(wx.ID_CONTEXT_HELP, "&Show/Hide Context Help", "Toggle Context Help")
 
         # and add them to a menubar

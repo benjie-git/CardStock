@@ -378,6 +378,7 @@ class ViewTool(BaseTool):
                 self.targetUi = self.stackManager.AddUiViewInternal(self.name)
                 self.targetUi.model.SetProperty("position", self.origMousePos)
                 self.targetUi.model.SetProperty("size", [0,0])
+                self.stackManager.SelectUiView(self.targetUi)
                 self.origSize = [0,0]
 
             if self.targetUi:
@@ -402,6 +403,11 @@ class ViewTool(BaseTool):
                 self.stackManager.view.SetFocus()
                 self.targetUi = None
 
+    def Paint(self, gc):
+        if self.targetUi and self.stackManager.view.HasCapture():
+            gc.SetPen(wx.Pen('Blue', 1, wx.PENSTYLE_DOT))
+            gc.SetBrush(wx.TRANSPARENT_BRUSH)
+            gc.DrawRectangle(self.targetUi.model.GetAbsoluteFrame())
 
 class PenTool(BaseTool):
     """
@@ -421,7 +427,7 @@ class PenTool(BaseTool):
         self.targetUi = None
 
     def SetPenColor(self, color):
-        self.penColor = color.GetAsString(flags=wx.C2S_HTML_SYNTAX)
+        self.penColor = color
 
     def SetFillColor(self, color):
         pass
@@ -435,6 +441,7 @@ class PenTool(BaseTool):
         self.targetUi = self.stackManager.AddUiViewInternal(self.name)
         self.targetUi.model.SetProperty("position", [0,0])
         self.targetUi.model.SetProperty("size", self.stackManager.stackModel.GetProperty("size"))
+        # self.stackManager.SelectUiView(self.targetUi)
 
         self.stackManager.view.CaptureMouse()
         self.curLine = []
@@ -485,10 +492,10 @@ class ShapeTool(BaseTool):
         self.targetUi = None
 
     def SetPenColor(self, color):
-        self.penColor = color.GetAsString(flags=wx.C2S_HTML_SYNTAX)
+        self.penColor = color
 
     def SetFillColor(self, color):
-        self.fillColor = color.GetAsString(flags=wx.C2S_HTML_SYNTAX)
+        self.fillColor = color
 
     def SetThickness(self, num):
         self.thickness = num
@@ -508,6 +515,7 @@ class ShapeTool(BaseTool):
                 self.targetUi.model.SetProperty("size", self.stackManager.stackModel.GetProperty("size"))
                 self.targetUi.model.SetShape({"type": self.name, "penColor": self.penColor, "fillColor": self.fillColor,
                                               "thickness": self.thickness, "points": self.points})
+                # self.stackManager.SelectUiView(self.targetUi)
             if self.targetUi:
                 if pos != self.points[1]:
                     self.points[1] = self.ConstrainDragPoint(self.name, self.startPoint, event)
@@ -526,4 +534,14 @@ class ShapeTool(BaseTool):
                 self.stackManager.RemoveUiViewByModel(model)
                 self.stackManager.command_processor.Submit(command)
                 self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
+                # self.stackManager.view.Refresh(True)
         self.stackManager.view.SetFocus()
+
+    # def Paint(self, gc):
+    #     if self.targetUi and self.stackManager.view.HasCapture():
+    #         gc.SetPen(wx.Pen('Blue', 1, wx.PENSTYLE_DOT))
+    #         gc.SetBrush(wx.TRANSPARENT_BRUSH)
+    #         f = self.targetUi.model.RectFromPoints(self.targetUi.model.GetScaledPoints())
+    #         f.Offset(wx.Point(self.targetUi.model.GetAbsolutePosition()))
+    #         f.Inflate(self.targetUi.model.GetProperty("penThickness"))
+    #         gc.DrawRectangle(f)
