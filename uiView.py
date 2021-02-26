@@ -98,7 +98,7 @@ class UiView(object):
 
     def DestroyView(self):
         if self.view:
-            self.view.Destroy()
+            wx.CallAfter(self.view.Destroy)
             self.view = None
 
     def ReparentView(self, newParent):

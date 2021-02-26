@@ -71,7 +71,7 @@ class UiTextLabel(UiTextBase):
         if self.stackManager.isEditing:
             self.model.SetProperty("text", self.inlineEditor.GetValue())
             self.stackManager.view.RemoveChild(self.inlineEditor)
-            wx.CallLater(10, self.inlineEditor.Destroy)
+            wx.CallAfter(self.inlineEditor.Destroy)
             self.inlineEditor = None
             self.isInlineEditing = False
             self.stackManager.view.Refresh()

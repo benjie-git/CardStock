@@ -82,7 +82,7 @@ class UiGroup(UiView):
         for ui in self.uiViews.copy():
             if ui.view:
                 self.stackManager.view.RemoveChild(ui.view)
-                ui.view.Destroy()
+                wx.CallAfter(ui.view.Destroy)
             if ui.model.type == "group":
                 ui.RemoveChildViews()
             self.uiViews.remove(ui)
@@ -91,7 +91,7 @@ class UiGroup(UiView):
         for ui in self.uiViews.copy():
             if ui.view:
                 self.stackManager.view.RemoveChild(ui.view)
-                ui.view.Destroy()
+                wx.CallAfter(ui.view.Destroy)
             self.uiViews.remove(ui)
         for m in self.model.childModels.copy():
             uiView = generator.StackGenerator.UiViewFromModel(self, self.stackManager, m)

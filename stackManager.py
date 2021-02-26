@@ -37,10 +37,6 @@ class StackManager(object):
         self.noIdling = False
         self.timer = None
         self.tool = None
-        self.cacheView = wx.Window(self.view, size=(0,0))  # just an offscreen container for cached uiView.views
-        self.cacheView.Hide()
-        self.uiViewCache = {}
-        self.uiViewCachePendingDelete = []
         self.globalCursor = None
         self.lastMousePos = wx.Point(0,0)
         self.lastFocusedTextField = None
@@ -69,7 +65,6 @@ class StackManager(object):
         self.view.Bind(wx.EVT_PAINT, self.OnPaint)
         self.view.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
         self.view.Bind(wx.EVT_WINDOW_DESTROY, self.Cleanup)
-        self.view.Bind(wx.EVT_IDLE, self.CleanViewCache)
 
     def Cleanup(self, event):
         """When the window is destroyed, clean up resources."""
@@ -77,16 +72,6 @@ class StackManager(object):
             if self.timer:
                 self.timer.Stop()
         event.Skip()
-
-    def CleanViewCache(self, event):
-        if not self.noIdling:
-            for ui in self.uiViewCachePendingDelete.copy():
-                if ui.view:
-                    self.cacheView.RemoveChild(ui.view)
-                ui.DestroyView()
-                if ui.model in self.uiViewCache:
-                    self.uiViewCache.pop(ui.model)
-                self.uiViewCachePendingDelete.remove(ui)
 
     def RefreshNow(self):
         self.view.Refresh(True)
@@ -146,10 +131,7 @@ class StackManager(object):
         for ui in self.uiViews.copy():
             if ui.model.type != "card":
                 self.uiViews.remove(ui)
-                ui.ReparentView(self.cacheView)
-                self.uiViewCache[ui.model] = ui
-                if ui.doNotCache:
-                    self.uiViewCachePendingDelete.append(ui)
+                ui.DestroyView()
 
     def CreateViews(self, cardModel):
         self.uiCard.SetModel(cardModel)
@@ -306,27 +288,18 @@ class StackManager(object):
     def AddUiViewInternal(self, type, model=None):
         uiView = None
 
-        if model and model in self.uiViewCache:
-            uiView = self.uiViewCache[model]
-            if uiView not in self.uiViewCachePendingDelete:
-                uiView = self.uiViewCache.pop(model)
-                uiView.ReparentView(self.view)
-            else:
-                uiView = None
-
-        if not uiView:
-            if type == "button":
-                uiView = UiButton(self.uiCard, self, model)
-            elif type == "textfield" or type == "field":
-                uiView = UiTextField(self.uiCard, self, model)
-            elif type == "textlabel" or type == "label":
-                uiView = UiTextLabel(self.uiCard, self, model)
-            elif type == "image":
-                uiView = UiImage(self.uiCard, self, model)
-            elif type == "group":
-                uiView = UiGroup(self.uiCard, self, model)
-            elif type in ["pen", "line", "oval", "rect", "roundrect"]:
-                uiView = UiShape(self.uiCard, self, type, model)
+        if type == "button":
+            uiView = UiButton(self.uiCard, self, model)
+        elif type == "textfield" or type == "field":
+            uiView = UiTextField(self.uiCard, self, model)
+        elif type == "textlabel" or type == "label":
+            uiView = UiTextLabel(self.uiCard, self, model)
+        elif type == "image":
+            uiView = UiImage(self.uiCard, self, model)
+        elif type == "group":
+            uiView = UiGroup(self.uiCard, self, model)
+        elif type in ["pen", "line", "oval", "rect", "roundrect"]:
+            uiView = UiShape(self.uiCard, self, type, model)
 
         if uiView:
             if uiView.view and not model:
@@ -397,8 +370,6 @@ class StackManager(object):
             uiView = self.uiCard
             if key == "size":
                 self.view.SetSize(model.GetProperty(key))
-        if not uiView and model in self.uiViewCache:
-            uiView = self.uiViewCache[model]
         if uiView:
             uiView.OnPropertyChanged(model, key)
         if uiView and self.designer:
@@ -431,9 +402,7 @@ class StackManager(object):
                 self.uiViews.remove(ui)
                 self.view.Refresh(True, rect=ui.model.GetRefreshFrame())
                 self.uiCard.model.RemoveChild(ui.model)
-                ui.ReparentView(self.cacheView)
-                self.uiViewCache[ui.model] = ui
-                self.uiViewCachePendingDelete.append(ui)
+                ui.view.DestroyView()
                 return
 
     def ReorderSelectedViews(self, direction):
