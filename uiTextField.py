@@ -45,7 +45,6 @@ class UiTextField(UiTextBase):
         self.BindEvents(field)
         field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
         field.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
-        field.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
         field.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.UpdateFont(model, field)
 
@@ -67,21 +66,20 @@ class UiTextField(UiTextBase):
         event.Skip()
 
     def StartInlineEditing(self):
-        self.view.SetEditable(True)
-        self.view.SetFocus()
-        self.isInlineEditing = True
+        if self.stackManager.isEditing and not self.isInlineEditing:
+            self.view.SetEditable(True)
+            self.view.SetFocus()
+            self.isInlineEditing = True
+            self.stackManager.inlineEditingView = self
 
-    def OnKeyDown(self, event):
-        if event.GetKeyCode() == wx.WXK_ESCAPE:
-            self.stackManager.view.SetFocus()
-        event.Skip()
-
-    def OnLoseFocus(self, event):
-        if self.stackManager.isEditing:
+    def StopInlineEditing(self):
+        if self.stackManager.isEditing and self.isInlineEditing:
             self.view.SetEditable(False)
             self.view.SetSelection(0,0)
             self.isInlineEditing = False
-        event.Skip()
+            self.stackManager.inlineEditingView = None
+            self.stackManager.view.SetFocus()
+            self.model.Notify("text")
 
     def OnResize(self, event):
         if self.view and self.model.GetProperty("multiline"):

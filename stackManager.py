@@ -42,6 +42,7 @@ class StackManager(object):
         self.lastFocusedTextField = None
         self.lastMouseMovedUiView = None
         self.isDoubleClick = False
+        self.inlineEditingView = None
         self.runner = None
         self.filename = None
 
@@ -468,13 +469,24 @@ class StackManager(object):
             self.command_processor.Submit(command)
 
     def OnMouseDown(self, uiView, event):
+        if self.view.HasCapture() and event.LeftDClick():
+            # Make sure we don't double-capture the mouse on GTK/Linux
+            event.Skip()
+            if uiView and uiView.model.type.startswith("text") and event.LeftDClick():
+                # Flag this is a double-click  On mouseUp, we'll start the inline editor.
+                self.isDoubleClick = True
+            return
+
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         uiView = self.HitTest(pos, not event.ShiftDown())
 
-        if uiView and uiView.model.type.startswith("text") and uiView.isInlineEditing:
-            # Let the inline editor handle clicks while it's enabled
-            event.Skip()
-            return
+        if self.inlineEditingView:
+            if uiView == self.inlineEditingView:
+                # Let the inline editor handle clicks while it's enabled
+                event.Skip()
+                return
+            else:
+                self.inlineEditingView.StopInlineEditing()
 
         if self.tool and self.isEditing:
             if uiView and uiView.model.type.startswith("text") and event.LeftDClick():
@@ -501,7 +513,7 @@ class StackManager(object):
                 else:
                     self.view.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
 
-        if uiView and uiView.model.type.startswith("text") and uiView.isInlineEditing:
+        if self.inlineEditingView:
             # Let the inline editor handle clicks while it's enabled
             event.Skip()
             return
@@ -528,18 +540,17 @@ class StackManager(object):
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         uiView = self.HitTest(pos, not event.ShiftDown())
 
-        if uiView and uiView.model.type.startswith("text") and uiView.isInlineEditing:
+        if self.inlineEditingView:
             # Let the inline editor handle clicks while it's enabled
             event.Skip()
             return
 
         if self.tool and self.isEditing:
+            self.tool.OnMouseUp(uiView, event)
             if uiView and uiView.model.type.startswith("text") and self.isDoubleClick:
                 # Fire it up!
                 uiView.StartInlineEditing()
                 event.Skip()
-            else:
-                self.tool.OnMouseUp(uiView, event)
         else:
             uiView.OnMouseUp(event)
             event.Skip()

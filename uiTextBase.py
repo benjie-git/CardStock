@@ -11,11 +11,15 @@ class UiTextBase(UiView):
     def __init__(self, parent, stackManager, model, view):
         super().__init__(parent, stackManager, model, view)
         self.isInlineEditing = False
+        self.inlineEditor = None
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "text":
-            self.view.SetLabelText(str(self.model.GetProperty(key)))
+            if self.model.type == "textlabel":
+                self.view.SetLabelText(str(self.model.GetProperty(key)))
+            else:
+                self.view.ChangeValue(str(self.model.GetProperty(key)))
             self.OnResize(None)
         elif key in ["font", "fontSize", "textColor"]:
             self.UpdateFont(model, self.view)
@@ -53,7 +57,42 @@ class UiTextBase(UiView):
             view.StyleClearAll()
 
     def StartInlineEditing(self):
-        pass
+        # Show a temporary StyledTextCtrl with the same frame and font as the label
+        text = self.model.GetProperty("text")
+        field = stc.StyledTextCtrl(parent=self.stackManager.view, style=wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
+        field.SetUseHorizontalScrollBar(False)
+        field.SetUseVerticalScrollBar(False)
+        field.SetWrapMode(stc.STC_WRAP_WORD)
+        field.SetMarginWidth(1, 0)
+        rect = self.view.GetRect().Inflate(1)
+        rect.width += 20
+        field.SetRect(rect)
+        field.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.UpdateFont(self.model, field)
+        self.view.Hide()
+        field.ChangeValue(text)
+        field.EmptyUndoBuffer()
+        field.SetFocus()
+        self.inlineEditor = field
+        self.isInlineEditing = True
+        self.stackManager.inlineEditingView = self
+
+    def OnKeyDown(self, event):
+        if event.GetKeyCode() == wx.WXK_ESCAPE:
+            self.StopInlineEditing()
+        event.Skip()
+
+    def StopInlineEditing(self):
+        if self.stackManager.isEditing and self.isInlineEditing:
+            self.view.Show()
+            self.model.SetProperty("text", self.inlineEditor.GetValue())
+            self.stackManager.view.RemoveChild(self.inlineEditor)
+            wx.CallAfter(self.inlineEditor.Destroy)
+            self.inlineEditor = None
+            self.isInlineEditing = False
+            self.stackManager.inlineEditingView = None
+            self.stackManager.view.SetFocus()
+            self.stackManager.view.Refresh()
 
     @staticmethod
     def FamilyForName(name):
