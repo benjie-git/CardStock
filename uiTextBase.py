@@ -8,6 +8,10 @@ class UiTextBase(UiView):
     This class is the abstract base controller for UiTextLabel and UiTextField.
     """
 
+    def __init__(self, parent, stackManager, model, view):
+        super().__init__(parent, stackManager, model, view)
+        self.isInlineEditing = False
+
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "text":
@@ -43,6 +47,9 @@ class UiTextBase(UiView):
             spec = f"fore:{colorStr},face:{fontName},size:{size}"
             view.StyleSetSpec(stc.STC_STYLE_DEFAULT, spec)
             view.StyleClearAll()
+
+    def StartInlineEditing(self):
+        pass
 
     @staticmethod
     def FamilyForName(name):

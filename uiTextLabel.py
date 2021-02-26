@@ -15,6 +15,7 @@ class UiTextLabel(UiTextBase):
 
         self.stackManager = stackManager
         label = self.CreateLabel(stackManager, model)
+        self.inlineEditor = None
 
         super().__init__(parent, stackManager, model, label)
 
@@ -35,6 +36,45 @@ class UiTextLabel(UiTextBase):
         label.SetLabelText(text)
         self.UpdateFont(model, label)
         return label
+
+    def StartInlineEditing(self):
+        text = self.model.GetProperty("text")
+        alignment = wx.ALIGN_LEFT
+        if self.model.GetProperty("alignment") == "Right":
+            alignment = wx.ALIGN_RIGHT
+        elif self.model.GetProperty("alignment") == "Center":
+            alignment = wx.ALIGN_CENTER
+        field = stc.StyledTextCtrl(parent=self.stackManager.view, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
+        field.SetUseHorizontalScrollBar(False)
+        field.SetUseVerticalScrollBar(False)
+        field.SetWrapMode(stc.STC_WRAP_WORD)
+        field.SetMarginWidth(1, 0)
+        rect = self.view.GetRect().Inflate(1)
+        rect.width += 20
+        field.SetRect(rect)
+        field.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
+        field.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        field.SetFocus()
+        self.UpdateFont(self.model, field)
+        field.ChangeValue(text)
+        field.EmptyUndoBuffer()
+        self.inlineEditor = field
+        self.isInlineEditing = True
+
+    def OnKeyDown(self, event):
+        if event.GetKeyCode() == wx.WXK_ESCAPE:
+            self.stackManager.view.SetFocus()
+        event.Skip()
+
+    def OnLoseFocus(self, event):
+        if self.stackManager.isEditing:
+            self.model.SetProperty("text", self.inlineEditor.GetValue())
+            self.stackManager.view.RemoveChild(self.inlineEditor)
+            wx.CallLater(10, self.inlineEditor.Destroy)
+            self.inlineEditor = None
+            self.isInlineEditing = False
+            self.stackManager.view.Refresh()
+        event.Skip()
 
     def OnResize(self, event):
         self.view.SetLabel(self.model.GetProperty("text"))

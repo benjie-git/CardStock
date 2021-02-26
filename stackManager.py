@@ -502,12 +502,12 @@ class StackManager(object):
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         uiView = self.HitTest(pos)
 
-        if uiView and uiView.model.type == "textfield" and uiView.view.IsEditable():
+        if uiView and uiView.model.type in ["textfield", "textlabel"] and uiView.isInlineEditing:
             event.Skip()
             return
 
         if self.tool and self.isEditing:
-            if uiView and uiView.model.type == "textfield" and event.LeftDClick():
+            if uiView and uiView.model.type in ["textfield", "textlabel"] and event.LeftDClick():
                 self.isDoubleClick = True
             else:
                 self.tool.OnMouseDown(uiView, event)
@@ -521,7 +521,7 @@ class StackManager(object):
 
         uiView = self.HitTest(pos)
 
-        if uiView and uiView.model.type == "textfield" and uiView.view.IsEditable():
+        if uiView and uiView.model.type in ["textfield", "textlabel"] and uiView.isInlineEditing:
             event.Skip()
             return
 
@@ -553,14 +553,13 @@ class StackManager(object):
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         uiView = self.HitTest(pos)
 
-        if uiView and uiView.model.type == "textfield" and uiView.view.IsEditable():
+        if uiView and uiView.model.type == "textfield" and uiView.isInlineEditing:
             event.Skip()
             return
 
         if self.tool and self.isEditing:
-            if uiView and uiView.model.type == "textfield" and self.isDoubleClick:
-                uiView.view.SetEditable(True)
-                uiView.view.SetFocus()
+            if uiView and uiView.model.type in ["textfield", "textlabel"] and self.isDoubleClick:
+                uiView.StartInlineEditing()
             else:
                 self.tool.OnMouseUp(uiView, event)
         else:

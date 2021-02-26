@@ -46,6 +46,7 @@ class UiTextField(UiTextBase):
         field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
         field.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
         field.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
+        field.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.UpdateFont(model, field)
 
         if stackManager.isEditing:
@@ -65,9 +66,21 @@ class UiTextField(UiTextBase):
             self.stackManager.lastFocusedTextField = self
         event.Skip()
 
+    def StartInlineEditing(self):
+        self.view.SetEditable(True)
+        self.view.SetFocus()
+        self.isInlineEditing = True
+
+    def OnKeyDown(self, event):
+        if event.GetKeyCode() == wx.WXK_ESCAPE:
+            self.stackManager.view.SetFocus()
+        event.Skip()
+
     def OnLoseFocus(self, event):
         if self.stackManager.isEditing:
             self.view.SetEditable(False)
+            self.view.SetSelection(0,0)
+            self.isInlineEditing = False
         event.Skip()
 
     def OnResize(self, event):
