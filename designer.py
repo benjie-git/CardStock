@@ -146,6 +146,9 @@ class DesignerFrame(wx.Frame):
 
     def SaveFile(self):
         if self.filename:
+            # Defocus the inspector, which saves any updated value later, onIdle.  Then yield to idle now.
+            self.stackManager.view.SetFocus()
+            wx.Yield()
             data = self.stackManager.stackModel.GetData()
             try:
                 jsonData = json.dumps(data, indent=2)

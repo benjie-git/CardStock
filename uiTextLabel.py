@@ -38,6 +38,7 @@ class UiTextLabel(UiTextBase):
         return label
 
     def StartInlineEditing(self):
+        # Show a temporary StyledTextCtrl with the same frame and font as the label
         text = self.model.GetProperty("text")
         alignment = wx.ALIGN_LEFT
         if self.model.GetProperty("alignment") == "Right":

@@ -191,7 +191,7 @@ class HandTool(BaseTool):
                 self.stackManager.view.Refresh(True, self.selectionRect.Inflate(2))
                 self.selectionRect = ShapeModel.RectFromPoints([self.absOrigin, pos])
                 self.stackManager.view.Refresh(True, self.selectionRect.Inflate(2))
-                self.UpdateSelection()
+                self.UpdateBoxSelection()
                 return
 
             if self.mode == "move":
@@ -239,7 +239,7 @@ class HandTool(BaseTool):
         if self.mode == "click":
             if self.deselectTarget and self.targetUi.isSelected:
                 self.stackManager.SelectUiView(self.targetUi, True)
-            else:
+            elif not event.ShiftDown():
                 topView = self.stackManager.HitTest(self.absOrigin, False)
                 if topView and topView.model.parent.type != "group":
                     self.stackManager.SelectUiView(topView)
@@ -291,7 +291,7 @@ class HandTool(BaseTool):
         self.targetUi = None
         event.Skip()
 
-    def UpdateSelection(self):
+    def UpdateBoxSelection(self):
         self.stackManager.SelectUiView(None)
         for ui in self.stackManager.uiViews:
             select = self.selectionRect.Contains(ui.model.GetCenter())

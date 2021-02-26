@@ -42,8 +42,12 @@ class UiTextBase(UiView):
             view.SetFont(font)
             view.SetForegroundColour(colorStr)
         else:
-            fontName = font.GetNativeFontInfoUserDesc().split(' ')[0]
-            fontName.replace("'", "")
+            fontName = font.GetNativeFontInfoUserDesc()
+            if "'" in fontName:
+                # Multi-word faceName gets single-quoted
+                fontName = font.GetNativeFontInfoUserDesc().split("'")[1]
+            else:
+                fontName = font.GetNativeFontInfoUserDesc().split(" ")[0]
             spec = f"fore:{colorStr},face:{fontName},size:{size}"
             view.StyleSetSpec(stc.STC_STYLE_DEFAULT, spec)
             view.StyleClearAll()

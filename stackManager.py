@@ -500,14 +500,16 @@ class StackManager(object):
 
     def OnMouseDown(self, uiView, event):
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        uiView = self.HitTest(pos)
+        uiView = self.HitTest(pos, not event.ShiftDown())
 
-        if uiView and uiView.model.type in ["textfield", "textlabel"] and uiView.isInlineEditing:
+        if uiView and uiView.model.type.startswith("text") and uiView.isInlineEditing:
+            # Let the inline editor handle clicks while it's enabled
             event.Skip()
             return
 
         if self.tool and self.isEditing:
-            if uiView and uiView.model.type in ["textfield", "textlabel"] and event.LeftDClick():
+            if uiView and uiView.model.type.startswith("text") and event.LeftDClick():
+                # Flag this is a double-click  On mouseUp, we'll start the inline editor.
                 self.isDoubleClick = True
             else:
                 self.tool.OnMouseDown(uiView, event)
@@ -519,9 +521,10 @@ class StackManager(object):
         if pos == self.lastMousePos:
             return
 
-        uiView = self.HitTest(pos)
+        uiView = self.HitTest(pos, not event.ShiftDown())
 
-        if uiView and uiView.model.type in ["textfield", "textlabel"] and uiView.isInlineEditing:
+        if uiView and uiView.model.type.startswith("text") and uiView.isInlineEditing:
+            # Let the inline editor handle clicks while it's enabled
             event.Skip()
             return
 
@@ -551,14 +554,16 @@ class StackManager(object):
 
     def OnMouseUp(self, uiView, event):
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        uiView = self.HitTest(pos)
+        uiView = self.HitTest(pos, not event.ShiftDown())
 
-        if uiView and uiView.model.type == "textfield" and uiView.isInlineEditing:
+        if uiView and uiView.model.type.startswith("text") and uiView.isInlineEditing:
+            # Let the inline editor handle clicks while it's enabled
             event.Skip()
             return
 
         if self.tool and self.isEditing:
-            if uiView and uiView.model.type in ["textfield", "textlabel"] and self.isDoubleClick:
+            if uiView and uiView.model.type.startswith("text") and self.isDoubleClick:
+                # Fire it up!
                 uiView.StartInlineEditing()
             else:
                 self.tool.OnMouseUp(uiView, event)
