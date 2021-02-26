@@ -210,6 +210,7 @@ class TextFieldModel(TextBaseModel):
 
         self.properties["editable"] = True
         self.properties["multiline"] = False
+        self.properties["fontSize"] = 12
 
         self.propertyTypes["editable"] = "bool"
         self.propertyTypes["multiline"] = "bool"

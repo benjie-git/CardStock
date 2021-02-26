@@ -35,6 +35,9 @@
             ],
             "text": "",
             "alignment": "Right",
+            "textColor": "black",
+            "font": "Mono",
+            "fontSize": 14,
             "editable": true,
             "multiline": false
           }

@@ -185,7 +185,7 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": "18"
+            "fontSize": 18
           }
         },
         {
@@ -297,7 +297,7 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": "18"
+            "fontSize": 18
           }
         },
         {
@@ -409,7 +409,7 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": "18"
+            "fontSize": 18
           }
         },
         {
@@ -521,7 +521,7 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": "18"
+            "fontSize": 18
           }
         },
         {
@@ -633,7 +633,7 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": "18"
+            "fontSize": 18
           }
         },
         {

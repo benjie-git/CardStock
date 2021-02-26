@@ -38,7 +38,7 @@
             "alignment": "Left",
             "textColor": "blue",
             "font": "Mono",
-            "fontSize": "18"
+            "fontSize": 18
           }
         },
         {
@@ -58,7 +58,7 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Mono",
-            "fontSize": "18"
+            "fontSize": 18
           }
         },
         {
