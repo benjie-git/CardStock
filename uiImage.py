@@ -115,7 +115,11 @@ class UiImage(UiView):
             offX = 0 if (imgSize.Width >= viewSize.Width) else ((viewSize.Width - imgSize.Width) / 2)
             offY = 0 if (imgSize.Height >= viewSize.Height) else ((viewSize.Height - imgSize.Height) / 2)
             gc.DrawBitmap(self.rotatedBitmap, r.Left + offX, r.Top + offY)
-        super().Paint(gc)
+
+        if self.stackManager.isEditing:
+            gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
+            gc.SetBrush(wx.TRANSPARENT_BRUSH)
+            gc.DrawRectangle(self.model.GetAbsoluteFrame())
 
 
 class ImageModel(ViewModel):

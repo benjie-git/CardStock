@@ -424,11 +424,6 @@ class ViewTool(BaseTool):
                 self.stackManager.view.SetFocus()
                 self.targetUi = None
 
-    def Paint(self, gc):
-        if self.targetUi and self.stackManager.view.HasCapture():
-            gc.SetPen(wx.Pen('Blue', 1, wx.PENSTYLE_DOT))
-            gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            gc.DrawRectangle(self.targetUi.model.GetAbsoluteFrame())
 
 class PenTool(BaseTool):
     """

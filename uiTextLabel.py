@@ -81,6 +81,12 @@ class UiTextLabel(UiTextBase):
         self.view.SetLabel(self.model.GetProperty("text"))
         self.view.Wrap(self.view.GetSize().Width)
 
+    def Paint(self, gc):
+        if self.stackManager.isEditing:
+            gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
+            gc.SetBrush(wx.TRANSPARENT_BRUSH)
+            gc.DrawRectangle(self.model.GetAbsoluteFrame())
+
 
 class TextLabelModel(TextBaseModel):
     """

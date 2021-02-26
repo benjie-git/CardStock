@@ -519,6 +519,7 @@ class StackManager(object):
     def OnMouseMove(self, uiView, event):
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         if pos == self.lastMousePos:
+            event.Skip()
             return
 
         uiView = self.HitTest(pos, not event.ShiftDown())
@@ -545,6 +546,7 @@ class StackManager(object):
                 if uiView:
                     uiView.OnMouseEnter(event)
             uiView.OnMouseMove(event)
+            event.Skip()
             parent = uiView.parent
             while parent:
                 parent.OnMouseMove(event)
@@ -569,6 +571,7 @@ class StackManager(object):
                 self.tool.OnMouseUp(uiView, event)
         else:
             uiView.OnMouseUp(event)
+            event.Skip()
         self.isDoubleClick = False
 
     def OnMouseExit(self, event):
