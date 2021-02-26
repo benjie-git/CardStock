@@ -76,7 +76,7 @@ class UiView(object):
             self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
         elif key == "size":
             s = self.model.GetProperty(key)
-            self.hitRegion = None
+            self.ClearHitRegion()
             if self.view:
                 self.view.SetSize(s)
                 self.view.Refresh(True)
@@ -89,6 +89,8 @@ class UiView(object):
                 self.view.Refresh(True)
             else:
                 self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
+            if self.parent.model.type == "group":
+                self.parent.ClearHitRegion()
         elif key == "hidden":
             if self.view:
                 self.view.Show(not self.model.GetProperty(key))
@@ -111,7 +113,7 @@ class UiView(object):
     def SetSelected(self, selected):
         if self.isSelected != selected:
             self.isSelected = selected
-            self.hitRegion = None
+            self.ClearHitRegion()
             self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
 
     def OnMouseDown(self, event):
@@ -208,6 +210,11 @@ class UiView(object):
         # native widgets which can obscure the full frame.
         s = self.model.GetProperty("size")
         return wx.Rect(s.width-4, s.height-4, 12, 12)
+
+    def ClearHitRegion(self):
+        self.hitRegion = None
+        if self.parent and self.parent.model.type == "group":
+            self.parent.ClearHitRegion()
 
     def GetHitRegion(self):
         if not self.hitRegion:

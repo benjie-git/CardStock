@@ -402,7 +402,7 @@ class StackManager(object):
                 self.uiViews.remove(ui)
                 self.view.Refresh(True, rect=ui.model.GetRefreshFrame())
                 self.uiCard.model.RemoveChild(ui.model)
-                ui.view.DestroyView()
+                ui.DestroyView()
                 return
 
     def ReorderSelectedViews(self, direction):

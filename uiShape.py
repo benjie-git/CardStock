@@ -128,7 +128,7 @@ class UiShape(UiView):
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key in ["size", "shape", "penColor", "penThickness", "fillColor", "cornerRadius"]:
-            self.hitRegion = None
+            self.ClearHitRegion()
             self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
 
     @staticmethod
@@ -209,8 +209,6 @@ class LineModel(ViewModel):
         if self.type in ["line", "pen"]:
             if fx is not self.xFlipped or fy is not self.yFlipped:
                 self.scaledPoints = None
-            if (self.xFlipped or self.yFlipped) and not (fx or fy):
-                print("huh?")
             self.xFlipped = fx
             self.yFlipped = fy
 
