@@ -55,10 +55,11 @@ class UiTextLabel(UiTextBase):
         field.SetRect(rect)
         field.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
         field.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        field.SetFocus()
         self.UpdateFont(self.model, field)
+        self.view.Hide()
         field.ChangeValue(text)
         field.EmptyUndoBuffer()
+        field.SetFocus()
         self.inlineEditor = field
         self.isInlineEditing = True
 
@@ -74,6 +75,7 @@ class UiTextLabel(UiTextBase):
             wx.CallAfter(self.inlineEditor.Destroy)
             self.inlineEditor = None
             self.isInlineEditing = False
+            self.view.Show()
             self.stackManager.view.Refresh()
         event.Skip()
 

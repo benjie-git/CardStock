@@ -484,6 +484,7 @@ class StackManager(object):
                 self.tool.OnMouseDown(uiView, event)
         else:
             uiView.OnMouseDown(event)
+            event.Skip()
 
     def OnMouseMove(self, uiView, event):
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
@@ -493,17 +494,17 @@ class StackManager(object):
 
         uiView = self.HitTest(pos, not event.ShiftDown())
 
-        if uiView and uiView.model.type.startswith("text") and uiView.isInlineEditing:
-            # Let the inline editor handle clicks while it's enabled
-            event.Skip()
-            return
-
         if uiView != self.lastMouseMovedUiView:
             if not self.globalCursor:
                 if uiView and uiView.GetCursor():
                     self.view.SetCursor(wx.Cursor(uiView.GetCursor()))
                 else:
                     self.view.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
+
+        if uiView and uiView.model.type.startswith("text") and uiView.isInlineEditing:
+            # Let the inline editor handle clicks while it's enabled
+            event.Skip()
+            return
 
         if self.isEditing:
             if self.tool:
@@ -536,6 +537,7 @@ class StackManager(object):
             if uiView and uiView.model.type.startswith("text") and self.isDoubleClick:
                 # Fire it up!
                 uiView.StartInlineEditing()
+                event.Skip()
             else:
                 self.tool.OnMouseUp(uiView, event)
         else:
