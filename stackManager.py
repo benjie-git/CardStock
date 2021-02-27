@@ -622,8 +622,15 @@ class StackManager(object):
                     hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
                     if hit == uiView:
                         return hit
+        # Native views first
         for uiView in reversed(self.uiViews):
-            if not uiView.model.GetProperty("hidden"):
+            if not uiView.model.GetProperty("hidden") and uiView.view:
+                hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
+                if hit:
+                    return hit
+        # Then virtual views
+        for uiView in reversed(self.uiViews):
+            if not uiView.model.GetProperty("hidden") and not uiView.view:
                 hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
                 if hit:
                     return hit
