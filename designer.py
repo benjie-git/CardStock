@@ -91,6 +91,7 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_FIND_NEXT, self.OnFindEvent)
         self.Bind(wx.EVT_FIND_REPLACE, self.OnReplaceEvent)
         self.Bind(wx.EVT_FIND_REPLACE_ALL, self.OnReplaceAllEvent)
+
         self.splitter = wx.SplitterWindow(self, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
 
         self.stackContainer = wx.Window(self.splitter)
@@ -120,6 +121,9 @@ class DesignerFrame(wx.Frame):
         self.cPanel.Layout()
 
         self.cPanel.SetToolByName("hand")
+
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnWindowDestroy)
 
         self.findDlg = None
         self.findEngine = FindEngine(self.stackManager)
@@ -402,18 +406,23 @@ class DesignerFrame(wx.Frame):
         self.Show()
 
     def OnMenuExit(self, event):
+        self.Close()
+
+    def OnClose(self, event):
         if self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before Quitting?", wx.YES_NO | wx.CANCEL).ShowModal()
             if r == wx.ID_CANCEL:
+                event.Veto()
                 return
             if r == wx.ID_YES:
                 self.OnMenuSave(None)
+        event.Skip()
 
+    def OnWindowDestroy(self, event):
         if self.viewer:
             self.viewer.Destroy()
-
-        self.Close()
+        event.Skip()
 
     def OnMenuGroup(self, event):
         self.stackManager.GroupSelectedViews()
