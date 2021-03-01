@@ -259,7 +259,7 @@ class DesignerFrame(wx.Frame):
         cardMenu.Append(ID_PREV_CARD, "&Previous Card\tCtrl-[", "Previous Card")
         cardMenu.AppendSeparator()
         cardMenu.Append(ID_ADD_CARD, "&Add Card\tCtrl-+", "Add Card")
-        cardMenu.Append(ID_DUPLICATE_CARD, "&Duplicate Card", "Duplicate Card")
+        cardMenu.Append(ID_DUPLICATE_CARD, "&Duplicate Card\tCtrl-Alt-+", "Duplicate Card")
         cardMenu.Append(ID_REMOVE_CARD, "&Remove Card", "Remove Card")
         cardMenu.AppendSeparator()
         cardMenu.Append(ID_MOVE_CARD_FWD, "Move Card &Forward\tCtrl-Shift-]", "Move Card Forward")
