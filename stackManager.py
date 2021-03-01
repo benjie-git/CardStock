@@ -260,6 +260,15 @@ class StackManager(object):
             command = UngroupUiViewsCommand(True, 'Ungroup Views', self, self.cardIndex, models)
             self.command_processor.Submit(command)
 
+    def FlipSelection(self, flipHorizontal):
+        commands = []
+        for ui in self.selectedViews:
+            commands.append(FlipShapeCommand(True, 'Flip object', self, self.cardIndex,
+                                                   ui.model, flipHorizontal, not flipHorizontal))
+        if len(commands) >= 1:
+            command = CommandGroup(True, 'Flip Objects', commands)
+            self.command_processor.Submit(command)
+
     def GroupModelsInternal(self, models, group=None):
         if len(models) > 1:
             if not group:
@@ -616,6 +625,10 @@ class StackManager(object):
             wx.BufferedPaintDC(self.view, self.buffer)
 
     def HitTest(self, pt, selectedFirst=True):
+        # First find selected objects, so you can move a selected object from under another
+        # But only if allowed by selectedFirst.
+        # We disable selectedFirst searching if the Shift key is down, or if the user does a click
+        # as opposed to a drag or resize.
         if selectedFirst:
             for uiView in self.selectedViews:
                 if uiView.model.type != "card":

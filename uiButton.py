@@ -65,6 +65,12 @@ class UiButton(UiView):
             if self.stackManager.runner and self.model.GetHandler("OnClick"):
                 self.stackManager.runner.RunHandler(self.model, "OnClick", event)
 
+    def Paint(self, gc):
+        if self.stackManager.isEditing:
+            gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
+            gc.SetBrush(wx.TRANSPARENT_BRUSH)
+            gc.DrawRectangle(self.model.GetAbsoluteFrame())
+
 
 class ButtonModel(ViewModel):
     """

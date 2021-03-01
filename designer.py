@@ -42,6 +42,8 @@ ID_MOVE_CARD_FWD = wx.NewIdRef()
 ID_MOVE_CARD_BACK = wx.NewIdRef()
 ID_GROUP = wx.NewIdRef()
 ID_UNGROUP = wx.NewIdRef()
+ID_FLIP_HORIZ = wx.NewIdRef()
+ID_FLIP_VERT = wx.NewIdRef()
 ID_MOVE_VIEW_FRONT = wx.NewIdRef()
 ID_MOVE_VIEW_FWD = wx.NewIdRef()
 ID_MOVE_VIEW_BACK = wx.NewIdRef()
@@ -267,6 +269,9 @@ class DesignerFrame(wx.Frame):
         viewMenu.Append(ID_GROUP, "&Group Objects\tCtrl-Alt-G", "Group Objects")
         viewMenu.Append(ID_UNGROUP, "&Ungroup Objects\tCtrl-Alt-U", "Ungroup Objects")
         viewMenu.AppendSeparator()
+        viewMenu.Append(ID_FLIP_HORIZ, "Flip Horizontal\tCtrl-Alt-H", "Flip Horizontal")
+        viewMenu.Append(ID_FLIP_VERT, "Flip Vertical\tCtrl-Alt-V", "Flip Vertical")
+        viewMenu.AppendSeparator()
         viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Alt-Shift-F", "Move to Front")
         viewMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward\tCtrl-Alt-F", "Move Forward")
         viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&k\tCtrl-Alt-B", "Move Back")
@@ -322,6 +327,8 @@ class DesignerFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.OnMenuGroup, id=ID_GROUP)
         self.Bind(wx.EVT_MENU, self.OnMenuUngroup, id=ID_UNGROUP)
+        self.Bind(wx.EVT_MENU, self.OnMenuFlipHorizontal, id=ID_FLIP_HORIZ)
+        self.Bind(wx.EVT_MENU, self.OnMenuFlipVertical, id=ID_FLIP_VERT)
         self.Bind(wx.EVT_MENU, self.OnMenuMoveView, id=ID_MOVE_VIEW_FRONT)
         self.Bind(wx.EVT_MENU, self.OnMenuMoveView, id=ID_MOVE_VIEW_FWD)
         self.Bind(wx.EVT_MENU, self.OnMenuMoveView, id=ID_MOVE_VIEW_BACK)
@@ -429,6 +436,12 @@ class DesignerFrame(wx.Frame):
 
     def OnMenuUngroup(self, event):
         self.stackManager.UngroupSelectedViews()
+
+    def OnMenuFlipHorizontal(self, event):
+        self.stackManager.FlipSelection(True)
+
+    def OnMenuFlipVertical(self, event):
+        self.stackManager.FlipSelection(False)
 
     def OnMenuMoveView(self, event):
         if event.GetId() == ID_MOVE_VIEW_FRONT:

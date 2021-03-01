@@ -69,15 +69,13 @@ class FlipShapeCommand(Command):
 
     def Do(self):
         self.stackManager.LoadCardAtIndex(self.cardIndex)
-        self.viewModel.SetTempFlippedFlags(self.xFlipped, self.yFlipped)
-        self.viewModel.CommitFlips()
+        self.viewModel.PerformFlips(self.xFlipped, self.yFlipped)
         self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.viewModel))
         return True
 
     def Undo(self):
         self.stackManager.LoadCardAtIndex(self.cardIndex)
-        self.viewModel.SetTempFlippedFlags(self.xFlipped, self.yFlipped)
-        self.viewModel.CommitFlips()
+        self.viewModel.PerformFlips(self.xFlipped, self.yFlipped)
         self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.viewModel))
         return True
 

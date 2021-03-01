@@ -127,6 +127,8 @@ class HandTool(BaseTool):
         self.selectionRect = None
         self.mode = None  # click, box, move, resize
         self.shiftDown = False
+        self.xFlipped = False
+        self.yFlipped = False
 
     def OnMouseDown(self, uiView, event):
         self.mode = "click"
@@ -207,12 +209,19 @@ class HandTool(BaseTool):
                 pos = self.ConstrainDragPointAspect(origPos, origSize, event)
                 offset = (pos.x - self.absOrigin.x, pos.y - self.absOrigin.y)
                 topLeft = (min(pos[0], origPos[0]), min(pos[1], origPos[1]))
-                thickness = self.targetUi.model.GetProperty("penThickness")
                 self.targetUi.model.SetProperty("position", topLeft)
                 self.targetUi.model.SetProperty("size", [abs(origSize[0]+offset[0]), abs(origSize[1]+offset[1])])
+
+                thickness = 0
                 if self.targetUi.model.type in ['line', 'pen']:
-                    (fx, fy) = ((pos[0] < origPos[0] + thickness/2), (pos[1] < origPos[1] + thickness/2))
-                    self.targetUi.model.SetTempFlippedFlags(fx, fy)
+                    thickness = self.targetUi.model.GetProperty("penThickness")
+                xFlipped = (pos[0] < origPos[0] + thickness/2)
+                yFlipped = (pos[1] < origPos[1] + thickness/2)
+                flipX = (xFlipped != self.xFlipped)
+                flipY = (yFlipped != self.yFlipped)
+                self.xFlipped = xFlipped
+                self.yFlipped = yFlipped
+                self.targetUi.model.PerformFlips(flipX, flipY)
         event.Skip()
 
     def StartBoxSelect(self):
@@ -231,6 +240,8 @@ class HandTool(BaseTool):
 
     def StartResize(self):
         self.mode = "resize"
+        self.xFlipped = False
+        self.yFlipped = False
 
     def OnMouseUp(self, uiView, event):
         if self.stackManager.view.HasCapture():
@@ -276,11 +287,13 @@ class HandTool(BaseTool):
                 sizeCommand = ResizeUiViewCommand(True, 'Resize-Resize', self.stackManager, self.stackManager.cardIndex,
                                                   self.targetUi.model, sizeOffset)
                 commands = [moveCommand, sizeCommand]
-                if self.targetUi.model.type in ['line', 'pen']:
-                    (fx, fy) = (self.targetUi.model.xFlipped, self.targetUi.model.yFlipped)
+
+                if self.xFlipped or self.yFlipped:
+                    self.targetUi.model.PerformFlips(self.xFlipped, self.yFlipped)
                     flipCommand = FlipShapeCommand(True, 'Resize-Flip', self.stackManager, self.stackManager.cardIndex,
-                                                   self.targetUi.model, fx, fy)
+                                                   self.targetUi.model, self.xFlipped, self.yFlipped)
                     commands.append(flipCommand)
+
                 self.targetUi.model.SetProperty("position", viewOrigin)
                 self.targetUi.model.SetProperty("size", origSize)
                 command = CommandGroup(True, "Resize", commands)

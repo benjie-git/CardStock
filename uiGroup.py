@@ -209,6 +209,18 @@ class GroupModel(ViewModel):
                 oldPos = m.GetProperty("position")
                 m.SetProperty("position", [oldPos[0] - offset[0], oldPos[1] - offset[1]], False)
 
+    def PerformFlips(self, fx, fy):
+        if fx or fy:
+            for m in self.childModels:
+                pos = m.origGroupSubviewFrame.Position
+                size = m.origGroupSubviewFrame.Size
+                pos = wx.Point((self.origFrame.Size.width - (pos.x + size.width)) if fx else pos.x,
+                               (self.origFrame.Size.height - (pos.y + size.height)) if fy else pos.y)
+                m.origGroupSubviewFrame.Position = pos
+            for m in self.childModels:
+                m.PerformFlips(fx, fy)
+            self.ResizeChildModels()
+
     def ResizeChildModels(self):
         scaleX = 1
         scaleY = 1

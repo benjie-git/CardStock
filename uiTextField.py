@@ -16,6 +16,7 @@ class UiTextField(UiTextBase):
             model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("field_"), False)
 
         self.stackManager = stackManager
+        self.isInlineEditing = False
         field = self.CreateField(stackManager, model)
 
         super().__init__(parent, stackManager, model, field)
@@ -55,7 +56,7 @@ class UiTextField(UiTextBase):
         return field
 
     def GetCursor(self):
-        if self.stackManager.isEditing:
+        if self.stackManager.isEditing and not self.isInlineEditing:
             return wx.CURSOR_HAND
         else:
             return wx.CURSOR_IBEAM

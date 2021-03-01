@@ -476,6 +476,9 @@ class ViewModel(object):
     def GetHandlers(self):
         return self.handlers
 
+    def PerformFlips(self, fx, fy):
+        pass
+
     def FramePartChanged(self, cdsFramePart):
         if cdsFramePart.role == "position":
             self.SetAbsolutePosition(cdsFramePart)

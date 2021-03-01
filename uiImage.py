@@ -55,11 +55,18 @@ class UiImage(UiView):
         if not img:
             return None
 
+        xFlipped = self.model.GetProperty("xFlipped")
+        yFlipped = self.model.GetProperty("yFlipped")
         rot = self.model.GetProperty("rotation")
         imgSize = img.GetSize()
         viewSize = self.model.GetProperty("size")
         fit = self.model.GetProperty("fit")
 
+        if xFlipped or yFlipped:
+            if xFlipped:
+                img = img.Mirror(horizontally=True)
+            if yFlipped:
+                img = img.Mirror(horizontally=False)
         if rot != 0:
             val = float(rot * -pi/180)  # make positive value rotate clockwise
             img = img.Rotate(val, list(img.GetSize()/2))   # use original center
@@ -91,7 +98,7 @@ class UiImage(UiView):
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
 
-        if key in ["size", "rotation", "fit", "file"]:
+        if key in ["size", "rotation", "fit", "file", "xFlipped", "yFlipped"]:
             self.rotatedBitmap = None
 
         if key == "file":
@@ -127,6 +134,8 @@ class ImageModel(ViewModel):
     This is the model for an Image object.
     """
 
+    minSize = wx.Size(2, 2)
+
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "image"
@@ -135,11 +144,15 @@ class ImageModel(ViewModel):
         self.properties["file"] = ""
         self.properties["fit"] = "Fill"
         self.properties["rotation"] = 0
+        self.properties["xFlipped"] = False
+        self.properties["yFlipped"] = False
 
         self.propertyTypes["file"] = "file"
         self.propertyTypes["fit"] = "choice"
         self.propertyChoices["fit"] = ["Center", "Stretch", "Fit", "Fill"]
         self.propertyTypes["rotation"] = "int"
+        self.propertyTypes["xFlipped"] = "bool"
+        self.propertyTypes["yFlipped"] = "bool"
 
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "file", "fit", "rotation", "position", "size"]
@@ -148,6 +161,12 @@ class ImageModel(ViewModel):
         if key == "rotation":
             value = value % 360
         super().SetProperty(key, value, notify)
+
+    def PerformFlips(self, fx, fy):
+        if fx:
+            self.SetProperty("xFlipped", not self.GetProperty("xFlipped"))
+        if fy:
+            self.SetProperty("yFlipped", not self.GetProperty("yFlipped"))
 
 
 class ImageProxy(ViewProxy):
