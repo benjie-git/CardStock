@@ -125,7 +125,6 @@ class DesignerFrame(wx.Frame):
         self.cPanel.SetToolByName("hand")
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
-        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnWindowDestroy)
 
         self.findDlg = None
         self.findEngine = FindEngine(self.stackManager)
@@ -424,9 +423,6 @@ class DesignerFrame(wx.Frame):
                 return
             if r == wx.ID_YES:
                 self.OnMenuSave(None)
-        event.Skip()
-
-    def OnWindowDestroy(self, event):
         if self.viewer:
             self.viewer.Destroy()
         event.Skip()
