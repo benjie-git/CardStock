@@ -19,7 +19,12 @@ class UiTextBase(UiView):
             if self.model.type == "textlabel":
                 self.view.SetLabelText(str(self.model.GetProperty(key)))
             else:
+                wasEditable = self.view.IsEditable()
+                if not wasEditable:
+                    self.view.SetEditable(True)
                 self.view.ChangeValue(str(self.model.GetProperty(key)))
+                self.view.SetEditable(wasEditable)
+                self.view.Refresh(True)
             self.OnResize(None)
         elif key in ["font", "fontSize", "textColor"]:
             self.UpdateFont(model, self.view)
