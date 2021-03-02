@@ -310,18 +310,24 @@ class ControlPanel(wx.Panel):
                 self.inspector.SetCellValue(r, 1, str(l))
             else:
                 self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
+
+            renderer = None
+            editor = None
             if uiView.model.GetPropertyType(k) == "bool":
                 editor = wx.grid.GridCellChoiceEditor(["True", "False"])
-                self.inspector.SetCellEditor(r, 1, editor)
             elif uiView.model.GetPropertyType(k) == "choice":
                 editor = wx.grid.GridCellChoiceEditor(uiView.model.GetPropertyChoices(k))
-                self.inspector.SetCellEditor(r, 1, editor)
             elif uiView.model.GetPropertyType(k) == "color":
-                self.inspector.SetCellRenderer(r, 1, GridCellColorRenderer())
-                self.inspector.SetCellEditor(r, 1, GridCellColorEditor(self))
+                editor = GridCellColorEditor(self)
+                renderer = GridCellColorRenderer()
             elif uiView.model.GetPropertyType(k) == "file":
-                self.inspector.SetCellRenderer(r, 1, GridCellFileRenderer())
-                self.inspector.SetCellEditor(r, 1, GridCellFileEditor(self))
+                editor = GridCellFileEditor(self)
+                renderer = GridCellFileRenderer()
+
+            if renderer:
+                self.inspector.SetCellRenderer(r, 1, renderer)
+            if editor:
+                self.inspector.SetCellEditor(r, 1, editor)
             r+=1
         self.Layout()
 

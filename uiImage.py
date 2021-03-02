@@ -100,6 +100,7 @@ class UiImage(UiView):
 
         if key in ["size", "rotation", "fit", "file", "xFlipped", "yFlipped"]:
             self.rotatedBitmap = None
+            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
 
         if key == "file":
             self.origImage = self.GetImg(self.model)

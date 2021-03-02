@@ -506,6 +506,10 @@ class StackManager(object):
         else:
             uiView.OnMouseDown(event)
             event.Skip()
+            parent = uiView.parent
+            while parent and parent.model.type == "group":
+                parent.OnMouseDown(event)
+                parent = parent.parent
 
     def OnMouseMove(self, uiView, event):
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
@@ -563,6 +567,10 @@ class StackManager(object):
         else:
             uiView.OnMouseUp(event)
             event.Skip()
+            parent = uiView.parent
+            while parent and parent.model.type == "group":
+                parent.OnMouseUp(event)
+                parent = parent.parent
         self.isDoubleClick = False
 
     def OnMouseExit(self, event):

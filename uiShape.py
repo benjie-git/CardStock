@@ -209,6 +209,8 @@ class LineModel(ViewModel):
                 origSize = self.properties["originalSize"]
                 self.points = [((origSize[0] - p[0]) if fx else p[0], (origSize[1] - p[1]) if fy else p[1]) for p in self.points]
                 self.scaledPoints = None
+                self.Notify("size")
+
 
     # scale from originalSize to Size
     # take into account thickness/2 border on each side
