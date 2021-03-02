@@ -387,6 +387,12 @@ class HelpDataObject():
         "Hide": {"args": {},
                  "return": None,
                  "info": "Hides this object if it was visible."},
+        "FlipHorizontal": {"args": {},
+                 "return": None,
+                 "info": "Flips the object horizontally.  This only visibly changes images, groups, and some shapes."},
+        "FlipVertical": {"args": {},
+                 "return": None,
+                 "info": "Flips the object vertically.  This only visibly changes images, groups, and some shapes."},
         "IsTouching": {"args": {"other": {"type": "object", "info": "The other object to compare to this one"}},
                        "return": "bool",
                        "info": "Returns <b>True</b> if this object is touching the <b>other</b> object passed into "

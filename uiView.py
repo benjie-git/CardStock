@@ -681,6 +681,12 @@ class ViewProxy(object):
     def center(self, center):
         self._model.SetCenter(wx.RealPoint(center[0], center[1]))
 
+    def FlipHorizontal(self):
+        self._model.PerformFlips(True, False)
+
+    def FlipVertical(self):
+        self._model.PerformFlips(False, True)
+
     def Show(self): self.visible = True
     def Hide(self): self.visible = False
     @property
