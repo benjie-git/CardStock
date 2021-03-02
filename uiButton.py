@@ -51,7 +51,6 @@ class UiButton(UiView):
             self.button.SetLabel(str(self.model.GetProperty(key)))
         elif key == "border":
             self.stackManager.SelectUiView(None)
-            self.doNotCache = True
             self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
             self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.model))
 

@@ -27,7 +27,6 @@ class UiTextBase(UiView):
             self.view.Refresh(True)
         elif key == "alignment":
             self.stackManager.SelectUiView(None)
-            self.doNotCache = True
             self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
             self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.model))
 

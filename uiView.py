@@ -18,7 +18,6 @@ class UiView(object):
         self.parent = parent
         self.view = view
         self.model = None
-        self.doNotCache = False
         self.SetModel(model)
         self.hitRegion = None
         self.isSelected = False
