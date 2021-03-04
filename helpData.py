@@ -266,7 +266,7 @@ class HelpDataGlobals():
                          "will happen during this time."},
         "RunAfterDelay": {"args": {"duration": {"type": "float", "info": "Number of seconds to delay."},
                                    "func": {"type": "function", "info": "A function to call after the delay."},
-                                   "*args": {"type": "*", "info": "0 or more arguments and/or keyword argumentss to pass into <b>func</b>."}}, "return": None,
+                                   "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>func</b>."}}, "return": None,
                           "info": "This function lets your program continue running while a timer waits for <b>duration</b> seconds, "
                                   "and then runs the functions <b>func</b>, passing it any additional argumentss you add "
                                   "after <b>func</b>.  Movements, animations, and user interaction "
@@ -353,7 +353,7 @@ class HelpDataObject():
                      "info": "<b>True</b> if this object is focused (if it is selected for typing into), otherwise "
                              "<b>False</b>. This value is not settable, but you can call the method Focus() to try to "
                              "focus this object."},
-        "parent": {"type": "string",
+        "parent": {"type": "object",
                    "info": "<b>parent</b> is the object that contains this object.  For most objects, it is the card, unless this "
                            "object has been grouped, in which case its <b>parent</b> is the group object  A card's "
                            "<b>parent</b> is the stack.  The stack has no <b>parent</b>, so stack.parent is <b>None</b>."},
@@ -413,7 +413,8 @@ class HelpDataObject():
                                      "endPosition": {"type": "point",
                                                      "info": "the destination top-left corner position at the end of the animation"},
                                      "onFinished": {"type": "function",
-                                                    "info": "an optional function to run when the animation finishes"}},
+                                                    "info": "an optional function to run when the animation finishes"},
+                                     "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>onFinished</b>."}},
                             "return": None,
                             "info": "Visually animates the movement of this object from its current position to <b>endPosition</b>, "
                                     "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -423,7 +424,8 @@ class HelpDataObject():
                                    "endPosition": {"type": "point",
                                                    "info": "the destination center position at the end of the animation"},
                                    "onFinished": {"type": "function",
-                                                  "info": "an optional function to run when the animation finishes"}},
+                                                  "info": "an optional function to run when the animation finishes"},
+                                   "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>onFinished</b>."}},
                           "return": None,
                           "info": "Visually animates the movement of this object from its current position to have its center at <b>endCenter</b>, "
                                   "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -431,7 +433,8 @@ class HelpDataObject():
 
         "AnimateSize": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                  "endSize": {"type": "size", "info": "the final size of this object at the end of the animation"},
-                                 "onFinished": {"type": "function", "info": "an optional function to run when the animation finishes"}},
+                                 "onFinished": {"type": "function", "info": "an optional function to run when the animation finishes"},
+                                 "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>onFinished</b>."}},
                         "return": None,
                         "info": "Visually animates the <b>size</b> of this object from its current size to <b>endSize</b>, "
                                 "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -526,7 +529,8 @@ class HelpDataTextField():
                                       "endColor": {"type": "string",
                                                    "info": "the final textColor at the end of the animation"},
                                       "onFinished": {"type": "function",
-                                                     "info": "an optional function to run when the animation finishes."}},
+                                                     "info": "an optional function to run when the animation finishes."},
+                                      "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>onFinished</b>."}},
                              "return": None,
                              "info": "Visually animates fading this object's <b>textColor</b> to <b>endColor</b>, "
                                      "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -568,7 +572,8 @@ class HelpDataTextLabel():
                                       "endColor": {"type": "string",
                                                    "info": "the final textColor at the end of the animation"},
                                       "onFinished": {"type": "function",
-                                                     "info": "an optional function to run when the animation finishes."}},
+                                                     "info": "an optional function to run when the animation finishes."},
+                                      "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>onFinished</b>."}},
                              "return": None,
                              "info": "Visually animates fading this object's <b>textColor</b> to <b>endColor</b>, "
                                      "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -601,7 +606,8 @@ class HelpDataImage():
                                                              "info": "the final rotation angle in degrees clockwise at "
                                                                      "the end of the animation"},
                                      "onFinished": {"type": "function",
-                                                    "info": "an optional function to run when the animation finishes."}},
+                                                    "info": "an optional function to run when the animation finishes."},
+                                     "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>onFinished</b>."}},
                             "return": None,
                             "info": "Visually animates changing this image's <b>rotation</b> angle to <b>endRotation</b>, "
                                     "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -637,7 +643,8 @@ class HelpDataLine():
                                  "endThickness": {"type": "int",
                                                  "info": "the final penThickness at the end of the animation"},
                                  "onFinished": {"type": "function",
-                                                "info": "an optional function to run when the animation finishes."}},
+                                                "info": "an optional function to run when the animation finishes."},
+                                         "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>onFinished</b>."}},
                         "return": None,
                         "info": "Visually animates changing this object's <b>penThickness</b> to <b>endThickness</b>, "
                                 "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -647,7 +654,8 @@ class HelpDataLine():
                                  "endColor": {"type": "string",
                                                  "info": "the final pen color at the end of the animation"},
                                  "onFinished": {"type": "function",
-                                                "info": "an optional function to run when the animation finishes."}},
+                                                "info": "an optional function to run when the animation finishes."},
+                                     "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>onFinished</b>."}},
                         "return": None,
                         "info": "Visually animates fading this object's <b>penColor</b> to <b>endColor</b>, "
                                 "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -671,7 +679,8 @@ class HelpDataShape():
                                      "endColor": {"type": "string",
                                                   "info": "the final fillColor at the end of the animation"},
                                      "onFinished": {"type": "function",
-                                                    "info": "an optional function to run when the animation finishes."}},
+                                                    "info": "an optional function to run when the animation finishes."},
+                                      "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>onFinished</b>."}},
                             "return": None,
                             "info": "Visually animates fading this object's <b>fillColor</b> to <b>endColor</b>, "
                                     "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -694,7 +703,8 @@ class HelpDataRoundRectangle():
                                          "endCornerRadius": {"type": "int",
                                                           "info": "the final cornerRadius at the end of the animation"},
                                          "onFinished": {"type": "function",
-                                                        "info": "an optional function to run when the animation finishes."}},
+                                                        "info": "an optional function to run when the animation finishes."},
+                                         "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>onFinished</b>."}},
                                 "return": None,
                                 "info": "Visually animates changing this round rectangle's <b>cornerRadius</b> to <b>endCornerRadius</b>, "
                                         "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function, "

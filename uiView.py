@@ -551,7 +551,7 @@ class ViewModel(object):
             self.handlers[key] = value
             self.isDirty = True
 
-    def AddAnimation(self, type, duration, func, onFinished=None):
+    def AddAnimation(self, type, duration, func, onFinished=None, onCanceled=None):
         for d in self.animations.copy():
             if d["type"] == type:
                 self.animations.remove(d)
@@ -559,9 +559,13 @@ class ViewModel(object):
                                 "duration": duration,
                                 "startTime": time(),
                                 "function": func,
-                                "onFinished": onFinished})
+                                "onFinished": onFinished,
+                                "onCanceled": onCanceled})
 
     def StopAnimations(self):
+        for animation in self.animations:
+            if "onCanceled" in animation and animation["onCanceled"]:
+                animation["onCanceled"]()
         self.animations = []
 
     def DeduplicateName(self, name, existingNames):
@@ -749,7 +753,7 @@ class ViewProxy(object):
         if sf.Intersects(right): return "Right"
         return None
 
-    def AnimatePosition(self, duration, endPosition, onFinished=None):
+    def AnimatePosition(self, duration, endPosition, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
         try:
@@ -766,16 +770,21 @@ class ViewProxy(object):
 
             def internalOnFinished():
                 self._model.SetProperty("speed", (0,0))
-                if onFinished: onFinished()
+                if onFinished: onFinished(*args, **kwargs)
+
+            def onCanceled():
+                self._model.SetProperty("speed", (0,0))
 
             def f(progress):
                 self.position = [origPosition.x + offset.x * progress,
                                  origPosition.y + offset.y * progress]
-            self._model.AddAnimation("position", duration, f, internalOnFinished)
+            self._model.AddAnimation("position", duration, f, internalOnFinished, onCanceled)
         else:
-            self._model.AddAnimation("position", duration, None, onFinished)
+            def internalOnFinished():
+                if onFinished: onFinished(*args, **kwargs)
+            self._model.AddAnimation("position", duration, None, internalOnFinished)
 
-    def AnimateCenter(self, duration, endCenter, onFinished=None):
+    def AnimateCenter(self, duration, endCenter, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
         try:
@@ -792,16 +801,21 @@ class ViewProxy(object):
 
             def internalOnFinished():
                 self._model.SetProperty("speed", (0,0))
-                if onFinished: onFinished()
+                if onFinished: onFinished(*args, **kwargs)
+
+            def onCanceled():
+                self._model.SetProperty("speed", (0,0))
 
             def f(progress):
                 self.center = [origCenter.x + offset.x * progress,
                                origCenter.y + offset.y * progress]
-            self._model.AddAnimation("position", duration, f, internalOnFinished)
+            self._model.AddAnimation("position", duration, f, internalOnFinished, onCanceled)
         else:
-            self._model.AddAnimation("position", duration, None, onFinished)
+            def internalOnFinished():
+                if onFinished: onFinished(*args, **kwargs)
+            self._model.AddAnimation("position", duration, None, internalOnFinished)
 
-    def AnimateSize(self, duration, endSize, onFinished=None):
+    def AnimateSize(self, duration, endSize, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
         try:
@@ -809,15 +823,18 @@ class ViewProxy(object):
         except:
             raise ValueError("endSize must be a size or a list of two numbers")
 
+        def internalOnFinished():
+            if onFinished: onFinished(*args, **kwargs)
+
         origSize = self.size
         if wx.Size(origSize) != endSize:
             offset = wx.Size(endSize-origSize)
             def f(progress):
                 self.size = [origSize.width + offset.width * progress,
                                origSize.height + offset.height * progress]
-            self._model.AddAnimation("size", duration, f, onFinished)
+            self._model.AddAnimation("size", duration, f, internalOnFinished)
         else:
-            self._model.AddAnimation("size", duration, None, onFinished)
+            self._model.AddAnimation("size", duration, None, internalOnFinished)
 
     def StopAnimations(self):
         self._model.StopAnimations()

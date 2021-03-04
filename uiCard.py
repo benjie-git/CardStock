@@ -214,19 +214,23 @@ class CardProxy(ViewProxy):
     def index(self):
         return self._model.parent.childModels.index(self._model)
 
-    def AnimateBgColor(self, duration, endVal, onFinished=None):
+    def AnimateBgColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
         if not isinstance(endVal, str):
             raise TypeError("endColor must be a string")
         origVal = wx.Colour(self.bgColor)
         endVal = wx.Colour(endVal)
+
+        def internalOnFinished():
+            if onFinished: onFinished(*args, **kwargs)
+
         if origVal.IsOk() and endVal.IsOk() and endVal != origVal:
             origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
             endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
             offsets = [endParts[i]-origParts[i] for i in range(4)]
             def f(progress):
                 self.bgColor = [origParts[i]+offsets[i]*progress for i in range(4)]
-            self._model.AddAnimation("bgColor", duration, f, onFinished)
+            self._model.AddAnimation("bgColor", duration, f, internalOnFinished)
         else:
-            self._model.AddAnimation("bgColor", duration, None, onFinished)
+            self._model.AddAnimation("bgColor", duration, None, internalOnFinished)
