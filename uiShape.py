@@ -90,6 +90,10 @@ class UiShape(UiView):
                 gc.DrawEllipse(f.Inflate(2 + thickness/2))
             elif self.model.type == "roundrect":
                 radius = self.model.GetProperty("cornerRadius")
+                p1 = f.TopLeft
+                p2 = f.BottomRight
+                radius = min(radius, abs(p1[0]-p2[0])/2)
+                radius = min(radius, abs(p1[1]-p2[1])/2)
                 gc.DrawRoundedRectangle(f.Inflate(2 + thickness/2), radius)
 
             gc.SetPen(wx.TRANSPARENT_PEN)

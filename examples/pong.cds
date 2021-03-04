@@ -29,12 +29,12 @@
           "properties": {
             "name": "label",
             "size": [
-              111,
-              27
+              107,
+              34
             ],
             "position": [
-              1.0,
-              1.0
+              2.0,
+              2.0
             ],
             "text": "0",
             "alignment": "Left",
@@ -89,8 +89,8 @@
               30
             ],
             "position": [
-              38.0,
-              36.0
+              81.0,
+              34.0
             ],
             "originalSize": [
               36,
