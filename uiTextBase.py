@@ -207,7 +207,7 @@ class TextBaseProxy(ViewProxy):
             endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
             offsets = [endParts[i]-origParts[i] for i in range(4)]
             def f(progress):
-                self.textColor = [origParts[i]+offsets[i]*progress for i in range(4)]
+                self._model.SetProperty("textColor", [origParts[i]+offsets[i]*progress for i in range(4)])
             self._model.AddAnimation("textColor", duration, f, internalOnFinished)
         else:
             self._model.AddAnimation("textColor", duration, None, internalOnFinished)

@@ -344,7 +344,7 @@ class LineProxy(ViewProxy):
             endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
             offsets = [endParts[i]-origParts[i] for i in range(4)]
             def f(progress):
-                self.penColor = [origParts[i]+offsets[i]*progress for i in range(4)]
+                self._model.SetProperty("penColor", [origParts[i]+offsets[i]*progress for i in range(4)])
             self._model.AddAnimation("penColor", duration, f, internalOnFinished)
         else:
             self._model.AddAnimation("penColor", duration, None, internalOnFinished)
@@ -402,7 +402,7 @@ class ShapeProxy(LineProxy):
             endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
             offsets = [endParts[i]-origParts[i] for i in range(4)]
             def f(progress):
-                self.fillColor = [origParts[i]+offsets[i]*progress for i in range(4)]
+                self._model.SetProperty("fillColor", [origParts[i]+offsets[i]*progress for i in range(4)])
             self._model.AddAnimation("fillColor", duration, f, internalOnFinished)
         else:
             self._model.AddAnimation("fillColor", duration, None, internalOnFinished)

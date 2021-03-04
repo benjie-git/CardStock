@@ -230,7 +230,7 @@ class CardProxy(ViewProxy):
             endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
             offsets = [endParts[i]-origParts[i] for i in range(4)]
             def f(progress):
-                self.bgColor = [origParts[i]+offsets[i]*progress for i in range(4)]
+                self._model.SetProperty("bgColor", [origParts[i]+offsets[i]*progress for i in range(4)])
             self._model.AddAnimation("bgColor", duration, f, internalOnFinished)
         else:
             self._model.AddAnimation("bgColor", duration, None, internalOnFinished)
