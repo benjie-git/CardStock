@@ -319,7 +319,7 @@ class Runner():
     def IsMouseDown(self):
         return wx.GetMouseState().LeftIsDown()
 
-    def RunAfterDelay(self, duration, func):
+    def RunAfterDelay(self, duration, func, *args, **kwargs):
         try:
             duration = float(duration)
         except ValueError:
@@ -327,7 +327,7 @@ class Runner():
 
         timer = wx.Timer()
         def onTimer(event):
-            func()
+            func(*args, **kwargs)
         timer.Bind(wx.EVT_TIMER, onTimer)
         timer.StartOnce(int(duration*1000))
         self.timers.append(timer)

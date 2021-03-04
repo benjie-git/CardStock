@@ -93,6 +93,7 @@ class UiView(object):
         elif key == "hidden":
             if self.view:
                 self.view.Show(not self.model.GetProperty(key))
+            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
 
     def OnResize(self, event):
         pass

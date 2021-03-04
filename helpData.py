@@ -265,9 +265,11 @@ class HelpDataGlobals():
                  "info": "Delays the program from running for <b>duration</b> seconds.  No movements or animations "
                          "will happen during this time."},
         "RunAfterDelay": {"args": {"duration": {"type": "float", "info": "Number of seconds to delay."},
-                                   "func": {"type": "function", "info": "A function to call after the delay."}}, "return": None,
+                                   "func": {"type": "function", "info": "A function to call after the delay."},
+                                   "*args": {"type": "*", "info": "0 or more arguments and/or keyword argumentss to pass into <b>func</b>."}}, "return": None,
                           "info": "This function lets your program continue running while a timer waits for <b>duration</b> seconds, "
-                                  "and then runs the functions <b>func</b>.  Movements, animations, and user interaction "
+                                  "and then runs the functions <b>func</b>, passing it any additional argumentss you add "
+                                  "after <b>func</b>.  Movements, animations, and user interaction "
                                   "will all continue during this time."},
         "Time": {"args": {}, "return": "float",
                  "info": "Returns the time in seconds since 'The Unix Epoch', midnight UTC on January 1st, 1970.  That "
