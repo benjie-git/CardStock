@@ -56,12 +56,12 @@ class TextLabelModel(TextBaseModel):
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "textlabel"
-        self.proxyClass = TextLabelProxy
+        self.proxyClass = TextLabel
 
 
-class TextLabelProxy(TextBaseProxy):
+class TextLabel(TextBaseProxy):
     """
-    TextLabelProxy objects are the user-accessible objects exposed to event handler code for text label objects.
+    TextLabel proxy objects are the user-accessible objects exposed to event handler code for text label objects.
     """
 
     pass

@@ -15,7 +15,7 @@ class StackModel(ViewModel):
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "stack"
-        self.proxyClass = StackProxy
+        self.proxyClass = Stack
 
         self.properties["size"] = wx.Size(500, 500)
         self.properties["name"] = "stack"
@@ -72,7 +72,7 @@ class StackModel(ViewModel):
             self.AppendCardModel(m)
 
 
-class StackProxy(ViewProxy):
+class Stack(ViewProxy):
     @property
     def numCards(self):
         return len(self._model.childModels)

@@ -96,7 +96,7 @@ class CardModel(ViewModel):
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "card"
-        self.proxyClass = CardProxy
+        self.proxyClass = Card
         # Add custom handlers to the top of the list
         handlers = {"OnSetup": "", "OnShowCard": "", "OnHideCard": "", "OnKeyDown": "", "OnKeyUp": ""}
         for k,v in self.handlers.items():
@@ -196,9 +196,9 @@ class CardModel(ViewModel):
         return super().GetNextAvailableName(name, names)
 
 
-class CardProxy(ViewProxy):
+class Card(ViewProxy):
     """
-    CardProxy objects are the user-accessible objects exposed to event handler code for card objects.
+    Card proxy objects are the user-accessible objects exposed to event handler code for card objects.
     """
 
     @property

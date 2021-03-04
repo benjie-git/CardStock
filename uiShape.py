@@ -155,7 +155,7 @@ class LineModel(ViewModel):
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "line"  # Gets rewritten on SetShape (to "line" or "pen")
-        self.proxyClass = LineProxy
+        self.proxyClass = Line
         self.points = []
         self.scaledPoints = None
 
@@ -287,9 +287,9 @@ class LineModel(ViewModel):
         self.DidUpdateShape()
 
 
-class LineProxy(ViewProxy):
+class Line(ViewProxy):
     """
-    LineProxy objects are the user-accessible objects exposed to event handler code for line objects.
+    Line proxy objects are the user-accessible objects exposed to event handler code for line objects.
     """
 
     @property
@@ -358,7 +358,7 @@ class ShapeModel(LineModel):
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "shape"  # Gets rewritten on SetShape (to "oval" or "rect")
-        self.proxyClass = ShapeProxy
+        self.proxyClass = Shape
 
         self.properties["fillColor"] = ""
         self.propertyTypes["fillColor"] = "color"
@@ -371,10 +371,10 @@ class ShapeModel(LineModel):
         super().SetShape(shape)
 
 
-class ShapeProxy(LineProxy):
+class Shape(Line):
     """
-    ShapeProxy objects are the user-accessible objects exposed to event handler code for oval and rect objects.
-    They're extended from LineProxy.
+    Shape proxy objects are the user-accessible objects exposed to event handler code for oval and rect objects.
+    They're extended from the Line proxy class.
     """
 
     @property
@@ -416,7 +416,7 @@ class RoundRectModel(ShapeModel):
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "roundrect"
-        self.proxyClass = RoundRectProxy
+        self.proxyClass = RoundRect
 
         self.properties["cornerRadius"] = 8
         self.propertyTypes["cornerRadius"] = "int"
@@ -429,10 +429,10 @@ class RoundRectModel(ShapeModel):
         super().SetShape(shape)
 
 
-class RoundRectProxy(ShapeProxy):
+class RoundRect(Shape):
     """
-    RoundRectProxy objects are the user-accessible objects exposed to event handler code for round rect objects.
-    They're extended from ShapeProxy, which is extended from LineProxy.
+    RoundRect proxy objects are the user-accessible objects exposed to event handler code for round rect objects.
+    They're extended from ShapeProxy, which is extended from the Line proxy class.
     """
 
     @property

@@ -79,7 +79,7 @@ class ButtonModel(ViewModel):
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "button"
-        self.proxyClass = ButtonProxy
+        self.proxyClass = Button
 
         # Add custom handlers to the top of the list
         handlers = {"OnClick": ""}
@@ -96,9 +96,9 @@ class ButtonModel(ViewModel):
         self.propertyKeys = ["name", "title", "border", "position", "size"]
 
 
-class ButtonProxy(ViewProxy):
+class Button(ViewProxy):
     """
-    ButtonProxy objects are the user-accessible objects exposed to event handler code for button objects.
+    Button proxy objects are the user-accessible objects exposed to event handler code for button objects.
     Based on ProxyView, and adds title, border, and DoClick().
     """
 

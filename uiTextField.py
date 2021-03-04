@@ -198,7 +198,7 @@ class TextFieldModel(TextBaseModel):
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "textfield"
-        self.proxyClass = TextFieldProxy
+        self.proxyClass = TextField
 
         # Add custom handlers to the top of the list
         handlers = {"OnTextEnter": "", "OnTextChanged": ""}
@@ -217,9 +217,9 @@ class TextFieldModel(TextBaseModel):
         self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "editable", "multiline", "position", "size"]
 
 
-class TextFieldProxy(TextBaseProxy):
+class TextField(TextBaseProxy):
     """
-    TextFieldProxy objects are the user-accessible objects exposed to event handler code for text field objects.
+    TextField proxy objects are the user-accessible objects exposed to event handler code for text field objects.
     """
 
     @property

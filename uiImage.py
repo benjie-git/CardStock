@@ -140,7 +140,7 @@ class ImageModel(ViewModel):
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "image"
-        self.proxyClass = ImageProxy
+        self.proxyClass = Image
 
         self.properties["file"] = ""
         self.properties["fit"] = "Fill"
@@ -170,9 +170,9 @@ class ImageModel(ViewModel):
             self.SetProperty("yFlipped", not self.GetProperty("yFlipped"))
 
 
-class ImageProxy(ViewProxy):
+class Image(ViewProxy):
     """
-    ImageProxy objects are the user-accessible objects exposed to event handler code for image objects.
+    Image proxy objects are the user-accessible objects exposed to event handler code for image objects.
     """
 
     @property

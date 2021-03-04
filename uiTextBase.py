@@ -145,7 +145,8 @@ class TextBaseModel(ViewModel):
 
 class TextBaseProxy(ViewProxy):
     """
-    TextLabelProxy objects are the user-accessible objects exposed to event handler code for text label objects.
+    TextBaseProxy objects are the abstract base class of the user-accessible objects exposed to event handler code for
+    text labels and text fields.
     """
 
     @property

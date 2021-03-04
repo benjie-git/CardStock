@@ -112,7 +112,7 @@ class GroupModel(ViewModel):
         super().__init__(stackManager)
         self.type = "group"
         self.origFrame = None
-        self.proxyClass = GroupProxy
+        self.proxyClass = Group
 
     def GetAllChildModels(self):
         allModels = []
@@ -238,7 +238,7 @@ class GroupModel(ViewModel):
             m.SetFrame(wx.Rect(pos, size))
 
 
-class GroupProxy(ViewProxy):
+class Group(ViewProxy):
     """
     Currently doesn't add anything to its superclass, ViewProxy.
     """
