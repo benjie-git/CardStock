@@ -285,10 +285,10 @@ class HelpDataGlobals():
                      "info": "Goes to the card with the name passed in as <b>cardName</b>.  This sends the OnHideCard event "
                              "for the current card, and then the OnShowCard event for the new card, or does nothing if "
                              "there is no card with that name."},
-        "GotoCardIndex": {"args": {"cardIndex": {"type": "int", "info": "The number of the card to go to, with 0 meaning the first card."}}, "return": None,
+        "GotoCardIndex": {"args": {"cardIndex": {"type": "int", "info": "The index number of the card to go to, with 0 meaning the first card."}}, "return": None,
                           "info": "Goes to the card with the index passed in as <b>cardIndex</b>.  This sends the OnHideCard event "
-                                  "for the current card, and then the OnShowCard event for the new card, or does nothing "
-                                  "if the index is less than 0, or larger than the number of cards-1."},
+                                  "for the current card, and then the OnShowCard event for the new card, or raises an error "
+                                  "if the given index is less than 0, or larger than the number of cards-1."},
         "GotoNextCard": {"args": {}, "return": None,
                          "info": "Goes to the next card in the stack.  If we're already on the last card, then loop back to "
                                  "the first card.  This sends the OnHideCard event for the current card, and then the "
@@ -312,6 +312,10 @@ class HelpDataGlobals():
         "IsKeyPressed": {"args": {"keyName": {"type": "string", "info": "The name of the key to check."}},
                          "return": "bool",
                          "info": "Returns <b>True</b> if the named keyboard key is currently pressed down, otherwise "
+                                 "returns <b>False</b>."},
+        "IsMouseDown": {"args": {},
+                         "return": "bool",
+                         "info": "Returns <b>True</b> if the left mouse button is currently pressed down, otherwise "
                                  "returns <b>False</b>."},
     }
 

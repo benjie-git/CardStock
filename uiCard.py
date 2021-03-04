@@ -206,6 +206,8 @@ class CardProxy(ViewProxy):
         return self._model.GetProperty("bgColor")
     @bgColor.setter
     def bgColor(self, val):
+        if not isinstance(val, str):
+            raise TypeError("bgColor must be a string")
         self._model.SetProperty("bgColor", val)
 
     @property
@@ -213,6 +215,10 @@ class CardProxy(ViewProxy):
         return self._model.parent.childModels.index(self._model)
 
     def AnimateBgColor(self, duration, endVal, onFinished=None):
+        if not (isinstance(duration, int) or isinstance(duration, float)):
+            raise TypeError("duration must be a number")
+        if not isinstance(endVal, str):
+            raise TypeError("endColor must be a string")
         origVal = wx.Colour(self.bgColor)
         endVal = wx.Colour(endVal)
         if origVal.IsOk() and endVal.IsOk() and endVal != origVal:

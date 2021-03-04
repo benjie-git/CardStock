@@ -107,6 +107,8 @@ class ButtonProxy(ViewProxy):
         return self._model.GetProperty("title")
     @title.setter
     def title(self, val):
+        if not isinstance(val, str):
+            raise TypeError("title must be a string")
         self._model.SetProperty("title", val)
 
     @property

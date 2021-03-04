@@ -39,7 +39,7 @@ class Runner():
             "GotoCard": self.GotoCard,
             "GotoNextCard": self.GotoNextCard,
             "GotoPreviousCard": self.GotoPreviousCard,
-            "GotoCardNumber": self.GotoCardNumber,
+            "GotoCardIndex": self.GotoCardIndex,
             "PlaySound": self.PlaySound,
             "StopSound": self.StopSound,
             "BroadcastMessage": self.BroadcastMessage,
@@ -205,21 +205,35 @@ class Runner():
     # --------- User-accessible view functions -----------
 
     def BroadcastMessage(self, message):
+        if not isinstance(message, str):
+            raise TypeError("message must be a string")
+
         self.RunHandler(self.stackManager.uiCard.model, "OnMessage", None, message)
         for ui in self.stackManager.GetAllUiViews():
             self.RunHandler(ui.model, "OnMessage", None, message)
 
     def GotoCard(self, cardName):
+        if not isinstance(cardName, str):
+            raise TypeError("cardName must be a string")
+
         index = None
         for m in self.stackManager.stackModel.childModels:
             if m.GetProperty("name") == cardName:
                 index = self.stackManager.stackModel.childModels.index(m)
         if index is not None:
             self.stackManager.LoadCardAtIndex(index)
+        else:
+            raise ValueError("cardName '" + cardName + "' does not exist")
 
-    def GotoCardNumber(self, cardIndex):
-        if cardIndex > 0 and cardIndex <= len(self.stackManager.stackModel.childModels):
-            self.stackManager.LoadCardAtIndex(cardIndex-1)
+    def GotoCardIndex(self, cardIndex):
+        if not isinstance(cardIndex, int):
+            raise TypeError("cardIndex must be an int")
+
+        if cardIndex >= 0 and cardIndex <= len(self.stackManager.stackModel.childModels)-1:
+            self.stackManager.LoadCardAtIndex(cardIndex)
+        else:
+            raise TypeError("cardIndex " + str(cardIndex) + " is out of range")
+
 
     def GotoNextCard(self):
         cardIndex = self.stackManager.cardIndex + 1
@@ -232,6 +246,11 @@ class Runner():
         self.stackManager.LoadCardAtIndex(cardIndex)
 
     def Wait(self, delay):
+        try:
+            delay = float(delay)
+        except ValueError:
+            raise TypeError("delay must be a number")
+
         self.stackManager.RefreshNow()
         sleep(delay)
 
@@ -239,15 +258,24 @@ class Runner():
         return time()
 
     def Alert(self, message):
+        if not isinstance(message, str):
+            raise TypeError("message must be a string")
+
         self.stackManager.RefreshNow()
         wx.MessageDialog(None, str(message), "", wx.OK).ShowModal()
 
     def Ask(self, message):
+        if not isinstance(message, str):
+            raise TypeError("message must be a string")
+
         self.stackManager.RefreshNow()
         r = wx.MessageDialog(None, str(message), "", wx.YES_NO).ShowModal()
         return (r == wx.ID_YES)
 
     def PlaySound(self, filepath):
+        if not isinstance(filepath, str):
+            raise TypeError("filepath must be a string")
+
         if filepath and self.stackManager.filename:
             dir = os.path.dirname(self.stackManager.filename)
             filepath = os.path.join(dir, filepath)
@@ -262,6 +290,9 @@ class Runner():
                     s = None
             if s:
                 self.soundCache[filepath] = s
+            else:
+                raise ValueError("No readable audio file at '" + filepath + "'")
+
         if s:
             if SIMPLE_AUDIO_AVAILABLE:
                 s.play()
@@ -280,12 +311,20 @@ class Runner():
         return [m.GetProxy() for m in models]
 
     def IsKeyPressed(self, name):
+        if not isinstance(name, str):
+            raise TypeError("name must be a string")
+
         return name in self.pressedKeys
 
     def IsMouseDown(self):
         return wx.GetMouseState().LeftIsDown()
 
     def RunAfterDelay(self, duration, func):
+        try:
+            duration = float(duration)
+        except ValueError:
+            raise TypeError("duration must be a number")
+
         timer = wx.Timer()
         def onTimer(event):
             func()

@@ -603,6 +603,9 @@ class ViewProxy(object):
         return super().__getattribute__(item)
 
     def SendMessage(self, message):
+        if not isinstance(message, str):
+            raise TypeError("message must be a string")
+
         if self._model.stackManager.runner:
             self._model.stackManager.runner.RunHandler(self._model, "OnMessage", None, message)
 
@@ -657,14 +660,22 @@ class ViewProxy(object):
         return CDSSize(self._model.GetProperty("size"), model=self._model, role="size")
     @size.setter
     def size(self, val):
-        self._model.SetProperty("size", wx.Size(val))
+        try:
+            val = wx.Size(val[0], val[1])
+        except:
+            raise ValueError("size must be a size or a list of two numbers")
+        self._model.SetProperty("size", val)
 
     @property
     def position(self):
         return CDSRealPoint(self._model.GetAbsolutePosition(), model=self._model, role="position")
     @position.setter
     def position(self, val):
-        self._model.SetAbsolutePosition(wx.RealPoint(val[0], val[1]))
+        try:
+            val = wx.RealPoint(val[0], val[1])
+        except:
+            raise ValueError("position must be a point or a list of two numbers")
+        self._model.SetAbsolutePosition(val)
 
     @property
     def speed(self):
@@ -672,6 +683,10 @@ class ViewProxy(object):
         return speed
     @speed.setter
     def speed(self, val):
+        try:
+            val = wx.RealPoint(val[0], val[1])
+        except:
+            raise ValueError("speed must be a point or a list of two numbers")
         self._model.SetProperty("speed", val)
 
     @property
@@ -679,7 +694,11 @@ class ViewProxy(object):
         return CDSRealPoint(self._model.GetCenter(), model=self._model, role="center")
     @center.setter
     def center(self, center):
-        self._model.SetCenter(wx.RealPoint(center[0], center[1]))
+        try:
+            center = wx.RealPoint(center[0], center[1])
+        except:
+            raise ValueError("center must be a point or a list of two numbers")
+        self._model.SetCenter(center)
 
     def FlipHorizontal(self):
         self._model.PerformFlips(True, False)
@@ -701,6 +720,9 @@ class ViewProxy(object):
         return self._model.handlers
 
     def IsTouching(self, obj):
+        if not isinstance(obj, ViewProxy):
+            raise TypeError("obj must be a CardStock object")
+
         sreg = self._model.stackManager.GetUiViewByModel(self._model).GetHitRegion()
         oreg = self._model.stackManager.GetUiViewByModel(obj._model).GetHitRegion()
         sreg = wx.Region(sreg)
@@ -711,6 +733,9 @@ class ViewProxy(object):
         return not sreg.IsEmpty()
 
     def IsTouchingEdge(self, obj):
+        if not isinstance(obj, ViewProxy):
+            raise TypeError("obj must be a CardStock object")
+
         sf = self._model.GetAbsoluteFrame() # self frame in card coords
         f = obj._model.GetAbsoluteFrame() # other frame in card soords
         top = wx.Rect(f.Left, f.Top, f.Width, 1)
@@ -724,8 +749,14 @@ class ViewProxy(object):
         return None
 
     def AnimatePosition(self, duration, endPosition, onFinished=None):
+        if not (isinstance(duration, int) or isinstance(duration, float)):
+            raise TypeError("duration must be a number")
+        try:
+            endPosition = wx.RealPoint(endPosition)
+        except:
+            raise ValueError("endPosition must be a point or a list of two numbers")
+
         origPosition = self.position
-        endPosition = wx.RealPoint(endPosition)
         if wx.Point(origPosition) != wx.Point(endPosition):
             offsetp = endPosition - origPosition
             offset = wx.RealPoint(offsetp[0], offsetp[1])
@@ -744,8 +775,14 @@ class ViewProxy(object):
             self._model.AddAnimation("position", duration, None, onFinished)
 
     def AnimateCenter(self, duration, endCenter, onFinished=None):
+        if not (isinstance(duration, int) or isinstance(duration, float)):
+            raise TypeError("duration must be a number")
+        try:
+            endCenter = wx.RealPoint(endCenter)
+        except:
+            raise ValueError("endCenter must be a point or a list of two numbers")
+
         origCenter = self.center
-        endCenter = wx.RealPoint(endCenter)
         if wx.Point(origCenter) != wx.Point(endCenter):
             offsetp = endCenter - origCenter
             offset = wx.RealPoint(offsetp[0], offsetp[1])
@@ -764,8 +801,15 @@ class ViewProxy(object):
             self._model.AddAnimation("position", duration, None, onFinished)
 
     def AnimateSize(self, duration, endSize, onFinished=None):
+        if not (isinstance(duration, int) or isinstance(duration, float)):
+            raise TypeError("duration must be a number")
+        try:
+            endSize = wx.Size(endSize)
+        except:
+            raise ValueError("endSize must be a size or a list of two numbers")
+
         origSize = self.size
-        if wx.Size(origSize) != wx.Size(endSize):
+        if wx.Size(origSize) != endSize:
             offset = wx.Size(endSize-origSize)
             def f(progress):
                 self.size = [origSize.width + offset.width * progress,
@@ -789,11 +833,18 @@ class CDSPoint(wx.Point):
         self.model = model
         self.role = role
 
+    def __setitem__(self, key, val):
+        if not (isinstance(val, int) or isinstance(val, float)):
+            raise TypeError("value must be a number")
+        super().__setitem__(key, val)
+
     @property
     def x(self):
         return super().x
     @x.setter
     def x(self, val):
+        if not (isinstance(val, int) or isinstance(val, float)):
+            raise TypeError("x must be a number")
         self += [val-self.x, 0]
         self.model.FramePartChanged(self)
 
@@ -802,6 +853,8 @@ class CDSPoint(wx.Point):
         return super().y
     @y.setter
     def y(self, val):
+        if not (isinstance(val, int) or isinstance(val, float)):
+            raise TypeError("y must be a number")
         self += [0, val-self.y]
         self.model.FramePartChanged(self)
 
@@ -814,11 +867,18 @@ class CDSRealPoint(wx.RealPoint):
         self.model = model
         self.role = role
 
+    def __setitem__(self, key, val):
+        if not (isinstance(val, int) or isinstance(val, float)):
+            raise TypeError("value must be a number")
+        super().__setitem__(key, val)
+
     @property
     def x(self):
         return super().x
     @x.setter
     def x(self, val):
+        if not (isinstance(val, int) or isinstance(val, float)):
+            raise TypeError("x must be a number")
         self += [val-self.x, 0]
         self.model.FramePartChanged(self)
 
@@ -827,6 +887,8 @@ class CDSRealPoint(wx.RealPoint):
         return super().y
     @y.setter
     def y(self, val):
+        if not (isinstance(val, int) or isinstance(val, float)):
+            raise TypeError("y must be a number")
         self += [0, val-self.y]
         self.model.FramePartChanged(self)
 
@@ -839,11 +901,18 @@ class CDSSize(wx.Size):
         self.model = model
         self.role = role
 
+    def __setitem__(self, key, val):
+        if not (isinstance(val, int) or isinstance(val, float)):
+            raise TypeError("size must be a number")
+        super().__setitem__(key, val)
+
     @property
     def width(self):
         return super().width
     @width.setter
     def width(self, val):
+        if not (isinstance(val, int) or isinstance(val, float)):
+            raise TypeError("width must be a number")
         self += [val-self.width, 0]
         self.model.FramePartChanged(self)
 
@@ -852,5 +921,7 @@ class CDSSize(wx.Size):
         return super().height
     @height.setter
     def height(self, val):
+        if not (isinstance(val, int) or isinstance(val, float)):
+            raise TypeError("height must be a number")
         self += [0, val-self.height]
         self.model.FramePartChanged(self)

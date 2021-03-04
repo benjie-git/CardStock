@@ -293,6 +293,8 @@ class LineProxy(ViewProxy):
         return self._model.GetProperty("penColor")
     @penColor.setter
     def penColor(self, val):
+        if not isinstance(val, str):
+            raise TypeError("penColor must be a string")
         self._model.SetProperty("penColor", val)
 
     @property
@@ -300,9 +302,15 @@ class LineProxy(ViewProxy):
         return self._model.GetProperty("penThickness")
     @penThickness.setter
     def penThickness(self, val):
+        if not (isinstance(val, int) or isinstance(val, float)):
+            raise TypeError("penThickness must be a number")
         self._model.SetProperty("penThickness", val)
 
     def AnimatePenThickness(self, duration, endVal, onFinished=None):
+        if not (isinstance(duration, int) or isinstance(duration, float)):
+            raise TypeError("duration must be a number")
+        if not (isinstance(endVal, int) or isinstance(endVal, float)):
+            raise TypeError("endThickness must be a number")
         origVal = self.penThickness
         if endVal != origVal:
             offset = endVal - origVal
@@ -313,6 +321,10 @@ class LineProxy(ViewProxy):
             self._model.AddAnimation("penThickness", duration, None, onFinished)
 
     def AnimatePenColor(self, duration, endVal, onFinished=None):
+        if not (isinstance(duration, int) or isinstance(duration, float)):
+            raise TypeError("duration must be a number")
+        if not isinstance(endVal, str):
+            raise TypeError("endColor must be a string")
         origVal = wx.Colour(self.penColor)
         endVal = wx.Colour(endVal)
         if origVal.IsOk() and endVal.IsOk() and endVal != origVal:
@@ -358,9 +370,15 @@ class ShapeProxy(LineProxy):
         return self._model.GetProperty("fillColor")
     @fillColor.setter
     def fillColor(self, val):
+        if not isinstance(val, str):
+            raise TypeError("fillColor must be a string")
         self._model.SetProperty("fillColor", val)
 
     def AnimateFillColor(self, duration, endVal, onFinished=None):
+        if not (isinstance(duration, int) or isinstance(duration, float)):
+            raise TypeError("duration must be a number")
+        if not isinstance(endVal, str):
+            raise TypeError("endColor must be a string")
         origVal = wx.Colour(self.fillColor)
         endVal = wx.Colour(endVal)
         if origVal.IsOk() and endVal.IsOk() and endVal != origVal:
@@ -406,9 +424,15 @@ class RoundRectProxy(ShapeProxy):
         return self._model.GetProperty("cornerRadius")
     @cornerRadius.setter
     def cornerRadius(self, val):
+        if not (isinstance(val, int) or isinstance(val, float)):
+            raise TypeError("cornerRadius must be a number")
         self._model.SetProperty("cornerRadius", val)
 
     def AnimateCornerRadius(self, duration, endVal, onFinished=None):
+        if not (isinstance(duration, int) or isinstance(duration, float)):
+            raise TypeError("duration must be a number")
+        if not (isinstance(endVal, int) or isinstance(endVal, float)):
+            raise TypeError("endCornerRadius must be a number")
         origVal = self.cornerRadius
         if endVal != origVal:
             offset = endVal - origVal

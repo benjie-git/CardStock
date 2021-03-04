@@ -160,6 +160,8 @@ class TextBaseProxy(ViewProxy):
         return self._model.GetProperty("alignment")
     @alignment.setter
     def alignment(self, val):
+        if not isinstance(val, str):
+            raise TypeError("alignment must be a string")
         self._model.SetProperty("alignment", val)
 
     @property
@@ -167,6 +169,8 @@ class TextBaseProxy(ViewProxy):
         return self._model.GetProperty("textColor")
     @textColor.setter
     def textColor(self, val):
+        if not isinstance(val, str):
+            raise TypeError("textColor must be a string")
         self._model.SetProperty("textColor", val)
 
     @property
@@ -174,6 +178,8 @@ class TextBaseProxy(ViewProxy):
         return self._model.GetProperty("font")
     @font.setter
     def font(self, val):
+        if not isinstance(val, str):
+            raise TypeError("font must be a string")
         self._model.SetProperty("font", val)
 
     @property
@@ -181,9 +187,15 @@ class TextBaseProxy(ViewProxy):
         return self._model.GetProperty("fontSize")
     @fontSize.setter
     def fontSize(self, val):
+        if not (isinstance(val, int) or isinstance(val, float)):
+            raise TypeError("fontSize must be a number")
         self._model.SetProperty("fontSize", val)
 
     def AnimateTextColor(self, duration, endVal, onFinished=None):
+        if not (isinstance(duration, int) or isinstance(duration, float)):
+            raise TypeError("duration must be a number")
+        if not isinstance(endVal, str):
+            raise TypeError("endColor must be a string")
         origVal = wx.Colour(self.textColor)
         endVal = wx.Colour(endVal)
         if origVal.IsOk() and endVal.IsOk() and endVal != origVal:

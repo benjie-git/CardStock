@@ -180,6 +180,8 @@ class ImageProxy(ViewProxy):
         return self._model.GetProperty("file")
     @file.setter
     def file(self, val):
+        if not isinstance(val, str):
+            raise TypeError("file must be a string")
         self._model.SetProperty("file", val)
 
     @property
@@ -187,6 +189,8 @@ class ImageProxy(ViewProxy):
         return self._model.GetProperty("rotation")
     @rotation.setter
     def rotation(self, val):
+        if not (isinstance(val, int) or isinstance(val, float)):
+            raise TypeError("rotation must be a number")
         self._model.SetProperty("rotation", val)
 
     @property
@@ -194,9 +198,15 @@ class ImageProxy(ViewProxy):
         return self._model.GetProperty("fit")
     @fit.setter
     def fit(self, val):
+        if not isinstance(val, str):
+            raise TypeError("fit must be a string")
         self._model.SetProperty("fit", val)
 
     def AnimateRotation(self, duration, endRotation, onFinished=None):
+        if not (isinstance(duration, int) or isinstance(duration, float)):
+            raise TypeError("duration must be a number")
+        if not (isinstance(endRotation, int) or isinstance(endRotation, float)):
+            raise TypeError("endRotation must be a number")
         origRotation = self.rotation
         if endRotation != origRotation:
             offset = endRotation - origRotation

@@ -36,7 +36,9 @@
             ],
             "file": "ship-off.png",
             "fit": "Center",
-            "rotation": 0
+            "rotation": 0,
+            "xFlipped": false,
+            "yFlipped": false
           }
         }
       ]
