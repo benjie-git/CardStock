@@ -101,6 +101,7 @@ class ControlPanel(wx.Panel):
         self.inspector.SetRowLabelSize(1)
         self.inspector.DisableDragRowSize()
         self.inspector.DisableDragColSize()
+        self.inspector.SetSelectionMode(wx.grid.Grid.GridSelectNone)
 
         self.inspector.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnInspectorValueChanged)
         self.inspector.Bind(wx.EVT_KEY_DOWN, self.OnGridEnter)
@@ -184,9 +185,8 @@ class ControlPanel(wx.Panel):
 
     def OnGridClick(self, event):
         self.inspector.SetGridCursor(event.Row, event.Col)
-        self.inspector.ClearSelection()
         if self.inspector.GetGridCursorCol() == 1:
-            self.inspector.EnableCellEditControl(True)
+            wx.CallAfter(self.inspector.EnableCellEditControl, True)
         event.Skip()
 
     def SelectInInspectorForPropertyName(self, key, selectStart, selectEnd):
@@ -194,7 +194,6 @@ class ControlPanel(wx.Panel):
         if not lastUi:
             return
         keys = lastUi.model.PropertyKeys()
-        self.inspector.ClearSelection()
         self.inspector.SetGridCursor(keys.index(key), 1)
         editor = self.inspector.GetCellEditor(keys.index(key), 1)
         self.inspector.EnableCellEditControl(True)
@@ -216,7 +215,6 @@ class ControlPanel(wx.Panel):
         return (None, None, None)
 
     def OnGridCellSelected(self, event):
-        self.inspector.ClearSelection()
         uiView = self.lastSelectedUiView
         if uiView:
             keys = uiView.model.PropertyKeys()
