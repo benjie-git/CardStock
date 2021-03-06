@@ -74,7 +74,7 @@ class UiImage(UiView):
 
         if fit == "Stretch":
             img = img.Scale(viewSize.width, viewSize.height, quality=wx.IMAGE_QUALITY_HIGH)
-        elif fit == "Fit":
+        elif fit == "Contain":
             scaleX = viewSize.width / imgSize.width
             scaleY = viewSize.height / imgSize.height
             scale = min(scaleX, scaleY)
@@ -143,14 +143,14 @@ class ImageModel(ViewModel):
         self.proxyClass = Image
 
         self.properties["file"] = ""
-        self.properties["fit"] = "Fill"
+        self.properties["fit"] = "Contain"
         self.properties["rotation"] = 0
         self.properties["xFlipped"] = False
         self.properties["yFlipped"] = False
 
         self.propertyTypes["file"] = "file"
         self.propertyTypes["fit"] = "choice"
-        self.propertyChoices["fit"] = ["Center", "Stretch", "Fit", "Fill"]
+        self.propertyChoices["fit"] = ["Center", "Stretch", "Contain", "Fill"]
         self.propertyTypes["rotation"] = "int"
         self.propertyTypes["xFlipped"] = "bool"
         self.propertyTypes["yFlipped"] = "bool"
