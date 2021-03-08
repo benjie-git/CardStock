@@ -25,7 +25,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(9)"
+            "OnMouseDown": "card.SendMessage(\"9\")"
           },
           "properties": {
             "name": "cell_9",
@@ -59,7 +59,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(8)"
+            "OnMouseDown": "card.SendMessage(\"8\")"
           },
           "properties": {
             "name": "cell_8",
@@ -93,7 +93,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(7)"
+            "OnMouseDown": "card.SendMessage(\"7\")"
           },
           "properties": {
             "name": "cell_7",
@@ -127,7 +127,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(6)"
+            "OnMouseDown": "card.SendMessage(\"6\")"
           },
           "properties": {
             "name": "cell_6",
@@ -161,7 +161,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(5)"
+            "OnMouseDown": "card.SendMessage(\"5\")"
           },
           "properties": {
             "name": "cell_5",
@@ -195,7 +195,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(4)"
+            "OnMouseDown": "card.SendMessage(\"4\")"
           },
           "properties": {
             "name": "cell_4",
@@ -229,7 +229,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(3)"
+            "OnMouseDown": "card.SendMessage(\"3\")"
           },
           "properties": {
             "name": "cell_3",
@@ -263,7 +263,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(2)"
+            "OnMouseDown": "card.SendMessage(\"2\")"
           },
           "properties": {
             "name": "cell_2",
@@ -297,7 +297,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(1)"
+            "OnMouseDown": "card.SendMessage(\"1\")"
           },
           "properties": {
             "name": "cell_1",
@@ -567,5 +567,5 @@
     }
   ],
   "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.7"
+  "CardStock_stack_version": "0.8"
 }
