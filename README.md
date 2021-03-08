@@ -10,7 +10,7 @@ There have been many open source projects in the past that tried to capture the 
 
 The guiding principles behind my vision for CardStock are the following, in order of importance:
 1. Keep it understandable, simple, and easy to use, for python beginners, through the most salty Senior Software Engineers.
-1. Make it as capable as possible, without interfering with the previous priority.
+2. Make it as capable as possible, without interfering with the previous priority.
 
 ## Features
 
@@ -31,6 +31,9 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * A built-in media library with some basic icons/images, and sound files.
 * Add code completion to the code editor.
 * Allow exporting a stack into a standalone application that you can share.
+* Add a way to view all code used in a whole stack in one place.
+* Add a way to view recent error messages, and click to jump to the offending line of code in the Designer.
+
 
 ## Requirements
 CardStock requires Python 3.7 or newer, and wxPython 4.0 or newer.  And for more responsive Sound playing, you can optionally install the python module simpleaudio.
@@ -38,12 +41,12 @@ CardStock requires Python 3.7 or newer, and wxPython 4.0 or newer.  And for more
 ## Installation
 Currently, you'll need to:
 1. install python
-1. pip install wxPython
-1. pip install simpleaudio
-1. download or clone this repository
-1. run designer.py and viewer.py as desired
+2. pip install wxPython
+3. pip install simpleaudio
+4. download or clone this repository
+5. run designer.py and viewer.py as desired
 
-When the first release is ready, there will also be prebuilt bundles ready for download for various platforms, built using pyinstaller.
+Soon after the first release is ready, there will also be prebuilt bundles ready for download for various platforms, built using pyinstaller.
 
 ## Reference
 * [CardStock Wiki](https://github.com/benjie-git/CardStock/wiki)

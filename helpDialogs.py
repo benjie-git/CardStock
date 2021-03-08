@@ -161,6 +161,7 @@ program (instead of in the Designer). which lets a user run the stack, but not e
 
         html = wx.html.HtmlWindow(self, -1)
         htmlStr = self.GetHTML()
+        # print(htmlStr)
         html.SetPage(htmlStr)
 
         # Set up the layout with a Sizer
@@ -222,7 +223,8 @@ information on how to use CardStock, see the CardStock Manual in the Help menu.<
                                                  "objectName.Focus()")}
 <hr/>
 {HelpData.ObjectSection("stack", "Stack", "The stack object represents your whole CardStock program.  You can always "
-                                          "access the stack as the global variable <b>stack</b>.")}
+                                          "access the stack as the global variable <b>stack</b>.  And you can access "
+                                          "any of the stack's cards as stack.cardName.")}
 <hr/>
 {HelpData.ObjectSection("card", "Card", "Cards are the pages of your stack.  Each card has its own set of objects, and"
                                          "its own code for handling events.  The below properties, methods, and "
@@ -296,6 +298,7 @@ information on how to use CardStock, see the CardStock Manual in the Help menu.<
 
         self.html = wx.html.HtmlWindow(self.splitter, -1)
         htmlStr = self.GetHTML()
+        # print(htmlStr)
         self.html.SetPage(htmlStr)
 
         toc = wx.html.HtmlWindow(self.splitter)
