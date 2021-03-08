@@ -134,8 +134,10 @@ property, for each kind of object.</p>
 certain parts of your program when different types of events happen.  For example, you can add some code to a
 button object's OnClicked event, that gets run when that button is clicked.  Just choose the OnClicked() event in the 
 event picker at the top of the code editor, and then add your code into the button's OnClicked event in the code editor,
-and whenever that button is clicked, your code will run.  See the CardStock Reference for a description of each type of
-event, and when they each get run.</p>
+and whenever that button is clicked, your code will run.  The event picker shows all of the events that apply to the
+selected object, and includes the prefix "def " if you already have any code defined for that event.  This helps you
+scan the list of events and see which ones have code in them, and also matches the python syntax for defining a
+function.  See the CardStock Reference for a description of each type of event, and when they each get run.</p>
 
 <p>In your python event-handling code, you have access to all of the objects in the current card, including their
 properties and methods, and some global variables and functions that are always available.
