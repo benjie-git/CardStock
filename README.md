@@ -50,7 +50,7 @@ Currently, you'll need to:
 4. download or clone this repository
 5. run designer.py and viewer.py as desired
 
-Soon after the first release is ready, there will also be prebuilt bundles ready for download for various platforms, built using pyinstaller.
+Soon after the first release is ready, I'll make prebuilt bundles available for download for various platforms, built using pyinstaller.
 
 ## Reference
 * [CardStock Wiki](https://github.com/benjie-git/CardStock/wiki)

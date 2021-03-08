@@ -13,7 +13,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "import requests\nimport json\n"
+        "OnSetup": "# requires you to have the python requests package installed\n# run: pip install requests\nimport requests\nimport json\n"
       },
       "properties": {
         "name": "card_1",
@@ -54,6 +54,9 @@
             ],
             "text": "Want to hear a joke?",
             "alignment": "Left",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 12,
             "editable": true,
             "multiline": true
           }
@@ -62,5 +65,5 @@
     }
   ],
   "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.7"
+  "CardStock_stack_version": "0.8"
 }
