@@ -9,7 +9,7 @@
 There have been many open source projects in the past that tried to capture the fun and simplicity of building programs in HyperCard, but in my opinion, none of them offered the open-ended possibilities and ease of use that made HyperCard such a magical-feeling tool.  So in the grand open source tradition, I built my own.
 
 The guiding principles behind my vision for CardStock are the following, in order of importance:
-1. Keep it understandable, simple, and easy to use, for python beginners, through the most salty Senior Software Engineers.
+1. Keep it understandable, simple, and easy to use, for python beginners, through the most salty of Senior Software Engineers.
 2. Make it as capable as possible, without interfering with the previous priority.
 
 ## Features
@@ -33,7 +33,11 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * Allow exporting a stack into a standalone application that you can share.
 * Add a way to view all code used in a whole stack in one place.
 * Add a way to view recent error messages, and click to jump to the offending line of code in the Designer.
+* Allow exporting a stack into a standalone application that you can share/distribute.
 
+## Known Issues
+* Native views, like buttons and text fields, always remain in front of shapes and images, which get drawn directly on the card view.
+* Visual selection indicators (the blue dotted outlines) are drawn behind native views, and so can hide behind overlapping native views.
 
 ## Requirements
 CardStock requires Python 3.7 or newer, and wxPython 4.0 or newer.  And for more responsive Sound playing, you can optionally install the python module simpleaudio.
