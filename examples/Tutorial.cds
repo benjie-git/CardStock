@@ -43,8 +43,8 @@
           "properties": {
             "name": "label_5",
             "size": [
-              230,
-              41
+              240,
+              40
             ],
             "position": [
               116.0,
@@ -146,26 +146,6 @@
             ],
             "title": "Next Card  =>",
             "border": true
-          }
-        },
-        {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
-            "name": "label_5",
-            "size": [
-              230,
-              41
-            ],
-            "position": [
-              116.0,
-              447.0
-            ],
-            "text": "(Later, when you run the stack, this button will take you to the next card.)",
-            "alignment": "Right",
-            "textColor": "black",
-            "font": "Default",
-            "fontSize": 9
           }
         },
         {
@@ -365,26 +345,6 @@
             ],
             "title": "Next Card  =>",
             "border": true
-          }
-        },
-        {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
-            "name": "label_5",
-            "size": [
-              230,
-              41
-            ],
-            "position": [
-              116.0,
-              447.0
-            ],
-            "text": "(Later, when you run the stack, this button will take you to the next card.)",
-            "alignment": "Right",
-            "textColor": "black",
-            "font": "Default",
-            "fontSize": 9
           }
         },
         {
@@ -614,26 +574,6 @@
           "type": "textlabel",
           "handlers": {},
           "properties": {
-            "name": "label_5",
-            "size": [
-              230,
-              41
-            ],
-            "position": [
-              116.0,
-              447.0
-            ],
-            "text": "(Later, when you run the stack, this button will take you to the next card.)",
-            "alignment": "Right",
-            "textColor": "black",
-            "font": "Default",
-            "fontSize": 9
-          }
-        },
-        {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
             "name": "label_1",
             "size": [
               351,
@@ -846,26 +786,6 @@
             ],
             "title": "Next Card  =>",
             "border": true
-          }
-        },
-        {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
-            "name": "label_5",
-            "size": [
-              230,
-              41
-            ],
-            "position": [
-              116.0,
-              447.0
-            ],
-            "text": "(Later, when you run the stack, this button will take you to the next card.)",
-            "alignment": "Right",
-            "textColor": "black",
-            "font": "Default",
-            "fontSize": 9
           }
         },
         {
@@ -1625,26 +1545,6 @@
             ],
             "title": "Next Card  =>",
             "border": true
-          }
-        },
-        {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
-            "name": "label_5",
-            "size": [
-              230,
-              41
-            ],
-            "position": [
-              116.0,
-              447.0
-            ],
-            "text": "(Later, when you run the stack, this button will take you to the next card.)",
-            "alignment": "Right",
-            "textColor": "black",
-            "font": "Default",
-            "fontSize": 9
           }
         },
         {
@@ -2515,7 +2415,7 @@
           "properties": {
             "name": "label_2",
             "size": [
-              345,
+              351,
               51
             ],
             "position": [
@@ -2947,8 +2847,8 @@
           "properties": {
             "name": "label_5",
             "size": [
-              329,
-              54
+              336,
+              53
             ],
             "position": [
               34.0,

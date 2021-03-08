@@ -55,4 +55,5 @@ Soon after the first release is ready, I'll make prebuilt bundles available for 
 ## Reference
 * [CardStock Wiki](https://github.com/benjie-git/CardStock/wiki)
 * [CardStock Manual](https://github.com/benjie-git/CardStock/wiki/Manual)
+* [CardStock Tutorial](https://github.com/benjie-git/CardStock/wiki/Tutorial)
 * [CardStock Reference Guide](https://github.com/benjie-git/CardStock/wiki/Reference)
