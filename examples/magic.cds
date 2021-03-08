@@ -13,7 +13,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnMouseMove": "# Apple can't go further right than the tube's center\napple.center.x = min(mousePos.x, tube.center.x)\n\nnext.center.x = max(mousePos.x, tube.center.x)\n"
+        "OnMouseMove": "# The egg can't go further right than the tube's center\negg.center.x = min(mousePos.x, tube.center.x)\n\n# And ship can't go further left than the tube's center\nship.center.x = max(mousePos.x, tube.center.x)\n"
       },
       "properties": {
         "name": "card_1",
@@ -21,39 +21,55 @@
       },
       "childModels": [
         {
-          "type": "image",
+          "type": "oval",
           "handlers": {},
           "properties": {
-            "name": "apple",
+            "name": "egg",
             "size": [
-              157,
-              182
+              97,
+              120
             ],
             "position": [
-              306.0,
-              14.0
+              344.0,
+              38.0
             ],
-            "file": "apple.png",
-            "fit": "Fill",
-            "rotation": 0
-          }
+            "originalSize": [
+              60,
+              113
+            ],
+            "penColor": "black",
+            "penThickness": 4,
+            "fillColor": "white"
+          },
+          "points": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              60.0,
+              113.0
+            ]
+          ]
         },
         {
           "type": "image",
           "handlers": {},
           "properties": {
-            "name": "next",
+            "name": "ship",
             "size": [
               157,
               182
             ],
             "position": [
-              370.0,
-              15.0
+              371.0,
+              17.0
             ],
-            "file": "next.png",
-            "fit": "Fill",
-            "rotation": 0
+            "file": "ship-off.png",
+            "fit": "Contain",
+            "rotation": 0,
+            "xFlipped": false,
+            "yFlipped": false
           }
         },
         {
@@ -135,7 +151,9 @@
             ],
             "file": "apple.png",
             "fit": "Fill",
-            "rotation": 0
+            "rotation": 0,
+            "xFlipped": false,
+            "yFlipped": false
           }
         },
         {
@@ -153,7 +171,9 @@
             ],
             "file": "next.png",
             "fit": "Fill",
-            "rotation": 0
+            "rotation": 0,
+            "xFlipped": false,
+            "yFlipped": false
           }
         },
         {
@@ -212,5 +232,5 @@
     }
   ],
   "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.7"
+  "CardStock_stack_version": "0.8"
 }
