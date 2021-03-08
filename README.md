@@ -34,6 +34,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * Add a way to view all code used in a whole stack in one place.
 * Add a way to view recent error messages, and click to jump to the offending line of code in the Designer.
 * Allow exporting a stack into a standalone application that you can share/distribute.
+* Add app icons for the CardStock Designer and Viewer
 
 ## Known Issues
 * Native views, like buttons and text fields, always remain in front of shapes and images, which get drawn directly on the card view.
