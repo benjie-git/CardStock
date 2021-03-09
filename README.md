@@ -31,6 +31,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * A built-in media library with some basic icons/images, and sound files.
 * Add code completion to the code editor.
 * Allow exporting a stack into a standalone application that you can share.
+* Add async support
 * Add a way to view all code used in a whole stack in one place.
 * Add a way to view recent error messages, and click to jump to the offending line of code in the Designer.
 * Allow exporting a stack into a standalone application that you can share/distribute.
