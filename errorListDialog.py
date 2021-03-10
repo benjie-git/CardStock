@@ -16,11 +16,10 @@ class CardStockError(object):
 
 class ErrorListDialog(wx.Frame):
     def __init__(self, designer, errorList):
-        super().__init__(designer, title="Errors")
+        super().__init__(designer, title="Errors", style=wx.DEFAULT_FRAME_STYLE|wx.FRAME_TOOL_WINDOW|wx.FRAME_FLOAT_ON_PARENT)
         self.designer = designer
         self.errors = errorList
         self.ConvertViewerToDesignerModels()
-        self.CreateStatusBar()
         box = wx.BoxSizer(wx.VERTICAL)
         self.listBox = wx.ListBox(self, size=(500, 60), style=wx.LB_SINGLE,
                                   choices=[e.msg if e.count==1 else f"{e.msg} ({e.count} times)" for e in self.errors])
