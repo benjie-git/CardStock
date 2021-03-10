@@ -4,6 +4,7 @@ import traceback
 import wx
 from wx.adv import Sound
 from time import sleep, time
+from errorListDialog import CardStockError
 
 try:
     import simpleaudio
@@ -29,6 +30,7 @@ class Runner():
         self.cardVarKeys = []  # store names of views on the current card, to remove from clientVars before setting up the next card
         self.pressedKeys = []
         self.timers = []
+        self.errors = []
 
         self.soundCache = {}
 
@@ -150,6 +152,7 @@ class Runner():
                         self.clientVars[k] = v
                 return
 
+        error = None
         try:
             exec(handlerStr, self.clientVars)
         except SyntaxError as err:
@@ -176,6 +179,17 @@ class Runner():
 
         if error_class:
             msg = f"{error_class} in {uiModel.GetProperty('name')}.{handlerName}(), line {line_number}: {detail}"
+
+            for e in self.errors:
+                if e.msg == msg:
+                    error = e
+                    break
+            if not error:
+                error = CardStockError(self.clientVars["card"]._model,
+                                       uiModel, handlerName, line_number, msg)
+                self.errors.append(error)
+            error.count += 1
+
             print(msg)
             if self.statusBar:
                 self.statusBar.SetStatusText(msg)
