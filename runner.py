@@ -1,14 +1,17 @@
-import traceback
 import sys
 import os
+import traceback
 import wx
+from wx.adv import Sound
 from time import sleep, time
 
 try:
     import simpleaudio
     SIMPLE_AUDIO_AVAILABLE = True
 except ModuleNotFoundError:
-    from wx.adv import Sound
+    SIMPLE_AUDIO_AVAILABLE = False
+
+if wx.Platform == '__WXMAC__':
     SIMPLE_AUDIO_AVAILABLE = False
 
 
@@ -84,6 +87,8 @@ class Runner():
         for t in self.timers:
             t.Stop()
         self.timers = []
+        self.StopSound()
+        self.soundCache = {}
 
     def RunHandler(self, uiModel, handlerName, event, arg=None):
         handlerStr = uiModel.handlers[handlerName].strip()
@@ -193,10 +198,6 @@ class Runner():
         if keyName and keyName in self.pressedKeys:
             self.pressedKeys.remove(keyName)
 
-    def StopRunning(self):
-        self.soundCache = {}
-        Sound.Stop()
-
     def SetFocus(self, obj):
         uiView = self.stackManager.GetUiViewByModel(obj._model)
         if uiView:
@@ -300,11 +301,11 @@ class Runner():
                 s.Play()
 
     def StopSound(self):
-            if SIMPLE_AUDIO_AVAILABLE:
-                simpleaudio.stop_all()
-            else:
-                for s in self.soundCache:
-                    s.Stop()
+        if SIMPLE_AUDIO_AVAILABLE:
+            simpleaudio.stop_all()
+        else:
+            for (filepath, s) in self.soundCache.items():
+                s.Stop()
 
     def Paste(self):
         models = self.stackManager.Paste(False)
