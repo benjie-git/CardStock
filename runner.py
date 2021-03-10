@@ -4,7 +4,7 @@ import traceback
 import wx
 from wx.adv import Sound
 from time import sleep, time
-from errorListDialog import CardStockError
+from errorListWindow import CardStockError
 
 try:
     import simpleaudio
@@ -185,8 +185,7 @@ class Runner():
                     error = e
                     break
             if not error:
-                error = CardStockError(self.clientVars["card"]._model,
-                                       uiModel, handlerName, line_number, msg)
+                error = CardStockError(uiModel.GetCard(), uiModel, handlerName, line_number, msg)
                 self.errors.append(error)
             error.count += 1
 

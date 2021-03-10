@@ -17,7 +17,7 @@ from stackManager import StackManager
 from controlPanel import ControlPanel
 from viewer import ViewerFrame
 import helpDialogs
-from errorListDialog import ErrorListDialog
+from errorListWindow import ErrorListWindow
 from stackModel import StackModel
 from uiCard import CardModel
 from findEngineDesigner import FindEngine
@@ -49,7 +49,7 @@ ID_MOVE_VIEW_FRONT = wx.NewIdRef()
 ID_MOVE_VIEW_FWD = wx.NewIdRef()
 ID_MOVE_VIEW_BACK = wx.NewIdRef()
 ID_MOVE_VIEW_END = wx.NewIdRef()
-ID_SHOW_ERROR_DLG = wx.NewIdRef()
+ID_SHOW_ERROR_LIST = wx.NewIdRef()
 
 
 class DesignerFrame(wx.Frame):
@@ -131,7 +131,7 @@ class DesignerFrame(wx.Frame):
         self.findDlg = None
         self.findEngine = FindEngine(self.stackManager)
 
-        self.errorsDlg = None
+        self.errorListWindow = None
         self.lastRunErrors = []
 
         self.viewer = None
@@ -287,7 +287,7 @@ class DesignerFrame(wx.Frame):
         helpMenu.Append(wx.ID_HELP, "&Manual", "Manual")
         helpMenu.Append(wx.ID_REFRESH, "&Reference Guide", "Reference Guide")
         helpMenu.Append(wx.ID_CONTEXT_HELP, "&Show/Hide Context Help", "Toggle Context Help")
-        helpMenu.Append(ID_SHOW_ERROR_DLG, "&Show Errors", "Show Errors")
+        helpMenu.Append(ID_SHOW_ERROR_LIST, "&Show/Hide Errors\tCtrl-Alt-E", "Toggle Errors")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
@@ -338,7 +338,7 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuMoveView, id=ID_MOVE_VIEW_FWD)
         self.Bind(wx.EVT_MENU, self.OnMenuMoveView, id=ID_MOVE_VIEW_BACK)
         self.Bind(wx.EVT_MENU, self.OnMenuMoveView, id=ID_MOVE_VIEW_END)
-        self.Bind(wx.EVT_MENU, self.OnMenuShowLastRunErrors, id=ID_SHOW_ERROR_DLG)
+        self.Bind(wx.EVT_MENU, self.OnMenuShowLastRunErrors, id=ID_SHOW_ERROR_LIST)
 
 
     wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
@@ -396,10 +396,10 @@ class DesignerFrame(wx.Frame):
         if self.viewer:
             self.viewer.Destroy()
 
-        if self.errorsDlg:
-            self.errorsDlg.Hide()
-            self.errorsDlg.Destroy()
-            self.errorsDlg = None
+        if self.errorListWindow:
+            self.errorListWindow.Hide()
+            self.errorListWindow.Destroy()
+            self.errorListWindow = None
 
         data = self.stackManager.stackModel.GetData()
         stackModel = StackModel(None)
@@ -428,19 +428,19 @@ class DesignerFrame(wx.Frame):
             self.OnMenuShowLastRunErrors(None)
 
     def OnMenuShowLastRunErrors(self, event):
-        if self.errorsDlg:
-            self.errorsDlg.Hide()
-            self.errorsDlg.Destroy()
-            self.errorsDlg = None
+        if self.errorListWindow:
+            self.errorListWindow.Hide()
+            self.errorListWindow.Destroy()
+            self.errorListWindow = None
+        else:
+            self.errorListWindow = ErrorListWindow(self, self.lastRunErrors)
+            self.errorListWindow.Show()
+            self.errorListWindow.Bind(wx.EVT_CLOSE, self.OnErrorListClose)
 
-        self.errorsDlg = ErrorListDialog(self, self.lastRunErrors)
-        self.errorsDlg.Show()
-        self.errorsDlg.Bind(wx.EVT_CLOSE, self.OnErrorDlgClose)
-
-    def OnErrorDlgClose(self, event):
-        self.errorsDlg.Hide()
-        self.errorsDlg.Destroy()
-        self.errorsDlg = None
+    def OnErrorListClose(self, event):
+        self.errorListWindow.Hide()
+        self.errorListWindow.Destroy()
+        self.errorListWindow = None
 
     def OnMenuExit(self, event):
         self.Close()

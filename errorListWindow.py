@@ -14,23 +14,34 @@ class CardStockError(object):
         return f"<CardStockError: {self.msg} (count={self.count})>"
 
 
-class ErrorListDialog(wx.Frame):
+class ErrorListWindow(wx.Frame):
     def __init__(self, designer, errorList):
         super().__init__(designer, title="Errors", style=wx.DEFAULT_FRAME_STYLE|wx.FRAME_TOOL_WINDOW|wx.FRAME_FLOAT_ON_PARENT)
+        self.SetMinClientSize(wx.Size(300,20))
+        self.SetClientSize(wx.Size(500,50))
         self.designer = designer
         self.errors = errorList
         self.ConvertViewerToDesignerModels()
-        box = wx.BoxSizer(wx.VERTICAL)
-        self.listBox = wx.ListBox(self, size=(500, 60), style=wx.LB_SINGLE,
+        self.listBox = wx.ListBox(self, style=wx.LB_SINGLE,
                                   choices=[e.msg if e.count==1 else f"{e.msg} ({e.count} times)" for e in self.errors])
-        box.Add(self.listBox, 0, wx.EXPAND)
-        self.SetSizerAndFit(box)
-        self.Centre()
+        self.listBox.SetBackgroundColour('#EE3333')
+        self.SetPosition(designer.GetPosition() + (100, 10))
         self.listBox.Bind(wx.EVT_LISTBOX, self.OnListBox)
+        self.listBox.Bind(wx.EVT_SIZE, self.OnListBoxResize)
+        self.listBox.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
+
+    def OnListBoxResize(self, event):
+        self.listBox.size = self.GetClientSize()
 
     def OnListBox(self, event):
         self.JumpToError(self.errors[event.GetSelection()])
         self.listBox.SetSelection(wx.NOT_FOUND)
+
+    def OnMouseDown(self, event):
+        # Pre-Focus the listBox, so that even if this was not the top window, this click will still select a row
+        self.Raise()
+        self.listBox.SetFocus()
+        event.Skip(True)
 
     def ConvertViewerToDesignerModels(self):
         # convert error objects from viewer's models, to designer's models
@@ -67,3 +78,5 @@ class ErrorListDialog(wx.Frame):
                 ed.GotoLine(error.lineNum-1)
                 ed.SetSelectionStart(ed.GetLineEndPosition(error.lineNum-1) - ed.GetLineLength(error.lineNum-1))
                 ed.SetSelectionEnd(ed.GetLineEndPosition(error.lineNum-1))
+                ed.SetFocus()
+                self.designer.Raise()
