@@ -31,6 +31,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * A built-in media library with some basic icons/images, and sound files.
 * Add code completion to the code editor.
 * Allow exporting a stack into a standalone application that you can share.
+* Add async support
 * Add a way to view all code used in a whole stack in one place.
 * Add a way to view recent error messages, and click to jump to the offending line of code in the Designer.
 * Allow exporting a stack into a standalone application that you can share/distribute.
@@ -44,14 +45,15 @@ The guiding principles behind my vision for CardStock are the following, in orde
 CardStock requires Python 3.7 or newer, and wxPython 4.0 or newer.  And for more responsive Sound playing, you can optionally install the python module simpleaudio.
 
 ## Installation
-Currently, you'll need to:
+You can either, run it from source:
 1. install python
 2. pip install wxPython
 3. pip install simpleaudio
 4. download or clone this repository
 5. run designer.py and viewer.py as desired
 
-Soon after the first release is ready, I'll make prebuilt bundles available for download for various platforms, built using pyinstaller.
+Or download the ready-to-go CardStock application for Mac or Windows here:
+https://github.com/benjie-git/CardStock/releases/tag/0.8
 
 ## Reference
 * [CardStock Wiki](https://github.com/benjie-git/CardStock/wiki)
