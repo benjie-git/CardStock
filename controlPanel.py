@@ -185,8 +185,6 @@ class ControlPanel(wx.Panel):
 
     def OnGridClick(self, event):
         self.inspector.SetGridCursor(event.Row, event.Col)
-        if self.inspector.GetGridCursorCol() == 1:
-            wx.CallAfter(self.inspector.EnableCellEditControl, True)
         event.Skip()
 
     def SelectInInspectorForPropertyName(self, key, selectStart, selectEnd):
