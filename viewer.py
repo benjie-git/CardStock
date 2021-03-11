@@ -40,7 +40,7 @@ class ViewerFrame(wx.Frame):
     title = "CardStock"
 
     def __init__(self, parent, stackModel, filename):
-        if stackModel.GetProperty("canResize"):
+        if stackModel and stackModel.GetProperty("canResize"):
             style = wx.DEFAULT_FRAME_STYLE
         else:
             style = wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
@@ -52,6 +52,11 @@ class ViewerFrame(wx.Frame):
 
         self.stackManager = StackManager(self)
         self.stackManager.SetEditing(False)
+
+        if not stackModel:
+            stackModel = StackModel(self.stackManager)
+            stackModel.AppendCardModel(CardModel(self.stackManager))
+
         self.designer = None
         self.stackManager.filename = filename
         self.SetStackModel(stackModel)
@@ -92,6 +97,7 @@ class ViewerFrame(wx.Frame):
     def MakeMenu(self):
         # create the file menu
         fileMenu = wx.Menu()
+        fileMenu.Append(wx.ID_OPEN, "&Open\tCtrl-O", "Open Stack")
         if self.stackManager.filename and self.stackManager.stackModel.GetProperty("canSave"):
             fileMenu.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save Stack")
         fileMenu.Append(wx.ID_CLOSE, "&Close\tCtrl-W", "Close Stack")
@@ -121,6 +127,7 @@ class ViewerFrame(wx.Frame):
         menuBar.Append(helpMenu, "&Help")
         self.SetMenuBar(menuBar)
 
+        self.Bind(wx.EVT_MENU,   self.OnMenuOpen, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU,   self.OnMenuSave, id=wx.ID_SAVE)
         self.Bind(wx.EVT_MENU,   self.OnMenuClose, id=wx.ID_CLOSE)
 
@@ -137,6 +144,24 @@ class ViewerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuFindNext, id=ID_MENU_FIND_NEXT)
         self.Bind(wx.EVT_MENU, self.OnMenuFindPrevious, id=ID_MENU_FIND_PREV)
         self.Bind(wx.EVT_MENU, self.OnMenuReplace, id=ID_MENU_REPLACE)
+
+    wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
+
+    def OnMenuOpen(self, event):
+        if self.stackManager.filename and self.stackManager.stackModel.GetProperty("canSave") and self.stackManager.stackModel.GetDirty():
+            r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
+                                 "Save before Closing?", wx.YES_NO | wx.CANCEL).ShowModal()
+            if r == wx.ID_CANCEL:
+                return
+            if r == wx.ID_YES:
+                self.SaveFile()
+
+        dlg = wx.FileDialog(self, "Open CardStock file...", os.getcwd(),
+                           style=wx.FD_OPEN, wildcard = self.wildcard)
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetPath()
+            wx.GetApp().OpenFile(filename)
+        dlg.Destroy()
 
     def OnMenuSave(self, event):
         self.SaveFile()
@@ -270,18 +295,33 @@ class ViewerApp(wx.App, InspectionMixin):
 
         return True
 
+    def NewFile(self):
+        if self.frame:
+            self.frame.Hide()
+            self.frame.Destroy()
+
+        self.frame = ViewerFrame(None, None, None)
+        self.SetTopWindow(self.frame)
+        self.frame.Show(True)
+        self.frame.RunViewer()
+
     def OpenFile(self, filename):
         if filename:
             try:
                 with open(filename, 'r') as f:
                     data = json.load(f)
                 if data:
+                    if self.frame:
+                        self.frame.Hide()
+                        self.frame.Destroy()
+
                     stackModel = StackModel(None)
                     stackModel.SetData(data)
                     self.frame = ViewerFrame(None, stackModel, filename)
                     self.SetTopWindow(self.frame)
                     self.frame.stackManager.filename = filename
                     self.frame.Show(True)
+                    self.frame.RunViewer()
             except TypeError:
                 # e = sys.exc_info()
                 # print(e)
@@ -308,9 +348,6 @@ if __name__ == '__main__':
         filename = sys.argv[1]
         app.OpenFile(filename)
     else:
-        print("Usage: python3 viewer.py filename")
-        exit(1)
-    app.frame.RunViewer()
-    app.frame.Show(True)
+        app.NewFile()
 
     app.MainLoop()

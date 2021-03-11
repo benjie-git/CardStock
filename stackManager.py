@@ -29,6 +29,7 @@ from uiGroup import UiGroup, GroupModel
 
 class StackManager(object):
     def __init__(self, parentView):
+        super().__init__()
         self.view = wx.Window(parentView, style=wx.WANTS_CHARS)
         self.listeners = []
         self.designer = None
