@@ -396,10 +396,8 @@ class DesignerFrame(wx.Frame):
         if self.viewer:
             self.viewer.Destroy()
 
-        if self.errorListWindow:
+        if self.errorListWindow and self.errorListWindow.IsShown():
             self.errorListWindow.Hide()
-            self.errorListWindow.Destroy()
-            self.errorListWindow = None
 
         data = self.stackManager.stackModel.GetData()
         stackModel = StackModel(None)
@@ -429,18 +427,20 @@ class DesignerFrame(wx.Frame):
 
     def OnMenuShowLastRunErrors(self, event):
         if self.errorListWindow:
-            self.errorListWindow.Hide()
-            self.errorListWindow.Destroy()
-            self.errorListWindow = None
+            if self.errorListWindow.IsShown():
+                self.errorListWindow.Hide()
+            else:
+                self.errorListWindow.Show()
         else:
-            self.errorListWindow = ErrorListWindow(self, self.lastRunErrors)
+            self.errorListWindow = ErrorListWindow(self)
+            self.errorListWindow.SetPosition(self.GetPosition() + (100, 10))
             self.errorListWindow.Show()
             self.errorListWindow.Bind(wx.EVT_CLOSE, self.OnErrorListClose)
 
+        self.errorListWindow.SetErrorList(self.lastRunErrors)
+
     def OnErrorListClose(self, event):
         self.errorListWindow.Hide()
-        self.errorListWindow.Destroy()
-        self.errorListWindow = None
 
     def OnMenuExit(self, event):
         self.Close()

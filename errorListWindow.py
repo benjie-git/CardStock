@@ -15,20 +15,22 @@ class CardStockError(object):
 
 
 class ErrorListWindow(wx.Frame):
-    def __init__(self, designer, errorList):
+    def __init__(self, designer):
         super().__init__(designer, title="Errors", style=wx.DEFAULT_FRAME_STYLE|wx.FRAME_TOOL_WINDOW|wx.FRAME_FLOAT_ON_PARENT)
         self.SetMinClientSize(wx.Size(300,20))
         self.SetClientSize(wx.Size(500,50))
         self.designer = designer
-        self.errors = errorList
-        self.ConvertViewerToDesignerModels()
-        self.listBox = wx.ListBox(self, style=wx.LB_SINGLE,
-                                  choices=[e.msg if e.count==1 else f"{e.msg} ({e.count} times)" for e in self.errors])
+        self.errors = []
+        self.listBox = wx.ListBox(self, style=wx.LB_SINGLE)
         self.listBox.SetBackgroundColour('#EE3333')
-        self.SetPosition(designer.GetPosition() + (100, 10))
         self.listBox.Bind(wx.EVT_LISTBOX, self.OnListBox)
         self.listBox.Bind(wx.EVT_SIZE, self.OnListBoxResize)
         self.listBox.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
+
+    def SetErrorList(self, errorList):
+        self.errors = errorList
+        self.ConvertViewerToDesignerModels()
+        self.listBox.Set([e.msg if e.count==1 else f"{e.msg} ({e.count} times)" for e in self.errors])
 
     def OnListBoxResize(self, event):
         self.listBox.size = self.GetClientSize()
