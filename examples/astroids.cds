@@ -31,8 +31,8 @@
               114
             ],
             "position": [
-              286.0,
-              290.0
+              293.0,
+              295.0
             ],
             "file": "ship-off.png",
             "fit": "Center",
@@ -45,5 +45,5 @@
     }
   ],
   "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.9"
+  "CardStock_stack_version": "0.8.1"
 }
