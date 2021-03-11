@@ -44,6 +44,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.SetUseAntiAliasing(True)
         self.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
         self.SetMarginWidth(1, 24)
+        self.SetUndoCollection(False)
 
         self.StyleSetSpec(stc.STC_STYLE_DEFAULT,    'face:%(mono)s,fore:#000000,size:%(size)d' % faces)
         self.StyleSetSpec(stc.STC_STYLE_LINENUMBER, 'face:%(mono)s,fore:#999999,back:#EEEEEE' % faces)
