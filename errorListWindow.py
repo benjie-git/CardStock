@@ -33,7 +33,7 @@ class ErrorListWindow(wx.Frame):
         self.listBox.Set([e.msg if e.count==1 else f"{e.msg} ({e.count} times)" for e in self.errors])
 
     def OnListBoxResize(self, event):
-        self.listBox.size = self.GetClientSize()
+        self.listBox.SetSize(self.GetClientSize())
 
     def OnListBox(self, event):
         self.JumpToError(self.errors[event.GetSelection()])

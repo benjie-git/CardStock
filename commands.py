@@ -299,6 +299,10 @@ class SetHandlerCommand(Command):
             if self.newSel:
                 self.cPanel.codeEditor.SetSelection(*self.newSel)
 
+        allCodeWin = self.cPanel.stackManager.designer.allCodeWindow
+        if allCodeWin and allCodeWin.IsShown():
+            allCodeWin.Update()
+
         self.hasRun = True
         return True
 
@@ -315,6 +319,11 @@ class SetHandlerCommand(Command):
         if self.interactive:
             if self.oldSel:
                 self.cPanel.codeEditor.SetSelection(*self.oldSel)
+
+        allCodeWin = self.cPanel.stackManager.designer.allCodeWindow
+        if allCodeWin and allCodeWin.IsShown():
+            allCodeWin.Update()
+
         return True
 
 
