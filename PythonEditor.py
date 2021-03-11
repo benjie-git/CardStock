@@ -30,8 +30,10 @@ else:
 
 
 class PythonEditor(stc.StyledTextCtrl):
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, undoHandler, **kwargs):
         super().__init__(parent=parent, **kwargs)
+
+        self.undoHandler = undoHandler
 
         self.SetAutoLayout(True)
         # self.SetConstraints(stc.LayoutAnchors(self, True, True, True, True))
@@ -80,6 +82,12 @@ class PythonEditor(stc.StyledTextCtrl):
                 numSpaces += TAB_WIDTH
             self.AddText("\n" + " "*numSpaces)
         else:
+            if event.GetKeyCode() == ord("Z") and event.ControlDown():
+                if not event.ShiftDown():
+                    self.undoHandler.Undo()
+                else:
+                    self.undoHandler.Redo()
+                return
             event.Skip()
 
     def PyEditorOnUpdateUi(self, event):

@@ -116,7 +116,7 @@ class ControlPanel(wx.Panel):
         self.handlerPicker.Bind(wx.EVT_CHOICE, self.OnHandlerChoice)
         self.currentHandler = None
 
-        self.codeEditor = PythonEditor(self, style=wx.BORDER_SUNKEN)
+        self.codeEditor = PythonEditor(self, self.stackManager, style=wx.BORDER_SUNKEN)
         self.codeEditor.SetSize((150,2000))
         self.codeEditor.Bind(wx.EVT_IDLE, self.CodeEditorOnIdle)
         self.codeEditor.Bind(wx.EVT_SET_FOCUS, self.CodeEditorFocused)
