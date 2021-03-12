@@ -61,7 +61,7 @@ class ViewerFrame(wx.Frame):
         self.stackManager.filename = filename
         self.SetStackModel(stackModel)
         self.Bind(wx.EVT_SIZE, self.OnResize)
-        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnClose)
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
 
         self.findDlg = None
         self.findEngine = FindEngine(self.stackManager)
@@ -100,7 +100,10 @@ class ViewerFrame(wx.Frame):
         fileMenu.Append(wx.ID_OPEN, "&Open\tCtrl-O", "Open Stack")
         if self.stackManager.filename and self.stackManager.stackModel.GetProperty("canSave"):
             fileMenu.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save Stack")
-        fileMenu.Append(wx.ID_CLOSE, "&Close\tCtrl-W", "Close Stack")
+        if self.designer:
+            fileMenu.Append(wx.ID_CLOSE, "&Close\tCtrl-W", "Close Stack")
+        else:
+            fileMenu.Append(wx.ID_EXIT, "&Quit\tCtrl-Q", "Quit Stack")
 
         editMenu = wx.Menu()
         editMenu.Append(wx.ID_UNDO, "&Undo\tCtrl-Z", "Undo Action")
@@ -130,6 +133,7 @@ class ViewerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,   self.OnMenuOpen, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU,   self.OnMenuSave, id=wx.ID_SAVE)
         self.Bind(wx.EVT_MENU,   self.OnMenuClose, id=wx.ID_CLOSE)
+        self.Bind(wx.EVT_MENU,   self.OnMenuClose, id=wx.ID_EXIT)
 
         self.Bind(wx.EVT_MENU,  self.OnMenuAbout, id=wx.ID_ABOUT)
 
@@ -167,16 +171,18 @@ class ViewerFrame(wx.Frame):
         self.SaveFile()
 
     def OnMenuClose(self, event):
+        self.Close()
+
+    def OnClose(self, event):
         if self.stackManager.filename and self.stackManager.stackModel.GetProperty("canSave") and self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before Quitting?", wx.YES_NO | wx.CANCEL).ShowModal()
             if r == wx.ID_CANCEL:
+                event.Veto()
                 return
             if r == wx.ID_YES:
                 self.SaveFile()
-        self.Close()
 
-    def OnClose(self, event):
         self.stackManager.runner.CleanupFromRun()
         event.Skip()
 
