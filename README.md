@@ -26,15 +26,14 @@ The guiding principles behind my vision for CardStock are the following, in orde
 ### More Advanced
 * You can animate most properties of objects, to bring your creations to life.
 * You can **import** other python packages into your code, and use them make web requests and display the results, control robots, or run machine learning code, all from within your CardStock stack.
+* View all code used in a whole stack in one place, and click a line to jump to that line in that object's code for that event.
+* View recent error messages, and click one to jump to the offending line of code in the Designer.
 
 ### Future Plans
 * A built-in media library with some basic icons/images, and sound files.
 * Add code completion to the code editor.
-* Allow exporting a stack into a standalone application that you can share.
-* Add async support
-* Add a way to view all code used in a whole stack in one place.
-* Add a way to view recent error messages, and click to jump to the offending line of code in the Designer.
 * Allow exporting a stack into a standalone application that you can share/distribute.
+* Add async support
 * Add app icons for the CardStock Designer and Viewer
 
 ## Known Issues
@@ -53,7 +52,7 @@ You can either, run it from source:
 5. run designer.py and viewer.py as desired
 
 Or download the ready-to-go CardStock application for Mac or Windows here:
-https://github.com/benjie-git/CardStock/releases/tag/0.8
+https://github.com/benjie-git/CardStock/releases/tag/0.8.2
 
 ## Reference
 * [CardStock Wiki](https://github.com/benjie-git/CardStock/wiki)
