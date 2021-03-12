@@ -47,6 +47,9 @@ class PythonEditor(stc.StyledTextCtrl):
         self.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
         self.SetMarginWidth(1, 24)
         self.SetUndoCollection(False)
+        self.CmdKeyClear(ord("Z"), stc.STC_SCMOD_CTRL)
+        self.CmdKeyClear(ord("Z"), stc.STC_SCMOD_CTRL|stc.STC_SCMOD_SHIFT)
+        self.CmdKeyClear(ord("Y"), stc.STC_SCMOD_CTRL)
 
         self.StyleSetSpec(stc.STC_STYLE_DEFAULT,    'face:%(mono)s,fore:#000000,size:%(size)d' % faces)
         self.StyleSetSpec(stc.STC_STYLE_LINENUMBER, 'face:%(mono)s,fore:#999999,back:#EEEEEE' % faces)
