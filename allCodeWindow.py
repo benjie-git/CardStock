@@ -52,13 +52,15 @@ class AllCodeWindow(wx.Frame):
             displayName = UiView.handlerDisplayNames[handlerName]
             handlerCode = obj.GetHandler(handlerName)
             if handlerCode:
-                self.methodStartLines.append((self.numLines, card, obj, handlerName))
                 self.text += f"# {name}\n"
+                self.numLines += 1
+
+                self.methodStartLines.append((self.numLines, card, obj, handlerName))
                 code = f"def {displayName}\n"
                 lines = handlerCode.splitlines(False)
                 code += "\n".join(["\t"+line for line in lines])
                 self.text += code + "\n\n"
-                self.numLines += 2 + len(lines) + 1
+                self.numLines += 1 + len(lines) + 1
         for child in obj.childModels:
             self.AppendOnSetupCode(child)
 
@@ -78,11 +80,12 @@ class AllCodeWindow(wx.Frame):
                 displayName = UiView.handlerDisplayNames[handlerName]
                 handlerCode = obj.GetHandler(handlerName)
                 if handlerCode:
-                    self.methodStartLines.append((self.numLines, card, obj, handlerName))
                     if not didAddComment:
                         self.text += f"# {name}\n"
                         didAddComment = True
                         self.numLines += 1
+
+                    self.methodStartLines.append((self.numLines, card, obj, handlerName))
                     code = f"def {displayName}\n"
                     lines = handlerCode.splitlines(False)
                     code += "\n".join(["\t"+line for line in lines])
@@ -99,8 +102,8 @@ class AllCodeWindow(wx.Frame):
         if line != self.lastLineNum:
             self.lastLineNum = line
             for l in reversed(self.methodStartLines):
-                if line >= l[0]:
-                    self.JumpToCode(l[1], l[2], l[3], line-l[0]-1)
+                if line >= l[0]-1:
+                    self.JumpToCode(l[1], l[2], l[3], line-l[0])
                     break
 
     def JumpToCode(self, card, obj, handlerName, lineNum):
