@@ -269,7 +269,7 @@ class ViewerFrame(wx.Frame):
         dlg.ShowModal()
         dlg.Destroy()
 
-    def RunViewer(self):
+    def RunViewer(self, cardIndex):
         runner = Runner(self.stackManager, self.GetStatusBar())
         self.stackManager.runner = runner
         self.stackManager.SetEditing(False)
@@ -287,7 +287,7 @@ class ViewerFrame(wx.Frame):
                 RunAllSetupHandlers(m)
         RunAllSetupHandlers(self.stackManager.stackModel)
 
-        self.stackManager.LoadCardAtIndex(0)
+        self.stackManager.LoadCardAtIndex(cardIndex)
 
 
 # ----------------------------------------------------------------------
@@ -309,7 +309,7 @@ class ViewerApp(wx.App, InspectionMixin):
         self.frame = ViewerFrame(None, None, None)
         self.SetTopWindow(self.frame)
         self.frame.Show(True)
-        self.frame.RunViewer()
+        self.frame.RunViewer(0)
 
     def OpenFile(self, filename):
         if filename:
@@ -327,7 +327,7 @@ class ViewerApp(wx.App, InspectionMixin):
                     self.SetTopWindow(self.frame)
                     self.frame.stackManager.filename = filename
                     self.frame.Show(True)
-                    self.frame.RunViewer()
+                    self.frame.RunViewer(0)
             except TypeError:
                 # e = sys.exc_info()
                 # print(e)

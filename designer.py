@@ -38,6 +38,7 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 
 ID_EXPORT = wx.NewIdRef()
 ID_RUN = wx.NewIdRef()
+ID_RUN_FROM = wx.NewIdRef()
 ID_EDIT = wx.NewIdRef()
 ID_MENU_FIND = wx.NewIdRef()
 ID_MENU_FIND_SEL = wx.NewIdRef()
@@ -251,6 +252,7 @@ class DesignerFrame(wx.Frame):
         fileMenu.Append(ID_EXPORT, "&Export Stack...\tCtrl-Shift-E", "Export the current Stack")
         fileMenu.AppendSeparator()
         fileMenu.Append(ID_RUN, "&Run Stack\tCtrl-R", "Run the current Stack")
+        fileMenu.Append(ID_RUN_FROM, "&Run From Current Card\tCtrl-Shift-R", "Run from the current Card")
         fileMenu.AppendSeparator()
         fileMenu.Append(wx.ID_EXIT, "E&xit", "Terminate the application")
 
@@ -317,6 +319,7 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuSaveAs, id=wx.ID_SAVEAS)
         self.Bind(wx.EVT_MENU, self.OnMenuExport, id=ID_EXPORT)
         self.Bind(wx.EVT_MENU, self.OnMenuRun, id=ID_RUN)
+        self.Bind(wx.EVT_MENU, self.OnMenuRunFrom, id=ID_RUN_FROM)
         self.Bind(wx.EVT_MENU, self.OnMenuExit, id=wx.ID_EXIT)
 
         self.Bind(wx.EVT_MENU, self.OnMenuAbout, id=wx.ID_ABOUT)
@@ -511,7 +514,7 @@ class DesignerFrame(wx.Frame):
             else:
                 dlg.Destroy()
 
-    def OnMenuRun(self, event):
+    def RunFromCard(self, cardIndex):
         if self.viewer:
             self.viewer.Destroy()
 
@@ -532,7 +535,13 @@ class DesignerFrame(wx.Frame):
         self.viewer.Bind(wx.EVT_CLOSE, self.OnViewerClose)
         self.Hide()
         self.viewer.Show(True)
-        self.viewer.RunViewer()
+        self.viewer.RunViewer(cardIndex)
+
+    def OnMenuRun(self, event):
+        self.RunFromCard(0)
+
+    def OnMenuRunFrom(self, event):
+        self.RunFromCard(self.stackManager.cardIndex)
 
     def OnViewerSave(self, stackModel):
         newModel = StackModel(self.stackManager)
