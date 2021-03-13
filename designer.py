@@ -24,10 +24,19 @@ from uiCard import CardModel
 from findEngineDesigner import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
 
+try:
+    import PyInstaller.__main__
+    from shutil import copyfile, rmtree
+    PYINSTALLER_AVAILABLE = True
+except ModuleNotFoundError:
+    PYINSTALLER_AVAILABLE = False
+
+
 HERE = os.path.dirname(os.path.realpath(__file__))
 
 # ----------------------------------------------------------------------
 
+ID_EXPORT = wx.NewIdRef()
 ID_RUN = wx.NewIdRef()
 ID_EDIT = wx.NewIdRef()
 ID_MENU_FIND = wx.NewIdRef()
@@ -235,10 +244,11 @@ class DesignerFrame(wx.Frame):
         # the menu items.
         fileMenu = wx.Menu()
         fileMenu.Append(wx.ID_NEW, "&New Card\tCtrl-N", "Create a new file")
-        fileMenu.Append(wx.ID_OPEN, "&Open\tCtrl-O", "Open a Stack")
+        fileMenu.Append(wx.ID_OPEN, "&Open...\tCtrl-O", "Open a Stack")
         fileMenu.AppendSeparator()
         fileMenu.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save the Stack")
-        fileMenu.Append(wx.ID_SAVEAS, "Save &As", "Save the Stack in a new file")
+        fileMenu.Append(wx.ID_SAVEAS, "Save &As...\tCtrl-Shift-S", "Save the Stack in a new file")
+        fileMenu.Append(ID_EXPORT, "&Export Stack...\tCtrl-Shift-E", "Export the current Stack")
         fileMenu.AppendSeparator()
         fileMenu.Append(ID_RUN, "&Run Stack\tCtrl-R", "Run the current Stack")
         fileMenu.AppendSeparator()
@@ -305,6 +315,7 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuOpen, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU, self.OnMenuSave, id=wx.ID_SAVE)
         self.Bind(wx.EVT_MENU, self.OnMenuSaveAs, id=wx.ID_SAVEAS)
+        self.Bind(wx.EVT_MENU, self.OnMenuExport, id=ID_EXPORT)
         self.Bind(wx.EVT_MENU, self.OnMenuRun, id=ID_RUN)
         self.Bind(wx.EVT_MENU, self.OnMenuExit, id=wx.ID_EXIT)
 
@@ -395,6 +406,110 @@ class DesignerFrame(wx.Frame):
             self.SetTitle(self.title + ' -- ' + self.filename)
             self.WriteConfig()
         dlg.Destroy()
+
+    def OnMenuExport(self, event):
+        if not PYINSTALLER_AVAILABLE:
+            wx.MessageDialog(None, "To export a stack as a stand-alone program, "
+                                   "you need to first install the pyinstaller python package.",
+                             "Unable to Export", wx.OK).ShowModal()
+            return
+        if self.stackManager.stackModel.GetDirty():
+            r = wx.MessageDialog(None, "There are unsaved changes. You will need to Save before Exporting.",
+                                 "Save before Opening a file?", wx.OK | wx.CANCEL).ShowModal()
+            if r == wx.ID_CANCEL:
+                return
+            if r == wx.ID_OK:
+                self.OnMenuSave(None)
+
+        if self.filename:
+            dlg = wx.FileDialog(self, "Export CaardStock application to...", os.getcwd(),
+                               style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                               wildcard = "CardStock Application (*)|*")
+            if dlg.ShowModal() == wx.ID_OK:
+                filepath = dlg.GetPath()
+                dlg.Destroy()
+                filename = os.path.basename(filepath)
+
+                tmp = "/tmp" if wx.Platform != "__WXMSW__" else "C:\Windows\Temp"
+                tmpStack = os.path.join(tmp, 'stack.cds')
+                copyfile(self.filename, tmpStack)
+
+                if wx.Platform == "__WXMAC__":
+                    args = [
+                        '--onedir',
+                        '--windowed',
+                        '-s',
+                        '--workpath',
+                        tmp,
+                        '--specpath',
+                        tmp,
+                        '--clean',
+                        "--add-data",
+                        f"{tmpStack}:.",
+                        '--distpath',
+                        os.path.dirname(filepath),
+                        '--name',
+                        filename,
+                        '-y',
+                        f'{HERE}/standalone.py'
+                    ]
+                elif wx.Platform == "__WXMSW__":
+                    args = [
+                        '--onefile',
+                        '--windowed',
+                        '--workpath',
+                        tmp,
+                        '--specpath',
+                        tmp,
+                        '--clean',
+                        "--add-data",
+                        f"{tmpStack};.",
+                        '--distpath',
+                        os.path.dirname(filepath),
+                        '--name',
+                        filename,
+                        '-y',
+                        f'{HERE}/standalone.py'
+                    ]
+                else:
+                    args = [
+                        '--onefile',
+                        '--windowed',
+                        '-s',
+                        '--workpath',
+                        tmp,
+                        '--specpath',
+                        tmp,
+                        '--clean',
+                        "--add-data",
+                        f"{tmpStack}:.",
+                        '--distpath',
+                        os.path.dirname(filepath),
+                        '--name',
+                        filename,
+                        '-y',
+                        f'{HERE}/standalone.py'
+                    ]
+
+                # dlg = wx.MessageDialog(None, "Exporting this stack...", "", wx.OK|wx.ICON_INFORMATION)
+                # dlg.Show() # No workee
+                wx.Yield()
+
+                print(" ".join(args))
+                PyInstaller.__main__.run(args)
+
+                os.remove(tmpStack)
+
+                if wx.Platform == "__WXMAC__":
+                    try:
+                        os.remove(filepath) # remove the actual chosen path, keep the .exe or .app
+                    except (IsADirectoryError, PermissionError) as e:
+                        rmtree(filepath)
+
+                # dlg.Hide()
+                # dlg.Destroy()
+            else:
+                dlg.Destroy()
 
     def OnMenuRun(self, event):
         if self.viewer:
