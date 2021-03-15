@@ -52,7 +52,7 @@ You can either, run it from source:
 5. run designer.py and viewer.py as desired
 
 Or download the ready-to-go CardStock application for Mac or Windows here:
-https://github.com/benjie-git/CardStock/releases/tag/v0.8.2
+https://github.com/benjie-git/CardStock/releases/latest
 
 ## Reference
 * [CardStock Wiki](https://github.com/benjie-git/CardStock/wiki)
