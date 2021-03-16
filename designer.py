@@ -23,14 +23,7 @@ from stackModel import StackModel
 from uiCard import CardModel
 from findEngineDesigner import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
-
-try:
-    import PyInstaller.__main__
-    from shutil import copyfile, rmtree
-    PYINSTALLER_AVAILABLE = True
-except ModuleNotFoundError:
-    PYINSTALLER_AVAILABLE = False
-
+from stackExporter import StackExporter
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -411,108 +404,10 @@ class DesignerFrame(wx.Frame):
         dlg.Destroy()
 
     def OnMenuExport(self, event):
-        if not PYINSTALLER_AVAILABLE:
-            wx.MessageDialog(None, "To export a stack as a stand-alone program, "
-                                   "you need to first install the pyinstaller python package.",
-                             "Unable to Export", wx.OK).ShowModal()
-            return
-        if self.stackManager.stackModel.GetDirty():
-            r = wx.MessageDialog(None, "There are unsaved changes. You will need to Save before Exporting.",
-                                 "Save before Opening a file?", wx.OK | wx.CANCEL).ShowModal()
-            if r == wx.ID_CANCEL:
-                return
-            if r == wx.ID_OK:
-                self.OnMenuSave(None)
-
-        if self.filename:
-            dlg = wx.FileDialog(self, "Export CaardStock application to...", os.getcwd(),
-                               style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
-                               wildcard = "CardStock Application (*)|*")
-            if dlg.ShowModal() == wx.ID_OK:
-                filepath = dlg.GetPath()
-                dlg.Destroy()
-                filename = os.path.basename(filepath)
-
-                tmp = "/tmp" if wx.Platform != "__WXMSW__" else "C:\Windows\Temp"
-                tmpStack = os.path.join(tmp, 'stack.cds')
-                copyfile(self.filename, tmpStack)
-
-                if wx.Platform == "__WXMAC__":
-                    args = [
-                        '--onedir',
-                        '--windowed',
-                        '-s',
-                        '--workpath',
-                        tmp,
-                        '--specpath',
-                        tmp,
-                        '--clean',
-                        "--add-data",
-                        f"{tmpStack}:.",
-                        '--distpath',
-                        os.path.dirname(filepath),
-                        '--name',
-                        filename,
-                        '-y',
-                        f'{HERE}/standalone.py'
-                    ]
-                elif wx.Platform == "__WXMSW__":
-                    args = [
-                        '--onefile',
-                        '--windowed',
-                        '--workpath',
-                        tmp,
-                        '--specpath',
-                        tmp,
-                        '--clean',
-                        "--add-data",
-                        f"{tmpStack};.",
-                        '--distpath',
-                        os.path.dirname(filepath),
-                        '--name',
-                        filename,
-                        '-y',
-                        f'{HERE}/standalone.py'
-                    ]
-                else:
-                    args = [
-                        '--onefile',
-                        '--windowed',
-                        '-s',
-                        '--workpath',
-                        tmp,
-                        '--specpath',
-                        tmp,
-                        '--clean',
-                        "--add-data",
-                        f"{tmpStack}:.",
-                        '--distpath',
-                        os.path.dirname(filepath),
-                        '--name',
-                        filename,
-                        '-y',
-                        f'{HERE}/standalone.py'
-                    ]
-
-                # dlg = wx.MessageDialog(None, "Exporting this stack...", "", wx.OK|wx.ICON_INFORMATION)
-                # dlg.Show() # No workee
-                wx.Yield()
-
-                print(" ".join(args))
-                PyInstaller.__main__.run(args)
-
-                os.remove(tmpStack)
-
-                if wx.Platform == "__WXMAC__":
-                    try:
-                        os.remove(filepath) # remove the actual chosen path, keep the .exe or .app
-                    except (IsADirectoryError, PermissionError) as e:
-                        rmtree(filepath)
-
-                # dlg.Hide()
-                # dlg.Destroy()
-            else:
-                dlg.Destroy()
+        def doSave():
+            self.OnMenuSave(None)
+        exporter = StackExporter(self.stackManager)
+        exporter.StartExport(doSave)
 
     def RunFromCard(self, cardIndex):
         if self.viewer:

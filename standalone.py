@@ -269,12 +269,18 @@ class StandaloneApp(wx.App, InspectionMixin):
 
         if getattr(sys, 'frozen', False):
             # we are running in a bundle
-            frozen = 'ever so'
             bundle_dir = sys._MEIPASS
+            filename = os.path.join(bundle_dir, "stack.cds")
+            if not os.path.exists(filename):
+                bundle_dir = os.path.dirname(sys.executable)
+                filename = os.path.join(bundle_dir, "stack.cds")
         else:
             # we are running in a normal Python environment
             bundle_dir = os.path.dirname(os.path.abspath(__file__))
-        filename = os.path.join(bundle_dir, "stack.cds")
+            filename = os.path.join(bundle_dir, "stack.cds")
+
+        if not os.path.exists(filename):
+            return False
 
         with open(filename, 'r') as f:
             data = json.load(f)

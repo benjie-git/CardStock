@@ -116,15 +116,18 @@
           "properties": {
             "name": "field",
             "size": [
-              473,
-              406
+              471,
+              405
             ],
             "position": [
-              14.0,
-              83.0
+              12.0,
+              81.0
             ],
             "text": "text",
             "alignment": "Left",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 12,
             "editable": true,
             "multiline": true
           }
@@ -202,6 +205,9 @@
             ],
             "text": "Title",
             "alignment": "Center",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 12,
             "editable": true,
             "multiline": false
           }
@@ -210,5 +216,5 @@
     }
   ],
   "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.7"
+  "CardStock_stack_version": "0.8.3"
 }
