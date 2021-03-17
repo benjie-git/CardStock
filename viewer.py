@@ -354,6 +354,7 @@ class ViewerApp(wx.App, InspectionMixin):
 
 if __name__ == '__main__':
     app = ViewerApp(redirect=False)
+    app.InitLocale()
     if len(sys.argv) > 1:
         filename = sys.argv[1]
         app.OpenFile(filename)

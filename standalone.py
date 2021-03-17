@@ -312,4 +312,5 @@ class StandaloneApp(wx.App, InspectionMixin):
 
 if __name__ == '__main__':
     app = StandaloneApp(redirect=False)
+    app.InitLocale()
     app.MainLoop()

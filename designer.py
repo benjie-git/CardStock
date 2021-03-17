@@ -738,6 +738,7 @@ class DesignerApp(wx.App, InspectionMixin):
 
 if __name__ == '__main__':
     app = DesignerApp(redirect=False)
+    app.InitLocale()
     if len(sys.argv) > 1:
         filename = sys.argv[1]
         app.frame.ReadFile(filename)
