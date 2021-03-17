@@ -35,19 +35,18 @@ class StandaloneFrame(wx.Frame):
     A StandaloneFrame contains a stackManger's view, and handles menu commands.
     """
 
-    def __init__(self, parent, stackModel, filename):
+    def __init__(self, parent, stackModel, filename, resMap):
         if stackModel and stackModel.GetProperty("canResize"):
             style = wx.DEFAULT_FRAME_STYLE
         else:
             style = wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
 
-        wx.Frame.__init__(self, parent, -1, os.path.basename(sys.executable), size=(500,500), style=style)
+        wx.Frame.__init__(self, parent, -1, os.path.basename(sys.executable), size=(500, 500), style=style)
         # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.ico')))
-
-        self.CreateStatusBar()
 
         self.stackManager = StackManager(self)
         self.stackManager.SetEditing(False)
+        self.stackManager.resPathMan.SetPathMap(resMap)
 
         if not stackModel:
             stackModel = StackModel(self.stackManager)
@@ -239,7 +238,7 @@ class StandaloneFrame(wx.Frame):
         dlg.Destroy()
 
     def RunViewer(self):
-        runner = Runner(self.stackManager, self.GetStatusBar())
+        runner = Runner(self.stackManager, None)
         self.stackManager.runner = runner
         self.stackManager.SetEditing(False)
         self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))
@@ -267,29 +266,29 @@ class StandaloneApp(wx.App, InspectionMixin):
 
         self.SetAppDisplayName('CardStock')
 
-        if getattr(sys, 'frozen', False):
-            # we are running in a bundle
-            bundle_dir = sys._MEIPASS
-            filename = os.path.join(bundle_dir, "stack.cds")
-            if not os.path.exists(filename):
-                bundle_dir = os.path.dirname(sys.executable)
-                filename = os.path.join(bundle_dir, "stack.cds")
-        else:
-            # we are running in a normal Python environment
-            bundle_dir = os.path.dirname(os.path.abspath(__file__))
-            filename = os.path.join(bundle_dir, "stack.cds")
+        bundle_dir = sys._MEIPASS
+        stackPath = os.path.join(bundle_dir, "stack.cds")
+        if not os.path.exists(stackPath):
+            bundle_dir = os.path.dirname(sys.executable)
+            stackPath = os.path.join(bundle_dir, "stack.cds")
 
-        if not os.path.exists(filename):
+        if not os.path.exists(stackPath):
             return False
 
-        with open(filename, 'r') as f:
+        mapPath = os.path.join(bundle_dir, "ResourceMap.json")
+        resMap = None
+        if os.path.exists(mapPath):
+            with open(mapPath, 'r') as f:
+                resMap = json.load(f)
+
+        with open(stackPath, 'r') as f:
             data = json.load(f)
         if data:
             stackModel = StackModel(None)
             stackModel.SetData(data)
-            self.frame = StandaloneFrame(None, stackModel, filename)
+            self.frame = StandaloneFrame(None, stackModel, stackPath, resMap)
             self.SetTopWindow(self.frame)
-            self.frame.stackManager.filename = filename
+            self.frame.stackManager.filename = stackPath
             self.frame.Show(True)
             self.frame.RunViewer()
 

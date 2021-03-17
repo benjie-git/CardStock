@@ -149,6 +149,8 @@ class DesignerFrame(wx.Frame):
         newCard.SetProperty("name", newCard.DeduplicateName("card_1",
                                                             [m.GetProperty("name") for m in stackModel.childModels]), False)
         stackModel.AppendCardModel(newCard)
+        self.stackManager.filename = None
+        self.stackManager.resPathMan.Reset()
         self.stackManager.SetStackModel(stackModel)
         self.stackManager.SetEditing(True)
         self.Layout()
@@ -186,6 +188,7 @@ class DesignerFrame(wx.Frame):
                     self.stackManager.SetDesigner(self)
                     self.filename = filename
                     self.stackManager.filename = filename
+                    self.stackManager.resPathMan.Reset()
                     self.stackManager.SetStackModel(stackModel)
                     self.stackManager.SetEditing(True)
                     self.stackManager.SelectUiView(self.stackManager.uiCard)
@@ -398,6 +401,7 @@ class DesignerFrame(wx.Frame):
                 filename = filename + '.cds'
             self.filename = filename
             self.stackManager.filename = filename
+            self.stackManager.resPathMan.Reset()
             self.SaveFile()
             self.SetTitle(self.title + ' -- ' + self.filename)
             self.WriteConfig()

@@ -290,9 +290,8 @@ class Runner():
         if not isinstance(filepath, str):
             raise TypeError("filepath must be a string")
 
-        if filepath and self.stackManager.filename:
-            dir = os.path.dirname(self.stackManager.filename)
-            filepath = os.path.join(dir, filepath)
+        filepath = self.stackManager.resPathMan.GetAbsPath(filepath)
+
         if filepath in self.soundCache:
             s = self.soundCache[filepath]
         else:

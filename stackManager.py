@@ -15,6 +15,7 @@ from tools import *
 from commands import *
 import generator
 import findEngineDesigner
+import resourcePathManager
 from stackModel import StackModel
 from uiCard import UiCard, CardModel
 from uiButton import UiButton
@@ -46,6 +47,7 @@ class StackManager(object):
         self.inlineEditingView = None
         self.runner = None
         self.filename = None
+        self.resPathMan = resourcePathManager.ResourcePathManager(self)
 
         self.stackModel = StackModel(self)
         self.stackModel.AppendCardModel(CardModel(self))

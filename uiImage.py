@@ -34,18 +34,15 @@ class UiImage(UiView):
 
     def GetImg(self, model):
         file = model.GetProperty("file")
-        if file in self.imgCache:
-            img = self.imgCache[file]
-        else:
-            if file and self.stackManager.filename:
-                fileDir = os.path.dirname(self.stackManager.filename)
-                path = os.path.join(fileDir, file)
-            else:
-                path = file
 
-            if os.path.exists(path):
-                img = wx.Image(path, wx.BITMAP_TYPE_ANY)
-                self.imgCache[file] = img
+        filepath = self.stackManager.resPathMan.GetAbsPath(file)
+
+        if filepath in self.imgCache:
+            img = self.imgCache[filepath]
+        else:
+            if os.path.exists(filepath):
+                img = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+                self.imgCache[filepath] = img
             else:
                 img = None
         return img
