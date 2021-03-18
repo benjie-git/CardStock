@@ -80,11 +80,6 @@ class StackExporter(object):
             self.ScanObjTree(child, patterns)
 
     def ConfirmResources(self):
-        print("Resources Found:")
-        print("----- Start -----")
-        print("\n".join(list(self.resList)))
-        print("------ End ------")
-
         self.exportDlg = ExportDialog(self.stackManager.designer, self)
         self.exportDlg.ShowModal()
 
