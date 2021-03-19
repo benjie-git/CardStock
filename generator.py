@@ -49,3 +49,22 @@ class StackGenerator(object):
             m = uiShape.UiShape.CreateModelForType(stackManager, data["type"])
         m.SetData(data)
         return m
+
+    @classmethod
+    def ModelFromType(cls, stackManager, typeStr):
+        m = None
+        if typeStr == "card":
+            m = uiCard.CardModel(stackManager)
+        elif typeStr == "button":
+            m = uiButton.ButtonModel(stackManager)
+        elif typeStr == "textfield":
+            m = uiTextField.TextFieldModel(stackManager)
+        elif typeStr == "textlabel":
+            m = uiTextLabel.TextLabelModel(stackManager)
+        elif typeStr == "image":
+            m = uiImage.ImageModel(stackManager)
+        elif typeStr == "group":
+            m = uiGroup.GroupModel(stackManager)
+        elif typeStr in ["pen", "line", "oval", "rect", "roundrect"]:
+            m = uiShape.UiShape.CreateModelForType(stackManager, typeStr)
+        return m

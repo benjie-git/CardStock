@@ -37,6 +37,17 @@ class StackModel(ViewModel):
         cardModel.parent = self
         self.childModels.insert(index, cardModel)
 
+    def InsertNewCard(self, name, atIndex):
+        card = CardModel(self.stackManager)
+        card.SetProperty("name", self.DeduplicateName(name, [m.GetProperty("name") for m in self.childModels]))
+        if atIndex == -1:
+            self.AppendCardModel(card)
+        else:
+            self.InsertCardModel(atIndex, card)
+            newIndex = self.childModels.index(self.stackManager.uiCard.model)
+            self.stackManager.cardIndex = newIndex
+        return card
+
     def RemoveCardModel(self, cardModel):
         cardModel.parent = None
         self.childModels.remove(cardModel)
@@ -76,3 +87,11 @@ class Stack(ViewProxy):
     @property
     def numCards(self):
         return len(self._model.childModels)
+
+    def AddCard(self, name="card", atIndex=-1):
+        if not isinstance(name, str):
+            raise TypeError("name is not a string")
+        atIndex = int(atIndex)
+        if atIndex < -1 or atIndex > len(self._model.childModels)-1:
+            raise ValueError("atIndex is out of bounds")
+        return self._model.InsertNewCard(name, atIndex).GetProxy()

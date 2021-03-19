@@ -1,5 +1,6 @@
 import wx
 from uiView import *
+import uiShape
 import generator
 
 
@@ -176,7 +177,21 @@ class CardModel(ViewModel):
         self.childModels.remove(model)
         self.isDirty = True
 
-    def GetDedupNameList(self, name, exclude):
+    def AddNewObject(self, typeStr, name, points=None):
+        if not isinstance(name, str):
+            raise TypeError("name is not a string")
+        model = generator.StackGenerator.ModelFromType(self.stackManager, typeStr)
+        model.SetProperty("name", self.DeduplicateNameInCard(name))
+        if isinstance(model, uiShape.LineModel):
+            model.type = typeStr
+            if points:
+                model.points = points
+                model.ReCropShape()
+        self.stackManager.AddUiViewsFromModels([model], canUndo=False)  # Don't allow undoing card loads
+        self.stackManager.view.Refresh(True, model.GetRefreshFrame())
+        return model
+
+    def GetDedupNameList(self, exclude):
         names = [m.properties["name"] for m in self.GetAllChildModels()]
         for n in exclude:
             if n in names:
@@ -186,13 +201,13 @@ class CardModel(ViewModel):
     def DeduplicateNameInCard(self, name, exclude=None, include=None):
         if exclude is None: exclude = []
         if include is None: include = []
-        names = self.GetDedupNameList(name, exclude)
+        names = self.GetDedupNameList(exclude)
         names.extend(include)
         return super().DeduplicateName(name, names)
 
     def GetNextAvailableNameInCard(self, name, exclude=None):
         if exclude is None: exclude = []
-        names = self.GetDedupNameList(name, exclude)
+        names = self.GetDedupNameList(exclude)
         return super().GetNextAvailableName(name, names)
 
 
@@ -234,3 +249,42 @@ class Card(ViewProxy):
             self._model.AddAnimation("bgColor", duration, f, internalOnFinished)
         else:
             self._model.AddAnimation("bgColor", duration, None, internalOnFinished)
+
+    def AddButton(self, name="button"):
+        return self._model.AddNewObject("button", name).GetProxy()
+
+    def AddTextField(self, name="field"):
+        return self._model.AddNewObject("textfield", name).GetProxy()
+
+    def AddTextLabel(self, name="label"):
+        return self._model.AddNewObject("textlabel", name).GetProxy()
+
+    def AddImage(self, name="image"):
+        return self._model.AddNewObject("image", name).GetProxy()
+
+    def AddOval(self, name="oval"):
+        return self._model.AddNewObject("oval", name, [(10, 10), (20, 20)]).GetProxy()
+
+    def AddRectangle(self, name="rect"):
+        return self._model.AddNewObject("rect", name, [(10, 10), (20, 20)]).GetProxy()
+
+    def AddRoundRectangle(self, name="roundrect"):
+        return self._model.AddNewObject("roundrect", name, [(10, 10), (20, 20)]).GetProxy()
+
+    def AddLine(self, points, name="line"):
+        if not isinstance(points, (list, tuple)):
+            raise TypeError("points should be a list of points")
+        if len(points) < 2:
+            raise TypeError("points should be a list of at least 2 points")
+        for p in points:
+            if not isinstance(p, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
+                raise TypeError("points items each need to be a point or a list of two numbers")
+            if len(p) != 2:
+                raise TypeError("points items each need to be a point or a list of two numbers")
+            try:
+                int(p[0]), int(p[1])
+            except:
+                raise ValueError("points items each need to be a point or a list of two numbers")
+
+        line = self._model.AddNewObject("line", name, points)
+        return line.GetProxy()

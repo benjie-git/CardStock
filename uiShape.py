@@ -160,9 +160,8 @@ class LineModel(ViewModel):
         self.scaledPoints = None
 
         self.properties["originalSize"] = None
-        self.properties["penColor"] = ""
-        self.properties["penThickness"] = 0
-        self.oldThickness = 0
+        self.properties["penColor"] = "black"
+        self.properties["penThickness"] = 2
 
         self.propertyTypes["originalSize"] = "size"
         self.propertyTypes["penColor"] = "color"
@@ -180,13 +179,11 @@ class LineModel(ViewModel):
         super().SetData(data)
         self.type = data["type"]
         self.points = data["points"]
-        self.oldThickness = self.GetProperty("penThickness")
 
     def SetShape(self, shape):
         self.type = shape["type"]
         self.properties["penColor"] = shape["penColor"]
         self.properties["penThickness"] = shape["thickness"]
-        self.oldThickness = self.GetProperty("penThickness")
         self.points = shape["points"]
         self.isDirty = True
         self.Notify("shape")
@@ -197,7 +194,6 @@ class LineModel(ViewModel):
             self.scaledPoints = None
         elif key == "penThickness":
             self.ReCropShape()
-            self.oldThickness = value
 
     def DidUpdateShape(self):  # If client updates the points list already passed to AddShape
         self.isDirty = True
@@ -360,7 +356,7 @@ class ShapeModel(LineModel):
         self.type = "shape"  # Gets rewritten on SetShape (to "oval" or "rect")
         self.proxyClass = Shape
 
-        self.properties["fillColor"] = ""
+        self.properties["fillColor"] = "white"
         self.propertyTypes["fillColor"] = "color"
 
         # Custom property order and mask for the inspector
