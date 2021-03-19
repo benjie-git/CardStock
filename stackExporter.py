@@ -205,7 +205,7 @@ class StackExporter(object):
 
 class ExportDialog(wx.Dialog):
     def __init__(self, parent, exporter):
-        super().__init__(parent, title="Export Stack", size=(350, 250))
+        super().__init__(parent, title="Export Stack", size=(500, 400))
         self.exporter = exporter
 
         self.panel = wx.Panel(self)
@@ -213,22 +213,40 @@ class ExportDialog(wx.Dialog):
 
         self.items = list(self.exporter.resList)
 
-        buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         addBtn = wx.Button(self.panel, label = "Add", size=(50, 20))
         addBtn.Bind(wx.EVT_BUTTON, self.OnAdd)
+
         rmBtn = wx.Button(self.panel, label = "Remove", size=(50, 20))
         rmBtn.Bind(wx.EVT_BUTTON, self.OnRemove)
+
         exportBtn = wx.Button(self.panel, label = "Export", size=(50, 20))
         exportBtn.Bind(wx.EVT_BUTTON, self.OnExport)
+        exportBtn.SetDefault()
 
+        buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         buttonSizer.Add(addBtn, 1, wx.EXPAND|wx.ALL, spacing)
         buttonSizer.Add(rmBtn, 1, wx.EXPAND|wx.ALL, spacing)
         buttonSizer.Add(exportBtn, 1, wx.EXPAND|wx.ALL, spacing)
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        label = wx.StaticText(self.panel, label="Image and Sound Resources to Include with Export")
+        if len(self.exporter.resList) > 0:
+            labelStr = "These are the image and sound files that this stack seems to need.  " \
+                       "If you think other files are needed, try running the stack again and make sure to use " \
+                       "all of the images and sounds that it can.  Or you can add or remove files here by using the " \
+                       "buttons below, and when the list is complete, " \
+                       "click the \"Export\" button to Export these files along with this stack."
+        else:
+            labelStr = "No image or sound files seem to be used by this stack.  That's fine, but " \
+                       "if you think other files are needed, try running the stack again and make sure to use " \
+                       "all of the images and sounds that it can.  Or you can add or remove files here by using the " \
+                       "buttons below, and when the list is complete, " \
+                       "click the \"Export\" button to Export these files along with this stack."
+
+        label = AutoWrapStaticText(self.panel, label=labelStr)
+
         self.listBox = wx.ListBox(self.panel, choices=self.items)
-        sizer.Add(label, 0, wx.ALL, spacing)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(label, 0, wx.EXPAND|wx.ALL, spacing)
         sizer.Add(self.listBox, 1, wx.EXPAND|wx.ALL, spacing)
         sizer.Add(buttonSizer, 0, wx.EXPAND|wx.ALL, spacing)
         self.panel.SetSizerAndFit(sizer)
@@ -247,8 +265,10 @@ class ExportDialog(wx.Dialog):
 
     def OnRemove(self, event):
         i = self.listBox.GetSelection()
-        del self.items[i]
-        self.listBox.SetItems(self.items)
+        if i != wx.NOT_FOUND:
+            del self.items[i]
+            self.listBox.SetItems(self.items)
+            self.listBox.SetSelection(min(i, len(self.items)-1))
 
     def OnExport(self, event):
         self.SetTitle("Exporting Stack...")
@@ -258,3 +278,46 @@ class ExportDialog(wx.Dialog):
         self.exporter.Export()
         self.exporter = None
         self.Close()
+
+
+class AutoWrapStaticText(wx.Control):
+    def __init__(self, parent, id=-1, label="",
+                 pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 style=0):
+        super().__init__(parent=parent, id=id, pos=pos, size=size, style=wx.NO_BORDER)
+        self.st = wx.StaticText(self, label=label, style=style)
+        self._label = label  # save the unwrapped text
+        self._Rewrap()
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+
+    def SetLabel(self, label):
+        self._label = label
+        self._Rewrap()
+
+    def GetLabel(self):
+        return self._label
+
+    def SetFont(self, font):
+        self.st.SetFont(font)
+        self._Rewrap()
+
+    def GetFont(self):
+        return self.st.GetFont()
+
+    def OnSize(self, evt):
+        self.st.SetSize(self.GetSize())
+        self._Rewrap()
+
+    def _Rewrap(self):
+        self.st.Freeze()
+        self.st.SetLabel(self._label)
+        self.st.Wrap(self.GetSize().width)
+        self.st.Thaw()
+
+    def DoGetBestSize(self):
+        # this should return something meaningful for what the best
+        # size of the widget is, but what that size should be while we
+        # still don't know the actual width is still an open
+        # question...  Just return a dummy value for now.
+        return wx.Size(100, 100)
+

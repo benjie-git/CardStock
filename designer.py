@@ -747,4 +747,6 @@ if __name__ == '__main__':
         filename = sys.argv[1]
         app.frame.ReadFile(filename)
     app.frame.FinishedStarting()
+    # import wx.lib.inspection
+    # wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
