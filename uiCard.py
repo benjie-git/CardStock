@@ -288,3 +288,12 @@ class Card(ViewProxy):
 
         line = self._model.AddNewObject("line", name, points)
         return line.GetProxy()
+
+    def AddGroup(self, objects, name="group"):
+        models = []
+        for o in objects:
+            if not isinstance(o, ViewProxy):
+                raise TypeError("objects must be a list of objects")
+            if o._model.type not in ["card", "stack"] and o._model.GetCard() == self._model:
+                models.append(o._model)
+        return self._model.stackManager.GroupModelsInternal(models, name=name).GetProxy()

@@ -272,15 +272,22 @@ class StackManager(object):
             command = CommandGroup(True, 'Flip Objects', commands)
             self.command_processor.Submit(command)
 
-    def GroupModelsInternal(self, models, group=None):
+    def GroupModelsInternal(self, models, group=None, name=None):
         if len(models) > 1:
+            card = models[0].GetCard()
             if not group:
                 group = GroupModel(self)
-                group.SetProperty("name", self.uiCard.model.GetNextAvailableNameInCard("group_"), False)
+                if not name:
+                    name = "group_"
+                group.SetProperty("name", card.GetNextAvailableNameInCard(name), False)
+            validModels = []
             for m in models:
-                self.RemoveUiViewByModel(m)
-            group.AddChildModels(models)
-            self.AddUiViewsFromModels([group], False)
+                if m.GetCard() == card:
+                    validModels.append(m)
+                    self.RemoveUiViewByModel(m)
+            group.AddChildModels(validModels)
+            if card == self.uiCard.model:
+                self.AddUiViewsFromModels([group], False)
         return group
 
     def UngroupModelsInternal(self, groups):
@@ -291,11 +298,11 @@ class StackManager(object):
                 childModels = []
                 modelSets.append(childModels)
                 for child in group.childModels.copy():
-                    ui = self.GetUiViewByModel(child)
                     group.RemoveChild(child)
                     childModels.append(child)
-                self.RemoveUiViewByModel(group)
-                self.AddUiViewsFromModels(childModels, False)
+                if group.GetCard() == self.uiCard.model:
+                    self.RemoveUiViewByModel(group)
+                    self.AddUiViewsFromModels(childModels, False)
         return modelSets
 
     def AddUiViewInternal(self, type, model=None):
@@ -515,6 +522,10 @@ class StackManager(object):
                 parent = parent.parent
 
     def OnMouseMove(self, uiView, event):
+        if not event.GetEventObject().GetTopLevelParent():
+            # In case the uiView went away already
+            return
+
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         if pos == self.lastMousePos:
             event.Skip()
@@ -553,6 +564,10 @@ class StackManager(object):
         self.lastMousePos = pos
 
     def OnMouseUp(self, uiView, event):
+        if not event.GetEventObject().GetTopLevelParent():
+            # In case the uiView went away already
+            return
+
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         uiView = self.HitTest(pos, not event.ShiftDown())
 

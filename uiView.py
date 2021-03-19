@@ -100,6 +100,8 @@ class UiView(object):
 
     def DestroyView(self):
         if self.view:
+            if self.view.HasCapture():
+                self.view.ReleaseMouse()
             wx.CallAfter(self.view.Destroy)
             self.view = None
 

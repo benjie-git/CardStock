@@ -240,7 +240,10 @@ class GroupModel(ViewModel):
 
 class Group(ViewProxy):
     """
-    Currently doesn't add anything to its superclass, ViewProxy.
+    Group proxy objects are the user-accessible objects exposed to event handler code for group objects.
     """
 
-    pass
+    def Ungroup(self):
+        groups = self._model.stackManager.UngroupModelsInternal([self._model])
+        if groups and len(groups) > 0:
+            return groups[0]
