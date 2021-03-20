@@ -177,11 +177,13 @@ class CardModel(ViewModel):
         self.childModels.remove(model)
         self.isDirty = True
 
-    def AddNewObject(self, typeStr, name, points=None):
+    def AddNewObject(self, typeStr, name, size, points=None):
         if not isinstance(name, str):
             raise TypeError("name is not a string")
         model = generator.StackGenerator.ModelFromType(self.stackManager, typeStr)
         model.SetProperty("name", self.DeduplicateNameInCard(name))
+        if size:
+            model.SetProperty("size", size)
         if isinstance(model, uiShape.LineModel):
             model.type = typeStr
             if points:
@@ -251,25 +253,25 @@ class Card(ViewProxy):
             self._model.AddAnimation("bgColor", duration, None, internalOnFinished)
 
     def AddButton(self, name="button"):
-        return self._model.AddNewObject("button", name).GetProxy()
+        return self._model.AddNewObject("button", name, (100,24)).GetProxy()
 
     def AddTextField(self, name="field"):
-        return self._model.AddNewObject("textfield", name).GetProxy()
+        return self._model.AddNewObject("textfield", name, (100,24)).GetProxy()
 
     def AddTextLabel(self, name="label"):
-        return self._model.AddNewObject("textlabel", name).GetProxy()
+        return self._model.AddNewObject("textlabel", name, (100,24)).GetProxy()
 
     def AddImage(self, name="image"):
-        return self._model.AddNewObject("image", name).GetProxy()
+        return self._model.AddNewObject("image", name, (80,80)).GetProxy()
 
     def AddOval(self, name="oval"):
-        return self._model.AddNewObject("oval", name, [(10, 10), (20, 20)]).GetProxy()
+        return self._model.AddNewObject("oval", name, None, [(10, 10), (100, 100)]).GetProxy()
 
     def AddRectangle(self, name="rect"):
-        return self._model.AddNewObject("rect", name, [(10, 10), (20, 20)]).GetProxy()
+        return self._model.AddNewObject("rect", name, None, [(10, 10), (100, 100)]).GetProxy()
 
     def AddRoundRectangle(self, name="roundrect"):
-        return self._model.AddNewObject("roundrect", name, [(10, 10), (20, 20)]).GetProxy()
+        return self._model.AddNewObject("roundrect", name, None, [(10, 10), (100, 100)]).GetProxy()
 
     def AddLine(self, points, name="line"):
         if not isinstance(points, (list, tuple)):
@@ -286,7 +288,7 @@ class Card(ViewProxy):
             except:
                 raise ValueError("points items each need to be a point or a list of two numbers")
 
-        line = self._model.AddNewObject("line", name, points)
+        line = self._model.AddNewObject("line", name, None, points)
         return line.GetProxy()
 
     def AddGroup(self, objects, name="group"):

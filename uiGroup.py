@@ -26,10 +26,6 @@ class UiGroup(UiView):
         for uiView in self.uiViews:
             uiView.DestroyView()
 
-    def ReparentView(self, newParent):
-        for uiView in self.uiViews:
-            uiView.ReparentView(newParent)
-
     def GetAllUiViews(self):
         allUiViews = []
         for uiView in self.uiViews:

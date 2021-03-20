@@ -105,10 +105,6 @@ class UiView(object):
             wx.CallAfter(self.view.Destroy)
             self.view = None
 
-    def ReparentView(self, newParent):
-        if self.view:
-            self.view.Reparent(newParent)
-
     def GetSelected(self):
         return self.isSelected
 
