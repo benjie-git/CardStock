@@ -189,8 +189,11 @@ class CardModel(ViewModel):
             if points:
                 model.points = points
                 model.ReCropShape()
-        self.stackManager.AddUiViewsFromModels([model], canUndo=False)  # Don't allow undoing card loads
-        self.stackManager.view.Refresh(True, model.GetRefreshFrame())
+        if self.stackManager.uiCard.model == self:
+            self.stackManager.AddUiViewsFromModels([model], canUndo=False)
+            self.stackManager.view.Refresh(True, model.GetRefreshFrame())
+        else:
+            self.AddChild(model)
         return model
 
     def GetDedupNameList(self, exclude):
