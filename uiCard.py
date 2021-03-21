@@ -196,6 +196,19 @@ class CardModel(ViewModel):
             self.AddChild(model)
         return model
 
+    def PerformFlips(self, fx, fy):
+        cardSize = self.GetProperty("size")
+        if fx or fy:
+            for m in self.childModels:
+                pos = m.GetProperty("position")
+                size = m.GetProperty("size")
+                pos = wx.Point((cardSize.width - (pos.x + size.width)) if fx else pos.x,
+                               (cardSize.height - (pos.y + size.height)) if fy else pos.y)
+                m.SetProperty("position", pos)
+            for m in self.childModels:
+                m.PerformFlips(fx, fy)
+        self.Notify("size")
+
     def GetDedupNameList(self, exclude):
         names = [m.properties["name"] for m in self.GetAllChildModels()]
         for n in exclude:

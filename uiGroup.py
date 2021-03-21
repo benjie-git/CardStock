@@ -216,7 +216,7 @@ class GroupModel(ViewModel):
             for m in self.childModels:
                 m.PerformFlips(fx, fy)
             self.ResizeChildModels()
-            self.Notify("size")
+        self.Notify("size")
 
     def ResizeChildModels(self):
         scaleX = 1

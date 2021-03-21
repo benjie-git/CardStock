@@ -477,6 +477,18 @@ class ViewModel(object):
     def PerformFlips(self, fx, fy):
         pass
 
+    def OrderMoveTo(self, index):
+        if index < 0 or index > len(self.parent.childModels)-1:
+            return
+        self.parent.childModels.remove(self)
+        self.parent.childModels.insert(index, self)
+        if self.GetCard() == self.stackManager.uiCard.model:
+            self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
+
+    def OrderMoveBy(self, delta):
+        index = self.parent.childModels.index(self) + delta
+        self.OrderMoveTo(index)
+
     def FramePartChanged(self, cdsFramePart):
         if cdsFramePart.role == "position":
             self.SetAbsolutePosition(cdsFramePart)
@@ -709,8 +721,26 @@ class ViewProxy(object):
     def FlipVertical(self):
         self._model.PerformFlips(False, True)
 
-    def Show(self): self.visible = True
-    def Hide(self): self.visible = False
+    def OrderToFront(self):
+        self._model.OrderMoveTo(-1)
+
+    def OrderForward(self):
+        self._model.OrderMoveBy(1)
+
+    def OrderBackward(self):
+        self._model.OrderMoveBy(-1)
+
+    def OrderToBack(self):
+        self._model.OrderMoveTo(0)
+
+    def OrderToIndex(self, i):
+        self._model.OrderMoveTo(i)
+
+    def Show(self):
+        self.visible = True
+    def Hide(self):
+        self.visible = False
+
     @property
     def visible(self):
         return not self._model.GetProperty("hidden")

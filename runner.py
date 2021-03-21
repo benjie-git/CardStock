@@ -50,6 +50,7 @@ class Runner():
             "BroadcastMessage": self.BroadcastMessage,
             "IsKeyPressed": self.IsKeyPressed,
             "IsMouseDown": self.IsMouseDown,
+            "Quit":self.Quit,
             "stack": self.stackManager.stackModel.GetProxy(),
         }
 
@@ -344,3 +345,6 @@ class Runner():
         timer.Bind(wx.EVT_TIMER, onTimer)
         timer.StartOnce(int(duration*1000))
         self.timers.append(timer)
+
+    def Quit(self):
+        self.stackManager.view.TopLevelParent.OnMenuClose(None)

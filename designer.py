@@ -288,7 +288,7 @@ class DesignerFrame(wx.Frame):
         viewMenu.AppendSeparator()
         viewMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Alt-Shift-F", "Move to Front")
         viewMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward\tCtrl-Alt-F", "Move Forward")
-        viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&k\tCtrl-Alt-B", "Move Back")
+        viewMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&kward\tCtrl-Alt-B", "Move Back")
         viewMenu.Append(ID_MOVE_VIEW_END, "Move to Back\tCtrl-Alt-Shift-B", "Move to Back")
 
         # and the help menu
@@ -296,9 +296,9 @@ class DesignerFrame(wx.Frame):
         helpMenu.Append(wx.ID_ABOUT, "&About", "About")
         helpMenu.Append(wx.ID_HELP, "&Manual\tCtrl-Alt-M", "Manual")
         helpMenu.Append(wx.ID_REFRESH, "&Reference Guide\tCtrl-Alt-R", "Reference Guide")
-        helpMenu.Append(wx.ID_CONTEXT_HELP, "&Show/Hide Context Help\tCtrl-Alt-H", "Toggle Context Help")
+        helpMenu.Append(wx.ID_CONTEXT_HELP, "&Show/Hide Context Help\tCtrl-Alt-C", "Toggle Context Help")
         helpMenu.Append(ID_SHOW_ERROR_LIST, "&Show/Hide Error List Window\tCtrl-Alt-E", "Toggle Errors")
-        helpMenu.Append(ID_SHOW_ALL_CODE, "&Show/Hide All Code Window\tCtrl-Alt-C", "Toggle AllCode")
+        helpMenu.Append(ID_SHOW_ALL_CODE, "&Show/Hide All Code Window\tCtrl-Alt-A", "Toggle AllCode")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
