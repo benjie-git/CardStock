@@ -65,10 +65,10 @@ class BaseTool(object):
         event.Skip()
 
     def OnKeyDown(self, uiView, event):
-        event.Skip()
+        pass
 
     def OnKeyUp(self, uiView, event):
-        event.Skip()
+        pass
 
     def Paint(self, gc):
         pass
@@ -384,8 +384,6 @@ class HandTool(BaseTool):
             if command:
                 self.stackManager.command_processor.Submit(command)
 
-        event.Skip()
-
 
 class ViewTool(BaseTool):
     """
@@ -436,6 +434,7 @@ class ViewTool(BaseTool):
                     self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
                 self.stackManager.view.SetFocus()
                 self.targetUi = None
+                self.stackManager.designer.cPanel.SetToolByName("hand")
 
 
 class PenTool(BaseTool):
@@ -502,6 +501,7 @@ class PenTool(BaseTool):
             self.stackManager.RemoveUiViewByModel(model)
             self.stackManager.command_processor.Submit(command)
             self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
+            self.stackManager.designer.cPanel.SetToolByName("hand")
         self.stackManager.view.SetFocus()
 
 
@@ -564,13 +564,5 @@ class ShapeTool(BaseTool):
                 self.stackManager.command_processor.Submit(command)
                 self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
                 # self.stackManager.view.Refresh(True)
+                self.stackManager.designer.cPanel.SetToolByName("hand")
         self.stackManager.view.SetFocus()
-
-    # def Paint(self, gc):
-    #     if self.targetUi and self.stackManager.view.HasCapture():
-    #         gc.SetPen(wx.Pen('Blue', 1, wx.PENSTYLE_DOT))
-    #         gc.SetBrush(wx.TRANSPARENT_BRUSH)
-    #         f = self.targetUi.model.RectFromPoints(self.targetUi.model.GetScaledPoints())
-    #         f.Offset(wx.Point(self.targetUi.model.GetAbsolutePosition()))
-    #         f.Inflate(self.targetUi.model.GetProperty("penThickness"))
-    #         gc.DrawRectangle(f)

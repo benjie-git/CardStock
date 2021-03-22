@@ -99,7 +99,7 @@ class ButtonModel(ViewModel):
 class Button(ViewProxy):
     """
     Button proxy objects are the user-accessible objects exposed to event handler code for button objects.
-    Based on ProxyView, and adds title, border, and DoClick().
+    Based on ProxyView, and adds title, border, and Click().
     """
 
     @property
@@ -118,6 +118,6 @@ class Button(ViewProxy):
     def border(self, val):
         self._model.SetProperty("border", val)
 
-    def DoClick(self):
+    def Click(self):
         if self._model.stackManager.runner:
             self._model.stackManager.runner.RunHandler(self._model, "OnClick", None)

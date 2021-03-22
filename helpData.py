@@ -487,14 +487,14 @@ class HelpDataButton():
     }
 
     methods = {
-        "DoClick": {"args": {}, "return": None,
+        "Click": {"args": {}, "return": None,
                     "info": "Runs this button's OnClick event code."},
     }
 
     handlers = {
         "OnClick": {"args": {},
                     "info": "The <b>OnClick</b> event is run when a user clicks down on this button, and releases the "
-                            "mouse, while still inside the button.  It is also run when the button's DoClick() "
+                            "mouse, while still inside the button.  It is also run when the button's Click() "
                             "method is called, or when the user pressed the Enter/Return key while the button is "
                             "focused."},
     }
@@ -535,7 +535,7 @@ class HelpDataTextField():
                              "info": "Visually animates fading this object's <b>textColor</b> to <b>endColor</b>, "
                                      "over <b>duration</b> seconds.  When the animation completes, runs the "
                                      "<b>onFinished</b> function, if one was passed in."},
-        "DoEnter": {"args": {}, "return": None,
+        "Enter": {"args": {}, "return": None,
                     "info": "Runs this text field's OnTextEnter event code."},
         "SelectAll": {"args": {}, "return": None,
                       "info": "Selects all text in this text field."},

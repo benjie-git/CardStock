@@ -24,7 +24,7 @@
         {
           "type": "textfield",
           "handlers": {
-            "OnTextEnter": "button.DoClick()"
+            "OnTextEnter": "button.Click()"
           },
           "properties": {
             "name": "field",

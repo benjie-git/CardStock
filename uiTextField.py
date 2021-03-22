@@ -238,6 +238,6 @@ class TextField(TextBaseProxy):
 
     def SelectAll(self): self._model.Notify("selectAll")
 
-    def DoEnter(self):
+    def Enter(self):
         if self._model.stackManager.runner:
             self._model.stackManager.runner.RunHandler(self._model, "OnTextEnter", None)

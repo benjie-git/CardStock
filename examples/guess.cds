@@ -13,7 +13,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "def UpdateBox():\n   lineStart = line.position.x\n   lineWidth = line.size.width\n   box.position.x = lineStart + (lowerBound-1) * lineWidth/100.0\n   box.size.width = (upperBound-lowerBound+1) * lineWidth/100.0\n\nresetButton.DoClick()\n"
+        "OnShowCard": "def UpdateBox():\n   lineStart = line.position.x\n   lineWidth = line.size.width\n   box.position.x = lineStart + (lowerBound-1) * lineWidth/100.0\n   box.size.width = (upperBound-lowerBound+1) * lineWidth/100.0\n\nresetButton.Click()\n"
       },
       "properties": {
         "name": "card_1",
@@ -198,7 +198,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "field.DoEnter()"
+            "OnClick": "field.Enter()"
           },
           "properties": {
             "name": "enterButton",

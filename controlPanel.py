@@ -50,6 +50,8 @@ class ControlPanel(wx.Panel):
             b.SetBezelWidth(1)
             b.SetUseFocusIndicator(False)
             b.Bind(wx.EVT_BUTTON, self.OnSetTool)
+            b.Bind(wx.EVT_ENTER_WINDOW, self.OnToolEnter)
+            b.Bind(wx.EVT_LEAVE_WINDOW, self.OnToolExit)
             self.toolGrid.Add(b, 0)
             self.toolBtns[name] = b
         self.toolBtns["hand"].SetToggle(True)
@@ -151,15 +153,7 @@ class ControlPanel(wx.Panel):
         self.SetSizer(self.box)
         self.SetAutoLayout(True)
 
-        i = 0
-        for k,b in self.toolBtns.items():
-            tooltip = wx.ToolTip(self.tooltips[i])
-            tooltip.SetAutoPop(2000)
-            tooltip.SetDelay(200)
-            tooltip.Enable(True)
-            b.SetToolTip(tooltip)
-            i += 1
-        wx.ToolTip.Enable(True)
+        self.toolTip = None
 
     def ShowContextHelp(self, show):
         self.panelHelp.Show(show)
@@ -442,6 +436,23 @@ class ControlPanel(wx.Panel):
         dc.Clear()
         dc.SelectObject(wx.NullBitmap)
         return bmp
+
+    def OnToolEnter(self, event):
+        if self.toolTip:
+            self.toolTip.Destroy()
+
+        toolId = event.GetId()
+        toolTip = self.tooltips[toolId]
+        button = event.GetEventObject()
+        pos = button.GetPosition() + wx.Size(0, button.GetSize().Height-8)
+        tip = wx.StaticText(self, pos=pos, label=toolTip)
+        tip.SetBackgroundColour('white')
+        self.toolTip = tip
+
+    def OnToolExit(self, event):
+        if self.toolTip:
+            self.toolTip.Destroy()
+            self.toolTip = None
 
     def OnSetTool(self, event):
         toolId = event.GetId()

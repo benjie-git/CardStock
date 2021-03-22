@@ -678,8 +678,33 @@ class StackManager(object):
     def OnKeyDown(self, uiView, event):
         if self.tool and self.isEditing:
             ms = wx.GetMouseState()
-            if event.GetKeyCode() == wx.WXK_ESCAPE and not ms.LeftIsDown():
-                self.designer.cPanel.SetToolByName("hand")
+            if not ms.LeftIsDown():
+                code = event.GetKeyCode()
+                if code == ord('H') or code == wx.WXK_ESCAPE:
+                    self.designer.cPanel.SetToolByName("hand")
+                elif code == ord('B'):
+                    self.designer.cPanel.SetToolByName("button")
+                elif code == ord('F'):
+                    self.designer.cPanel.SetToolByName("field")
+                elif code == ord('T'):
+                    self.designer.cPanel.SetToolByName("label")
+                elif code == ord('I'):
+                    self.designer.cPanel.SetToolByName("image")
+                elif code == ord('P'):
+                    self.designer.cPanel.SetToolByName("pen")
+                elif code == ord('O'):
+                    self.designer.cPanel.SetToolByName("oval")
+                elif code == ord('R'):
+                    self.designer.cPanel.SetToolByName("rect")
+                elif code == ord('D'):
+                    self.designer.cPanel.SetToolByName("roundrect")
+                elif code == ord('L'):
+                    self.designer.cPanel.SetToolByName("line")
+                else:
+                    event.Skip()
+            else:
+                event.Skip()
+
             self.tool.OnKeyDown(uiView, event)
         else:
             self.runner.OnKeyDown(event)
