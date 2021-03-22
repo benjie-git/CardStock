@@ -192,6 +192,8 @@ class ViewerFrame(wx.Frame):
                 self.SaveFile()
 
         self.stackManager.runner.CleanupFromRun()
+        if self.designer:
+            self.designer.OnViewerClose(event)
         event.Skip()
 
     def OnCut(self, event):

@@ -435,7 +435,6 @@ class DesignerFrame(wx.Frame):
         self.viewer = ViewerFrame(self, stackModel, self.filename)
         self.viewer.designer = self
 
-        self.viewer.Bind(wx.EVT_CLOSE, self.OnViewerClose)
         self.Hide()
         self.viewer.Show(True)
         self.viewer.RunViewer(cardIndex)

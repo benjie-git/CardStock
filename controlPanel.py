@@ -446,8 +446,11 @@ class ControlPanel(wx.Panel):
         button = event.GetEventObject()
         pos = button.GetPosition() + wx.Size(0, button.GetSize().Height-10)
         tipBg = wx.Window(self, pos=pos + (button.GetSize().Width/2, -1))
+        tipBg.Enable(False)
         tipBg.SetBackgroundColour('black')
         tip = wx.StaticText(tipBg, pos=wx.Point(1, 1), label=toolTip)
+        tip.Enable(False)
+        tip.SetForegroundColour('black')
         tip.SetBackgroundColour('white')
         tipBg.SetSize(tip.GetSize()+(2, 2))
 
