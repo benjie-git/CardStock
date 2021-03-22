@@ -172,10 +172,14 @@ class CardModel(ViewModel):
     def AddChild(self, model):
         self.childModels.append(model)
         self.isDirty = True
+        if self.stackManager.runner and self.stackManager.uiCard.model == self:
+            self.stackManager.runner.SetupForCard(self)
 
     def RemoveChild(self, model):
         self.childModels.remove(model)
         self.isDirty = True
+        if self.stackManager.runner and self.stackManager.uiCard.model == self:
+            self.stackManager.runner.SetupForCard(self)
 
     def AddNewObject(self, typeStr, name, size, points=None):
         if not isinstance(name, str):
