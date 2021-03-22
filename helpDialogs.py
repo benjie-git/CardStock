@@ -89,20 +89,35 @@ is the control panel.  The top of the control panel lets you choose an editing t
 lets you select, move, and resize objects, and edit their properties and code.  Select an object by clicking it, and add 
 or remove objects from the selection by Shift-clicking them.  You can also drag out a selection rectangle to select all objects
 whose centers it contains.  You can also cycle forwards and backwards through objects on the current card using Tab and
-Shift-Tab.  While objects are selected, you can use the Object menu items to group them, or re-order them to adjust which
+Shift-Tab.  While objects are selected, you can use the Object menu items to group them, flip them, or re-order them to adjust which
 objects are in front of, or behind which others.  But note that buttons, text fields, and text labels always stay in 
 front of shapes and images.  When an object is selected, you can resize it by dragging the blue resize knob in the 
 bottom right corner of the selected object.  Holding down the Shift key while resizing will keep the object's aspect
 ratio stable.  You can drag selected objects to move them, or use the arrow keys to move selected objects by 1 pixel at
-a time, or 5 or 20 pixels at a time by holding down Shift or Alt/Option, respectively.</p>
+a time, or by 5 or 20 pixels at a time by holding down Shift or Alt/Option, respectively.</p>
 <p>The next four tools are the button, text field, text label, and image tools.  These each 
 let you create that type of object, by drawing out the new object's shape on the card on the left.  You can double-click
 a text field or text label to edit its text in-place on the card.</p>
 <p>The next five tools
 are the drawing tools, which let you draw with a pen, drag out an oval, a rectangle, a rounded rectangle, and a line.
 While creating a shape, you can hold down the Shift key to constrain ovals and rectangles to being circles and squares, 
-and to make new lines stay perfectly horizontal, vertical, or 45° diagonal.  Pressing Escape in the Designer will always
-return you to the Hand tool.</p>
+and to make new lines stay perfectly horizontal, vertical, or 45° diagonal.  After creating an object, CardStock will 
+switch back to the Hand tool.  Pressing Escape in the Designer will also always return you to the Hand tool.  
+Additionally there are keyboard shortcuts for selecting all of the tools.  Those shortcuts are shown when the mouse 
+is over that tool's button in the control panel.  They are:<br/>
+<ul>
+<li>H or Escape for <b>H</b>and
+<li>B for <b>B</b>utton
+<li>F for Text <b>F</b>ield
+<li>T for <b>T</b>ext Label
+<li>I for <b>I</b>mage
+<li>P for <b>P</b>en
+<li>O for <b>O</b>val
+<li>R for <b>R</b>ectangle
+<li>D for Roun<b>D</b> Rectangle
+<li>L for <b>L</b>ine
+</ul>
+</p>
 <p>The area in the control panel below the tools changes depending on which tool you're using, and which objects are 
 selected in the card.  When a drawing tool is selected, the control panel offers you settings to choose the pen color,
 pen thickness, and fill color for the shapes you draw next.  Then click and drag out the shape you want to add to the 
