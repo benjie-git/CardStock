@@ -19,12 +19,12 @@ class ControlPanel(wx.Panel):
     """
 
     BMP_SIZE = 25
-    BMP_BORDER = 2
+    BMP_BORDER = 4
 
     toolNames = ["hand", "button", "field", "label", "image",
                  "pen", "oval", "rect", "roundrect", "line"]
-    tooltips = ["Hand", "Button", "Text Field", "Text Label", "Image",
-                "Pen", "Oval", "Rectangle", "Round Rectangle", "Line"]
+    tooltips = ["Hand (Esc)", "Button (B)", "Text Field (F)", "Text Label (T)", "Image (I)",
+                "Pen (P)", "Oval (O)", "Rectangle (R)", "Round Rectangle (D)", "Line (L)"]
 
     def __init__(self, parent, ID, stackManager):
         wx.Panel.__init__(self, parent, ID, style=wx.RAISED_BORDER)
@@ -444,10 +444,14 @@ class ControlPanel(wx.Panel):
         toolId = event.GetId()
         toolTip = self.tooltips[toolId]
         button = event.GetEventObject()
-        pos = button.GetPosition() + wx.Size(0, button.GetSize().Height-8)
-        tip = wx.StaticText(self, pos=pos, label=toolTip)
+        pos = button.GetPosition() + wx.Size(0, button.GetSize().Height-10)
+        tipBg = wx.Window(self, pos=pos + (button.GetSize().Width/2, -1))
+        tipBg.SetBackgroundColour('black')
+        tip = wx.StaticText(tipBg, pos=wx.Point(1, 1), label=toolTip)
         tip.SetBackgroundColour('white')
-        self.toolTip = tip
+        tipBg.SetSize(tip.GetSize()+(2, 2))
+
+        self.toolTip = tipBg
 
     def OnToolExit(self, event):
         if self.toolTip:
@@ -458,7 +462,6 @@ class ControlPanel(wx.Panel):
         toolId = event.GetId()
         toolName = self.toolNames[toolId]
         self.SetToolByName(toolName)
-        self.stackManager.view.SetFocus()
 
     def SetToolByName(self, toolName):
         if self.stackManager.tool:
@@ -483,8 +486,8 @@ class ControlPanel(wx.Panel):
                 self.box.Hide(self.drawBox)
                 self.box.Hide(self.editBox)
 
-
             self.Layout()
+        self.stackManager.view.SetFocus()
 
     def OnSetPenColor(self, event):
         newColor = event.GetColour()
