@@ -28,11 +28,11 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * You can **import** other python packages into your code, and use them make web requests and display the results, control robots, or run machine learning code, all from within your CardStock stack.
 * View all code used in a whole stack in one place, and click a line to jump to that line in that object's code for that event.
 * View recent error messages, and click one to jump to the offending line of code in the Designer.
+* You can export a stack into a standalone application that you can share and distribute.
 
 ### Future Plans
 * A built-in media library with some basic icons/images, and sound files.
 * Add code completion to the code editor.
-* Allow exporting a stack into a standalone application that you can share/distribute.
 * Add async support
 * Add app icons for the CardStock Designer and Viewer
 
@@ -47,7 +47,8 @@ CardStock requires Python 3.7 or newer, and wxPython 4.0 or newer.  And for more
 You can either, run it from source:
 1. install python
 2. pip install wxPython
-3. pip install simpleaudio
+3. pip install simpleaudio (optional, but recommended for Windows and Linux)
+3. pip install pyinstaller (optional, but required for exporting stacks)
 4. download or clone this repository
 5. run designer.py and viewer.py as desired
 
