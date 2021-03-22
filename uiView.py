@@ -478,6 +478,7 @@ class ViewModel(object):
         pass
 
     def OrderMoveTo(self, index):
+        index = index % len(self.parent.childModels) # Convert negative index to positive
         if index < 0 or index > len(self.parent.childModels)-1:
             return
         self.parent.childModels.remove(self)

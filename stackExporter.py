@@ -58,9 +58,9 @@ class StackExporter(object):
 
         # Add paths found by simple static analysis
         # Look for any image objects with a file property
-        # Look in all handlers for PlaySound("<path>"), *.file = "<path>"
-        patterns = [re.compile(r"\bPlaySound\('([^']+)'\)"),
-                    re.compile(r'\bPlaySound\("([^"]+)"\)'),
+        # Look in all handlers for SoundPlay("<path>"), *.file = "<path>"
+        patterns = [re.compile(r"\SoundPlay\('([^']+)'\)"),
+                    re.compile(r'\SoundPlay\("([^"]+)"\)'),
                     re.compile(r"\w\.file\s*=\s*'([^']+)'"),
                     re.compile(r'\w\.file\s*=\s*"([^"]+)"')]
         self.ScanObjTree(self.stackManager.stackModel, patterns)

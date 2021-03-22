@@ -45,8 +45,8 @@ class Runner():
             "GotoNextCard": self.GotoNextCard,
             "GotoPreviousCard": self.GotoPreviousCard,
             "GotoCardIndex": self.GotoCardIndex,
-            "PlaySound": self.PlaySound,
-            "StopSound": self.StopSound,
+            "SoundPlay": self.SoundPlay,
+            "SoundStop": self.SoundStop,
             "BroadcastMessage": self.BroadcastMessage,
             "IsKeyPressed": self.IsKeyPressed,
             "IsMouseDown": self.IsMouseDown,
@@ -90,7 +90,7 @@ class Runner():
         for t in self.timers:
             t.Stop()
         self.timers = []
-        self.StopSound()
+        self.SoundStop()
         self.soundCache = {}
 
     def RunHandler(self, uiModel, handlerName, event, arg=None):
@@ -287,7 +287,7 @@ class Runner():
         r = wx.MessageDialog(None, str(message), "", wx.YES_NO).ShowModal()
         return (r == wx.ID_YES)
 
-    def PlaySound(self, filepath):
+    def SoundPlay(self, filepath):
         if not isinstance(filepath, str):
             raise TypeError("filepath must be a string")
 
@@ -313,7 +313,7 @@ class Runner():
             else:
                 s.Play()
 
-    def StopSound(self):
+    def SoundStop(self):
         if SIMPLE_AUDIO_AVAILABLE:
             simpleaudio.stop_all()
         else:

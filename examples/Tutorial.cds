@@ -1590,7 +1590,7 @@
         {
           "type": "image",
           "handlers": {
-            "OnMouseDown": "PlaySound(\"puff.wav\")"
+            "OnMouseDown": "SoundPlay(\"puff.wav\")"
           },
           "properties": {
             "name": "image_1",

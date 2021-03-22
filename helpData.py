@@ -70,7 +70,7 @@ class HelpData():
         rows = []
         rows.append(["Property", "Type", "Description"])
         while data:
-            for key in data.properties:
+            for key in sorted(data.properties):
                 prop = data.properties[key]
                 rows.append([key, "<i>" + prop["type"] + "</i>", prop["info"]])
             data = data.parent
@@ -101,7 +101,7 @@ class HelpData():
         rows = []
         rows.append(["Event", "Arguments", "Description"])
         while data:
-            for key in data.handlers:
+            for key in sorted(data.handlers):
                 handler = data.handlers[key]
                 argText = ""
                 for name, arg in handler["args"].items():
@@ -121,7 +121,7 @@ class HelpData():
         rows = []
         rows.append(["Method", "Arguments", "Return", "Description"])
         while data:
-            for key in data.methods:
+            for key in sorted(data.methods):
                 method = data.methods[key]
                 argText = ""
                 for name, arg in method["args"].items():
@@ -142,7 +142,7 @@ class HelpData():
         data = HelpDataGlobals
         rows = []
         rows.append(["Variable", "Type", "Description"])
-        for key in data.variables:
+        for key in sorted(data.variables):
             var = data.variables[key]
             rows.append([key, "<i>" + var["type"] + "</i>", var["info"]])
         return cls.HtmlTableFromLists(rows)
@@ -152,7 +152,7 @@ class HelpData():
         data = HelpDataGlobals
         rows = []
         rows.append(["Method", "Arguments", "Return", "Description"])
-        for key in data.functions:
+        for key in sorted(data.functions):
             func = data.functions[key]
             argText = ""
             for name, arg in func["args"].items():
@@ -299,11 +299,11 @@ class HelpDataGlobals():
                              "info": "Goes to the previous card in the stack.  If we're already on the first card, then loop back to "
                                      "the last card.  This sends the OnHideCard event for the current card, and then the "
                                      "OnShowCard event for the new card."},
-        "PlaySound": {"args": {"file": {"type": "string",
+        "SoundPlay": {"args": {"file": {"type": "string",
                                         "info": "This is the filename of the .wav format audio file to play, relative to where the stack file lives."}},
                       "return": None,
                       "info": "Starts playing the .wav formatted sound file at location <b>file</b>."},
-        "StopSound": {"args": {},
+        "SoundStop": {"args": {},
                       "return": None,
                       "info": "Stops all currently playing sounds."},
         "BroadcastMessage": {"args": {"message": {"type": "string",
@@ -319,6 +319,9 @@ class HelpDataGlobals():
                          "return": "bool",
                          "info": "Returns <b>True</b> if the left mouse button is currently pressed down, otherwise "
                                  "returns <b>False</b>."},
+        "Quit": {"args": {},
+                      "return": None,
+                      "info": "Stops running the stack, closes the stack window, and exits the stack viewer program."},
     }
 
 
@@ -399,6 +402,28 @@ class HelpDataObject():
         "FlipVertical": {"args": {},
                  "return": None,
                  "info": "Flips the object vertically.  This only visibly changes images, groups, and some shapes."},
+        "OrderToFront": {"args": {},
+                 "return": None,
+                 "info": "Moves this object to the front of the card or group it is contained in, in front of all other objects.  But note that "
+                         "all buttons, text fields, and text labels will remain in front of all other objects."},
+        "OrderForward": {"args": {},
+                 "return": None,
+                 "info": "Moves this object one position closer to the front of the card or group it is contained in.  But note that "
+                         "all buttons, text fields, and text labels will remain in front of all other objects."},
+        "OrderBackward": {"args": {},
+                 "return": None,
+                 "info": "Moves this object one position closer to the back of the card or group it is contained in.  But note that "
+                         "all buttons, text fields, and text labels will remain in front of all other objects."},
+        "OrderToBack": {"args": {},
+                 "return": None,
+                 "info": "Moves this object to the back of the card or group it is contained in, behind all other objects.  But note that "
+                         "all buttons, text fields, and text labels will remain in front of all other objects."},
+        "OrderToIndex": {"args": {"toIndex": {"type": "int", "info": "The index to move this object to, in the list of "
+                                 "the card or group's children.  Index 0 is at the back."}},
+                       "return": None,
+                         "info": "Moves this object to the given index, in the list of "
+                                 "its parent's children, with 0 being at the back.  But note that "
+                                 "all buttons, text fields, and text labels will remain in front of all other objects."},
         "IsTouching": {"args": {"other": {"type": "object", "info": "The other object to compare to this one"}},
                        "return": "bool",
                        "info": "Returns <b>True</b> if this object is touching the <b>other</b> object passed into "
@@ -734,6 +759,60 @@ class HelpDataCard():
     }
 
     methods = {
+        "AddButton": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
+                                                                "new Button object.  If omitted, the name will be "
+                                                                "'button_{N}'."}},
+                    "return": "object",
+                    "info": "Adds a new Button to the card, and returns the new object."},
+        "AddTextField": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
+                                                                "new Text Field object.  If omitted, the name will be "
+                                                                "'field_{N}'."}},
+                    "return": "object",
+                    "info": "Adds a new Text Field to the card, and returns the new object."},
+        "AddTextLabel": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
+                                                                "new Text Label object.  If omitted, the name will be "
+                                                                "'label_{N}'."}},
+                    "return": "object",
+                    "info": "Adds a new Text Label to the card, and returns the new object."},
+        "AddImage": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
+                                                                "new Image object.  If omitted, the name will be "
+                                                                "'image_{N}'."}},
+                    "return": "object",
+                    "info": "Adds a new Image to the card, and returns the new object."},
+        "AddOval": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
+                                                                "new Oval object.  If omitted, the name will be "
+                                                                "'shape_{N}'."}},
+                    "return": "object",
+                    "info": "Adds a new Image to the card, and returns the new object."},
+        "AddRectangle": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
+                                                                "new Rectangle object.  If omitted, the name will be "
+                                                                "'shape_{N}'."}},
+                    "return": "object",
+                    "info": "Adds a new Rectangle to the card, and returns the new object."},
+        "AddRoundRectangle": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
+                                                                "new Round Rectangle object.  If omitted, the name will be "
+                                                                "'shape_{N}'."}},
+                    "return": "object",
+                    "info": "Adds a new Round Rectangle to the card, and returns the new object."},
+        "AddLine": {"args": {"points": {"type": "list", "info": "a list of points, that are the locations of each "
+                                                                "vertex along the line, relative to the top-left "
+                                                                "corner of the card.  It can hold just two points "
+                                                                "to create a simple line segment, or more to create a "
+                                                                "more complex multi-segment line."},
+                             "name": {"type": "string", "info": "an optional argument giving the name to use for this "
+                                                                "new Line object.  If omitted, the name will be "
+                                                                "'shape_{N}'."}
+                             },
+                    "return": "object",
+                    "info": "Adds a new Line to the card, and returns the new object."},
+        "AddGroup": {"args": {"objects": {"type": "list", "info": "a list of object, all on the same card, to include "
+                                                                  "in the new group object."},
+                             "name": {"type": "string", "info": "an optional argument giving the name to use for this "
+                                                                "new Group object.  If omitted, the name will be "
+                                                                "'group_{N}'."}
+                             },
+                    "return": "object",
+                    "info": "Adds a new Group to the card, and returns the new object."},
         "AnimateBgColor": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                       "endColor": {"type": "string",
                                                    "info": "the final backgroundColor at the end of the animation"},
@@ -772,7 +851,18 @@ class HelpDataStack():
                              "read this value, but not set it."},
     }
 
-    methods = {}
+    methods = {
+        "AddCard": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
+                                                                "new card object.  If omitted, the name will be "
+                                                                "'card_{N}'."},
+                             "atIndex": {"type": "int", "info": "an optional argument giving the positional index in "
+                                                                "the stack where the card should be added.  Index 0 is "
+                                                                "at the beginning.  If omitted, the card will be added "
+                                                                "at the end of the stack."},
+                             },
+                            "return": "object",
+                            "info": "Adds a new empty card to the stack, and returns the card object."},
+    }
 
     handlers = {}
 
