@@ -407,7 +407,7 @@ class DesignerFrame(wx.Frame):
             self.stackManager.filename = filename
             self.stackManager.resPathMan.Reset()
             self.SaveFile()
-            self.SetTitle(self.title + ' -- ' + self.filename)
+            self.SetTitle(self.title + ' -- ' + os.path.basename(self.filename))
             self.WriteConfig()
         dlg.Destroy()
 
