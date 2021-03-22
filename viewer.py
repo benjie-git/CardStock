@@ -21,6 +21,10 @@ import helpDialogs
 from findEngineViewer import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
 
+# Fix locale error with wxPython, python3.8+, and Windows on a non-engligh locale.
+import locale
+locale.setlocale(locale.LC_ALL, 'C')
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 ID_MENU_FIND = wx.NewIdRef()

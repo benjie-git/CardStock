@@ -25,6 +25,10 @@ from findEngineDesigner import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
 from stackExporter import StackExporter
 
+# Fix locale error with wxPython, python3.8+, and Windows on a non-engligh locale.
+import locale
+locale.setlocale(locale.LC_ALL, 'C')
+
 HERE = os.path.dirname(os.path.realpath(__file__))
 
 # ----------------------------------------------------------------------
