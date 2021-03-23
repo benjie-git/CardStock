@@ -678,7 +678,7 @@ class StackManager(object):
     def OnKeyDown(self, uiView, event):
         if self.tool and self.isEditing:
             ms = wx.GetMouseState()
-            if not ms.LeftIsDown() and not self.inlineEditingView:
+            if not ms.LeftIsDown() and not self.inlineEditingView and not event.ControlDown() and not event.AltDown():
                 code = event.GetKeyCode()
                 if code == ord('H') or code == wx.WXK_ESCAPE:
                     self.designer.cPanel.SetToolByName("hand")
