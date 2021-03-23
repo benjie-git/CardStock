@@ -88,6 +88,10 @@ class Stack(ViewProxy):
     def numCards(self):
         return len(self._model.childModels)
 
+    @property
+    def currentCard(self):
+        return self._model.stackManager.uiCard.model.GetProxy()
+
     def AddCard(self, name="card", atIndex=-1):
         if not isinstance(name, str):
             raise TypeError("name is not a string")

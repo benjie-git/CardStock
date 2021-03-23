@@ -3,8 +3,8 @@
   "handlers": {},
   "properties": {
     "size": [
-      750,
-      500
+      738,
+      516
     ],
     "canSave": true,
     "canResize": true
@@ -13,7 +13,8 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "code.size.height = card.size.height - code.position.y"
+        "OnShowCard": "code.size.height = card.size.height - code.position.y",
+        "OnResize": "code.size.height = card.size.height - code.position.y"
       },
       "properties": {
         "name": "card_3",
@@ -22,14 +23,12 @@
       "childModels": [
         {
           "type": "textfield",
-          "handlers": {
-            "OnMouseEnter": "code.size.height = card.size.height - code.position.y"
-          },
+          "handlers": {},
           "properties": {
             "name": "code",
             "size": [
               250,
-              444
+              460
             ],
             "position": [
               0.0,
@@ -167,7 +166,8 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "code.size.height = card.size.height - code.position.y"
+        "OnShowCard": "code.size.height = card.size.height - code.position.y",
+        "OnResize": "code.size.height = card.size.height - code.position.y"
       },
       "properties": {
         "name": "card_2",
@@ -176,14 +176,12 @@
       "childModels": [
         {
           "type": "textfield",
-          "handlers": {
-            "OnMouseEnter": "code.size.height = card.size.height - code.position.y"
-          },
+          "handlers": {},
           "properties": {
             "name": "code",
             "size": [
               250,
-              444
+              460
             ],
             "position": [
               0.0,
@@ -321,7 +319,8 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "code.size.height = card.size.height - code.position.y"
+        "OnShowCard": "code.size.height = card.size.height - code.position.y",
+        "OnResize": "code.size.height = card.size.height - code.position.y"
       },
       "properties": {
         "name": "card_1",
@@ -330,20 +329,18 @@
       "childModels": [
         {
           "type": "textfield",
-          "handlers": {
-            "OnMouseEnter": "code.size.height = card.size.height - code.position.y"
-          },
+          "handlers": {},
           "properties": {
             "name": "code",
             "size": [
               250,
-              444
+              460
             ],
             "position": [
               0.0,
               56.0
             ],
-            "text": "bk(230)\n\nfor _ in range(180):\n  fd(460)\n  rt(178)\n",
+            "text": "d = 450\nbk(d/2)\n\nfor _ in range(180):\n  fd(d)\n  rt(178)\n",
             "alignment": "Left",
             "textColor": "black",
             "font": "Mono",

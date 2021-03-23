@@ -831,6 +831,9 @@ class HelpDataCard():
         "OnHideCard": {"args": {},
                        "info": "The <b>OnHideCard</b> event is run when a card is hidden, right before the new "
                                "card's OnShowCard event is run, when going to another card."},
+        "OnResize": {"args": {},
+                     "info": "The <b>OnResize</b> event is run on the currently visible card when the stack window is "
+                             "resized."},
         "OnKeyDown": {"args": {"keyName": {"type": "string", "info": "The name of the pressed key"}},
                       "info": "The <b>OnKeyDown</b> event is run any time a keyboard key is pressed down.  Regular "
                               "keys are named as capital letters and digits, like 'A' or '1', and other keys have "
@@ -849,6 +852,9 @@ class HelpDataStack():
         "numCards": {"type": "int",
                      "info": "This is the number of cards in this stack.  You can "
                              "read this value, but not set it."},
+        "currentCard": {"type": "object",
+                        "info": "This is the card object that is currently visible.  stack.<b>currentCard</b>.index will "
+                                "give you the index of the current card."},
     }
 
     methods = {

@@ -64,8 +64,8 @@ class StackManager(object):
         if wx.Platform != '__WXMAC__':
             # Skip double-buffering on Mac, as it's much faster without it, and looks great
             self.buffer = None
-            self.view.Bind(wx.EVT_SIZE, self.OnResize)
 
+        self.view.Bind(wx.EVT_SIZE, self.OnResize)
         self.view.Bind(wx.EVT_PAINT, self.OnPaint)
         self.view.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
         self.view.Bind(wx.EVT_WINDOW_DESTROY, self.Cleanup)
@@ -597,7 +597,10 @@ class StackManager(object):
         self.lastMouseMovedUiView = None
 
     def OnResize(self, event):
-        self.UpdateBuffer()
+        if wx.Platform != '__WXMAC__':
+            self.UpdateBuffer()
+        if not self.isEditing and self.runner:
+            self.runner.RunHandler(self.uiCard.model, "OnResize", None)
         event.Skip()
 
     def UpdateBuffer(self):

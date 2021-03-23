@@ -241,6 +241,7 @@ class UiView(object):
         'OnMessage':    "OnMessage(message):",
         'OnKeyDown':    "OnKeyDown(keyName):",
         'OnKeyUp':      "OnKeyUp(keyName):",
+        'OnResize':     "OnResize():",
         'OnIdle':       "OnIdle(elapsedTime):",
     }
 

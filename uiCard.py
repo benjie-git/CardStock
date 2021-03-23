@@ -100,7 +100,7 @@ class CardModel(ViewModel):
         self.type = "card"
         self.proxyClass = Card
         # Add custom handlers to the top of the list
-        handlers = {"OnSetup": "", "OnShowCard": "", "OnHideCard": "", "OnKeyDown": "", "OnKeyUp": ""}
+        handlers = {"OnSetup": "", "OnShowCard": "", "OnHideCard": "", "OnKeyDown": "", "OnKeyUp": "", "OnResize":""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
