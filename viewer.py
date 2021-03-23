@@ -105,7 +105,8 @@ class ViewerFrame(wx.Frame):
     def MakeMenu(self):
         # create the file menu
         fileMenu = wx.Menu()
-        fileMenu.Append(wx.ID_OPEN, "&Open\tCtrl-O", "Open Stack")
+        if not self.designer:
+            fileMenu.Append(wx.ID_OPEN, "&Open\tCtrl-O", "Open Stack")
         if self.stackManager.filename and self.stackManager.stackModel.GetProperty("canSave"):
             fileMenu.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save Stack")
         if self.designer:
