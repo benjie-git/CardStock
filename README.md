@@ -28,7 +28,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * You can **import** other python packages into your code, and use them make web requests and display the results, control robots, or run machine learning code, all from within your CardStock stack.
 * View all code used in a whole stack in one place, and click a line to jump to that line in that object's code for that event.
 * View recent error messages, and click one to jump to the offending line of code in the Designer.
-* You can export a stack into a standalone application that you can share and distribute.
+* You can export a stack into a standalone application that you can share and distribute. (Unfortunately this only currently works when running CardStock from source, not from the prebuilt applications for Mac and Windows.)
 
 ### Future Plans
 * A built-in media library with some basic icons/images, and sound files.
