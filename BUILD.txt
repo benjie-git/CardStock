@@ -1,0 +1,13 @@
+PyInstaller commands for building the standalone Designer and Viewer apps on Mac and Windows:
+
+Mac:
+    pyinstaller --onedir --clean -y --windowed -s -n standalone standalone.py
+    mkdir dist/containerDir
+    mv dist/standalone.app dist/containerDir/
+    pyinstaller --onedir --clean -y --windowed -s --exclude-module PyInstaller --add-data dist/containerDir:. -n CardStock_Designer designer.py
+    pyinstaller --onedir --clean -y --windowed -s -n CardStock_Viewer viewer.py
+
+Windows:
+    pyinstaller --onefile --clean -y --windowed -n standalone standalone.py
+    pyinstaller --onefile --clean -y --windowed --exclude-module PyInstaller --add-data dist/standalone.exe:. -n CardStock_Designer designer.py
+    pyinstaller --onefile --clean -y --windowed -n CardStock_Viewer viewer.py
