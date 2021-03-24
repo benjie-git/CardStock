@@ -25,10 +25,6 @@ from findEngineDesigner import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
 from stackExporter import StackExporter
 
-# Fix locale error with wxPython, python3.8+, and Windows on a non-engligh locale.
-import locale
-locale.setlocale(locale.LC_ALL, 'C')
-
 HERE = os.path.dirname(os.path.realpath(__file__))
 
 # ----------------------------------------------------------------------
@@ -721,7 +717,7 @@ class DesignerFrame(wx.Frame):
 class DesignerApp(wx.App, InspectionMixin):
     def OnInit(self):
         self.Init() # for InspectionMixin
-
+        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
         self.frame = DesignerFrame(None)
         self.frame.app = self
         self.frame.Show(True)
@@ -745,7 +741,7 @@ class DesignerApp(wx.App, InspectionMixin):
 
 if __name__ == '__main__':
     app = DesignerApp(redirect=False)
-    app.InitLocale()
+
     if len(sys.argv) > 1:
         filename = sys.argv[1]
         app.frame.ReadFile(filename)

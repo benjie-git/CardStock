@@ -21,10 +21,6 @@ import helpDialogs
 from findEngineViewer import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
 
-# Fix locale error with wxPython, python3.8+, and Windows on a non-engligh locale.
-import locale
-locale.setlocale(locale.LC_ALL, 'C')
-
 ID_MENU_FIND = wx.NewIdRef()
 ID_MENU_FIND_SEL = wx.NewIdRef()
 ID_MENU_FIND_NEXT = wx.NewIdRef()
@@ -271,7 +267,7 @@ class StandaloneFrame(wx.Frame):
 class StandaloneApp(wx.App, InspectionMixin):
     def OnInit(self):
         self.Init(self)  # for InspectionMixin
-
+        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
         self.SetAppDisplayName('CardStock')
 
         bundle_dir = sys._MEIPASS
@@ -319,5 +315,4 @@ class StandaloneApp(wx.App, InspectionMixin):
 
 if __name__ == '__main__':
     app = StandaloneApp(redirect=False)
-    app.InitLocale()
     app.MainLoop()
