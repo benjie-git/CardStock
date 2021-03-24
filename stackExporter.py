@@ -1,12 +1,13 @@
 import wx
 import os
+import sys
 import re
 import random
 import json
+import shutil
 
 try:
     import PyInstaller.__main__
-    from shutil import copyfile, rmtree
     PY_INSTALLER_AVAILABLE = True
 except ModuleNotFoundError:
     PY_INSTALLER_AVAILABLE = False
@@ -28,7 +29,7 @@ class StackExporter(object):
 
     def StartExport(self, doSave):
         # Check that we even have pyinstaller available
-        if not PY_INSTALLER_AVAILABLE:
+        if not PY_INSTALLER_AVAILABLE and not getattr(sys, 'frozen', False):
             wx.MessageDialog(self.stackManager.designer,
                              "To export a stack as a stand-alone program, "
                              "you need to first install the pyinstaller python package.",
@@ -110,6 +111,13 @@ class StackExporter(object):
 
     def Export(self):
         filepath = self.GetOutputPath()
+        if getattr(sys, 'frozen', False):
+            # We're running in a bundle
+            self.ExportFromBundle(filepath)
+        else:
+            self.ExportUsingPyInstaller(filepath)
+
+    def ExportUsingPyInstaller(self, filepath):
         if filepath:
             filename = os.path.basename(filepath)
 
@@ -123,7 +131,7 @@ class StackExporter(object):
 
             # Copy stack
             tmpStack = os.path.join(tmp, 'stack.cds')
-            copyfile(self.stackManager.filename, tmpStack)
+            shutil.copyfile(self.stackManager.filename, tmpStack)
 
             # Create ResourceMap.json
             self.BuildResMap()
@@ -157,7 +165,7 @@ class StackExporter(object):
             elif wx.Platform == "__WXMSW__":
                 if canSave:
                     os.mkdir(filepath)
-                    copyfile(tmpStack, os.path.join(filepath, "stack.cds"))
+                    shutil.copyfile(tmpStack, os.path.join(filepath, "stack.cds"))
                     distpath = filepath
                 else:
                     distpath = os.path.dirname(filepath)
@@ -170,7 +178,7 @@ class StackExporter(object):
             else:
                 if canSave:
                     os.mkdir(filepath)
-                    copyfile(tmpStack, os.path.join(filepath, "stack.cds"))
+                    shutil.copyfile(tmpStack, os.path.join(filepath, "stack.cds"))
                     distpath = filepath
                 else:
                     distpath = os.path.dirname(filepath)
@@ -187,7 +195,7 @@ class StackExporter(object):
             for (origPath, newPath) in self.resMap.items():
                 absPath = os.path.join(stackDir, origPath)
                 tmpPath = os.path.join(tmp, newPath)
-                copyfile(absPath, tmpPath)
+                shutil.copyfile(absPath, tmpPath)
                 args.extend(["--add-data", f"{tmpPath}{sep}."])
 
             print("Run: pyinstaller " + " ".join(args))
@@ -197,9 +205,35 @@ class StackExporter(object):
                 try:
                     os.remove(filepath) # remove the actual chosen path, keep the .app
                 except (IsADirectoryError, PermissionError) as e:
-                    rmtree(filepath)
+                    shutil.rmtree(filepath)
 
-            rmtree(tmp)
+            shutil.rmtree(tmp)
+            print("Export finished.")
+
+    def ExportFromBundle(self, filepath):
+        bundle_dir = sys._MEIPASS
+        if wx.Platform == "__WXMAC__":
+            standaloneDir = os.path.join(bundle_dir, "../Resources")
+            standalonePath = os.path.join(standaloneDir, "standalone.app")
+            appPath = filepath + ".app"
+            shutil.copytree(standalonePath, appPath)
+            shutil.copyfile(self.stackManager.filename, appPath + "/Contents/MacOS/stack.cds")
+            print("Export finished.")
+        elif wx.Platform == "__WXMSW__":
+            standalonePath = os.path.join(bundle_dir, "standalone.exe")
+            exeName = os.path.basename(filepath) + ".exe"
+            appPath = os.path.join(filepath, exeName)
+            os.mkdir(filepath)
+            shutil.copytree(standalonePath, appPath)
+            shutil.copyfile(self.stackManager.filename, os.path.join(filepath, "stack.cds"))
+            print("Export finished.")
+        else:
+            standalonePath = os.path.join(bundle_dir, "standalone")
+            exeName = os.path.basename(filepath)
+            appPath = os.path.join(filepath, exeName)
+            os.mkdir(filepath)
+            shutil.copytree(standalonePath, appPath)
+            shutil.copyfile(self.stackManager.filename, os.path.join(filepath, "stack.cds"))
             print("Export finished.")
 
 

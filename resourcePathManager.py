@@ -33,13 +33,13 @@ class ResourcePathManager(object):
         if self.stackManager.filename:
             if getattr(sys, 'frozen', False):
                 # we are running in a bundle
-                dir = sys._MEIPASS
+                base_dir = sys._MEIPASS
             else:
-                dir = os.path.dirname(self.stackManager.filename)
+                base_dir = os.path.dirname(self.stackManager.filename)
         else:
-            dir = os.getcwd()
+            base_dir = os.getcwd()
 
-        absPath = os.path.join(dir, path)
+        absPath = os.path.join(base_dir, path)
         self.pathCache[path] = absPath
         return absPath
 

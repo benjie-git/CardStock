@@ -125,8 +125,8 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "clear.Click()\n\npoints = []\nhome()\n\nexec(code.text)\n\ncard.AddLine(points, \"output\")\noutput.penThickness = 1",
-            "OnSetup": "import math\nhomePos = None\npoints = []\npos = None\nrot = None\n\ndef fd(dist):\n   global pos\n   global rot\n   global points\n   pos = [pos[0]+math.cos(math.radians(rot))*dist,\n         pos[1]+math.sin(math.radians(rot))*dist]\n   points.append(pos.copy())\n\ndef bk(dist):\n   fd(-dist)\n\ndef home():\n   global pos\n   global rot\n   pos = [code.size.width + (card.size.width - code.size.width)/2,\n         card.size.height/2]\n   rot = 0\n   points.append(pos.copy())\n\ndef rt(angle):\n   global rot\n   rot = (rot + angle) % 360\n\ndef lt(angle):\n   rt(-angle)\n\n"
+            "OnClick": "run_logo(code.text)",
+            "OnSetup": "import math\nhomePos = None\npoints = []\npos = None\nrot = None\n\ndef fd(dist):\n   global pos\n   global rot\n   global points\n   pos = [pos[0]+math.cos(math.radians(rot))*dist,\n         pos[1]+math.sin(math.radians(rot))*dist]\n   points.append(pos.copy())\n\ndef bk(dist):\n   fd(-dist)\n\ndef home():\n   global pos\n   global rot\n   pos = [code.size.width + (card.size.width - code.size.width)/2,\n         card.size.height/2]\n   rot = 0\n   points.append(pos.copy())\n\ndef rt(angle):\n   global rot\n   rot = (rot + angle) % 360\n\ndef lt(angle):\n   rt(-angle)\n\ndef run_logo(text):\n   global points\n   \n   clear.Click()\n   points = []\n   home()\n\n   exec(text)\n\n   newLine = card.AddLine(points, \"output\")\n   newLine.penThickness = 1\n"
           },
           "properties": {
             "name": "run",
@@ -278,26 +278,6 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "clear.Click()\n\npoints = []\nhome()\n\nexec(code.text)\n\ncard.AddLine(points, \"output\")\noutput.penThickness = 1",
-            "OnSetup": "import math\nhomePos = None\npoints = []\npos = None\nrot = None\n\ndef fd(dist):\n   global pos\n   global rot\n   global points\n   pos = [pos[0]+math.cos(math.radians(rot))*dist,\n         pos[1]+math.sin(math.radians(rot))*dist]\n   points.append(pos.copy())\n\ndef bk(dist):\n   fd(-dist)\n\ndef home():\n   global pos\n   global rot\n   pos = [code.size.width + (card.size.width - code.size.width)/2,\n         card.size.height/2]\n   rot = 0\n   points.append(pos.copy())\n\ndef rt(angle):\n   global rot\n   rot = (rot + angle) % 360\n\ndef lt(angle):\n   rt(-angle)\n\n"
-          },
-          "properties": {
-            "name": "run",
-            "size": [
-              60,
-              21
-            ],
-            "position": [
-              190.0,
-              32.0
-            ],
-            "title": "Run",
-            "border": true
-          }
-        },
-        {
-          "type": "button",
-          "handlers": {
             "OnClick": "for obj in card.children:\n   if obj.name.startswith(\"output\"):\n      obj.Delete()\n"
           },
           "properties": {
@@ -311,6 +291,26 @@
               31.0
             ],
             "title": "Clear",
+            "border": true
+          }
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "run_logo(code.text)",
+            "OnSetup": "import math\nhomePos = None\npoints = []\npos = None\nrot = None\n\ndef fd(dist):\n   global pos\n   global rot\n   global points\n   pos = [pos[0]+math.cos(math.radians(rot))*dist,\n         pos[1]+math.sin(math.radians(rot))*dist]\n   points.append(pos.copy())\n\ndef bk(dist):\n   fd(-dist)\n\ndef home():\n   global pos\n   global rot\n   pos = [code.size.width + (card.size.width - code.size.width)/2,\n         card.size.height/2]\n   rot = 0\n   points.append(pos.copy())\n\ndef rt(angle):\n   global rot\n   rot = (rot + angle) % 360\n\ndef lt(angle):\n   rt(-angle)\n\ndef run_logo(text):\n   global points\n   \n   clear.Click()\n   points = []\n   home()\n\n   exec(text)\n\n   newLine = card.AddLine(points, \"output\")\n   newLine.penThickness = 1\n"
+          },
+          "properties": {
+            "name": "run",
+            "size": [
+              60,
+              21
+            ],
+            "position": [
+              190.0,
+              32.0
+            ],
+            "title": "Run",
             "border": true
           }
         }
@@ -431,26 +431,6 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "clear.Click()\n\npoints = []\nhome()\n\nexec(code.text)\n\ncard.AddLine(points, \"output\")\noutput.penThickness = 1",
-            "OnSetup": "import math\nhomePos = None\npoints = []\npos = None\nrot = None\n\ndef fd(dist):\n   global pos\n   global rot\n   global points\n   pos = [pos[0]+math.cos(math.radians(rot))*dist,\n         pos[1]+math.sin(math.radians(rot))*dist]\n   points.append(pos.copy())\n\ndef bk(dist):\n   fd(-dist)\n\ndef home():\n   global pos\n   global rot\n   pos = [code.size.width + (card.size.width - code.size.width)/2,\n         card.size.height/2]\n   rot = 0\n   points.append(pos.copy())\n\ndef rt(angle):\n   global rot\n   rot = (rot + angle) % 360\n\ndef lt(angle):\n   rt(-angle)\n\n"
-          },
-          "properties": {
-            "name": "run",
-            "size": [
-              60,
-              21
-            ],
-            "position": [
-              190.0,
-              32.0
-            ],
-            "title": "Run",
-            "border": true
-          }
-        },
-        {
-          "type": "button",
-          "handlers": {
             "OnClick": "for obj in card.children:\n   if obj.name.startswith(\"output\"):\n      obj.Delete()\n"
           },
           "properties": {
@@ -464,6 +444,26 @@
               31.0
             ],
             "title": "Clear",
+            "border": true
+          }
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "run_logo(code.text)",
+            "OnSetup": "import math\nhomePos = None\npoints = []\npos = None\nrot = None\n\ndef fd(dist):\n   global pos\n   global rot\n   global points\n   pos = [pos[0]+math.cos(math.radians(rot))*dist,\n         pos[1]+math.sin(math.radians(rot))*dist]\n   points.append(pos.copy())\n\ndef bk(dist):\n   fd(-dist)\n\ndef home():\n   global pos\n   global rot\n   pos = [code.size.width + (card.size.width - code.size.width)/2,\n         card.size.height/2]\n   rot = 0\n   points.append(pos.copy())\n\ndef rt(angle):\n   global rot\n   rot = (rot + angle) % 360\n\ndef lt(angle):\n   rt(-angle)\n\ndef run_logo(text):\n   global points\n   \n   clear.Click()\n   points = []\n   home()\n\n   exec(text)\n\n   newLine = card.AddLine(points, \"output\")\n   newLine.penThickness = 1\n"
+          },
+          "properties": {
+            "name": "run",
+            "size": [
+              60,
+              21
+            ],
+            "position": [
+              190.0,
+              32.0
+            ],
+            "title": "Run",
             "border": true
           }
         }
