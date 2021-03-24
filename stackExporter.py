@@ -224,7 +224,7 @@ class StackExporter(object):
             exeName = os.path.basename(filepath) + ".exe"
             appPath = os.path.join(filepath, exeName)
             os.mkdir(filepath)
-            shutil.copytree(standalonePath, appPath)
+            shutil.copyfile(standalonePath, appPath)
             shutil.copyfile(self.stackManager.filename, os.path.join(filepath, "stack.cds"))
             print("Export finished.")
         else:
@@ -232,7 +232,7 @@ class StackExporter(object):
             exeName = os.path.basename(filepath)
             appPath = os.path.join(filepath, exeName)
             os.mkdir(filepath)
-            shutil.copytree(standalonePath, appPath)
+            shutil.copyfile(standalonePath, appPath)
             shutil.copyfile(self.stackManager.filename, os.path.join(filepath, "stack.cds"))
             print("Export finished.")
 
