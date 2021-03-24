@@ -275,7 +275,7 @@ class ExportDialog(wx.Dialog):
                        "buttons below, and when the list is complete, " \
                        "click the \"Export\" button to Export these files along with this stack."
 
-        label = AutoWrapStaticText(self.panel, label=labelStr)
+        label = wx.StaticText(self.panel, label=labelStr)
 
         self.listBox = wx.ListBox(self.panel, choices=self.items)
 
@@ -284,6 +284,12 @@ class ExportDialog(wx.Dialog):
         sizer.Add(self.listBox, 1, wx.EXPAND|wx.ALL, spacing)
         sizer.Add(buttonSizer, 0, wx.EXPAND|wx.ALL, spacing)
         self.panel.SetSizerAndFit(sizer)
+        sizer.Layout()
+
+        label.Wrap(self.GetClientSize().width-spacing*2)
+        sizes = wx.MemoryDC().GetFullMultiLineTextExtent(label.GetLabelText(), label.GetFont())
+        label.SetSize(wx.Size(label.GetSize().Width, sizes[1]))
+        sizer.Layout()
 
     def OnAdd(self, event):
         dlg = wx.FileDialog(self.exporter.stackManager.designer, "Add Resource File(s)", os.getcwd(),
@@ -312,46 +318,3 @@ class ExportDialog(wx.Dialog):
         self.exporter.Export()
         self.exporter = None
         self.Close()
-
-
-class AutoWrapStaticText(wx.Control):
-    def __init__(self, parent, id=-1, label="",
-                 pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=0):
-        super().__init__(parent=parent, id=id, pos=pos, size=size, style=wx.NO_BORDER)
-        self.st = wx.StaticText(self, label=label, style=style)
-        self._label = label  # save the unwrapped text
-        self._Rewrap()
-        self.Bind(wx.EVT_SIZE, self.OnSize)
-
-    def SetLabel(self, label):
-        self._label = label
-        self._Rewrap()
-
-    def GetLabel(self):
-        return self._label
-
-    def SetFont(self, font):
-        self.st.SetFont(font)
-        self._Rewrap()
-
-    def GetFont(self):
-        return self.st.GetFont()
-
-    def OnSize(self, evt):
-        self.st.SetSize(self.GetSize())
-        self._Rewrap()
-
-    def _Rewrap(self):
-        self.st.Freeze()
-        self.st.SetLabel(self._label)
-        self.st.Wrap(self.GetSize().width)
-        self.st.Thaw()
-
-    def DoGetBestSize(self):
-        # this should return something meaningful for what the best
-        # size of the widget is, but what that size should be while we
-        # still don't know the actual width is still an open
-        # question...  Just return a dummy value for now.
-        return wx.Size(100, 100)
-
