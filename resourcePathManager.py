@@ -31,8 +31,8 @@ class ResourcePathManager(object):
             return self.pathCache[path]
 
         if self.stackManager.filename:
-            if getattr(sys, 'frozen', False):
-                # we are running in a bundle
+            if self.pathMap:
+                # we are running in a standalone app bundle
                 base_dir = sys._MEIPASS
             else:
                 base_dir = os.path.dirname(self.stackManager.filename)
