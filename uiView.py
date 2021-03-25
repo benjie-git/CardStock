@@ -758,6 +758,21 @@ class ViewProxy(object):
     def eventHandlers(self):
         return self._model.handlers
 
+    def IsTouchingPoint(self, point):
+        if not isinstance(point, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
+            raise TypeError("point needs to be a point or a list of two numbers")
+        if len(point) != 2:
+            raise TypeError("point needs to be a point or a list of two numbers")
+        try:
+            int(point[0]), int(point[1])
+        except:
+            raise ValueError("point needs to be a point or a list of two numbers")
+
+        sreg = self._model.stackManager.GetUiViewByModel(self._model).GetHitRegion()
+        sreg = wx.Region(sreg)
+        sreg.Offset(*self._model.GetProperty("position"))
+        return sreg.Contains(wx.Point(point)) == wx.InRegion
+
     def IsTouching(self, obj):
         if not isinstance(obj, ViewProxy):
             raise TypeError("obj must be a CardStock object")

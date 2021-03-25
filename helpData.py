@@ -428,6 +428,10 @@ class HelpDataObject():
                        "return": "bool",
                        "info": "Returns <b>True</b> if this object is touching the <b>other</b> object passed into "
                                "this function, otherwise returns <b>False</b>."},
+        "IsTouchingPoint": {"args": {"point": {"type": "point", "info": "Checks whether this point is inside the object."}},
+                       "return": "bool",
+                       "info": "Returns <b>True</b> if this object is touching the <b>point</b> passed into "
+                               "this function, otherwise returns <b>False</b>."},
         "IsTouchingEdge": {"args": {"other": {"type": "object", "info":"The other object to compare to this one"}},
                            "return": "string",
                            "info": "Returns <b>None</b> if this object is not touching any edges of the <b>other</b> "
