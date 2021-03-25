@@ -405,7 +405,9 @@ class ControlPanel(wx.Panel):
                 self.lastCursorSel = newCursorSel
 
     def CodeEditorFocused(self, event):
-        helpText = HelpData.GetHandlerHelp(self.lastSelectedUiView, self.currentHandler)
+        helpText = None
+        if self.lastSelectedUiView:
+            helpText = HelpData.GetHandlerHelp(self.lastSelectedUiView, self.currentHandler)
         self.UpdateHelpText(helpText)
         event.Skip()
 
