@@ -79,7 +79,8 @@ class Runner():
         # Setup clientVars with the current card's view names as variables
         self.clientVars["card"] = cardModel.GetProxy()
         for k in self.cardVarKeys.copy():
-            self.clientVars.pop(k)
+            if k in self.clientVars:
+                self.clientVars.pop(k)
             self.cardVarKeys.remove(k)
         for m in cardModel.GetAllChildModels():
             name = m.GetProperty("name")

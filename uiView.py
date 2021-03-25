@@ -300,7 +300,7 @@ class ViewModel(object):
         data = self.GetData()
         newModel = generator.StackGenerator.ModelFromData(self.stackManager, data)
         if newModel.type != "card":
-            newModel.SetProperty("name", self.stackManager.uiCard.model.DeduplicateNameInCard(newModel.GetProperty("name")))
+            self.stackManager.uiCard.model.DeduplicateNamesForModels([newModel])
         else:
             newModel.SetProperty("name", newModel.DeduplicateName("card_1",
                                                                   [m.GetProperty("name") for m in self.stackManager.stackModel.childModels]))
@@ -462,6 +462,10 @@ class ViewModel(object):
 
     def GetCard(self):
         if self.type == 'stack':
+            return None
+        if self.type == "card":
+            return self
+        if not self.parent:
             return None
 
         m = self

@@ -166,11 +166,11 @@ class RemoveUiViewsCommand(Command):
             self.stackManager.LoadCardAtIndex(self.cardIndex)
         else:
             self.stackManager.LoadCardAtIndex(self.cardIndex)
-            i = len(self.modelIndexes)-1
+            i = len(self.stackManager.uiCard.model.childModels)-1
             models = self.viewModels.copy()
             models.reverse()
             for m in models:
-                self.stackManager.uiCard.model.childModels.insert(i, m)
+                self.stackManager.uiCard.model.InsertChild(m, i)
                 i -= 1
             self.stackManager.LoadCardAtIndex(self.cardIndex, True)
             self.stackManager.SelectUiView(None)

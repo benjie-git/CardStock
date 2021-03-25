@@ -168,16 +168,23 @@ class CardModel(ViewModel):
     def SetData(self, data):
         super().SetData(data)
         for childData in data["childModels"]:
-            self.childModels.append(generator.StackGenerator.ModelFromData(self.stackManager, childData))
+            m = generator.StackGenerator.ModelFromData(self.stackManager, childData)
+            m.parent = self
+            self.childModels.append(m)
 
     def AddChild(self, model):
-        self.childModels.append(model)
+        self.InsertChild(model, -1)
+
+    def InsertChild(self, model, index):
+        self.childModels.insert(index, model)
+        model.parent = self
         self.isDirty = True
         if self.stackManager.runner and self.stackManager.uiCard.model == self:
             self.stackManager.runner.SetupForCard(self)
 
     def RemoveChild(self, model):
         self.childModels.remove(model)
+        model.parent = None
         self.isDirty = True
         if self.stackManager.runner and self.stackManager.uiCard.model == self:
             self.stackManager.runner.SetupForCard(self)
@@ -186,7 +193,7 @@ class CardModel(ViewModel):
         if not isinstance(name, str):
             raise TypeError("name is not a string")
         model = generator.StackGenerator.ModelFromType(self.stackManager, typeStr)
-        model.SetProperty("name", self.DeduplicateNameInCard(name))
+        self.DeduplicateNamesForModels([model])
         if size:
             model.SetProperty("size", size)
         if isinstance(model, uiShape.LineModel):
@@ -232,6 +239,22 @@ class CardModel(ViewModel):
         if exclude is None: exclude = []
         names = self.GetDedupNameList(exclude)
         return super().GetNextAvailableName(name, names)
+
+    def DeduplicateNamesForModels(self, models):
+        usedNames = []
+
+        def dedup(obj):
+            c = obj.GetCard()
+            if not c or c != self:
+                newName = self.DeduplicateNameInCard(obj.GetProperty("name"), None, usedNames)
+                obj.SetProperty("name", newName)
+                usedNames.append(newName)
+                for m in obj.childModels:
+                    dedup(m)
+
+        for m in models:
+            dedup(m)
+
 
 
 class Card(ViewProxy):

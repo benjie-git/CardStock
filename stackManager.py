@@ -235,11 +235,7 @@ class StackManager(object):
                             command = AddNewUiViewCommand(True, "Paste Card", self, self.cardIndex + 1, "card", models[0])
                             self.command_processor.Submit(command, storeIt=canUndo)
                         else:
-                            names = []
-                            for model in models:
-                                model.SetProperty("name",
-                                                  self.uiCard.model.DeduplicateNameInCard(model.GetProperty("name"), None, names))
-                                names.append(model.GetProperty("name"))
+                            self.uiCard.model.DeduplicateNamesForModels(models)
                             command = AddUiViewsCommand(True, 'Add Views', self, self.cardIndex, models)
                             self.command_processor.Submit(command, storeIt=canUndo)
                 wx.TheClipboard.Close()
@@ -327,7 +323,6 @@ class StackManager(object):
                 uiView.model.SetProperty("position", uiView.view.GetPosition())
                 uiView.model.SetProperty("size", uiView.view.GetSize())
             self.uiViews.append(uiView)
-            uiView.model.parent = self.uiCard.model
 
             if uiView.model not in self.uiCard.model.childModels:
                 self.uiCard.model.AddChild(uiView.model)
@@ -338,10 +333,7 @@ class StackManager(object):
         return uiView
 
     def AddUiViewsFromModels(self, models, canUndo=True):
-        for model in models:
-            if not model in self.uiCard.model.childModels:
-                model.SetProperty("name", self.uiCard.model.DeduplicateNameInCard(model.GetProperty("name")))
-
+        self.uiCard.model.DeduplicateNamesForModels(models)
         command = AddUiViewsCommand(True, 'Add Views', self, self.cardIndex, models)
 
         if canUndo:
@@ -416,7 +408,6 @@ class StackManager(object):
             if ui.model == viewModel:
                 if ui in self.selectedViews:
                     self.SelectUiView(ui, True)
-                ui.model.parent = None
                 if ui.model.type == "group":
                     ui.RemoveChildViews()
                 self.uiViews.remove(ui)
