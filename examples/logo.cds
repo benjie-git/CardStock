@@ -35,7 +35,7 @@
               0.0,
               56.0
             ],
-            "text": "for _ in range(4):\n  for _ in range(4):\n    fd(100)\n    rt(90)\n",
+            "text": "for _ in range(4):\n  fd(100)\n  rt(90)\n",
             "alignment": "Left",
             "textColor": "black",
             "font": "Mono",
@@ -774,5 +774,5 @@
     }
   ],
   "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.8.7"
+  "CardStock_stack_version": "0.8.8.1"
 }

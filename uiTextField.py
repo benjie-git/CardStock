@@ -13,7 +13,7 @@ class UiTextField(UiTextBase):
     def __init__(self, parent, stackManager, model=None):
         if not model:
             model = TextFieldModel(stackManager)
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("field_"), False)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("field"), False)
 
         self.stackManager = stackManager
         self.isInlineEditing = False

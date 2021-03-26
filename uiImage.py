@@ -16,7 +16,7 @@ class UiImage(UiView):
     def __init__(self, parent, stackManager, model=None):
         if not model:
             model = ImageModel(stackManager)
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("image_"), False)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("image"), False)
 
         super().__init__(parent, stackManager, model, None)
         self.rotatedBitmap = None

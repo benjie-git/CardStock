@@ -13,7 +13,7 @@ class UiShape(UiView):
     def __init__(self, parent, stackManager, shapeType, model=None):
         if not model:
             model = self.CreateModelForType(stackManager, shapeType)
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("shape_"), False)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("shape"), False)
 
         super().__init__(parent, stackManager, model, None)
 

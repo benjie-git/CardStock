@@ -14,7 +14,7 @@ class UiCard(UiView):
 
     def __init__(self, parent, stackManager, model):
         if not model.GetProperty("name"):
-            model.SetProperty("name", model.GetNextAvailableNameInCard("card_"), False)
+            model.SetProperty("name", model.GetNextAvailableNameInCard("card"), False)
 
         super().__init__(parent, stackManager, model, stackManager.view)
         self.stackManager.stackModel.SetProperty("size", self.view.GetSize(), False)
@@ -193,6 +193,7 @@ class CardModel(ViewModel):
         if not isinstance(name, str):
             raise TypeError("name is not a string")
         model = generator.StackGenerator.ModelFromType(self.stackManager, typeStr)
+        model.SetProperty("name", name)
         self.DeduplicateNamesForModels([model])
         if size:
             model.SetProperty("size", size)

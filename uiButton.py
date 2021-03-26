@@ -13,7 +13,7 @@ class UiButton(UiView):
     def __init__(self, parent, stackManager, model=None):
         if not model:
             model = ButtonModel(stackManager)
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("button_"), False)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("button"), False)
 
         self.stackManager = stackManager
         self.button = self.CreateButton(stackManager, model)

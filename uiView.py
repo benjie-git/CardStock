@@ -587,14 +587,14 @@ class ViewModel(object):
     def DeduplicateName(self, name, existingNames):
         existingNames.extend(self.reservedNames) # disallow globals
         if name in existingNames:
-            name = name.rstrip("0123456789")
-            if name[-1:] != "_":
-                name = name + "_"
+            name = name.rstrip("0123456789_")
             name = self.GetNextAvailableName(name, existingNames)
         return name
 
     def GetNextAvailableName(self, base, existingNames):
         i = 0
+        if base[-1] != "_":
+            base += "_"
         while True:
             i += 1
             name = base+str(i)

@@ -274,7 +274,7 @@ class StackManager(object):
             if not group:
                 group = GroupModel(self)
                 if not name:
-                    name = "group_"
+                    name = "group"
                 group.SetProperty("name", card.GetNextAvailableNameInCard(name), False)
             validModels = []
             for m in models:

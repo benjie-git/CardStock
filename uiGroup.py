@@ -12,7 +12,7 @@ class UiGroup(UiView):
 
     def __init__(self, parent, stackManager, model):
         if not model.GetProperty("name"):
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("group_"), False)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("group"), False)
 
         self.uiViews = []
 
