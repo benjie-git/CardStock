@@ -39,6 +39,7 @@ ________
 ## Known Issues
 * Native views, like buttons and text fields, always remain in front of shapes and images, which get drawn directly on the card view.
 * Visual selection indicators (the blue dotted outlines) are drawn behind native views, and so can hide behind overlapping native views.
+* Stacks can only import additional modules, and export stacks that include them, when running from source.  Not when running from the prebuilt applications.
 
 ## Requirements
 The prebuilt applications for Mac and Windows have no external dependencies.
