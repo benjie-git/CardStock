@@ -66,7 +66,7 @@ class StackExporter(object):
                     re.compile(r'\s*SoundPlay\("([^"]+)"\)', re.MULTILINE),
                     re.compile(r"\w\.file\s*=\s*'([^']+)'", re.MULTILINE),
                     re.compile(r'\w\.file\s*=\s*"([^"]+)"', re.MULTILINE)]
-        self.ScanObjTree(self.stackManager.stackModel, patterns, self.resList)
+        self.ScanObjTree(self.stackManager.stackModel, [["image", "file"]], patterns, self.resList)
 
     def GatherModules(self):
         self.moduleList = set()
@@ -75,13 +75,16 @@ class StackExporter(object):
         # Look in all handlers for imports
         patterns = [re.compile(r"^\s*import\s+(\w+)", re.MULTILINE),
                     re.compile(r"^\s*from\s+(\w+)\s+import\s+\w+", re.MULTILINE)]
-        self.ScanObjTree(self.stackManager.stackModel, patterns, self.moduleList)
+        self.ScanObjTree(self.stackManager.stackModel, [], patterns, self.moduleList)
+        print("ModuleList: " + str(self.moduleList))
 
-    def ScanObjTree(self, obj, patterns, outputSet):
-        if obj.type == "image":
-            path = obj.GetProperty("file")
-            if path:
-                outputSet.add(path)
+    def ScanObjTree(self, obj, props, patterns, outputSet):
+        for pList in props:
+            (t, p) = pList
+            if obj.type == t:
+                path = obj.GetProperty(p)
+                if path:
+                    outputSet.add(path)
 
         for (k, v) in obj.handlers.items():
             for p in patterns:
@@ -89,7 +92,7 @@ class StackExporter(object):
                     outputSet.add(match)
 
         for child in obj.childModels:
-            self.ScanObjTree(child, patterns, outputSet)
+            self.ScanObjTree(child, props, patterns, outputSet)
 
     def ConfirmResources(self):
         self.exportDlg = ExportDialog(self.stackManager.designer, self)
