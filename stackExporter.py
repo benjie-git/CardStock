@@ -24,6 +24,7 @@ class StackExporter(object):
         super().__init__()
         self.resList = None
         self.resMap = None
+        self.moduleList = None
         self.exportDlg = None
         self.stackManager = stackManager
 
@@ -47,6 +48,7 @@ class StackExporter(object):
                 doSave()
 
         self.GatherResources()
+        self.GatherModules()
         self.ConfirmResources()
 
     def GatherResources(self):
@@ -57,28 +59,37 @@ class StackExporter(object):
         for path in paths:
             self.resList.add(path)
 
-        # Add paths found by simple static analysis
+        # Add paths found by simple static analysis:
         # Look for any image objects with a file property
         # Look in all handlers for SoundPlay("<path>"), *.file = "<path>"
-        patterns = [re.compile(r"\SoundPlay\('([^']+)'\)"),
-                    re.compile(r'\SoundPlay\("([^"]+)"\)'),
-                    re.compile(r"\w\.file\s*=\s*'([^']+)'"),
-                    re.compile(r'\w\.file\s*=\s*"([^"]+)"')]
-        self.ScanObjTree(self.stackManager.stackModel, patterns)
+        patterns = [re.compile(r"\s*SoundPlay\('([^']+)'\)", re.MULTILINE),
+                    re.compile(r'\s*SoundPlay\("([^"]+)"\)', re.MULTILINE),
+                    re.compile(r"\w\.file\s*=\s*'([^']+)'", re.MULTILINE),
+                    re.compile(r'\w\.file\s*=\s*"([^"]+)"', re.MULTILINE)]
+        self.ScanObjTree(self.stackManager.stackModel, patterns, self.resList)
 
-    def ScanObjTree(self, obj, patterns):
+    def GatherModules(self):
+        self.moduleList = set()
+
+        # Add modules found by simple static analysis:
+        # Look in all handlers for imports
+        patterns = [re.compile(r"^\s*import\s+(\w+)", re.MULTILINE),
+                    re.compile(r"^\s*from\s+(\w+)\s+import\s+\w+", re.MULTILINE)]
+        self.ScanObjTree(self.stackManager.stackModel, patterns, self.moduleList)
+
+    def ScanObjTree(self, obj, patterns, outputSet):
         if obj.type == "image":
             path = obj.GetProperty("file")
             if path:
-                self.resList.add(path)
+                outputSet.add(path)
 
         for (k, v) in obj.handlers.items():
             for p in patterns:
                 for match in p.findall(v):
-                    self.resList.add(match)
+                    outputSet.add(match)
 
         for child in obj.childModels:
-            self.ScanObjTree(child, patterns)
+            self.ScanObjTree(child, patterns, outputSet)
 
     def ConfirmResources(self):
         self.exportDlg = ExportDialog(self.stackManager.designer, self)
@@ -198,6 +209,10 @@ class StackExporter(object):
                 shutil.copyfile(absPath, tmpPath)
                 args.extend(["--add-data", f"{tmpPath}{sep}."])
 
+            for mod in self.moduleList:
+                print("Found Extra Module " + mod)
+                args.extend(["--hidden-import", mod])
+
             print("Run: pyinstaller " + " ".join(args))
             PyInstaller.__main__.run(args)
 
@@ -274,6 +289,9 @@ class ExportDialog(wx.Dialog):
                        "all of the images and sounds that it can.  Or you can add or remove files here by using the " \
                        "buttons below, and when the list is complete, " \
                        "click the \"Export\" button to Export these files along with this stack."
+
+        if len(exporter.moduleList) > 0:
+            labelStr += "\n\nFound additional python modules: " + ", ".join(exporter.moduleList)
 
         label = wx.StaticText(self.panel, label=labelStr)
 
