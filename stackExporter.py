@@ -76,7 +76,6 @@ class StackExporter(object):
         patterns = [re.compile(r"^\s*import\s+(\w+)", re.MULTILINE),
                     re.compile(r"^\s*from\s+(\w+)\s+import\s+\w+", re.MULTILINE)]
         self.ScanObjTree(self.stackManager.stackModel, [], patterns, self.moduleList)
-        print("ModuleList: " + str(self.moduleList))
 
     def ScanObjTree(self, obj, props, patterns, outputSet):
         for pList in props:
@@ -213,7 +212,6 @@ class StackExporter(object):
                 args.extend(["--add-data", f"{tmpPath}{sep}."])
 
             for mod in self.moduleList:
-                print("Found Extra Module " + mod)
                 args.extend(["--hidden-import", mod])
 
             print("Run: pyinstaller " + " ".join(args))
