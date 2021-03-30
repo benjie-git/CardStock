@@ -292,7 +292,7 @@ class ExportDialog(wx.Dialog):
                        "click the \"Export\" button to Export these files along with this stack."
 
         if len(exporter.moduleList) > 0:
-            labelStr += "\n\nFound additional python modules: " + ", ".join(exporter.moduleList)
+            labelStr += "\n\nFound imports for python modules: " + ", ".join(exporter.moduleList)
 
         label = wx.StaticText(self.panel, label=labelStr)
 
