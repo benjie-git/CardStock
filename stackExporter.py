@@ -62,10 +62,10 @@ class StackExporter(object):
         # Add paths found by simple static analysis:
         # Look for any image objects with a file property
         # Look in all handlers for SoundPlay("<path>"), *.file = "<path>"
-        patterns = [re.compile(r"\s*SoundPlay\('([^']+)'\)", re.MULTILINE),
-                    re.compile(r'\s*SoundPlay\("([^"]+)"\)', re.MULTILINE),
-                    re.compile(r"\w\.file\s*=\s*'([^']+)'", re.MULTILINE),
-                    re.compile(r'\w\.file\s*=\s*"([^"]+)"', re.MULTILINE)]
+        patterns = [[re.compile(r"\s*SoundPlay\('([^']+)'\)", re.MULTILINE)],
+                    [re.compile(r'\s*SoundPlay\("([^"]+)"\)', re.MULTILINE)],
+                    [re.compile(r"\w\.file\s*=\s*'([^']+)'", re.MULTILINE)],
+                    [re.compile(r'\w\.file\s*=\s*"([^"]+)"', re.MULTILINE)]]
         self.ScanObjTree(self.stackManager.stackModel, [["image", "file"]], patterns, self.resList)
 
     def GatherModules(self):
@@ -73,8 +73,9 @@ class StackExporter(object):
 
         # Add modules found by simple static analysis:
         # Look in all handlers for imports
-        patterns = [re.compile(r"^\s*import\s+(\w+)", re.MULTILINE),
-                    re.compile(r"^\s*from\s+(\w+)\s+import\s+\w+", re.MULTILINE)]
+        patterns = [[re.compile(r"^\s*import\s+([^\s,]+(?:[^\S\r\n,]*,[^\S\r\n,]*[^\s,]+)*)", re.MULTILINE),
+                     re.compile(r"[\s,]*([^\s,]+)[\s,]*")],
+                    [re.compile(r"^[^\S\r\n]*from[^\S\r\n]+([^\s,]+)[^\S\r\n]+import\s", re.MULTILINE)]]
         self.ScanObjTree(self.stackManager.stackModel, [], patterns, self.moduleList)
 
     def ScanObjTree(self, obj, props, patterns, outputSet):
@@ -85,10 +86,18 @@ class StackExporter(object):
                 if path:
                     outputSet.add(path)
 
-        for (k, v) in obj.handlers.items():
-            for p in patterns:
-                for match in p.findall(v):
+        def runPatterns(l, s):
+            if len(l) == 0 or len(s) == 0:
+                return
+            for match in l[0].findall(s):
+                if len(l) > 1:
+                    runPatterns(l[1:], match)
+                else:
                     outputSet.add(match)
+
+        for (k, v) in obj.handlers.items():
+            for pList in patterns:
+                runPatterns(pList, v)
 
         for child in obj.childModels:
             self.ScanObjTree(child, props, patterns, outputSet)

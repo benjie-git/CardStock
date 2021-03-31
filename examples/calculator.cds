@@ -13,7 +13,8 @@
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "shouldReplaceText = False\nop = \"\""
+        "OnSetup": "shouldReplaceText = False\nop = \"\"",
+        "OnShowCard": "f.Focus()"
       },
       "properties": {
         "name": "card_1",
@@ -22,7 +23,9 @@
       "childModels": [
         {
           "type": "textfield",
-          "handlers": {},
+          "handlers": {
+            "OnTextEnter": "button_eq.Click()"
+          },
           "properties": {
             "name": "f",
             "size": [
@@ -105,7 +108,7 @@
             "OnClick": "newVal = float(f.text)\n\nif op==\"+\":\n  ans = oldVal+newVal\nelif op==\"-\":\n  ans = oldVal-newVal\nelif op==\"*\":\n  ans = oldVal*newVal\nelif op==\"/\":\n  ans = oldVal/newVal\nelse:\n   ans = 0\n   \noldVal = newVal\n\nf.text = ans\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\n"
           },
           "properties": {
-            "name": "button_4",
+            "name": "button_eq",
             "size": [
               110,
               30
@@ -331,5 +334,5 @@
     }
   ],
   "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.7"
+  "CardStock_stack_version": "0.8.8.3"
 }
