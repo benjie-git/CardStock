@@ -169,7 +169,11 @@ in the File menu.  Then just close your running stack window to return to the De
 
 <br/><br/>
 
-<h2>Tools</h2>
+<h2>Other Features</h2>
+
+<p>If your stack makes any print() calls, or otherwise causes any text to get written out to the console (to stdout or 
+stderr), this will appear in the Viewer application's Output window, which will appear on the first non-error text 
+written out.<p>
 
 <p>If any errors come up while running your stack, you will see them in the status bar at the bottom the running stack's
 window.  Any errors will also appear after your return to the Designer, in the red-colored Error List window that will
@@ -178,7 +182,7 @@ editor.</p>
 
 <p>If you want to look at all of your code at once, instead of only at one object's code for one event at a time,
 you can open the All Code window from the Help menu.  Clicking a line in the All Code editor will also take you to that
-line of the right object's event code in the code editor.</p>
+line of that object's event code in the code editor.</p>
 
 <p>Note that CardStock has a full Find and Replace system, that lets you find, and optionally replace, strings in your
 code and properties throughout your whole stack.  It allows finding using python style regular expression syntax, if you
@@ -188,7 +192,10 @@ want to use that to search for more complex expressions.</p>
 to figure out how they work, and make some changes to see if you can make things work the way you want them to.</p>
 
 <p>Later, once you've built a stack that you want to let other people try, you can run it in the CardStock Viewer 
-program (instead of in the Designer). which lets a user run the stack, but not edit it.</p>
+program (instead of in the Designer). which lets a user run the stack, but not edit it.  You can also run the Export
+Stack command from the File menu to export your stack as a stand-alone application, that you can send to other people,
+who can run it from their computers without installing CardStock.  This will try to find and include any image and 
+sound files that your stack uses, and will include any external python modules that you've imported from your stack.</p>
 
 </body>
 </html>
