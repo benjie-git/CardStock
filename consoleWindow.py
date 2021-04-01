@@ -15,6 +15,7 @@ class ConsoleWindow(wx.Frame):
         self.textBox.SetWrapMode(stc.STC_WRAP_WORD)
         self.textBox.SetMarginWidth(1, 0)
         self.textBox.EmptyUndoBuffer()
+        self.textBox.SetCaretStyle(stc.STC_CARETSTYLE_INVISIBLE)
         self.textBox.SetEditable(False)
 
         self.Bind(wx.EVT_SIZE, self.OnResize)
@@ -72,11 +73,17 @@ class ConsoleWindow(wx.Frame):
             stream.seek(pos)
             s = stream.read()
             if len(s):
+                scrollPos = self.textBox.GetScrollPos(wx.VERTICAL) + self.textBox.LinesOnScreen()
+                scrollRange = self.textBox.GetScrollRange(wx.VERTICAL)
+
                 self.textBox.SetEditable(True)
                 self.textBox.AppendText(s)
                 self.textBox.SetEditable(False)
-                self.textBox.ScrollToEnd()
                 oldStream.write(s)
+
+                if scrollPos > scrollRange - 4:
+                    self.textBox.ScrollToEnd()
+
                 if not self.hasShown and doShow:
                     self.Show()
                     self.hasShown = True
