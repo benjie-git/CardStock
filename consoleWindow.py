@@ -6,7 +6,7 @@ import sys
 
 class ConsoleWindow(wx.Frame):
     def __init__(self, parent):
-        super().__init__(parent, title="Console", style=wx.DEFAULT_FRAME_STYLE|wx.FRAME_TOOL_WINDOW)
+        super().__init__(parent, title="Output", style=wx.DEFAULT_FRAME_STYLE|wx.FRAME_TOOL_WINDOW)
         self.SetMinClientSize(wx.Size(300,100))
         self.SetClientSize(wx.Size(500,200))
 
@@ -19,7 +19,6 @@ class ConsoleWindow(wx.Frame):
 
         self.Bind(wx.EVT_SIZE, self.OnResize)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
-        self.viewerWindow = None
         self.timer = None
         self.stdoutIO = None
         self.stderrIO = None
@@ -31,14 +30,9 @@ class ConsoleWindow(wx.Frame):
         self.Hide()
         self.SetStreamsUp()
 
-    def SetViewerWindow(self, viewer):
-        self.viewerWindow = viewer
-        self.hasShown = False
-
     def Show(self):
         super().Show()
-        if self.viewerWindow:
-            self.SetPosition(self.viewerWindow.GetPosition() + (0, self.viewerWindow.GetSize().Height))
+        self.SetPosition(self.GetParent().GetPosition() + (0, self.GetParent().GetSize().Height))
 
     def Destroy(self):
         self.SetStreamsDown()
@@ -63,8 +57,9 @@ class ConsoleWindow(wx.Frame):
         self.timer.Start(100)
 
     def SetStreamsDown(self):
-        self.timer.Stop()
-        self.timer = None
+        if self.timer:
+            self.timer.Stop()
+            self.timer = None
         sys.stdout = self.old_stdout
         sys.stderr = self.old_stderr
         self.old_stdout = None
@@ -73,7 +68,7 @@ class ConsoleWindow(wx.Frame):
         self.stderrIO = None
 
     def OnTimer(self, event):
-        def readStream(stream, pos, oldStream):
+        def readStream(stream, pos, oldStream, doShow):
             stream.seek(pos)
             s = stream.read()
             if len(s):
@@ -82,10 +77,10 @@ class ConsoleWindow(wx.Frame):
                 self.textBox.SetEditable(False)
                 self.textBox.ScrollToEnd()
                 oldStream.write(s)
-                if not self.hasShown:
+                if not self.hasShown and doShow:
                     self.Show()
                     self.hasShown = True
             return pos + len(s)
 
-        self.stdoutPos = readStream(self.stdoutIO, self.stdoutPos, self.old_stdout)
-        self.stderrPos = readStream(self.stderrIO, self.stderrPos, self.old_stderr)
+        self.stdoutPos = readStream(self.stdoutIO, self.stdoutPos, self.old_stdout, True)
+        self.stderrPos = readStream(self.stderrIO, self.stderrPos, self.old_stderr, False)

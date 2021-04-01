@@ -24,7 +24,6 @@ from uiCard import CardModel
 from findEngineDesigner import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
 from stackExporter import StackExporter
-from consoleWindow import ConsoleWindow
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -56,7 +55,6 @@ ID_MOVE_VIEW_BACK = wx.NewIdRef()
 ID_MOVE_VIEW_END = wx.NewIdRef()
 ID_SHOW_ERROR_LIST = wx.NewIdRef()
 ID_SHOW_ALL_CODE = wx.NewIdRef()
-ID_SHOW_CONSOLE = wx.NewIdRef()
 
 
 class DesignerFrame(wx.Frame):
@@ -141,7 +139,6 @@ class DesignerFrame(wx.Frame):
         self.allCodeWindow = None
         self.errorListWindow = None
         self.lastRunErrors = []
-        self.consoleWindow = ConsoleWindow(self)
 
         self.viewer = None
         self.NewFile()
@@ -303,7 +300,6 @@ class DesignerFrame(wx.Frame):
         helpMenu.Append(wx.ID_CONTEXT_HELP, "&Show/Hide Context Help\tCtrl-Alt-C", "Toggle Context Help")
         helpMenu.Append(ID_SHOW_ERROR_LIST, "&Show/Hide Error List Window\tCtrl-Alt-E", "Toggle Errors")
         helpMenu.Append(ID_SHOW_ALL_CODE, "&Show/Hide All Code Window\tCtrl-Alt-A", "Toggle AllCode")
-        helpMenu.Append(ID_SHOW_CONSOLE, "&Show/Hide Console Window\tCtrl-Alt-A", "Toggle Console")
 
 
         # and add them to a menubar
@@ -359,7 +355,6 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuMoveView, id=ID_MOVE_VIEW_END)
         self.Bind(wx.EVT_MENU, self.OnMenuShowErrorList, id=ID_SHOW_ERROR_LIST)
         self.Bind(wx.EVT_MENU, self.OnMenuShowAllCodeWindow, id=ID_SHOW_ALL_CODE)
-        self.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
 
 
     wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
@@ -437,7 +432,6 @@ class DesignerFrame(wx.Frame):
 
         self.viewer = ViewerFrame(self, stackModel, self.filename)
         self.viewer.designer = self
-        self.consoleWindow.SetViewerWindow(self.viewer)
 
         self.Hide()
         self.viewer.Show(True)
@@ -458,7 +452,6 @@ class DesignerFrame(wx.Frame):
         self.lastRunErrors = self.viewer.stackManager.runner.errors
         self.viewer.Destroy()
         self.viewer = None
-        self.consoleWindow.SetViewerWindow(None)
         self.Show()
 
         if len(self.lastRunErrors):
@@ -499,12 +492,6 @@ class DesignerFrame(wx.Frame):
     def OnAllCodeWindowClose(self, event):
         self.allCodeWindow.Hide()
         self.allCodeWindow.Clear()
-
-    def OnMenuShowConsoleWindow(self, event):
-        if self.consoleWindow.IsShown():
-            self.consoleWindow.Hide()
-        else:
-            self.consoleWindow.Show()
 
     def OnMenuExit(self, event):
         self.Close()

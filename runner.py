@@ -191,7 +191,8 @@ class Runner():
                 self.errors.append(error)
             error.count += 1
 
-            print(msg)
+            sys.stderr.write(msg + os.linesep)
+
             if self.statusBar:
                 self.statusBar.SetStatusText(msg)
 

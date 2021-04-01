@@ -20,6 +20,7 @@ from runner import Runner
 import helpDialogs
 from findEngineViewer import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
+from consoleWindow import ConsoleWindow
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -28,6 +29,7 @@ ID_MENU_FIND_SEL = wx.NewIdRef()
 ID_MENU_FIND_NEXT = wx.NewIdRef()
 ID_MENU_FIND_PREV = wx.NewIdRef()
 ID_MENU_REPLACE = wx.NewIdRef()
+ID_SHOW_CONSOLE = wx.NewIdRef()
 
 # ----------------------------------------------------------------------
 
@@ -65,6 +67,14 @@ class ViewerFrame(wx.Frame):
 
         self.findDlg = None
         self.findEngine = FindEngine(self.stackManager)
+
+        self.consoleWindow = ConsoleWindow(self)
+
+    def Destroy(self):
+        if self.consoleWindow:
+            self.consoleWindow.Destroy()
+            self.consoleWindow = None
+        return super().Destroy()
 
     def OnResize(self, event):
         self.stackManager.view.SetSize(self.GetClientSize())
@@ -126,7 +136,8 @@ class ViewerFrame(wx.Frame):
 
         # and the help menu
         helpMenu = wx.Menu()
-        helpMenu.Append(wx.ID_ABOUT, "&About\tCtrl-H", "Display the gratuitous 'about this app' thingamajig")
+        helpMenu.Append(wx.ID_ABOUT, "&About\tCtrl-H", "About CardStock")
+        helpMenu.Append(ID_SHOW_CONSOLE, "&Show/Hide Output Window\tCtrl-Alt-O", "Toggle Output Window")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
@@ -153,6 +164,8 @@ class ViewerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuFindNext, id=ID_MENU_FIND_NEXT)
         self.Bind(wx.EVT_MENU, self.OnMenuFindPrevious, id=ID_MENU_FIND_PREV)
         self.Bind(wx.EVT_MENU, self.OnMenuReplace, id=ID_MENU_REPLACE)
+
+        self.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
 
     wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
 
@@ -191,6 +204,10 @@ class ViewerFrame(wx.Frame):
         self.stackManager.runner.CleanupFromRun()
         if self.designer:
             self.designer.OnViewerClose(event)
+
+        if self.consoleWindow:
+            self.consoleWindow.Destroy()
+            self.consoleWindow = None
         event.Skip()
 
     def OnCut(self, event):
@@ -275,6 +292,12 @@ class ViewerFrame(wx.Frame):
         dlg = helpDialogs.CardStockAbout(self)
         dlg.ShowModal()
         dlg.Destroy()
+
+    def OnMenuShowConsoleWindow(self, event):
+        if self.consoleWindow.IsShown():
+            self.consoleWindow.Hide()
+        else:
+            self.consoleWindow.Show()
 
     def RunViewer(self, cardIndex):
         runner = Runner(self.stackManager, self.GetStatusBar())
