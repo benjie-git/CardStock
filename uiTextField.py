@@ -36,6 +36,7 @@ class UiTextField(UiTextBase):
             field.SetMarginWidth(1, 0)
             field.ChangeValue(text)
             field.Bind(stc.EVT_STC_CHANGE, self.OnTextChanged)
+            field.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
             field.EmptyUndoBuffer()
         else:
             field = CDSTextCtrl(parent=stackManager.view, style=wx.TE_PROCESS_ENTER | alignment)
@@ -65,6 +66,11 @@ class UiTextField(UiTextBase):
         if not self.stackManager.isEditing:
             self.stackManager.lastFocusedTextField = self
         event.Skip()
+
+    def OnZoom(self, event):
+        z = event.GetEventObject().GetZoom()
+        if z != 0:
+            event.GetEventObject().SetZoom(0)
 
     def StartInlineEditing(self):
         if self.stackManager.isEditing and not self.isInlineEditing:

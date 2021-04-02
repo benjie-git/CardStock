@@ -75,6 +75,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.SetKeyWords(0, " ".join(keyword.kwlist))
 
         self.Bind(wx.EVT_KEY_DOWN, self.PyEditorOnKeyPress)
+        self.Bind(stc.EVT_STC_ZOOM, self.PyEditorOnZoom)
         self.Bind(stc.EVT_STC_UPDATEUI, self.PyEditorOnUpdateUi)
 
     def PyEditorOnKeyPress(self, event):
@@ -92,6 +93,11 @@ class PythonEditor(stc.StyledTextCtrl):
                     self.undoHandler.Redo()
                 return
             event.Skip()
+
+    def PyEditorOnZoom(self, event):
+        z = event.GetEventObject().GetZoom()
+        if z != 0:
+            event.GetEventObject().SetZoom(0)
 
     def PyEditorOnUpdateUi(self, event):
         # check for matching braces

@@ -18,6 +18,7 @@ class ConsoleWindow(wx.Frame):
         self.textBox.SetCaretStyle(stc.STC_CARETSTYLE_INVISIBLE)
         self.textBox.StyleSetSpec(2, "fore:#aa0000")
         self.textBox.SetEditable(False)
+        self.textBox.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
 
         self.Bind(wx.EVT_SIZE, self.OnResize)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
@@ -44,6 +45,11 @@ class ConsoleWindow(wx.Frame):
     def OnResize(self, event):
         self.textBox.SetSize(self.GetClientSize())
 
+    def OnZoom(self, event):
+        z = event.GetEventObject().GetZoom()
+        if z != 0:
+            event.GetEventObject().SetZoom(0)
+
     def OnClose(self, event):
         event.Veto()
         self.Hide()
@@ -69,6 +75,11 @@ class ConsoleWindow(wx.Frame):
         self.old_stderr = None
         self.stdoutIO = None
         self.stderrIO = None
+
+    def Clear(self):
+        self.textBox.SetEditable(True)
+        self.textBox.ChangeValue("")
+        self.textBox.SetEditable(False)
 
     def OnTimer(self, event):
         def readStream(stream, pos, oldStream):

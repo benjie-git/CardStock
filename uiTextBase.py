@@ -72,6 +72,7 @@ class UiTextBase(UiView):
         rect.width += 20
         field.SetRect(rect)
         field.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        field.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
         self.UpdateFont(self.model, field)
         self.view.Hide()
         field.ChangeValue(text)
@@ -85,6 +86,11 @@ class UiTextBase(UiView):
         if event.GetKeyCode() == wx.WXK_ESCAPE:
             self.StopInlineEditing()
         event.Skip()
+
+    def OnZoom(self, event):
+        z = event.GetEventObject().GetZoom()
+        if z != 0:
+            event.GetEventObject().SetZoom(0)
 
     def StopInlineEditing(self):
         if self.stackManager.isEditing and self.isInlineEditing:

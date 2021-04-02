@@ -30,6 +30,7 @@ ID_MENU_FIND_NEXT = wx.NewIdRef()
 ID_MENU_FIND_PREV = wx.NewIdRef()
 ID_MENU_REPLACE = wx.NewIdRef()
 ID_SHOW_CONSOLE = wx.NewIdRef()
+ID_CLEAR_CONSOLE = wx.NewIdRef()
 
 # ----------------------------------------------------------------------
 
@@ -138,6 +139,7 @@ class ViewerFrame(wx.Frame):
         helpMenu = wx.Menu()
         helpMenu.Append(wx.ID_ABOUT, "&About\tCtrl-H", "About CardStock")
         helpMenu.Append(ID_SHOW_CONSOLE, "&Show/Hide Output Window\tCtrl-Alt-O", "Toggle Output Window")
+        helpMenu.Append(ID_CLEAR_CONSOLE, "&Clear Output Window\tCtrl-Alt-C", "Clear Output Window")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
@@ -166,6 +168,7 @@ class ViewerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuReplace, id=ID_MENU_REPLACE)
 
         self.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
+        self.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
 
     wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
 
@@ -298,6 +301,9 @@ class ViewerFrame(wx.Frame):
             self.consoleWindow.Hide()
         else:
             self.consoleWindow.Show()
+
+    def OnMenuClearConsoleWindow(self, event):
+        self.consoleWindow.Clear()
 
     def RunViewer(self, cardIndex):
         runner = Runner(self.stackManager, self.GetStatusBar())
