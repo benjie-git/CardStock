@@ -16,7 +16,7 @@ class ConsoleWindow(wx.Frame):
         self.textBox.SetMarginWidth(1, 0)
         self.textBox.EmptyUndoBuffer()
         self.textBox.SetCaretStyle(stc.STC_CARETSTYLE_INVISIBLE)
-        self.textBox.StyleSetSpec(2, "fore:#ff0000")
+        self.textBox.StyleSetSpec(2, "fore:#aa0000")
         self.textBox.SetEditable(False)
 
         self.Bind(wx.EVT_SIZE, self.OnResize)
