@@ -13,6 +13,10 @@ class UiTextBase(UiView):
         self.isInlineEditing = False
         self.inlineEditor = None
 
+    def DestroyView(self):
+        self.StopInlineEditing()
+        super().DestroyView()
+
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "text":
