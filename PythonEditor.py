@@ -110,9 +110,9 @@ class PythonEditor(stc.StyledTextCtrl):
             charBefore = self.GetCharAt(caretPos - 1)
             styleBefore = self.GetStyleAt(caretPos - 1)
 
-        # check before
-        if charBefore and chr(charBefore) in "[]{}()" and styleBefore == stc.STC_P_OPERATOR:
-            braceAtCaret = caretPos - 1
+            # check before
+            if charBefore and chr(charBefore) in "[]{}()" and styleBefore == stc.STC_P_OPERATOR:
+                braceAtCaret = caretPos - 1
 
         # check after
         if braceAtCaret < 0:

@@ -32,6 +32,8 @@ class UiTextField(UiTextBase):
         if model.GetProperty("multiline"):
             field = stc.StyledTextCtrl(parent=stackManager.view, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
             field.SetUseHorizontalScrollBar(False)
+            field.SetTabWidth(3)
+            field.SetUseTabs(0)
             field.SetWrapMode(stc.STC_WRAP_WORD)
             field.SetMarginWidth(1, 0)
             field.ChangeValue(text)
