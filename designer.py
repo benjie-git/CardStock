@@ -574,10 +574,10 @@ class DesignerFrame(wx.Frame):
 
     def GetDesiredFocus(self, allowEditors):
         f = self.FindFocus()
-        views = [self.stackContainer, self.stackManager.view, self.splitter, self.cPanel.inspector, self.cPanel.codeEditor]
+        views = [self.stackContainer, self.stackManager.view, self.cPanel, self.splitter, self.cPanel.inspector, self.cPanel.codeEditor]
         if allowEditors:
-            views = [self.stackContainer, self.stackManager.view, self.splitter]
-        if f in views:
+            views = [self.stackContainer, self.stackManager.view, self.splitter, self.cPanel]
+        if not f or f in views:
             f = self.stackManager
         return f
 
