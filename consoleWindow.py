@@ -16,6 +16,7 @@ class ConsoleWindow(wx.Frame):
         self.textBox.SetMarginWidth(1, 0)
         self.textBox.EmptyUndoBuffer()
         self.textBox.SetCaretStyle(stc.STC_CARETSTYLE_INVISIBLE)
+        self.textBox.StyleSetSpec(2, "fore:#ff0000")
         self.textBox.SetEditable(False)
 
         self.Bind(wx.EVT_SIZE, self.OnResize)
@@ -31,8 +32,8 @@ class ConsoleWindow(wx.Frame):
         self.Hide()
         self.SetStreamsUp()
 
-    def Show(self):
-        super().Show()
+    def Show(self, shown=True):
+        super().Show(shown)
         self.SetPosition(self.GetParent().GetPosition() + (0, self.GetParent().GetSize().Height))
 
     def Destroy(self):
@@ -69,7 +70,7 @@ class ConsoleWindow(wx.Frame):
         self.stderrIO = None
 
     def OnTimer(self, event):
-        def readStream(stream, pos, oldStream, doShow):
+        def readStream(stream, pos, oldStream):
             stream.seek(pos)
             s = stream.read()
             if len(s):
@@ -77,17 +78,22 @@ class ConsoleWindow(wx.Frame):
                 scrollRange = self.textBox.GetScrollRange(wx.VERTICAL)
 
                 self.textBox.SetEditable(True)
+                start = self.textBox.GetLastPosition()
                 self.textBox.AppendText(s)
+                end = self.textBox.GetLastPosition()
+                if stream == self.stderrIO:
+                    self.textBox.StartStyling(start)
+                    self.textBox.SetStyling(end-start, 2)
                 self.textBox.SetEditable(False)
                 oldStream.write(s)
 
                 if scrollPos > scrollRange - 4:
                     self.textBox.ScrollToEnd()
 
-                if not self.hasShown and doShow:
+                if not self.hasShown and stream == self.stdoutIO:
                     self.Show()
                     self.hasShown = True
             return pos + len(s)
 
-        self.stdoutPos = readStream(self.stdoutIO, self.stdoutPos, self.old_stdout, True)
-        self.stderrPos = readStream(self.stderrIO, self.stderrPos, self.old_stderr, False)
+        self.stdoutPos = readStream(self.stdoutIO, self.stdoutPos, self.old_stdout)
+        self.stderrPos = readStream(self.stderrIO, self.stderrPos, self.old_stderr)
