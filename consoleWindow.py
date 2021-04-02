@@ -34,6 +34,7 @@ class ConsoleWindow(wx.Frame):
 
     def Show(self, shown=True):
         super().Show(shown)
+        self.SetSize((self.GetParent().GetSize().Width, 100))
         self.SetPosition(self.GetParent().GetPosition() + (0, self.GetParent().GetSize().Height))
 
     def Destroy(self):
