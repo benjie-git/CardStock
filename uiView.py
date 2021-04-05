@@ -4,6 +4,7 @@ import re
 import generator
 import helpData
 from time import time
+from killableThread import RunOnMain
 
 
 class UiView(object):
@@ -606,6 +607,14 @@ class ViewModel(object):
             self.proxy = self.proxyClass(self)
         return self.proxy
 
+    def RunSetup(self, runner):
+        if self.type == "card":
+            runner.SetupForCard(self)
+        if self.GetHandler("OnSetup"):
+            runner.RunHandler(self, "OnSetup", None)
+        for m in self.childModels:
+            m.RunSetup(runner)
+
 
 class ViewProxy(object):
     """
@@ -630,31 +639,42 @@ class ViewProxy(object):
         if self._model.stackManager.runner:
             self._model.stackManager.runner.RunHandler(self._model, "OnMessage", None, message)
 
+    @RunOnMain
     def Focus(self):
         if self._model.stackManager.runner:
             self._model.stackManager.runner.SetFocus(self)
 
     @property
+    @RunOnMain
     def hasFocus(self):
         uiView = self._model.stackManager.GetUiViewByModel(self._model)
         if uiView and uiView.view:
             return uiView.view.HasFocus()
 
+    @RunOnMain
     def Clone(self):
-        newModel = self._model.CreateCopy()
-        if newModel.type != "card":
+        if self._model.type != "card":
+            newModel = self._model.CreateCopy()
             self._model.stackManager.AddUiViewsFromModels([newModel], False)
         else:
-            self._model.stackManager.DuplicateCard()
+            newModel = self._model.stackManager.DuplicateCard()
+        if self._model.stackManager.runner:
+            self._model.stackManager.runner.SetupForCard(newModel.GetCard())
+            newModel.RunSetup(self._model.stackManager.runner)
+            self._model.stackManager.runner.SetupForCard(self._model.stackManager.uiCard.model)
         return newModel.GetProxy()
 
+    @RunOnMain
     def Delete(self):
         if self._model.type != "card":
             self._model.stackManager.RemoveUiViewByModel(self._model)
         else:
             self._model.stackManager.RemoveCard()
 
+    @RunOnMain
     def Cut(self): self._model.stackManager.CutModels([self._model], False)
+
+    @RunOnMain
     def Copy(self): self._model.stackManager.CopyModels([self._model])
     #   Paste is in the runner
 
@@ -680,6 +700,7 @@ class ViewProxy(object):
     def size(self):
         return CDSSize(self._model.GetProperty("size"), model=self._model, role="size")
     @size.setter
+    @RunOnMain
     def size(self, val):
         try:
             val = wx.Size(val[0], val[1])
@@ -691,6 +712,7 @@ class ViewProxy(object):
     def position(self):
         return CDSRealPoint(self._model.GetAbsolutePosition(), model=self._model, role="position")
     @position.setter
+    @RunOnMain
     def position(self, val):
         try:
             val = wx.RealPoint(val[0], val[1])
@@ -703,6 +725,7 @@ class ViewProxy(object):
         speed = CDSPoint(self._model.GetProperty("speed"), model=self._model, role="speed")
         return speed
     @speed.setter
+    @RunOnMain
     def speed(self, val):
         try:
             val = wx.RealPoint(val[0], val[1])
@@ -714,6 +737,7 @@ class ViewProxy(object):
     def center(self):
         return CDSRealPoint(self._model.GetCenter(), model=self._model, role="center")
     @center.setter
+    @RunOnMain
     def center(self, center):
         try:
             center = wx.RealPoint(center[0], center[1])
@@ -721,29 +745,38 @@ class ViewProxy(object):
             raise ValueError("center must be a point or a list of two numbers")
         self._model.SetCenter(center)
 
+    @RunOnMain
     def FlipHorizontal(self):
         self._model.PerformFlips(True, False)
 
+    @RunOnMain
     def FlipVertical(self):
         self._model.PerformFlips(False, True)
 
+    @RunOnMain
     def OrderToFront(self):
         self._model.OrderMoveTo(-1)
 
+    @RunOnMain
     def OrderForward(self):
         self._model.OrderMoveBy(1)
 
+    @RunOnMain
     def OrderBackward(self):
         self._model.OrderMoveBy(-1)
 
+    @RunOnMain
     def OrderToBack(self):
         self._model.OrderMoveTo(0)
 
+    @RunOnMain
     def OrderToIndex(self, i):
         self._model.OrderMoveTo(i)
 
+    @RunOnMain
     def Show(self):
         self.visible = True
+    @RunOnMain
     def Hide(self):
         self.visible = False
 
@@ -751,6 +784,7 @@ class ViewProxy(object):
     def visible(self):
         return not self._model.GetProperty("hidden")
     @visible.setter
+    @RunOnMain
     def visible(self, val):
         self._model.SetProperty("hidden", not bool(val))
 
@@ -758,6 +792,7 @@ class ViewProxy(object):
     def eventHandlers(self):
         return self._model.handlers
 
+    @RunOnMain
     def IsTouchingPoint(self, point):
         if not isinstance(point, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
             raise TypeError("point needs to be a point or a list of two numbers")
@@ -773,6 +808,7 @@ class ViewProxy(object):
         sreg.Offset(*self._model.GetProperty("position"))
         return sreg.Contains(wx.Point(point)) == wx.InRegion
 
+    @RunOnMain
     def IsTouching(self, obj):
         if not isinstance(obj, ViewProxy):
             raise TypeError("obj must be a CardStock object")
@@ -786,6 +822,7 @@ class ViewProxy(object):
         sreg.Intersect(oreg)
         return not sreg.IsEmpty()
 
+    @RunOnMain
     def IsTouchingEdge(self, obj):
         if not isinstance(obj, ViewProxy):
             raise TypeError("obj must be a CardStock object")
@@ -802,6 +839,7 @@ class ViewProxy(object):
         if sf.Intersects(right): return "Right"
         return None
 
+    @RunOnMain
     def AnimatePosition(self, duration, endPosition, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
@@ -833,6 +871,7 @@ class ViewProxy(object):
                 if onFinished: onFinished(*args, **kwargs)
             self._model.AddAnimation("position", duration, None, internalOnFinished)
 
+    @RunOnMain
     def AnimateCenter(self, duration, endCenter, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
@@ -864,6 +903,7 @@ class ViewProxy(object):
                 if onFinished: onFinished(*args, **kwargs)
             self._model.AddAnimation("position", duration, None, internalOnFinished)
 
+    @RunOnMain
     def AnimateSize(self, duration, endSize, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")

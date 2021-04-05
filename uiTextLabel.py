@@ -1,6 +1,7 @@
 import wx
 from uiView import *
 from uiTextBase import *
+from killableThread import RunOnMain
 
 
 class UiTextLabel(UiTextBase):

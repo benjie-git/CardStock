@@ -3,6 +3,7 @@ from uiView import *
 from uiTextBase import *
 import wx.stc as stc
 from wx.lib.docview import CommandProcessor, Command
+from killableThread import RunOnMain
 
 
 class UiTextField(UiTextBase):
@@ -234,6 +235,7 @@ class TextField(TextBaseProxy):
     def editable(self):
         return self._model.GetProperty("editable")
     @editable.setter
+    @RunOnMain
     def editable(self, val):
         self._model.SetProperty("editable", val)
 
@@ -241,11 +243,13 @@ class TextField(TextBaseProxy):
     def multiline(self):
         return self._model.GetProperty("multiline")
     @multiline.setter
+    @RunOnMain
     def multiline(self, val):
         self._model.SetProperty("multiline", val)
 
+    @RunOnMain
     def SelectAll(self): self._model.Notify("selectAll")
 
     def Enter(self):
-        if self._model.stackManager.runner:
+        if self._model.stackManager.runner and self._model.GetHandler("OnTextEnter"):
             self._model.stackManager.runner.RunHandler(self._model, "OnTextEnter", None)

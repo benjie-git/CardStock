@@ -2,9 +2,13 @@ import sys
 import os
 import traceback
 import wx
+import uiView
 from wx.adv import Sound
 from time import sleep, time
 from errorListWindow import CardStockError
+import threading
+from killableThread import KillableThread, RunOnMain
+import queue
 
 try:
     import simpleaudio
@@ -22,6 +26,9 @@ class Runner():
     can be shared between handlers, offers global variables and functions, and makes event arguments (message,
     mousePos, etc.) available to the handlers that expect them, and then restores any old values of those variables upon
     finishing those events.
+
+    Keep the UI responsive even if an event handler runs an infinite loop.  Do this by running all handler code in the
+    runnerThread.  From there, run all UI calls synchronously on the main thread, as required by wxPython.
     """
 
     def __init__(self, stackManager, sb=None):
@@ -31,6 +38,17 @@ class Runner():
         self.pressedKeys = []
         self.timers = []
         self.errors = []
+
+        # queue of tasks to run on the runnerThread
+        # each task is put onto the queue as a list.
+        # single item list means run SetupForCard
+        # 4-item list means run a handler
+        # 0-item list means just wake up to check if the thread is supposed to stop
+        self.handlerQueue = queue.Queue()
+
+        self.runnerThread = KillableThread(target=self.StartRunLoop)
+        self.runnerThread.start()
+        self.stopRunnerThread = False
 
         self.soundCache = {}
 
@@ -76,6 +94,12 @@ class Runner():
             self.keyCodeStringMap[wx.WXK_RAW_CONTROL] = "Control"
 
     def SetupForCard(self, cardModel):
+        if threading.currentThread() == self.runnerThread:
+            self.SetupForCardInternal(cardModel)
+        else:
+            self.handlerQueue.put((cardModel,))
+
+    def SetupForCardInternal(self, cardModel):
         # Setup clientVars with the current card's view names as variables
         self.clientVars["card"] = cardModel.GetProxy()
         for k in self.cardVarKeys.copy():
@@ -93,8 +117,41 @@ class Runner():
         self.timers = []
         self.SoundStop()
         self.soundCache = {}
+        if self.runnerThread:
+            self.stopRunnerThread = True
+            self.handlerQueue.put([]) # Wake up the thread
+            self.runnerThread.join(0.5)
+            if self.runnerThread.is_alive():
+                self.runnerThread.terminate()
+            self.runnerThread = None
+
+    def StartRunLoop(self):
+        """ Start the runner thread waiting for queued handlers """
+        lastHandler = ""
+        try:
+            while True:
+                args = self.handlerQueue.get()
+                if len(args) == 1:
+                    self.SetupForCardInternal(*args)
+                elif len(args) == 4:
+                    lastHandler = args[0].GetProperty('name') + "." + args[1]
+                    self.RunHandlerInternal(*args)
+
+                if self.stopRunnerThread:
+                    break
+
+        except SystemExit:
+            print(f"Exited while {lastHandler} was still running.  Maybe you have an infinite loop?", file=sys.__stderr__)
+            pass
+
 
     def RunHandler(self, uiModel, handlerName, event, arg=None):
+        if threading.currentThread() == self.runnerThread:
+            self.RunHandlerInternal(uiModel, handlerName, event, arg)
+        else:
+            self.handlerQueue.put((uiModel, handlerName, event, arg))
+
+    def RunHandlerInternal(self, uiModel, handlerName, event, arg=None):
         handlerStr = uiModel.handlers[handlerName].strip()
 
         if handlerStr == "": return
@@ -152,6 +209,7 @@ class Runner():
                             self.clientVars.pop(k)
                     else:
                         self.clientVars[k] = v
+                self.runnerThread = None
                 return
 
         error = None
@@ -229,6 +287,7 @@ class Runner():
         for ui in self.stackManager.GetAllUiViews():
             self.RunHandler(ui.model, "OnMessage", None, message)
 
+    @RunOnMain
     def GotoCard(self, cardName):
         if not isinstance(cardName, str):
             raise TypeError("cardName must be a string")
@@ -242,6 +301,7 @@ class Runner():
         else:
             raise ValueError("cardName '" + cardName + "' does not exist")
 
+    @RunOnMain
     def GotoCardIndex(self, cardIndex):
         if not isinstance(cardIndex, int):
             raise TypeError("cardIndex must be an int")
@@ -251,12 +311,13 @@ class Runner():
         else:
             raise TypeError("cardIndex " + str(cardIndex) + " is out of range")
 
-
+    @RunOnMain
     def GotoNextCard(self):
         cardIndex = self.stackManager.cardIndex + 1
         if cardIndex >= len(self.stackManager.stackModel.childModels): cardIndex = 0
         self.stackManager.LoadCardAtIndex(cardIndex)
 
+    @RunOnMain
     def GotoPreviousCard(self):
         cardIndex = self.stackManager.cardIndex - 1
         if cardIndex < 0: cardIndex = len(self.stackManager.stackModel.childModels) - 1
@@ -268,24 +329,23 @@ class Runner():
         except ValueError:
             raise TypeError("delay must be a number")
 
-        self.stackManager.RefreshNow()
         sleep(delay)
 
     def Time(self):
         return time()
 
+    @RunOnMain
     def Alert(self, message):
         if not isinstance(message, str):
             raise TypeError("message must be a string")
 
-        self.stackManager.RefreshNow()
         wx.MessageDialog(None, str(message), "", wx.OK).ShowModal()
 
+    @RunOnMain
     def Ask(self, message):
         if not isinstance(message, str):
             raise TypeError("message must be a string")
 
-        self.stackManager.RefreshNow()
         r = wx.MessageDialog(None, str(message), "", wx.YES_NO).ShowModal()
         return (r == wx.ID_YES)
 
@@ -322,8 +382,11 @@ class Runner():
             for (filepath, s) in self.soundCache.items():
                 s.Stop()
 
+    @RunOnMain
     def Paste(self):
         models = self.stackManager.Paste(False)
+        for model in models:
+            model.RunSetup(self)
         return [m.GetProxy() for m in models]
 
     def IsKeyPressed(self, name):
@@ -332,6 +395,7 @@ class Runner():
 
         return name in self.pressedKeys
 
+    @RunOnMain
     def IsMouseDown(self):
         return wx.GetMouseState().LeftIsDown()
 
@@ -348,5 +412,6 @@ class Runner():
         timer.StartOnce(int(duration*1000))
         self.timers.append(timer)
 
+    @RunOnMain
     def Quit(self):
         self.stackManager.view.TopLevelParent.OnMenuClose(None)

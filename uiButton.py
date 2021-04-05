@@ -1,5 +1,6 @@
 import wx
 from uiView import *
+from killableThread import RunOnMain
 
 # Native Button Mouse event positions on Mac are offset (?!?)
 MAC_BUTTON_OFFSET_HACK = wx.Point(6,4)
@@ -106,6 +107,7 @@ class Button(ViewProxy):
     def title(self):
         return self._model.GetProperty("title")
     @title.setter
+    @RunOnMain
     def title(self, val):
         if not isinstance(val, str):
             raise TypeError("title must be a string")
@@ -115,9 +117,10 @@ class Button(ViewProxy):
     def border(self):
         return self._model.GetProperty("border")
     @border.setter
+    @RunOnMain
     def border(self, val):
         self._model.SetProperty("border", val)
 
     def Click(self):
-        if self._model.stackManager.runner:
+        if self._model.stackManager.runner and self._model.GetHandler("OnClick"):
             self._model.stackManager.runner.RunHandler(self._model, "OnClick", None)

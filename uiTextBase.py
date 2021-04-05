@@ -1,6 +1,7 @@
 import wx
 import wx.stc as stc
 from uiView import *
+from killableThread import RunOnMain
 
 
 class UiTextBase(UiView):
@@ -163,6 +164,7 @@ class TextBaseProxy(ViewProxy):
     def text(self):
         return self._model.GetProperty("text")
     @text.setter
+    @RunOnMain
     def text(self, val):
         self._model.SetProperty("text", str(val))
 
@@ -170,6 +172,7 @@ class TextBaseProxy(ViewProxy):
     def alignment(self):
         return self._model.GetProperty("alignment")
     @alignment.setter
+    @RunOnMain
     def alignment(self, val):
         if not isinstance(val, str):
             raise TypeError("alignment must be a string")
@@ -179,6 +182,7 @@ class TextBaseProxy(ViewProxy):
     def textColor(self):
         return self._model.GetProperty("textColor")
     @textColor.setter
+    @RunOnMain
     def textColor(self, val):
         if not isinstance(val, str):
             raise TypeError("textColor must be a string")
@@ -188,6 +192,7 @@ class TextBaseProxy(ViewProxy):
     def font(self):
         return self._model.GetProperty("font")
     @font.setter
+    @RunOnMain
     def font(self, val):
         if not isinstance(val, str):
             raise TypeError("font must be a string")
@@ -197,11 +202,13 @@ class TextBaseProxy(ViewProxy):
     def fontSize(self):
         return self._model.GetProperty("fontSize")
     @fontSize.setter
+    @RunOnMain
     def fontSize(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("fontSize must be a number")
         self._model.SetProperty("fontSize", val)
 
+    @RunOnMain
     def AnimateTextColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")

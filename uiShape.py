@@ -1,6 +1,7 @@
 import wx
 import generator
 from uiView import *
+from killableThread import RunOnMain
 
 
 class UiShape(UiView):
@@ -292,6 +293,7 @@ class Line(ViewProxy):
     def penColor(self):
         return self._model.GetProperty("penColor")
     @penColor.setter
+    @RunOnMain
     def penColor(self, val):
         if not isinstance(val, str):
             raise TypeError("penColor must be a string")
@@ -301,11 +303,13 @@ class Line(ViewProxy):
     def penThickness(self):
         return self._model.GetProperty("penThickness")
     @penThickness.setter
+    @RunOnMain
     def penThickness(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("penThickness must be a number")
         self._model.SetProperty("penThickness", val)
 
+    @RunOnMain
     def AnimatePenThickness(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
@@ -324,6 +328,7 @@ class Line(ViewProxy):
         else:
             self._model.AddAnimation("penThickness", duration, None, internalOnFinished)
 
+    @RunOnMain
     def AnimatePenColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
@@ -377,11 +382,13 @@ class Shape(Line):
     def fillColor(self):
         return self._model.GetProperty("fillColor")
     @fillColor.setter
+    @RunOnMain
     def fillColor(self, val):
         if not isinstance(val, str):
             raise TypeError("fillColor must be a string")
         self._model.SetProperty("fillColor", val)
 
+    @RunOnMain
     def AnimateFillColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
@@ -435,11 +442,13 @@ class RoundRect(Shape):
     def cornerRadius(self):
         return self._model.GetProperty("cornerRadius")
     @cornerRadius.setter
+    @RunOnMain
     def cornerRadius(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("cornerRadius must be a number")
         self._model.SetProperty("cornerRadius", val)
 
+    @RunOnMain
     def AnimateCornerRadius(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")

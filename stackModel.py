@@ -4,6 +4,7 @@ import wx
 from uiView import ViewModel, ViewProxy
 from uiCard import CardModel
 import version
+from killableThread import RunOnMain
 
 class StackModel(ViewModel):
     """
@@ -92,6 +93,7 @@ class Stack(ViewProxy):
     def currentCard(self):
         return self._model.stackManager.uiCard.model.GetProxy()
 
+    @RunOnMain
     def AddCard(self, name="card", atIndex=-1):
         if not isinstance(name, str):
             raise TypeError("name is not a string")

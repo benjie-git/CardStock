@@ -1,6 +1,7 @@
 import wx
 from uiView import *
 import generator
+from killableThread import RunOnMain
 
 
 class UiGroup(UiView):
@@ -239,6 +240,7 @@ class Group(ViewProxy):
     Group proxy objects are the user-accessible objects exposed to event handler code for group objects.
     """
 
+    @RunOnMain
     def Ungroup(self):
         groups = self._model.stackManager.UngroupModelsInternal([self._model])
         if groups and len(groups) > 0:

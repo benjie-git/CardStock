@@ -77,14 +77,6 @@ class StackManager(object):
                 self.timer.Stop()
         event.Skip()
 
-    def RefreshNow(self):
-        self.view.Refresh(True)
-        self.view.Update()
-        if wx.Platform == '__WXMAC__':
-            self.noIdling = True
-            wx.GetApp().Yield()
-            self.noIdling = False
-
     def SetEditing(self, editing):
         self.isEditing = editing
         if not editing:
@@ -471,6 +463,7 @@ class StackManager(object):
                                                             [m.GetProperty("name") for m in self.stackModel.childModels]))
         command = AddNewUiViewCommand(True, "Duplicate Card", self, self.cardIndex+1, "card", newCard)
         self.command_processor.Submit(command)
+        return newCard
 
     def RemoveCard(self):
         index = self.cardIndex

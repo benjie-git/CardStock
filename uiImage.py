@@ -3,6 +3,7 @@ import wx
 import generator
 from math import pi
 from uiView import *
+from killableThread import RunOnMain
 
 
 class UiImage(UiView):
@@ -176,6 +177,7 @@ class Image(ViewProxy):
     def file(self):
         return self._model.GetProperty("file")
     @file.setter
+    @RunOnMain
     def file(self, val):
         if not isinstance(val, str):
             raise TypeError("file must be a string")
@@ -185,6 +187,7 @@ class Image(ViewProxy):
     def rotation(self):
         return self._model.GetProperty("rotation")
     @rotation.setter
+    @RunOnMain
     def rotation(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("rotation must be a number")
@@ -194,11 +197,13 @@ class Image(ViewProxy):
     def fit(self):
         return self._model.GetProperty("fit")
     @fit.setter
+    @RunOnMain
     def fit(self, val):
         if not isinstance(val, str):
             raise TypeError("fit must be a string")
         self._model.SetProperty("fit", val)
 
+    @RunOnMain
     def AnimateRotation(self, duration, endRotation, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")

@@ -247,18 +247,8 @@ class StandaloneFrame(wx.Frame):
         self.stackManager.SetEditing(False)
         self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))
         self.MakeMenu()
-
         self.stackManager.LoadCardAtIndex(None)
-
-        def RunAllSetupHandlers(model):
-            if model.type == "card":
-                runner.SetupForCard(model)
-            if model.GetHandler("OnSetup"):
-                runner.RunHandler(model, "OnSetup", None)
-            for m in model.childModels:
-                RunAllSetupHandlers(m)
-        RunAllSetupHandlers(self.stackManager.stackModel)
-
+        self.stackManager.stackModel.RunSetup(runner)
         self.stackManager.LoadCardAtIndex(0)
 
 

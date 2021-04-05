@@ -2,6 +2,7 @@ import wx
 from uiView import *
 import uiShape
 import generator
+from killableThread import RunOnMain
 
 
 class UiCard(UiView):
@@ -267,6 +268,7 @@ class Card(ViewProxy):
     def bgColor(self):
         return self._model.GetProperty("bgColor")
     @bgColor.setter
+    @RunOnMain
     def bgColor(self, val):
         if not isinstance(val, str):
             raise TypeError("bgColor must be a string")
@@ -276,6 +278,7 @@ class Card(ViewProxy):
     def index(self):
         return self._model.parent.childModels.index(self._model)
 
+    @RunOnMain
     def AnimateBgColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
@@ -297,27 +300,35 @@ class Card(ViewProxy):
         else:
             self._model.AddAnimation("bgColor", duration, None, internalOnFinished)
 
+    @RunOnMain
     def AddButton(self, name="button"):
         return self._model.AddNewObject("button", name, (100,24)).GetProxy()
 
+    @RunOnMain
     def AddTextField(self, name="field"):
         return self._model.AddNewObject("textfield", name, (100,24)).GetProxy()
 
+    @RunOnMain
     def AddTextLabel(self, name="label"):
         return self._model.AddNewObject("textlabel", name, (100,24)).GetProxy()
 
+    @RunOnMain
     def AddImage(self, name="image"):
         return self._model.AddNewObject("image", name, (80,80)).GetProxy()
 
+    @RunOnMain
     def AddOval(self, name="oval"):
         return self._model.AddNewObject("oval", name, None, [(10, 10), (100, 100)]).GetProxy()
 
+    @RunOnMain
     def AddRectangle(self, name="rect"):
         return self._model.AddNewObject("rect", name, None, [(10, 10), (100, 100)]).GetProxy()
 
+    @RunOnMain
     def AddRoundRectangle(self, name="roundrect"):
         return self._model.AddNewObject("roundrect", name, None, [(10, 10), (100, 100)]).GetProxy()
 
+    @RunOnMain
     def AddLine(self, points, name="line"):
         if not isinstance(points, (list, tuple)):
             raise TypeError("points should be a list of points")
@@ -336,6 +347,7 @@ class Card(ViewProxy):
         line = self._model.AddNewObject("line", name, None, points)
         return line.GetProxy()
 
+    @RunOnMain
     def AddGroup(self, objects, name="group"):
         models = []
         for o in objects:
