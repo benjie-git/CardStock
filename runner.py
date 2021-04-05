@@ -142,13 +142,18 @@ class Runner():
                     break
 
         except SystemExit:
-            lastHandler = self.lastHandlerInfo[0].GetProperty('name') + "." + self.lastHandlerInfo[1]
-            msg = f"Exited while {lastHandler} was still running.  Maybe you have a long or infinite loop?"
-            error = CardStockError(self.lastHandlerInfo[0].GetCard(), self.lastHandlerInfo[0],
-                                   self.lastHandlerInfo[1], 0, msg)
-            error.count = 1
-            self.errors.append(error)
-            pass
+            if self.lastHandlerInfo:
+                lastHandler = self.lastHandlerInfo[0].GetProperty('name') + "." + self.lastHandlerInfo[1]
+                msg = f"Exited while {lastHandler} was still running.  Maybe you have a long or infinite loop?"
+                error = CardStockError(self.lastHandlerInfo[0].GetCard(), self.lastHandlerInfo[0],
+                                       self.lastHandlerInfo[1], 0, msg)
+                error.count = 1
+                self.errors.append(error)
+            else:
+                error = CardStockError(None, None, None, 0,
+                                       "Exited while code was still running.  Maybe you have a long or infinite loop?")
+                error.count = 1
+                self.errors.append(error)
 
     def RunHandler(self, uiModel, handlerName, event, arg=None):
         mousePos = None

@@ -48,6 +48,8 @@ class ErrorListWindow(wx.Frame):
     def ConvertViewerToDesignerModels(self):
         # convert error objects from viewer's models, to designer's models
         for e in self.errors:
+            if not e.card:
+                continue
             cardName = e.card.GetProperty("name")
             for card in self.designer.stackManager.stackModel.childModels:
                 if card.GetProperty("name") == cardName:
