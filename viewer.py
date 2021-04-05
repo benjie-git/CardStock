@@ -186,10 +186,11 @@ class ViewerFrame(wx.Frame):
         self.stackManager.view.Enable(False)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
+            dlg.Destroy()
             wx.GetApp().OpenFile(filename)
         else:
+            dlg.Destroy()
             wx.CallLater(50, self.stackManager.view.Enable, True) # Needed to avoid a MSWindows FileDlg bug
-        dlg.Destroy()
 
     def OnMenuSave(self, event):
         self.SaveFile()
