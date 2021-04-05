@@ -8,7 +8,7 @@ import inspect
 import queue
 from wx import CallAfter
 import ctypes
-
+import sys
 
 def _async_raise(tid, exctype):
     """raises the exception, performs cleanup if needed"""
@@ -28,6 +28,8 @@ class KillableThread(threading.Thread):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.returnQueue = queue.Queue()
+        self.is_terminated = False
+        self.hasRunOnMain = True
 
     def _get_my_tid(self):
         """determines this (self's) thread id"""
@@ -53,6 +55,7 @@ class KillableThread(threading.Thread):
     def terminate(self):
         """raises SystemExit in the context of the given thread, which should
         cause the thread to exit silently (unless caught)"""
+        self.is_terminated = True
         self.raise_exc(SystemExit)
 
 
@@ -64,14 +67,17 @@ def to_main_sync(callable, *args, **kwargs):
     else:
         # on non-main thread
         thread = threading.current_thread()
-        CallAfter(to_main_helper, thread.returnQueue, callable, *args, **kwargs)
-        return thread.returnQueue.get() # wait for return value
+        CallAfter(to_main_helper, thread, callable, *args, **kwargs)
+        thread.hasRunOnMain = True
+        ret = thread.returnQueue.get() # wait for return value
+        return ret
 
 
-def to_main_helper(returnQueue, callable, *args, **kwargs):
+def to_main_helper(thread, callable, *args, **kwargs):
     # On main thread
-    ret = callable(*args, **kwargs)
-    returnQueue.put(ret) # send return value to calling thread
+    if not thread.is_terminated:
+        ret = callable(*args, **kwargs)
+        thread.returnQueue.put(ret) # send return value to calling thread
 
 
 def RunOnMain(func):

@@ -38,7 +38,7 @@ class Runner():
         self.pressedKeys = []
         self.timers = []
         self.errors = []
-        self.lastHandlerInfo = None
+        self.lastHandlerStack = []
 
         # queue of tasks to run on the runnerThread
         # each task is put onto the queue as a list.
@@ -121,12 +121,24 @@ class Runner():
         if self.runnerThread:
             self.stopRunnerThread = True
             self.handlerQueue.put([]) # Wake up the thread
-            self.runnerThread.join(0.5)
+
+            # Wait up to 0.5 sec for the stack to finish
+            # run wx.Yield() to process main thread events while waiting, to allow @RunOnMain methods to complete
+            duration = 0.5
+            while duration > 0:
+                self.runnerThread.hasRunOnMain = False
+                wx.Yield()
+                if not self.runnerThread.hasRunOnMain:
+                    break
+                sleep(0.005)
+                duration -= 0.005
+            self.runnerThread.join(max(duration, 0.01))
+
             if self.runnerThread.is_alive():
                 self.runnerThread.terminate()
-                self.runnerThread.join(0.1)
+                self.runnerThread.join(0.01)
             self.runnerThread = None
-        self.lastHandlerInfo = None
+        self.lastHandlerStack = []
 
     def StartRunLoop(self):
         """ Start the runner thread waiting for queued handlers """
@@ -142,11 +154,12 @@ class Runner():
                     break
 
         except SystemExit:
-            if self.lastHandlerInfo:
-                lastHandler = self.lastHandlerInfo[0].GetProperty('name') + "." + self.lastHandlerInfo[1]
+            if len(self.lastHandlerStack):
+                model = self.lastHandlerStack[-1][0]
+                handlerName = self.lastHandlerStack[-1][1]
+                lastHandler = model.GetProperty('name') + "." + handlerName
                 msg = f"Exited while {lastHandler} was still running.  Maybe you have a long or infinite loop?"
-                error = CardStockError(self.lastHandlerInfo[0].GetCard(), self.lastHandlerInfo[0],
-                                       self.lastHandlerInfo[1], 0, msg)
+                error = CardStockError(model.GetCard(), model, handlerName, 0, msg)
                 error.count = 1
                 self.errors.append(error)
             else:
@@ -170,9 +183,8 @@ class Runner():
 
     def RunHandlerInternal(self, uiModel, handlerName, mousePos, keyName, arg):
         handlerStr = uiModel.handlers[handlerName].strip()
-        if handlerStr == "": return
-
-        self.lastHandlerInfo = (uiModel, handlerName)
+        if handlerStr == "":
+            return
 
         error_class = None
         line_number = None
@@ -218,6 +230,8 @@ class Runner():
                 oldVars["keyName"] = noValue
             self.clientVars["keyName"] = keyName
 
+        self.lastHandlerStack.append((uiModel, handlerName))
+
         error = None
         try:
             exec(handlerStr, self.clientVars)
@@ -234,6 +248,8 @@ class Runner():
                 if trace[i][0] == "<string>":
                     line_number = trace[i][1]
                     break
+
+        del self.lastHandlerStack[-1]
 
         # restore the old values from before this handler was called
         for k, v in oldVars.items():
