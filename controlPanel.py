@@ -332,11 +332,17 @@ class ControlPanel(wx.Panel):
 
         val = uiView.model.InterpretPropertyFromString(key, valStr)
         if val is not None and val != oldVal:
+            needsUpdate = False
             if key == "name":
+                origVal = val
                 val = self.stackManager.uiCard.model.DeduplicateNameInCard(val, [uiView.model.GetProperty("name")])
+                if val != origVal:
+                    needsUpdate = True
 
             command = SetPropertyCommand(True, "Set Property", self, self.stackManager.cardIndex, uiView.model, key, val)
             self.stackManager.command_processor.Submit(command)
+            if needsUpdate:
+                self.UpdatedProperty(uiView, "")
         else:
             self.UpdatedProperty(uiView, "")
 
