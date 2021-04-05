@@ -41,29 +41,33 @@ class FindEngine(object):
         return searchDict
 
     def UpdateFindTextFromSelection(self):
-        _, textSel = self.stackManager.GetViewerFindPath()
-        start, end, findStr = textSel
-        if findStr and len(findStr):
-            self.findData.SetFindString(findStr)
+        result = self.stackManager.GetViewerFindPath()
+        if result:
+            _, textSel = result
+            start, end, findStr = textSel
+            if findStr and len(findStr):
+                self.findData.SetFindString(findStr)
 
     def Find(self):
         findStr = self.findData.GetFindString()
         if len(findStr):
             searchDict = self.GenerateSearchDict()
-            startPath, textSel = self.stackManager.GetViewerFindPath()
-            path, start, end = self.DoFindNext(searchDict, startPath, textSel)
-            if path:
-                self.didReplace = False
-                self.stackManager.ShowViewerFindPath(path, start, end)
+            result = self.stackManager.GetViewerFindPath()
+            if result:
+                startPath, textSel = result
+                path, start, end = self.DoFindNext(searchDict, startPath, textSel)
+                if path:
+                    self.didReplace = False
+                    self.stackManager.ShowViewerFindPath(path, start, end)
 
     def Replace(self):
         if not self.didReplace:
             replaceStr = self.findData.GetReplaceString()
-            findPath, textSel = self.stackManager.GetViewerFindPath()
-            command = self.DoReplaceAtPath(findPath, textSel, replaceStr)
-            if command:
-                self.stackManager.command_processor.Submit(command)
-            self.didReplace = True
+            result = self.stackManager.GetViewerFindPath()
+            if result:
+                findPath, textSel = result
+                self.DoReplaceAtPath(findPath, textSel, replaceStr)
+                self.didReplace = True
 
     def DoFindNext(self, searchDict, startPath, textSel):
         flags = self.findData.GetFlags()

@@ -764,7 +764,7 @@ class StackManager(object):
                     uiView = ui
                     break
         if not uiView:
-            for ui in uiView:
+            for ui in uiViews:
                 if ui.model.type == "textfield":
                     uiView = ui
                     break
