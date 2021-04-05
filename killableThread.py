@@ -25,8 +25,9 @@ def _async_raise(tid, exctype):
 
 
 class KillableThread(threading.Thread):
-
-    returnQueue = queue.Queue()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.returnQueue = queue.Queue()
 
     def _get_my_tid(self):
         """determines this (self's) thread id"""
@@ -63,15 +64,14 @@ def to_main_sync(callable, *args, **kwargs):
     else:
         # on non-main thread
         thread = threading.current_thread()
-        CallAfter(to_main_helper, callable, *args, **kwargs)
-        return KillableThread.returnQueue.get() # wait for return value
+        CallAfter(to_main_helper, thread.returnQueue, callable, *args, **kwargs)
+        return thread.returnQueue.get() # wait for return value
 
 
-def to_main_helper(callable, *args, **kwargs):
+def to_main_helper(returnQueue, callable, *args, **kwargs):
     # On main thread
-    thread = threading.current_thread()
     ret = callable(*args, **kwargs)
-    KillableThread.returnQueue.put(ret) # send return value to calling thread
+    returnQueue.put(ret) # send return value to calling thread
 
 
 def RunOnMain(func):
