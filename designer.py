@@ -397,10 +397,12 @@ class DesignerFrame(wx.Frame):
 
         dlg = wx.FileDialog(self, "Open CardStock file...", os.getcwd(),
                            style=wx.FD_OPEN, wildcard = self.wildcard)
+        self.stackContainer.Enable(False)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             self.ReadFile(filename)
         dlg.Destroy()
+        wx.CallLater(50, self.stackContainer.Enable, True) # Needed to avoid a MSWindows FileDlg bug
 
     def OnMenuSave(self, event):
         if not self.filename:
@@ -412,6 +414,7 @@ class DesignerFrame(wx.Frame):
         dlg = wx.FileDialog(self, "Save CaardStock file as...", os.getcwd(),
                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
                            wildcard = self.wildcard)
+        self.stackContainer.Enable(False)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if not os.path.splitext(filename)[1]:
@@ -423,6 +426,7 @@ class DesignerFrame(wx.Frame):
             self.SetTitle(self.title + ' -- ' + os.path.basename(self.filename))
             self.WriteConfig()
         dlg.Destroy()
+        wx.CallLater(50, self.stackContainer.Enable, True) # Needed to avoid a MSWindows FileDlg bug
 
     def OnMenuExport(self, event):
         def doSave():
