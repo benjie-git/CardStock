@@ -18,7 +18,7 @@
         "OnResize": "code.size.height = card.size.height - code.position.y"
       },
       "properties": {
-        "name": "card_3",
+        "name": "card_1",
         "bgColor": "white"
       },
       "childModels": [
@@ -85,7 +85,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "c = card.Clone()\nGotoCard(c.name)"
+            "OnClick": "c = card.Clone()\nc.eventHandlers[\"OnSetup\"] = \"\"\nGotoCard(c.name)"
           },
           "properties": {
             "name": "new",
@@ -166,12 +166,11 @@
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "import math\nhomePos = None\npoints = None\npos = None\nrot = None\nisPenDown = True\n\ndef pd():\n   global points\n   global isPenDown\n   isPenDown = True\n   if len(points[-1]) > 0:\n      points.append([pos.copy()])\n   else:\n      points[-1].append(pos.copy())\n\ndef pu():\n   global isPenDown\n   isPenDown = False\n   if len(points[-1]) == 1:\n      del points[-1][0]\n\ndef fd(dist):\n   global pos\n   global rot\n   global points\n   global isPenDown\n   pos = [pos[0]+math.cos(math.radians(rot))*dist,\n         pos[1]+math.sin(math.radians(rot))*dist]\n   if isPenDown:\n      points[-1].append(pos.copy())\n\ndef bk(dist):\n   fd(-dist)\n\ndef home():\n   global pos\n   global rot\n   global points\n   global isPenDown\n   pos = [code.size.width + (card.size.width - code.size.width)/2,\n         card.size.height/2]\n   rot = 0\n   if isPenDown:\n      points[-1].append(pos.copy())\n\ndef rt(angle):\n   global rot\n   rot = (rot + angle) % 360\n\ndef lt(angle):\n   rt(-angle)\n\ndef run_logo(text):\n   global points\n   \n   clear.Click()\n   points = [[]]\n   isPenDown = True\n   home()\n\n   exec(text)\n   \n   lines = []\n   for l in points:\n      newLine = card.AddLine(l, \"output_line\")\n      newLine.penThickness = 1\n      lines.append(newLine)\n   if len(lines) > 1:\n      card.AddGroup(lines, \"output\")\n",
         "OnShowCard": "code.size.height = card.size.height - code.position.y",
         "OnResize": "code.size.height = card.size.height - code.position.y"
       },
       "properties": {
-        "name": "card_5",
+        "name": "card_2",
         "bgColor": "white"
       },
       "childModels": [
@@ -323,7 +322,7 @@
         "OnResize": "code.size.height = card.size.height - code.position.y"
       },
       "properties": {
-        "name": "card_4",
+        "name": "card_3",
         "bgColor": "white"
       },
       "childModels": [
@@ -475,7 +474,7 @@
         "OnResize": "code.size.height = card.size.height - code.position.y"
       },
       "properties": {
-        "name": "card_2",
+        "name": "card_4",
         "bgColor": "white"
       },
       "childModels": [
@@ -627,7 +626,7 @@
         "OnResize": "code.size.height = card.size.height - code.position.y"
       },
       "properties": {
-        "name": "card_1",
+        "name": "card_5",
         "bgColor": "white"
       },
       "childModels": [
@@ -774,5 +773,5 @@
     }
   ],
   "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.8.8.4"
+  "CardStock_stack_version": "0.8.10"
 }

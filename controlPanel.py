@@ -335,7 +335,12 @@ class ControlPanel(wx.Panel):
             needsUpdate = False
             if key == "name":
                 origVal = val
-                val = self.stackManager.uiCard.model.DeduplicateNameInCard(val, [uiView.model.GetProperty("name")])
+                if uiView.model.type == "card":
+                    existingNames = [m.GetProperty("name") for m in self.stackManager.stackModel.childModels]
+                    existingNames.remove(uiView.model.GetProperty("name"))
+                    val = uiView.model.DeduplicateName(val, existingNames)
+                else:
+                    val = self.stackManager.uiCard.model.DeduplicateNameInCard(val, [uiView.model.GetProperty("name")])
                 if val != origVal:
                     needsUpdate = True
 
