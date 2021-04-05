@@ -38,6 +38,7 @@ class Runner():
         self.pressedKeys = []
         self.timers = []
         self.errors = []
+        self.lastHandlerInfo = None
 
         # queue of tasks to run on the runnerThread
         # each task is put onto the queue as a list.
@@ -123,25 +124,30 @@ class Runner():
             self.runnerThread.join(0.5)
             if self.runnerThread.is_alive():
                 self.runnerThread.terminate()
+                self.runnerThread.join(0.1)
             self.runnerThread = None
+        self.lastHandlerInfo = None
 
     def StartRunLoop(self):
         """ Start the runner thread waiting for queued handlers """
-        lastHandler = ""
         try:
             while True:
                 args = self.handlerQueue.get()
                 if len(args) == 1:
                     self.SetupForCardInternal(*args)
                 elif len(args) == 5:
-                    lastHandler = args[0].GetProperty('name') + "." + args[1]
                     self.RunHandlerInternal(*args)
 
                 if self.stopRunnerThread:
                     break
 
         except SystemExit:
-            print(f"Exited while {lastHandler} was still running.  Maybe you have an infinite loop?", file=sys.__stderr__)
+            lastHandler = self.lastHandlerInfo[0].GetProperty('name') + "." + self.lastHandlerInfo[1]
+            msg = f"Exited while {lastHandler} was still running.  Maybe you have a long or infinite loop?"
+            error = CardStockError(self.lastHandlerInfo[0].GetCard(), self.lastHandlerInfo[0],
+                                   self.lastHandlerInfo[1], 0, msg)
+            error.count = 1
+            self.errors.append(error)
             pass
 
     def RunHandler(self, uiModel, handlerName, event, arg=None):
@@ -159,8 +165,9 @@ class Runner():
 
     def RunHandlerInternal(self, uiModel, handlerName, mousePos, keyName, arg):
         handlerStr = uiModel.handlers[handlerName].strip()
-
         if handlerStr == "": return
+
+        self.lastHandlerInfo = (uiModel, handlerName)
 
         error_class = None
         line_number = None
