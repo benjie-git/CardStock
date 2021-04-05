@@ -183,9 +183,12 @@ class ViewerFrame(wx.Frame):
 
         dlg = wx.FileDialog(self, "Open CardStock file...", os.getcwd(),
                            style=wx.FD_OPEN, wildcard = self.wildcard)
+        self.stackManager.view.Enable(False)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             wx.GetApp().OpenFile(filename)
+        else:
+            wx.CallLater(50, self.stackManager.view.Enable, True) # Needed to avoid a MSWindows FileDlg bug
         dlg.Destroy()
 
     def OnMenuSave(self, event):
@@ -345,6 +348,7 @@ class ViewerApp(wx.App, InspectionMixin):
                 if data:
                     if self.frame:
                         self.frame.Hide()
+                        self.frame.stackManager.runner.CleanupFromRun()
                         self.frame.Destroy()
 
                     stackModel = StackModel(None)
