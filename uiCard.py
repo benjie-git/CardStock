@@ -265,6 +265,7 @@ class Card(ViewProxy):
     """
 
     @property
+    @RunOnMain
     def bgColor(self):
         return self._model.GetProperty("bgColor")
     @bgColor.setter

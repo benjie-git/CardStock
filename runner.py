@@ -42,7 +42,7 @@ class Runner():
         # queue of tasks to run on the runnerThread
         # each task is put onto the queue as a list.
         # single item list means run SetupForCard
-        # 4-item list means run a handler
+        # 5-item list means run a handler
         # 0-item list means just wake up to check if the thread is supposed to stop
         self.handlerQueue = queue.Queue()
 
@@ -133,7 +133,7 @@ class Runner():
                 args = self.handlerQueue.get()
                 if len(args) == 1:
                     self.SetupForCardInternal(*args)
-                elif len(args) == 4:
+                elif len(args) == 5:
                     lastHandler = args[0].GetProperty('name') + "." + args[1]
                     self.RunHandlerInternal(*args)
 
@@ -144,14 +144,20 @@ class Runner():
             print(f"Exited while {lastHandler} was still running.  Maybe you have an infinite loop?", file=sys.__stderr__)
             pass
 
-
     def RunHandler(self, uiModel, handlerName, event, arg=None):
-        if threading.currentThread() == self.runnerThread:
-            self.RunHandlerInternal(uiModel, handlerName, event, arg)
-        else:
-            self.handlerQueue.put((uiModel, handlerName, event, arg))
+        mousePos = None
+        keyName = None
+        if event and handlerName.startswith("OnMouse"):
+            mousePos = self.stackManager.view.ScreenToClient(wx.GetMousePosition())
+        if event and handlerName.startswith("OnKey"):
+            keyName = self.KeyNameForEvent(event)
 
-    def RunHandlerInternal(self, uiModel, handlerName, event, arg=None):
+        if threading.currentThread() == self.runnerThread:
+            self.RunHandlerInternal(uiModel, handlerName, mousePos, keyName, arg)
+        else:
+            self.handlerQueue.put((uiModel, handlerName, mousePos, keyName, arg))
+
+    def RunHandlerInternal(self, uiModel, handlerName, mousePos, keyName, arg):
         handlerStr = uiModel.handlers[handlerName].strip()
 
         if handlerStr == "": return
@@ -186,31 +192,19 @@ class Runner():
                 oldVars["elapsedTime"] = noValue
             self.clientVars["elapsedTime"] = arg
 
-        if event and handlerName.startswith("OnMouse"):
-            mousePos = self.stackManager.view.ScreenToClient(wx.GetMousePosition())
+        if mousePos and handlerName.startswith("OnMouse"):
             if "mousePos" in self.clientVars:
                 oldVars["mousePos"] = self.clientVars["mousePos"]
             else:
                 oldVars["mousePos"] = noValue
             self.clientVars["mousePos"] = mousePos
 
-        if event and handlerName.startswith("OnKey"):
+        if keyName and handlerName.startswith("OnKey"):
             if "keyName" in self.clientVars:
                 oldVars["keyName"] = self.clientVars["keyName"]
             else:
                 oldVars["keyName"] = noValue
-            keyName = self.KeyNameForEvent(event)
-            if keyName:
-                self.clientVars["keyName"] = keyName
-            else:
-                for k,v in oldVars.items():
-                    if v == noValue:
-                        if k in self.clientVars:
-                            self.clientVars.pop(k)
-                    else:
-                        self.clientVars[k] = v
-                self.runnerThread = None
-                return
+            self.clientVars["keyName"] = keyName
 
         error = None
         try:

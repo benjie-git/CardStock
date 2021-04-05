@@ -179,6 +179,7 @@ class TextBaseProxy(ViewProxy):
         self._model.SetProperty("alignment", val)
 
     @property
+    @RunOnMain
     def textColor(self):
         return self._model.GetProperty("textColor")
     @textColor.setter

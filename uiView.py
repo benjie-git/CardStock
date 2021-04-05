@@ -5,6 +5,7 @@ import generator
 import helpData
 from time import time
 from killableThread import RunOnMain
+from cardstockFrameParts import *
 
 
 class UiView(object):
@@ -697,6 +698,7 @@ class ViewProxy(object):
         return [m.GetProxy() for m in self._model.childModels]
 
     @property
+    @RunOnMain
     def size(self):
         return CDSSize(self._model.GetProperty("size"), model=self._model, role="size")
     @size.setter
@@ -709,6 +711,7 @@ class ViewProxy(object):
         self._model.SetProperty("size", val)
 
     @property
+    @RunOnMain
     def position(self):
         return CDSRealPoint(self._model.GetAbsolutePosition(), model=self._model, role="position")
     @position.setter
@@ -721,6 +724,7 @@ class ViewProxy(object):
         self._model.SetAbsolutePosition(val)
 
     @property
+    @RunOnMain
     def speed(self):
         speed = CDSPoint(self._model.GetProperty("speed"), model=self._model, role="speed")
         return speed
@@ -734,6 +738,7 @@ class ViewProxy(object):
         self._model.SetProperty("speed", val)
 
     @property
+    @RunOnMain
     def center(self):
         return CDSRealPoint(self._model.GetCenter(), model=self._model, role="center")
     @center.setter
@@ -925,110 +930,6 @@ class ViewProxy(object):
         else:
             self._model.AddAnimation("size", duration, None, internalOnFinished)
 
+    @RunOnMain
     def StopAnimations(self):
         self._model.StopAnimations()
-
-
-# CardStock-specific Point, Size, RealPoint subclasses
-# These notify their model when their components are changed, so that, for example:
-# button.center.x = 100  will notify the button's model that the center changed.
-class CDSPoint(wx.Point):
-    def __init__(self, *args, **kwargs):
-        model = kwargs.pop("model")
-        role = kwargs.pop("role")
-        super().__init__(*args, **kwargs)
-        self.model = model
-        self.role = role
-
-    def __setitem__(self, key, val):
-        if not (isinstance(val, int) or isinstance(val, float)):
-            raise TypeError("value must be a number")
-        super().__setitem__(key, val)
-
-    @property
-    def x(self):
-        return super().x
-    @x.setter
-    def x(self, val):
-        if not (isinstance(val, int) or isinstance(val, float)):
-            raise TypeError("x must be a number")
-        self += [val-self.x, 0]
-        self.model.FramePartChanged(self)
-
-    @property
-    def y(self):
-        return super().y
-    @y.setter
-    def y(self, val):
-        if not (isinstance(val, int) or isinstance(val, float)):
-            raise TypeError("y must be a number")
-        self += [0, val-self.y]
-        self.model.FramePartChanged(self)
-
-
-class CDSRealPoint(wx.RealPoint):
-    def __init__(self, *args, **kwargs):
-        model = kwargs.pop("model")
-        role = kwargs.pop("role")
-        super().__init__(*args, **kwargs)
-        self.model = model
-        self.role = role
-
-    def __setitem__(self, key, val):
-        if not (isinstance(val, int) or isinstance(val, float)):
-            raise TypeError("value must be a number")
-        super().__setitem__(key, val)
-
-    @property
-    def x(self):
-        return super().x
-    @x.setter
-    def x(self, val):
-        if not (isinstance(val, int) or isinstance(val, float)):
-            raise TypeError("x must be a number")
-        self += [val-self.x, 0]
-        self.model.FramePartChanged(self)
-
-    @property
-    def y(self):
-        return super().y
-    @y.setter
-    def y(self, val):
-        if not (isinstance(val, int) or isinstance(val, float)):
-            raise TypeError("y must be a number")
-        self += [0, val-self.y]
-        self.model.FramePartChanged(self)
-
-
-class CDSSize(wx.Size):
-    def __init__(self, *args, **kwargs):
-        model = kwargs.pop("model")
-        role = kwargs.pop("role")
-        super().__init__(*args, **kwargs)
-        self.model = model
-        self.role = role
-
-    def __setitem__(self, key, val):
-        if not (isinstance(val, int) or isinstance(val, float)):
-            raise TypeError("size must be a number")
-        super().__setitem__(key, val)
-
-    @property
-    def width(self):
-        return super().width
-    @width.setter
-    def width(self, val):
-        if not (isinstance(val, int) or isinstance(val, float)):
-            raise TypeError("width must be a number")
-        self += [val-self.width, 0]
-        self.model.FramePartChanged(self)
-
-    @property
-    def height(self):
-        return super().height
-    @height.setter
-    def height(self, val):
-        if not (isinstance(val, int) or isinstance(val, float)):
-            raise TypeError("height must be a number")
-        self += [0, val-self.height]
-        self.model.FramePartChanged(self)

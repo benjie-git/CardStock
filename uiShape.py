@@ -290,6 +290,7 @@ class Line(ViewProxy):
     """
 
     @property
+    @RunOnMain
     def penColor(self):
         return self._model.GetProperty("penColor")
     @penColor.setter
@@ -379,6 +380,7 @@ class Shape(Line):
     """
 
     @property
+    @RunOnMain
     def fillColor(self):
         return self._model.GetProperty("fillColor")
     @fillColor.setter

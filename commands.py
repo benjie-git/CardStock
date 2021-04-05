@@ -149,7 +149,8 @@ class RemoveUiViewsCommand(Command):
             self.stackManager.LoadCardAtIndex(None)
             self.stackManager.stackModel.RemoveCardModel(self.viewModels[0])
             index = self.cardIndex
-            if index >= len(self.stackManager.stackModel.childModels)-1: index = len(self.stackManager.stackModel.childModels) - 1
+            if index > len(self.stackManager.stackModel.childModels) - 1:
+                index = len(self.stackManager.stackModel.childModels) - 1
             self.stackManager.LoadCardAtIndex(index)
         else:
             self.stackManager.LoadCardAtIndex(self.cardIndex)
