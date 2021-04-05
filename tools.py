@@ -125,6 +125,7 @@ class HandTool(BaseTool):
         self.cursor = None
         self.name = "hand"
         self.selectionRect = None
+        self.lastBoxList = None
         self.mode = None  # click, box, move, resize
         self.shiftDown = False
         self.xFlipped = False
@@ -227,6 +228,7 @@ class HandTool(BaseTool):
     def StartBoxSelect(self):
         self.mode = "box"
         self.selectionRect = ShapeModel.RectFromPoints([self.absOrigin])
+        self.lastBoxList = []
         self.stackManager.view.Refresh(True, self.selectionRect.Inflate(2))
 
     def Paint(self, gc):
@@ -257,6 +259,7 @@ class HandTool(BaseTool):
         elif self.mode == "box":
             self.stackManager.view.Refresh(True, self.selectionRect.Inflate(2))
             self.selectionRect = None
+            self.lastBoxList = None
         elif self.mode == "move":
             pos = self.targetUi.model.GetAbsolutePosition()
             viewOrigin = self.oldFrames[self.targetUi.model.GetProperty("name")].Position
@@ -305,11 +308,15 @@ class HandTool(BaseTool):
         event.Skip()
 
     def UpdateBoxSelection(self):
-        self.stackManager.SelectUiView(None)
+        uiList = []
         for ui in self.stackManager.uiViews:
-            select = self.selectionRect.Contains(ui.model.GetCenter())
-            if select:
+            if self.selectionRect.Contains(ui.model.GetCenter()):
+                uiList.append(ui)
+        if uiList != self.lastBoxList:
+            self.stackManager.SelectUiView(None)
+            for ui in uiList:
                 self.stackManager.SelectUiView(ui, True)
+            self.lastBoxList = uiList
 
     def OnKeyDown(self, uiViewIn, event):
         if event.RawControlDown() or event.CmdDown():
