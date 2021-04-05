@@ -73,6 +73,7 @@ class DesignerFrame(wx.Frame):
         self.full_config_file_path = os.path.join(config_folder, settings_file)
 
         super().__init__(parent, -1, self.title, size=(800,600), style=wx.DEFAULT_FRAME_STYLE)
+        self.SetMinClientSize(wx.Size(600,500))
         # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.png')))
         self.CreateStatusBar()
         self.editMenu = None
@@ -161,6 +162,13 @@ class DesignerFrame(wx.Frame):
         self.stackManager.view.SetFocus()
         self.SetFrameSizeFromModel()
         self.UpdateCardList()
+        if self.allCodeWindow:
+            self.allCodeWindow.Destroy()
+            self.allCodeWindow = None
+        if self.errorListWindow:
+            self.errorListWindow.Destroy()
+            self.errorListWindow = None
+        self.lastRunErrors = []
 
     def SaveFile(self):
         if self.filename:
@@ -199,6 +207,13 @@ class DesignerFrame(wx.Frame):
                     self.SetTitle(self.title + ' -- ' + os.path.basename(self.filename))
                     self.WriteConfig()
                     self.cPanel.SetToolByName("hand")
+                    if self.allCodeWindow:
+                        self.allCodeWindow.Destroy()
+                        self.allCodeWindow = None
+                    if self.errorListWindow:
+                        self.errorListWindow.Destroy()
+                        self.errorListWindow = None
+                    self.lastRunErrors = []
             except:
                 # e = sys.exc_info()
                 # print(e)
@@ -208,7 +223,7 @@ class DesignerFrame(wx.Frame):
     def SetFrameSizeFromModel(self):
         self.stackContainer.SetSize(self.stackManager.view.GetSize())
         clientSize = (self.stackManager.view.GetSize().Width + self.splitter.GetSashSize() + self.cPanel.GetSize().Width,
-                      self.stackManager.view.GetSize().Height)
+                      max(self.stackManager.view.GetSize().Height, 500))
         self.splitter.SetSize(clientSize)
         self.SetClientSize(clientSize)
         self.splitter.SetSashPosition(self.stackManager.view.GetSize().Width)
