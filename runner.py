@@ -157,8 +157,7 @@ class Runner():
             if len(self.lastHandlerStack):
                 model = self.lastHandlerStack[-1][0]
                 handlerName = self.lastHandlerStack[-1][1]
-                lastHandler = model.GetProperty('name') + "." + handlerName
-                msg = f"Exited while {lastHandler} was still running.  Maybe you have a long or infinite loop?"
+                msg = f"Exited while {self.HandlerPath(model, handlerName)} was still running.  Maybe you have a long or infinite loop?"
                 error = CardStockError(model.GetCard(), model, handlerName, 0, msg)
                 error.count = 1
                 self.errors.append(error)
@@ -260,7 +259,7 @@ class Runner():
                 self.clientVars[k] = v
 
         if error_class:
-            msg = f"{error_class} in {uiModel.GetProperty('name')}.{handlerName}(), line {line_number}: {detail}"
+            msg = f"{error_class} in {self.HandlerPath(uiModel, handlerName)}, line {line_number}: {detail}"
 
             for e in self.errors:
                 if e.msg == msg:
@@ -275,6 +274,12 @@ class Runner():
 
             if self.statusBar:
                 self.statusBar.SetStatusText(msg)
+
+    def HandlerPath(self, model, handlerName):
+        if model.type == "card":
+            return f"{model.GetProperty('name')}.{handlerName}()"
+        else:
+            return f"{model.GetProperty('name')}.{handlerName}() on card '{model.GetCard().GetProperty('name')}'"
 
     def KeyNameForEvent(self, event):
         code = event.GetKeyCode()
