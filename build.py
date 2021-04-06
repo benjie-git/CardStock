@@ -53,6 +53,7 @@ elif wx.Platform == "__WXMSW__":
     # Build the binaries
     pyinstall("--onefile --clean -y --windowed -n standalone standalone.py")
     pyinstall("--onefile --clean -y --windowed --exclude-module PyInstaller --add-data dist/standalone.exe;. -n CardStock_Designer designer.py")
+    os.remove("standalone.exe")
     pyinstall("--onefile --clean -y --windowed -n CardStock_Viewer viewer.py")
 
     # Build the package directory
@@ -78,6 +79,7 @@ else:
     # Build the binaries
     pyinstall("--onefile --clean -y --windowed -n standalone standalone.py")
     pyinstall("--onefile --clean -y --windowed --exclude-module PyInstaller --add-data dist/standalone:. -n CardStock_Designer designer.py")
+    os.remove("standalone")
     pyinstall("--onefile --clean -y --windowed -n CardStock_Viewer viewer.py")
 
     # Build the package directory
