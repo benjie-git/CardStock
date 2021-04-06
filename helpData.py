@@ -470,7 +470,8 @@ class HelpDataObject():
                                 "<b>onFinished</b> function, if one was passed in."},
         "StopAnimations": {"args": {},
                            "return": None,
-                           "info": "Stops all animations running on this object. "
+                           "info": "Stops all animations running on this object.  When called on a card, stops all "
+                                   "animations running on any object on that card.  "
                                    "Any animated properties are left at their current, mid-animation values."},
     }
 
