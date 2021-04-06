@@ -580,6 +580,7 @@ class StackManager(object):
         if wx.Platform != '__WXMAC__':
             self.UpdateBuffer()
         if not self.isEditing and self.runner:
+            self.uiCard.model.SetProperty("size", self.view.GetTopLevelParent().GetClientSize())
             self.runner.RunHandler(self.uiCard.model, "OnResize", None)
         event.Skip()
 

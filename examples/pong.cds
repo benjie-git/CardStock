@@ -15,6 +15,7 @@
       "handlers": {
         "OnSetup": "from random import randint\n",
         "OnKeyDown": "if keyName == \"Space\":\n   # Only start a game if the ball wasn't already moving\n   if ball.speed.x == 0 and ball.speed.y == 0:\n      ball.SendMessage(\"StartGame\")\n",
+        "OnResize": "# Make the paddle follow the window's height\npaddle.center.y = card.size.height-40\n",
         "OnMouseDown": "if ball.speed.x == 0 and ball.speed.y == 0:\n   # Only start a game if the ball wasn't already moving\n   ball.SendMessage(\"StartGame\")\n",
         "OnMouseMove": "# Make the paddle follow the mouse's X position\npaddle.center = [mousePos.x, card.size.height-40]\n"
       },
@@ -115,5 +116,5 @@
     }
   ],
   "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.8.2"
+  "CardStock_stack_version": "0.8.10"
 }

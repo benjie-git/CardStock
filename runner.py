@@ -170,9 +170,6 @@ class Runner():
                 self.errors.append(error)
 
     def RunHandler(self, uiModel, handlerName, event, arg=None):
-        if not self.didSetup:
-            return
-
         mousePos = None
         keyName = None
         if event and handlerName.startswith("OnMouse"):
@@ -188,6 +185,8 @@ class Runner():
     def RunHandlerInternal(self, uiModel, handlerName, mousePos, keyName, arg):
         handlerStr = uiModel.handlers[handlerName].strip()
         if handlerStr == "":
+            return
+        if not self.didSetup:
             return
 
         error_class = None
