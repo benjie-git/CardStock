@@ -81,6 +81,7 @@ class UiView(object):
             if self.view:
                 self.view.SetSize(s)
                 self.view.Refresh(True)
+                wx.CallAfter(self.view.Refresh, True)
             else:
                 self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
         elif key == "position":
@@ -88,6 +89,7 @@ class UiView(object):
             if self.view:
                 self.view.SetPosition(wx.Point(pos))
                 self.view.Refresh(True)
+                wx.CallAfter(self.view.Refresh, True)
             else:
                 self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
             if self.parent.model.type == "group":

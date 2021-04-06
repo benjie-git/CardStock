@@ -39,6 +39,7 @@ class Runner():
         self.timers = []
         self.errors = []
         self.lastHandlerStack = []
+        self.didSetup = False
 
         # queue of tasks to run on the runnerThread
         # each task is put onto the queue as a list.
@@ -111,6 +112,7 @@ class Runner():
             name = m.GetProperty("name")
             self.clientVars[name] = m.GetProxy()
             self.cardVarKeys.append(name)
+        self.didSetup = True
 
     def CleanupFromRun(self):
         for t in self.timers:
@@ -168,6 +170,9 @@ class Runner():
                 self.errors.append(error)
 
     def RunHandler(self, uiModel, handlerName, event, arg=None):
+        if not self.didSetup:
+            return
+
         mousePos = None
         keyName = None
         if event and handlerName.startswith("OnMouse"):

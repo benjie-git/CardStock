@@ -36,7 +36,6 @@ class StackManager(object):
         self.designer = None
         self.isEditing = False  # Is in Editing mode (running from the designer), as opposed to just the viewer
         self.command_processor = CommandProcessor()
-        self.noIdling = False
         self.timer = None
         self.tool = None
         self.globalCursor = None
@@ -110,7 +109,7 @@ class StackManager(object):
                     uiView.view.SetCursor(wx.Cursor(viewCursor if viewCursor else cursor))
 
     def OnIdleTimer(self, event):
-        if not self.isEditing and not self.noIdling:
+        if not self.isEditing:
             self.uiCard.OnIdle(event)
 
     def SetTool(self, tool):
@@ -166,7 +165,6 @@ class StackManager(object):
                 cardModel = self.stackModel.GetCardModel(index)
                 self.CreateViews(cardModel)
                 self.SelectUiView(self.uiCard)
-                self.view.Refresh(True)
                 if self.designer:
                     self.designer.UpdateCardList()
                 if not self.isEditing and self.runner:
@@ -174,9 +172,7 @@ class StackManager(object):
                     if not reload:
                         if self.uiCard.model.GetHandler("OnShowCard"):
                             self.runner.RunHandler(self.uiCard.model, "OnShowCard", None)
-                    self.noIdling = True
-                    wx.GetApp().Yield()
-                    self.noIdling = False
+                self.view.Refresh(True)
 
     def SetDesigner(self, designer):
         self.designer = designer
