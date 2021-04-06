@@ -357,3 +357,8 @@ class Card(ViewProxy):
             if o._model.type not in ["card", "stack"] and o._model.GetCard() == self._model:
                 models.append(o._model)
         return self._model.stackManager.GroupModelsInternal(models, name=name).GetProxy()
+
+    def StopAnimations(self):
+        super().StopAnimations()
+        for child in self._model.GetAllChildModels():
+            child.StopAnimations()
