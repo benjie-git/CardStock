@@ -348,6 +348,26 @@ class Card(ViewProxy):
         line = self._model.AddNewObject("line", name, None, points)
         return line.GetProxy()
 
+
+    @RunOnMain
+    def AddPolygon(self, points, name="polygon"):
+        if not isinstance(points, (list, tuple)):
+            raise TypeError("points should be a list of points")
+        if len(points) < 2:
+            raise TypeError("points should be a list of at least 2 points")
+        for p in points:
+            if not isinstance(p, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
+                raise TypeError("points items each need to be a point or a list of two numbers")
+            if len(p) != 2:
+                raise TypeError("points items each need to be a point or a list of two numbers")
+            try:
+                int(p[0]), int(p[1])
+            except:
+                raise ValueError("points items each need to be a point or a list of two numbers")
+
+        poly = self._model.AddNewObject("poly", name, None, points)
+        return poly.GetProxy()
+
     @RunOnMain
     def AddGroup(self, objects, name="group"):
         models = []

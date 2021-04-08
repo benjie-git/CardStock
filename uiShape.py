@@ -40,7 +40,7 @@ class UiShape(UiView):
                 lines.append((lastPos[0], lastPos[1], coords[0], coords[1]))
                 lastPos = coords
             dc.DrawLineList(lines)
-        elif len(points) == 2:
+        elif self.model.type in ["oval", "rect", "roundrect"] and len(points) == 2:
             rect = self.model.RectFromPoints(points)
             p1 = rect.TopLeft + offset
             p2 = rect.BottomRight + offset
@@ -59,6 +59,14 @@ class UiShape(UiView):
                 dc.DrawRoundedRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1], radius)
             elif self.model.type == "oval":
                 dc.DrawEllipse(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
+        elif self.model.type == "poly" and len(points) >= 2:
+            if thickness == 0:
+                pen = wx.TRANSPARENT_PEN
+                dc.SetPen(pen)
+            dc.SetBrush(wx.Brush(fillColor, wx.BRUSHSTYLE_SOLID))
+            pen.SetJoin(wx.JOIN_MITER)
+            dc.SetPen(pen)
+            dc.DrawPolygon(points, offset.x, offset.y)
 
     def Paint(self, gc):
         thickness = self.model.GetProperty("penThickness")
@@ -138,9 +146,9 @@ class UiShape(UiView):
 
     @staticmethod
     def CreateModelForType(stackManager, name):
-        if name == "pen" or name == "line":
+        if name in ["pen", "line"]:
             return LineModel(stackManager)
-        if name == "rect" or name == "oval":
+        if name in ["rect", "oval", "poly"]:
             return ShapeModel(stackManager)
         if name == "roundrect":
             return RoundRectModel(stackManager)
@@ -205,7 +213,7 @@ class LineModel(ViewModel):
         return self.GetAbsoluteFrame().Inflate(8 + self.properties["penThickness"])
 
     def PerformFlips(self, fx, fy):
-        if self.type in ["line", "pen"]:
+        if self.type in ["line", "pen", "poly"]:
             if fx or fy:
                 origSize = self.properties["originalSize"]
                 self.points = [((origSize[0] - p[0]) if fx else p[0], (origSize[1] - p[1]) if fy else p[1]) for p in self.points]
@@ -359,7 +367,7 @@ class ShapeModel(LineModel):
 
     def __init__(self, stackManager):
         super().__init__(stackManager)
-        self.type = "shape"  # Gets rewritten on SetShape (to "oval" or "rect")
+        self.type = "shape"  # Gets rewritten on SetShape (to "oval", "rect", or "poly")
         self.proxyClass = Shape
 
         self.properties["fillColor"] = "white"

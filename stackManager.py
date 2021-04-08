@@ -302,7 +302,7 @@ class StackManager(object):
             uiView = UiImage(self.uiCard, self, model)
         elif type == "group":
             uiView = UiGroup(self.uiCard, self, model)
-        elif type in ["pen", "line", "oval", "rect", "roundrect"]:
+        elif type in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
             uiView = UiShape(self.uiCard, self, type, model)
 
         if uiView:
@@ -474,7 +474,8 @@ class StackManager(object):
             if uiView and uiView.model.type.startswith("text") and event.LeftDClick():
                 # Flag this is a double-click  On mouseUp, we'll start the inline editor.
                 self.isDoubleClick = True
-            return
+            if self.tool.name != "poly" or wx.Platform == "__WXGTK__":
+                return
 
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         uiView = self.HitTest(pos, not event.ShiftDown())
@@ -662,7 +663,8 @@ class StackManager(object):
     def OnKeyDown(self, uiView, event):
         if self.tool and self.isEditing:
             ms = wx.GetMouseState()
-            if not ms.LeftIsDown() and not self.inlineEditingView and not event.ControlDown() and not event.AltDown():
+            if not ms.LeftIsDown() and not self.inlineEditingView and not event.ControlDown() \
+                    and not event.AltDown() and self.view.FindFocus() != self.designer.cPanel.inspector:
                 code = event.GetKeyCode()
                 if code == ord('H') or code == wx.WXK_ESCAPE:
                     self.designer.cPanel.SetToolByName("hand")
@@ -680,6 +682,8 @@ class StackManager(object):
                     self.designer.cPanel.SetToolByName("oval")
                 elif code == ord('R'):
                     self.designer.cPanel.SetToolByName("rect")
+                elif code == ord('G'):
+                    self.designer.cPanel.SetToolByName("poly")
                 elif code == ord('D'):
                     self.designer.cPanel.SetToolByName("roundrect")
                 elif code == ord('L'):

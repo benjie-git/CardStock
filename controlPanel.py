@@ -22,9 +22,9 @@ class ControlPanel(wx.Panel):
     BMP_BORDER = 4
 
     toolNames = ["hand", "button", "field", "label", "image",
-                 "pen", "oval", "rect", "roundrect", "line"]
+                 "pen", "oval", "rect", "poly", "roundrect", "line"]
     tooltips = ["Hand (Esc)", "Button (B)", "Text Field (F)", "Text Label (T)", "Image (I)",
-                "Pen (P)", "Oval (O)", "Rectangle (R)", "Round Rectangle (D)", "Line (L)"]
+                "Pen (P)", "Oval (O)", "Rectangle (R)", "Polygon (G)", "Round Rectangle (D)", "Line (L)"]
 
     def __init__(self, parent, ID, stackManager):
         wx.Panel.__init__(self, parent, ID, style=wx.RAISED_BORDER)
@@ -32,7 +32,7 @@ class ControlPanel(wx.Panel):
         self.penColor = "black"
         self.fillColor = "white"
         self.penThickness = 4
-        numCols = 10
+        numCols = 11
         spacing = 6
 
         btnSize = wx.Size(self.BMP_SIZE + 2*self.BMP_BORDER,
@@ -222,6 +222,8 @@ class ControlPanel(wx.Panel):
             self.inspector.EnableCellEditControl(True)
         else:
             event.Skip()
+            if event.GetKeyCode() != wx.WXK_TAB:
+                event.StopPropagation()
 
     def OnHandlerChoice(self, event):
         displayName = self.handlerPicker.GetItems()[self.handlerPicker.GetSelection()]
@@ -488,7 +490,7 @@ class ControlPanel(wx.Panel):
             tool = BaseTool.ToolFromName(toolName, self.stackManager)
             self.stackManager.SetTool(tool)
 
-            if tool.name == "pen" or tool.name == "oval" or tool.name == "rect" or tool.name == "line" or tool.name == "roundrect":
+            if tool.name in ["pen", "oval", "rect", "poly", "line", "roundrect"]:
                 self.box.Show(self.drawBox)
                 self.box.Hide(self.editBox)
                 self.stackManager.SelectUiView(None)

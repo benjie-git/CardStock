@@ -323,6 +323,7 @@ class ViewModel(object):
                         "line": "Line",
                         "rect": "Rectangle",
                         "oval": "Oval",
+                        "poly": "Polygon",
                         "roundrect": "Round Rectangle",
                         "group": "Group"}
         return displayTypes[self.type]

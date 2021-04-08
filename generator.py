@@ -26,7 +26,7 @@ class StackGenerator(object):
             return uiImage.UiImage(parent, stackManager, model)
         elif model.type == "group":
             return uiGroup.UiGroup(parent, stackManager, model)
-        elif model.type in ["pen", "line", "oval", "rect", "roundrect"]:
+        elif model.type in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
             return uiShape.UiShape(parent, stackManager, type, model)
         return None
 
@@ -45,7 +45,7 @@ class StackGenerator(object):
             m = uiImage.ImageModel(stackManager)
         elif data["type"] == "group":
             m = uiGroup.GroupModel(stackManager)
-        elif data["type"] in ["pen", "line", "oval", "rect", "roundrect"]:
+        elif data["type"] in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
             m = uiShape.UiShape.CreateModelForType(stackManager, data["type"])
         m.SetData(data)
         return m
@@ -65,6 +65,6 @@ class StackGenerator(object):
             m = uiImage.ImageModel(stackManager)
         elif typeStr == "group":
             m = uiGroup.GroupModel(stackManager)
-        elif typeStr in ["pen", "line", "oval", "rect", "roundrect"]:
+        elif typeStr in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
             m = uiShape.UiShape.CreateModelForType(stackManager, typeStr)
         return m
