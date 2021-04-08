@@ -1,6 +1,8 @@
 import wx
 import wx.stc as stc
 import keyword
+import ast
+import helpData
 
 """
 The PythonEditor is used for the CodeEditor in the Designer's ControlPanel.
@@ -34,6 +36,7 @@ class PythonEditor(stc.StyledTextCtrl):
         super().__init__(parent=parent, **kwargs)
 
         self.undoHandler = undoHandler
+        self.analyzer = CodeAnalyzer()
 
         self.SetAutoLayout(True)
         # self.SetConstraints(stc.LayoutAnchors(self, True, True, True, True))
@@ -74,24 +77,44 @@ class PythonEditor(stc.StyledTextCtrl):
         self.SetLexer(stc.STC_LEX_PYTHON)
         self.SetKeyWords(0, " ".join(keyword.kwlist))
 
+        self.AutoCompSetAutoHide(True)
+        self.AutoCompSetIgnoreCase(True)
+        self.AutoCompSetFillUps("\t\r\n .")
+        self.AutoCompSetCancelAtStart(True)
+        self.AutoCompSetCaseInsensitiveBehaviour(stc.STC_CASEINSENSITIVEBEHAVIOUR_IGNORECASE)
+        self.Bind(stc.EVT_STC_AUTOCOMP_COMPLETED, self.OnACCompleted)
+
+        self.Bind(wx.EVT_SET_FOCUS, self.PyEditorOnFocus)
         self.Bind(wx.EVT_KEY_DOWN, self.PyEditorOnKeyPress)
         self.Bind(stc.EVT_STC_ZOOM, self.PyEditorOnZoom)
         self.Bind(stc.EVT_STC_UPDATEUI, self.PyEditorOnUpdateUi)
 
     def PyEditorOnKeyPress(self, event):
-        if event.GetKeyCode() == stc.STC_KEY_RETURN:
+        key = event.GetKeyCode()
+        if key == stc.STC_KEY_RETURN:
             numSpaces = self.GetLineIndentation(self.GetCurrentLine())
             line = self.GetLine(self.GetCurrentLine())
             if line.strip()[-1:] == ":":
                 numSpaces += TAB_WIDTH
             self.AddText("\n" + " "*numSpaces)
+            self.analyzer.ScanCode(self.GetParent().stackManager.stackModel)
+            if self.AutoCompActive():
+                self.AutoCompComplete()
+        elif key == stc.STC_KEY_ESCAPE:
+            if self.AutoCompActive():
+                self.AutoCompCancel()
         else:
-            if event.GetKeyCode() == ord("Z") and event.ControlDown():
+            if key == ord("Z") and event.ControlDown():
                 if not event.ShiftDown():
                     self.undoHandler.Undo()
                 else:
                     self.undoHandler.Redo()
                 return
+            if (key >= ord('a') and key <= ord('z')) or \
+                    (key >= ord('A') and key <= ord('Z')) or \
+                    key == ord('_') or \
+                    (key == wx.WXK_BACK and self.AutoCompActive()):
+                wx.CallAfter(self.UpdateAC)
             event.Skip()
 
     def PyEditorOnZoom(self, event):
@@ -125,10 +148,114 @@ class PythonEditor(stc.StyledTextCtrl):
         if braceAtCaret >= 0:
             braceOpposite = self.BraceMatch(braceAtCaret)
 
-        if braceAtCaret != -1  and braceOpposite == -1:
+        if braceAtCaret != -1 and braceOpposite == -1:
             self.BraceBadLight(braceAtCaret)
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
             pt = self.PointFromPosition(braceOpposite)
             self.Refresh(True, wx.Rect(pt.x, pt.y, 5,5))
             self.Refresh(False)
+
+    def PyEditorOnFocus(self, event):
+        self.analyzer.ScanCode(self.GetParent().stackManager.stackModel)
+        event.Skip()
+
+    def UpdateAC(self):
+        # Find the word start
+        currentPos = self.GetCurrentPos()
+        wordStartPos = self.WordStartPosition(currentPos, True)
+
+        # Display the autocompletion list
+        lenEntered = currentPos - wordStartPos
+        if wordStartPos > 0 and chr(self.GetCharAt(wordStartPos-1)) == '.':
+            acList = self.analyzer.ACAttributes
+        else:
+            acList = self.analyzer.ACNames
+
+        if lenEntered > 0:
+            prefix = self.GetTextRange(wordStartPos, currentPos).lower()
+            acList = [s for s in acList if s.lower().startswith(prefix)]
+            if len(acList):
+                self.AutoCompShow(lenEntered, " ".join(acList))
+            else:
+                if self.AutoCompActive():
+                    self.AutoCompCancel()
+
+    def OnACCompleted(self, event):
+        s = event.GetString()
+        if s.endswith("()"):
+            def moveBackOne():
+                car = self.GetCurrentPos()
+                self.SetSelection(car-1, car-1)
+            wx.CallAfter(moveBackOne)
+            self.AutoCompCancel()
+
+
+class CodeAnalyzer(object):
+    def __init__(self):
+        super().__init__()
+        self.varNames = []
+        self.funcNames = []
+        self.globalVars = helpData.HelpDataGlobals.variables.keys()
+        self.globalFuncs = helpData.HelpDataGlobals.functions.keys()
+        self.objNames = []
+        self.objProps = []
+        self.objMethods = []
+        for cls in [helpData.HelpDataObject, helpData.HelpDataButton, helpData.HelpDataTextLabel,
+                    helpData.HelpDataTextField, helpData.HelpDataImage, helpData.HelpDataGroup,
+                    helpData.HelpDataCard, helpData.HelpDataStack, helpData.HelpDataLine,
+                    helpData.HelpDataShape, helpData.HelpDataRoundRectangle]:
+            self.objProps += cls.properties.keys()
+            self.objMethods += cls.methods.keys()
+        self.ACNames = []
+        self.ACAttributes = []
+        self.BuildACLists()
+
+    def CollectCode(self, model):
+        self.objNames.append(model.GetProperty("name"))
+        code = "\n".join([s for s in model.handlers.values() if len(s)])
+        for child in model.childModels:
+            s = self.CollectCode(child)
+            if len(s):
+                code += "\n" + s
+        return code
+
+    def BuildACLists(self):
+        names = []
+        names.extend(self.varNames)
+        names.extend([s+"()" for s in self.funcNames])
+        names.extend(self.globalVars)
+        names.extend([s+"()" for s in self.globalFuncs])
+        names.extend(self.objNames)
+        names = list(set(names))
+        names.sort(key=str.casefold)
+        self.ACNames = names
+
+        attributes = []
+        attributes.extend(self.objProps)
+        attributes.extend([s+"()" for s in self.objMethods])
+        attributes.extend(self.objNames)
+        attributes = list(set(attributes))
+        attributes.sort(key=str.casefold)
+        self.ACAttributes = attributes
+
+    def ScanCode(self, model):
+        self.objNames = []
+        code = self.CollectCode(model)
+        try:
+            root = ast.parse(code)
+
+            self.varNames = set()
+            self.funcNames = set()
+
+            for node in ast.walk(root):
+                if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+                    self.varNames.add(node.id)
+                # elif isinstance(node, ast.Attribute):
+                #     print("attribute: ", node.attr)
+                elif isinstance(node, ast.FunctionDef):
+                    self.funcNames.add(node.name)
+
+            self.BuildACLists()
+        except SyntaxError:
+            pass
