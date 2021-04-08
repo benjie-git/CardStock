@@ -22,9 +22,9 @@ class ControlPanel(wx.Panel):
     BMP_BORDER = 4
 
     toolNames = ["hand", "button", "field", "label", "image",
-                 "pen", "oval", "rect", "poly", "roundrect", "line"]
+                 "pen", "oval", "rect", "roundrect", "poly", "line"]
     tooltips = ["Hand (Esc)", "Button (B)", "Text Field (F)", "Text Label (T)", "Image (I)",
-                "Pen (P)", "Oval (O)", "Rectangle (R)", "Polygon (G)", "Round Rectangle (D)", "Line (L)"]
+                "Pen (P)", "Oval (O)", "Rectangle (R)", "Round Rectangle (D)", "Polygon (G)", "Line (L)"]
 
     def __init__(self, parent, ID, stackManager):
         wx.Panel.__init__(self, parent, ID, style=wx.RAISED_BORDER)
@@ -32,6 +32,7 @@ class ControlPanel(wx.Panel):
         self.penColor = "black"
         self.fillColor = "white"
         self.penThickness = 4
+        self.isContextHelpEnabled = False
         numCols = 11
         spacing = 6
 
@@ -156,17 +157,16 @@ class ControlPanel(wx.Panel):
         self.toolTip = None
 
     def ShowContextHelp(self, show):
-        self.panelHelp.Show(show)
-        self.box.Layout()
+        if self.stackManager.tool.name == "hand":
+            self.panelHelp.Show(show)
+            self.box.Layout()
+        self.isContextHelpEnabled = show
 
     def ToggleContextHelp(self):
-        if self.IsContextHelpShown():
-            self.ShowContextHelp(False)
-        else:
-            self.ShowContextHelp(True)
+        self.ShowContextHelp(not self.isContextHelpEnabled)
 
     def IsContextHelpShown(self):
-        return self.panelHelp.IsShown()
+        return self.isContextHelpEnabled
 
     def UpdateHelpText(self, helpText):
         if helpText:
@@ -500,6 +500,7 @@ class ControlPanel(wx.Panel):
             elif tool.name == "hand":
                 self.box.Hide(self.drawBox)
                 self.box.Show(self.editBox)
+                self.panelHelp.Show(self.isContextHelpEnabled)
             else:
                 self.box.Hide(self.drawBox)
                 self.box.Hide(self.editBox)

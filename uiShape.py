@@ -89,7 +89,7 @@ class UiShape(UiView):
                 lastPos = points[0] + f.TopLeft
                 lines = []
                 for coords in points:
-                    coords = coords + f.TopLeft
+                    coords = coords + f.TopLeft + (1,1)
                     lines.append((lastPos[0], lastPos[1], coords[0], coords[1]))
                     lastPos = coords
                 if self.model.type == "poly":
