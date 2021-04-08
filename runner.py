@@ -434,6 +434,7 @@ class Runner():
     def IsMouseDown(self):
         return wx.GetMouseState().LeftIsDown()
 
+    @RunOnMain
     def RunAfterDelay(self, duration, func, *args, **kwargs):
         try:
             duration = float(duration)

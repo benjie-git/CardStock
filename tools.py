@@ -133,6 +133,10 @@ class HandTool(BaseTool):
         self.xFlipped = False
         self.yFlipped = False
 
+    def Activate(self):
+        if len(self.stackManager.GetSelectedUiViews()) == 0:
+            self.stackManager.SelectUiView(self.stackManager.uiCard)
+
     def OnMouseDown(self, uiView, event):
         self.mode = "click"
         self.shiftDown = event.ShiftDown()
