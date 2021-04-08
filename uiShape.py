@@ -83,7 +83,7 @@ class UiShape(UiView):
             thickness = self.model.GetProperty("penThickness")
             gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            if self.model.type in ["line", "pen"]:
+            if self.model.type in ["line", "pen", "poly"]:
                 points = self.model.GetScaledPoints()
                 gc.SetPen(wx.Pen('Blue', 3 + thickness, wx.PENSTYLE_SHORT_DASH))
                 lastPos = points[0] + f.TopLeft
@@ -92,6 +92,10 @@ class UiShape(UiView):
                     coords = coords + f.TopLeft
                     lines.append((lastPos[0], lastPos[1], coords[0], coords[1]))
                     lastPos = coords
+                if self.model.type == "poly":
+                    first = points[0] + f.TopLeft
+                    last = points[-1] + f.TopLeft
+                    lines.append((last[0], last[1], first[0], first[1]))
                 gc.DrawLineList(lines)
             elif self.model.type == "rect":
                 gc.DrawRectangle(f.Inflate(2 + thickness/2))

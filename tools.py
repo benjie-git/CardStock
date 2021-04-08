@@ -618,21 +618,22 @@ class PolyTool(BaseTool):
         elif dist(mousePos, self.points[-1]) < 5:
             self.FinishShape()
         else:
-            self.points.append(self.ConstrainDragPoint(self.name, self.points[-1], event))
+            self.points.append(self.ConstrainDragPoint("line", self.points[-1], event))
             self.targetUi.model.DidUpdateShape()
 
     def OnMouseMove(self, uiView, event):
-        if self.points and len(self.points):
-            self.mousePos = self.ConstrainDragPoint(self.name, self.points[-1], event)
-        else:
-            self.mousePos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        self.mousePos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
 
         if self.stackManager.view.HasCapture():
             if wx.GetMouseState().LeftIsDown():
+                if self.points and len(self.points)>1:
+                    self.mousePos = self.ConstrainDragPoint("line", self.points[-2], event)
                 self.points[-1] = self.mousePos
                 self.targetUi.model.DidUpdateShape()
             else:
                 if len(self.points) >= 1:
+                    if self.points and len(self.points):
+                        self.mousePos = self.ConstrainDragPoint("line", self.points[-1], event)
                     points = [self.points[0], self.points[-1], self.mousePos]
                     if self.lastMousePos:
                         points.append(self.lastMousePos)
@@ -659,8 +660,8 @@ class PolyTool(BaseTool):
             if code in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER, wx.WXK_ESCAPE]:
                 self.FinishShape()
             elif code in [wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE, wx.WXK_BACK]:
-                if len(self.points) > 2:
-                    del self.points[-2]
+                if len(self.points) > 1:
+                    del self.points[-1]
                 self.targetUi.model.DidUpdateShape()
 
     def Deactivate(self):
