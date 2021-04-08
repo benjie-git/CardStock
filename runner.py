@@ -88,7 +88,9 @@ class Runner():
             wx.WXK_DOWN: "Down",
             wx.WXK_SHIFT: "Shift",
             wx.WXK_ALT: "Alt",
-            wx.WXK_CONTROL: "Control"
+            wx.WXK_CONTROL: "Control",
+            wx.WXK_BACK: "Backspace",
+            wx.WXK_CAPITAL: "CapsLock"
         }
         if wx.GetOsVersion()[0] == wx.OS_MAC_OSX_DARWIN:
             self.keyCodeStringMap[wx.WXK_ALT] = "Option"
@@ -176,6 +178,8 @@ class Runner():
             mousePos = self.stackManager.view.ScreenToClient(wx.GetMousePosition())
         if event and handlerName.startswith("OnKey"):
             keyName = self.KeyNameForEvent(event)
+            if not keyName:
+                return
 
         if threading.currentThread() == self.runnerThread:
             self.RunHandlerInternal(uiModel, handlerName, mousePos, keyName, arg)
