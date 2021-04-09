@@ -86,7 +86,7 @@ class UiCard(UiView):
 
     def OnIdle(self, event):
         super().OnIdle(event)
-        for child in self.stackManager.uiViews:
+        for child in self.stackManager.GetAllUiViews():
             child.OnIdle(event)
 
 

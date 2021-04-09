@@ -3,6 +3,7 @@ import os
 import traceback
 import wx
 import uiView
+from uiCard import Card
 from wx.adv import Sound
 from time import sleep, time
 from errorListWindow import CardStockError
@@ -323,9 +324,13 @@ class Runner():
             self.RunHandler(ui.model, "OnMessage", None, message)
 
     @RunOnMain
-    def GotoCard(self, cardName):
-        if not isinstance(cardName, str):
-            raise TypeError("cardName must be a string")
+    def GotoCard(self, card):
+        if isinstance(card, str):
+            cardName = card
+        elif isinstance(card, Card):
+            cardName = card._model.GetProperty("name")
+        else:
+            raise TypeError("card must be card object or a string")
 
         index = None
         for m in self.stackManager.stackModel.childModels:

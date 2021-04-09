@@ -239,6 +239,7 @@ HelpDataTypes = [["Type", "Description"],
                  ["<i>string</i>", "A string value holds text"],
                  ["<i>object</i>", "An object value holds a CardStock object, like a button, card, or oval"],
                  ["<i>list</i>", "A list value is a container that holds a list of other values."],
+                 ["<i>dictionary</i>", "A dictionary value is a container that holds named items, as key, value pairs."],
                  ["<i>point</i>", "A point value is like a list of two numbers, x and y, that describes a location in "
                                   "the card.  For a point variable p, you can access the x value as p[0] or p.x, and "
                                   "the y value as either p[1] or p.y."],
@@ -283,8 +284,8 @@ class HelpDataGlobals():
         "Ask": {"args": {"message": {"type": "string", "info": "Text to show in the Ask dialog."}}, "return": "bool",
                 "info": "Shows an alert dialog to the user, with the <b>message</b> you provide, and offers Yes and No "
                         "buttons.  Returns True if Yes is clicked, and False if No is clicked."},
-        "GotoCard": {"args": {"cardName": {"type": "string", "info": "The name of the card to go to."}}, "return": None,
-                     "info": "Goes to the card with the name passed in as <b>cardName</b>.  This sends the OnHideCard event "
+        "GotoCard": {"args": {"card": {"type": "object or string", "info": "The card object, or name of the card to go to."}}, "return": None,
+                     "info": "Goes to the card passed in as <b>card</b>, or the card with the name passed in as <b>card</b>.  This sends the OnHideCard event "
                              "for the current card, and then the OnShowCard event for the new card, or does nothing if "
                              "there is no card with that name."},
         "GotoCardIndex": {"args": {"cardIndex": {"type": "int", "info": "The index number of the card to go to, with 0 meaning the first card."}}, "return": None,
@@ -364,6 +365,10 @@ class HelpDataObject():
                      "info": "<b>children</b> is the list of objects that this object contains.  A stack has children "
                              "that are cards.  A card and a group can both have children objects. Other objects have "
                              "no children."},
+        "eventHandlers": {"type": "dictionary",
+                   "info": "<b>eventHandlers</b> is a dictionary of all of this object's event handling code.  Each "
+                           "key in the dictionary is the event name, for example 'OnClick', and each value is a string "
+                           "holding the code."},
     }
 
     methods = {
@@ -810,6 +815,17 @@ class HelpDataCard():
                              },
                     "return": "object",
                     "info": "Adds a new Line to the card, and returns the new object."},
+        "AddPolygon": {"args": {"points": {"type": "list", "info": "a list of points, that are the locations of each "
+                                                                   "vertex along the outline of the polygon, relative "
+                                                                   "to the top-left corner of the card.  It must hold "
+                                                                   "three or more points to display properly as a "
+                                                                   "polygon."},
+                             "name": {"type": "string", "info": "an optional argument giving the name to use for this "
+                                                                "new Line object.  If omitted, the name will be "
+                                                                "'shape_{N}'."}
+                             },
+                    "return": "object",
+                    "info": "Adds a new Polygon shape to the card, and returns the new object."},
         "AddGroup": {"args": {"objects": {"type": "list", "info": "a list of object, all on the same card, to include "
                                                                   "in the new group object."},
                              "name": {"type": "string", "info": "an optional argument giving the name to use for this "

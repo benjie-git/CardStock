@@ -158,6 +158,7 @@ class StackManager(object):
                 oldCardModel = self.stackModel.childModels[self.cardIndex]
                 if self.runner:
                     self.runner.RunHandler(oldCardModel, "OnHideCard", None)
+                    self.uiCard.model.GetProxy().StopAnimations()
             self.cardIndex = index
             self.ClearAllViews()
             self.lastFocusedTextField = None
