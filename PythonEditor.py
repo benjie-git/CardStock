@@ -6,7 +6,7 @@ import helpData
 
 """
 The PythonEditor is used for the CodeEditor in the Designer's ControlPanel.
-It offers syntax highlighting, brace pairing. 
+It offers syntax highlighting, brace pairing, and simple code autocompletion.
 """
 
 TAB_WIDTH = 3
@@ -77,12 +77,14 @@ class PythonEditor(stc.StyledTextCtrl):
         self.SetLexer(stc.STC_LEX_PYTHON)
         self.SetKeyWords(0, " ".join(keyword.kwlist))
 
-        self.AutoCompSetAutoHide(True)
+        self.AutoCompSetAutoHide(False)
         self.AutoCompSetIgnoreCase(True)
-        self.AutoCompSetFillUps("\t\r\n .")
+        self.AutoCompSetFillUps("\t\r\n")
         self.AutoCompSetCancelAtStart(True)
         self.AutoCompSetCaseInsensitiveBehaviour(stc.STC_CASEINSENSITIVEBEHAVIOUR_IGNORECASE)
         self.Bind(stc.EVT_STC_AUTOCOMP_COMPLETED, self.OnACCompleted)
+        self.Bind(stc.EVT_STC_AUTOCOMP_CANCELLED, self.OnACCancelled)
+        self.Bind(stc.EVT_STC_AUTOCOMP_SELECTION_CHANGE, self.OnACSelectionChange)
 
         self.Bind(wx.EVT_SET_FOCUS, self.PyEditorOnFocus)
         self.Bind(wx.EVT_KEY_DOWN, self.PyEditorOnKeyPress)
@@ -100,9 +102,6 @@ class PythonEditor(stc.StyledTextCtrl):
             self.analyzer.ScanCode(self.GetParent().stackManager.stackModel)
             if self.AutoCompActive():
                 self.AutoCompComplete()
-        elif key == stc.STC_KEY_ESCAPE:
-            if self.AutoCompActive():
-                self.AutoCompCancel()
         else:
             if key == ord("Z") and event.ControlDown():
                 if not event.ShiftDown():
@@ -110,11 +109,14 @@ class PythonEditor(stc.StyledTextCtrl):
                 else:
                     self.undoHandler.Redo()
                 return
-            if (key >= ord('a') and key <= ord('z')) or \
-                    (key >= ord('A') and key <= ord('Z')) or \
-                    key == ord('_') or \
-                    (key == wx.WXK_BACK and self.AutoCompActive()):
+            elif ord('a') <= key <= ord('z') or ord('A') <= key <= ord('Z'):
                 wx.CallAfter(self.UpdateAC)
+            elif self.AutoCompActive() and (key == wx.WXK_BACK or (event.ShiftDown() and key == ord('_')) or \
+                                            (not event.ShiftDown() and ord('0') <= key <= ord('9'))):
+                wx.CallAfter(self.UpdateAC)
+            elif self.AutoCompActive() and (key in [stc.STC_KEY_ESCAPE, ord(' '), ord('['), ord('.')] or \
+                    (event.ShiftDown() and ord('0') <= key <= ord('9'))):
+                self.AutoCompCancel()
             event.Skip()
 
     def PyEditorOnZoom(self, event):
@@ -174,7 +176,7 @@ class PythonEditor(stc.StyledTextCtrl):
 
         if lenEntered > 0:
             prefix = self.GetTextRange(wordStartPos, currentPos).lower()
-            acList = [s for s in acList if s.lower().startswith(prefix)]
+            acList = [s for s in acList if prefix in s.lower()]
             if len(acList):
                 self.AutoCompShow(lenEntered, " ".join(acList))
             else:
@@ -190,6 +192,18 @@ class PythonEditor(stc.StyledTextCtrl):
             wx.CallAfter(moveBackOne)
             self.AutoCompCancel()
 
+    def OnACCancelled(self, event):
+        self.GetParent().UpdateHelpText("")
+
+    def OnACSelectionChange(self, event):
+        s = event.GetString()
+        if s:
+            helpText = helpData.HelpData.GetHelpForName(s)
+            if helpText:
+                self.GetParent().UpdateHelpText(helpText)
+                return
+        self.GetParent().UpdateHelpText("")
+
 
 class CodeAnalyzer(object):
     def __init__(self):
@@ -201,10 +215,7 @@ class CodeAnalyzer(object):
         self.objNames = []
         self.objProps = []
         self.objMethods = []
-        for cls in [helpData.HelpDataObject, helpData.HelpDataButton, helpData.HelpDataTextLabel,
-                    helpData.HelpDataTextField, helpData.HelpDataImage, helpData.HelpDataGroup,
-                    helpData.HelpDataCard, helpData.HelpDataStack, helpData.HelpDataLine,
-                    helpData.HelpDataShape, helpData.HelpDataRoundRectangle]:
+        for cls in helpData.helpClasses:
             self.objProps += cls.properties.keys()
             self.objMethods += cls.methods.keys()
         self.ACNames = []
@@ -227,6 +238,7 @@ class CodeAnalyzer(object):
         names.extend(self.globalVars)
         names.extend([s+"()" for s in self.globalFuncs])
         names.extend(self.objNames)
+        names.extend(["False", "True", "None"])
         names = list(set(names))
         names.sort(key=str.casefold)
         self.ACNames = names
@@ -251,8 +263,6 @@ class CodeAnalyzer(object):
             for node in ast.walk(root):
                 if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
                     self.varNames.add(node.id)
-                # elif isinstance(node, ast.Attribute):
-                #     print("attribute: ", node.attr)
                 elif isinstance(node, ast.FunctionDef):
                     self.funcNames.add(node.name)
 

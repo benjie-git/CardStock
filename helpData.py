@@ -40,6 +40,31 @@ class HelpData():
         return None
 
     @classmethod
+    def GetHelpForName(cls, key):
+        isFunc = key.endswith("()")
+        allClasses = [HelpDataGlobals]
+        allClasses.extend(helpClasses)
+        if not isFunc:
+            for c in allClasses:
+                if key in c.properties:
+                    prop = c.properties[key]
+                    text = "<b>" + key + "</b>:<i>" + prop["type"] + "</i> - " + prop["info"]
+                    return text
+        else:
+            key = key[:-2]
+            for c in allClasses:
+                if key in c.methods:
+                    method = c.methods[key]
+                    argText = ""
+                    for name, arg in method["args"].items():
+                        argText += "&nbsp;&nbsp;&nbsp;&nbsp;<b>" + name + "</b>:<i>" + arg["type"] + " </i> - " + arg[
+                            "info"] + "<br/>"
+                    ret = ("Returns: <i>" + method["return"] + "</i><br/>") if method["return"] else ""
+                    name = key + "(" + ', '.join(method["args"].keys()) + ")"
+                    text = f"<b>{name}</b><br/>{argText}{ret}<br/>{method['info']}"
+                    return text
+
+    @classmethod
     def HtmlTableFromLists(cls, rows):
         if len(rows) < 2:
             return ""
@@ -260,6 +285,7 @@ class HelpDataGlobals():
                  "info": "The <b>card</b> is the object that represents the currently loaded card in your stack.  You "
                          "can access the objects on this card as card.objectName."},
     }
+    properties = variables
 
     functions = {
         "Wait": {"args": {"duration": {"type": "float", "info": "Number of seconds to delay."}}, "return": None,
@@ -324,7 +350,7 @@ class HelpDataGlobals():
                       "return": None,
                       "info": "Stops running the stack, closes the stack window, and exits the stack viewer program."},
     }
-
+    methods = functions
 
 class HelpDataObject():
     parent = None
@@ -403,10 +429,10 @@ class HelpDataObject():
                  "info": "Hides this object if it was visible."},
         "FlipHorizontal": {"args": {},
                  "return": None,
-                 "info": "Flips the object horizontally.  This only visibly changes images, groups, and some shapes."},
+                 "info": "Flips the object horizontally.  This only visibly changes cards, images, groups, and some shapes."},
         "FlipVertical": {"args": {},
                  "return": None,
-                 "info": "Flips the object vertically.  This only visibly changes images, groups, and some shapes."},
+                 "info": "Flips the object vertically.  This only visibly changes cards, images, groups, and some shapes."},
         "OrderToFront": {"args": {},
                  "return": None,
                  "info": "Moves this object to the front of the card or group it is contained in, in front of all other objects.  But note that "
@@ -893,3 +919,6 @@ class HelpDataStack():
 
     handlers = {}
 
+
+helpClasses = [HelpDataObject, HelpDataCard, HelpDataStack, HelpDataButton, HelpDataTextLabel,
+               HelpDataTextField, HelpDataImage, HelpDataGroup, HelpDataLine, HelpDataShape, HelpDataRoundRectangle]
