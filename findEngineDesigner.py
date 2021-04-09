@@ -70,7 +70,7 @@ class FindEngine(object):
         if not self.didReplace:
             replaceStr = self.findData.GetReplaceString()
             findPath, textSel = self.stackManager.GetDesignerFindPath()
-            command = self.DoReplaceAtPath(findPath, textSel, replaceStr)
+            command = self.DoReplaceAtPath(findPath, [textSel], replaceStr)
             if command:
                 self.stackManager.command_processor.Submit(command)
             parts = findPath.split(".")
@@ -133,7 +133,7 @@ class FindEngine(object):
                 return (key, start+offset, end+offset)
         return (None, None, None)
 
-    def DoReplaceAtPath(self, findPath, textSel, replaceStr):
+    def DoReplaceAtPath(self, findPath, textSels, replaceStr):
         parts = findPath.split(".")
         # cardIndex, objectName, property|handler, key
         cardIndex = int(parts[0])
@@ -143,12 +143,14 @@ class FindEngine(object):
         command = None
         if parts[2] == "property":
             val = str(model.GetProperty(key))
-            val = val[:textSel[0]] + replaceStr + val[textSel[1]:]
+            for textSel in reversed(textSels):
+                val = val[:textSel[0]] + replaceStr + val[textSel[1]:]
             command = SetPropertyCommand(True, "Set Property", self.stackManager.designer.cPanel,
                                          cardIndex, model, key, val, False)
         elif parts[2] == "handler":
             val = model.handlers[key]
-            val = val[:textSel[0]] + replaceStr + val[textSel[1]:]
+            for textSel in reversed(textSels):
+                val = val[:textSel[0]] + replaceStr + val[textSel[1]:]
             command = SetHandlerCommand(True, "Set Handler", self.stackManager.designer.cPanel,
                                         cardIndex, model, key, val, None, None, False)
         return command
@@ -177,10 +179,9 @@ class FindEngine(object):
                 p = re.compile(r'{searchStr}'.format(searchStr=findStr), flags)
 
             matches = [m for m in p.finditer(text)]
-            for match in reversed(matches):
-                command = self.DoReplaceAtPath(path, (match.start(), match.end()), replaceStr)
-                if command:
-                    commands.append(command)
+            matchInfo = [(match.start(), match.end()) for match in matches]
+            command = self.DoReplaceAtPath(path, matchInfo, replaceStr)
+            commands.append(command)
 
         if len(commands):
             command = CommandGroup(True, "Replace All", commands)

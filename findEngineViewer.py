@@ -66,7 +66,7 @@ class FindEngine(object):
             result = self.stackManager.GetViewerFindPath()
             if result:
                 findPath, textSel = result
-                self.DoReplaceAtPath(findPath, textSel, replaceStr)
+                self.DoReplaceAtPath(findPath, [textSel], replaceStr)
                 self.didReplace = True
 
     def DoFindNext(self, searchDict, startPath, textSel):
@@ -120,7 +120,7 @@ class FindEngine(object):
                 return (key, start+offset, end+offset)
         return (None, None, None)
 
-    def DoReplaceAtPath(self, findPath, textSel, replaceStr):
+    def DoReplaceAtPath(self, findPath, textSels, replaceStr):
         parts = findPath.split(".")
         # cardIndex, objectName, property|handler, key
         cardIndex = int(parts[0])
@@ -129,7 +129,8 @@ class FindEngine(object):
         key = parts[3]
         if model.GetProperty("editable"):
             val = str(model.GetProperty(key))
-            val = val[:textSel[0]] + replaceStr + val[textSel[1]:]
+            for textSel in reversed(textSels):
+                val = val[:textSel[0]] + replaceStr + val[textSel[1]:]
             model.SetProperty(key, val)
 
     def ReplaceAll(self):
@@ -152,4 +153,4 @@ class FindEngine(object):
 
             matches = [m for m in p.finditer(text)]
             for match in reversed(matches):
-                self.DoReplaceAtPath(path, (match.start(), match.end()), replaceStr)
+                self.DoReplaceAtPath(path, [(match.start(), match.end())], replaceStr)
