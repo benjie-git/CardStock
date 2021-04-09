@@ -401,6 +401,7 @@ class ControlPanel(wx.Panel):
         self.codeEditor.EmptyUndoBuffer()
         self.handlerPicker.Enable(True)
         self.codeEditor.Enable(True)
+        self.codeEditor.UpdateACLists()
         uiView.lastEditedHandler = self.currentHandler
 
     def SaveCurrentHandler(self):

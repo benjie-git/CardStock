@@ -87,6 +87,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.Bind(stc.EVT_STC_AUTOCOMP_SELECTION_CHANGE, self.OnACSelectionChange)
 
         self.Bind(wx.EVT_SET_FOCUS, self.PyEditorOnFocus)
+        self.Bind(wx.EVT_KILL_FOCUS, self.PyEditorOnLoseFocus)
         self.Bind(wx.EVT_KEY_DOWN, self.PyEditorOnKeyPress)
         self.Bind(stc.EVT_STC_ZOOM, self.PyEditorOnZoom)
         self.Bind(stc.EVT_STC_UPDATEUI, self.PyEditorOnUpdateUi)
@@ -99,7 +100,7 @@ class PythonEditor(stc.StyledTextCtrl):
             if line.strip()[-1:] == ":":
                 numSpaces += TAB_WIDTH
             self.AddText("\n" + " "*numSpaces)
-            self.analyzer.ScanCode(self.GetParent().stackManager.stackModel)
+            self.analyzer.ScanCode(self.GetParent().stackManager.stackModel, self.GetParent().currentHandler)
             if self.AutoCompActive():
                 self.AutoCompComplete()
         else:
@@ -159,8 +160,18 @@ class PythonEditor(stc.StyledTextCtrl):
             self.Refresh(False)
 
     def PyEditorOnFocus(self, event):
-        self.analyzer.ScanCode(self.GetParent().stackManager.stackModel)
+        self.UpdateACLists()
         event.Skip()
+
+    def PyEditorOnLoseFocus(self, event):
+        if self.AutoCompActive():
+            self.AutoCompCancel()
+        event.Skip()
+
+    def UpdateACLists(self):
+        self.analyzer.ScanCode(self.GetParent().stackManager.stackModel, self.GetParent().currentHandler)
+        if self.AutoCompActive():
+            self.AutoCompCancel()
 
     def UpdateAC(self):
         # Find the word start
@@ -220,7 +231,6 @@ class CodeAnalyzer(object):
             self.objMethods += cls.methods.keys()
         self.ACNames = []
         self.ACAttributes = []
-        self.BuildACLists()
 
     def CollectCode(self, model):
         self.objNames.append(model.GetProperty("name"))
@@ -231,7 +241,7 @@ class CodeAnalyzer(object):
                 code += "\n" + s
         return code
 
-    def BuildACLists(self):
+    def BuildACLists(self, handlerName):
         names = []
         names.extend(self.varNames)
         names.extend([s+"()" for s in self.funcNames])
@@ -239,6 +249,10 @@ class CodeAnalyzer(object):
         names.extend([s+"()" for s in self.globalFuncs])
         names.extend(self.objNames)
         names.extend(["False", "True", "None"])
+        if "Mouse" in handlerName: names.append("mousePos")
+        if "Key" in handlerName: names.append("keyName")
+        if "Idle" in handlerName: names.append("elapsedTime")
+        if "Message" in handlerName: names.append("message")
         names = list(set(names))
         names.sort(key=str.casefold)
         self.ACNames = names
@@ -251,7 +265,7 @@ class CodeAnalyzer(object):
         attributes.sort(key=str.casefold)
         self.ACAttributes = attributes
 
-    def ScanCode(self, model):
+    def ScanCode(self, model, handlerName):
         self.objNames = []
         code = self.CollectCode(model)
         try:
@@ -266,6 +280,6 @@ class CodeAnalyzer(object):
                 elif isinstance(node, ast.FunctionDef):
                     self.funcNames.add(node.name)
 
-            self.BuildACLists()
+            self.BuildACLists(handlerName)
         except SyntaxError:
             pass
