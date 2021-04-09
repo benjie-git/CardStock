@@ -708,9 +708,9 @@ class DesignerFrame(wx.Frame):
     def FinishedStarting(self):
         if not self.filename:
             config = self.ReadConfig()
+            self.cPanel.ShowContextHelp(config["show_context_help"] == "True")
             if config["last_open_file"]:
                 self.ReadFile(config["last_open_file"])
-            self.cPanel.ShowContextHelp(config["show_context_help"] == "True")
 
     def WriteConfig(self):
         config = configparser.ConfigParser()
