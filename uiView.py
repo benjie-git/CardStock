@@ -696,6 +696,9 @@ class ViewProxy(object):
         if self._model.type != "card":
             self._model.ApplyAllPending()
             newModel = self._model.CreateCopy()
+            # Hide now and defer an unHide, so the handler code can modify the clone before it displays
+            newModel.SetProperty("hidden", True, notify=False, noDeferred=True)
+            newModel.SetProperty("hidden", False)
             self._model.stackManager.AddUiViewsFromModels([newModel], False)
         else:
             self._model.ApplyAllPending()

@@ -194,7 +194,8 @@ class CardModel(ViewModel):
         if not isinstance(name, str):
             raise TypeError("name is not a string")
         model = generator.StackGenerator.ModelFromType(self.stackManager, typeStr)
-        model.properties["hidden"] = True
+        # Hide now and defer an unHide, so the handler code can modify the clone before it displays
+        model.SetProperty("hidden", True, notify=False, noDeferred=True)
         model.SetProperty("name", name)
         self.DeduplicateNamesForModels([model])
         if size:

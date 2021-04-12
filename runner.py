@@ -468,6 +468,9 @@ class Runner():
     def Paste(self):
         models = self.stackManager.Paste(False)
         for model in models:
+            # Hide now and defer an unHide, so the handler code can modify the clone before it displays
+            model.SetProperty("hidden", True, notify=False, noDeferred=True)
+            model.SetProperty("hidden", False)
             model.RunSetup(self)
         return [m.GetProxy() for m in models]
 
