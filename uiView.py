@@ -151,14 +151,14 @@ class UiView(object):
 
             # Move the object by speed.x and speed.y pixels per second
             if self.model.type not in ["stack", "card"]:
-                speed = self.model.properties["speed"]
+                speed = self.model.GetProperty("speed")
                 if speed != (0,0):
                     isAnimatingPos = False
                     for anim in self.model.animations:
                         if anim["type"] == "position":
                             isAnimatingPos = True
                     if not isAnimatingPos:
-                        pos = self.model.properties["position"]
+                        pos = self.model.GetProperty("position")
                         self.model.SetProperty("position", [pos.x + speed.x*elapsedTime, pos.y + speed.y*elapsedTime])
 
             # Run any in-progress animations

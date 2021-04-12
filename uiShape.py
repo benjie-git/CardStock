@@ -214,7 +214,7 @@ class LineModel(ViewModel):
         self.Notify("shape")
 
     def GetRefreshFrame(self, noDeferred=False):
-        return self.GetAbsoluteFrame(noDeferred).Inflate(8 + self.properties["penThickness"])
+        return self.GetAbsoluteFrame(noDeferred).Inflate(8 + self.GetProperty("penThickness", noDeferred))
 
     def PerformFlips(self, fx, fy):
         if self.type in ["line", "pen", "poly"]:
