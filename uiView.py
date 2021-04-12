@@ -74,7 +74,7 @@ class UiView(object):
 
     def OnPropertyChanged(self, model, key):
         if key in ["pre-size", "pre-position"]:
-            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
+            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame(noDeferred=True))
         elif key == "size":
             s = self.model.GetProperty(key)
             self.ClearHitRegion()
@@ -142,21 +142,13 @@ class UiView(object):
             self.stackManager.runner.RunHandler(self.model, "OnMouseExit", event)
         event.Skip()
 
-    def OnIdle(self, event):
-        if self.hasMouseMoved:
-            self.hasMouseMoved = False
-            if self.stackManager.runner and self.model.GetHandler("OnMouseMove"):
-                self.stackManager.runner.RunHandler(self.model, "OnMouseMove", event)
-
+    def RunAnimations(self, onFinishedCalls):
         # Determine elapsed time since last OnIdle call to this object
         elapsedTime = 0
         now = time()
         if self.model.lastIdleTime:
             elapsedTime = now - self.model.lastIdleTime
-            # if self.model.type == "card" and elapsedTime>0.0: print(int(1.0/elapsedTime+0.5)) # print fps
-        self.model.lastIdleTime = now
 
-        if elapsedTime:
             # Move the object by speed.x and speed.y pixels per second
             if self.model.type not in ["stack", "card"]:
                 speed = self.model.properties["speed"]
@@ -171,19 +163,33 @@ class UiView(object):
 
             # Run any in-progress animations
             for anim in self.model.animations.copy():
-                if now < anim["startTime"] + anim["duration"]:
+                progress = (now - anim["startTime"]) / anim["duration"]
+                if progress < 1:
                     if anim["function"]:
-                        progress = (now - anim["startTime"]) / anim["duration"]
                         anim["function"](progress)
                 else:
                     if anim["function"]:
                         anim["function"](1.0)
                     self.model.animations.remove(anim)
                     if anim["onFinished"]:
-                        wx.CallAfter(anim["onFinished"])
+                        onFinishedCalls.append(anim["onFinished"])
 
+    def OnIdle(self, event):
+        if self.hasMouseMoved:
+            self.hasMouseMoved = False
+            if self.stackManager.runner and self.model.GetHandler("OnMouseMove"):
+                self.stackManager.runner.RunHandler(self.model, "OnMouseMove", event)
+
+        # Determine elapsed time since last OnIdle call to this object
+        elapsedTime = 0
+        now = time()
+        if self.model.lastIdleTime:
+            elapsedTime = now - self.model.lastIdleTime
+            # if self.model.type == "card" and elapsedTime>0.0: print(int(1.0/elapsedTime+0.5)) # print fps
             if self.stackManager.runner and self.model.GetHandler("OnIdle"):
                 self.stackManager.runner.RunHandler(self.model, "OnIdle", event, elapsedTime)
+
+        self.model.lastIdleTime = now
 
     def PaintSelectionBox(self, gc):
         if self.isSelected and self.stackManager.tool.name == "hand":
@@ -288,6 +294,7 @@ class ViewModel(object):
                               "speed": "point",
                               "hidden": "bool"}
         self.propertyChoices = {}
+        self.pendingProps = {}
 
         self.childModels = []
         self.stackManager = stackManager
@@ -339,12 +346,12 @@ class ViewModel(object):
         for m in self.childModels:
             m.SetStackView(stackManager)
 
-    def GetAbsolutePosition(self):
-        p = self.GetProperty("position")
+    def GetAbsolutePosition(self, noDeferred=False):
+        p = self.GetProperty("position", noDeferred)
         pos = wx.RealPoint(p[0], p[1])  # Copy so we don't edit the model's position
         parent = self.parent
         while parent and parent.type != "card":
-            parentPos = parent.GetProperty("position")
+            parentPos = parent.GetProperty("position", noDeferred)
             pos += parentPos
             parent = parent.parent
         return pos
@@ -358,24 +365,24 @@ class ViewModel(object):
             parent = parent.parent
         self.SetProperty("position", pos)
 
-    def GetCenter(self):
-        return self.GetProperty("center")
+    def GetCenter(self, noDeferred=False):
+        return self.GetProperty("center", noDeferred)
 
     def SetCenter(self, center):
         self.SetProperty("center", center)
 
-    def GetFrame(self):
-        p = wx.Point(self.GetProperty("position"))
-        s = self.GetProperty("size")
+    def GetFrame(self, noDeferred=False):
+        p = wx.Point(self.GetProperty("position", noDeferred))
+        s = self.GetProperty("size", noDeferred)
         return wx.Rect(p, s)
 
-    def GetAbsoluteFrame(self):
-        p = wx.Point(self.GetAbsolutePosition())
-        s = self.GetProperty("size")
+    def GetAbsoluteFrame(self, noDeferred=False):
+        p = wx.Point(self.GetAbsolutePosition(noDeferred))
+        s = self.GetProperty("size", noDeferred)
         return wx.Rect(p, s)
 
-    def GetRefreshFrame(self):
-        return self.GetAbsoluteFrame().Inflate(8)
+    def GetRefreshFrame(self, noDeferred=False):
+        return self.GetAbsoluteFrame(noDeferred).Inflate(8)
 
     def SetFrame(self, rect):
         self.SetProperty("position", rect.Position)
@@ -404,26 +411,26 @@ class ViewModel(object):
         for k, v in data["properties"].items():
             if k in self.propertyTypes:
                 if self.propertyTypes[k] == "point":
-                    self.SetProperty(k, wx.Point(v), False)
+                    self.SetProperty(k, wx.Point(v), notify=False)
                 elif self.propertyTypes[k] == "floatpoint":
-                    self.SetProperty(k, wx.RealPoint(v[0], v[1]), False)
+                    self.SetProperty(k, wx.RealPoint(v[0], v[1]), notify=False)
                 elif self.propertyTypes[k] == "size":
-                    self.SetProperty(k, wx.Size(v), False)
+                    self.SetProperty(k, wx.Size(v), notify=False)
                 else:
-                    self.SetProperty(k, v, False)
+                    self.SetProperty(k, v, notify=False)
 
     def SetFromModel(self, model):
         for k, v in model.handlers.items():
             self.handlers[k] = v
         for k, v in model.properties.items():
             if self.propertyTypes[k] == "point":
-                self.SetProperty(k, wx.Point(v), False)
+                self.SetProperty(k, wx.Point(v), notify=False)
             elif self.propertyTypes[k] == "floatpoint":
-                self.SetProperty(k, wx.RealPoint(v[0], v[1]), False)
+                self.SetProperty(k, wx.RealPoint(v[0], v[1]), notify=False)
             elif self.propertyTypes[k] == "size":
-                self.SetProperty(k, wx.Size(v), False)
+                self.SetProperty(k, wx.Size(v), notify=False)
             else:
-                self.SetProperty(k, v, False)
+                self.SetProperty(k, v, notify=False)
 
     # Custom property order and mask for the inspector
     def PropertyKeys(self):
@@ -441,13 +448,15 @@ class ViewModel(object):
     def GetPropertyChoices(self, key):
         return self.propertyChoices[key]
 
-    def GetProperty(self, key):
+    def GetProperty(self, key, noDeferred=False):
         if key == "center":
-            p = self.GetAbsolutePosition()
-            s = self.GetProperty("size")
+            p = self.GetAbsolutePosition(noDeferred)
+            s = self.GetProperty("size", noDeferred)
             center = [p.x + s.width / 2, p.y + s.height / 2]
             return center
         elif key in self.properties:
+            if not noDeferred and self.stackManager and self.stackManager.runner and key in self.pendingProps:
+                return self.pendingProps[key]
             return self.properties[key]
         return None
 
@@ -513,7 +522,7 @@ class ViewModel(object):
     def Notify(self, key):
         self.stackManager.OnPropertyChanged(self, key)
 
-    def SetProperty(self, key, value, notify=True):
+    def SetProperty(self, key, value, notify=True, noDeferred=False):
         if key in self.propertyTypes and self.propertyTypes[key] == "point" and not isinstance(value, wx.Point):
             value = wx.Point(value)
         elif key in self.propertyTypes and self.propertyTypes[key] == "floatpoint" and not isinstance(value, wx.RealPoint):
@@ -524,6 +533,7 @@ class ViewModel(object):
             return
 
         if key == "name":
+            noDeferred = True  # Don't defer setting name
             value = re.sub(r'\W+', '', value)
             if not re.match(r'[A-Za-z][A-Za-z_0-9]*', value):
                 if notify:
@@ -537,13 +547,36 @@ class ViewModel(object):
             self.SetAbsolutePosition([value.x - s.width / 2, value.y - s.height / 2])
             return
 
-        if self.properties[key] != value:
-            if notify:
-                self.Notify("pre-"+key)
-            self.properties[key] = value
-            if notify:
-                self.Notify(key)
-            self.isDirty = True
+        # While running, we don't want to actually update properties live.  We defer the updates until we're ready
+        # to redraw changes in bulk.
+        if self.stackManager and self.stackManager.runner and not noDeferred:
+            self.pendingProps[key] = value
+        else:
+            if self.properties[key] != value:
+                if notify:
+                    self.Notify("pre-"+key)
+                self.properties[key] = value
+                if notify:
+                    self.Notify(key)
+                self.isDirty = True
+
+    @RunOnMain
+    def ApplyAllPending(self):
+        """
+        Applies all pending property updates.  We try to call this at strategic times, to avoid redrawing incomplete,
+        updates.
+        """
+        for k,v in self.pendingProps.items():
+            if k == "delete":
+                if self.type != "card":
+                    self.stackManager.RemoveUiViewByModel(self)
+                else:
+                    self.stackManager.RemoveCard() # FIXME: This needs to delete the correct card, not just the current card!
+            else:
+                self.SetProperty(k, v, noDeferred=True)
+        self.pendingProps = {}
+        for m in self.childModels:
+            m.ApplyAllPending()
 
     def InterpretPropertyFromString(self, key, valStr):
         propType = self.propertyTypes[key]
@@ -576,6 +609,8 @@ class ViewModel(object):
         for d in self.animations.copy():
             if d["type"] == type:
                 self.animations.remove(d)
+                if "onCanceled" in d and d["onCanceled"]:
+                    d["onCanceled"]()
         self.animations.append({"type":type,
                                 "duration": duration,
                                 "startTime": time(),
@@ -646,6 +681,7 @@ class ViewProxy(object):
     @RunOnMain
     def Focus(self):
         if self._model.stackManager.runner:
+            self._model.ApplyAllPending()
             self._model.stackManager.runner.SetFocus(self)
 
     @property
@@ -658,28 +694,31 @@ class ViewProxy(object):
     @RunOnMain
     def Clone(self):
         if self._model.type != "card":
+            self._model.ApplyAllPending()
             newModel = self._model.CreateCopy()
             self._model.stackManager.AddUiViewsFromModels([newModel], False)
         else:
+            self._model.ApplyAllPending()
             newModel = self._model.stackManager.DuplicateCard()
-        if self._model.stackManager.runner:
-            self._model.stackManager.runner.SetupForCard(newModel.GetCard())
-            newModel.RunSetup(self._model.stackManager.runner)
-            self._model.stackManager.runner.SetupForCard(self._model.stackManager.uiCard.model)
+
+        self._model.stackManager.runner.SetupForCard(newModel.GetCard())
+        newModel.RunSetup(self._model.stackManager.runner)
+        self._model.stackManager.runner.SetupForCard(self._model.stackManager.uiCard.model)
         return newModel.GetProxy()
 
     @RunOnMain
     def Delete(self):
-        if self._model.type != "card":
-            self._model.stackManager.RemoveUiViewByModel(self._model)
-        else:
-            self._model.stackManager.RemoveCard()
+        self._model.pendingProps["delete"] = 1
 
     @RunOnMain
-    def Cut(self): self._model.stackManager.CutModels([self._model], False)
+    def Cut(self):
+        self._model.ApplyAllPending()
+        self._model.stackManager.CutModels([self._model], False)
 
     @RunOnMain
-    def Copy(self): self._model.stackManager.CopyModels([self._model])
+    def Copy(self):
+        self._model.ApplyAllPending()
+        self._model.stackManager.CopyModels([self._model])
     #   Paste is in the runner
 
     @property
@@ -701,11 +740,9 @@ class ViewProxy(object):
         return [m.GetProxy() for m in self._model.childModels]
 
     @property
-    @RunOnMain
     def size(self):
         return CDSSize(self._model.GetProperty("size"), model=self._model, role="size")
     @size.setter
-    @RunOnMain
     def size(self, val):
         try:
             val = wx.Size(val[0], val[1])
@@ -714,11 +751,9 @@ class ViewProxy(object):
         self._model.SetProperty("size", val)
 
     @property
-    @RunOnMain
     def position(self):
         return CDSRealPoint(self._model.GetAbsolutePosition(), model=self._model, role="position")
     @position.setter
-    @RunOnMain
     def position(self, val):
         try:
             val = wx.RealPoint(val[0], val[1])
@@ -727,12 +762,10 @@ class ViewProxy(object):
         self._model.SetAbsolutePosition(val)
 
     @property
-    @RunOnMain
     def speed(self):
         speed = CDSPoint(self._model.GetProperty("speed"), model=self._model, role="speed")
         return speed
     @speed.setter
-    @RunOnMain
     def speed(self, val):
         try:
             val = wx.RealPoint(val[0], val[1])
@@ -741,11 +774,9 @@ class ViewProxy(object):
         self._model.SetProperty("speed", val)
 
     @property
-    @RunOnMain
     def center(self):
         return CDSRealPoint(self._model.GetCenter(), model=self._model, role="center")
     @center.setter
-    @RunOnMain
     def center(self, center):
         try:
             center = wx.RealPoint(center[0], center[1])
@@ -781,10 +812,8 @@ class ViewProxy(object):
     def OrderToIndex(self, i):
         self._model.OrderMoveTo(i)
 
-    @RunOnMain
     def Show(self):
         self.visible = True
-    @RunOnMain
     def Hide(self):
         self.visible = False
 
@@ -792,7 +821,6 @@ class ViewProxy(object):
     def visible(self):
         return not self._model.GetProperty("hidden")
     @visible.setter
-    @RunOnMain
     def visible(self, val):
         self._model.SetProperty("hidden", not bool(val))
 
@@ -856,28 +884,27 @@ class ViewProxy(object):
         except:
             raise ValueError("endPosition must be a point or a list of two numbers")
 
-        origPosition = self.position
+        origPosition = self._model.GetAbsolutePosition()
         if wx.Point(origPosition) != wx.Point(endPosition):
             offsetp = endPosition - origPosition
             offset = wx.RealPoint(offsetp[0], offsetp[1])
 
-            self._model.SetProperty("speed", offset*(1.0/duration))
-
             def internalOnFinished():
-                self._model.SetProperty("speed", (0,0))
+                self._model.SetProperty("speed", (0,0), noDeferred=True)
                 if onFinished: onFinished(*args, **kwargs)
 
             def onCanceled():
                 self._model.SetProperty("speed", (0,0))
 
             def f(progress):
-                self.position = [origPosition.x + offset.x * progress,
-                                 origPosition.y + offset.y * progress]
+                self._model.SetAbsolutePosition(origPosition + offset * progress)
             self._model.AddAnimation("position", duration, f, internalOnFinished, onCanceled)
+            self._model.SetProperty("speed", offset*(1.0/duration))
         else:
             def internalOnFinished():
                 if onFinished: onFinished(*args, **kwargs)
             self._model.AddAnimation("position", duration, None, internalOnFinished)
+            self._model.SetProperty("speed", (0,0))
 
     @RunOnMain
     def AnimateCenter(self, duration, endCenter, onFinished=None, *args, **kwargs):
@@ -888,28 +915,27 @@ class ViewProxy(object):
         except:
             raise ValueError("endCenter must be a point or a list of two numbers")
 
-        origCenter = self.center
+        origCenter = self._model.GetCenter()
         if wx.Point(origCenter) != wx.Point(endCenter):
             offsetp = endCenter - origCenter
             offset = wx.RealPoint(offsetp[0], offsetp[1])
 
-            self._model.SetProperty("speed", offset*(1.0/duration))
-
             def internalOnFinished():
-                self._model.SetProperty("speed", (0,0))
+                self._model.SetProperty("speed", (0,0), noDeferred=True)
                 if onFinished: onFinished(*args, **kwargs)
 
             def onCanceled():
                 self._model.SetProperty("speed", (0,0))
 
             def f(progress):
-                self.center = [origCenter.x + offset.x * progress,
-                               origCenter.y + offset.y * progress]
+                self._model.SetCenter(origCenter + offset * progress)
             self._model.AddAnimation("position", duration, f, internalOnFinished, onCanceled)
+            self._model.SetProperty("speed", offset*(1.0/duration))
         else:
             def internalOnFinished():
                 if onFinished: onFinished(*args, **kwargs)
             self._model.AddAnimation("position", duration, None, internalOnFinished)
+            self._model.SetProperty("speed", (0,0))
 
     @RunOnMain
     def AnimateSize(self, duration, endSize, onFinished=None, *args, **kwargs):
@@ -923,16 +949,16 @@ class ViewProxy(object):
         def internalOnFinished():
             if onFinished: onFinished(*args, **kwargs)
 
-        origSize = self.size
+        origSize = self._model.GetProperty("size")
         if wx.Size(origSize) != endSize:
             offset = wx.Size(endSize-origSize)
             def f(progress):
-                self.size = [origSize.width + offset.width * progress,
-                               origSize.height + offset.height * progress]
+                self._model.SetProperty("size", origSize + offset * progress)
             self._model.AddAnimation("size", duration, f, internalOnFinished)
         else:
             self._model.AddAnimation("size", duration, None, internalOnFinished)
 
     @RunOnMain
     def StopAnimations(self):
+        self._model.ApplyAllPending()
         self._model.StopAnimations()

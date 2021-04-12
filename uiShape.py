@@ -14,7 +14,7 @@ class UiShape(UiView):
     def __init__(self, parent, stackManager, shapeType, model=None):
         if not model:
             model = self.CreateModelForType(stackManager, shapeType)
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("shape"), False)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("shape"), notify=False)
 
         super().__init__(parent, stackManager, model, None)
 
@@ -30,7 +30,7 @@ class UiShape(UiView):
         pen = wx.Pen(penColor, thickness, wx.PENSTYLE_SOLID)
         dc.SetPen(pen)
 
-        points = self.model.GetScaledPoints()
+        points = self.model.GetScaledPoints(noDeferred=True)
 
         if self.model.type in ["pen", "line"]:
             lastPos = points[0] + offset
@@ -69,10 +69,10 @@ class UiShape(UiView):
             dc.DrawPolygon(points, offset.x, offset.y)
 
     def Paint(self, gc):
-        thickness = self.model.GetProperty("penThickness")
-        fillColor = self.model.GetProperty("fillColor")
-        penColor = self.model.GetProperty("penColor")
-        offset = wx.Point(self.model.GetAbsolutePosition())
+        thickness = self.model.GetProperty("penThickness", noDeferred=True)
+        fillColor = self.model.GetProperty("fillColor", noDeferred=True)
+        penColor = self.model.GetProperty("penColor", noDeferred=True)
+        offset = wx.Point(self.model.GetAbsolutePosition(noDeferred=True))
         self.DrawShape(gc, thickness, penColor, fillColor, offset)
         super().Paint(gc)
 
@@ -201,8 +201,8 @@ class LineModel(ViewModel):
         self.isDirty = True
         self.Notify("shape")
 
-    def SetProperty(self, key, value, notify=True):
-        super().SetProperty(key, value, notify)
+    def SetProperty(self, key, value, notify=True, noDeferred=False):
+        super().SetProperty(key, value, notify, noDeferred)
         if key == "size":
             self.scaledPoints = None
         elif key == "penThickness":
@@ -213,8 +213,8 @@ class LineModel(ViewModel):
         self.scaledPoints = None
         self.Notify("shape")
 
-    def GetRefreshFrame(self):
-        return self.GetAbsoluteFrame().Inflate(8 + self.properties["penThickness"])
+    def GetRefreshFrame(self, noDeferred=False):
+        return self.GetAbsoluteFrame(noDeferred).Inflate(8 + self.properties["penThickness"])
 
     def PerformFlips(self, fx, fy):
         if self.type in ["line", "pen", "poly"]:
@@ -227,7 +227,7 @@ class LineModel(ViewModel):
 
     # scale from originalSize to Size
     # take into account thickness/2 border on each side
-    def GetScaledPoints(self):
+    def GetScaledPoints(self, noDeferred=False):
         if self.scaledPoints:
             return self.scaledPoints
         if not self.properties["originalSize"] or self.properties["originalSize"][0] == 0 or self.properties["originalSize"][1] == 0:
@@ -236,9 +236,9 @@ class LineModel(ViewModel):
         scaleY = 1
         origSize = self.properties["originalSize"]
         if origSize[0] != 0:
-            scaleX = self.properties["size"][0] / origSize[0]
+            scaleX = self.GetProperty("size", noDeferred)[0] / origSize[0]
         if origSize[1] != 0:
-            scaleY = self.properties["size"][1] / origSize[1]
+            scaleY = self.GetProperty("size", noDeferred)[1] / origSize[1]
         points = [(p[0] * scaleX, p[1] * scaleY) for p in self.points]
         self.scaledPoints = points
         return self.scaledPoints
@@ -255,7 +255,7 @@ class LineModel(ViewModel):
         if len(self.points) == 0:
             return
 
-        oldSize = self.properties["size"] if self.properties["originalSize"] else None
+        oldSize = self.GetProperty("size") if self.properties["originalSize"] else None
 
         # First move all points to be relative to the card origin
         offset = self.GetProperty("position")
@@ -276,15 +276,15 @@ class LineModel(ViewModel):
         rect = wx.Rect(rect.Left, rect.Top, rect.Width-1, rect.Height-1)
 
         # adjust view rect
-        self.SetProperty("position", rect.Position)
+        self.SetProperty("position", rect.Position, noDeferred=True)
         if rect.Width < self.minSize.width: rect.Width = self.minSize.width
         if rect.Height < self.minSize.height: rect.Height = self.minSize.height
 
         if oldSize:
-            self.SetProperty("size", [oldSize[0], oldSize[1]])
+            self.SetProperty("size", [oldSize[0], oldSize[1]], noDeferred=True)
         else:
-            self.SetProperty("size", rect.Size)
-        self.SetProperty("originalSize", rect.Size)
+            self.SetProperty("size", rect.Size, noDeferred=True)
+        self.SetProperty("originalSize", rect.Size, noDeferred=True)
 
         if len(self.points) > 0:
             # adjust all points in shape
@@ -316,7 +316,6 @@ class Line(ViewProxy):
     def penThickness(self):
         return self._model.GetProperty("penThickness")
     @penThickness.setter
-    @RunOnMain
     def penThickness(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("penThickness must be a number")
@@ -456,7 +455,6 @@ class RoundRect(Shape):
     def cornerRadius(self):
         return self._model.GetProperty("cornerRadius")
     @cornerRadius.setter
-    @RunOnMain
     def cornerRadius(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("cornerRadius must be a number")

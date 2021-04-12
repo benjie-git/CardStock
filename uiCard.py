@@ -15,10 +15,10 @@ class UiCard(UiView):
 
     def __init__(self, parent, stackManager, model):
         if not model.GetProperty("name"):
-            model.SetProperty("name", model.GetNextAvailableNameInCard("card"), False)
+            model.SetProperty("name", model.GetNextAvailableNameInCard("card"), notify=False)
 
         super().__init__(parent, stackManager, model, stackManager.view)
-        self.stackManager.stackModel.SetProperty("size", self.view.GetSize(), False)
+        self.stackManager.stackModel.SetProperty("size", self.view.GetSize(), notify=False)
         bg = wx.Colour(self.model.GetProperty("bgColor"))
         if not bg:
             bg = wx.Colour('white')
@@ -26,7 +26,7 @@ class UiCard(UiView):
 
     def SetView(self, view):
         super().SetView(view)
-        self.model.SetProperty("size", self.view.GetSize(), False)
+        self.model.SetProperty("size", self.view.GetSize(), notify=False)
         bg = wx.Colour(self.model.GetProperty("bgColor"))
         if not bg:
             bg = wx.Colour('white')
@@ -114,24 +114,24 @@ class CardModel(ViewModel):
         self.propertyTypes["canSave"] = 'bool'
         self.propertyTypes["canResize"] = 'bool'
 
-    def SetProperty(self, key, value, notify=True):
+    def SetProperty(self, key, value, notify=True, noDeferred=False):
         if key in ["size", "canSave", "canResize"]:
-            self.parent.SetProperty(key, value, notify)
+            self.parent.SetProperty(key, value, notify, noDeferred)
         else:
-            super().SetProperty(key, value, notify)
+            super().SetProperty(key, value, notify, noDeferred)
 
-    def GetProperty(self, key):
+    def GetProperty(self, key, noDeferred=False):
         if key in ["size", "canSave", "canResize"]:
-            return self.parent.GetProperty(key)
+            return self.parent.GetProperty(key, noDeferred)
         else:
-            return super().GetProperty(key)
+            return super().GetProperty(key, noDeferred)
 
-    def GetFrame(self):
-        s = self.parent.GetProperty("size")
+    def GetFrame(self, noDeferred=False):
+        s = self.parent.GetProperty("size", noDeferred)
         return wx.Rect((0,0), s)
 
-    def GetAbsoluteFrame(self):
-        return self.GetFrame()
+    def GetAbsoluteFrame(self, noDeferred=False):
+        return self.GetFrame(noDeferred)
 
     def GetAllChildModels(self):
         allModels = []
@@ -194,20 +194,28 @@ class CardModel(ViewModel):
         if not isinstance(name, str):
             raise TypeError("name is not a string")
         model = generator.StackGenerator.ModelFromType(self.stackManager, typeStr)
+        model.properties["hidden"] = True
         model.SetProperty("name", name)
         self.DeduplicateNamesForModels([model])
         if size:
-            model.SetProperty("size", size)
+            model.SetProperty("size", size, notify=False, noDeferred=True)
         if isinstance(model, uiShape.LineModel):
             model.type = typeStr
             if points:
                 model.points = points
                 model.ReCropShape()
+
         if self.stackManager.uiCard.model == self:
             self.stackManager.AddUiViewsFromModels([model], canUndo=False)
-            self.stackManager.view.Refresh(True, model.GetRefreshFrame())
+            if self.stackManager.isEditing:
+                self.stackManager.view.Refresh(True, model.GetRefreshFrame())
         else:
             self.AddChild(model)
+
+        # Make the new object hidden, and defer a Show,
+        # to avoid a quick visual glitch of the default shape before setting it up
+        model.SetProperty("hidden", False)
+
         return model
 
     def PerformFlips(self, fx, fy):

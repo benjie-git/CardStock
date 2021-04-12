@@ -41,6 +41,8 @@ class Runner():
         self.errors = []
         self.lastHandlerStack = []
         self.didSetup = False
+        self.runnerDepth = 0
+        self.didRunPendingUpdateTask = False
 
         # queue of tasks to run on the runnerThread
         # each task is put onto the queue as a list.
@@ -105,7 +107,10 @@ class Runner():
             self.handlerQueue.put((cardModel,))
 
     def SetupForCardInternal(self, cardModel):
-        # Setup clientVars with the current card's view names as variables
+        """
+        Setup clientVars with the current card's view names as variables.
+        This always runs on the runnerThread.
+        """
         self.clientVars["card"] = cardModel.GetProxy()
         for k in self.cardVarKeys.copy():
             if k in self.clientVars:
@@ -116,6 +121,17 @@ class Runner():
             self.clientVars[name] = m.GetProxy()
             self.cardVarKeys.append(name)
         self.didSetup = True
+
+    def EnqueueApplyPendingUpdates(self):
+        """
+        Add a task into the queue to apply pending updates after the queue finishes running.
+        Keep track of whether this actually runs.  It won't immediately run if the running event is long-running
+        or infinite.  In this case the ApplyAllPending now.
+        """
+        if not self.didRunPendingUpdateTask:
+            self.stackManager.uiCard.model.ApplyAllPending()
+        self.didRunPendingUpdateTask = False
+        self.handlerQueue.put([])
 
     def CleanupFromRun(self):
         for t in self.timers:
@@ -146,11 +162,20 @@ class Runner():
         self.lastHandlerStack = []
 
     def StartRunLoop(self):
-        """ Start the runner thread waiting for queued handlers """
+        """
+        This is the runnerThread's run loop.  Start waiting for queued handlers, and process them until
+        the runnerThread is told to stop.
+        """
         try:
             while True:
                 args = self.handlerQueue.get()
-                if len(args) == 1:
+                if len(args) == 0:
+                    # This is an enqueued task meant to ApplyAllPending() after running all other tasks,
+                    # and also serves to wake up the runner thread for stopping.
+                    if not self.stopRunnerThread:
+                        self.stackManager.uiCard.model.ApplyAllPending()
+                        self.didRunPendingUpdateTask = True
+                elif len(args) == 1:
                     self.SetupForCardInternal(*args)
                 elif len(args) == 5:
                     self.RunHandlerInternal(*args)
@@ -159,6 +184,7 @@ class Runner():
                     break
 
         except SystemExit:
+            # The killableThread got killed, because we told it to stop.
             if len(self.lastHandlerStack):
                 model = self.lastHandlerStack[-1][0]
                 handlerName = self.lastHandlerStack[-1][1]
@@ -173,6 +199,11 @@ class Runner():
                 self.errors.append(error)
 
     def RunHandler(self, uiModel, handlerName, event, arg=None):
+        """
+        If we're on the main thread, that means we just got called from a UI event, so enqueue this on the runnerThread.
+        If we're already on the runnerThread, that means an object's event code called another event, so run that
+        immediately.
+        """
         mousePos = None
         keyName = None
         if event and handlerName.startswith("OnMouse"):
@@ -188,12 +219,14 @@ class Runner():
             self.handlerQueue.put((uiModel, handlerName, mousePos, keyName, arg))
 
     def RunHandlerInternal(self, uiModel, handlerName, mousePos, keyName, arg):
+        """ Run an eventHandler.  This always runs on the runnerThread. """
         handlerStr = uiModel.handlers[handlerName].strip()
         if handlerStr == "":
             return
         if not self.didSetup:
             return
 
+        self.runnerDepth += 1
         error_class = None
         line_number = None
         detail = None
@@ -284,6 +317,11 @@ class Runner():
             if self.statusBar:
                 self.statusBar.SetStatusText(msg)
 
+        self.runnerDepth -= 1
+        # Changes from OnIdle handlers get applied after all of them run, by EnqueueApplyPendingUpdates
+        if self.runnerDepth == 0 and handlerName != "OnIdle":
+            self.stackManager.uiCard.model.ApplyAllPending()
+
     def HandlerPath(self, model, handlerName):
         if model.type == "card":
             return f"{model.GetProperty('name')}.{handlerName}()"
@@ -312,6 +350,7 @@ class Runner():
         uiView = self.stackManager.GetUiViewByModel(obj._model)
         if uiView:
             uiView.view.SetFocus()
+
 
     # --------- User-accessible view functions -----------
 
@@ -369,6 +408,7 @@ class Runner():
         except ValueError:
             raise TypeError("delay must be a number")
 
+        self.stackManager.uiCard.model.ApplyAllPending()
         sleep(delay)
 
     def Time(self):
@@ -379,6 +419,7 @@ class Runner():
         if not isinstance(message, str):
             raise TypeError("message must be a string")
 
+        self.stackManager.uiCard.model.ApplyAllPending()
         wx.MessageDialog(None, str(message), "", wx.OK).ShowModal()
 
     @RunOnMain
@@ -386,6 +427,7 @@ class Runner():
         if not isinstance(message, str):
             raise TypeError("message must be a string")
 
+        self.stackManager.uiCard.model.ApplyAllPending()
         r = wx.MessageDialog(None, str(message), "", wx.YES_NO).ShowModal()
         return (r == wx.ID_YES)
 
@@ -455,4 +497,5 @@ class Runner():
 
     @RunOnMain
     def Quit(self):
+        self.stackManager.stackModel.ApplyAllPending()
         self.stackManager.view.TopLevelParent.OnMenuClose(None)

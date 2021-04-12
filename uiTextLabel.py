@@ -12,7 +12,7 @@ class UiTextLabel(UiTextBase):
     def __init__(self, parent, stackManager, model=None):
         if not model:
             model = TextLabelModel(stackManager)
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("label"), False)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("label"), notify=False)
 
         self.stackManager = stackManager
         label = self.CreateLabel(stackManager, model)

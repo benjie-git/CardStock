@@ -14,7 +14,7 @@ class UiTextField(UiTextBase):
     def __init__(self, parent, stackManager, model=None):
         if not model:
             model = TextFieldModel(stackManager)
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("field"), False)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("field"), notify=False)
 
         self.stackManager = stackManager
         self.isInlineEditing = False
@@ -235,7 +235,6 @@ class TextField(TextBaseProxy):
     def editable(self):
         return self._model.GetProperty("editable")
     @editable.setter
-    @RunOnMain
     def editable(self, val):
         self._model.SetProperty("editable", val)
 
@@ -243,12 +242,13 @@ class TextField(TextBaseProxy):
     def multiline(self):
         return self._model.GetProperty("multiline")
     @multiline.setter
-    @RunOnMain
     def multiline(self, val):
         self._model.SetProperty("multiline", val)
 
     @RunOnMain
-    def SelectAll(self): self._model.Notify("selectAll")
+    def SelectAll(self):
+        self._model.ApplyAllPending()
+        self._model.Notify("selectAll")
 
     def Enter(self):
         if self._model.stackManager.runner and self._model.GetHandler("OnTextEnter"):

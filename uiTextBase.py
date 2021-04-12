@@ -164,7 +164,6 @@ class TextBaseProxy(ViewProxy):
     def text(self):
         return self._model.GetProperty("text")
     @text.setter
-    @RunOnMain
     def text(self, val):
         self._model.SetProperty("text", str(val))
 
@@ -172,7 +171,6 @@ class TextBaseProxy(ViewProxy):
     def alignment(self):
         return self._model.GetProperty("alignment")
     @alignment.setter
-    @RunOnMain
     def alignment(self, val):
         if not isinstance(val, str):
             raise TypeError("alignment must be a string")

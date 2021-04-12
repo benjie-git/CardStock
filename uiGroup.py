@@ -13,7 +13,7 @@ class UiGroup(UiView):
 
     def __init__(self, parent, stackManager, model):
         if not model.GetProperty("name"):
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("group"), False)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("group"), notify=False)
 
         self.uiViews = []
 
@@ -63,7 +63,7 @@ class UiGroup(UiView):
         if self.stackManager.isEditing:
             gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            gc.DrawRectangle(self.model.GetAbsoluteFrame())
+            gc.DrawRectangle(self.model.GetAbsoluteFrame(noDeferred=True))
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
@@ -157,11 +157,11 @@ class GroupModel(ViewModel):
             model.origGroupSubviewFrame = model.GetFrame()
         self.origFrame = self.GetFrame()
 
-    def SetProperty(self, key, value, notify=True):
-        super().SetProperty(key, value, notify)
+    def SetProperty(self, key, value, notify=True, noDeferred=False):
+        super().SetProperty(key, value, notify, noDeferred)
         if key == "hidden":
             for m in self.childModels:
-                m.SetProperty(key, value, notify)
+                m.SetProperty(key, value, notify, noDeferred)
 
     def AddChildModels(self, models):
         selfPos = self.GetProperty("position")
@@ -169,7 +169,7 @@ class GroupModel(ViewModel):
             self.childModels.append(model)
             model.parent = self
             pos = model.GetProperty("position")
-            model.SetProperty("position", [pos[0]-selfPos[0], pos[1]-selfPos[1]], False)
+            model.SetProperty("position", [pos[0]-selfPos[0], pos[1]-selfPos[1]], notify=False)
         self.UpdateFrame()
         self.origFrame = self.GetFrame()
         for model in models:
@@ -183,13 +183,13 @@ class GroupModel(ViewModel):
         model.origGroupSubviewFrame = None
         pos = model.GetProperty("position")
         selfPos = self.GetProperty("position")
-        model.SetProperty("position", [pos[0]+selfPos[0], pos[1]+selfPos[1]], False)
+        model.SetProperty("position", [pos[0]+selfPos[0], pos[1]+selfPos[1]], notify=False)
         self.isDirty = True
 
-    def GetRefreshFrame(self):
-        f = super().GetRefreshFrame()
+    def GetRefreshFrame(self, noDeferred=False):
+        f = super().GetRefreshFrame(noDeferred)
         for m in self.childModels:
-            f = f.Union(m.GetRefreshFrame())
+            f = f.Union(m.GetRefreshFrame(noDeferred))
         return f
 
     def UpdateFrame(self):
@@ -204,7 +204,7 @@ class GroupModel(ViewModel):
             offset = (newRect.Left - oldRect.Left, newRect.Top - oldRect.Top)
             for m in self.childModels:
                 oldPos = m.GetProperty("position")
-                m.SetProperty("position", [oldPos[0] - offset[0], oldPos[1] - offset[1]], False)
+                m.SetProperty("position", [oldPos[0] - offset[0], oldPos[1] - offset[1]], notify=False)
 
     def PerformFlips(self, fx, fy):
         if fx or fy:
@@ -242,6 +242,7 @@ class Group(ViewProxy):
 
     @RunOnMain
     def Ungroup(self):
+        self._model.ApplyAllPending()
         groups = self._model.stackManager.UngroupModelsInternal([self._model])
         if groups and len(groups) > 0:
             return groups[0]

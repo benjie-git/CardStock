@@ -149,7 +149,8 @@ class DesignerFrame(wx.Frame):
         stackModel = StackModel(self.stackManager)
         newCard = CardModel(self.stackManager)
         newCard.SetProperty("name", newCard.DeduplicateName("card_1",
-                                                            [m.GetProperty("name") for m in stackModel.childModels]), False)
+                                                            [m.GetProperty("name") for m in stackModel.childModels]),
+                                                            notify=False)
         stackModel.AppendCardModel(newCard)
         self.stackManager.filename = None
         self.stackManager.resPathMan.Reset()

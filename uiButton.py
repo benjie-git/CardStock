@@ -14,7 +14,7 @@ class UiButton(UiView):
     def __init__(self, parent, stackManager, model=None):
         if not model:
             model = ButtonModel(stackManager)
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("button"), False)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("button"), notify=False)
 
         self.stackManager = stackManager
         self.button = self.CreateButton(stackManager, model)
@@ -107,7 +107,6 @@ class Button(ViewProxy):
     def title(self):
         return self._model.GetProperty("title")
     @title.setter
-    @RunOnMain
     def title(self, val):
         if not isinstance(val, str):
             raise TypeError("title must be a string")
@@ -117,7 +116,6 @@ class Button(ViewProxy):
     def border(self):
         return self._model.GetProperty("border")
     @border.setter
-    @RunOnMain
     def border(self, val):
         self._model.SetProperty("border", val)
 

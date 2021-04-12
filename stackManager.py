@@ -109,8 +109,18 @@ class StackManager(object):
                     uiView.view.SetCursor(wx.Cursor(viewCursor if viewCursor else cursor))
 
     def OnIdleTimer(self, event):
+        onFinishedCalls = []
+        self.uiCard.RunAnimations(onFinishedCalls)
+        for ui in self.GetAllUiViews():
+            ui.RunAnimations(onFinishedCalls)
+        # Let all animations process, before running their onFinished handlers,
+        # which could start new animations.
+        for c in onFinishedCalls:
+            c()
         if not self.isEditing:
             self.uiCard.OnIdle(event)
+
+        self.runner.EnqueueApplyPendingUpdates()
 
     def SetTool(self, tool):
         if self.tool:
@@ -154,6 +164,8 @@ class StackManager(object):
 
     def LoadCardAtIndex(self, index, reload=False):
         if index != self.cardIndex or reload == True:
+            if self.runner:
+                self.stackModel.ApplyAllPending()
             if not self.isEditing and self.cardIndex is not None and not reload:
                 oldCardModel = self.stackModel.childModels[self.cardIndex]
                 if self.runner:
@@ -264,7 +276,7 @@ class StackManager(object):
                 group = GroupModel(self)
                 if not name:
                     name = "group"
-                group.SetProperty("name", card.GetNextAvailableNameInCard(name), False)
+                group.SetProperty("name", card.GetNextAvailableNameInCard(name), notify=False)
             validModels = []
             for m in models:
                 if m.GetCard() == card:
@@ -599,7 +611,7 @@ class StackManager(object):
             dc = wx.MemoryDC(self.buffer)
 
         gc = wx.GCDC(dc)
-        bg = wx.Colour(self.uiCard.model.GetProperty("bgColor"))
+        bg = wx.Colour(self.uiCard.model.GetProperty("bgColor", noDeferred=True))
         if not bg:
             bg = wx.Colour('white')
         gc.SetPen(wx.TRANSPARENT_PEN)
@@ -613,8 +625,8 @@ class StackManager(object):
             if wx.Platform != '__WXMAC__':
                 gc.DrawRectangle(updRect)
             for ui in uiViews:
-                if ui not in paintUiViews and not ui.model.GetProperty("hidden"):
-                    updRegion = wx.Region(wx.Rect(updRect.TopLeft - wx.Point(ui.model.GetAbsolutePosition()),
+                if ui not in paintUiViews and not ui.model.GetProperty("hidden", noDeferred=True):
+                    updRegion = wx.Region(wx.Rect(updRect.TopLeft - wx.Point(ui.model.GetAbsolutePosition(noDeferred=True)),
                                                   updRect.Size))
 
                     uiRegion = ui.GetHitRegion()

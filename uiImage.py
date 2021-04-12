@@ -17,7 +17,7 @@ class UiImage(UiView):
     def __init__(self, parent, stackManager, model=None):
         if not model:
             model = ImageModel(stackManager)
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("image"), False)
+            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("image"), notify=False)
 
         super().__init__(parent, stackManager, model, None)
         self.rotatedBitmap = None
@@ -114,7 +114,7 @@ class UiImage(UiView):
         if self.origImage:
             if not self.rotatedBitmap:
                 self.MakeScaledAndRotatedBitmap()
-            r = self.model.GetAbsoluteFrame()
+            r = self.model.GetAbsoluteFrame(noDeferred=True)
 
             imgSize = self.rotatedBitmap.GetSize()
             viewSize = r.Size
@@ -125,7 +125,7 @@ class UiImage(UiView):
         if self.stackManager.isEditing:
             gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            gc.DrawRectangle(self.model.GetAbsoluteFrame())
+            gc.DrawRectangle(self.model.GetAbsoluteFrame(noDeferred=True))
 
 
 class ImageModel(ViewModel):
@@ -156,10 +156,10 @@ class ImageModel(ViewModel):
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "file", "fit", "rotation", "position", "size"]
 
-    def SetProperty(self, key, value, notify=True):
+    def SetProperty(self, key, value, notify=True, noDeferred=False):
         if key == "rotation":
             value = value % 360
-        super().SetProperty(key, value, notify)
+        super().SetProperty(key, value, notify, noDeferred)
 
     def PerformFlips(self, fx, fy):
         if fx:
@@ -177,7 +177,6 @@ class Image(ViewProxy):
     def file(self):
         return self._model.GetProperty("file")
     @file.setter
-    @RunOnMain
     def file(self, val):
         if not isinstance(val, str):
             raise TypeError("file must be a string")
@@ -187,7 +186,6 @@ class Image(ViewProxy):
     def rotation(self):
         return self._model.GetProperty("rotation")
     @rotation.setter
-    @RunOnMain
     def rotation(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("rotation must be a number")
@@ -197,7 +195,6 @@ class Image(ViewProxy):
     def fit(self):
         return self._model.GetProperty("fit")
     @fit.setter
-    @RunOnMain
     def fit(self, val):
         if not isinstance(val, str):
             raise TypeError("fit must be a string")
