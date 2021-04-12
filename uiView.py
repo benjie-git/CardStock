@@ -572,10 +572,11 @@ class ViewModel(object):
                     self.stackManager.RemoveUiViewByModel(self)
                 else:
                     self.stackManager.RemoveCard() # FIXME: This needs to delete the correct card, not just the current card!
+                return
             else:
                 self.SetProperty(k, v, noDeferred=True)
         self.pendingProps = {}
-        for m in self.childModels:
+        for m in self.childModels.copy():
             m.ApplyAllPending()
 
     def InterpretPropertyFromString(self, key, valStr):
@@ -709,7 +710,6 @@ class ViewProxy(object):
         self._model.stackManager.runner.SetupForCard(self._model.stackManager.uiCard.model)
         return newModel.GetProxy()
 
-    @RunOnMain
     def Delete(self):
         self._model.pendingProps["delete"] = 1
 
