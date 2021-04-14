@@ -157,6 +157,7 @@ class GroupModel(ViewModel):
             model.origGroupSubviewFrame = model.GetFrame()
         self.origFrame = self.GetFrame()
 
+    @RunOnMain
     def SetProperty(self, key, value, notify=True, noDeferred=False):
         super().SetProperty(key, value, notify, noDeferred)
         if key == "hidden":

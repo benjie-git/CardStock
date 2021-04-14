@@ -42,7 +42,7 @@ class Runner():
         self.lastHandlerStack = []
         self.didSetup = False
         self.runnerDepth = 0
-        self.didRunPendingUpdateTask = False
+        self.didRunPendingUpdateTask = True
 
         # queue of tasks to run on the runnerThread
         # each task is put onto the queue as a list.

@@ -114,6 +114,7 @@ class CardModel(ViewModel):
         self.propertyTypes["canSave"] = 'bool'
         self.propertyTypes["canResize"] = 'bool'
 
+    @RunOnMain
     def SetProperty(self, key, value, notify=True, noDeferred=False):
         if key in ["size", "canSave", "canResize"]:
             self.parent.SetProperty(key, value, notify, noDeferred)
@@ -274,11 +275,9 @@ class Card(ViewProxy):
     """
 
     @property
-    @RunOnMain
     def bgColor(self):
         return self._model.GetProperty("bgColor")
     @bgColor.setter
-    @RunOnMain
     def bgColor(self, val):
         if not isinstance(val, str):
             raise TypeError("bgColor must be a string")

@@ -28,10 +28,31 @@ from uiGroup import UiGroup, GroupModel
 
 # ----------------------------------------------------------------------
 
+class DeferredRefreshWindow(wx.Window):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.needsRefresh = False
+        self.deferredRefresh = False
+
+    def Refresh(self, eraseBackground=True, rect=None):
+        if not self.deferredRefresh:
+            super().Refresh(eraseBackground, rect)
+        else:
+            self.needsRefresh = True
+
+    def UseDeferredRefresh(self, deferred):
+        self.deferredRefresh = deferred
+
+    def RefreshIfNeeded(self):
+        if self.needsRefresh:
+            super().Refresh(True, None)
+            self.needsRefresh = False
+
+
 class StackManager(object):
     def __init__(self, parentView):
         super().__init__()
-        self.view = wx.Window(parentView, style=wx.WANTS_CHARS)
+        self.view = DeferredRefreshWindow(parentView, style=wx.WANTS_CHARS)
         self.listeners = []
         self.designer = None
         self.isEditing = False  # Is in Editing mode (running from the designer), as opposed to just the viewer
@@ -121,6 +142,7 @@ class StackManager(object):
             self.uiCard.OnIdle(event)
 
         self.runner.EnqueueApplyPendingUpdates()
+        self.view.RefreshIfNeeded()
 
     def SetTool(self, tool):
         if self.tool:
@@ -797,4 +819,3 @@ class StackManager(object):
             if uiView and uiView.view:
                 uiView.view.SetFocus()
                 uiView.view.SetSelection(selectStart, selectEnd)
-

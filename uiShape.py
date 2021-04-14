@@ -201,6 +201,7 @@ class LineModel(ViewModel):
         self.isDirty = True
         self.Notify("shape")
 
+    @RunOnMain
     def SetProperty(self, key, value, notify=True, noDeferred=False):
         super().SetProperty(key, value, notify, noDeferred)
         if key == "size":
@@ -302,11 +303,9 @@ class Line(ViewProxy):
     """
 
     @property
-    @RunOnMain
     def penColor(self):
         return self._model.GetProperty("penColor")
     @penColor.setter
-    @RunOnMain
     def penColor(self, val):
         if not isinstance(val, str):
             raise TypeError("penColor must be a string")
@@ -391,11 +390,9 @@ class Shape(Line):
     """
 
     @property
-    @RunOnMain
     def fillColor(self):
         return self._model.GetProperty("fillColor")
     @fillColor.setter
-    @RunOnMain
     def fillColor(self, val):
         if not isinstance(val, str):
             raise TypeError("fillColor must be a string")

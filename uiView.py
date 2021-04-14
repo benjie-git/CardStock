@@ -1,3 +1,5 @@
+import threading
+
 import wx
 import ast
 import re
@@ -522,6 +524,7 @@ class ViewModel(object):
     def Notify(self, key):
         self.stackManager.OnPropertyChanged(self, key)
 
+    @RunOnMain
     def SetProperty(self, key, value, notify=True, noDeferred=False):
         if key in self.propertyTypes and self.propertyTypes[key] == "point" and not isinstance(value, wx.Point):
             value = wx.Point(value)

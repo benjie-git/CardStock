@@ -54,6 +54,7 @@ class ViewerFrame(wx.Frame):
         self.CreateStatusBar()
 
         self.stackManager = StackManager(self)
+        self.stackManager.view.UseDeferredRefresh(True)
         self.stackManager.SetEditing(False)
 
         if not stackModel:

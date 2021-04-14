@@ -45,6 +45,7 @@ class StandaloneFrame(wx.Frame):
         # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.ico')))
 
         self.stackManager = StackManager(self)
+        self.stackManager.view.UseDeferredRefresh(True)
         self.stackManager.SetEditing(False)
         self.stackManager.resPathMan.SetPathMap(resMap)
 
