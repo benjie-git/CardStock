@@ -502,6 +502,16 @@ class StackManager(object):
             command = RemoveUiViewsCommand(True, "Remove Card", self, index, [self.stackModel.childModels[index]])
             self.command_processor.Submit(command)
 
+    def RemoveCardRaw(self, cardModel):
+        index = self.stackModel.childModels.index(cardModel)
+        self.stackModel.RemoveCardModel(cardModel)
+        if index == self.cardIndex:
+            if index == len(self.stackModel.childModels):
+                index = len(self.stackModel.childModels) - 1
+            self.LoadCardAtIndex(None, reload=True)
+            if index >= 0:
+                self.LoadCardAtIndex(index)
+
     def OnMouseDown(self, uiView, event):
         if self.view.HasCapture() and event.LeftDClick():
             # Make sure we don't double-capture the mouse on GTK/Linux

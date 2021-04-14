@@ -287,6 +287,10 @@ class Card(ViewProxy):
     def index(self):
         return self._model.parent.childModels.index(self._model)
 
+    def Delete(self):
+        self._model.pendingProps["delete"] = 1
+        self._model.ApplyAllPending()
+
     @RunOnMain
     def AnimateBgColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):

@@ -320,7 +320,7 @@ class Runner():
         self.runnerDepth -= 1
         # Changes from OnIdle handlers get applied after all of them run, by EnqueueApplyPendingUpdates
         if self.runnerDepth == 0 and handlerName != "OnIdle":
-            self.stackManager.uiCard.model.ApplyAllPending()
+            self.stackManager.stackModel.ApplyAllPending()
 
     def HandlerPath(self, model, handlerName):
         if model.type == "card":

@@ -574,8 +574,9 @@ class ViewModel(object):
                 if self.type != "card":
                     self.stackManager.RemoveUiViewByModel(self)
                 else:
-                    self.stackManager.RemoveCard() # FIXME: This needs to delete the correct card, not just the current card!
-                return
+                    self.pendingProps = {}
+                    self.stackManager.RemoveCardRaw(self)
+                    return
             else:
                 self.SetProperty(k, v, noDeferred=True)
         self.pendingProps = {}
