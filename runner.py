@@ -227,6 +227,9 @@ class Runner():
 
     def RunHandlerInternal(self, uiModel, handlerName, handlerStr, mousePos, keyName, arg):
         """ Run an eventHandler.  This always runs on the runnerThread. """
+        if not self.didSetup:
+            return
+
         self.runnerDepth += 1
         error_class = None
         line_number = None
