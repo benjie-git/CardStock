@@ -8,7 +8,6 @@ import inspect
 import queue
 from wx import CallAfter
 import ctypes
-import sys
 
 def _async_raise(tid, exctype):
     """raises the exception, performs cleanup if needed"""

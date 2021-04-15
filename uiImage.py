@@ -201,21 +201,24 @@ class Image(ViewProxy):
             raise TypeError("fit must be a string")
         self._model.SetProperty("fit", val)
 
-    @RunOnMain
     def AnimateRotation(self, duration, endRotation, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
         if not (isinstance(endRotation, int) or isinstance(endRotation, float)):
             raise TypeError("endRotation must be a number")
-        origRotation = self.rotation
 
-        def internalOnFinished():
-            if onFinished: onFinished(*args, **kwargs)
+        @RunOnMain
+        def func():
+            origRotation = self.rotation
 
-        if endRotation != origRotation:
-            offset = endRotation - origRotation
-            def f(progress):
-                self.rotation = origRotation + offset * progress
-            self._model.AddAnimation("rotation", duration, f, internalOnFinished)
-        else:
-            self._model.AddAnimation("rotation", duration, None, internalOnFinished)
+            def internalOnFinished():
+                if onFinished: onFinished(*args, **kwargs)
+
+            if endRotation != origRotation:
+                offset = endRotation - origRotation
+                def f(progress):
+                    self.rotation = origRotation + offset * progress
+                self._model.AddAnimation("rotation", duration, f, internalOnFinished)
+            else:
+                self._model.AddAnimation("rotation", duration, None, internalOnFinished)
+        func()

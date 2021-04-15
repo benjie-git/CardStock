@@ -194,31 +194,35 @@ class CardModel(ViewModel):
     def AddNewObject(self, typeStr, name, size, points=None):
         if not isinstance(name, str):
             raise TypeError("name is not a string")
-        model = generator.StackGenerator.ModelFromType(self.stackManager, typeStr)
-        # Hide now and defer an unHide, so the handler code can modify the clone before it displays
-        model.SetProperty("hidden", True, notify=False, noDeferred=True)
-        model.SetProperty("name", name)
-        self.DeduplicateNamesForModels([model])
-        if size:
-            model.SetProperty("size", size, notify=False, noDeferred=True)
-        if isinstance(model, uiShape.LineModel):
-            model.type = typeStr
-            if points:
-                model.points = points
-                model.ReCropShape()
 
-        if self.stackManager.uiCard.model == self:
-            self.stackManager.AddUiViewsFromModels([model], canUndo=False)
-            if self.stackManager.isEditing:
-                self.stackManager.view.Refresh(True, model.GetRefreshFrame())
-        else:
-            self.AddChild(model)
+        @RunOnMain
+        def func():
+            model = generator.StackGenerator.ModelFromType(self.stackManager, typeStr)
+            # Hide now and defer an unHide, so the handler code can modify the clone before it displays
+            model.SetProperty("hidden", True, notify=False, noDeferred=True)
+            model.SetProperty("name", name)
+            self.DeduplicateNamesForModels([model])
+            if size:
+                model.SetProperty("size", size, notify=False, noDeferred=True)
+            if isinstance(model, uiShape.LineModel):
+                model.type = typeStr
+                if points:
+                    model.points = points
+                    model.ReCropShape()
 
-        # Make the new object hidden, and defer a Show,
-        # to avoid a quick visual glitch of the default shape before setting it up
-        model.SetProperty("hidden", False)
+            if self.stackManager.uiCard.model == self:
+                self.stackManager.AddUiViewsFromModels([model], canUndo=False)
+                if self.stackManager.isEditing:
+                    self.stackManager.view.Refresh(True, model.GetRefreshFrame())
+            else:
+                self.AddChild(model)
 
-        return model
+            # Make the new object hidden, and defer a Show,
+            # to avoid a quick visual glitch of the default shape before setting it up
+            model.SetProperty("hidden", False)
+
+            return model
+        return func()
 
     def PerformFlips(self, fx, fy):
         cardSize = self.GetProperty("size")
@@ -291,57 +295,52 @@ class Card(ViewProxy):
         self._model.pendingProps["delete"] = 1
         self._model.ApplyAllPending()
 
-    @RunOnMain
     def AnimateBgColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
         if not isinstance(endVal, str):
             raise TypeError("endColor must be a string")
-        origVal = wx.Colour(self.bgColor)
-        endVal = wx.Colour(endVal)
 
-        def internalOnFinished():
-            if onFinished: onFinished(*args, **kwargs)
+        @RunOnMain
+        def func():
+            origVal = wx.Colour(self.bgColor)
+            endValue = wx.Colour(endVal)
 
-        if origVal.IsOk() and endVal.IsOk() and endVal != origVal:
-            origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
-            endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
-            offsets = [endParts[i]-origParts[i] for i in range(4)]
-            def f(progress):
-                self._model.SetProperty("bgColor", [origParts[i]+offsets[i]*progress for i in range(4)])
-            self._model.AddAnimation("bgColor", duration, f, internalOnFinished)
-        else:
-            self._model.AddAnimation("bgColor", duration, None, internalOnFinished)
+            def internalOnFinished():
+                if onFinished: onFinished(*args, **kwargs)
 
-    @RunOnMain
+            if origVal.IsOk() and endValue.IsOk() and endValue != origVal:
+                origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
+                endParts = [endValue.Red(), endValue.Green(), endValue.Blue(), endValue.Alpha()]
+                offsets = [endParts[i]-origParts[i] for i in range(4)]
+                def f(progress):
+                    self._model.SetProperty("bgColor", [origParts[i]+offsets[i]*progress for i in range(4)])
+                self._model.AddAnimation("bgColor", duration, f, internalOnFinished)
+            else:
+                self._model.AddAnimation("bgColor", duration, None, internalOnFinished)
+        func()
+
     def AddButton(self, name="button"):
         return self._model.AddNewObject("button", name, (100,24)).GetProxy()
 
-    @RunOnMain
     def AddTextField(self, name="field"):
         return self._model.AddNewObject("textfield", name, (100,24)).GetProxy()
 
-    @RunOnMain
     def AddTextLabel(self, name="label"):
         return self._model.AddNewObject("textlabel", name, (100,24)).GetProxy()
 
-    @RunOnMain
     def AddImage(self, name="image"):
         return self._model.AddNewObject("image", name, (80,80)).GetProxy()
 
-    @RunOnMain
     def AddOval(self, name="oval"):
         return self._model.AddNewObject("oval", name, None, [(10, 10), (100, 100)]).GetProxy()
 
-    @RunOnMain
     def AddRectangle(self, name="rect"):
         return self._model.AddNewObject("rect", name, None, [(10, 10), (100, 100)]).GetProxy()
 
-    @RunOnMain
     def AddRoundRectangle(self, name="roundrect"):
         return self._model.AddNewObject("roundrect", name, None, [(10, 10), (100, 100)]).GetProxy()
 
-    @RunOnMain
     def AddLine(self, points, name="line"):
         if not isinstance(points, (list, tuple)):
             raise TypeError("points should be a list of points")
@@ -360,8 +359,6 @@ class Card(ViewProxy):
         line = self._model.AddNewObject("line", name, None, points)
         return line.GetProxy()
 
-
-    @RunOnMain
     def AddPolygon(self, points, name="polygon"):
         if not isinstance(points, (list, tuple)):
             raise TypeError("points should be a list of points")
@@ -380,7 +377,6 @@ class Card(ViewProxy):
         poly = self._model.AddNewObject("poly", name, None, points)
         return poly.GetProxy()
 
-    @RunOnMain
     def AddGroup(self, objects, name="group"):
         models = []
         for o in objects:
@@ -388,7 +384,11 @@ class Card(ViewProxy):
                 raise TypeError("objects must be a list of objects")
             if o._model.type not in ["card", "stack"] and o._model.GetCard() == self._model:
                 models.append(o._model)
-        return self._model.stackManager.GroupModelsInternal(models, name=name).GetProxy()
+
+        @RunOnMain
+        def func():
+            return self._model.stackManager.GroupModelsInternal(models, name=name).GetProxy()
+        return func()
 
     def StopAnimations(self):
         super().StopAnimations()

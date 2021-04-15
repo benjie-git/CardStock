@@ -203,24 +203,27 @@ class TextBaseProxy(ViewProxy):
             raise TypeError("fontSize must be a number")
         self._model.SetProperty("fontSize", val)
 
-    @RunOnMain
     def AnimateTextColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
         if not isinstance(endVal, str):
             raise TypeError("endColor must be a string")
-        origVal = wx.Colour(self.textColor)
-        endVal = wx.Colour(endVal)
 
-        def internalOnFinished():
-            if onFinished: onFinished(*args, **kwargs)
+        @RunOnMain
+        def func():
+            origVal = wx.Colour(self.textColor)
+            endVal = wx.Colour(endVal)
 
-        if origVal.IsOk() and endVal.IsOk() and endVal != origVal:
-            origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
-            endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
-            offsets = [endParts[i]-origParts[i] for i in range(4)]
-            def f(progress):
-                self._model.SetProperty("textColor", [origParts[i]+offsets[i]*progress for i in range(4)])
-            self._model.AddAnimation("textColor", duration, f, internalOnFinished)
-        else:
-            self._model.AddAnimation("textColor", duration, None, internalOnFinished)
+            def internalOnFinished():
+                if onFinished: onFinished(*args, **kwargs)
+
+            if origVal.IsOk() and endVal.IsOk() and endVal != origVal:
+                origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
+                endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
+                offsets = [endParts[i]-origParts[i] for i in range(4)]
+                def f(progress):
+                    self._model.SetProperty("textColor", [origParts[i]+offsets[i]*progress for i in range(4)])
+                self._model.AddAnimation("textColor", duration, f, internalOnFinished)
+            else:
+                self._model.AddAnimation("textColor", duration, None, internalOnFinished)
+        func()

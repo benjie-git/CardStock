@@ -79,8 +79,9 @@ class ErrorListWindow(wx.Frame):
                 self.designer.stackManager.SelectUiView(uiView)
                 self.designer.cPanel.UpdateHandlerForUiViews([uiView], error.handlerName)
                 ed = self.designer.cPanel.codeEditor
-                ed.GotoLine(error.lineNum-1)
-                ed.SetSelectionStart(ed.GetLineEndPosition(error.lineNum-1) - ed.GetLineLength(error.lineNum-1))
-                ed.SetSelectionEnd(ed.GetLineEndPosition(error.lineNum-1))
+                if error.lineNum is not None:
+                    ed.GotoLine(error.lineNum-1)
+                    ed.SetSelectionStart(ed.GetLineEndPosition(error.lineNum-1) - ed.GetLineLength(error.lineNum-1))
+                    ed.SetSelectionEnd(ed.GetLineEndPosition(error.lineNum-1))
                 ed.SetFocus()
                 self.designer.Raise()

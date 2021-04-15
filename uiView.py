@@ -815,9 +815,14 @@ class ViewProxy(object):
     def OrderToBack(self):
         self._model.OrderMoveTo(0)
 
-    @RunOnMain
     def OrderToIndex(self, i):
-        self._model.OrderMoveTo(i)
+        if not isinstance(i, int):
+            raise TypeError("i must be a number")
+
+        @RunOnMain
+        def f():
+            self._model.OrderMoveTo(i)
+        f()
 
     def Show(self):
         self.visible = True
@@ -835,7 +840,6 @@ class ViewProxy(object):
     def eventHandlers(self):
         return self._model.handlers
 
-    @RunOnMain
     def IsTouchingPoint(self, point):
         if not isinstance(point, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
             raise TypeError("point needs to be a point or a list of two numbers")
@@ -846,43 +850,49 @@ class ViewProxy(object):
         except:
             raise ValueError("point needs to be a point or a list of two numbers")
 
-        sreg = self._model.stackManager.GetUiViewByModel(self._model).GetHitRegion()
-        sreg = wx.Region(sreg)
-        sreg.Offset(*self._model.GetProperty("position"))
-        return sreg.Contains(wx.Point(point)) == wx.InRegion
+        @RunOnMain
+        def f():
+            sreg = self._model.stackManager.GetUiViewByModel(self._model).GetHitRegion()
+            sreg = wx.Region(sreg)
+            sreg.Offset(*self._model.GetProperty("position"))
+            return sreg.Contains(wx.Point(point)) == wx.InRegion
+        return f()
 
-    @RunOnMain
     def IsTouching(self, obj):
         if not isinstance(obj, ViewProxy):
             raise TypeError("obj must be a CardStock object")
 
-        sreg = self._model.stackManager.GetUiViewByModel(self._model).GetHitRegion()
-        oreg = self._model.stackManager.GetUiViewByModel(obj._model).GetHitRegion()
-        sreg = wx.Region(sreg)
-        oreg = wx.Region(oreg)
-        sreg.Offset(*self._model.GetProperty("position"))
-        oreg.Offset(*obj._model.GetProperty("position"))
-        sreg.Intersect(oreg)
-        return not sreg.IsEmpty()
+        @RunOnMain
+        def f():
+            sreg = self._model.stackManager.GetUiViewByModel(self._model).GetHitRegion()
+            oreg = self._model.stackManager.GetUiViewByModel(obj._model).GetHitRegion()
+            sreg = wx.Region(sreg)
+            oreg = wx.Region(oreg)
+            sreg.Offset(*self._model.GetProperty("position"))
+            oreg.Offset(*obj._model.GetProperty("position"))
+            sreg.Intersect(oreg)
+            return not sreg.IsEmpty()
+        return f()
 
-    @RunOnMain
     def IsTouchingEdge(self, obj):
         if not isinstance(obj, ViewProxy):
             raise TypeError("obj must be a CardStock object")
 
-        sf = self._model.GetAbsoluteFrame() # self frame in card coords
-        f = obj._model.GetAbsoluteFrame() # other frame in card soords
-        top = wx.Rect(f.Left, f.Top, f.Width, 1)
-        bottom = wx.Rect(f.Left, f.Bottom, f.Width, 1)
-        left = wx.Rect(f.Left, f.Top, 1, f.Height)
-        right = wx.Rect(f.Right, f.Top, 1, f.Height)
-        if sf.Intersects(top): return "Top"
-        if sf.Intersects(bottom): return "Bottom"
-        if sf.Intersects(left): return "Left"
-        if sf.Intersects(right): return "Right"
-        return None
+        @RunOnMain
+        def f():
+            sf = self._model.GetAbsoluteFrame() # self frame in card coords
+            f = obj._model.GetAbsoluteFrame() # other frame in card soords
+            top = wx.Rect(f.Left, f.Top, f.Width, 1)
+            bottom = wx.Rect(f.Left, f.Bottom, f.Width, 1)
+            left = wx.Rect(f.Left, f.Top, 1, f.Height)
+            right = wx.Rect(f.Right, f.Top, 1, f.Height)
+            if sf.Intersects(top): return "Top"
+            if sf.Intersects(bottom): return "Bottom"
+            if sf.Intersects(left): return "Left"
+            if sf.Intersects(right): return "Right"
+            return None
+        return f()
 
-    @RunOnMain
     def AnimatePosition(self, duration, endPosition, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
@@ -891,29 +901,31 @@ class ViewProxy(object):
         except:
             raise ValueError("endPosition must be a point or a list of two numbers")
 
-        origPosition = self._model.GetAbsolutePosition()
-        if wx.Point(origPosition) != wx.Point(endPosition):
-            offsetp = endPosition - origPosition
-            offset = wx.RealPoint(offsetp[0], offsetp[1])
+        @RunOnMain
+        def func():
+            origPosition = self._model.GetAbsolutePosition()
+            if wx.Point(origPosition) != wx.Point(endPosition):
+                offsetp = endPosition - origPosition
+                offset = wx.RealPoint(offsetp[0], offsetp[1])
 
-            def internalOnFinished():
-                self._model.SetProperty("speed", (0,0), noDeferred=True)
-                if onFinished: onFinished(*args, **kwargs)
+                def internalOnFinished():
+                    self._model.SetProperty("speed", (0,0), noDeferred=True)
+                    if onFinished: onFinished(*args, **kwargs)
 
-            def onCanceled():
+                def onCanceled():
+                    self._model.SetProperty("speed", (0,0))
+
+                def f(progress):
+                    self._model.SetAbsolutePosition(origPosition + offset * progress)
+                self._model.AddAnimation("position", duration, f, internalOnFinished, onCanceled)
+                self._model.SetProperty("speed", offset*(1.0/duration))
+            else:
+                def internalOnFinished():
+                    if onFinished: onFinished(*args, **kwargs)
+                self._model.AddAnimation("position", duration, None, internalOnFinished)
                 self._model.SetProperty("speed", (0,0))
+        func()
 
-            def f(progress):
-                self._model.SetAbsolutePosition(origPosition + offset * progress)
-            self._model.AddAnimation("position", duration, f, internalOnFinished, onCanceled)
-            self._model.SetProperty("speed", offset*(1.0/duration))
-        else:
-            def internalOnFinished():
-                if onFinished: onFinished(*args, **kwargs)
-            self._model.AddAnimation("position", duration, None, internalOnFinished)
-            self._model.SetProperty("speed", (0,0))
-
-    @RunOnMain
     def AnimateCenter(self, duration, endCenter, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
@@ -922,29 +934,31 @@ class ViewProxy(object):
         except:
             raise ValueError("endCenter must be a point or a list of two numbers")
 
-        origCenter = self._model.GetCenter()
-        if wx.Point(origCenter) != wx.Point(endCenter):
-            offsetp = endCenter - origCenter
-            offset = wx.RealPoint(offsetp[0], offsetp[1])
+        @RunOnMain
+        def func():
+            origCenter = self._model.GetCenter()
+            if wx.Point(origCenter) != wx.Point(endCenter):
+                offsetp = endCenter - origCenter
+                offset = wx.RealPoint(offsetp[0], offsetp[1])
 
-            def internalOnFinished():
-                self._model.SetProperty("speed", (0,0), noDeferred=True)
-                if onFinished: onFinished(*args, **kwargs)
+                def internalOnFinished():
+                    self._model.SetProperty("speed", (0,0), noDeferred=True)
+                    if onFinished: onFinished(*args, **kwargs)
 
-            def onCanceled():
+                def onCanceled():
+                    self._model.SetProperty("speed", (0,0))
+
+                def f(progress):
+                    self._model.SetCenter(origCenter + offset * progress)
+                self._model.AddAnimation("position", duration, f, internalOnFinished, onCanceled)
+                self._model.SetProperty("speed", offset*(1.0/duration))
+            else:
+                def internalOnFinished():
+                    if onFinished: onFinished(*args, **kwargs)
+                self._model.AddAnimation("position", duration, None, internalOnFinished)
                 self._model.SetProperty("speed", (0,0))
+        func()
 
-            def f(progress):
-                self._model.SetCenter(origCenter + offset * progress)
-            self._model.AddAnimation("position", duration, f, internalOnFinished, onCanceled)
-            self._model.SetProperty("speed", offset*(1.0/duration))
-        else:
-            def internalOnFinished():
-                if onFinished: onFinished(*args, **kwargs)
-            self._model.AddAnimation("position", duration, None, internalOnFinished)
-            self._model.SetProperty("speed", (0,0))
-
-    @RunOnMain
     def AnimateSize(self, duration, endSize, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
             raise TypeError("duration must be a number")
@@ -953,17 +967,20 @@ class ViewProxy(object):
         except:
             raise ValueError("endSize must be a size or a list of two numbers")
 
-        def internalOnFinished():
-            if onFinished: onFinished(*args, **kwargs)
+        @RunOnMain
+        def func():
+            def internalOnFinished():
+                if onFinished: onFinished(*args, **kwargs)
 
-        origSize = self._model.GetProperty("size")
-        if wx.Size(origSize) != endSize:
-            offset = wx.Size(endSize-origSize)
-            def f(progress):
-                self._model.SetProperty("size", origSize + offset * progress)
-            self._model.AddAnimation("size", duration, f, internalOnFinished)
-        else:
-            self._model.AddAnimation("size", duration, None, internalOnFinished)
+            origSize = self._model.GetProperty("size")
+            if wx.Size(origSize) != endSize:
+                offset = wx.Size(endSize-origSize)
+                def f(progress):
+                    self._model.SetProperty("size", origSize + offset * progress)
+                self._model.AddAnimation("size", duration, f, internalOnFinished)
+            else:
+                self._model.AddAnimation("size", duration, None, internalOnFinished)
+        func()
 
     @RunOnMain
     def StopAnimations(self):
