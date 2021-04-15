@@ -42,7 +42,7 @@ class Runner():
         self.lastHandlerStack = []
         self.didSetup = False
         self.runnerDepth = 0
-        self.didRunPendingUpdateTask = True
+        self.missedIdleCount = 0
 
         # queue of tasks to run on the runnerThread
         # each task is put onto the queue as a list.
@@ -128,9 +128,9 @@ class Runner():
         Keep track of whether this actually runs.  It won't immediately run if the running event is long-running
         or infinite.  In this case the ApplyAllPending now.
         """
-        if not self.didRunPendingUpdateTask:
+        if self.missedIdleCount > 1:
             self.stackManager.uiCard.model.ApplyAllPending()
-        self.didRunPendingUpdateTask = False
+        self.missedIdleCount += 1
         self.handlerQueue.put([])
 
     def CleanupFromRun(self):
@@ -174,7 +174,7 @@ class Runner():
                     # and also serves to wake up the runner thread for stopping.
                     if not self.stopRunnerThread:
                         self.stackManager.uiCard.model.ApplyAllPending()
-                        self.didRunPendingUpdateTask = True
+                        self.missedIdleCount = 0
                 elif len(args) == 1:
                     self.SetupForCardInternal(*args)
                 elif len(args) == 5:
