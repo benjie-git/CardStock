@@ -133,6 +133,9 @@ class Runner():
         self.missedIdleCount += 1
         self.handlerQueue.put([])
 
+    def GetNumPendingTasks(self):
+        return self.handlerQueue.qsize()
+
     def CleanupFromRun(self):
         for t in self.timers:
             t.Stop()
@@ -177,7 +180,7 @@ class Runner():
                         self.missedIdleCount = 0
                 elif len(args) == 1:
                     self.SetupForCardInternal(*args)
-                elif len(args) == 5:
+                elif len(args) == 6:
                     self.RunHandlerInternal(*args)
 
                 if self.stopRunnerThread:
@@ -204,6 +207,10 @@ class Runner():
         If we're already on the runnerThread, that means an object's event code called another event, so run that
         immediately.
         """
+        handlerStr = uiModel.handlers[handlerName].strip()
+        if handlerStr == "":
+            return
+
         mousePos = None
         keyName = None
         if event and handlerName.startswith("OnMouse"):
@@ -214,18 +221,12 @@ class Runner():
                 return
 
         if threading.currentThread() == self.runnerThread:
-            self.RunHandlerInternal(uiModel, handlerName, mousePos, keyName, arg)
+            self.RunHandlerInternal(uiModel, handlerName, handlerStr, mousePos, keyName, arg)
         else:
-            self.handlerQueue.put((uiModel, handlerName, mousePos, keyName, arg))
+            self.handlerQueue.put((uiModel, handlerName, handlerStr, mousePos, keyName, arg))
 
-    def RunHandlerInternal(self, uiModel, handlerName, mousePos, keyName, arg):
+    def RunHandlerInternal(self, uiModel, handlerName, handlerStr, mousePos, keyName, arg):
         """ Run an eventHandler.  This always runs on the runnerThread. """
-        handlerStr = uiModel.handlers[handlerName].strip()
-        if handlerStr == "":
-            return
-        if not self.didSetup:
-            return
-
         self.runnerDepth += 1
         error_class = None
         line_number = None

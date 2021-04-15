@@ -75,6 +75,7 @@ class StackManager(object):
 
         self.selectedViews = []
         self.uiViews = []
+        self.modelToViewMap = {}
         self.cardIndex = None
         self.uiCard = UiCard(None, self, self.stackModel.childModels[0])
         self.LoadCardAtIndex(0)
@@ -134,17 +135,18 @@ class StackManager(object):
                     uiView.view.SetCursor(wx.Cursor(viewCursor if viewCursor else cursor))
 
     def OnIdleTimer(self, event):
-        if not self.isEditing and self.runner.missedIdleCount == 0:
-            onFinishedCalls = []
-            self.uiCard.RunAnimations(onFinishedCalls)
-            for ui in self.GetAllUiViews():
-                ui.RunAnimations(onFinishedCalls)
-            # Let all animations process, before running their onFinished handlers,
-            # which could start new animations.
-            for c in onFinishedCalls:
-                c()
+        onFinishedCalls = []
+        self.uiCard.RunAnimations(onFinishedCalls)
+        for ui in self.GetAllUiViews():
+            ui.RunAnimations(onFinishedCalls)
+        # Let all animations process, before running their onFinished handlers,
+        # which could start new animations.
+        for c in onFinishedCalls:
+            c()
 
-            self.uiCard.OnIdle(event)
+        if self.runner.GetNumPendingTasks() < 15:  # half second delayed if full of OnIdle calls
+            if self.runner.missedIdleCount == 0:
+                self.uiCard.OnIdle(event)
 
         self.runner.EnqueueApplyPendingUpdates()
         self.view.RefreshIfNeeded()
@@ -175,7 +177,8 @@ class StackManager(object):
         for uiView in self.uiViews:
             allUiViews.append(uiView)
             if uiView.model.type == "group":
-                allUiViews.extend(uiView.GetAllUiViews())
+                uiView.GetAllUiViews(allUiViews)
+        # self.allUiViews = allUiViews
         return allUiViews
 
     def SetStackModel(self, model):
@@ -344,6 +347,11 @@ class StackManager(object):
         elif type in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
             uiView = UiShape(self.uiCard, self, type, model)
 
+        self.modelToViewMap[model] = uiView
+        if type == "group":
+            for childUi in uiView.uiViews:
+                self.modelToViewMap[childUi.model] = childUi
+
         if uiView:
             if uiView.view and not model:
                 uiView.view.Center()
@@ -417,9 +425,8 @@ class StackManager(object):
     def GetUiViewByModel(self, model):
         if model == self.uiCard.model:
             return self.uiCard
-        for ui in self.GetAllUiViews():
-            if ui.model == model:
-                return ui
+        if model in self.modelToViewMap:
+            return self.modelToViewMap[model]
         return None
 
     def GetUiViewByName(self, name):
@@ -437,6 +444,9 @@ class StackManager(object):
                     self.SelectUiView(ui, True)
                 if ui.model.type == "group":
                     ui.RemoveChildViews()
+                    for childUi in ui.uiViews:
+                        del self.modelToViewMap[childUi.model]
+                del self.modelToViewMap[ui.model]
                 self.uiViews.remove(ui)
                 self.view.Refresh(True)
                 self.uiCard.model.RemoveChild(ui.model)

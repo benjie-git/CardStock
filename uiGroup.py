@@ -27,13 +27,11 @@ class UiGroup(UiView):
         for uiView in self.uiViews:
             uiView.DestroyView()
 
-    def GetAllUiViews(self):
-        allUiViews = []
+    def GetAllUiViews(self, allUiViews):
         for uiView in self.uiViews:
             allUiViews.append(uiView)
             if uiView.model.type == "group":
-                allUiViews.extend(uiView.GetAllUiViews())
-        return allUiViews
+                uiView.GetAllUiViews(allUiViews)
 
     def HitTest(self, pt):
         if not self.hitRegion:

@@ -75,9 +75,7 @@ class UiView(object):
             return None
 
     def OnPropertyChanged(self, model, key):
-        if key in ["pre-size", "pre-position"]:
-            self.stackManager.view.Refresh(True)
-        elif key == "size":
+        if key == "size":
             s = self.model.GetProperty(key)
             self.ClearHitRegion()
             if self.view:
@@ -553,8 +551,6 @@ class ViewModel(object):
             self.pendingProps[key] = value
         else:
             if self.properties[key] != value:
-                if notify:
-                    self.Notify("pre-"+key)
                 self.properties[key] = value
                 if notify:
                     self.Notify(key)
