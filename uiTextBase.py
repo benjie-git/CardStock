@@ -212,14 +212,14 @@ class TextBaseProxy(ViewProxy):
         @RunOnMain
         def func():
             origVal = wx.Colour(self.textColor)
-            endVal = wx.Colour(endVal)
+            endValue = wx.Colour(endVal)
 
             def internalOnFinished():
                 if onFinished: onFinished(*args, **kwargs)
 
-            if origVal.IsOk() and endVal.IsOk() and endVal != origVal:
+            if origVal.IsOk() and endValue.IsOk() and endValue != origVal:
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
-                endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
+                endParts = [endValue.Red(), endValue.Green(), endValue.Blue(), endValue.Alpha()]
                 offsets = [endParts[i]-origParts[i] for i in range(4)]
                 def f(progress):
                     self._model.SetProperty("textColor", [origParts[i]+offsets[i]*progress for i in range(4)])

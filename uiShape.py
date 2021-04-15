@@ -351,14 +351,14 @@ class Line(ViewProxy):
         @RunOnMain
         def func():
             origVal = wx.Colour(self.penColor)
-            endVal = wx.Colour(endVal)
+            endValue = wx.Colour(endVal)
 
             def internalOnFinished():
                 if onFinished: onFinished(*args, **kwargs)
 
-            if origVal.IsOk() and endVal.IsOk() and endVal != origVal:
+            if origVal.IsOk() and endValue.IsOk() and endValue != origVal:
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
-                endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
+                endParts = [endValue.Red(), endValue.Green(), endValue.Blue(), endValue.Alpha()]
                 offsets = [endParts[i]-origParts[i] for i in range(4)]
                 def f(progress):
                     self._model.SetProperty("penColor", [origParts[i]+offsets[i]*progress for i in range(4)])
@@ -413,14 +413,14 @@ class Shape(Line):
         @RunOnMain
         def func():
             origVal = wx.Colour(self.fillColor)
-            endVal = wx.Colour(endVal)
+            endValue = wx.Colour(endVal)
 
             def internalOnFinished():
                 if onFinished: onFinished(*args, **kwargs)
 
-            if origVal.IsOk() and endVal.IsOk() and endVal != origVal:
+            if origVal.IsOk() and endValue.IsOk() and endValue != origVal:
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
-                endParts = [endVal.Red(), endVal.Green(), endVal.Blue(), endVal.Alpha()]
+                endParts = [endValue.Red(), endValue.Green(), endValue.Blue(), endValue.Alpha()]
                 offsets = [endParts[i]-origParts[i] for i in range(4)]
                 def f(progress):
                     self._model.SetProperty("fillColor", [origParts[i]+offsets[i]*progress for i in range(4)])
