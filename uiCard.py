@@ -213,7 +213,7 @@ class CardModel(ViewModel):
             if self.stackManager.uiCard.model == self:
                 self.stackManager.AddUiViewsFromModels([model], canUndo=False)
                 if self.stackManager.isEditing:
-                    self.stackManager.view.Refresh(True, model.GetRefreshFrame())
+                    self.stackManager.view.Refresh(True)
             else:
                 self.AddChild(model)
 

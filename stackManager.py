@@ -46,6 +46,7 @@ class DeferredRefreshWindow(wx.Window):
     def RefreshIfNeeded(self):
         if self.needsRefresh:
             super().Refresh(True, None)
+            self.Update()
             self.needsRefresh = False
 
 
@@ -103,7 +104,10 @@ class StackManager(object):
             self.SelectUiView(None)
             self.timer = wx.Timer(self.view)
             self.view.Bind(wx.EVT_TIMER, self.OnIdleTimer, self.timer)
-            self.timer.Start(33)
+            if wx.Platform == "__WXMSW__":
+                self.timer.Start(30)
+            else:
+                self.timer.Start(33)
         else:
             if self.timer:
                 self.timer.Stop()
@@ -130,15 +134,16 @@ class StackManager(object):
                     uiView.view.SetCursor(wx.Cursor(viewCursor if viewCursor else cursor))
 
     def OnIdleTimer(self, event):
-        onFinishedCalls = []
-        self.uiCard.RunAnimations(onFinishedCalls)
-        for ui in self.GetAllUiViews():
-            ui.RunAnimations(onFinishedCalls)
-        # Let all animations process, before running their onFinished handlers,
-        # which could start new animations.
-        for c in onFinishedCalls:
-            c()
-        if not self.isEditing:
+        if not self.isEditing and self.runner.missedIdleCount == 0:
+            onFinishedCalls = []
+            self.uiCard.RunAnimations(onFinishedCalls)
+            for ui in self.GetAllUiViews():
+                ui.RunAnimations(onFinishedCalls)
+            # Let all animations process, before running their onFinished handlers,
+            # which could start new animations.
+            for c in onFinishedCalls:
+                c()
+
             self.uiCard.OnIdle(event)
 
         self.runner.EnqueueApplyPendingUpdates()
@@ -434,7 +439,7 @@ class StackManager(object):
                 if ui.model.type == "group":
                     ui.RemoveChildViews()
                 self.uiViews.remove(ui)
-                self.view.Refresh(True, rect=ui.model.GetRefreshFrame())
+                self.view.Refresh(True)
                 self.uiCard.model.RemoveChild(ui.model)
                 ui.DestroyView()
                 return

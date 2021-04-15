@@ -76,7 +76,7 @@ class UiView(object):
 
     def OnPropertyChanged(self, model, key):
         if key in ["pre-size", "pre-position"]:
-            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame(noDeferred=True))
+            self.stackManager.view.Refresh(True)
         elif key == "size":
             s = self.model.GetProperty(key)
             self.ClearHitRegion()
@@ -85,7 +85,7 @@ class UiView(object):
                 self.view.Refresh(True)
                 wx.CallAfter(self.view.Refresh, True)
             else:
-                self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
+                self.stackManager.view.Refresh(True)
         elif key == "position":
             pos = self.model.GetAbsolutePosition()
             if self.view:
@@ -93,13 +93,13 @@ class UiView(object):
                 self.view.Refresh(True)
                 wx.CallAfter(self.view.Refresh, True)
             else:
-                self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
+                self.stackManager.view.Refresh(True)
             if self.parent.model.type == "group":
                 self.parent.ClearHitRegion()
         elif key == "hidden":
             if self.view:
                 self.view.Show(not self.model.GetProperty(key))
-            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
+            self.stackManager.view.Refresh(True)
 
     def OnResize(self, event):
         pass
@@ -118,7 +118,7 @@ class UiView(object):
         if self.isSelected != selected:
             self.isSelected = selected
             self.ClearHitRegion()
-            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
+            self.stackManager.view.Refresh(True)
 
     def OnMouseDown(self, event):
         if self.stackManager.runner and self.model.GetHandler("OnMouseDown"):
@@ -382,9 +382,6 @@ class ViewModel(object):
         p = wx.Point(self.GetAbsolutePosition(noDeferred))
         s = self.GetProperty("size", noDeferred)
         return wx.Rect(p, s)
-
-    def GetRefreshFrame(self, noDeferred=False):
-        return self.GetAbsoluteFrame(noDeferred).Inflate(8)
 
     def SetFrame(self, rect):
         self.SetProperty("position", rect.Position)

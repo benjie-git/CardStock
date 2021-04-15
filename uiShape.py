@@ -146,7 +146,7 @@ class UiShape(UiView):
         super().OnPropertyChanged(model, key)
         if key in ["size", "shape", "penColor", "penThickness", "fillColor", "cornerRadius"]:
             self.ClearHitRegion()
-            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
+            self.stackManager.view.Refresh(True)
 
     @staticmethod
     def CreateModelForType(stackManager, name):
@@ -213,9 +213,6 @@ class LineModel(ViewModel):
         self.isDirty = True
         self.scaledPoints = None
         self.Notify("shape")
-
-    def GetRefreshFrame(self, noDeferred=False):
-        return self.GetAbsoluteFrame(noDeferred).Inflate(8 + self.GetProperty("penThickness", noDeferred))
 
     def PerformFlips(self, fx, fy):
         if self.type in ["line", "pen", "poly"]:

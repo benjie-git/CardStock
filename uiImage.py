@@ -98,17 +98,17 @@ class UiImage(UiView):
 
         if key in ["size", "rotation", "fit", "file", "xFlipped", "yFlipped"]:
             self.rotatedBitmap = None
-            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
+            self.stackManager.view.Refresh(True)
 
         if key == "file":
             self.origImage = self.GetImg(self.model)
             self.rotatedBitmap = None
-            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
+            self.stackManager.view.Refresh(True)
         elif key == "fit":
-            self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
+            self.stackManager.view.Refresh(True,)
         elif key == "rotation":
             if model.GetProperty("file") != "":
-                self.stackManager.view.Refresh(True, self.model.GetRefreshFrame())
+                self.stackManager.view.Refresh(True)
 
     def Paint(self, gc):
         if self.origImage:
