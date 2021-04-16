@@ -43,6 +43,7 @@ class Runner():
         self.didSetup = False
         self.runnerDepth = 0
         self.missedIdleCount = 0
+        self.numOnIdlesQueued = 0
 
         # queue of tasks to run on the runnerThread
         # each task is put onto the queue as a list.
@@ -122,19 +123,19 @@ class Runner():
             self.cardVarKeys.append(name)
         self.didSetup = True
 
-    def EnqueueApplyPendingUpdates(self):
+    def ApplyPendingUpdatesIfBusy(self):
         """
-        Add a task into the queue to apply pending updates after the queue finishes running.
-        Keep track of whether this actually runs.  It won't immediately run if the running event is long-running
-        or infinite.  In this case the ApplyAllPending now.
+        Keep track of whether we're still running the previous OnIdle.  If so, ApplyAllPending now.
         """
         if self.missedIdleCount > 1:
             self.stackManager.uiCard.model.ApplyAllPending()
         self.missedIdleCount += 1
-        self.handlerQueue.put([])
 
-    def GetNumPendingTasks(self):
-        return self.handlerQueue.qsize()
+    def EnqueueApplyPendingUpdates(self):
+        """
+        Add a task into the queue to apply pending model updates after the queue finishes running.
+        """
+        self.handlerQueue.put([])
 
     def CleanupFromRun(self):
         for t in self.timers:
@@ -148,15 +149,13 @@ class Runner():
 
             # Wait up to 0.5 sec for the stack to finish
             # run wx.Yield() to process main thread events while waiting, to allow @RunOnMain methods to complete
-            duration = 0.5
-            while duration > 0:
+            endTime = time() + 0.5
+            while time() < endTime:
                 self.runnerThread.hasRunOnMain = False
                 wx.Yield()
                 if not self.runnerThread.hasRunOnMain:
                     break
-                sleep(0.005)
-                duration -= 0.005
-            self.runnerThread.join(max(duration, 0.01))
+            self.runnerThread.join(max(endTime - time(), 0.01))
 
             if self.runnerThread.is_alive():
                 self.runnerThread.terminate()
@@ -182,6 +181,8 @@ class Runner():
                     self.SetupForCardInternal(*args)
                 elif len(args) == 6:
                     self.RunHandlerInternal(*args)
+                    if args[1] == "OnIdle":
+                        self.numOnIdlesQueued -= 1
 
                 if self.stopRunnerThread:
                     break
@@ -223,6 +224,8 @@ class Runner():
         if threading.currentThread() == self.runnerThread:
             self.RunHandlerInternal(uiModel, handlerName, handlerStr, mousePos, keyName, arg)
         else:
+            if handlerName == "OnIdle":
+                self.numOnIdlesQueued += 1
             self.handlerQueue.put((uiModel, handlerName, handlerStr, mousePos, keyName, arg))
 
     def RunHandlerInternal(self, uiModel, handlerName, handlerStr, mousePos, keyName, arg):

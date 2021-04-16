@@ -144,11 +144,11 @@ class StackManager(object):
         for c in onFinishedCalls:
             c()
 
-        if self.runner.GetNumPendingTasks() < 15:  # half second delayed if full of OnIdle calls
-            if self.runner.missedIdleCount == 0:
-                self.uiCard.OnIdle(event)
+        if self.runner.numOnIdlesQueued == 0:
+            self.uiCard.OnIdle(event)
+            self.runner.EnqueueApplyPendingUpdates()
 
-        self.runner.EnqueueApplyPendingUpdates()
+        self.runner.ApplyPendingUpdatesIfBusy()
         self.view.RefreshIfNeeded()
 
     def SetTool(self, tool):

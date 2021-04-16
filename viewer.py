@@ -209,14 +209,15 @@ class ViewerFrame(wx.Frame):
             if r == wx.ID_YES:
                 self.SaveFile()
 
-        self.stackManager.runner.CleanupFromRun()
-        if self.designer:
-            self.designer.OnViewerClose(event)
+        if not self.stackManager.runner.stopRunnerThread:
+            self.stackManager.runner.CleanupFromRun()
+            if self.designer:
+                self.designer.OnViewerClose(event)
 
-        if self.consoleWindow:
-            self.consoleWindow.Destroy()
-            self.consoleWindow = None
-        event.Skip()
+            if self.consoleWindow:
+                self.consoleWindow.Destroy()
+                self.consoleWindow = None
+            event.Skip()
 
     def OnCut(self, event):
         f = self.FindFocus()

@@ -23,7 +23,6 @@ class CDSPoint(wx.Point):
     def x(self):
         return super().x
     @x.setter
-    @RunOnMain
     def x(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("x must be a number")
@@ -34,7 +33,6 @@ class CDSPoint(wx.Point):
     def y(self):
         return super().y
     @y.setter
-    @RunOnMain
     def y(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("y must be a number")
@@ -59,7 +57,6 @@ class CDSRealPoint(wx.RealPoint):
     def x(self):
         return super().x
     @x.setter
-    @RunOnMain
     def x(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("x must be a number")
@@ -70,7 +67,6 @@ class CDSRealPoint(wx.RealPoint):
     def y(self):
         return super().y
     @y.setter
-    @RunOnMain
     def y(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("y must be a number")
@@ -95,7 +91,6 @@ class CDSSize(wx.Size):
     def width(self):
         return super().width
     @width.setter
-    @RunOnMain
     def width(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("width must be a number")
@@ -106,7 +101,6 @@ class CDSSize(wx.Size):
     def height(self):
         return super().height
     @height.setter
-    @RunOnMain
     def height(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("height must be a number")
