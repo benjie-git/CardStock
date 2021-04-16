@@ -113,10 +113,11 @@ class PythonEditor(stc.StyledTextCtrl):
                 return
             elif ord('a') <= key <= ord('z') or ord('A') <= key <= ord('Z'):
                 wx.CallAfter(self.UpdateAC)
-            elif self.AutoCompActive() and (key == wx.WXK_BACK or (event.ShiftDown() and key == ord('_')) or \
+            elif self.AutoCompActive() and (key == wx.WXK_BACK or (event.ShiftDown() and key == ord('-')) or \
                                             (not event.ShiftDown() and ord('0') <= key <= ord('9'))):
                 wx.CallAfter(self.UpdateAC)
-            elif self.AutoCompActive() and (key in [stc.STC_KEY_ESCAPE, ord(' '), ord('['), ord('.')] or \
+            elif self.AutoCompActive() and (key in [stc.STC_KEY_ESCAPE, ord(' '), ord('['), ord('.'), ord("'"),
+                    ord('`'), ord(']'), ord(';'), ord(','), ord('.'), ord('\\'), ord('/'), ord('-'), ord('=')] or \
                     (event.ShiftDown() and ord('0') <= key <= ord('9'))):
                 self.AutoCompCancel()
             event.Skip()
