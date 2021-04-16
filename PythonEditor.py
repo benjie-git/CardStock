@@ -229,8 +229,9 @@ class PythonEditor(stc.StyledTextCtrl):
         styles = [self.GetStyleAt(pos-i) for i in (0, 2)]
         inString = styles[0] == styles[1] and styles[1] in [stc.STC_P_CHARACTER, stc.STC_P_STRING,
                                                 stc.STC_P_STRINGEOL, stc.STC_P_TRIPLE, stc.STC_P_TRIPLEDOUBLE]
+        isEndPosString = pos == self.GetLastPosition() and styles[1] in [stc.STC_P_STRINGEOL]
         inComment = styles[1] in [stc.STC_P_COMMENTLINE, stc.STC_P_COMMENTBLOCK]
-        return inString or inComment
+        return inString or isEndPosString or inComment
 
 
 class CodeAnalyzer(object):
