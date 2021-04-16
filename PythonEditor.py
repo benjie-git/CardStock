@@ -60,7 +60,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,   'face:%(mono)s,fore:#000000,back:#FFCCCC,bold' % faces)
         self.StyleSetSpec(stc.STC_P_DEFAULT,        'face:%(mono)s,fore:#000000,size:%(size)d' % faces)
         self.StyleSetSpec(stc.STC_P_NUMBER,         'face:%(mono)s,fore:#007F7F' % faces)
-        self.StyleSetSpec(stc.STC_P_CHARACTER,      'face:%(mono)s,fore:#7F007F' % faces)
+        self.StyleSetSpec(stc.STC_P_CHARACTER,      'face:%(mono)s,fore:#007F7F,bold' % faces)
         self.StyleSetSpec(stc.STC_P_WORD,           'face:%(mono)s,fore:#1111EE' % faces)
         self.StyleSetSpec(stc.STC_P_CLASSNAME,      'face:%(mono)s,fore:#2222FF' % faces)
         self.StyleSetSpec(stc.STC_P_DEFNAME,        'face:%(mono)s,fore:#2222FF' % faces)
@@ -81,6 +81,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.AutoCompSetIgnoreCase(True)
         self.AutoCompSetFillUps("\t\r\n")
         self.AutoCompSetCancelAtStart(True)
+        self.AutoCompSetDropRestOfWord(True)
         self.AutoCompSetCaseInsensitiveBehaviour(stc.STC_CASEINSENSITIVEBEHAVIOUR_IGNORECASE)
         self.Bind(stc.EVT_STC_AUTOCOMP_COMPLETED, self.OnACCompleted)
         self.Bind(stc.EVT_STC_AUTOCOMP_CANCELLED, self.OnACCancelled)
@@ -121,6 +122,7 @@ class PythonEditor(stc.StyledTextCtrl):
             event.Skip()
 
     def PyEditorOnZoom(self, event):
+        # Disable Zoom
         z = event.GetEventObject().GetZoom()
         if z != 0:
             event.GetEventObject().SetZoom(0)
@@ -174,6 +176,12 @@ class PythonEditor(stc.StyledTextCtrl):
             self.AutoCompCancel()
 
     def UpdateAC(self):
+        if self.IsInCommentOrString():
+            # Don't autocomplete inside a comment or string
+            if self.AutoCompActive():
+                self.AutoCompCancel()
+            return
+
         # Find the word start
         currentPos = self.GetCurrentPos()
         wordStartPos = self.WordStartPosition(currentPos, True)
@@ -214,6 +222,15 @@ class PythonEditor(stc.StyledTextCtrl):
                 self.GetParent().UpdateHelpText(helpText)
                 return
         self.GetParent().UpdateHelpText("")
+
+    def IsInCommentOrString(self):
+        # Use STC's syntax coloring styles to determine whether we're in a comment or string
+        pos = self.GetCurrentPos()
+        styles = [self.GetStyleAt(pos-i) for i in (0, 2)]
+        inString = styles[0] == styles[1] and styles[1] in [stc.STC_P_CHARACTER, stc.STC_P_STRING,
+                                                stc.STC_P_STRINGEOL, stc.STC_P_TRIPLE, stc.STC_P_TRIPLEDOUBLE]
+        inComment = styles[1] in [stc.STC_P_COMMENTLINE, stc.STC_P_COMMENTBLOCK]
+        return inString or inComment
 
 
 class CodeAnalyzer(object):
