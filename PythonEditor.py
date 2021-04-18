@@ -1,7 +1,7 @@
 import wx
 import wx.stc as stc
 import keyword
-import ast
+import analyzer
 import helpData
 
 """
@@ -36,10 +36,15 @@ class PythonEditor(stc.StyledTextCtrl):
         super().__init__(parent=parent, **kwargs)
 
         self.undoHandler = undoHandler
-        self.analyzer = CodeAnalyzer()
+        self.currentModel = None
+        self.currentHandler = None
+        self.cPanel = parent
+
+        self.analyzer = analyzer.CodeAnalyzer()
+        self.analysisTimer = wx.Timer()
+        self.analysisTimer.Bind(wx.EVT_TIMER, self.OnAnalysisTimer)
 
         self.SetAutoLayout(True)
-        # self.SetConstraints(stc.LayoutAnchors(self, True, True, True, True))
 
         self.SetTabWidth(TAB_WIDTH)
         self.SetUseTabs(0)
@@ -77,6 +82,15 @@ class PythonEditor(stc.StyledTextCtrl):
         self.SetLexer(stc.STC_LEX_PYTHON)
         self.SetKeyWords(0, " ".join(keyword.kwlist))
 
+        styleOffset = self.AllocateExtendedStyles(256)
+        self.AnnotationSetStyleOffset(styleOffset)
+        self.StyleSetSpec(styleOffset, 'face:%(mono)s,fore:#222222,back:#FFCCCC,italic' % faces)
+        self.AnnotationSetVisible(stc.STC_ANNOTATION_BOXED)
+        self.IndicatorSetStyle(2, stc.STC_INDIC_SQUIGGLE)
+        self.IndicatorSetForeground(2, wx.RED)
+        self.IndicatorSetAlpha(2, 127)
+        self.IndicatorSetUnder(2, True)
+
         self.AutoCompSetAutoHide(False)
         self.AutoCompSetIgnoreCase(True)
         self.AutoCompSetFillUps("\t\r\n")
@@ -87,6 +101,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.Bind(stc.EVT_STC_AUTOCOMP_CANCELLED, self.OnACCancelled)
         self.Bind(stc.EVT_STC_AUTOCOMP_SELECTION_CHANGE, self.OnACSelectionChange)
 
+        self.Bind(stc.EVT_STC_CHANGE, self.PyEditorOnChange)
         self.Bind(wx.EVT_SET_FOCUS, self.PyEditorOnFocus)
         self.Bind(wx.EVT_KILL_FOCUS, self.PyEditorOnLoseFocus)
         self.Bind(wx.EVT_KEY_DOWN, self.PyEditorOnKeyPress)
@@ -96,14 +111,15 @@ class PythonEditor(stc.StyledTextCtrl):
     def PyEditorOnKeyPress(self, event):
         key = event.GetKeyCode()
         if key == stc.STC_KEY_RETURN:
-            numSpaces = self.GetLineIndentation(self.GetCurrentLine())
-            line = self.GetLine(self.GetCurrentLine())
-            if line.strip()[-1:] == ":":
-                numSpaces += TAB_WIDTH
-            self.AddText("\n" + " "*numSpaces)
-            self.analyzer.ScanCode(self.GetParent().stackManager.stackModel, self.GetParent().currentHandler)
             if self.AutoCompActive():
                 self.AutoCompComplete()
+            else:
+                numSpaces = self.GetLineIndentation(self.GetCurrentLine())
+                line = self.GetLine(self.GetCurrentLine())
+                pos = self.GetCurrentPos()
+                if pos > 1 and self.GetCharAt(pos-1) == ord(":"):
+                    numSpaces += TAB_WIDTH
+                self.AddText("\n" + " "*numSpaces)
         else:
             if key == ord("Z") and event.ControlDown():
                 if not event.ShiftDown():
@@ -163,7 +179,7 @@ class PythonEditor(stc.StyledTextCtrl):
             self.Refresh(False)
 
     def PyEditorOnFocus(self, event):
-        self.UpdateACLists()
+        self.RunDeferredAnalysis()
         event.Skip()
 
     def PyEditorOnLoseFocus(self, event):
@@ -171,10 +187,31 @@ class PythonEditor(stc.StyledTextCtrl):
             self.AutoCompCancel()
         event.Skip()
 
+    def PyEditorOnChange(self, event):
+        self.RunDeferredAnalysis()
+        event.Skip()
+
+    def RunDeferredAnalysis(self):
+        self.analysisTimer.StartOnce(500)
+
+    def OnAnalysisTimer(self, event):
+        self.UpdateACLists()
+
     def UpdateACLists(self):
-        self.analyzer.ScanCode(self.GetParent().stackManager.stackModel, self.GetParent().currentHandler)
-        if self.AutoCompActive():
-            self.AutoCompCancel()
+        self.analyzer.ScanCode(self.cPanel.stackManager.stackModel, self.currentHandler)
+
+        key = self.currentModel.GetPath() + "." + self.currentHandler
+        self.SetIndicatorCurrent(2)
+        self.IndicatorClearRange(0, self.GetLastPosition())
+        if key in self.analyzer.syntaxErrors:
+            e = self.analyzer.syntaxErrors[key]
+            # lineStr = e[1]
+            lineNum = e[2]-1
+            # linePos = e[3]-1
+
+            lineStartPos = self.GetLineEndPosition(lineNum)-self.GetLineLength(lineNum)
+            self.SetIndicatorCurrent(2)
+            self.IndicatorFillRange(lineStartPos, self.GetLineLength(lineNum))
 
     def UpdateAC(self):
         if self.IsInCommentOrString():
@@ -197,7 +234,7 @@ class PythonEditor(stc.StyledTextCtrl):
         if lenEntered > 0:
             prefix = self.GetTextRange(wordStartPos, currentPos).lower()
             acList = [s for s in acList if prefix in s.lower()]
-            if len(acList):
+            if len(acList) > 1 or (len(acList) == 1 and len(prefix) < len(acList[0])):
                 self.AutoCompShow(lenEntered, " ".join(acList))
             else:
                 if self.AutoCompActive():
@@ -213,16 +250,16 @@ class PythonEditor(stc.StyledTextCtrl):
             self.AutoCompCancel()
 
     def OnACCancelled(self, event):
-        self.GetParent().UpdateHelpText("")
+        self.cPanel.UpdateHelpText("")
 
     def OnACSelectionChange(self, event):
         s = event.GetString()
         if s:
             helpText = helpData.HelpData.GetHelpForName(s)
             if helpText:
-                self.GetParent().UpdateHelpText(helpText)
+                self.cPanel.UpdateHelpText(helpText)
                 return
-        self.GetParent().UpdateHelpText("")
+        self.cPanel.UpdateHelpText("")
 
     def IsInCommentOrString(self):
         # Use STC's syntax coloring styles to determine whether we're in a comment or string
@@ -233,72 +270,3 @@ class PythonEditor(stc.StyledTextCtrl):
         isEndPosString = pos == self.GetLastPosition() and styles[1] in [stc.STC_P_STRINGEOL]
         inComment = styles[1] in [stc.STC_P_COMMENTLINE, stc.STC_P_COMMENTBLOCK]
         return inString or isEndPosString or inComment
-
-
-class CodeAnalyzer(object):
-    def __init__(self):
-        super().__init__()
-        self.varNames = []
-        self.funcNames = []
-        self.globalVars = helpData.HelpDataGlobals.variables.keys()
-        self.globalFuncs = helpData.HelpDataGlobals.functions.keys()
-        self.objNames = []
-        self.objProps = []
-        self.objMethods = []
-        for cls in helpData.helpClasses:
-            self.objProps += cls.properties.keys()
-            self.objMethods += cls.methods.keys()
-        self.ACNames = []
-        self.ACAttributes = []
-
-    def CollectCode(self, model):
-        self.objNames.append(model.GetProperty("name"))
-        code = "\n".join([s for s in model.handlers.values() if len(s)])
-        for child in model.childModels:
-            s = self.CollectCode(child)
-            if len(s):
-                code += "\n" + s
-        return code
-
-    def BuildACLists(self, handlerName):
-        names = []
-        names.extend(self.varNames)
-        names.extend([s+"()" for s in self.funcNames])
-        names.extend(self.globalVars)
-        names.extend([s+"()" for s in self.globalFuncs])
-        names.extend(self.objNames)
-        names.extend(["False", "True", "None"])
-        if "Mouse" in handlerName: names.append("mousePos")
-        if "Key" in handlerName: names.append("keyName")
-        if "Idle" in handlerName: names.append("elapsedTime")
-        if "Message" in handlerName: names.append("message")
-        names = list(set(names))
-        names.sort(key=str.casefold)
-        self.ACNames = names
-
-        attributes = []
-        attributes.extend(self.objProps)
-        attributes.extend([s+"()" for s in self.objMethods])
-        attributes.extend(self.objNames)
-        attributes = list(set(attributes))
-        attributes.sort(key=str.casefold)
-        self.ACAttributes = attributes
-
-    def ScanCode(self, model, handlerName):
-        self.objNames = []
-        code = self.CollectCode(model)
-        try:
-            root = ast.parse(code)
-
-            self.varNames = set()
-            self.funcNames = set()
-
-            for node in ast.walk(root):
-                if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
-                    self.varNames.add(node.id)
-                elif isinstance(node, ast.FunctionDef):
-                    self.funcNames.add(node.name)
-
-            self.BuildACLists(handlerName)
-        except SyntaxError:
-            pass

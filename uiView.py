@@ -341,6 +341,14 @@ class ViewModel(object):
     def GetDirty(self):
         return self.isDirty
 
+    def GetPath(self):
+        parts = []
+        m = self
+        while m.parent:
+            parts.append(m.GetProperty("name"))
+            m = m.parent
+        return ".".join(parts)
+
     def SetStackView(self, stackManager):
         self.stackManager = stackManager
         for m in self.childModels:

@@ -365,6 +365,8 @@ class ControlPanel(wx.Panel):
             self.codeEditor.SetText("")
             self.codeEditor.Enable(False)
             self.handlerPicker.Enable(False)
+            self.codeEditor.currentModel = None
+            self.codeEditor.currentHandler = None
             return
 
         if uiViews[0] != self.lastSelectedUiView:
@@ -401,6 +403,8 @@ class ControlPanel(wx.Panel):
         self.codeEditor.EmptyUndoBuffer()
         self.handlerPicker.Enable(True)
         self.codeEditor.Enable(True)
+        self.codeEditor.currentModel = uiView.model
+        self.codeEditor.currentHandler = self.currentHandler
         self.codeEditor.UpdateACLists()
         uiView.lastEditedHandler = self.currentHandler
 
