@@ -347,7 +347,7 @@ class StackManager(object):
         elif type in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
             uiView = UiShape(self.uiCard, self, type, model)
 
-        self.modelToViewMap[model] = uiView
+        self.modelToViewMap[uiView.model] = uiView
         if type == "group":
             for childUi in uiView.uiViews:
                 self.modelToViewMap[childUi.model] = childUi
@@ -446,7 +446,8 @@ class StackManager(object):
                     ui.RemoveChildViews()
                     for childUi in ui.uiViews:
                         del self.modelToViewMap[childUi.model]
-                del self.modelToViewMap[ui.model]
+                if ui.model in self.modelToViewMap:
+                    del self.modelToViewMap[ui.model]
                 self.uiViews.remove(ui)
                 self.view.Refresh(True)
                 self.uiCard.model.RemoveChild(ui.model)

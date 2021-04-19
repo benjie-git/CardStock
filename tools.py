@@ -211,6 +211,7 @@ class HandTool(BaseTool):
                     offset = (pos.x - self.absOrigin.x, pos.y - self.absOrigin.y)
                     origPos = self.oldFrames[ui.model.GetProperty("name")].Position
                     ui.model.SetProperty("position", [origPos.x + offset[0], origPos.y + offset[1]])
+                self.stackManager.view.Refresh(True)
             elif self.mode == "resize":
                 origPos = self.oldFrames[self.targetUi.model.GetProperty("name")].Position
                 pos = self.ConstrainDragPointAspect(origPos, origSize, event)
@@ -229,6 +230,7 @@ class HandTool(BaseTool):
                 self.xFlipped = xFlipped
                 self.yFlipped = yFlipped
                 self.targetUi.model.PerformFlips(flipX, flipY)
+                self.stackManager.view.Refresh(True)
         event.Skip()
 
     def StartBoxSelect(self):
@@ -431,6 +433,7 @@ class ViewTool(BaseTool):
                 topLeft = (min(pos[0], self.origMousePos[0]), min(pos[1], self.origMousePos[1]))
                 self.targetUi.model.SetProperty("position", topLeft)
                 self.targetUi.model.SetProperty("size", [abs(self.origSize[0]+offset[0]), abs(self.origSize[1]+offset[1])])
+                self.stackManager.view.Refresh(True)
         event.Skip()
 
     def OnMouseUp(self, uiView, event):
@@ -500,6 +503,7 @@ class PenTool(BaseTool):
                     self.curLine.append(coords)
                 self.targetUi.model.DidUpdateShape()
                 self.pos = pos
+                self.stackManager.view.Refresh(True)
 
     def OnMouseUp(self, uiView, event):
         if self.targetUi and self.stackManager.view.HasCapture():
@@ -562,6 +566,7 @@ class ShapeTool(BaseTool):
                 if pos != self.points[1]:
                     self.points[1] = self.ConstrainDragPoint(self.name, self.startPoint, event)
                     self.targetUi.model.DidUpdateShape()
+                    self.stackManager.view.Refresh(True)
 
     def OnMouseUp(self, uiView, event):
         if self.stackManager.view.HasCapture():
@@ -643,6 +648,7 @@ class PolyTool(BaseTool):
                         points.append(self.lastMousePos)
                     self.stackManager.view.Refresh(True, self.targetUi.model.RectFromPoints(points).Inflate(5))
                     self.lastMousePos = self.mousePos
+            self.stackManager.view.Refresh(True)
 
     def OnMouseUp(self, uiView, event):
         pass
