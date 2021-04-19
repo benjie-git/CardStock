@@ -15,7 +15,7 @@ class AllCodeWindow(wx.Frame):
         self.numLines = 0
         self.lastLineNum = 0
         self.methodStartLines = []
-        self.textBox = PythonEditor.PythonEditor(self, self.designer.stackManager, style=wx.BORDER_SUNKEN)
+        self.textBox = PythonEditor.PythonEditor(self, None, self.designer.stackManager, style=wx.BORDER_SUNKEN)
         self.textBox.SetCaretStyle(stc.STC_CARETSTYLE_INVISIBLE)
         self.textBox.Bind(stc.EVT_STC_UPDATEUI, self.OnUpdateUi)
         self.Bind(wx.EVT_SIZE, self.OnResize)

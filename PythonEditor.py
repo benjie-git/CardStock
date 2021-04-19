@@ -32,13 +32,13 @@ else:
 
 
 class PythonEditor(stc.StyledTextCtrl):
-    def __init__(self, parent, undoHandler, **kwargs):
+    def __init__(self, parent, cPanel, stackManager, **kwargs):
         super().__init__(parent=parent, **kwargs)
 
-        self.undoHandler = undoHandler
+        self.stackManager = stackManager
         self.currentModel = None
         self.currentHandler = None
-        self.cPanel = parent
+        self.cPanel = cPanel
 
         self.analyzer = analyzer.CodeAnalyzer()
         self.analysisTimer = wx.Timer()
@@ -123,9 +123,9 @@ class PythonEditor(stc.StyledTextCtrl):
         else:
             if key == ord("Z") and event.ControlDown():
                 if not event.ShiftDown():
-                    self.undoHandler.Undo()
+                    self.stackManager.Undo()
                 else:
-                    self.undoHandler.Redo()
+                    self.stackManager.Redo()
                 return
             elif ord('a') <= key <= ord('z') or ord('A') <= key <= ord('Z'):
                 wx.CallAfter(self.UpdateAC)
@@ -199,6 +199,9 @@ class PythonEditor(stc.StyledTextCtrl):
         self.UpdateACLists()
 
     def UpdateACLists(self):
+        if not self.cPanel:
+            return
+
         self.analyzer.ScanCode(self.cPanel.stackManager.stackModel, self.currentHandler)
 
         key = self.currentModel.GetPath() + "." + self.currentHandler
@@ -254,6 +257,9 @@ class PythonEditor(stc.StyledTextCtrl):
         self.cPanel.UpdateHelpText("")
 
     def OnACSelectionChange(self, event):
+        if not self.cPanel:
+            return
+
         s = event.GetString()
         if s:
             helpText = helpData.HelpData.GetHelpForName(s)
