@@ -135,18 +135,20 @@ class StackManager(object):
                     uiView.view.SetCursor(wx.Cursor(viewCursor if viewCursor else cursor))
 
     def OnIdleTimer(self, event):
-        onFinishedCalls = []
-        self.uiCard.RunAnimations(onFinishedCalls)
-        for ui in self.GetAllUiViews():
-            ui.RunAnimations(onFinishedCalls)
-        # Let all animations process, before running their onFinished handlers,
-        # which could start new animations.
-        for c in onFinishedCalls:
-            c()
+        if not self.runner.stopRunnerThread:
+            onFinishedCalls = []
+            self.uiCard.RunAnimations(onFinishedCalls)
+            for ui in self.GetAllUiViews():
+                ui.RunAnimations(onFinishedCalls)
+            # Let all animations process, before running their onFinished handlers,
+            # which could start new animations.
+            for c in onFinishedCalls:
+                c()
 
-        if self.runner.numOnIdlesQueued == 0:
-            self.uiCard.OnIdle(event)
-            self.runner.EnqueueApplyPendingUpdates()
+            if self.runner.numOnIdlesQueued == 0:
+                didRun = self.uiCard.OnIdle(event)
+                if didRun:
+                    self.runner.EnqueueApplyPendingUpdates()
 
         self.runner.ApplyPendingUpdatesIfBusy()
         self.view.RefreshIfNeeded()
@@ -347,10 +349,12 @@ class StackManager(object):
         elif type in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
             uiView = UiShape(self.uiCard, self, type, model)
 
-        self.modelToViewMap[uiView.model] = uiView
-        if type == "group":
-            for childUi in uiView.uiViews:
-                self.modelToViewMap[childUi.model] = childUi
+        def AddToMap(ui):
+            self.modelToViewMap[ui.model] = ui
+            if ui.model.type == "group":
+                for childUi in ui.uiViews:
+                    AddToMap(childUi)
+        AddToMap(uiView)
 
         if uiView:
             if uiView.view and not model:

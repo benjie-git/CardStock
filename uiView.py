@@ -175,10 +175,12 @@ class UiView(object):
                         onFinishedCalls.append(anim["onFinished"])
 
     def OnIdle(self, event):
+        didRun = False
         if self.hasMouseMoved:
             self.hasMouseMoved = False
             if self.stackManager.runner and self.model.GetHandler("OnMouseMove"):
                 self.stackManager.runner.RunHandler(self.model, "OnMouseMove", event)
+                didRun = True
 
         # Determine elapsed time since last OnIdle call to this object
         elapsedTime = 0
@@ -188,8 +190,10 @@ class UiView(object):
             # if self.model.type == "card" and elapsedTime>0.0: print(int(1.0/elapsedTime+0.5)) # print fps
             if self.stackManager.runner and self.model.GetHandler("OnIdle"):
                 self.stackManager.runner.RunHandler(self.model, "OnIdle", event, elapsedTime)
+                didRun = True
 
         self.model.lastIdleTime = now
+        return didRun
 
     def PaintSelectionBox(self, gc):
         if self.isSelected and self.stackManager.tool.name == "hand":

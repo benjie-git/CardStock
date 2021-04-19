@@ -93,9 +93,13 @@ class UiGroup(UiView):
             self.uiViews.append(uiView)
 
     def OnIdle(self, event):
-        super().OnIdle(event)
+        didRun = False
+        if super().OnIdle(event):
+            didRun = True
         for child in self.uiViews:
-            child.OnIdle(event)
+            if child.OnIdle(event):
+                didRun = True
+        return didRun
 
 
 class GroupModel(ViewModel):
