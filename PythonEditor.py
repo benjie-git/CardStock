@@ -188,7 +188,8 @@ class PythonEditor(stc.StyledTextCtrl):
         event.Skip()
 
     def PyEditorOnChange(self, event):
-        self.RunDeferredAnalysis()
+        if self.HasFocus():
+            self.RunDeferredAnalysis()
         event.Skip()
 
     def RunDeferredAnalysis(self):

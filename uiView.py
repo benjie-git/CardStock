@@ -347,7 +347,7 @@ class ViewModel(object):
         while m.parent:
             parts.append(m.GetProperty("name"))
             m = m.parent
-        return ".".join(parts)
+        return ".".join(reversed(parts))
 
     def SetStackView(self, stackManager):
         self.stackManager = stackManager
