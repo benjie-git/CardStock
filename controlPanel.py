@@ -5,7 +5,7 @@ import os
 from tools import *
 from commands import *
 from wx.lib import buttons # for generic button classes
-from PythonEditor import PythonEditor
+from pythonEditor import PythonEditor
 from uiView import UiView
 from embeddedImages import embeddedImages
 from helpData import HelpData

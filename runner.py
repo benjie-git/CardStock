@@ -139,7 +139,6 @@ class Runner():
 
     def CleanupFromRun(self):
         # On Main thread
-        print("Start Cleanup", time())
         if self.runnerThread:
             self.stopRunnerThread = True
             for t in self.timers:

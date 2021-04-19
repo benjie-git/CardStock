@@ -10,6 +10,8 @@ It offers syntax highlighting, brace pairing, and simple code autocompletion.
 """
 
 TAB_WIDTH = 3
+ANALYSIS_TIMEOUT = 500  # in ms
+
 
 if wx.Platform == '__WXMSW__':
     faces = { 'mono' : 'Courier New',
@@ -193,7 +195,7 @@ class PythonEditor(stc.StyledTextCtrl):
         event.Skip()
 
     def RunDeferredAnalysis(self):
-        self.analysisTimer.StartOnce(500)
+        self.analysisTimer.StartOnce(ANALYSIS_TIMEOUT)
 
     def OnAnalysisTimer(self, event):
         self.UpdateACLists()
