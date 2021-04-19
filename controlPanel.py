@@ -5,6 +5,7 @@ import os
 from tools import *
 from commands import *
 from wx.lib import buttons # for generic button classes
+from wx.lib.resizewidget import ResizeWidget, EVT_RW_LAYOUT_NEEDED
 from pythonEditor import PythonEditor
 from uiView import UiView
 from embeddedImages import embeddedImages
@@ -112,7 +113,11 @@ class ControlPanel(wx.Panel):
         self.inspector.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnGridCellSelected)
         self.inspector.Bind(wx.EVT_SIZE, self.OnGridResized)
 
-        self.panelHelp = wx.html.HtmlWindow(self, size=(200, 70), style=wx.BORDER_SUNKEN)
+        self.panelHelp = wx.html.HtmlWindow(self, size=(200, 50), style=wx.BORDER_SUNKEN)
+
+        self.helpResizer = ResizeWidget(self)
+        self.helpResizer.SetManagedChild(self.panelHelp)
+        self.panelHelp.Show()
 
         self.handlerPicker = wx.Choice(parent=self)
         self.handlerPicker.Enable(False)
@@ -138,7 +143,7 @@ class ControlPanel(wx.Panel):
         self.editBox = wx.BoxSizer(wx.VERTICAL)
         self.editBox.Add(self.inspector, 0, wx.EXPAND|wx.ALL, spacing)
         self.editBox.AddSpacer(4)
-        self.editBox.Add(self.panelHelp, 0, wx.EXPAND|wx.ALL, spacing)
+        self.editBox.Add(self.helpResizer, 0, wx.EXPAND|wx.ALL, spacing)
         self.editBox.AddSpacer(4)
         self.editBox.Add(self.handlerPicker, 0, wx.EXPAND|wx.ALL, spacing)
         self.editBox.Add(self.codeEditor, 1, wx.EXPAND|wx.ALL, spacing)
@@ -150,15 +155,20 @@ class ControlPanel(wx.Panel):
         self.box.Add(self.editBox, 1, wx.EXPAND|wx.ALL, spacing)
         self.box.SetSizeHints(self)
 
+        self.helpResizer.Bind(EVT_RW_LAYOUT_NEEDED, self.OnRwLayoutNeeded)
+
         self.UpdateHelpText("-")
         self.SetSizer(self.box)
         self.SetAutoLayout(True)
 
         self.toolTip = None
 
+    def OnRwLayoutNeeded(self, event):
+        self.box.Layout()
+
     def ShowContextHelp(self, show):
         if self.stackManager.tool.name == "hand":
-            self.panelHelp.Show(show)
+            self.helpResizer.Show(show)
             self.box.Layout()
         self.isContextHelpEnabled = show
 
@@ -173,9 +183,6 @@ class ControlPanel(wx.Panel):
             self.panelHelp.SetPage("<body bgColor='#EEEEEE'>" + helpText + "</body>")
         else:
             self.panelHelp.SetPage("<body bgColor='#EEEEEE'></body>")
-        self.panelHelp.SetSize(self.panelHelp.Size.x, self.panelHelp.GetVirtualSize().y)
-        self.editBox.Layout()
-        self.box.Layout()
 
     def OnGridClick(self, event):
         self.inspector.SetGridCursor(event.Row, event.Col)
@@ -505,7 +512,7 @@ class ControlPanel(wx.Panel):
             elif tool.name == "hand":
                 self.box.Hide(self.drawBox)
                 self.box.Show(self.editBox)
-                self.panelHelp.Show(self.isContextHelpEnabled)
+                self.helpResizer.Show(self.isContextHelpEnabled)
             else:
                 self.box.Hide(self.drawBox)
                 self.box.Hide(self.editBox)

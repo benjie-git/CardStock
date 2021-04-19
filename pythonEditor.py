@@ -84,10 +84,6 @@ class PythonEditor(stc.StyledTextCtrl):
         self.SetLexer(stc.STC_LEX_PYTHON)
         self.SetKeyWords(0, " ".join(keyword.kwlist))
 
-        styleOffset = self.AllocateExtendedStyles(256)
-        self.AnnotationSetStyleOffset(styleOffset)
-        self.StyleSetSpec(styleOffset, 'face:%(mono)s,fore:#222222,back:#FFCCCC,italic' % faces)
-        self.AnnotationSetVisible(stc.STC_ANNOTATION_BOXED)
         self.IndicatorSetStyle(2, stc.STC_INDIC_SQUIGGLE)
         self.IndicatorSetForeground(2, wx.RED)
         self.IndicatorSetAlpha(2, 127)
