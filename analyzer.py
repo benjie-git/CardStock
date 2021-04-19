@@ -52,6 +52,7 @@ class CodeAnalyzer(object):
         attributes.extend([s+"()" for s in self.objMethods])
         attributes.extend(self.cardNames)
         attributes.extend(self.objNames)
+        attributes.extend(["x", "y", "width", "height"])
         attributes = list(set(attributes))
         attributes.sort(key=str.casefold)
         self.ACAttributes = attributes
