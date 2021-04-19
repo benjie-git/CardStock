@@ -138,21 +138,25 @@ class Runner():
         self.handlerQueue.put([])
 
     def CleanupFromRun(self):
-        for t in self.timers:
-            t.Stop()
-        self.timers = []
-        self.SoundStop()
-        self.soundCache = {}
+        # On Main thread
+        print("Start Cleanup", time())
         if self.runnerThread:
             self.stopRunnerThread = True
-            self.handlerQueue.put([]) # Wake up the thread
+            for t in self.timers:
+                t.Stop()
+            self.timers = []
+            self.SoundStop()
+            self.soundCache = {}
+            self.handlerQueue.put([]) # Wake up the runner thread get() call
 
-            # Wait up to 0.5 sec for the stack to finish
+            # Wait up to 1.0 sec for the stack to finish
             # run wx.Yield() to process main thread events while waiting, to allow @RunOnMain methods to complete
-            endTime = time() + 0.5
+            endTime = time() + 1.0
             while time() < endTime:
                 self.runnerThread.hasRunOnMain = False
-                wx.Yield()
+                breakpoint = time() + 0.05
+                while time() < breakpoint:
+                    wx.YieldIfNeeded()
                 if not self.runnerThread.hasRunOnMain:
                     break
             self.runnerThread.join(max(endTime - time(), 0.01))

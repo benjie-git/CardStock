@@ -55,7 +55,9 @@ class KillableThread(threading.Thread):
         """raises SystemExit in the context of the given thread, which should
         cause the thread to exit silently (unless caught)"""
         self.is_terminated = True
+        self.returnQueue.put(None) # Stop waiting for any currently running main-thread task
         self.raise_exc(SystemExit)
+        self.returnQueue.put(None) # Stop waiting for any currently running main-thread task
 
 
 def to_main_sync(callable, *args, **kwargs):
@@ -66,10 +68,13 @@ def to_main_sync(callable, *args, **kwargs):
     else:
         # on non-main thread
         thread = threading.current_thread()
-        CallAfter(to_main_helper, thread, callable, *args, **kwargs)
-        thread.hasRunOnMain = True
-        ret = thread.returnQueue.get() # wait for return value
-        return ret
+        # no more to_main calls once we're terminated
+        if not thread.is_terminated:
+            CallAfter(to_main_helper, thread, callable, *args, **kwargs)
+            thread.hasRunOnMain = True
+            ret = thread.returnQueue.get() # wait for return value
+            return ret
+        return None
 
 
 def to_main_helper(thread, callable, *args, **kwargs):
