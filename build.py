@@ -6,13 +6,18 @@ import version
 
 """PyInstaller commands for building the standalone Designer and Viewer apps on Mac and Windows"""
 
+EXTRA_MODULES = ["requests"]
+
+extraModsStr = " ".join([f"--hidden-import {mod}" for mod in EXTRA_MODULES])
+
+
 def pyinstall(cmd):
     args = cmd.split(" ")
     PyInstaller.__main__.run(args)
 
 if wx.Platform == "__WXMAC__":
     # Build the standalone binary
-    pyinstall("--onedir --clean -y --windowed -n standalone standalone.py")
+    pyinstall(f"--onedir --clean -y --windowed {extraModsStr} -n standalone standalone.py")
     shutil.rmtree("dist/standalone")
 
     # Build the designer binary
@@ -22,12 +27,12 @@ if wx.Platform == "__WXMAC__":
         shutil.rmtree("dist/containerDir")
     os.mkdir("dist/containerDir")
     shutil.move("dist/standalone.app", "dist/containerDir/")
-    pyinstall("--onedir --clean -y --windowed --exclude-module PyInstaller --add-data dist/containerDir:. -n CardStock_Designer designer.py")
+    pyinstall(f"--onedir --clean -y --windowed {extraModsStr} --exclude-module PyInstaller --add-data dist/containerDir:. -n CardStock_Designer designer.py")
     shutil.rmtree("dist/containerDir")
     shutil.rmtree("dist/CardStock_Designer")
 
     # Build the viewer binary
-    pyinstall("--onedir --clean -y --windowed -n CardStock_Viewer viewer.py")
+    pyinstall(f"--onedir --clean -y --windowed {extraModsStr} -n CardStock_Viewer viewer.py")
     shutil.rmtree("dist/CardStock_Viewer")
 
     # Build the package directory
@@ -51,10 +56,10 @@ if wx.Platform == "__WXMAC__":
 
 elif wx.Platform == "__WXMSW__":
     # Build the binaries
-    pyinstall("--onefile --clean -y --windowed -n standalone standalone.py")
-    pyinstall("--onefile --clean -y --windowed --exclude-module PyInstaller --add-data dist/standalone.exe;. -n CardStock_Designer designer.py")
+    pyinstall(f"--onefile --clean -y --windowed {extraModsStr} -n standalone standalone.py")
+    pyinstall(f"--onefile --clean -y --windowed {extraModsStr} --exclude-module PyInstaller --add-data dist/standalone.exe;. -n CardStock_Designer designer.py")
     os.remove("dist/standalone.exe")
-    pyinstall("--onefile --clean -y --windowed -n CardStock_Viewer viewer.py")
+    pyinstall(f"--onefile --clean -y --windowed {extraModsStr} -n CardStock_Viewer viewer.py")
 
     # Build the package directory
     package_dir = f"dist/CardStock_v{version.VERSION}"
@@ -77,10 +82,10 @@ elif wx.Platform == "__WXMSW__":
 
 else:
     # Build the binaries
-    pyinstall("--onefile --clean -y --windowed -n standalone standalone.py")
-    pyinstall("--onefile --clean -y --windowed --exclude-module PyInstaller --add-data dist/standalone:. -n CardStock_Designer designer.py")
+    pyinstall(f"--onefile --clean -y --windowed {extraModsStr} -n standalone standalone.py")
+    pyinstall(f"--onefile --clean -y --windowed {extraModsStr} --exclude-module PyInstaller --add-data dist/standalone:. -n CardStock_Designer designer.py")
     os.remove("dist/standalone")
-    pyinstall("--onefile --clean -y --windowed -n CardStock_Viewer viewer.py")
+    pyinstall(f"--onefile --clean -y --windowed {extraModsStr} -n CardStock_Viewer viewer.py")
 
     # Build the package directory
     package_dir = f"dist/CardStock_v{version.VERSION}"
