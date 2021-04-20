@@ -71,17 +71,30 @@ class StackModel(ViewModel):
         data["cards"] = [m.GetData() for m in self.childModels]
         data["properties"].pop("position")
         data["properties"].pop("name")
-        data["CardStock_stack_format"] = 1
+        data["CardStock_stack_format"] = version.FILE_FORMAT_VERSION
         data["CardStock_stack_version"] = version.VERSION
         return data
 
     def SetData(self, stackData):
+        formatVer = stackData["CardStock_stack_format"]
+        if formatVer != version.FILE_FORMAT_VERSION:
+            self.MigrateDataFromFormatVersion(formatVer, stackData)
+
         super().SetData(stackData)
         self.childModels = []
         for data in stackData["cards"]:
             m = CardModel(self.stackManager)
             m.SetData(data)
             self.AppendCardModel(m)
+
+        if formatVer != version.FILE_FORMAT_VERSION:
+            self.MigrateModelFromFormatVersion(formatVer, self)
+
+    def MigrateDataFromFormatVersion(self, fromVer, model):
+        pass
+
+    def MigrateModelFromFormatVersion(self, fromVer, model):
+        pass
 
 
 class Stack(ViewProxy):

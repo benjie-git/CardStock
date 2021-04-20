@@ -6,6 +6,7 @@
       500,
       500
     ],
+    "data": {},
     "canSave": false,
     "canResize": false
   },
@@ -15,10 +16,11 @@
       "handlers": {
         "OnSetup": "from random import randint",
         "OnKeyDown": "print(keyName)\n\nif keyName == \"N\":\n   night.Click()\nif keyName == \"D\":\n   day.Click()",
-        "OnIdle": "o = card.AddOval()\no.size = (10,10)\no.position = (randint(0,490),0)\no.fillColor = 'white'\no.penThickness = 1\no.AnimatePosition(randint(120,280)/100.0, (o.position.x + randint(-20,20), 500), o.Delete)\n"
+        "OnIdle": "o = card.AddOval(\n   size = (10,10),\n   position = (randint(0,490),0),\n   fillColor = 'white',\n   penThickness = 1)\n\no.AnimatePosition(randint(300,450)/100.0, (o.position.x + randint(-20,20), 500), o.Delete)\n"
       },
       "properties": {
         "name": "card_1",
+        "data": {},
         "bgColor": "#88AAFF"
       },
       "childModels": [
@@ -37,6 +39,7 @@
               41.0,
               53.0
             ],
+            "data": {},
             "title": "Day",
             "border": true
           }
@@ -54,6 +57,7 @@
               178.0,
               353.0
             ],
+            "data": {},
             "originalSize": [
               143,
               147
@@ -86,6 +90,7 @@
               386.0,
               33.0
             ],
+            "data": {},
             "originalSize": [
               97,
               94
@@ -118,6 +123,7 @@
               136.0,
               216.0
             ],
+            "data": {},
             "originalSize": [
               232,
               136
@@ -154,6 +160,7 @@
               247.0,
               441.0
             ],
+            "data": {},
             "originalSize": [
               37,
               58
@@ -188,6 +195,7 @@
               39.0,
               21.0
             ],
+            "data": {},
             "title": "Night",
             "border": true
           }
@@ -196,5 +204,5 @@
     }
   ],
   "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.8.10"
+  "CardStock_stack_version": "0.8.12"
 }
