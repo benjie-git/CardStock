@@ -209,11 +209,13 @@ class PythonEditor(stc.StyledTextCtrl):
             e = self.analyzer.syntaxErrors[key]
             # lineStr = e[1]
             lineNum = e[2]-1
-            # linePos = e[3]-1
+            linePos = e[3]-1
 
             lineStartPos = self.GetLineEndPosition(lineNum)-self.GetLineLength(lineNum)
             self.SetIndicatorCurrent(2)
-            self.IndicatorFillRange(lineStartPos, self.GetLineLength(lineNum))
+            startPos = lineStartPos + linePos-1
+            remaining = self.GetLastPosition() - (startPos)
+            self.IndicatorFillRange(startPos, min(3, remaining))
 
     def UpdateAC(self):
         if self.IsInCommentOrString():
