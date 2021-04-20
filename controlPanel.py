@@ -116,6 +116,7 @@ class ControlPanel(wx.Panel):
         self.panelHelp = wx.html.HtmlWindow(self, size=(200, 50), style=wx.BORDER_SUNKEN)
 
         self.helpResizer = ResizeWidget(self)
+        self.helpResizer.SetColors(pen='blue', fill='blue')
         self.helpResizer.SetManagedChild(self.panelHelp)
         self.panelHelp.Show()
 
