@@ -317,6 +317,8 @@ class ViewerFrame(wx.Frame):
         self.stackManager.SetEditing(False)
         self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))
         self.MakeMenu()
+        if self.designer:
+            runner.AddSyntaxErrors(self.designer.cPanel.codeEditor.analyzer.syntaxErrors)
         self.stackManager.LoadCardAtIndex(None, True)
         self.stackManager.stackModel.RunSetup(runner)
         self.stackManager.LoadCardAtIndex(cardIndex)

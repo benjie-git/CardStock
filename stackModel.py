@@ -56,6 +56,20 @@ class StackModel(ViewModel):
     def GetCardModel(self, i):
         return self.childModels[i]
 
+    def GetModelFromPath(self, path):
+        parts = path.split('.')
+        m = self
+        for p in parts:
+            found = False
+            for c in m.childModels:
+                if c.properties['name'] == p:
+                    m = c
+                    found = True
+                    break
+            if not found:
+                return None
+        return m
+
     def GetDirty(self):
         for card in self.childModels:
             if card.GetDirty():

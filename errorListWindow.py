@@ -30,7 +30,7 @@ class ErrorListWindow(wx.Frame):
     def SetErrorList(self, errorList):
         self.errors = errorList
         self.ConvertViewerToDesignerModels()
-        self.listBox.Set([e.msg if e.count==1 else f"{e.msg} ({e.count} times)" for e in self.errors])
+        self.listBox.Set([e.msg if e.count<=1 else f"{e.msg} ({e.count} times)" for e in self.errors])
 
     def OnListBoxResize(self, event):
         self.listBox.SetSize(self.GetClientSize())

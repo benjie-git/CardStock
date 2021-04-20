@@ -101,6 +101,17 @@ class Runner():
             self.keyCodeStringMap[wx.WXK_CONTROL] = "Command"
             self.keyCodeStringMap[wx.WXK_RAW_CONTROL] = "Control"
 
+    def AddSyntaxErrors(self, analzerSyntaxErrors):
+        for path, e in analzerSyntaxErrors.items():
+            parts = path.split('.')
+            modelPath = '.'.join(path.split('.')[:-1])
+            model = self.stackManager.stackModel.GetModelFromPath(modelPath)
+            handlerName = parts[-1]
+            lineNum = e[2]
+            msg = f"SyntaxError in {self.HandlerPath(model, handlerName)}, line {lineNum}: {e[0]}"
+            error = CardStockError(model.GetCard(), model, handlerName, lineNum, msg)
+            self.errors.append(error)
+
     def SetupForCard(self, cardModel):
         if threading.currentThread() == self.runnerThread:
             self.SetupForCardInternal(cardModel)
