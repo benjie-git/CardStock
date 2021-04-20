@@ -362,6 +362,9 @@ class HelpDataObject():
         "type": {"type": "string",
                  "info": "Every object has a <b>type</b> property.  It will be one of 'button', 'textfield', 'textlabel', "
                          "'image', 'line', 'oval', 'rect, 'roundrect', 'stack', 'card', 'group'."},
+        "data": {"type": "dictionary",
+                 "info": "Every object has a <b>data</b> property.  It is a dictionary that allows you to persistently "
+                         "store arbitrary data in any object within a stack that has <b>canSave</b> set to True."},
         "position": {"type": "point",
                      "info": "The <b>position</b> property is a point value that describes where on the "
                              "card this object's top-left corner is'.  The first number, <b>x</b>, is how many pixels the object is "

@@ -289,6 +289,7 @@ class ViewModel(object):
                            "position": wx.RealPoint(0,0),
                            "speed": wx.Point(0,0),
                            "hidden": False,
+                           "data": {}
                            }
         self.propertyKeys = ["name", "position", "size"]
         self.propertyTypes = {"name": "string",
@@ -296,7 +297,9 @@ class ViewModel(object):
                               "center": "floatpoint",
                               "size": "size",
                               "speed": "point",
-                              "hidden": "bool"}
+                              "hidden": "bool",
+                              "data": "dict"
+                              }
         self.propertyChoices = {}
         self.pendingProps = {}
 
@@ -404,15 +407,65 @@ class ViewModel(object):
                 handlers[k] = v
 
         props = self.properties.copy()
+        props.pop("hidden")
+        props.pop("speed")
         for k,v in self.propertyTypes.items():
             if v in ["point", "floatpoint", "size"] and k in props:
                 props[k] = list(props[k])
-        props.pop("hidden")
-        props.pop("speed")
+            elif v == "dict":
+                props[k] = self.SanitizeDict(props[k], [])
 
         return {"type": self.type,
                 "handlers": handlers,
                 "properties": props}
+
+    def SanitizeKey(self, val, seen):
+        if type(val) == dict:
+            value = None
+        else:
+            value = self.SanitizeValue(val, seen)
+        return value
+
+    def SanitizeValue(self, val, seen):
+        if type(val) in [bool, int, float, str, None]:
+            value = val
+        elif isinstance(val, (wx.Point, wx.RealPoint, wx.Size, CDSPoint, CDSRealPoint, CDSSize)):
+            value = self.SanitizeList(list(val), seen)
+        elif type(val) == dict:
+            if val not in seen:
+                value = self.SanitizeDict(val, seen)
+            else:
+                value = None
+        elif type(val) in [list, set, tuple]:
+            if val not in seen:
+                value = self.SanitizeList(list(val), seen)
+            else:
+                value = None
+        else:
+            try:
+                value = str(val)
+            except (ValueError, TypeError) as e:
+                value = None
+        return value
+
+    def SanitizeDict(self, inDict, seen):
+        seen.append(inDict)
+        outDict = {}
+        for k,v in inDict.items():
+            key = self.SanitizeKey(k, seen)
+            value = self.SanitizeValue(v, seen)
+            if key is not None and value is not None:
+                outDict[key] = value
+        return outDict
+
+    def SanitizeList(self, inList, seen):
+        seen.append(inList)
+        outList = []
+        for v in inList:
+            value = self.SanitizeValue(v, seen)
+            if value is not None:
+                outList.append(value)
+        return outList
 
     def SetData(self, data):
         for k, v in data["handlers"].items():
@@ -740,6 +793,10 @@ class ViewProxy(object):
     @property
     def type(self):
         return self._model.type
+
+    @property
+    def data(self):
+        return self._model.GetProperty("data")
 
     @property
     def parent(self):
