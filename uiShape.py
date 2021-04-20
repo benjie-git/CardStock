@@ -53,7 +53,7 @@ class UiShape(UiView):
                 dc.SetPen(pen)
                 dc.DrawRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
             elif self.model.type == "roundrect":
-                radius = self.model.GetProperty("cornerRadius")
+                radius = self.model.GetProperty("cornerRadius", noDeferred=True)
                 radius = min(radius, abs(p1[0]-p2[0])/2)
                 radius = min(radius, abs(p1[1]-p2[1])/2)
                 dc.DrawRoundedRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1], radius)
@@ -117,6 +117,9 @@ class UiShape(UiView):
             gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
 
     def MakeHitRegion(self):
+        if self.model.GetProperty("hidden"):
+            self.hitRegion = wx.Region((0,0), (0,0))
+
         s = self.model.GetProperty("size")
         extraThick = 6 if (self.model.type in ["pen", "line"]) else 0
         thickness = self.model.GetProperty("penThickness") + extraThick

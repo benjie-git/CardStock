@@ -191,7 +191,7 @@ class CardModel(ViewModel):
         if self.stackManager.runner and self.stackManager.uiCard.model == self:
             self.stackManager.runner.SetupForCard(self)
 
-    def AddNewObject(self, typeStr, name, size, points=None):
+    def AddNewObject(self, typeStr, name, size, points=None, kwargs=None):
         if not isinstance(name, str):
             raise TypeError("name is not a string")
 
@@ -216,6 +216,11 @@ class CardModel(ViewModel):
                     self.stackManager.view.Refresh(True)
             else:
                 self.AddChild(model)
+
+            if kwargs:
+                for k,v in kwargs.items():
+                    if k in model.propertyTypes:
+                        model.SetProperty(k, v)
 
             # Make the new object hidden, and defer a Show,
             # to avoid a quick visual glitch of the default shape before setting it up
@@ -293,7 +298,6 @@ class Card(ViewProxy):
 
     def Delete(self):
         self._model.pendingProps["delete"] = 1
-        self._model.ApplyAllPending()
 
     def AnimateBgColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
@@ -320,28 +324,28 @@ class Card(ViewProxy):
                 self._model.AddAnimation("bgColor", duration, None, internalOnFinished)
         func()
 
-    def AddButton(self, name="button"):
-        return self._model.AddNewObject("button", name, (100,24)).GetProxy()
+    def AddButton(self, name="button", **kwargs):
+        return self._model.AddNewObject("button", name, (100,24), kwargs).GetProxy()
 
-    def AddTextField(self, name="field"):
-        return self._model.AddNewObject("textfield", name, (100,24)).GetProxy()
+    def AddTextField(self, name="field", **kwargs):
+        return self._model.AddNewObject("textfield", name, (100,24), kwargs).GetProxy()
 
-    def AddTextLabel(self, name="label"):
-        return self._model.AddNewObject("textlabel", name, (100,24)).GetProxy()
+    def AddTextLabel(self, name="label", **kwargs):
+        return self._model.AddNewObject("textlabel", name, (100,24), kwargs).GetProxy()
 
-    def AddImage(self, name="image"):
-        return self._model.AddNewObject("image", name, (80,80)).GetProxy()
+    def AddImage(self, name="image", **kwargs):
+        return self._model.AddNewObject("image", name, (80,80), kwargs).GetProxy()
 
-    def AddOval(self, name="oval"):
-        return self._model.AddNewObject("oval", name, None, [(10, 10), (100, 100)]).GetProxy()
+    def AddOval(self, name="oval", **kwargs):
+        return self._model.AddNewObject("oval", name, None, [(10, 10), (100, 100)], kwargs).GetProxy()
 
-    def AddRectangle(self, name="rect"):
-        return self._model.AddNewObject("rect", name, None, [(10, 10), (100, 100)]).GetProxy()
+    def AddRectangle(self, name="rect", **kwargs):
+        return self._model.AddNewObject("rect", name, None, [(10, 10), (100, 100)], kwargs).GetProxy()
 
-    def AddRoundRectangle(self, name="roundrect"):
-        return self._model.AddNewObject("roundrect", name, None, [(10, 10), (100, 100)]).GetProxy()
+    def AddRoundRectangle(self, name="roundrect", **kwargs):
+        return self._model.AddNewObject("roundrect", name, None, [(10, 10), (100, 100)], kwargs).GetProxy()
 
-    def AddLine(self, points, name="line"):
+    def AddLine(self, points, name="line", **kwargs):
         if not isinstance(points, (list, tuple)):
             raise TypeError("points should be a list of points")
         if len(points) < 2:
@@ -356,10 +360,10 @@ class Card(ViewProxy):
             except:
                 raise ValueError("points items each need to be a point or a list of two numbers")
 
-        line = self._model.AddNewObject("line", name, None, points)
+        line = self._model.AddNewObject("line", name, None, points, kwargs)
         return line.GetProxy()
 
-    def AddPolygon(self, points, name="polygon"):
+    def AddPolygon(self, points, name="polygon", **kwargs):
         if not isinstance(points, (list, tuple)):
             raise TypeError("points should be a list of points")
         if len(points) < 2:
@@ -374,7 +378,7 @@ class Card(ViewProxy):
             except:
                 raise ValueError("points items each need to be a point or a list of two numbers")
 
-        poly = self._model.AddNewObject("poly", name, None, points)
+        poly = self._model.AddNewObject("poly", name, None, points, kwargs)
         return poly.GetProxy()
 
     def AddGroup(self, objects, name="group"):

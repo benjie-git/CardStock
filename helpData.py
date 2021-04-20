@@ -57,7 +57,8 @@ class HelpData():
                     method = c.methods[key]
                     argText = ""
                     for name, arg in method["args"].items():
-                        argText += "&nbsp;&nbsp;&nbsp;&nbsp;<b>" + name + "</b>:<i>" + arg["type"] + " </i> - " + arg[
+                        typeText = (":<i>" + arg["type"] + " </i>") if "type" in arg else ""
+                        argText += "&nbsp;&nbsp;&nbsp;&nbsp;<b>" + name + "</b>" + typeText + " - " + arg[
                             "info"] + "<br/>"
                     ret = ("Returns: <i>" + method["return"] + "</i><br/>") if method["return"] else ""
                     name = key + "(" + ', '.join(method["args"].keys()) + ")"
@@ -150,7 +151,8 @@ class HelpData():
                 method = data.methods[key]
                 argText = ""
                 for name, arg in method["args"].items():
-                    argText += "<b>" + name + "</b>:<i>" + arg["type"] + " </i> - " + arg["info"] + "<br/>"
+                    typeText = (":<i>" + arg["type"] + " </i>") if "type" in arg else ""
+                    argText += "<b>" + name + "</b>" + typeText + " - " + arg["info"] + "<br/>"
                 ret = method["return"] if method["return"] else ""
                 name = key + "(" + ', '.join(method["args"].keys()) + ")"
                 rows.append([name, argText, "<i>"+ret+"</i>", method["info"]])
@@ -800,38 +802,52 @@ class HelpDataCard():
     methods = {
         "AddButton": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Button object.  If omitted, the name will be "
-                                                                "'button_{N}'."}},
+                                                                "'button_{N}'."},
+                               "...": {"info": "optionally set more properties here.  For example, "
+                                                              "include position=(10,10)"}},
                     "return": "object",
                     "info": "Adds a new Button to the card, and returns the new object."},
         "AddTextField": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Text Field object.  If omitted, the name will be "
-                                                                "'field_{N}'."}},
+                                                                "'field_{N}'."},
+                                  "...": {"info": "optionally set more properties here.  For example, "
+                                                                 "include position=(10,10)"}},
                     "return": "object",
                     "info": "Adds a new Text Field to the card, and returns the new object."},
         "AddTextLabel": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Text Label object.  If omitted, the name will be "
-                                                                "'label_{N}'."}},
-                    "return": "object",
+                                                                "'label_{N}'."},
+                                  "...": {"info": "optionally set more properties here.  For example, "
+                                                                 "include position=(10,10)"}},
+                         "return": "object",
                     "info": "Adds a new Text Label to the card, and returns the new object."},
         "AddImage": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Image object.  If omitted, the name will be "
-                                                                "'image_{N}'."}},
-                    "return": "object",
+                                                                "'image_{N}'."},
+                              "...": {"info": "optionally set more properties here.  For example, "
+                                                             "include position=(10,10)"}},
+                     "return": "object",
                     "info": "Adds a new Image to the card, and returns the new object."},
         "AddOval": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Oval object.  If omitted, the name will be "
-                                                                "'shape_{N}'."}},
+                                                                "'shape_{N}'."},
+                             "...": {"info": "optionally set more properties here.  For example, "
+                                                            "include position=(10,10)"}},
                     "return": "object",
                     "info": "Adds a new Image to the card, and returns the new object."},
         "AddRectangle": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Rectangle object.  If omitted, the name will be "
-                                                                "'shape_{N}'."}},
-                    "return": "object",
+                                                                "'shape_{N}'."},
+                                  "...": {"info": "optionally set more properties here.  For example, "
+                                                                 "include position=(10,10)"}},
+                         "return": "object",
                     "info": "Adds a new Rectangle to the card, and returns the new object."},
         "AddRoundRectangle": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Round Rectangle object.  If omitted, the name will be "
-                                                                "'shape_{N}'."}},
-                    "return": "object",
+                                                                "'shape_{N}'."},
+                                       "...": {"info": "optionally set more properties here.  For example, "
+                                                       "include position=(10,10)"}},
+                              "return": "object",
                     "info": "Adds a new Round Rectangle to the card, and returns the new object."},
         "AddLine": {"args": {"points": {"type": "list", "info": "a list of points, that are the locations of each "
                                                                 "vertex along the line, relative to the top-left "
@@ -840,8 +856,9 @@ class HelpDataCard():
                                                                 "more complex multi-segment line."},
                              "name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Line object.  If omitted, the name will be "
-                                                                "'shape_{N}'."}
-                             },
+                                                                "'shape_{N}'."},
+                             "...": {"info": "optionally set more properties here.  For example, "
+                                                            "include position=(10,10)"}},
                     "return": "object",
                     "info": "Adds a new Line to the card, and returns the new object."},
         "AddPolygon": {"args": {"points": {"type": "list", "info": "a list of points, that are the locations of each "
@@ -851,9 +868,10 @@ class HelpDataCard():
                                                                    "polygon."},
                              "name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Line object.  If omitted, the name will be "
-                                                                "'shape_{N}'."}
-                             },
-                    "return": "object",
+                                                                "'shape_{N}'."},
+                                "...": {"info": "optionally set more properties here.  For example, "
+                                                               "include position=(10,10)"}},
+                       "return": "object",
                     "info": "Adds a new Polygon shape to the card, and returns the new object."},
         "AddGroup": {"args": {"objects": {"type": "list", "info": "a list of object, all on the same card, to include "
                                                                   "in the new group object."},

@@ -49,6 +49,9 @@ class UiGroup(UiView):
             # The group's whole rect is a click target while editing
             super().MakeHitRegion()
         else:
+            if self.model.GetProperty("hidden"):
+                self.hitRegion = wx.Region((0, 0), (0, 0))
+
             # Only the sub-objects are click targets while running
             reg = wx.Region()
             for ui in self.uiViews:

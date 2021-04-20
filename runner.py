@@ -137,6 +137,9 @@ class Runner():
         """
         self.handlerQueue.put([])
 
+    def IsRunningHandler(self):
+        return len(self.lastHandlerStack) > 0
+
     def CleanupFromRun(self):
         # On Main thread
         if self.runnerThread:

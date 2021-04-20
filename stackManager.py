@@ -145,13 +145,15 @@ class StackManager(object):
             for c in onFinishedCalls:
                 c()
 
+            wasBusy = self.runner.IsRunningHandler()
             if self.runner.numOnIdlesQueued == 0:
                 didRun = self.uiCard.OnIdle(event)
                 if didRun:
                     self.runner.EnqueueApplyPendingUpdates()
 
-        self.runner.ApplyPendingUpdatesIfBusy()
-        self.view.RefreshIfNeeded()
+            if not wasBusy or self.runner.missedIdleCount > 1:
+                self.runner.ApplyPendingUpdatesIfBusy()
+                self.view.RefreshIfNeeded()
 
     def SetTool(self, tool):
         if self.tool:
@@ -667,25 +669,9 @@ class StackManager(object):
             bg = wx.Colour('white')
         gc.SetPen(wx.TRANSPARENT_PEN)
         gc.SetBrush(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
+        gc.DrawRectangle(self.view.GetRect())
 
-        uiViews = self.GetAllUiViews()
-        upd = wx.RegionIterator(self.view.GetUpdateRegion())
-        paintUiViews = []
-        while upd.HaveRects():
-            updRect = upd.GetRect()
-            if wx.Platform != '__WXMAC__':
-                gc.DrawRectangle(updRect)
-            for ui in uiViews:
-                if ui not in paintUiViews and not ui.model.GetProperty("hidden", noDeferred=True):
-                    updRegion = wx.Region(wx.Rect(updRect.TopLeft - wx.Point(ui.model.GetAbsolutePosition(noDeferred=True)),
-                                                  updRect.Size))
-
-                    uiRegion = ui.GetHitRegion()
-                    updRegion.Intersect(uiRegion)
-                    if not uiRegion.IsEmpty():
-                        paintUiViews.append(ui)
-            upd.Next()
-
+        paintUiViews = [ui for ui in self.GetAllUiViews() if not ui.model.GetProperty("hidden", noDeferred=True)]
         if len(paintUiViews):
             for uiView in paintUiViews:
                 uiView.Paint(gc)
