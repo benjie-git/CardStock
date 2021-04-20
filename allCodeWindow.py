@@ -11,6 +11,7 @@ class AllCodeWindow(wx.Frame):
         self.SetClientSize(wx.Size(500,500))
 
         self.designer = designer
+        self.analyzer = self.designer.cPanel.codeEditor.analyzer
         self.text = ""
         self.numLines = 0
         self.lastLineNum = 0
@@ -38,6 +39,7 @@ class AllCodeWindow(wx.Frame):
         self.lastLineNum = 0
         self.textBox.SetEditable(True)
         self.textBox.ChangeValue(self.text)
+        self.MarkSyntaxErrors()
         self.textBox.SetEditable(False)
 
     def AppendOnSetupCode(self, obj):
@@ -62,6 +64,7 @@ class AllCodeWindow(wx.Frame):
                 code += "\n".join(["\t"+line for line in lines])
                 self.text += code + "\n\n"
                 self.numLines += 1 + len(lines) + 1
+
         for child in obj.childModels:
             self.AppendOnSetupCode(child)
 
@@ -94,6 +97,16 @@ class AllCodeWindow(wx.Frame):
                     self.numLines += 1 + len(lines) + 1
         for child in obj.childModels:
             self.AppendNonSetupCode(child)
+
+    def MarkSyntaxErrors(self):
+        for path, e in self.analyzer.syntaxErrors.items():
+            for info in self.methodStartLines:
+                infoPath = info[2].GetPath() + "." + info[3]
+                if infoPath == path:
+                    lineNum = e[2] + info[0]
+                    linePos = e[3] - 1
+                    lineStartPos = self.textBox.GetLineEndPosition(lineNum) - self.textBox.GetLineLength(lineNum)
+                    self.textBox.MarkSyntaxError(lineStartPos + linePos, 2)
 
     def OnResize(self, event):
         self.textBox.SetSize(self.GetClientSize())
