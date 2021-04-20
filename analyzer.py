@@ -1,6 +1,7 @@
 import wx
 import ast
 import helpData
+import threading
 
 
 class CodeAnalyzer(object):
@@ -73,7 +74,11 @@ class CodeAnalyzer(object):
         if model.type != "stack":
             path.pop()
 
-    def ScanCode(self, model, handlerName):
+    def ScanCode(self, model, handlerName, completionHandler):
+        thread = threading.Thread(target=self.ScanCodeInternal, args=(model, handlerName, completionHandler))
+        thread.start()
+
+    def ScanCodeInternal(self, model, handlerName, completionHandler):
         self.objNames = []
         self.cardNames = []
         codeDict = {}
@@ -96,3 +101,6 @@ class CodeAnalyzer(object):
                 self.syntaxErrors[path] = (e.args[0], e.args[1][3], e.args[1][1], e.args[1][2])
 
         self.BuildACLists(handlerName)
+
+        if completionHandler:
+            wx.CallAfter(completionHandler)

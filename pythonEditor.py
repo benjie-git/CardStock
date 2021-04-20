@@ -199,9 +199,9 @@ class PythonEditor(stc.StyledTextCtrl):
     def UpdateACLists(self):
         if not self.cPanel:
             return
+        self.analyzer.ScanCode(self.cPanel.stackManager.stackModel, self.currentHandler, self.ScanFinished)
 
-        self.analyzer.ScanCode(self.cPanel.stackManager.stackModel, self.currentHandler)
-
+    def ScanFinished(self):
         key = self.currentModel.GetPath() + "." + self.currentHandler
         self.SetIndicatorCurrent(2)
         self.IndicatorClearRange(0, self.GetLastPosition())
