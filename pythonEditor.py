@@ -206,18 +206,19 @@ class PythonEditor(stc.StyledTextCtrl):
         self.IndicatorFillRange(startPos, length)
 
     def ScanFinished(self):
-        key = self.currentModel.GetPath() + "." + self.currentHandler
-        self.SetIndicatorCurrent(2)
-        self.IndicatorClearRange(0, self.GetLastPosition())
-        if key in self.analyzer.syntaxErrors:
-            e = self.analyzer.syntaxErrors[key]
-            # lineStr = e[1]
-            lineNum = e[2]-1
-            linePos = e[3]-1
-            lineStartPos = self.GetLineEndPosition(lineNum)-self.GetLineLength(lineNum)
-            startPos = lineStartPos + linePos-1
-            remaining = self.GetLastPosition() - (startPos)
-            self.MarkSyntaxError(startPos, min(2, remaining))
+        if self.currentModel:
+            key = self.currentModel.GetPath() + "." + self.currentHandler
+            self.SetIndicatorCurrent(2)
+            self.IndicatorClearRange(0, self.GetLastPosition())
+            if key in self.analyzer.syntaxErrors:
+                e = self.analyzer.syntaxErrors[key]
+                # lineStr = e[1]
+                lineNum = e[2]-1
+                linePos = e[3]-1
+                lineStartPos = self.GetLineEndPosition(lineNum)-self.GetLineLength(lineNum)
+                startPos = lineStartPos + linePos-1
+                remaining = self.GetLastPosition() - (startPos)
+                self.MarkSyntaxError(startPos, min(2, remaining))
 
         allCodeWin = self.stackManager.designer.allCodeWindow
         if allCodeWin and allCodeWin.IsShown():

@@ -33,13 +33,7 @@ class UiShape(UiView):
         points = self.model.GetScaledPoints(noDeferred=True)
 
         if self.model.type in ["pen", "line"]:
-            lastPos = points[0] + offset
-            lines = []
-            for coords in points:
-                coords = coords + offset
-                lines.append((lastPos[0], lastPos[1], coords[0], coords[1]))
-                lastPos = coords
-            dc.DrawLineList(lines)
+            dc.DrawLines(points, offset.x, offset.y)
         elif self.model.type in ["oval", "rect", "roundrect"] and len(points) == 2:
             rect = self.model.RectFromPoints(points)
             p1 = rect.TopLeft + offset
@@ -51,14 +45,14 @@ class UiShape(UiView):
             if self.model.type == "rect":
                 pen.SetJoin(wx.JOIN_MITER)
                 dc.SetPen(pen)
-                dc.DrawRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
+                dc.DrawRectangle(wx.Rect(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1]))
             elif self.model.type == "roundrect":
                 radius = self.model.GetProperty("cornerRadius", noDeferred=True)
                 radius = min(radius, abs(p1[0]-p2[0])/2)
                 radius = min(radius, abs(p1[1]-p2[1])/2)
-                dc.DrawRoundedRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1], radius)
+                dc.DrawRoundedRectangle(wx.Rect(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1]), radius)
             elif self.model.type == "oval":
-                dc.DrawEllipse(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
+                dc.DrawEllipse(wx.Rect(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1]))
         elif self.model.type == "poly" and len(points) >= 2:
             if thickness == 0:
                 pen = wx.TRANSPARENT_PEN
@@ -86,17 +80,9 @@ class UiShape(UiView):
             if self.model.type in ["line", "pen", "poly"]:
                 points = self.model.GetScaledPoints()
                 gc.SetPen(wx.Pen('Blue', 3 + thickness, wx.PENSTYLE_SHORT_DASH))
-                lastPos = points[0] + f.TopLeft
-                lines = []
-                for coords in points:
-                    coords = coords + f.TopLeft + (1,1)
-                    lines.append((lastPos[0], lastPos[1], coords[0], coords[1]))
-                    lastPos = coords
                 if self.model.type == "poly":
-                    first = points[0] + f.TopLeft
-                    last = points[-1] + f.TopLeft
-                    lines.append((last[0], last[1], first[0], first[1]))
-                gc.DrawLineList(lines)
+                    points.append(points[0])
+                gc.DrawLines(points, f.Left, f.Top)
             elif self.model.type == "rect":
                 gc.DrawRectangle(f.Inflate(2 + thickness/2))
             elif self.model.type == "oval":

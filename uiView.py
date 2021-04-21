@@ -81,7 +81,6 @@ class UiView(object):
             if self.view:
                 self.view.SetSize(s)
                 self.view.Refresh(True)
-                wx.CallAfter(self.view.Refresh, True)
             else:
                 self.stackManager.view.Refresh(True)
         elif key == "position":
@@ -89,7 +88,6 @@ class UiView(object):
             if self.view:
                 self.view.SetPosition(wx.Point(pos))
                 self.view.Refresh(True)
-                wx.CallAfter(self.view.Refresh, True)
             else:
                 self.stackManager.view.Refresh(True)
             if self.parent.model.type == "group":
@@ -518,7 +516,7 @@ class ViewModel(object):
             return center
         elif key in self.properties:
             if not noDeferred and self.stackManager and self.stackManager.runner and key in self.pendingProps:
-                return self.pendingProps[key]
+                return self.pendingProps[key][0]
             return self.properties[key]
         return None
 
@@ -613,7 +611,7 @@ class ViewModel(object):
         # While running, we don't want to actually update properties live.  We defer the updates until we're ready
         # to redraw changes in bulk.
         if self.stackManager and self.stackManager.runner and not noDeferred:
-            self.pendingProps[key] = value
+            self.pendingProps[key] = (value, notify)
         else:
             if self.properties[key] != value:
                 self.properties[key] = value
@@ -636,7 +634,7 @@ class ViewModel(object):
                     self.stackManager.RemoveCardRaw(self)
                     return
             else:
-                self.SetProperty(k, v, noDeferred=True)
+                self.SetProperty(k, v[0], notify=v[1], noDeferred=True)
         self.pendingProps = {}
         for m in self.childModels.copy():
             m.ApplyAllPending()
