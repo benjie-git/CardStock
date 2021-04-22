@@ -420,6 +420,9 @@ class ViewModel(object):
             elif v == "dict":
                 props[k] = self.SanitizeDict(props[k], [])
 
+        if len(props["data"]) == 0:
+            props.pop("data")
+
         return {"type": self.type,
                 "handlers": handlers,
                 "properties": props}

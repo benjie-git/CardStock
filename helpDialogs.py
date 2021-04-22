@@ -128,9 +128,10 @@ list of the selected object's properties, like name, size, position on the card,
 the code editor.  The code editor lets you choose an event for the selected object that you want to edit, and 
 gives you space to write your code that runs when that event is triggered.  For example, if you select a button object,
 you could edit the code for its OnClicked event, which runs when that button is clicked.  In between the two editors is 
-the Context Help box.  This shows information about the most recently selected property or event.  You can hide the 
-Context Help box in CardStock's Help Menu if you already know the info it's telling you, you want the space back, 
-or it offends your sensibilities.</p>
+the Context Help box.  This shows information about the most recently selected property or event, or the last 
+autocompleted term in the code editor.  You can resize the Context Help box by dragging the bottom-right, blue corner,
+and can hide it using the command in CardStock's Help Menu if you already know the info it's telling you, you want the
+space back, or it otherwise offends your sensibilities.</p>
 
 <br/><br/>
 

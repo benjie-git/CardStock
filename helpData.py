@@ -369,15 +369,15 @@ class HelpDataObject():
                          "store arbitrary data in any object within a stack that has <b>canSave</b> set to True."},
         "position": {"type": "point",
                      "info": "The <b>position</b> property is a point value that describes where on the "
-                             "card this object's top-left corner is'.  The first number, <b>x</b>, is how many pixels the object is "
-                             "from the left edge of the card.  The second number, <b>y</b>, is how far down from the top."},
+                             "card this object's bottom-left corner is'.  The first number, <b>x</b>, is how many pixels the object is "
+                             "from the left edge of the card.  The second number, <b>y</b>, is how far up from the bottom."},
         "size": {"type": "size",
                  "info": "The <b>size</b> property is a size value that describes how big this object is on screen. "
                          "The first number, <b>width</b>, is how wide the object is, and the second number, <b>height</b>, is how tall."},
         "center": {"type": "point",
                    "info": "The <b>center</b> property is a point value that describes where on the "
                            "card this object's center is'.  The first number, <b>x</b>, is how many pixels the object's center "
-                           "is from the left edge of the card.  The second number, <b>y</b>, is how far down from the top.  "
+                           "is from the left edge of the card.  The second number, <b>y</b>, is how far up from the bottom.  "
                            "This value is not stored, but computed based on position and size."},
         "speed": {"type": "point",
                   "info": "This is a point value corresponding to the current speed of the object, in pixels/second "
@@ -476,7 +476,7 @@ class HelpDataObject():
 
         "AnimatePosition": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                      "endPosition": {"type": "point",
-                                                     "info": "the destination top-left corner position at the end of the animation"},
+                                                     "info": "the destination bottom-left corner position at the end of the animation"},
                                      "onFinished": {"type": "function",
                                                     "info": "an optional function to run when the animation finishes"},
                                      "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>onFinished</b>."}},
@@ -850,7 +850,7 @@ class HelpDataCard():
                               "return": "object",
                     "info": "Adds a new Round Rectangle to the card, and returns the new object."},
         "AddLine": {"args": {"points": {"type": "list", "info": "a list of points, that are the locations of each "
-                                                                "vertex along the line, relative to the top-left "
+                                                                "vertex along the line, relative to the bottom-left "
                                                                 "corner of the card.  It can hold just two points "
                                                                 "to create a simple line segment, or more to create a "
                                                                 "more complex multi-segment line."},
@@ -863,7 +863,7 @@ class HelpDataCard():
                     "info": "Adds a new Line to the card, and returns the new object."},
         "AddPolygon": {"args": {"points": {"type": "list", "info": "a list of points, that are the locations of each "
                                                                    "vertex along the outline of the polygon, relative "
-                                                                   "to the top-left corner of the card.  It must hold "
+                                                                   "to the bottom-left corner of the card.  It must hold "
                                                                    "three or more points to display properly as a "
                                                                    "polygon."},
                              "name": {"type": "string", "info": "an optional argument giving the name to use for this "
