@@ -164,19 +164,18 @@ class Runner():
 
             # Wait up to 1.0 sec for the stack to finish
             # run wx.Yield() to process main thread events while waiting, to allow @RunOnMain methods to complete
-            endTime = time() + 1.0
+            endTime = time() + 0.9
             while time() < endTime:
-                self.runnerThread.hasRunOnMain = False
                 breakpoint = time() + 0.05
+                if len(self.lastHandlerStack) == 0:
+                    break
                 while time() < breakpoint:
                     wx.YieldIfNeeded()
-                if not self.runnerThread.hasRunOnMain:
-                    break
-            self.runnerThread.join(max(endTime - time(), 0.01))
+            self.runnerThread.join(0.05)
 
             if self.runnerThread.is_alive():
                 self.runnerThread.terminate()
-                self.runnerThread.join(0.01)
+                self.runnerThread.join(0.05)
             self.runnerThread = None
         self.lastHandlerStack = []
 
@@ -433,7 +432,12 @@ class Runner():
             raise TypeError("delay must be a number")
 
         self.stackManager.uiCard.model.ApplyAllPending()
-        sleep(delay)
+        endTime = time() + delay
+        while time() < endTime:
+            remaining = endTime - time()
+            if self.stopRunnerThread:
+                break
+            sleep(min(remaining, 0.25))
 
     def Time(self):
         return time()
@@ -443,6 +447,9 @@ class Runner():
         if not isinstance(message, str):
             raise TypeError("message must be a string")
 
+        if self.stopRunnerThread:
+            return
+
         self.stackManager.uiCard.model.ApplyAllPending()
         wx.MessageDialog(None, str(message), "", wx.OK).ShowModal()
 
@@ -451,6 +458,9 @@ class Runner():
         if not isinstance(message, str):
             raise TypeError("message must be a string")
 
+        if self.stopRunnerThread:
+            return None
+
         self.stackManager.uiCard.model.ApplyAllPending()
         r = wx.MessageDialog(None, str(message), "", wx.YES_NO).ShowModal()
         return (r == wx.ID_YES)
@@ -458,6 +468,9 @@ class Runner():
     def SoundPlay(self, filepath):
         if not isinstance(filepath, str):
             raise TypeError("filepath must be a string")
+
+        if self.stopRunnerThread:
+            return
 
         filepath = self.stackManager.resPathMan.GetAbsPath(filepath)
 
@@ -514,6 +527,9 @@ class Runner():
             duration = float(duration)
         except ValueError:
             raise TypeError("duration must be a number")
+
+        if self.stopRunnerThread:
+            return
 
         timer = wx.Timer()
         def onTimer(event):

@@ -28,7 +28,6 @@ class KillableThread(threading.Thread):
         super().__init__(*args, **kwargs)
         self.returnQueue = queue.Queue()
         self.is_terminated = False
-        self.hasRunOnMain = True
 
     def _get_my_tid(self):
         """determines this (self's) thread id"""
@@ -71,7 +70,6 @@ def to_main_sync(callable, *args, **kwargs):
         # no more to_main calls once we're terminated
         if not thread.is_terminated:
             CallAfter(to_main_helper, thread, callable, *args, **kwargs)
-            thread.hasRunOnMain = True
             ret = thread.returnQueue.get() # wait for return value
             return ret
         return None
