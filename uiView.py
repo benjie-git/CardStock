@@ -771,13 +771,14 @@ class ViewProxy(object):
             newModel.SetProperty("hidden", True, notify=False, noDeferred=True)
             newModel.SetProperty("hidden", False)
             self._model.stackManager.AddUiViewsFromModels([newModel], False)
+            self._model.stackManager.runner.SetupForCard(newModel.GetCard())
+            newModel.RunSetup(self._model.stackManager.runner)
+            if newModel.GetCard() != self._model.stackManager.uiCard.model:
+                self._model.stackManager.runner.SetupForCard(self._model.stackManager.uiCard.model)
         else:
             self._model.ApplyAllPending()
             newModel = self._model.stackManager.DuplicateCard()
 
-        self._model.stackManager.runner.SetupForCard(newModel.GetCard())
-        newModel.RunSetup(self._model.stackManager.runner)
-        self._model.stackManager.runner.SetupForCard(self._model.stackManager.uiCard.model)
         return newModel.GetProxy()
 
     def Delete(self):

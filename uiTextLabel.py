@@ -23,9 +23,11 @@ class UiTextLabel(UiTextBase):
         gc.SetFont(self.font)
         gc.SetTextForeground(wx.Colour(self.textColor))
         (width, height) = self.model.GetProperty("size")
-        lines = wordwrap(self.model.GetProperty("text"), width, gc)
+        magicExtraWidth = 30  # ?? Not sure why this is needed...
+        lines = wordwrap(self.model.GetProperty("text"), width + magicExtraWidth, gc)
         (startX, startY) = self.model.GetAbsoluteFrame().BottomLeft
         offsetY = 0
+        extraLineSpacing = 2 if wx.Platform == "__WXMAC__" else 6
         for line in lines.split('\n'):
             if align in ["Center", "Right"]:
                 textWidth = gc.GetTextExtent(line).Width
@@ -36,7 +38,7 @@ class UiTextLabel(UiTextBase):
             else:
                 xPos = startX
             gc.DrawText(line, wx.Point(xPos, startY-offsetY))
-            offsetY += self.font.GetFractionalPointSize()
+            offsetY += self.font.GetFractionalPointSize() + extraLineSpacing
             if offsetY + self.font.GetFractionalPointSize() >= height:
                 break
 

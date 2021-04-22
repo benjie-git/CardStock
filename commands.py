@@ -92,6 +92,8 @@ class AddNewUiViewCommand(Command):
         if self.viewType == "card":
             self.stackManager.LoadCardAtIndex(None)
             self.stackManager.stackModel.InsertCardModel(self.cardIndex, self.viewModel)
+            if self.viewModel and self.viewModel.stackManager.runner:
+                self.viewModel.RunSetup(self.viewModel.stackManager.runner)
             self.stackManager.LoadCardAtIndex(self.cardIndex)
         else:
             self.stackManager.LoadCardAtIndex(self.cardIndex)
