@@ -13,6 +13,8 @@ class UiTextBase(UiView):
         super().__init__(parent, stackManager, model, view)
         self.isInlineEditing = False
         self.inlineEditor = None
+        self.font = None
+        self.textColor = None
 
     def DestroyView(self):
         self.StopInlineEditing()
@@ -22,7 +24,7 @@ class UiTextBase(UiView):
         super().OnPropertyChanged(model, key)
         if key == "text":
             if self.model.type == "textlabel":
-                self.view.SetLabelText(str(self.model.GetProperty(key)))
+                self.stackManager.view.Refresh(True)
             else:
                 wasEditable = self.view.IsEditable()
                 if not wasEditable:
@@ -34,11 +36,15 @@ class UiTextBase(UiView):
         elif key in ["font", "fontSize", "textColor"]:
             self.UpdateFont(model, self.view)
             self.OnResize(None)
-            self.view.Refresh(True)
+            if self.view:
+                self.view.Refresh(True)
         elif key == "alignment":
-            self.stackManager.SelectUiView(None)
-            self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
-            self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.model))
+            if self.model.type == "textlabel":
+                self.stackManager.view.Refresh(True)
+            else:
+                self.stackManager.SelectUiView(None)
+                self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
+                self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.model))
 
     def UpdateFont(self, model, view):
         familyName = model.GetProperty("font")
@@ -51,7 +57,11 @@ class UiTextBase(UiView):
         else:
             colorStr = 'black'
 
-        if not isinstance(view, stc.StyledTextCtrl):
+        if view == None:
+            self.font = font
+            self.textColor = colorStr
+            self.stackManager.view.Refresh(True)
+        elif not isinstance(view, stc.StyledTextCtrl):
             view.SetFont(font)
             view.SetForegroundColour(colorStr)
         else:
@@ -73,13 +83,14 @@ class UiTextBase(UiView):
         field.SetUseVerticalScrollBar(False)
         field.SetWrapMode(stc.STC_WRAP_WORD)
         field.SetMarginWidth(1, 0)
-        rect = self.view.GetRect().Inflate(1)
+        rect = self.model.GetAbsoluteFrame().Inflate(1)
         rect.width += 20
-        field.SetRect(rect)
+        field.SetRect(self.stackManager.ConvRect(rect))
         field.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         field.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
         self.UpdateFont(self.model, field)
-        self.view.Hide()
+        if self.view:
+            self.view.Hide()
         field.ChangeValue(text)
         field.EmptyUndoBuffer()
         field.SetFocus()
@@ -99,7 +110,8 @@ class UiTextBase(UiView):
 
     def StopInlineEditing(self):
         if self.stackManager.isEditing and self.isInlineEditing:
-            self.view.Show()
+            if self.view:
+                self.view.Show()
             self.model.SetProperty("text", self.inlineEditor.GetValue())
             self.stackManager.view.RemoveChild(self.inlineEditor)
             wx.CallAfter(self.inlineEditor.Destroy)

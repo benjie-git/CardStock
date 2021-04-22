@@ -1,5 +1,6 @@
 import wx
 from uiView import *
+from wx.lib.wordwrap import wordwrap
 from uiTextBase import *
 from killableThread import RunOnMain
 
@@ -14,35 +15,31 @@ class UiTextLabel(UiTextBase):
             model = TextLabelModel(stackManager)
             model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("label"), notify=False)
 
-        self.stackManager = stackManager
-        label = self.CreateLabel(stackManager, model)
-        self.inlineEditor = None
-
-        super().__init__(parent, stackManager, model, label)
-
-    def CreateLabel(self, stackManager, model):
-        if model:
-            text = model.GetProperty("text")
-            alignment = wx.ALIGN_LEFT
-            if model.GetProperty("alignment") == "Right":
-                alignment = wx.ALIGN_RIGHT
-            elif model.GetProperty("alignment") == "Center":
-                alignment = wx.ALIGN_CENTER
-        else:
-            text = "Text"
-            alignment = wx.ALIGN_LEFT
-
-        label = wx.StaticText(parent=stackManager.view, size=(60,20),
-                              style=alignment|wx.ST_NO_AUTORESIZE)
-        label.SetLabelText(text)
-        self.UpdateFont(model, label)
-        return label
-
-    def OnResize(self, event):
-        self.view.SetLabel(self.model.GetProperty("text"))
-        self.view.Wrap(self.view.GetSize().Width)
+        super().__init__(parent, stackManager, model, None)
+        self.UpdateFont(model, None)
 
     def Paint(self, gc):
+        align = self.model.GetProperty("alignment")
+        gc.SetFont(self.font)
+        gc.SetTextForeground(wx.Colour(self.textColor))
+        (width, height) = self.model.GetProperty("size")
+        lines = wordwrap(self.model.GetProperty("text"), width, gc)
+        (startX, startY) = self.model.GetAbsoluteFrame().BottomLeft
+        offsetY = 0
+        for line in lines.split('\n'):
+            if align in ["Center", "Right"]:
+                textWidth = gc.GetTextExtent(line).Width
+                if align == "Center":
+                    xPos = startX + (width - textWidth)/2
+                else:
+                    xPos = startX + width - textWidth
+            else:
+                xPos = startX
+            gc.DrawText(line, wx.Point(xPos, startY-offsetY))
+            offsetY += self.font.GetFractionalPointSize()
+            if offsetY + self.font.GetFractionalPointSize() >= height:
+                break
+
         if self.stackManager.isEditing:
             gc.SetPen(wx.Pen('gray', 1, wx.PENSTYLE_DOT))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)

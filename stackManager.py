@@ -896,3 +896,7 @@ class FlippedGCDC(wx.GCDC):
     def DrawBitmap(self, bitmap, x, y, useMask=False):
         pt = self.stackManager.ConvPoint((x, y))
         super().DrawBitmap(bitmap, pt.x, pt.y, useMask)
+
+    def DrawText(self, text, pt):
+        pt = self.stackManager.ConvPoint(pt)
+        super().DrawText(text, pt)
