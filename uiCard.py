@@ -50,20 +50,21 @@ class UiCard(UiView):
     def PaintSelectionBox(self, gc):
         if self.isSelected and self.stackManager.tool.name == "hand":
             f = self.model.GetAbsoluteFrame()
+            f.Top += 1
             gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
             gc.DrawRectangle(f.Deflate(1))
 
             gc.SetPen(wx.TRANSPARENT_PEN)
             gc.SetBrush(wx.Brush('blue', wx.BRUSHSTYLE_SOLID))
-            box = self.GetResizeBoxRect()
-            gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
+            for box in self.GetResizeBoxRects():
+                gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
 
-    def GetResizeBoxRect(self):
+    def GetResizeBoxRects(self):
         # the resize box/handle should hang out of the frame, to allow grabbing it from behind
         # native widgets which can obscure the full frame.
         s = self.model.GetProperty("size")
-        return wx.Rect(s.width-12, s.height-12, 12, 12)
+        return [wx.Rect(s.width-13, 0, 12, 12)]
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)

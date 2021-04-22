@@ -59,8 +59,8 @@ class UiView(object):
 
             mSize = self.model.GetProperty("size")
             if mSize[0] > 0 and mSize[1] > 0:
-                self.view.SetSize(mSize)
-                self.view.SetPosition(wx.Point(self.model.GetAbsolutePosition()))
+                rect = wx.Rect(wx.Point(self.model.GetAbsolutePosition()), mSize)
+                self.view.SetRect(self.stackManager.ConvRect(rect))
 
             self.view.Show(not self.model.GetProperty("hidden"))
 
@@ -79,14 +79,16 @@ class UiView(object):
             s = self.model.GetProperty(key)
             self.ClearHitRegion()
             if self.view:
-                self.view.SetSize(s)
+                rect = wx.Rect(wx.Point(self.model.GetAbsolutePosition()), s)
+                self.view.SetRect(self.stackManager.ConvRect(rect))
                 self.view.Refresh(True)
             else:
                 self.stackManager.view.Refresh(True)
         elif key == "position":
-            pos = self.model.GetAbsolutePosition()
+            pos = wx.Point(self.model.GetAbsolutePosition())
             if self.view:
-                self.view.SetPosition(wx.Point(pos))
+                rect = wx.Rect(pos, self.model.GetProperty("size"))
+                self.view.SetRect(self.stackManager.ConvRect(rect))
                 self.view.Refresh(True)
             else:
                 self.stackManager.view.Refresh(True)
@@ -202,8 +204,8 @@ class UiView(object):
 
             gc.SetPen(wx.TRANSPARENT_PEN)
             gc.SetBrush(wx.Brush('blue', wx.BRUSHSTYLE_SOLID))
-            box = self.GetResizeBoxRect()
-            gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
+            for box in self.GetResizeBoxRects():
+                gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
 
     def Paint(self, gc):
         pass
@@ -215,11 +217,15 @@ class UiView(object):
             return self
         return None
 
-    def GetResizeBoxRect(self):
-        # the resize box/handle should hang out of the frame, to allow grabbing it from behind
+    def GetResizeBoxRects(self):
+        # The returned rects are relative to the position of the object
+        # The resize box/handles should hang out of the frame, to allow grabbing it from behind
         # native widgets which can obscure the full frame.
         s = self.model.GetProperty("size")
-        return wx.Rect(s.width-4, s.height-4, 12, 12)
+        return [wx.Rect(-7, -7, 12, 12),
+                wx.Rect(s.width - 4, -7, 12, 12),
+                wx.Rect(-7, s.height - 4, 12, 12),
+                wx.Rect(s.width - 4, s.height - 4, 12, 12)]
 
     def ClearHitRegion(self):
         self.hitRegion = None
@@ -235,7 +241,8 @@ class UiView(object):
         s = self.model.GetProperty("size")
         reg = wx.Region(wx.Rect(0, 0, s.width, s.height))
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
-            reg.Union(wx.Region(self.GetResizeBoxRect().Inflate(2)))
+            for r in self.GetResizeBoxRects():
+                reg.Union(wx.Region(r.Inflate(2)))
         self.hitRegion = reg
 
     handlerDisplayNames = {

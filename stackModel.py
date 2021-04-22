@@ -104,11 +104,27 @@ class StackModel(ViewModel):
         if formatVer != version.FILE_FORMAT_VERSION:
             self.MigrateModelFromFormatVersion(formatVer, self)
 
-    def MigrateDataFromFormatVersion(self, fromVer, model):
+    def MigrateDataFromFormatVersion(self, fromVer, dataDict):
         pass
 
     def MigrateModelFromFormatVersion(self, fromVer, model):
-        pass
+        if fromVer == 1:
+            """
+            In File Format Version 1, the cards used the top-left corner as the origin, y increased while moving down.
+            In File Format Version 2, the cards use the bottom-left corner as the origin, y increases while moving up.
+            Migrate all of the static objects to look the same in the new world order, but user code will need updating.
+            """
+            def UnflipImages(obj):
+                if obj.type == "image":
+                    obj.PerformFlips(False, True)
+                else:
+                    for c in obj.childModels:
+                        UnflipImages(c)
+
+            for card in model.childModels:
+                card.PerformFlips(False, True)
+                UnflipImages(card)
+
 
 
 class Stack(ViewProxy):

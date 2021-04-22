@@ -29,14 +29,15 @@ from uiGroup import UiGroup, GroupModel
 # ----------------------------------------------------------------------
 
 class DeferredRefreshWindow(wx.Window):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, stackManager, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.stackManager = stackManager
         self.needsRefresh = False
         self.deferredRefresh = False
 
     def Refresh(self, eraseBackground=True, rect=None):
         if not self.deferredRefresh:
-            super().Refresh(eraseBackground, rect)
+            super().Refresh(eraseBackground, self.stackManager.ConvRect(rect))
         else:
             self.needsRefresh = True
 
@@ -49,11 +50,17 @@ class DeferredRefreshWindow(wx.Window):
             self.Update()
             self.needsRefresh = False
 
+    def ScreenToClient(self, *args, **kwargs):
+        """
+        Vertically flip the input to the stack view, so the origin is the bottom-left corner.
+        """
+        return self.stackManager.ConvPoint(super().ScreenToClient(*args, **kwargs))
+
 
 class StackManager(object):
     def __init__(self, parentView):
         super().__init__()
-        self.view = DeferredRefreshWindow(parentView, style=wx.WANTS_CHARS)
+        self.view = DeferredRefreshWindow(self, parentView, style=wx.WANTS_CHARS)
         self.listeners = []
         self.designer = None
         self.isEditing = False  # Is in Editing mode (running from the designer), as opposed to just the viewer
@@ -153,7 +160,8 @@ class StackManager(object):
 
             if not wasBusy or self.runner.missedIdleCount > 1:
                 self.runner.ApplyPendingUpdatesIfBusy()
-                self.view.RefreshIfNeeded()
+
+            self.view.RefreshIfNeeded()
 
     def SetTool(self, tool):
         if self.tool:
@@ -578,7 +586,7 @@ class StackManager(object):
             event.Skip()
             return
 
-        uiView = self.HitTest(pos, not event.ShiftDown())
+        uiView = self.HitTest(pos, not wx.KeyboardState().ShiftDown())
 
         if uiView != self.lastMouseMovedUiView:
             if not self.globalCursor:
@@ -646,6 +654,10 @@ class StackManager(object):
     def OnResize(self, event):
         if wx.Platform != '__WXMAC__':
             self.UpdateBuffer()
+        for uiView in self.uiViews:
+            if uiView.view:
+                # Make sure native subview positions get adjusted based on the new origin
+                uiView.OnPropertyChanged(uiView.model, "position")
         if not self.isEditing and self.runner:
             self.uiCard.model.SetProperty("size", self.view.GetTopLevelParent().GetClientSize())
             self.runner.RunHandler(self.uiCard.model, "OnResize", None)
@@ -653,6 +665,23 @@ class StackManager(object):
 
     def UpdateBuffer(self):
         self.buffer = wx.Bitmap.FromRGBA(self.view.GetSize().Width, self.view.GetSize().Height)
+
+    def ConvPoint(self, pt):
+        """
+        Vertically flip the stack view, so the origin is the bottom-left corner.
+        """
+        height = self.stackModel.GetProperty("size").height
+        return wx.Point(pt[0], height - pt[1])
+
+    def ConvRect(self, rect):
+        """
+        Vertically flip the stack view, so the origin is the bottom-left corner.
+        """
+        if rect:
+            height = self.stackModel.GetProperty("size").height
+            bl = rect.BottomLeft
+            return wx.Rect((bl[0], height - bl[1]), rect.Size)
+        return None
 
     def OnPaint(self, event):
         if wx.Platform == '__WXMAC__':
@@ -663,7 +692,7 @@ class StackManager(object):
                 self.UpdateBuffer()
             dc = wx.MemoryDC(self.buffer)
 
-        gc = wx.GCDC(dc)
+        gc = FlippedGCDC(dc, self)
         bg = wx.Colour(self.uiCard.model.GetProperty("bgColor", noDeferred=True))
         if not bg:
             bg = wx.Colour('white')
@@ -834,3 +863,36 @@ class StackManager(object):
             if uiView and uiView.view:
                 uiView.view.SetFocus()
                 uiView.view.SetSelection(selectStart, selectEnd)
+
+
+class FlippedGCDC(wx.GCDC):
+    """
+    Vertically flip the output to the stack view, so the origin is the bottom-left corner.
+    """
+    def __init__(self, dc, stackManager):
+        super().__init__(dc)
+        self.stackManager = stackManager
+
+    def DrawRectangle(self, rect):
+        super().DrawRectangle(self.stackManager.ConvRect(rect))
+
+    def DrawEllipse(self, rect):
+        super().DrawEllipse(self.stackManager.ConvRect(rect))
+
+    def DrawRoundedRectangle(self, rect, radius):
+        super().DrawRoundedRectangle(self.stackManager.ConvRect(rect), radius)
+
+    def DrawLine(self, pointA, pointB):
+        super().DrawLine(self.stackManager.ConvPoint(pointA), self.stackManager.ConvPoint(pointB))
+
+    def DrawLines(self, points, xoffset=0, yoffset=0):
+        points = [self.stackManager.ConvPoint((p[0]+xoffset, p[1]+yoffset)) for p in points]
+        super().DrawLines(points)
+
+    def DrawPolygon(self, points, xoffset=0, yoffset=0, fill_style=wx.ODDEVEN_RULE):
+        points = [self.stackManager.ConvPoint((p[0]+xoffset, p[1]+yoffset)) for p in points]
+        super().DrawPolygon(points, fill_style=fill_style)
+
+    def DrawBitmap(self, bitmap, x, y, useMask=False):
+        pt = self.stackManager.ConvPoint((x, y))
+        super().DrawBitmap(bitmap, pt.x, pt.y, useMask)

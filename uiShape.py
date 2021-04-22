@@ -33,7 +33,8 @@ class UiShape(UiView):
         points = self.model.GetScaledPoints(noDeferred=True)
 
         if self.model.type in ["pen", "line"]:
-            dc.DrawLines(points, offset.x, offset.y)
+            if len(points) > 1:
+                dc.DrawLines(points, offset.x, offset.y)
         elif self.model.type in ["oval", "rect", "roundrect"] and len(points) == 2:
             rect = self.model.RectFromPoints(points)
             p1 = rect.TopLeft + offset
@@ -82,7 +83,8 @@ class UiShape(UiView):
                 gc.SetPen(wx.Pen('Blue', 3 + thickness, wx.PENSTYLE_SHORT_DASH))
                 if self.model.type == "poly":
                     points.append(points[0])
-                gc.DrawLines(points, f.Left, f.Top)
+                if len(points) > 1:
+                    gc.DrawLines(points, f.Left, f.Top)
             elif self.model.type == "rect":
                 gc.DrawRectangle(f.Inflate(2 + thickness/2))
             elif self.model.type == "oval":
@@ -97,10 +99,10 @@ class UiShape(UiView):
 
             gc.SetPen(wx.TRANSPARENT_PEN)
             gc.SetBrush(wx.Brush('blue', wx.BRUSHSTYLE_SOLID))
-            box = self.GetResizeBoxRect()
-            if self.model.type not in ["line", "pen"]:
-                box.Offset((thickness / 2, thickness / 2))
-            gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
+            for box in self.GetResizeBoxRects():
+                if self.model.type not in ["line", "pen"]:
+                    box.Offset((thickness / 2, thickness / 2))
+                gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
 
     def MakeHitRegion(self):
         if self.model.GetProperty("hidden"):
@@ -118,18 +120,20 @@ class UiShape(UiView):
         self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(thickness/2, thickness/2))
         f = self.model.GetAbsoluteFrame()
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
-            resizerRect = self.GetResizeBoxRect().Inflate(2)
-            resizerRect.Offset((thickness/2, thickness/2))
-            dc.DrawRectangle(resizerRect)
+            for resizerRect in self.GetResizeBoxRects():
+                resizerRect.Inflate(2)
+                resizerRect.Offset((thickness/2, thickness/2))
+                dc.DrawRectangle(resizerRect)
         reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
         reg.Offset(-thickness/2, -thickness/2)
         self.hitRegion = reg
 
-    def GetResizeBoxRect(self):
+    def GetResizeBoxRects(self):
         thickness = self.model.GetProperty("penThickness")
-        resizerRect = super().GetResizeBoxRect()
-        resizerRect.Offset((thickness/2, thickness/2))
-        return resizerRect
+        resizerRects = super().GetResizeBoxRects()
+        for r in resizerRects:
+            r.Offset((thickness/2, thickness/2))
+        return resizerRects
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)

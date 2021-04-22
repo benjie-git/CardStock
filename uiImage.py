@@ -119,7 +119,7 @@ class UiImage(UiView):
             viewSize = r.Size
             offX = 0 if (imgSize.Width >= viewSize.Width) else ((viewSize.Width - imgSize.Width) / 2)
             offY = 0 if (imgSize.Height >= viewSize.Height) else ((viewSize.Height - imgSize.Height) / 2)
-            gc.DrawBitmap(self.rotatedBitmap, r.Left + offX, r.Top + offY)
+            gc.DrawBitmap(self.rotatedBitmap, r.Left + offX, r.Bottom - offY)
 
         if self.stackManager.isEditing:
             gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
