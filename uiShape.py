@@ -111,21 +111,20 @@ class UiShape(UiView):
         s = self.model.GetProperty("size")
         extraThick = 6 if (self.model.type in ["pen", "line"]) else 0
         thickness = self.model.GetProperty("penThickness") + extraThick
-        bmp = wx.Bitmap(width=s.width+thickness+10, height=s.height+thickness+10, depth=1)
+        bmp = wx.Bitmap(width=s.width+thickness+20, height=s.height+thickness+20, depth=1)
         dc = wx.MemoryDC(bmp)
         dc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
         dc.Clear()
         penColor = 'white'
         fillColor = 'white'
-        self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(thickness/2, thickness/2))
+        self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(thickness/2+10, thickness/2+10))
         f = self.model.GetAbsoluteFrame()
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
             for resizerRect in self.GetResizeBoxRects():
-                resizerRect.Inflate(2)
-                resizerRect.Offset((thickness/2, thickness/2))
+                resizerRect.Offset((10, 10))
                 dc.DrawRectangle(resizerRect)
         reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
-        reg.Offset(-thickness/2, -thickness/2)
+        reg.Offset(-thickness/2-10, -thickness/2-10)
         self.hitRegion = reg
 
     def GetResizeBoxRects(self):

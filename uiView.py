@@ -222,9 +222,9 @@ class UiView(object):
         # The resize box/handles should hang out of the frame, to allow grabbing it from behind
         # native widgets which can obscure the full frame.
         s = self.model.GetProperty("size")
-        return [wx.Rect(-7, -7, 12, 12),
-                wx.Rect(s.width - 4, -7, 12, 12),
-                wx.Rect(-7, s.height - 4, 12, 12),
+        return [wx.Rect(-6, -6, 12, 12),
+                wx.Rect(s.width - 4, -6, 12, 12),
+                wx.Rect(-6, s.height - 4, 12, 12),
                 wx.Rect(s.width - 4, s.height - 4, 12, 12)]
 
     def ClearHitRegion(self):

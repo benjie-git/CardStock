@@ -698,7 +698,7 @@ class StackManager(object):
             bg = wx.Colour('white')
         gc.SetPen(wx.TRANSPARENT_PEN)
         gc.SetBrush(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
-        gc.DrawRectangle(self.view.GetRect())
+        gc.DrawRectangle(self.view.GetRect().Inflate(1))
 
         paintUiViews = [ui for ui in self.GetAllUiViews() if not ui.model.GetProperty("hidden", noDeferred=True)]
         if len(paintUiViews):
