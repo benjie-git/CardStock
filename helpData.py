@@ -409,7 +409,8 @@ class HelpDataObject():
         "Cut": {"args": {},
                 "return": None,
                 "info": "Copies this object onto the clipboard and then deletes it, just like the Edit menu Cut command."},
-        "Clone": {"args": {},
+        "Clone": {"args": {"...": {"info": "optionally set more properties here.  For example, "
+                                           "include position=(10,10)"}},
                   "return": "object",
                   "info": "Duplicates this object, and updates the new object's name to be unique, and then returns "
                           "the new object for you to store into a variable."},

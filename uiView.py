@@ -763,21 +763,28 @@ class ViewProxy(object):
             return uiView.view.HasFocus()
 
     @RunOnMain
-    def Clone(self):
+    def Clone(self, **kwargs):
         if self._model.type != "card":
             self._model.ApplyAllPending()
             newModel = self._model.CreateCopy()
             # Hide now and defer an unHide, so the handler code can modify the clone before it displays
             newModel.SetProperty("hidden", True, notify=False, noDeferred=True)
+            for k,v in kwargs.items():
+                if k in newModel.propertyTypes:
+                    newModel.SetProperty(k, v)
             newModel.SetProperty("hidden", False)
             self._model.stackManager.AddUiViewsFromModels([newModel], False)
             self._model.stackManager.runner.SetupForCard(newModel.GetCard())
+
             newModel.RunSetup(self._model.stackManager.runner)
             if newModel.GetCard() != self._model.stackManager.uiCard.model:
                 self._model.stackManager.runner.SetupForCard(self._model.stackManager.uiCard.model)
         else:
             self._model.ApplyAllPending()
             newModel = self._model.stackManager.DuplicateCard()
+            for k,v in kwargs.items():
+                if k in newModel.propertyTypes:
+                    newModel.SetProperty(k, v, noDeferred=True)
 
         return newModel.GetProxy()
 

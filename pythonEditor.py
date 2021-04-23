@@ -201,6 +201,9 @@ class PythonEditor(stc.StyledTextCtrl):
             return
         self.analyzer.ScanCode(self.cPanel.stackManager.stackModel, self.currentHandler, self.ScanFinished)
 
+    def ClearSyntaxErrorMarks(self):
+        self.IndicatorClearRange(0, self.GetLastPosition())
+
     def MarkSyntaxError(self, startPos, length):
         self.SetIndicatorCurrent(2)
         self.IndicatorFillRange(startPos, length)
@@ -208,8 +211,7 @@ class PythonEditor(stc.StyledTextCtrl):
     def ScanFinished(self):
         if self.currentModel:
             key = self.currentModel.GetPath() + "." + self.currentHandler
-            self.SetIndicatorCurrent(2)
-            self.IndicatorClearRange(0, self.GetLastPosition())
+            self.ClearSyntaxErrorMarks()
             if key in self.analyzer.syntaxErrors:
                 e = self.analyzer.syntaxErrors[key]
                 # lineStr = e[1]
@@ -222,7 +224,7 @@ class PythonEditor(stc.StyledTextCtrl):
 
         allCodeWin = self.stackManager.designer.allCodeWindow
         if allCodeWin and allCodeWin.IsShown():
-            allCodeWin.Update()
+            allCodeWin.MarkAllSyntaxErrors()
 
     def UpdateAC(self):
         if self.IsInCommentOrString():

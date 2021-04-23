@@ -128,7 +128,7 @@ class StackExporter(object):
                 path = dlg.GetPath()
             dlg.Hide()
             dlg.Destroy()
-            wx.Yield()
+            wx.YieldIfNeeded()
         return path
 
     def Export(self):
@@ -341,7 +341,7 @@ class ExportDialog(wx.Dialog):
     def OnExport(self, event):
         self.SetTitle("Exporting Stack...")
         self.panel.Enable(False)
-        wx.Yield()
+        wx.YieldIfNeeded()
         self.exporter.resList = set(self.items)
         self.exporter.Export()
         self.exporter = None

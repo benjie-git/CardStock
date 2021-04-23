@@ -175,7 +175,7 @@ class DesignerFrame(wx.Frame):
         if self.filename:
             # Defocus the inspector, which saves any updated value later, onIdle.  Then yield to idle now.
             self.stackManager.view.SetFocus()
-            wx.Yield()
+            wx.YieldIfNeeded()
             data = self.stackManager.stackModel.GetData()
             try:
                 jsonData = json.dumps(data, indent=2)
@@ -218,7 +218,10 @@ class DesignerFrame(wx.Frame):
             except:
                 # e = sys.exc_info()
                 # print(e)
+                self.NewFile()
+                wx.YieldIfNeeded()
                 wx.MessageDialog(None, str("Couldn't read file"), "", wx.OK).ShowModal()
+
 
 
     def SetFrameSizeFromModel(self):

@@ -39,7 +39,7 @@ class AllCodeWindow(wx.Frame):
         self.lastLineNum = 0
         self.textBox.SetEditable(True)
         self.textBox.ChangeValue(self.text)
-        self.MarkSyntaxErrors()
+        self.MarkAllSyntaxErrors()
         self.textBox.SetEditable(False)
 
     def AppendOnSetupCode(self, obj):
@@ -98,7 +98,8 @@ class AllCodeWindow(wx.Frame):
         for child in obj.childModels:
             self.AppendNonSetupCode(child)
 
-    def MarkSyntaxErrors(self):
+    def MarkAllSyntaxErrors(self):
+        self.textBox.ClearSyntaxErrorMarks()
         for path, e in self.analyzer.syntaxErrors.items():
             for info in self.methodStartLines:
                 infoPath = info[2].GetPath() + "." + info[3]
@@ -113,12 +114,15 @@ class AllCodeWindow(wx.Frame):
 
     def OnUpdateUi(self, event):
         line = self.textBox.GetCurrentLine()
+        pos = self.textBox.GetLineEndPosition(line)-self.textBox.GetLineLength(line)
+        self.textBox.SetSelection(pos, pos)
         if line != self.lastLineNum:
             self.lastLineNum = line
             for l in reversed(self.methodStartLines):
                 if line >= l[0]-1:
                     self.JumpToCode(l[1], l[2], l[3], line-l[0])
                     break
+        event.Skip()
 
     def JumpToCode(self, card, obj, handlerName, lineNum):
         self.designer.stackManager.LoadCardAtIndex(card.parent.childModels.index(card))

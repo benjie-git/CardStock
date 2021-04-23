@@ -163,7 +163,7 @@ class Runner():
             self.handlerQueue.put([]) # Wake up the runner thread get() call
 
             # Wait up to 1.0 sec for the stack to finish
-            # run wx.Yield() to process main thread events while waiting, to allow @RunOnMain methods to complete
+            # run wx.YieldIfNeeded() to process main thread events while waiting, to allow @RunOnMain methods to complete
             endTime = time() + 0.9
             while time() < endTime:
                 breakpoint = time() + 0.05
