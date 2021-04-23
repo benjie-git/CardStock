@@ -90,8 +90,8 @@ lets you select, move, and resize objects, and edit their properties and code.  
 or remove objects from the selection by Shift-clicking them.  You can also drag out a selection rectangle to select all objects
 whose centers it contains.  You can also cycle forwards and backwards through objects on the current card using Tab and
 Shift-Tab.  While objects are selected, you can use the Object menu items to group them, flip them, or re-order them to adjust which
-objects are in front of, or behind which others.  But note that buttons, text fields, and text labels always stay in 
-front of shapes and images.  When an object is selected, you can resize it by dragging the blue resize knob in the 
+objects are in front of, or behind which others.  But note that buttons and text fields always stay in 
+front of shapes, images, and text labels.  When an object is selected, you can resize it by dragging the blue resize knob in the 
 bottom right corner of the selected object.  Holding down the Shift key while resizing will keep the object's aspect
 ratio stable.  You can drag selected objects to move them, or use the arrow keys to move selected objects by 1 pixel at
 a time, or by 5 or 20 pixels at a time by holding down Shift or Alt/Option, respectively.</p>

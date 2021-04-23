@@ -442,25 +442,25 @@ class HelpDataObject():
         "OrderToFront": {"args": {},
                  "return": None,
                  "info": "Moves this object to the front of the card or group it is contained in, in front of all other objects.  But note that "
-                         "all buttons, text fields, and text labels will remain in front of all other objects."},
+                         "all buttons and text fields will remain in front of all other objects."},
         "OrderForward": {"args": {},
                  "return": None,
                  "info": "Moves this object one position closer to the front of the card or group it is contained in.  But note that "
-                         "all buttons, text fields, and text labels will remain in front of all other objects."},
+                         "all buttons and text fields will remain in front of all other objects."},
         "OrderBackward": {"args": {},
                  "return": None,
                  "info": "Moves this object one position closer to the back of the card or group it is contained in.  But note that "
-                         "all buttons, text fields, and text labels will remain in front of all other objects."},
+                         "all buttons and text fields will remain in front of all other objects."},
         "OrderToBack": {"args": {},
                  "return": None,
                  "info": "Moves this object to the back of the card or group it is contained in, behind all other objects.  But note that "
-                         "all buttons, text fields, and text labels will remain in front of all other objects."},
+                         "all buttons and text fields will remain in front of all other objects."},
         "OrderToIndex": {"args": {"toIndex": {"type": "int", "info": "The index to move this object to, in the list of "
                                  "the card or group's children.  Index 0 is at the back."}},
                        "return": None,
                          "info": "Moves this object to the given index, in the list of "
                                  "its parent's children, with 0 being at the back.  But note that "
-                                 "all buttons, text fields, and text labels will remain in front of all other objects."},
+                                 "all buttons and text fields will remain in front of all other objects."},
         "IsTouching": {"args": {"other": {"type": "object", "info": "The other object to compare to this one"}},
                        "return": "bool",
                        "info": "Returns <b>True</b> if this object is touching the <b>other</b> object passed into "

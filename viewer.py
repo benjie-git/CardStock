@@ -102,8 +102,10 @@ class ViewerFrame(wx.Frame):
         self.stackManager.SetStackModel(stackModel)
         self.stackManager.SetEditing(False)
         size = self.stackManager.stackModel.GetProperty("size")
-        if wx.Platform == "__WXMSW__":
-            # Silly Windows doesn't leave room for the status bar
+        if wx.Platform == "__WXMSW__" or \
+                (wx.Platform == "__WXGTK__" and stackModel.GetProperty("canResize")):
+            # Silly Windows doesn't leave room for the status bar.
+            # GTK too, but only if resizing is enabled (?)
             size += (0, self.GetStatusBar().GetRect().height)
         self.SetClientSize(size)
         self.stackManager.view.SetFocus()

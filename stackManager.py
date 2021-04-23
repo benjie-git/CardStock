@@ -658,6 +658,8 @@ class StackManager(object):
             if uiView.view:
                 # Make sure native subview positions get adjusted based on the new origin
                 uiView.OnPropertyChanged(uiView.model, "position")
+        self.view.Refresh(True)
+        self.view.RefreshIfNeeded()
         if not self.isEditing and self.runner:
             self.uiCard.model.SetProperty("size", self.view.GetTopLevelParent().GetClientSize())
             self.runner.RunHandler(self.uiCard.model, "OnResize", None)
