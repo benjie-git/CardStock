@@ -14,53 +14,13 @@
       "type": "card",
       "handlers": {
         "OnSetup": "from random import randint\nscore = 0\nnextMoveTime = Time() + 3\n",
-        "OnIdle": "if IsKeyPressed(\"Left\"):\n   guy.position.x -= 8\nif IsKeyPressed(\"Right\"):\n   guy.position.x += 8\nif IsKeyPressed(\"Up\"):\n   guy.position.y -= 8\nif IsKeyPressed(\"Down\"):\n   guy.position.y += 8\n\nsize = card.size\n\nif guy.IsTouching(goal):\n   score += 1\n   label.text = score\n   goal.position = [randint(0,size.x-80),\\\n      randint(0,size.y-80)]\n   nextMoveTime = Time() + 3\n\nif Time() >= nextMoveTime:\n   score -= 1\n   label.text = score\n   goal.position = [randint(0,size.x-80),\\\n      randint(0,size.y-80)]\n   nextMoveTime = Time() + 3\n"
+        "OnIdle": "if IsKeyPressed(\"Left\"):\n   guy.position.x -= 8\nif IsKeyPressed(\"Right\"):\n   guy.position.x += 8\nif IsKeyPressed(\"Up\"):\n   guy.position.y += 8\nif IsKeyPressed(\"Down\"):\n   guy.position.y -= 8\n\nsize = card.size\ndidUpdate = False\n\nif guy.IsTouching(goal):\n   score += 1\n   didUpdate = True\n\nif Time() >= nextMoveTime:\n   score -= 1\n   didUpdate = True\n   \nif didUpdate:\n   label.text = score\n   goal.position = [randint(0,size.x-goal.size.width),\\\n      randint(0,size.y-goal.size.height)]\n   nextMoveTime = Time() + 3\n"
       },
       "properties": {
         "name": "main",
         "bgColor": "white"
       },
       "childModels": [
-        {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
-            "name": "label",
-            "size": [
-              65,
-              28
-            ],
-            "position": [
-              135.0,
-              19.0
-            ],
-            "text": "0",
-            "alignment": "Left",
-            "textColor": "blue",
-            "font": "Mono",
-            "fontSize": 18
-          }
-        },
-        {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
-            "name": "label_1",
-            "size": [
-              94,
-              30
-            ],
-            "position": [
-              25.0,
-              18.0
-            ],
-            "text": "Score:",
-            "alignment": "Left",
-            "textColor": "black",
-            "font": "Mono",
-            "fontSize": 18
-          }
-        },
         {
           "type": "rect",
           "handlers": {},
@@ -72,7 +32,7 @@
             ],
             "position": [
               289.0,
-              116.0
+              240.0
             ],
             "originalSize": [
               41,
@@ -104,7 +64,7 @@
             ],
             "position": [
               100.0,
-              120.0
+              162.0
             ],
             "originalSize": [
               118,
@@ -124,10 +84,50 @@
               117.0
             ]
           ]
+        },
+        {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "label",
+            "size": [
+              70,
+              27
+            ],
+            "position": [
+              118.0,
+              360.0
+            ],
+            "text": "0",
+            "alignment": "Left",
+            "textColor": "blue",
+            "font": "Mono",
+            "fontSize": 18
+          }
+        },
+        {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "label_1",
+            "size": [
+              90,
+              30
+            ],
+            "position": [
+              23.0,
+              358.0
+            ],
+            "text": "Score:",
+            "alignment": "Left",
+            "textColor": "black",
+            "font": "Mono",
+            "fontSize": 18
+          }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.7"
+  "CardStock_stack_format": 2,
+  "CardStock_stack_version": "0.8.12"
 }

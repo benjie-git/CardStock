@@ -13,7 +13,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "pegs = [peg1, peg2, peg3]\ndisks = [disk1, disk2, disk3, disk4, disk5]\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nisRunning = False\nisSetup = False\n\ndef PlaceDisk(disk, peg, height, animate, onFinished):\n   center = [peg.center.x,\n      peg.position.y + peg.size.height - (height + 1)*40]\n   if animate:\n      disk.AnimateCenter(0.5, center, onFinished)\n   else:\n      disk.center = center\n      if onFinished: onFinished()\n\ndef ShowStacks(animate, onFinished=None):\n   i = 0\n   for p in range(3):\n      for d in range(len(stacks[p])):\n         i += 1\n         PlaceDisk(stacks[p][d], pegs[p], d, animate, onFinished if (i == len(disks)) else None)\n\ndef MoveTower(disk, source, dest, spare):\n   if disk == 0:\n      steps.append([disk, source, dest])\n   else:\n      MoveTower(disk-1, source, spare, dest)\n      steps.append([disk, source, dest])\n      MoveTower(disk-1, spare, dest, source)\n\ndef MakeNextMove():\n   if len(steps):\n      disk, source, dest = steps.pop(0)\n      stacks[source].remove(disks[disk])\n      stacks[dest].append(disks[disk])\n      ShowStacks(True, MakeNextMove)\n   else:\n      isRunning = False\n\nShowStacks(False)\nisSetup = True"
+        "OnShowCard": "pegs = [peg1, peg2, peg3]\ndisks = [disk1, disk2, disk3, disk4, disk5]\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nisRunning = False\nisSetup = False\n\ndef PlaceDisk(disk, peg, height, animate, onFinished):\n   center = [peg.center.x,\n      peg.position.y + (height + 1)*40]\n   if animate:\n      disk.AnimateCenter(0.5, center, onFinished)\n   else:\n      disk.center = center\n      if onFinished: onFinished()\n\ndef ShowStacks(animate, onFinished=None):\n   i = 0\n   for p in range(3):\n      for d in range(len(stacks[p])):\n         i += 1\n         PlaceDisk(stacks[p][d], pegs[p], d, animate, onFinished if (i == len(disks)) else None)\n\ndef MoveTower(disk, source, dest, spare):\n   if disk == 0:\n      steps.append([disk, source, dest])\n   else:\n      MoveTower(disk-1, source, spare, dest)\n      steps.append([disk, source, dest])\n      MoveTower(disk-1, spare, dest, source)\n\ndef MakeNextMove():\n   if len(steps):\n      disk, source, dest = steps.pop(0)\n      stacks[source].remove(disks[disk])\n      stacks[dest].append(disks[disk])\n      ShowStacks(True, MakeNextMove)\n   else:\n      isRunning = False\n\nShowStacks(False)\nisSetup = True"
       },
       "properties": {
         "name": "card_1",
@@ -31,7 +31,7 @@
             ],
             "position": [
               106.0,
-              167.0
+              27.0
             ],
             "originalSize": [
               585,
@@ -63,7 +63,7 @@
             ],
             "position": [
               306.0,
-              167.0
+              27.0
             ],
             "originalSize": [
               585,
@@ -95,7 +95,7 @@
             ],
             "position": [
               506.0,
-              167.0
+              27.0
             ],
             "originalSize": [
               585,
@@ -127,7 +127,7 @@
             ],
             "position": [
               33.0,
-              387.0
+              13.0
             ],
             "originalSize": [
               585,
@@ -159,7 +159,7 @@
             ],
             "position": [
               41.0,
-              269.0
+              129.0
             ],
             "originalSize": [
               163,
@@ -191,8 +191,8 @@
               36
             ],
             "position": [
-              58.5,
-              229.0
+              58.0,
+              169.0
             ],
             "originalSize": [
               163,
@@ -225,7 +225,7 @@
             ],
             "position": [
               80.0,
-              189.0
+              209.0
             ],
             "originalSize": [
               163,
@@ -260,7 +260,7 @@
             ],
             "position": [
               16.0,
-              15.0
+              382.0
             ],
             "title": "Solve",
             "border": true
@@ -279,7 +279,7 @@
             ],
             "position": [
               201.0,
-              15.0
+              382.0
             ],
             "title": "Reset",
             "border": true
@@ -295,8 +295,8 @@
               36
             ],
             "position": [
-              25.5,
-              309.0
+              25.0,
+              89.0
             ],
             "originalSize": [
               163,
@@ -329,7 +329,7 @@
             ],
             "position": [
               9.0,
-              349.0
+              49.0
             ],
             "originalSize": [
               163,
@@ -354,6 +354,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.7"
+  "CardStock_stack_format": 2,
+  "CardStock_stack_version": "0.8.12"
 }

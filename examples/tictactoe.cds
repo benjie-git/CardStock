@@ -15,7 +15,7 @@
       "handlers": {
         "OnSetup": "pieces = []\n\ndef Reset():\n   global cells, player, moves, pieces\n   cells = [\"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\"]\n   player = 'X'\n   moves = 0\n   for p in pieces:\n      p.Delete()\n   pieces = []\n\ndef CheckBoard():\n   # Test across\n   if cells[0]+cells[1]+cells[2] in [\"XXX\", \"OOO\"]:\n      return cells[0]\n   if cells[3]+cells[4]+cells[5] in [\"XXX\", \"OOO\"]:\n      return cells[3]\n   if cells[6]+cells[7]+cells[8] in [\"XXX\", \"OOO\"]:\n      return cells[6]\n   \n   # Test down\n   if cells[0]+cells[3]+cells[6] in [\"XXX\", \"OOO\"]:\n      return cells[0]\n   if cells[1]+cells[4]+cells[7] in [\"XXX\", \"OOO\"]:\n      return cells[1]\n   if cells[2]+cells[5]+cells[8] in [\"XXX\", \"OOO\"]:\n      return cells[2]\n\n   # Test diagonals\n   if cells[0]+cells[4]+cells[8] in [\"XXX\", \"OOO\"]:\n      return cells[0]\n   if cells[2]+cells[4]+cells[6] in [\"XXX\", \"OOO\"]:\n      return cells[2]\n   \n   # No wins yet\n   return None",
         "OnShowCard": "x.Hide()\no.Hide()\n\nbuttons = [cell_1, cell_2, cell_3,\n          cell_4, cell_5, cell_6, \n          cell_7, cell_8, cell_9]\n\nReset()\n",
-        "OnMessage": "cellIndex = int(message) - 1\n\nif cells[cellIndex] == \"\":\n   marker = x.Clone() if (player == 'X') else o.Clone()\n   marker.center = buttons[cellIndex].center\n   pieces.append(marker)\n   cells[cellIndex] = player\n   moves += 1\n   \n   winner = CheckBoard()\n   if winner == 'X':\n      Alert(\"X Wins!\")\n      Reset()\n   elif winner == 'O':\n      Alert(\"O Wins!\")\n      Reset()\n   elif moves == 9:\n      Alert(\"It's a Tie!\")\n      Reset()\n   else:\n      player = 'X' if (player == 'O') else 'O'\n\n"
+        "OnMessage": "cellIndex = int(message) - 1\n\nif cells[cellIndex] == \"\":\n   if player == 'X':\n      marker = x.Clone(center=buttons[cellIndex].center)\n   else:\n      marker = o.Clone(center=buttons[cellIndex].center)\n   pieces.append(marker)\n   cells[cellIndex] = player\n   moves += 1\n   \n   winner = CheckBoard()\n   if winner == 'X':\n      Alert(\"X Wins!\")\n      Reset()\n   elif winner == 'O':\n      Alert(\"O Wins!\")\n      Reset()\n   elif moves == 9:\n      Alert(\"It's a Tie!\")\n      Reset()\n   else:\n      player = 'X' if (player == 'O') else 'O'\n\n"
       },
       "properties": {
         "name": "card_1",
@@ -35,7 +35,7 @@
             ],
             "position": [
               326.0,
-              335.0
+              40.0
             ],
             "originalSize": [
               127,
@@ -69,7 +69,7 @@
             ],
             "position": [
               184.0,
-              335.0
+              40.0
             ],
             "originalSize": [
               127,
@@ -103,7 +103,7 @@
             ],
             "position": [
               44.0,
-              335.0
+              40.0
             ],
             "originalSize": [
               127,
@@ -137,7 +137,7 @@
             ],
             "position": [
               325.0,
-              196.0
+              179.0
             ],
             "originalSize": [
               127,
@@ -171,7 +171,7 @@
             ],
             "position": [
               184.0,
-              197.0
+              178.0
             ],
             "originalSize": [
               127,
@@ -205,7 +205,7 @@
             ],
             "position": [
               44.0,
-              196.0
+              179.0
             ],
             "originalSize": [
               127,
@@ -239,7 +239,7 @@
             ],
             "position": [
               325.0,
-              59.0
+              316.0
             ],
             "originalSize": [
               127,
@@ -273,7 +273,7 @@
             ],
             "position": [
               180.0,
-              60.0
+              317.0
             ],
             "originalSize": [
               127,
@@ -307,7 +307,7 @@
             ],
             "position": [
               46.0,
-              60.0
+              315.0
             ],
             "originalSize": [
               127,
@@ -339,7 +339,7 @@
             ],
             "position": [
               54.0,
-              188.0
+              292.0
             ],
             "originalSize": [
               395,
@@ -351,11 +351,11 @@
           "points": [
             [
               0.0,
-              0.0
+              20.0
             ],
             [
               395.0,
-              0.0
+              20.0
             ]
           ]
         },
@@ -370,7 +370,7 @@
             ],
             "position": [
               54.0,
-              328.0
+              152.0
             ],
             "originalSize": [
               395,
@@ -382,11 +382,11 @@
           "points": [
             [
               0.0,
-              0.0
+              20.0
             ],
             [
               395.0,
-              0.0
+              20.0
             ]
           ]
         },
@@ -401,7 +401,7 @@
             ],
             "position": [
               174.0,
-              63.0
+              47.0
             ],
             "originalSize": [
               20,
@@ -413,11 +413,11 @@
           "points": [
             [
               0.0,
-              0.0
+              339.0
             ],
             [
               0.0,
-              339.0
+              0.0
             ]
           ]
         },
@@ -432,7 +432,7 @@
             ],
             "position": [
               319.0,
-              63.0
+              47.0
             ],
             "originalSize": [
               20,
@@ -444,11 +444,11 @@
           "points": [
             [
               0.0,
-              0.0
+              339.0
             ],
             [
               0.0,
-              339.0
+              0.0
             ]
           ]
         },
@@ -463,7 +463,7 @@
             ],
             "position": [
               74.0,
-              10.0
+              412.0
             ]
           },
           "childModels": [
@@ -478,7 +478,7 @@
                 ],
                 "position": [
                   0.0,
-                  0.0
+                  2.0
                 ],
                 "originalSize": [
                   76,
@@ -490,11 +490,11 @@
               "points": [
                 [
                   0.0,
-                  0.0
+                  76.0
                 ],
                 [
                   76.0,
-                  76.0
+                  0.0
                 ]
               ]
             },
@@ -521,11 +521,11 @@
               "points": [
                 [
                   75.0,
-                  0.0
+                  73.0
                 ],
                 [
                   0.0,
-                  73.0
+                  0.0
                 ]
               ]
             }
@@ -542,7 +542,7 @@
             ],
             "position": [
               17.0,
-              13.0
+              418.0
             ],
             "originalSize": [
               69,
@@ -566,6 +566,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.8"
+  "CardStock_stack_format": 2,
+  "CardStock_stack_version": "0.8.12"
 }

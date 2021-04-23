@@ -6,7 +6,6 @@
       500,
       500
     ],
-    "data": {},
     "canSave": false,
     "canResize": false
   },
@@ -15,12 +14,11 @@
       "type": "card",
       "handlers": {
         "OnSetup": "from random import randint",
-        "OnKeyDown": "print(keyName)\n\nif keyName == \"N\":\n   night.Click()\nif keyName == \"D\":\n   day.Click()",
-        "OnIdle": "o = card.AddOval(\n   size = (10,10),\n   position = (randint(0,490),0),\n   fillColor = 'white',\n   penThickness = 1)\n\no.AnimatePosition(randint(300,450)/100.0, (o.position.x + randint(-20,20), 500), o.Delete)\n"
+        "OnKeyDown": "if keyName == \"N\":\n   night.Click()\nif keyName == \"D\":\n   day.Click()",
+        "OnIdle": "o = card.AddOval(\n   size = (10,10),\n   position = (randint(0,490),490),\n   fillColor = 'white',\n   penThickness = 1)\n\no.AnimatePosition(\n   randint(300,450)/100.0,\n   (o.position.x + randint(-20,20), -10),\n   o.Delete)\n"
       },
       "properties": {
         "name": "card_1",
-        "data": {},
         "bgColor": "#88AAFF"
       },
       "childModels": [
@@ -37,9 +35,8 @@
             ],
             "position": [
               41.0,
-              53.0
+              418.0
             ],
-            "data": {},
             "title": "Day",
             "border": true
           }
@@ -55,9 +52,8 @@
             ],
             "position": [
               178.0,
-              353.0
+              0.0
             ],
-            "data": {},
             "originalSize": [
               143,
               147
@@ -88,9 +84,8 @@
             ],
             "position": [
               386.0,
-              33.0
+              373.0
             ],
-            "data": {},
             "originalSize": [
               97,
               94
@@ -121,9 +116,8 @@
             ],
             "position": [
               136.0,
-              216.0
+              148.0
             ],
-            "data": {},
             "originalSize": [
               232,
               136
@@ -135,15 +129,15 @@
           "points": [
             [
               232.0,
-              136.0
-            ],
-            [
-              119.0,
               0.0
             ],
             [
+              119.0,
+              136.0
+            ],
+            [
               0.0,
-              135.0
+              1.0
             ]
           ]
         },
@@ -158,9 +152,8 @@
             ],
             "position": [
               247.0,
-              441.0
+              1.0
             ],
-            "data": {},
             "originalSize": [
               37,
               58
@@ -193,9 +186,8 @@
             ],
             "position": [
               39.0,
-              21.0
+              450.0
             ],
-            "data": {},
             "title": "Night",
             "border": true
           }
@@ -203,6 +195,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 1,
+  "CardStock_stack_format": 2,
   "CardStock_stack_version": "0.8.12"
 }

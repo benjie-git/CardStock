@@ -22,7 +22,7 @@
           "type": "roundrect",
           "handlers": {
             "OnMouseMove": "self.center = mousePos\n",
-            "OnMessage": "if message == \"reset\":\n   SoundPlay(\"click.wav\")\n   self.center = (30, 465)\nelif message == \"win\":\n   SoundPlay(\"yay.wav\")\n   self.center = (30, 465)\n"
+            "OnMessage": "if message == \"reset\":\n   SoundPlay(\"click.wav\")\n   self.position = (10, 10)\nelif message == \"win\":\n   SoundPlay(\"yay.wav\")\n   self.position = (10, 10)\n"
           },
           "properties": {
             "name": "ball",
@@ -31,8 +31,8 @@
               47
             ],
             "position": [
-              9.0,
-              448.0
+              10.0,
+              10.0
             ],
             "originalSize": [
               46,
@@ -67,7 +67,7 @@
             ],
             "position": [
               106.0,
-              -12.0
+              426.0
             ],
             "originalSize": [
               102,
@@ -101,7 +101,7 @@
             ],
             "position": [
               88.0,
-              74.0
+              412.0
             ],
             "originalSize": [
               211,
@@ -135,7 +135,7 @@
             ],
             "position": [
               88.0,
-              -8.0
+              428.0
             ],
             "originalSize": [
               211,
@@ -169,7 +169,7 @@
             ],
             "position": [
               104.0,
-              184.0
+              302.0
             ],
             "originalSize": [
               211,
@@ -203,7 +203,7 @@
             ],
             "position": [
               90.0,
-              184.0
+              -40.0
             ],
             "originalSize": [
               211,
@@ -237,7 +237,7 @@
             ],
             "position": [
               236.0,
-              307.0
+              179.0
             ],
             "originalSize": [
               211,
@@ -271,7 +271,7 @@
             ],
             "position": [
               428.0,
-              91.0
+              179.0
             ],
             "originalSize": [
               211,
@@ -305,7 +305,7 @@
             ],
             "position": [
               429.0,
-              417.0
+              -28.0
             ],
             "originalSize": [
               211,
@@ -339,7 +339,7 @@
             ],
             "position": [
               236.0,
-              309.0
+              99.0
             ],
             "originalSize": [
               211,
@@ -373,7 +373,7 @@
             ],
             "position": [
               351.0,
-              417.0
+              69.0
             ],
             "originalSize": [
               211,
@@ -397,6 +397,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.7"
+  "CardStock_stack_format": 2,
+  "CardStock_stack_version": "0.8.12"
 }

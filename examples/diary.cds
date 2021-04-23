@@ -31,7 +31,7 @@
             ],
             "position": [
               190.0,
-              8.0
+              463.0
             ],
             "text": "My Diary",
             "alignment": "Center",
@@ -51,7 +51,7 @@
             ],
             "position": [
               10.0,
-              79.0
+              10.0
             ],
             "originalSize": [
               480,
@@ -85,7 +85,7 @@
             ],
             "position": [
               434.0,
-              7.0
+              464.0
             ],
             "title": ">",
             "border": true
@@ -104,7 +104,7 @@
             ],
             "position": [
               11.0,
-              7.0
+              464.0
             ],
             "title": "<",
             "border": true
@@ -121,9 +121,9 @@
             ],
             "position": [
               12.0,
-              81.0
+              15.0
             ],
-            "text": "text",
+            "text": "",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
@@ -135,7 +135,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "card.Clone()\nfield.text = \"\"\ntitle.text = \"Title\"\n"
+            "OnClick": "newCard = card.Clone()\nnewCard.field.text = \"\"\nnewCard.title.text = \"Title\"\n"
           },
           "properties": {
             "name": "addButton",
@@ -145,7 +145,7 @@
             ],
             "position": [
               77.0,
-              8.0
+              464.0
             ],
             "title": "Add",
             "border": true
@@ -162,7 +162,7 @@
             ],
             "position": [
               332.0,
-              8.0
+              466.0
             ],
             "text": "1/1",
             "alignment": "Right",
@@ -184,7 +184,7 @@
             ],
             "position": [
               132.0,
-              8.0
+              464.0
             ],
             "title": "Del",
             "border": true
@@ -201,7 +201,7 @@
             ],
             "position": [
               41.0,
-              48.0
+              427.0
             ],
             "text": "Title",
             "alignment": "Center",
@@ -215,6 +215,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.8.3"
+  "CardStock_stack_format": 2,
+  "CardStock_stack_version": "0.8.12"
 }
