@@ -42,7 +42,6 @@ class Runner():
         self.lastHandlerStack = []
         self.didSetup = False
         self.runnerDepth = 0
-        self.missedIdleCount = 0
         self.numOnIdlesQueued = 0
 
         # queue of tasks to run on the runnerThread
@@ -134,20 +133,6 @@ class Runner():
             self.cardVarKeys.append(name)
         self.didSetup = True
 
-    def ApplyPendingUpdatesIfBusy(self):
-        """
-        Keep track of whether we're still running the previous OnIdle.  If so, ApplyAllPending now.
-        """
-        if self.missedIdleCount > 1:
-            self.stackManager.uiCard.model.ApplyAllPending()
-        self.missedIdleCount += 1
-
-    def EnqueueApplyPendingUpdates(self):
-        """
-        Add a task into the queue to apply pending model updates after the queue finishes running.
-        """
-        self.handlerQueue.put([])
-
     def IsRunningHandler(self):
         return len(self.lastHandlerStack) > 0
 
@@ -179,6 +164,9 @@ class Runner():
             self.runnerThread = None
         self.lastHandlerStack = []
 
+    def EnqueueRefresh(self):
+        self.handlerQueue.put([])
+
     def StartRunLoop(self):
         """
         This is the runnerThread's run loop.  Start waiting for queued handlers, and process them until
@@ -188,11 +176,10 @@ class Runner():
             while True:
                 args = self.handlerQueue.get()
                 if len(args) == 0:
-                    # This is an enqueued task meant to ApplyAllPending() after running all other tasks,
+                    # This is an enqueued task meant to Refresh after running all other tasks,
                     # and also serves to wake up the runner thread for stopping.
                     if not self.stopRunnerThread:
-                        self.stackManager.uiCard.model.ApplyAllPending()
-                        self.missedIdleCount = 0
+                        self.stackManager.view.RefreshIfNeeded()
                 elif len(args) == 1:
                     self.SetupForCardInternal(*args)
                 elif len(args) == 6:
@@ -341,9 +328,6 @@ class Runner():
                 self.statusBar.SetStatusText(msg)
 
         self.runnerDepth -= 1
-        # Changes from OnIdle handlers get applied after all of them run, by EnqueueApplyPendingUpdates
-        if self.runnerDepth == 0 and handlerName != "OnIdle":
-            self.stackManager.stackModel.ApplyAllPending()
 
     def HandlerPath(self, model, handlerName):
         if model.type == "card":
@@ -431,7 +415,6 @@ class Runner():
         except ValueError:
             raise TypeError("delay must be a number")
 
-        self.stackManager.uiCard.model.ApplyAllPending()
         endTime = time() + delay
         while time() < endTime:
             remaining = endTime - time()
@@ -450,7 +433,6 @@ class Runner():
         if self.stopRunnerThread:
             return
 
-        self.stackManager.uiCard.model.ApplyAllPending()
         wx.MessageDialog(None, str(message), "", wx.OK).ShowModal()
 
     @RunOnMain
@@ -461,7 +443,6 @@ class Runner():
         if self.stopRunnerThread:
             return None
 
-        self.stackManager.uiCard.model.ApplyAllPending()
         r = wx.MessageDialog(None, str(message), "", wx.YES_NO).ShowModal()
         return (r == wx.ID_YES)
 
@@ -505,9 +486,6 @@ class Runner():
     def Paste(self):
         models = self.stackManager.Paste(False)
         for model in models:
-            # Hide now and defer an unHide, so the handler code can modify the clone before it displays
-            model.SetProperty("hidden", True, notify=False, noDeferred=True)
-            model.SetProperty("hidden", False)
             model.RunSetup(self)
         return [m.GetProxy() for m in models]
 
@@ -540,5 +518,4 @@ class Runner():
 
     @RunOnMain
     def Quit(self):
-        self.stackManager.stackModel.ApplyAllPending()
         self.stackManager.view.TopLevelParent.OnMenuClose(None)

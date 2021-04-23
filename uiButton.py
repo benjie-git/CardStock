@@ -83,10 +83,12 @@ class ButtonModel(ViewModel):
         self.proxyClass = Button
 
         # Add custom handlers to the top of the list
-        handlers = {"OnClick": ""}
+        handlers = {"OnSetup": "",
+                    "OnClick": ""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
+        self.initialEditHandler = "OnClick"
 
         self.properties["title"] = "Button"
         self.properties["border"] = True

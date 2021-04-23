@@ -64,7 +64,7 @@ class UiGroup(UiView):
         if self.stackManager.isEditing:
             gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            gc.DrawRectangle(self.model.GetAbsoluteFrame(noDeferred=True))
+            gc.DrawRectangle(self.model.GetAbsoluteFrame())
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
@@ -163,11 +163,11 @@ class GroupModel(ViewModel):
         self.origFrame = self.GetFrame()
 
     @RunOnMain
-    def SetProperty(self, key, value, notify=True, noDeferred=False):
-        super().SetProperty(key, value, notify, noDeferred)
+    def SetProperty(self, key, value, notify=True):
+        super().SetProperty(key, value, notify)
         if key == "hidden":
             for m in self.childModels:
-                m.SetProperty(key, value, notify, noDeferred)
+                m.SetProperty(key, value, notify)
 
     def AddChildModels(self, models):
         selfPos = self.GetProperty("position")
@@ -242,7 +242,6 @@ class Group(ViewProxy):
 
     @RunOnMain
     def Ungroup(self):
-        self._model.ApplyAllPending()
         groups = self._model.stackManager.UngroupModelsInternal([self._model])
         if groups and len(groups) > 0:
             return groups[0]

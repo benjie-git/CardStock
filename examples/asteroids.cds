@@ -76,7 +76,7 @@
           "type": "image",
           "handlers": {
             "OnSetup": "import math\nfrom random import randint\n\ntry_again.Hide()\n\nhit = False\nasteroid.speed += (randint(-100,100), randint(-100,100))\n\ndef rotate(list, angle):\n   angle = math.radians(angle)\n   px, py = list\n   return [-(math.cos(angle) * px - math.sin(angle) * py),\n           math.sin(angle) * px + math.cos(angle) * py]\n",
-            "OnIdle": "if hit == False:\n   if IsKeyPressed(\"Left\"):\n      self.rotation -= 5\n   if IsKeyPressed(\"Right\"):\n      self.rotation += 5\n      \n   if IsKeyPressed(\"Up\"):\n      self.speed += rotate((0, 15), self.rotation)\n      self.file = \"ship-on.png\"\n      SoundPlay(\"puff.wav\")\n   else:\n      self.file = \"ship-off.png\"\n\n   if ship.center.y <= 0 and ship.speed.y < 0:\n      # Off the Bottom edge\n      ship.center = [self.center.x, card.size.y]\n   elif ship.center.y >= card.size.height and ship.speed.y > 0:\n      # Off the Top edge\n      ship.center = [self.center.x, 0]\n   elif ship.center.x <= 0 and ship.speed.x < 0:\n      # Off the Left edge\n      ship.center = [card.size.x, self.center.y]\n   elif ship.center.x >= card.size.width and ship.speed.x > 0:\n      # Off the Right edge\n      ship.center = [0, self.center.y]\n\n   if ship.IsTouchingPoint(asteroid.center):\n      asteroid.speed = (0,0)\n      ship.speed = (0,0)\n      hit = True\n      try_again.Show()\nelse:\n   if IsKeyPressed(\"Space\"):\n      hit = False\n      ship.rotation = 0\n      ship.position = (295, 295)\n      asteroid.position = (100,100)\n      asteroid.speed += (randint(-100,100), randint(-100,100))\n      try_again.Hide()\n"
+            "OnIdle": "if hit == False:\n   if IsKeyPressed(\"Left\"):\n      self.rotation -= 5\n   if IsKeyPressed(\"Right\"):\n      self.rotation += 5\n      \n   if IsKeyPressed(\"Up\"):\n      self.speed += rotate((0, 15), self.rotation)\n      self.file = \"ship-on.png\"\n      SoundPlay(\"puff.wav\")\n   else:\n      self.file = \"ship-off.png\"\n\n   if ship.center.y <= 0 and ship.speed.y < 0:\n      # Off the Bottom edge\n      ship.center = [self.center.x, card.size.y]\n   elif ship.center.y >= card.size.height and ship.speed.y > 0:\n      # Off the Top edge\n      ship.center = [self.center.x, 0]\n   elif ship.center.x <= 0 and ship.speed.x < 0:\n      # Off the Left edge\n      ship.center = [card.size.x, self.center.y]\n   elif ship.center.x >= card.size.width and ship.speed.x > 0:\n      # Off the Right edge\n      ship.center = [0, self.center.y]\n\n   if ship.IsTouchingPoint(asteroid.center):\n      asteroid.speed = (0,0)\n      ship.speed = (0,0)\n      hit = True\n      try_again.Show()\nelse:\n   if IsKeyPressed(\"Space\"):\n      hit = False\n      ship.rotation = 0\n      ship.center = card.center\n      asteroid.position = (100,100)\n      asteroid.speed += (randint(-100,100), randint(-100,100))\n      try_again.Hide()\n"
           },
           "properties": {
             "name": "ship",
@@ -85,7 +85,7 @@
               114
             ],
             "position": [
-              295.0,
+              319.0,
               391.0
             ],
             "file": "ship-off.png",

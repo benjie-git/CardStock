@@ -113,7 +113,7 @@ class UiImage(UiView):
         if self.origImage:
             if not self.rotatedBitmap:
                 self.MakeScaledAndRotatedBitmap()
-            r = self.model.GetAbsoluteFrame(noDeferred=True)
+            r = self.model.GetAbsoluteFrame()
 
             imgSize = self.rotatedBitmap.GetSize()
             viewSize = r.Size
@@ -124,7 +124,7 @@ class UiImage(UiView):
         if self.stackManager.isEditing:
             gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            gc.DrawRectangle(self.model.GetAbsoluteFrame(noDeferred=True))
+            gc.DrawRectangle(self.model.GetAbsoluteFrame())
 
 
 class ImageModel(ViewModel):
@@ -156,10 +156,10 @@ class ImageModel(ViewModel):
         self.propertyKeys = ["name", "file", "fit", "rotation", "position", "size"]
 
     @RunOnMain
-    def SetProperty(self, key, value, notify=True, noDeferred=False):
+    def SetProperty(self, key, value, notify=True):
         if key == "rotation":
             value = value % 360
-        super().SetProperty(key, value, notify, noDeferred)
+        super().SetProperty(key, value, notify)
 
     def PerformFlips(self, fx, fy):
         if fx:

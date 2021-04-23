@@ -86,9 +86,11 @@ class UiCard(UiView):
             self.stackManager.runner.RunHandler(self.model, "OnKeyUp", event)
 
     def OnIdle(self, event):
-        super().OnIdle(event)
+        didRun = super().OnIdle(event)
         for child in self.stackManager.GetAllUiViews():
-            child.OnIdle(event)
+            if child.OnIdle(event):
+                didRun = True
+        return didRun
 
 
 class CardModel(ViewModel):
@@ -106,6 +108,7 @@ class CardModel(ViewModel):
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
+        self.initialEditHandler = "OnSetup"
 
         # Custom property order and mask for the inspector
         self.properties["bgColor"] = "white"
@@ -116,24 +119,24 @@ class CardModel(ViewModel):
         self.propertyTypes["canResize"] = 'bool'
 
     @RunOnMain
-    def SetProperty(self, key, value, notify=True, noDeferred=False):
+    def SetProperty(self, key, value, notify=True):
         if key in ["size", "canSave", "canResize"]:
-            self.parent.SetProperty(key, value, notify, noDeferred)
+            self.parent.SetProperty(key, value, notify)
         else:
-            super().SetProperty(key, value, notify, noDeferred)
+            super().SetProperty(key, value, notify)
 
-    def GetProperty(self, key, noDeferred=False):
+    def GetProperty(self, key):
         if key in ["size", "canSave", "canResize"]:
-            return self.parent.GetProperty(key, noDeferred)
+            return self.parent.GetProperty(key)
         else:
-            return super().GetProperty(key, noDeferred)
+            return super().GetProperty(key)
 
-    def GetFrame(self, noDeferred=False):
-        s = self.parent.GetProperty("size", noDeferred)
+    def GetFrame(self):
+        s = self.parent.GetProperty("size")
         return wx.Rect((0,0), s)
 
-    def GetAbsoluteFrame(self, noDeferred=False):
-        return self.GetFrame(noDeferred)
+    def GetAbsoluteFrame(self):
+        return self.GetFrame()
 
     def GetAllChildModels(self):
         allModels = []
@@ -199,12 +202,10 @@ class CardModel(ViewModel):
         @RunOnMain
         def func():
             model = generator.StackGenerator.ModelFromType(self.stackManager, typeStr)
-            # Hide now and defer an unHide, so the handler code can modify the clone before it displays
-            model.SetProperty("hidden", True, notify=False, noDeferred=True)
             model.SetProperty("name", name)
             self.DeduplicateNamesForModels([model])
             if size:
-                model.SetProperty("size", size, notify=False, noDeferred=True)
+                model.SetProperty("size", size, notify=False)
             if isinstance(model, uiShape.LineModel):
                 model.type = typeStr
                 if points:
@@ -222,10 +223,6 @@ class CardModel(ViewModel):
                 for k,v in kwargs.items():
                     if k in model.propertyTypes:
                         model.SetProperty(k, v)
-
-            # Make the new object hidden, and defer a Show,
-            # to avoid a quick visual glitch of the default shape before setting it up
-            model.SetProperty("hidden", False)
 
             return model
         return func()
@@ -296,9 +293,6 @@ class Card(ViewProxy):
     @property
     def index(self):
         return self._model.parent.childModels.index(self._model)
-
-    def Delete(self):
-        self._model.pendingProps["delete"] = 1
 
     def AnimateBgColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):

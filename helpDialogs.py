@@ -98,8 +98,9 @@ a time, or by 5 or 20 pixels at a time by holding down Shift or Alt/Option, resp
 <p>The next four tools are the button, text field, text label, and image tools.  These each 
 let you create that type of object, by drawing out the new object's shape on the card on the left.  You can double-click
 a text field or text label to edit its text in-place on the card.</p>
-<p>The next five tools
-are the drawing tools, which let you draw with a pen, drag out an oval, a rectangle, a rounded rectangle, and a line.
+<p>The next six tools
+are the drawing tools, which let you draw with a pen, drag out an oval, a rectangle, a rounded rectangle, a polygon, 
+and a line.
 While creating a shape, you can hold down the Shift key to constrain ovals and rectangles to being circles and squares, 
 and to make new lines stay perfectly horizontal, vertical, or 45° diagonal.  After creating an object, CardStock will 
 switch back to the Hand tool.  Pressing Escape in the Designer will also always return you to the Hand tool.  

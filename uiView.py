@@ -281,14 +281,16 @@ class ViewModel(object):
         self.type = None
         self.parent = None
         self.handlers = {"OnSetup": "",
+                         "OnMouseEnter": "",
                          "OnMouseDown": "",
                          "OnMouseMove": "",
                          "OnMouseUp": "",
-                         "OnMouseEnter": "",
                          "OnMouseExit": "",
                          "OnMessage": "",
                          "OnIdle": ""
                          }
+        self.initialEditHandler = "OnMouseDown"
+
         self.properties = {"name": "",
                            "size": wx.Size(0,0),
                            "position": wx.RealPoint(0,0),
@@ -306,7 +308,6 @@ class ViewModel(object):
                               "data": "dict"
                               }
         self.propertyChoices = {}
-        self.pendingProps = {}
 
         self.childModels = []
         self.stackManager = stackManager
@@ -366,12 +367,12 @@ class ViewModel(object):
         for m in self.childModels:
             m.SetStackView(stackManager)
 
-    def GetAbsolutePosition(self, noDeferred=False):
-        p = self.GetProperty("position", noDeferred)
+    def GetAbsolutePosition(self):
+        p = self.GetProperty("position")
         pos = wx.RealPoint(p[0], p[1])  # Copy so we don't edit the model's position
         parent = self.parent
         while parent and parent.type != "card":
-            parentPos = parent.GetProperty("position", noDeferred)
+            parentPos = parent.GetProperty("position")
             pos += parentPos
             parent = parent.parent
         return pos
@@ -385,20 +386,20 @@ class ViewModel(object):
             parent = parent.parent
         self.SetProperty("position", pos)
 
-    def GetCenter(self, noDeferred=False):
-        return self.GetProperty("center", noDeferred)
+    def GetCenter(self):
+        return self.GetProperty("center")
 
     def SetCenter(self, center):
         self.SetProperty("center", center)
 
-    def GetFrame(self, noDeferred=False):
-        p = wx.Point(self.GetProperty("position", noDeferred))
-        s = self.GetProperty("size", noDeferred)
+    def GetFrame(self):
+        p = wx.Point(self.GetProperty("position"))
+        s = self.GetProperty("size")
         return wx.Rect(p, s)
 
-    def GetAbsoluteFrame(self, noDeferred=False):
-        p = wx.Point(self.GetAbsolutePosition(noDeferred))
-        s = self.GetProperty("size", noDeferred)
+    def GetAbsoluteFrame(self):
+        p = wx.Point(self.GetAbsolutePosition())
+        s = self.GetProperty("size")
         return wx.Rect(p, s)
 
     def SetFrame(self, rect):
@@ -427,6 +428,7 @@ class ViewModel(object):
                 "handlers": handlers,
                 "properties": props}
 
+    # These Sanitize* methods make sure that the "data" property only includes json-serializable data
     def SanitizeKey(self, val, seen):
         if type(val) == dict:
             value = None
@@ -518,15 +520,13 @@ class ViewModel(object):
     def GetPropertyChoices(self, key):
         return self.propertyChoices[key]
 
-    def GetProperty(self, key, noDeferred=False):
+    def GetProperty(self, key):
         if key == "center":
-            p = self.GetAbsolutePosition(noDeferred)
-            s = self.GetProperty("size", noDeferred)
+            p = self.GetAbsolutePosition()
+            s = self.GetProperty("size")
             center = [p.x + s.width / 2, p.y + s.height / 2]
             return center
         elif key in self.properties:
-            if not noDeferred and self.stackManager and self.stackManager.runner and key in self.pendingProps:
-                return self.pendingProps[key][0]
             return self.properties[key]
         return None
 
@@ -593,7 +593,7 @@ class ViewModel(object):
         self.stackManager.OnPropertyChanged(self, key)
 
     @RunOnMain
-    def SetProperty(self, key, value, notify=True, noDeferred=False):
+    def SetProperty(self, key, value, notify=True):
         if key in self.propertyTypes and self.propertyTypes[key] == "point" and not isinstance(value, wx.Point):
             value = wx.Point(value)
         elif key in self.propertyTypes and self.propertyTypes[key] == "floatpoint" and not isinstance(value, wx.RealPoint):
@@ -604,7 +604,6 @@ class ViewModel(object):
             return
 
         if key == "name":
-            noDeferred = True  # Don't defer setting name
             value = re.sub(r'\W+', '', value)
             if not re.match(r'[A-Za-z][A-Za-z_0-9]*', value):
                 if notify:
@@ -618,36 +617,11 @@ class ViewModel(object):
             self.SetAbsolutePosition([value.x - s.width / 2, value.y - s.height / 2])
             return
 
-        # While running, we don't want to actually update properties live.  We defer the updates until we're ready
-        # to redraw changes in bulk.
-        if self.stackManager and self.stackManager.runner and not noDeferred:
-            self.pendingProps[key] = (value, notify)
-        else:
-            if self.properties[key] != value:
-                self.properties[key] = value
-                if notify:
-                    self.Notify(key)
-                self.isDirty = True
-
-    @RunOnMain
-    def ApplyAllPending(self):
-        """
-        Applies all pending property updates.  We try to call this at strategic times, to avoid redrawing incomplete,
-        updates.
-        """
-        for k,v in self.pendingProps.items():
-            if k == "delete":
-                if self.type != "card":
-                    self.stackManager.RemoveUiViewByModel(self)
-                else:
-                    self.pendingProps = {}
-                    self.stackManager.RemoveCardRaw(self)
-                    return
-            else:
-                self.SetProperty(k, v[0], notify=v[1], noDeferred=True)
-        self.pendingProps = {}
-        for m in self.childModels.copy():
-            m.ApplyAllPending()
+        if self.properties[key] != value:
+            self.properties[key] = value
+            if notify:
+                self.Notify(key)
+            self.isDirty = True
 
     def InterpretPropertyFromString(self, key, valStr):
         propType = self.propertyTypes[key]
@@ -752,7 +726,6 @@ class ViewProxy(object):
     @RunOnMain
     def Focus(self):
         if self._model.stackManager.runner:
-            self._model.ApplyAllPending()
             self._model.stackManager.runner.SetFocus(self)
 
     @property
@@ -765,14 +738,12 @@ class ViewProxy(object):
     @RunOnMain
     def Clone(self, **kwargs):
         if self._model.type != "card":
-            self._model.ApplyAllPending()
             newModel = self._model.CreateCopy()
-            # Hide now and defer an unHide, so the handler code can modify the clone before it displays
-            newModel.SetProperty("hidden", True, notify=False, noDeferred=True)
+            if not self.visible:
+                newModel.SetProperty("hidden", True)
             for k,v in kwargs.items():
                 if k in newModel.propertyTypes:
                     newModel.SetProperty(k, v)
-            newModel.SetProperty("hidden", False)
             self._model.stackManager.AddUiViewsFromModels([newModel], False)
             self._model.stackManager.runner.SetupForCard(newModel.GetCard())
 
@@ -780,25 +751,26 @@ class ViewProxy(object):
             if newModel.GetCard() != self._model.stackManager.uiCard.model:
                 self._model.stackManager.runner.SetupForCard(self._model.stackManager.uiCard.model)
         else:
-            self._model.ApplyAllPending()
             newModel = self._model.stackManager.DuplicateCard()
             for k,v in kwargs.items():
                 if k in newModel.propertyTypes:
-                    newModel.SetProperty(k, v, noDeferred=True)
+                    newModel.SetProperty(k, v)
 
         return newModel.GetProxy()
 
+    @RunOnMain
     def Delete(self):
-        self._model.pendingProps["delete"] = 1
+        if self._model.type != "card":
+            self._model.stackManager.RemoveUiViewByModel(self._model)
+        else:
+            self._model.stackManager.RemoveCardRaw(self._model)
 
     @RunOnMain
     def Cut(self):
-        self._model.ApplyAllPending()
         self._model.stackManager.CutModels([self._model], False)
 
     @RunOnMain
     def Copy(self):
-        self._model.ApplyAllPending()
         self._model.stackManager.CopyModels([self._model])
     #   Paste is in the runner
 
@@ -987,7 +959,7 @@ class ViewProxy(object):
                 offset = wx.RealPoint(offsetp[0], offsetp[1])
 
                 def internalOnFinished():
-                    self._model.SetProperty("speed", (0,0), noDeferred=True)
+                    self._model.SetProperty("speed", (0,0))
                     if onFinished: onFinished(*args, **kwargs)
 
                 def onCanceled():
@@ -1020,7 +992,7 @@ class ViewProxy(object):
                 offset = wx.RealPoint(offsetp[0], offsetp[1])
 
                 def internalOnFinished():
-                    self._model.SetProperty("speed", (0,0), noDeferred=True)
+                    self._model.SetProperty("speed", (0,0))
                     if onFinished: onFinished(*args, **kwargs)
 
                 def onCanceled():
@@ -1062,5 +1034,4 @@ class ViewProxy(object):
 
     @RunOnMain
     def StopAnimations(self):
-        self._model.ApplyAllPending()
         self._model.StopAnimations()

@@ -91,12 +91,12 @@
           "properties": {
             "name": "label",
             "size": [
-              70,
-              27
+              75,
+              31
             ],
             "position": [
-              118.0,
-              360.0
+              120.0,
+              356.0
             ],
             "text": "0",
             "alignment": "Left",
@@ -111,12 +111,12 @@
           "properties": {
             "name": "label_1",
             "size": [
-              90,
-              30
+              138,
+              38
             ],
             "position": [
               23.0,
-              358.0
+              350.0
             ],
             "text": "Score:",
             "alignment": "Left",

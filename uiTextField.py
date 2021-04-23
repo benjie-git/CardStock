@@ -210,10 +210,11 @@ class TextFieldModel(TextBaseModel):
         self.proxyClass = TextField
 
         # Add custom handlers to the top of the list
-        handlers = {"OnTextEnter": "", "OnTextChanged": ""}
+        handlers = {"OnSetup": "", "OnTextEnter": "", "OnTextChanged": ""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
+        self.initialEditHandler = "OnTextEnter"
 
         self.properties["editable"] = True
         self.properties["multiline"] = False
@@ -247,7 +248,6 @@ class TextField(TextBaseProxy):
 
     @RunOnMain
     def SelectAll(self):
-        self._model.ApplyAllPending()
         self._model.Notify("selectAll")
 
     def Enter(self):

@@ -24,6 +24,7 @@ from uiTextLabel import UiTextLabel
 from uiImage import UiImage
 from uiShape import UiShape
 from uiGroup import UiGroup, GroupModel
+from killableThread import RunOnMain
 
 
 # ----------------------------------------------------------------------
@@ -44,6 +45,7 @@ class DeferredRefreshWindow(wx.Window):
     def UseDeferredRefresh(self, deferred):
         self.deferredRefresh = deferred
 
+    @RunOnMain
     def RefreshIfNeeded(self):
         if self.needsRefresh:
             super().Refresh(True, None)
@@ -152,16 +154,14 @@ class StackManager(object):
             for c in onFinishedCalls:
                 c()
 
-            wasBusy = self.runner.IsRunningHandler()
+            didRun = False
             if self.runner.numOnIdlesQueued == 0:
                 didRun = self.uiCard.OnIdle(event)
-                if didRun:
-                    self.runner.EnqueueApplyPendingUpdates()
 
-            if not wasBusy or self.runner.missedIdleCount > 1:
-                self.runner.ApplyPendingUpdatesIfBusy()
-
-            self.view.RefreshIfNeeded()
+            if didRun:
+                self.runner.EnqueueRefresh()
+            else:
+                self.view.RefreshIfNeeded()
 
     def SetTool(self, tool):
         if self.tool:
@@ -206,8 +206,6 @@ class StackManager(object):
 
     def LoadCardAtIndex(self, index, reload=False):
         if index != self.cardIndex or reload == True:
-            if self.runner:
-                self.stackModel.ApplyAllPending()
             if not self.isEditing and self.cardIndex is not None and not reload:
                 oldCardModel = self.stackModel.childModels[self.cardIndex]
                 if self.runner:
@@ -452,21 +450,20 @@ class StackManager(object):
         return None
 
     def RemoveUiViewByModel(self, viewModel):
-        for ui in self.uiViews.copy():
-            if ui.model == viewModel:
-                if ui in self.selectedViews:
-                    self.SelectUiView(ui, True)
-                if ui.model.type == "group":
-                    ui.RemoveChildViews()
-                    for childUi in ui.uiViews:
-                        del self.modelToViewMap[childUi.model]
-                if ui.model in self.modelToViewMap:
-                    del self.modelToViewMap[ui.model]
-                self.uiViews.remove(ui)
-                self.view.Refresh(True)
-                self.uiCard.model.RemoveChild(ui.model)
-                ui.DestroyView()
-                return
+        ui = self.GetUiViewByModel(viewModel)
+        if ui:
+            if ui in self.selectedViews:
+                self.SelectUiView(ui, True)
+            if ui.model.type == "group":
+                ui.RemoveChildViews()
+                for childUi in ui.uiViews:
+                    del self.modelToViewMap[childUi.model]
+            if ui.model in self.modelToViewMap:
+                del self.modelToViewMap[ui.model]
+            self.uiViews.remove(ui)
+            self.view.Refresh(True)
+            self.uiCard.model.RemoveChild(ui.model)
+            ui.DestroyView()
 
     def ReorderSelectedViews(self, direction):
         oldIndexes = []
@@ -695,14 +692,14 @@ class StackManager(object):
             dc = wx.MemoryDC(self.buffer)
 
         gc = FlippedGCDC(dc, self)
-        bg = wx.Colour(self.uiCard.model.GetProperty("bgColor", noDeferred=True))
+        bg = wx.Colour(self.uiCard.model.GetProperty("bgColor"))
         if not bg:
             bg = wx.Colour('white')
         gc.SetPen(wx.TRANSPARENT_PEN)
         gc.SetBrush(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
         gc.DrawRectangle(self.view.GetRect().Inflate(1))
 
-        paintUiViews = [ui for ui in self.GetAllUiViews() if not ui.model.GetProperty("hidden", noDeferred=True)]
+        paintUiViews = [ui for ui in self.GetAllUiViews() if not ui.model.GetProperty("hidden")]
         if len(paintUiViews):
             for uiView in paintUiViews:
                 uiView.Paint(gc)

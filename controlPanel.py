@@ -395,7 +395,7 @@ class ControlPanel(wx.Panel):
                     handlerName = k
                     break
             else:
-                handlerName = list(uiView.model.GetHandlers().keys())[0]
+                handlerName = uiView.model.initialEditHandler
         if handlerName:
             self.currentHandler = handlerName
 
