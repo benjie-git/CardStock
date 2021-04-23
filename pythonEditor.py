@@ -202,6 +202,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.analyzer.ScanCode(self.cPanel.stackManager.stackModel, self.currentHandler, self.ScanFinished)
 
     def ClearSyntaxErrorMarks(self):
+        self.SetIndicatorCurrent(2)
         self.IndicatorClearRange(0, self.GetLastPosition())
 
     def MarkSyntaxError(self, startPos, length):
