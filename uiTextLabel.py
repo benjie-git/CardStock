@@ -20,14 +20,17 @@ class UiTextLabel(UiTextBase):
 
     def Paint(self, gc):
         align = self.model.GetProperty("alignment")
+        (startX, startY) = self.model.GetAbsoluteFrame().BottomLeft
+        (width, height) = self.model.GetProperty("size")
+
         gc.SetFont(self.font)
         gc.SetTextForeground(wx.Colour(self.textColor))
-        (width, height) = self.model.GetProperty("size")
-        magicExtraWidth = 30  # ?? Not sure why this is needed...
-        lines = wordwrap(self.model.GetProperty("text"), width + magicExtraWidth, gc)
-        (startX, startY) = self.model.GetAbsoluteFrame().BottomLeft
+        lines = wordwrap(self.model.GetProperty("text"), width, gc)
+
         offsetY = 0
-        extraLineSpacing = 2 if wx.Platform == "__WXMAC__" else 6
+        lineHeight = self.font.GetPixelSize().height
+        extraLineSpacing = 6 if wx.Platform == "__WXMSW__" else 2
+
         for line in lines.split('\n'):
             if align in ["Center", "Right"]:
                 textWidth = gc.GetTextExtent(line).Width
@@ -38,8 +41,8 @@ class UiTextLabel(UiTextBase):
             else:
                 xPos = startX
             gc.DrawText(line, wx.Point(xPos, startY-offsetY))
-            offsetY += self.font.GetFractionalPointSize() + extraLineSpacing
-            if offsetY + self.font.GetFractionalPointSize() >= height:
+            offsetY += lineHeight + extraLineSpacing
+            if offsetY + lineHeight >= height:
                 break
 
         if self.stackManager.isEditing:

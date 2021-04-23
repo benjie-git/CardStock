@@ -49,9 +49,17 @@ class UiTextBase(UiView):
 
     def UpdateFont(self, model, view):
         familyName = model.GetProperty("font")
-        platformScale = 1.4 if (wx.Platform == '__WXMAC__') else 1.0
+
+        # Adjust font sizes by platform
+        if wx.Platform == '__WXMAC__':
+            platformScale = 1.2 if isinstance(view, stc.StyledTextCtrl) else 1.4
+        elif wx.Platform == '__WXMSW__':
+            platformScale = 1.0 if isinstance(view, stc.StyledTextCtrl) else 1.3
+        else:
+            platformScale = 0.9 if isinstance(view, stc.StyledTextCtrl) else 1.4
+
         size = int(model.GetProperty("fontSize") * platformScale)
-        font = wx.Font(wx.FontInfo(size).Family(self.FamilyForName(familyName)))
+        font = wx.Font(wx.FontInfo(wx.Size(0, size)).Family(self.FamilyForName(familyName)))
         color = wx.Colour(model.GetProperty("textColor"))
         if color.IsOk():
             colorStr = color.GetAsString(flags=wx.C2S_HTML_SYNTAX)
