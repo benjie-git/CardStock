@@ -4,9 +4,18 @@ import shutil
 import PyInstaller.__main__
 import version
 
+EXTRA_MODULES = []
+
+try:
+    import requests
+    REQUESTS_AVAILABLE = True
+    EXTRA_MODULES.append("requests")
+except ModuleNotFoundError:
+    REQUESTS_AVAILABLE = False
+
+
 """PyInstaller commands for building the standalone Designer and Viewer apps on Mac and Windows"""
 
-EXTRA_MODULES = ["requests"]
 
 extraModsStr = " ".join([f"--hidden-import {mod}" for mod in EXTRA_MODULES])
 

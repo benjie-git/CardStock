@@ -30,6 +30,14 @@ from killableThread import RunOnMain
 # ----------------------------------------------------------------------
 
 class DeferredRefreshWindow(wx.Window):
+    """
+    This wx.Window subclass allows deferring Refresh() calls.  When this feature is enabled, it flags
+    when a Refresh() has been requested, but doesn't call wx.Window.Refresh() until receiving a
+    RefreshIfNeeded() call.
+    This class also helps with flipping the vertical coordinate axis of the stack, by using bottom-left corner as the
+    origin, and making upwards==positive, on all calls to ScreenToClient(), which is used to wrap all
+    event.GetPosition() calls throughout the code.
+    """
     def __init__(self, stackManager, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.stackManager = stackManager
@@ -54,7 +62,7 @@ class DeferredRefreshWindow(wx.Window):
 
     def ScreenToClient(self, *args, **kwargs):
         """
-        Vertically flip the input to the stack view, so the origin is the bottom-left corner.
+        Vertically flip the mouse position / input to the stack view, so the origin is the bottom-left corner.
         """
         return self.stackManager.ConvPoint(super().ScreenToClient(*args, **kwargs))
 
@@ -662,9 +670,6 @@ class StackManager(object):
             self.runner.RunHandler(self.uiCard.model, "OnResize", None)
         event.Skip()
 
-    def UpdateBuffer(self):
-        self.buffer = wx.Bitmap.FromRGBA(self.view.GetSize().Width, self.view.GetSize().Height)
-
     def ConvPoint(self, pt):
         """
         Vertically flip the stack view, so the origin is the bottom-left corner.
@@ -681,6 +686,9 @@ class StackManager(object):
             bl = rect.BottomLeft
             return wx.Rect((bl[0], height - bl[1]), rect.Size)
         return None
+
+    def UpdateBuffer(self):
+        self.buffer = wx.Bitmap.FromRGBA(self.view.GetSize().Width, self.view.GetSize().Height)
 
     def OnPaint(self, event):
         if wx.Platform == '__WXMAC__':
