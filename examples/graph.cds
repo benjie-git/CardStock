@@ -26,14 +26,14 @@
           "properties": {
             "name": "button_1",
             "size": [
-              72,
+              116,
               28
             ],
             "position": [
-              118.0,
+              138.0,
               348.0
             ],
-            "title": "Graph It",
+            "title": "Graph List",
             "border": true
           }
         },
@@ -70,6 +70,44 @@
           ]
         },
         {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoPreviousCard()"
+          },
+          "properties": {
+            "name": "button_2",
+            "size": [
+              42,
+              26
+            ],
+            "position": [
+              561.0,
+              349.0
+            ],
+            "title": "<",
+            "border": true
+          }
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoNextCard()"
+          },
+          "properties": {
+            "name": "button_3",
+            "size": [
+              42,
+              26
+            ],
+            "position": [
+              621.0,
+              349.0
+            ],
+            "title": ">",
+            "border": true
+          }
+        },
+        {
           "type": "textfield",
           "handlers": {},
           "properties": {
@@ -89,6 +127,147 @@
             "fontSize": 12,
             "editable": true,
             "multiline": true
+          }
+        }
+      ]
+    },
+    {
+      "type": "card",
+      "handlers": {},
+      "properties": {
+        "name": "card_2",
+        "bgColor": "white"
+      },
+      "childModels": [
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "def func(x):\n   return eval(field.text)\nitems = [func(x/10+0.001) for x in range(-50,51)]\nlow = min(items)\nhigh = max(items)\nnum = len(items)\n\npos = graph_frame.position\ns = graph_frame.size\n\nxStep = (s.width-2)/(num-1)\nyStep = (s.height-3)/high\n\npoints = []\nfor i in range(len(items)):\n   points.append((xStep*i+pos.x, yStep*items[i]+pos.y))\n\nfor obj in card.children:\n   if obj.name == \"line_1\":\n      obj.Delete()\nline = card.AddLine(points, \"line_1\")"
+          },
+          "properties": {
+            "name": "button_1",
+            "size": [
+              142,
+              23
+            ],
+            "position": [
+              138.0,
+              353.0
+            ],
+            "title": "Graph Function",
+            "border": true
+          }
+        },
+        {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "graph_frame",
+            "size": [
+              568,
+              329
+            ],
+            "position": [
+              115.0,
+              10.0
+            ],
+            "originalSize": [
+              428,
+              221
+            ],
+            "penColor": "#B6B5B7",
+            "penThickness": 1,
+            "fillColor": "white"
+          },
+          "points": [
+            [
+              0.0,
+              221.0
+            ],
+            [
+              428.0,
+              0.0
+            ]
+          ]
+        },
+        {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "label_1",
+            "size": [
+              52,
+              26
+            ],
+            "position": [
+              291.0,
+              351.0
+            ],
+            "text": "y =",
+            "alignment": "Left",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 14
+          }
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoPreviousCard()"
+          },
+          "properties": {
+            "name": "button_2",
+            "size": [
+              42,
+              26
+            ],
+            "position": [
+              561.0,
+              349.0
+            ],
+            "title": "<",
+            "border": true
+          }
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoNextCard()"
+          },
+          "properties": {
+            "name": "button_3",
+            "size": [
+              42,
+              26
+            ],
+            "position": [
+              621.0,
+              349.0
+            ],
+            "title": ">",
+            "border": true
+          }
+        },
+        {
+          "type": "textfield",
+          "handlers": {},
+          "properties": {
+            "name": "field",
+            "size": [
+              114,
+              24
+            ],
+            "position": [
+              326.0,
+              354.0
+            ],
+            "text": "x**2 + 1",
+            "alignment": "Left",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 12,
+            "editable": true,
+            "multiline": false
           }
         }
       ]

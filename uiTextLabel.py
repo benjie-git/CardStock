@@ -18,6 +18,42 @@ class UiTextLabel(UiTextBase):
         super().__init__(parent, stackManager, model, None)
         self.UpdateFont(model, None)
 
+    def StartInlineEditing(self):
+        # Show a temporary StyledTextCtrl with the same frame and font as the label
+        text = self.model.GetProperty("text")
+        field = stc.StyledTextCtrl(parent=self.stackManager.view, style=wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
+        field.SetUseHorizontalScrollBar(False)
+        field.SetUseVerticalScrollBar(False)
+        field.SetWrapMode(stc.STC_WRAP_WORD)
+        field.SetMarginWidth(1, 0)
+        rect = self.model.GetAbsoluteFrame().Inflate(1)
+        rect.width += 20
+        field.SetRect(self.stackManager.ConvRect(rect))
+        field.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        field.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
+        self.UpdateFont(self.model, field)
+        if self.view:
+            self.view.Hide()
+        field.ChangeValue(text)
+        field.EmptyUndoBuffer()
+        field.SetFocus()
+        self.inlineEditor = field
+        self.isInlineEditing = True
+        self.stackManager.inlineEditingView = self
+
+    def StopInlineEditing(self, notify=True):
+        if self.stackManager.isEditing and self.isInlineEditing:
+            if self.view:
+                self.view.Show()
+            self.model.SetProperty("text", self.inlineEditor.GetValue(), notify=notify)
+            self.stackManager.view.RemoveChild(self.inlineEditor)
+            wx.CallAfter(self.inlineEditor.Destroy)
+            self.inlineEditor = None
+            self.isInlineEditing = False
+            self.stackManager.inlineEditingView = None
+            self.stackManager.view.SetFocus()
+            self.stackManager.view.Refresh()
+
     def Paint(self, gc):
         align = self.model.GetProperty("alignment")
         (startX, startY) = self.model.GetAbsoluteFrame().BottomLeft

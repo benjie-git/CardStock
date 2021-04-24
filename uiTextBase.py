@@ -84,29 +84,6 @@ class UiTextBase(UiView):
             view.StyleSetSpec(stc.STC_STYLE_DEFAULT, spec)
             view.StyleClearAll()
 
-    def StartInlineEditing(self):
-        # Show a temporary StyledTextCtrl with the same frame and font as the label
-        text = self.model.GetProperty("text")
-        field = stc.StyledTextCtrl(parent=self.stackManager.view, style=wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
-        field.SetUseHorizontalScrollBar(False)
-        field.SetUseVerticalScrollBar(False)
-        field.SetWrapMode(stc.STC_WRAP_WORD)
-        field.SetMarginWidth(1, 0)
-        rect = self.model.GetAbsoluteFrame().Inflate(1)
-        rect.width += 20
-        field.SetRect(self.stackManager.ConvRect(rect))
-        field.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        field.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
-        self.UpdateFont(self.model, field)
-        if self.view:
-            self.view.Hide()
-        field.ChangeValue(text)
-        field.EmptyUndoBuffer()
-        field.SetFocus()
-        self.inlineEditor = field
-        self.isInlineEditing = True
-        self.stackManager.inlineEditingView = self
-
     def OnKeyDown(self, event):
         if event.GetKeyCode() == wx.WXK_ESCAPE:
             self.StopInlineEditing()
@@ -117,18 +94,11 @@ class UiTextBase(UiView):
         if z != 0:
             event.GetEventObject().SetZoom(0)
 
-    def StopInlineEditing(self):
-        if self.stackManager.isEditing and self.isInlineEditing:
-            if self.view:
-                self.view.Show()
-            self.model.SetProperty("text", self.inlineEditor.GetValue())
-            self.stackManager.view.RemoveChild(self.inlineEditor)
-            wx.CallAfter(self.inlineEditor.Destroy)
-            self.inlineEditor = None
-            self.isInlineEditing = False
-            self.stackManager.inlineEditingView = None
-            self.stackManager.view.SetFocus()
-            self.stackManager.view.Refresh()
+    def StartInlineEditing(self):
+        pass
+
+    def StopInlineEditing(self, notify=True):
+        pass
 
     @staticmethod
     def FamilyForName(name):
