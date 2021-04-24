@@ -164,7 +164,20 @@ card object.)  There is also a variable for each object's name.  So if your butt
 yes_button.SetTitle("Done") to change your button's title to Done.  See the CardStock Reference for a list of all 
 variables that are automatically provided to your code.  You can of course also create your own variables as well.  It 
 is suggested that when you do, you set up the starting value of each variable in one of your
-objects' OnStart events, to make sure that it will always have a value, from the very start of your program running.</p>
+objects' OnSetup events, to make sure that it will always have a value, from the very start of your program running.</p>
+
+<p>You can also animate changes to many objects' properties.  For example, you could animate the current card's 
+background color from its current color to red, over a duration of 2 seconds, using the code: 
+card.AnimateBgColor(2, 'red').  If you animate a property that is already animating, it will queue up the animation to 
+start after the existing animations finish.  So you could make a circle's size grow and shrink over 2 seconds total, 
+using the code:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;circle.AnimateSize(1, [300,300])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;circle.AnimateSize(1, [100,100])<br/>
+You can also animate multiple properties of the same object at the same time, since animations only queue up if they are 
+animating the same property, otherwise they will animate in parallel.
+To stop or interrupt an animation on an object, you can call object.StopAnimations(), and can stop all animations running 
+anywhere on a given card or group, including on its children, by calling containerObject.StopAllAnimations().
+</p>
 
 <p>When you want to try running your stack from within the Designer app, and see how it works, you can use the Run Stack menu item
 in the File menu.  Then just close your running stack window to return to the Designer to continue editing.</p>
