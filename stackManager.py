@@ -261,14 +261,17 @@ class StackManager(object):
         for ui in self.uiViews:
             self.SelectUiView(ui, True)
 
-    def CutModels(self, models, canUndo=True):
-        self.CopyModels(models)
+    def DeleteModels(self, models, canUndo=True):
         if len(models) == 1 and models[0].type == "card":
             self.RemoveCard()
         elif len(models) > 0:
             deleteModels = [m for m in models if m.parent.type != "group"]
             command = RemoveUiViewsCommand(True, "Cut", self, self.cardIndex, deleteModels)
             self.command_processor.Submit(command, storeIt=canUndo)
+
+    def CutModels(self, models, canUndo=True):
+        self.CopyModels(models)
+        self.DeleteModels(models, canUndo)
 
     def Cut(self, canUndo=True):
         self.CutModels([ui.model for ui in self.selectedViews], canUndo)

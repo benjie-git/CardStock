@@ -378,6 +378,9 @@ class HandTool(BaseTool):
 
         code = event.GetKeyCode()
 
+        if code in [wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE, wx.WXK_BACK]:
+            self.stackManager.DeleteModels([ui.model for ui in uiViews])
+
         if code == wx.WXK_TAB:
             allUiViews = self.stackManager.GetAllUiViews()
             searchReverse = event.ShiftDown()

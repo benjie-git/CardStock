@@ -214,8 +214,6 @@ class CardModel(ViewModel):
 
             if self.stackManager.uiCard.model == self:
                 self.stackManager.AddUiViewsFromModels([model], canUndo=False)
-                if self.stackManager.isEditing:
-                    self.stackManager.view.Refresh(True)
             else:
                 self.AddChild(model)
 
@@ -223,7 +221,8 @@ class CardModel(ViewModel):
                 for k,v in kwargs.items():
                     if k in model.propertyTypes:
                         model.SetProperty(k, v)
-            model.Notify("hidden")  # Trigger a refresh
+
+            self.stackManager.view.Refresh(True)
 
             return model
         return func()
