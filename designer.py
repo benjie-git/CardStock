@@ -12,6 +12,7 @@ import sys
 import json
 import configparser
 import wx
+from time import sleep
 from tools import *
 from stackManager import StackManager
 from controlPanel import ControlPanel
@@ -142,6 +143,7 @@ class DesignerFrame(wx.Frame):
         self.lastRunErrors = []
 
         self.viewer = None
+        self.isStartingViewer = False
         self.NewFile()
 
     def NewFile(self):
@@ -439,6 +441,10 @@ class DesignerFrame(wx.Frame):
         exporter.StartExport(doSave)
 
     def RunFromCard(self, cardIndex):
+        if self.isStartingViewer:
+            return
+        self.isStartingViewer = True
+
         if self.viewer:
             self.viewer.Destroy()
 
@@ -453,12 +459,18 @@ class DesignerFrame(wx.Frame):
         stackModel = StackModel(None)
         stackModel.SetData(data)
 
+        while self.cPanel.codeEditor.analysisPending:
+            # make sure we have an up-to-date set of syntax errors
+            wx.YieldIfNeeded()
+            sleep(0.05)
+
         self.viewer = ViewerFrame(self, stackModel, self.filename)
         self.viewer.designer = self
 
         self.Hide()
         self.viewer.Show(True)
         self.viewer.RunViewer(cardIndex)
+        self.isStartingViewer = False
 
     def OnMenuRun(self, event):
         self.RunFromCard(0)

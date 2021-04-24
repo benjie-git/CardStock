@@ -45,6 +45,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.analyzer = analyzer.CodeAnalyzer()
         self.analysisTimer = wx.Timer()
         self.analysisTimer.Bind(wx.EVT_TIMER, self.OnAnalysisTimer)
+        self.analysisPending = False
 
         self.SetAutoLayout(True)
 
@@ -191,6 +192,7 @@ class PythonEditor(stc.StyledTextCtrl):
         event.Skip()
 
     def RunDeferredAnalysis(self):
+        self.analysisPending = True
         self.analysisTimer.StartOnce(ANALYSIS_TIMEOUT)
 
     def OnAnalysisTimer(self, event):
@@ -226,6 +228,7 @@ class PythonEditor(stc.StyledTextCtrl):
         allCodeWin = self.stackManager.designer.allCodeWindow
         if allCodeWin and allCodeWin.IsShown():
             allCodeWin.MarkAllSyntaxErrors()
+        self.analysisPending = False
 
     def UpdateAC(self):
         if self.IsInCommentOrString():
