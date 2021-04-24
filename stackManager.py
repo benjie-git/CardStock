@@ -10,6 +10,7 @@ This class is very central to CardStock, and right now, probably contains a bit 
 
 import wx
 from wx.lib.docview import CommandProcessor
+from time import time
 import json
 from tools import *
 from commands import *
@@ -86,6 +87,7 @@ class StackManager(object):
         self.runner = None
         self.filename = None
         self.resPathMan = resourcePathManager.ResourcePathManager(self)
+        self.lastIdleTime = None
 
         self.stackModel = StackModel(self)
         self.stackModel.AppendCardModel(CardModel(self))
@@ -153,14 +155,19 @@ class StackManager(object):
 
     def OnIdleTimer(self, event):
         if not self.runner.stopRunnerThread:
-            onFinishedCalls = []
-            self.uiCard.RunAnimations(onFinishedCalls)
-            for ui in self.GetAllUiViews():
-                ui.RunAnimations(onFinishedCalls)
-            # Let all animations process, before running their onFinished handlers,
-            # which could start new animations.
-            for c in onFinishedCalls:
-                c()
+            # Determine elapsed time since last round of OnIdle calls
+            now = time()
+            if self.lastIdleTime:
+                elapsedTime = now - self.lastIdleTime
+                onFinishedCalls = []
+                self.uiCard.RunAnimations(onFinishedCalls, elapsedTime)
+                for ui in self.GetAllUiViews():
+                    ui.RunAnimations(onFinishedCalls, elapsedTime)
+                # Let all animations process, before running their onFinished handlers,
+                # which could start new animations.
+                for c in onFinishedCalls:
+                    c()
+            self.lastIdleTime = now
 
             didRun = False
             if self.runner.numOnIdlesQueued == 0:

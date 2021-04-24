@@ -507,9 +507,8 @@ class HelpDataObject():
                                 "<b>onFinished</b> function, if one was passed in."},
         "StopAnimations": {"args": {},
                            "return": None,
-                           "info": "Stops all animations running on this object.  When called on a card, stops all "
-                                   "animations running on any object on that card.  "
-                                   "Any animated properties are left at their current, mid-animation values."},
+                           "info": "Stops all animations running on this object.  Any animated properties are left at "
+                                   "their current, mid-animation values."},
     }
 
     handlers = {
@@ -689,7 +688,17 @@ class HelpDataGroup():
 
     properties = {}
 
-    methods = {}
+    methods = {
+        "Ungroup":{"args": {},
+                   "return": None,
+                   "info": "Ungroups this group.  Removes the group object from the card, and adds all of its "
+                           "children back onto the card as individual objects."},
+        "StopAllAnimations": {"args": {},
+                              "return": None,
+                              "info": "Stops all animations running on this card and all objects on this card.  "
+                                      "Any animated properties are left at their current, mid-animation values."},
+
+    }
 
     handlers = {}
 
@@ -891,6 +900,10 @@ class HelpDataCard():
                              "info": "Visually animates this card's <b>backgroundColor</b> to <b>endColor</b>, "
                                      "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function, "
                                      "if one was passed in."},
+        "StopAllAnimations": {"args": {},
+                           "return": None,
+                           "info": "Stops all animations running on this card and all objects on this card.  "
+                                   "Any animated properties are left at their current, mid-animation values."},
     }
 
     handlers = {

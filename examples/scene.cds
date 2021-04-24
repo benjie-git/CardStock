@@ -14,7 +14,7 @@
       "type": "card",
       "handlers": {
         "OnSetup": "from random import randint",
-        "OnKeyDown": "if keyName == \"N\":\n   night.Click()\nif keyName == \"D\":\n   day.Click()",
+        "OnKeyDown": "if keyName == \"N\":\n   night.Click()\nelif keyName == \"D\":\n   day.Click()",
         "OnIdle": "o = card.AddOval(\n   size = (10,10),\n   position = (randint(0,490),490),\n   fillColor = 'white',\n   penThickness = 1)\n\no.AnimatePosition(\n   randint(300,450)/100.0,\n   (o.position.x + randint(-20,20), -10),\n   o.Delete)\n"
       },
       "properties": {
@@ -25,7 +25,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "card.AnimateBgColor(1,\"#88AAFF\")\ncircle.AnimateFillColor(1,\"yellow\")"
+            "OnClick": "card.StopAnimations()\ncard.AnimateBgColor(1,\"#88AAFF\")\n\ncircle.StopAnimations()\ncircle.AnimateFillColor(1,\"yellow\")"
           },
           "properties": {
             "name": "day",
@@ -176,7 +176,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "card.AnimateBgColor(1,\"black\")\ncircle.AnimateFillColor(1,\"grey\")"
+            "OnClick": "card.StopAnimations()\ncard.AnimateBgColor(1,\"black\")\n\ncircle.StopAnimations()\ncircle.AnimateFillColor(1,\"grey\")"
           },
           "properties": {
             "name": "night",

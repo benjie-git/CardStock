@@ -142,37 +142,27 @@ class UiView(object):
             self.stackManager.runner.RunHandler(self.model, "OnMouseExit", event)
         event.Skip()
 
-    def RunAnimations(self, onFinishedCalls):
-        # Determine elapsed time since last OnIdle call to this object
-        elapsedTime = 0
+    def RunAnimations(self, onFinishedCalls, elapsedTime):
+        # Move the object by speed.x and speed.y pixels per second
+        if self.model.type not in ["stack", "card"]:
+            speed = self.model.GetProperty("speed")
+            if speed != (0,0) and "position" not in self.model.animations:
+                pos = self.model.GetProperty("position")
+                self.model.SetProperty("position", [pos.x + speed.x*elapsedTime, pos.y + speed.y*elapsedTime])
+
+        # Run any in-progress animations
         now = time()
-        if self.model.lastIdleTime:
-            elapsedTime = now - self.model.lastIdleTime
-
-            # Move the object by speed.x and speed.y pixels per second
-            if self.model.type not in ["stack", "card"]:
-                speed = self.model.GetProperty("speed")
-                if speed != (0,0):
-                    isAnimatingPos = False
-                    for anim in self.model.animations:
-                        if anim["type"] == "position":
-                            isAnimatingPos = True
-                    if not isAnimatingPos:
-                        pos = self.model.GetProperty("position")
-                        self.model.SetProperty("position", [pos.x + speed.x*elapsedTime, pos.y + speed.y*elapsedTime])
-
-            # Run any in-progress animations
-            for anim in self.model.animations.copy():
-                progress = (now - anim["startTime"]) / anim["duration"]
-                if progress < 1:
-                    if anim["function"]:
-                        anim["function"](progress)
+        for (key, animList) in self.model.animations.copy().items():
+            animDict = animList[0]
+            if "startTime" in animDict:
+                progress = (now - animDict["startTime"]) / animDict["duration"]
+                if progress < 1.0:
+                    if animDict["onUpdate"]:
+                        animDict["onUpdate"](progress, animDict)
                 else:
-                    if anim["function"]:
-                        anim["function"](1.0)
-                    self.model.animations.remove(anim)
-                    if anim["onFinished"]:
-                        onFinishedCalls.append(anim["onFinished"])
+                    if animDict["onUpdate"]:
+                        animDict["onUpdate"](1.0, animDict)
+                    self.model.FinishAnimation(key)
 
     def OnIdle(self, event):
         didRun = False
@@ -182,17 +172,10 @@ class UiView(object):
                 self.stackManager.runner.RunHandler(self.model, "OnMouseMove", event)
                 didRun = True
 
-        # Determine elapsed time since last OnIdle call to this object
-        elapsedTime = 0
-        now = time()
-        if self.model.lastIdleTime:
-            elapsedTime = now - self.model.lastIdleTime
-            # if self.model.type == "card" and elapsedTime>0.0: print(int(1.0/elapsedTime+0.5)) # print fps
-            if self.stackManager.runner and self.model.GetHandler("OnIdle"):
-                self.stackManager.runner.RunHandler(self.model, "OnIdle", event, elapsedTime)
-                didRun = True
+        if self.stackManager.runner and self.model.GetHandler("OnIdle"):
+            self.stackManager.runner.RunHandler(self.model, "OnIdle", event)
+            didRun = True
 
-        self.model.lastIdleTime = now
         return didRun
 
     def PaintSelectionBox(self, gc):
@@ -314,7 +297,7 @@ class ViewModel(object):
         self.isDirty = False
         self.proxy = None
         self.lastIdleTime = None
-        self.animations = []
+        self.animations = {}
         self.proxyClass = ViewProxy
 
     def __repr__(self):
@@ -650,24 +633,53 @@ class ViewModel(object):
             self.handlers[key] = value
             self.isDirty = True
 
-    def AddAnimation(self, type, duration, func, onFinished=None, onCanceled=None):
-        for d in self.animations.copy():
-            if d["type"] == type:
-                self.animations.remove(d)
-                if "onCanceled" in d and d["onCanceled"]:
-                    d["onCanceled"]()
-        self.animations.append({"type":type,
-                                "duration": duration,
-                                "startTime": time(),
-                                "function": func,
-                                "onFinished": onFinished,
-                                "onCanceled": onCanceled})
+    @RunOnMain
+    def AddAnimation(self, key, duration, onUpdate, onStart=None, onFinish=None, onCancel=None):
+        animDict = {"duration": duration,
+                    "onStart": onStart,
+                    "onUpdate": onUpdate,
+                    "onFinish": onFinish,
+                    "onCancel": onCancel
+                    }
+        if key not in self.animations:
+            self.animations[key] = [animDict]
+            self.StartAnimation(key)
+        else:
+            self.animations[key].append(animDict)
+
+    def StartAnimation(self, key):
+        if key in self.animations:
+            animDict = self.animations[key][0]
+            if "startTime" not in animDict:
+                animDict["startTime"] = time()
+                if animDict["onStart"]:
+                    animDict["onStart"](animDict)
+
+    def FinishAnimation(self, key):
+        if key in self.animations:
+            animList = self.animations[key]
+            animDict = animList[0]
+            if "startTime" in animDict and animDict["onFinish"]:
+                animDict["onFinish"](animDict)
+            if len(animList) > 1:
+                del animList[0]
+                self.StartAnimation(key)
+            else:
+                del self.animations[key]
+
+    def StopAnimation(self, key):
+        if key in self.animations:
+            animDict = self.animations[key][0]
+            if "startTime" in animDict and animDict["onCancel"]:
+                animDict["onCancel"](animDict)
+        del self.animations[key]
 
     def StopAnimations(self):
-        for animation in self.animations:
-            if "onCanceled" in animation and animation["onCanceled"]:
-                animation["onCanceled"]()
-        self.animations = []
+        for (key, animList) in self.animations.items():
+            animDict = animList[0]
+            if "startTime" in animDict and animDict["onCancel"]:
+                animDict["onCancel"](animDict)
+        self.animations = {}
 
     def DeduplicateName(self, name, existingNames):
         existingNames.extend(self.reservedNames) # disallow globals
@@ -951,30 +963,25 @@ class ViewProxy(object):
         except:
             raise ValueError("endPosition must be a point or a list of two numbers")
 
-        @RunOnMain
-        def func():
+        def onStart(animDict):
             origPosition = self._model.GetAbsolutePosition()
-            if wx.Point(origPosition) != wx.Point(endPosition):
-                offsetp = endPosition - origPosition
-                offset = wx.RealPoint(offsetp[0], offsetp[1])
+            offsetPt = endPosition - origPosition
+            offset = wx.RealPoint(offsetPt[0], offsetPt[1])
+            animDict["origPosition"] = origPosition
+            animDict["offset"] = offset
+            self._model.SetProperty("speed", offset*(1.0/duration))
 
-                def internalOnFinished():
-                    self._model.SetProperty("speed", (0,0))
-                    if onFinished: onFinished(*args, **kwargs)
+        def onUpdate(progress, animDict):
+            self._model.SetAbsolutePosition(animDict["origPosition"] + animDict["offset"] * progress)
 
-                def onCanceled():
-                    self._model.SetProperty("speed", (0,0))
+        def internalOnFinished(animDict):
+            self._model.SetProperty("speed", (0,0))
+            if onFinished: onFinished(*args, **kwargs)
 
-                def f(progress):
-                    self._model.SetAbsolutePosition(origPosition + offset * progress)
-                self._model.AddAnimation("position", duration, f, internalOnFinished, onCanceled)
-                self._model.SetProperty("speed", offset*(1.0/duration))
-            else:
-                def internalOnFinished():
-                    if onFinished: onFinished(*args, **kwargs)
-                self._model.AddAnimation("position", duration, None, internalOnFinished)
-                self._model.SetProperty("speed", (0,0))
-        func()
+        def onCanceled(animDict):
+            self._model.SetProperty("speed", (0,0))
+
+        self._model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
     def AnimateCenter(self, duration, endCenter, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
@@ -984,30 +991,25 @@ class ViewProxy(object):
         except:
             raise ValueError("endCenter must be a point or a list of two numbers")
 
-        @RunOnMain
-        def func():
+        def onStart(animDict):
             origCenter = self._model.GetCenter()
-            if wx.Point(origCenter) != wx.Point(endCenter):
-                offsetp = endCenter - origCenter
-                offset = wx.RealPoint(offsetp[0], offsetp[1])
+            offsetPt = endCenter - origCenter
+            offset = wx.RealPoint(offsetPt[0], offsetPt[1])
+            animDict["origCenter"] = origCenter
+            animDict["offset"] = offset
+            self._model.SetProperty("speed", offset*(1.0/duration))
 
-                def internalOnFinished():
-                    self._model.SetProperty("speed", (0,0))
-                    if onFinished: onFinished(*args, **kwargs)
+        def onUpdate(progress, animDict):
+            self._model.SetCenter(animDict["origCenter"] + animDict["offset"] * progress)
 
-                def onCanceled():
-                    self._model.SetProperty("speed", (0,0))
+        def internalOnFinished(animDict):
+            self._model.SetProperty("speed", (0,0))
+            if onFinished: onFinished(*args, **kwargs)
 
-                def f(progress):
-                    self._model.SetCenter(origCenter + offset * progress)
-                self._model.AddAnimation("position", duration, f, internalOnFinished, onCanceled)
-                self._model.SetProperty("speed", offset*(1.0/duration))
-            else:
-                def internalOnFinished():
-                    if onFinished: onFinished(*args, **kwargs)
-                self._model.AddAnimation("position", duration, None, internalOnFinished)
-                self._model.SetProperty("speed", (0,0))
-        func()
+        def onCanceled(animDict):
+            self._model.SetProperty("speed", (0,0))
+
+        self._model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
     def AnimateSize(self, duration, endSize, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
@@ -1017,21 +1019,16 @@ class ViewProxy(object):
         except:
             raise ValueError("endSize must be a size or a list of two numbers")
 
-        @RunOnMain
-        def func():
-            def internalOnFinished():
-                if onFinished: onFinished(*args, **kwargs)
-
+        def onStart(animDict):
             origSize = self._model.GetProperty("size")
-            if wx.Size(origSize) != endSize:
-                offset = wx.Size(endSize-origSize)
-                def f(progress):
-                    self._model.SetProperty("size", origSize + offset * progress)
-                self._model.AddAnimation("size", duration, f, internalOnFinished)
-            else:
-                self._model.AddAnimation("size", duration, None, internalOnFinished)
-        func()
+            offset = wx.Size(endSize-origSize)
+            animDict["origSize"] = origSize
+            animDict["offset"] = offset
 
-    @RunOnMain
+        def onUpdate(progress, animDict):
+            self._model.SetProperty("size", animDict["origSize"] + animDict["offset"] * progress)
+
+        self._model.AddAnimation("size", duration, onUpdate, onStart, onFinished)
+
     def StopAnimations(self):
         self._model.StopAnimations()

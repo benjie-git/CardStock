@@ -206,18 +206,12 @@ class Image(ViewProxy):
         if not (isinstance(endRotation, int) or isinstance(endRotation, float)):
             raise TypeError("endRotation must be a number")
 
-        @RunOnMain
-        def func():
-            origRotation = self.rotation
+        def onStart(animDict):
+            origVal = self.rotation
+            animDict["origVal"] = origVal
+            animDict["offset"] = endRotation - origVal
 
-            def internalOnFinished():
-                if onFinished: onFinished(*args, **kwargs)
+        def onUpdate(progress, animDict):
+            self._model.SetProperty("rotation", animDict["origVal"] + animDict["offset"] * progress)
 
-            if endRotation != origRotation:
-                offset = endRotation - origRotation
-                def f(progress):
-                    self.rotation = origRotation + offset * progress
-                self._model.AddAnimation("rotation", duration, f, internalOnFinished)
-            else:
-                self._model.AddAnimation("rotation", duration, None, internalOnFinished)
-        func()
+        self._model.AddAnimation("rotation", duration, onUpdate, onStart, onFinished)

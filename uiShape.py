@@ -315,21 +315,15 @@ class Line(ViewProxy):
         if not (isinstance(endVal, int) or isinstance(endVal, float)):
             raise TypeError("endThickness must be a number")
 
-        @RunOnMain
-        def func():
+        def onStart(animDict):
             origVal = self.penThickness
+            animDict["origVal"] = origVal
+            animDict["offset"] = endVal - origVal
 
-            def internalOnFinished():
-                if onFinished: onFinished(*args, **kwargs)
+        def onUpdate(progress, animDict):
+            self._model.SetProperty("penThickness", animDict["origVal"] + animDict["offset"] * progress)
 
-            if endVal != origVal:
-                offset = endVal - origVal
-                def f(progress):
-                    self.penThickness = origVal + offset * progress
-                self._model.AddAnimation("penThickness", duration, f, internalOnFinished)
-            else:
-                self._model.AddAnimation("penThickness", duration, None, internalOnFinished)
-        func()
+        self._model.AddAnimation("penThickness", duration, onUpdate, onStart, onFinished)
 
     def AnimatePenColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
@@ -337,24 +331,19 @@ class Line(ViewProxy):
         if not isinstance(endVal, str):
             raise TypeError("endColor must be a string")
 
-        @RunOnMain
-        def func():
-            origVal = wx.Colour(self.penColor)
-            endValue = wx.Colour(endVal)
-
-            def internalOnFinished():
-                if onFinished: onFinished(*args, **kwargs)
-
-            if origVal.IsOk() and endValue.IsOk() and endValue != origVal:
+        endColor = wx.Colour(endVal)
+        if endColor.IsOk():
+            def onStart(animDict):
+                origVal = wx.Colour(self.penColor)
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
-                endParts = [endValue.Red(), endValue.Green(), endValue.Blue(), endValue.Alpha()]
-                offsets = [endParts[i]-origParts[i] for i in range(4)]
-                def f(progress):
-                    self._model.SetProperty("penColor", [origParts[i]+offsets[i]*progress for i in range(4)])
-                self._model.AddAnimation("penColor", duration, f, internalOnFinished)
-            else:
-                self._model.AddAnimation("penColor", duration, None, internalOnFinished)
-        func()
+                animDict["origParts"] = origParts
+                endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
+                animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
+
+            def onUpdate(progress, animDict):
+                self._model.SetProperty("penColor", [animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)])
+
+            self._model.AddAnimation("penColor", duration, onUpdate, onStart, onFinished)
 
 
 class ShapeModel(LineModel):
@@ -399,24 +388,19 @@ class Shape(Line):
         if not isinstance(endVal, str):
             raise TypeError("endColor must be a string")
 
-        @RunOnMain
-        def func():
-            origVal = wx.Colour(self.fillColor)
-            endValue = wx.Colour(endVal)
-
-            def internalOnFinished():
-                if onFinished: onFinished(*args, **kwargs)
-
-            if origVal.IsOk() and endValue.IsOk() and endValue != origVal:
+        endColor = wx.Colour(endVal)
+        if endColor.IsOk():
+            def onStart(animDict):
+                origVal = wx.Colour(self.fillColor)
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
-                endParts = [endValue.Red(), endValue.Green(), endValue.Blue(), endValue.Alpha()]
-                offsets = [endParts[i]-origParts[i] for i in range(4)]
-                def f(progress):
-                    self._model.SetProperty("fillColor", [origParts[i]+offsets[i]*progress for i in range(4)])
-                self._model.AddAnimation("fillColor", duration, f, internalOnFinished)
-            else:
-                self._model.AddAnimation("fillColor", duration, None, internalOnFinished)
-        func()
+                animDict["origParts"] = origParts
+                endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
+                animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
+
+            def onUpdate(progress, animDict):
+                self._model.SetProperty("fillColor", [animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)])
+
+            self._model.AddAnimation("fillColor", duration, onUpdate, onStart, onFinished)
 
 
 class RoundRectModel(ShapeModel):
@@ -461,18 +445,12 @@ class RoundRect(Shape):
         if not (isinstance(endVal, int) or isinstance(endVal, float)):
             raise TypeError("endCornerRadius must be a number")
 
-        @RunOnMain
-        def func():
+        def onStart(animDict):
             origVal = self.cornerRadius
+            animDict["origVal"] = origVal
+            animDict["offset"] = endVal - origVal
 
-            def internalOnFinished():
-                if onFinished: onFinished(*args, **kwargs)
+        def onUpdate(progress, animDict):
+            self._model.SetProperty("cornerRadius", animDict["origVal"] + animDict["offset"] * progress)
 
-            if endVal != origVal:
-                offset = endVal - origVal
-                def f(progress):
-                    self.cornerRadius = origVal + offset * progress
-                self._model.AddAnimation("cornerRadius", duration, f, internalOnFinished)
-            else:
-                self._model.AddAnimation("cornerRadius", duration, None, internalOnFinished)
-        func()
+        self._model.AddAnimation("cornerRadius", duration, onUpdate, onStart, onFinished)

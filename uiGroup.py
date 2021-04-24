@@ -245,3 +245,8 @@ class Group(ViewProxy):
         groups = self._model.stackManager.UngroupModelsInternal([self._model])
         if groups and len(groups) > 0:
             return groups[0]
+
+    def StopAllAnimations(self):
+        self._model.StopAnimations()
+        for child in self._model.GetAllChildModels():
+            child.StopAnimations()

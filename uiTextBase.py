@@ -230,21 +230,16 @@ class TextBaseProxy(ViewProxy):
         if not isinstance(endVal, str):
             raise TypeError("endColor must be a string")
 
-        @RunOnMain
-        def func():
-            origVal = wx.Colour(self.textColor)
-            endValue = wx.Colour(endVal)
-
-            def internalOnFinished():
-                if onFinished: onFinished(*args, **kwargs)
-
-            if origVal.IsOk() and endValue.IsOk() and endValue != origVal:
+        endColor = wx.Colour(endVal)
+        if endColor.IsOk():
+            def onStart(animDict):
+                origVal = wx.Colour(self.textColor)
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
-                endParts = [endValue.Red(), endValue.Green(), endValue.Blue(), endValue.Alpha()]
-                offsets = [endParts[i]-origParts[i] for i in range(4)]
-                def f(progress):
-                    self._model.SetProperty("textColor", [origParts[i]+offsets[i]*progress for i in range(4)])
-                self._model.AddAnimation("textColor", duration, f, internalOnFinished)
-            else:
-                self._model.AddAnimation("textColor", duration, None, internalOnFinished)
-        func()
+                animDict["origParts"] = origParts
+                endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
+                animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
+
+            def onUpdate(progress, animDict):
+                self._model.SetProperty("textColor", [animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)])
+
+            self._model.AddAnimation("textColor", duration, onUpdate, onStart, onFinished)

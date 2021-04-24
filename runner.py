@@ -57,6 +57,8 @@ class Runner():
 
         self.soundCache = {}
 
+        self.stackStartTime = time()
+
         self.clientVars = {
             "Wait": self.Wait,
             "RunAfterDelay": self.RunAfterDelay,
@@ -229,7 +231,13 @@ class Runner():
         else:
             if handlerName == "OnIdle":
                 self.numOnIdlesQueued += 1
-            self.handlerQueue.put((uiModel, handlerName, handlerStr, mousePos, keyName, arg))
+            now = time()
+            if uiModel.lastIdleTime:
+                elapsedTime = now - uiModel.lastIdleTime
+            else:
+                elapsedTime = now - self.stackStartTime
+            uiModel.lastIdleTime = now
+            self.handlerQueue.put((uiModel, handlerName, handlerStr, mousePos, keyName, elapsedTime))
 
     def RunHandlerInternal(self, uiModel, handlerName, handlerStr, mousePos, keyName, arg):
         """ Run an eventHandler.  This always runs on the runnerThread. """

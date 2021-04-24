@@ -300,24 +300,19 @@ class Card(ViewProxy):
         if not isinstance(endVal, str):
             raise TypeError("endColor must be a string")
 
-        @RunOnMain
-        def func():
-            origVal = wx.Colour(self.bgColor)
-            endValue = wx.Colour(endVal)
-
-            def internalOnFinished():
-                if onFinished: onFinished(*args, **kwargs)
-
-            if origVal.IsOk() and endValue.IsOk() and endValue != origVal:
+        endColor = wx.Colour(endVal)
+        if endColor.IsOk():
+            def onStart(animDict):
+                origVal = wx.Colour(self.bgColor)
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
-                endParts = [endValue.Red(), endValue.Green(), endValue.Blue(), endValue.Alpha()]
-                offsets = [endParts[i]-origParts[i] for i in range(4)]
-                def f(progress):
-                    self._model.SetProperty("bgColor", [origParts[i]+offsets[i]*progress for i in range(4)])
-                self._model.AddAnimation("bgColor", duration, f, internalOnFinished)
-            else:
-                self._model.AddAnimation("bgColor", duration, None, internalOnFinished)
-        func()
+                animDict["origParts"] = origParts
+                endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
+                animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
+
+            def onUpdate(progress, animDict):
+                self._model.SetProperty("bgColor", [animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)])
+
+            self._model.AddAnimation("bgColor", duration, onUpdate, onStart, onFinished)
 
     def AddButton(self, name="button", **kwargs):
         return self._model.AddNewObject("button", name, (100,24), kwargs).GetProxy()
@@ -389,7 +384,7 @@ class Card(ViewProxy):
             return self._model.stackManager.GroupModelsInternal(models, name=name).GetProxy()
         return func()
 
-    def StopAnimations(self):
-        super().StopAnimations()
+    def StopAllAnimations(self):
+        self._model.StopAnimations()
         for child in self._model.GetAllChildModels():
             child.StopAnimations()
