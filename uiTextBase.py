@@ -39,6 +39,8 @@ class UiTextBase(UiView):
             self.OnResize(None)
             if self.view:
                 self.view.Refresh(True)
+            else:
+                self.stackManager.view.Refresh(True)
         elif key == "alignment":
             if self.model.type == "textlabel":
                 self.stackManager.view.Refresh(True)

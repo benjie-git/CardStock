@@ -26,14 +26,14 @@
           "properties": {
             "name": "button_1",
             "size": [
-              116,
+              141,
               28
             ],
             "position": [
-              138.0,
+              118.0,
               348.0
             ],
-            "title": "Graph List",
+            "title": "Graph This List",
             "border": true
           }
         },
@@ -147,14 +147,14 @@
           "properties": {
             "name": "button_1",
             "size": [
-              142,
-              23
+              161,
+              21
             ],
             "position": [
-              138.0,
-              353.0
+              13.0,
+              355.0
             ],
-            "title": "Graph Function",
+            "title": "Graph This Function",
             "border": true
           }
         },
@@ -200,7 +200,7 @@
               26
             ],
             "position": [
-              291.0,
+              186.0,
               351.0
             ],
             "text": "y =",
@@ -250,16 +250,18 @@
         },
         {
           "type": "textfield",
-          "handlers": {},
+          "handlers": {
+            "OnTextEnter": "button_1.Click()"
+          },
           "properties": {
             "name": "field",
             "size": [
-              114,
-              24
+              320,
+              25
             ],
             "position": [
-              326.0,
-              354.0
+              221.0,
+              353.0
             ],
             "text": "x**2 + 1",
             "alignment": "Left",

@@ -179,8 +179,13 @@ To stop or interrupt an animation on an object, you can call object.StopAnimatio
 anywhere on a given card or group, including on its children, by calling containerObject.StopAllAnimations().
 </p>
 
+<p>While editing your code, you'll notice that the editor uses syntax highlighting to help you better read your code.
+Keywords like 'if', 'for', and 'return' are colored, as are numbers, strings, and comments.  Also while you edit, 
+whenever your code is not structurally correct, the spot where python gets confused by a Syntax Error is underlined 
+in red, to help you spot problems before even running your code.</p>
+
 <p>When you want to try running your stack from within the Designer app, and see how it works, you can use the Run Stack menu item
-in the File menu.  Then just close your running stack window to return to the Designer to continue editing.</p>
+in the File menu.  Then just close your running stack window to return to the Designer to continue building and editing!</p>
 
 <br/><br/>
 

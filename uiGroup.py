@@ -75,6 +75,7 @@ class UiGroup(UiView):
             self.model.ResizeChildModels()
         elif key == "child":
             self.RebuildViews()
+            self.stackManager.view.Refresh(True)
 
     def RemoveChildViews(self):
         for ui in self.uiViews.copy():
