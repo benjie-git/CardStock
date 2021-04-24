@@ -82,14 +82,15 @@ class UiTextField(UiTextBase):
             self.isInlineEditing = True
             self.stackManager.inlineEditingView = self
 
-    def StopInlineEditing(self):
+    def StopInlineEditing(self, notify=True):
         if self.stackManager.isEditing and self.isInlineEditing:
             self.view.SetEditable(False)
             self.view.SetSelection(0,0)
             self.isInlineEditing = False
             self.stackManager.inlineEditingView = None
             self.stackManager.view.SetFocus()
-            self.model.Notify("text")
+            if notify:
+                self.model.Notify("text")
 
     def OnResize(self, event):
         if self.view and self.model.GetProperty("multiline"):
@@ -100,6 +101,7 @@ class UiTextField(UiTextBase):
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "multiline":
+            self.StopInlineEditing(notify=False)
             self.stackManager.SelectUiView(None)
             self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
             self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.model))

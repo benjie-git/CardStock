@@ -17,7 +17,7 @@ class UiTextBase(UiView):
         self.textColor = None
 
     def DestroyView(self):
-        self.StopInlineEditing()
+        self.StopInlineEditing(notify=False)
         super().DestroyView()
 
     def OnPropertyChanged(self, model, key):

@@ -223,6 +223,7 @@ class CardModel(ViewModel):
                 for k,v in kwargs.items():
                     if k in model.propertyTypes:
                         model.SetProperty(k, v)
+            model.Notify("hidden")  # Trigger a refresh
 
             return model
         return func()
