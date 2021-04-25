@@ -665,14 +665,17 @@ class ViewModel(object):
             else:
                 del self.animations[key]
 
-    def StopAnimation(self, key):
-        if key in self.animations:
-            animDict = self.animations[key][0]
-            if "startTime" in animDict and animDict["onCancel"]:
-                animDict["onCancel"](animDict)
-        del self.animations[key]
+    def StopAnimation(self, key=None):
+        if key:
+            # Stop animating this one property
+            if key in self.animations:
+                animDict = self.animations[key][0]
+                if "startTime" in animDict and animDict["onCancel"]:
+                    animDict["onCancel"](animDict)
+                del self.animations[key]
+            return
 
-    def StopAnimations(self):
+        # Stop animating all properties
         for (key, animList) in self.animations.items():
             animDict = animList[0]
             if "startTime" in animDict and animDict["onCancel"]:
@@ -1028,5 +1031,5 @@ class ViewProxy(object):
 
         self._model.AddAnimation("size", duration, onUpdate, onStart, onFinished)
 
-    def StopAnimations(self):
-        self._model.StopAnimations()
+    def StopAnimating(self, propertyName=None):
+        self._model.StopAnimation(propertyName)

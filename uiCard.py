@@ -384,7 +384,7 @@ class Card(ViewProxy):
             return self._model.stackManager.GroupModelsInternal(models, name=name).GetProxy()
         return func()
 
-    def StopAllAnimations(self):
-        self._model.StopAnimations()
+    def StopAllAnimating(self, propertyName=None):
+        self._model.StopAnimation(propertyName)
         for child in self._model.GetAllChildModels():
-            child.StopAnimations()
+            child.StopAnimation(propertyName)

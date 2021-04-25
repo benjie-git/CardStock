@@ -107,12 +107,13 @@ class StackModel(ViewModel):
     def MigrateDataFromFormatVersion(self, fromVer, dataDict):
         pass
 
-    def MigrateModelFromFormatVersion(self, fromVer, model):
-        if fromVer == 1:
+    def MigrateModelFromFormatVersion(self, fromVer, stackModel):
+        if fromVer <= 1:
             """
             In File Format Version 1, the cards used the top-left corner as the origin, y increased while moving down.
             In File Format Version 2, the cards use the bottom-left corner as the origin, y increases while moving up.
             Migrate all of the static objects to look the same in the new world order, but user code will need updating.
+            Also update names of the old StopAnimations() and StopAllAnimations() methods.
             """
             def UnflipImages(obj):
                 if obj.type == "image":
@@ -121,9 +122,21 @@ class StackModel(ViewModel):
                     for c in obj.childModels:
                         UnflipImages(c)
 
-            for card in model.childModels:
+            for card in stackModel.childModels:
                 card.PerformFlips(False, True)
                 UnflipImages(card)
+
+            # Update names of StopAnimating methods
+            def replaceNames(obj):
+                for k,v in obj.handlers.items():
+                    obj.handlers[k] = v.replace(".StopAnimations(", ".StopAnimating(")
+                    obj.handlers[k] = v.replace(".StopAllAnimations(", ".StopAllAnimating(")
+                for child in obj.childModels:
+                    replaceNames(child)
+
+            replaceNames(stackModel)
+
+
 
 
 

@@ -505,10 +505,14 @@ class HelpDataObject():
                         "info": "Visually animates the <b>size</b> of this object from its current size to <b>endSize</b>, "
                                 "over <b>duration</b> seconds.  When the animation completes, runs the "
                                 "<b>onFinished</b> function, if one was passed in."},
-        "StopAnimations": {"args": {},
+        "StopAnimating": {"args": {"propertyName": {"type": "string",
+                                                    "info": "optional name of the property to stop animating, for "
+                                                            "example: \"size\" or \"position\".  If left blank, stops "
+                                                            "all animations of properties of this object."}},
                            "return": None,
-                           "info": "Stops all animations running on this object.  Any animated properties are left at "
-                                   "their current, mid-animation values."},
+                           "info": "Stops the animation specified by <b>propertyName</b> from running on this object, "
+                                   "or if no <b>propertyName</b> is specified, stops all running animations on this "
+                                   "object.  Any animated properties are left at their current, mid-animation values."},
     }
 
     handlers = {
@@ -693,11 +697,15 @@ class HelpDataGroup():
                    "return": None,
                    "info": "Ungroups this group.  Removes the group object from the card, and adds all of its "
                            "children back onto the card as individual objects."},
-        "StopAllAnimations": {"args": {},
+        "StopAllAnimating": {"args": {"propertyName": {"type": "string",
+                                       "info": "optional name of the property to stop animating, for "
+                                               "example: \"size\" or \"position\".  If left blank, stops "
+                                               "all animations of properties of this group and its children."}},
                               "return": None,
-                              "info": "Stops all animations running on this card and all objects on this card.  "
+                              "info": "Stops the animation specified by <b>propertyName</b> from running on this group "
+                                      "and on all objects in this group, or if no <b>propertyName</b> is specified, "
+                                      "stops all running animations on this group and on all objects in this group.  "
                                       "Any animated properties are left at their current, mid-animation values."},
-
     }
 
     handlers = {}
@@ -900,10 +908,15 @@ class HelpDataCard():
                              "info": "Visually animates this card's <b>backgroundColor</b> to <b>endColor</b>, "
                                      "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function, "
                                      "if one was passed in."},
-        "StopAllAnimations": {"args": {},
-                           "return": None,
-                           "info": "Stops all animations running on this card and all objects on this card.  "
-                                   "Any animated properties are left at their current, mid-animation values."},
+        "StopAllAnimating": {"args": {"propertyName": {"type": "string",
+                                       "info": "optional name of the property to stop animating, for "
+                                               "example: \"size\" or \"position\".  If left blank, stops "
+                                              "animations of all properties of this card and its children."}},
+                              "return": None,
+                              "info": "Stops the animation specified by <b>propertyName</b> from running on this card "
+                                      "and on all objects on this card, or if no <b>propertyName</b> is specified, "
+                                      "stops all running animations on this card and on all objects on this card.  "
+                                      "Any animated properties are left at their current, mid-animation values."},
     }
 
     handlers = {

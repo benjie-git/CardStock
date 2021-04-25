@@ -175,9 +175,11 @@ using the code:<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;circle.AnimateSize(1, [100,100])<br/>
 You can also animate multiple properties of the same object at the same time, since animations only queue up if they are 
 animating the same property, otherwise they will animate in parallel.
-To stop or interrupt an animation on an object, you can call object.StopAnimations(), and can stop all animations running 
-anywhere on a given card or group, including on its children, by calling containerObject.StopAllAnimations().
-</p>
+To stop or interrupt an animation on an object, you can call object.StopAnimating(), and can stop all animations running 
+anywhere on a given card or group, including on its children, by calling containerObject.StopAllAnimating().  Both of 
+these methods can optionally take a propertyName argument as well, to stop only animations on that property.  For 
+example: card.StopAllAnimating("position") will stop any animations of any objects' position properties on the current 
+card.</p>
 
 <p>While editing your code, you'll notice that the editor uses syntax highlighting to help you better read your code.
 Keywords like 'if', 'for', and 'return' are colored, as are numbers, strings, and comments.  Also while you edit, 

@@ -250,7 +250,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if isRunning:\n   card.StopAllAnimations()\n\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nsteps = []\nMoveTower(len(disks)-1, 0, 1, 2)\n\nisRunning = True\n\nif not isSetup:\n   ShowStacks(True, MakeNextMove)\nelse:\n   MakeNextMove()\n\nisSetup = False"
+            "OnClick": "if isRunning:\n   card.StopAllAnimating()\n\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nsteps = []\nMoveTower(len(disks)-1, 0, 1, 2)\n\nisRunning = True\n\nif not isSetup:\n   ShowStacks(True, MakeNextMove)\nelse:\n   MakeNextMove()\n\nisSetup = False"
           },
           "properties": {
             "name": "solve",
@@ -269,7 +269,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if isRunning:\n   card.StopAllAnimations()\n\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nsteps = []\nisSetup = True\nShowStacks(True)\nisRunning = False\n"
+            "OnClick": "if isRunning:\n   card.StopAllAnimating()\n\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nsteps = []\nisSetup = True\nShowStacks(True)\nisRunning = False\n"
           },
           "properties": {
             "name": "reset",

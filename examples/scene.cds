@@ -25,7 +25,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "card.StopAnimations()\ncard.AnimateBgColor(1,\"#88AAFF\")\n\ncircle.StopAnimations()\ncircle.AnimateFillColor(1,\"yellow\")"
+            "OnClick": "card.StopAnimating()\ncard.AnimateBgColor(1,\"#88AAFF\")\n\ncircle.StopAnimating()\ncircle.AnimateFillColor(1,\"yellow\")"
           },
           "properties": {
             "name": "day",
@@ -176,7 +176,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "card.StopAnimations()\ncard.AnimateBgColor(1,\"black\")\n\ncircle.StopAnimations()\ncircle.AnimateFillColor(1,\"grey\")"
+            "OnClick": "card.StopAnimating()\ncard.AnimateBgColor(1,\"black\")\n\ncircle.StopAnimating()\ncircle.AnimateFillColor(1,\"grey\")"
           },
           "properties": {
             "name": "night",
