@@ -917,7 +917,10 @@ class ViewProxy(object):
 
         @RunOnMain
         def f():
-            sreg = self._model.stackManager.GetUiViewByModel(self._model).GetHitRegion()
+            s = self._model.stackManager.GetUiViewByModel(self._model)
+            if not s:
+                return False
+            sreg = s.GetHitRegion()
             sreg = wx.Region(sreg)
             sreg.Offset(*self._model.GetProperty("position"))
             return sreg.Contains(wx.Point(point)) == wx.InRegion
@@ -929,8 +932,12 @@ class ViewProxy(object):
 
         @RunOnMain
         def f():
-            sreg = self._model.stackManager.GetUiViewByModel(self._model).GetHitRegion()
-            oreg = self._model.stackManager.GetUiViewByModel(obj._model).GetHitRegion()
+            s = self._model.stackManager.GetUiViewByModel(self._model)
+            o = self._model.stackManager.GetUiViewByModel(obj._model)
+            if not s or not o:
+                return False
+            sreg = s.GetHitRegion()
+            oreg = o.GetHitRegion()
             sreg = wx.Region(sreg)
             oreg = wx.Region(oreg)
             sreg.Offset(*self._model.GetProperty("position"))
