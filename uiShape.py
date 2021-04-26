@@ -74,7 +74,7 @@ class UiShape(UiView):
     def PaintSelectionBox(self, gc):
         if self.isSelected and self.stackManager.tool.name == "hand":
             f = self.model.GetAbsoluteFrame()
-            f = wx.Rect(f.TopLeft - wx.Point(1,1), f.Size)
+            f = wx.Rect(f.TopLeft, f.Size - (1,1))
             thickness = self.model.GetProperty("penThickness")
             gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
@@ -86,22 +86,20 @@ class UiShape(UiView):
                 if len(points) > 1:
                     gc.DrawLines(points, f.Left, f.Top)
             elif self.model.type == "rect":
-                gc.DrawRectangle(f.Inflate(2 + thickness/2))
+                gc.DrawRectangle(wx.Rect(f).Inflate(2 + thickness/2))
             elif self.model.type == "oval":
-                gc.DrawEllipse(f.Inflate(2 + thickness/2))
+                gc.DrawEllipse(wx.Rect(f).Inflate(2 + thickness/2))
             elif self.model.type == "roundrect":
                 radius = self.model.GetProperty("cornerRadius")
                 p1 = f.TopLeft
                 p2 = f.BottomRight
                 radius = min(radius, abs(p1[0]-p2[0])/2)
                 radius = min(radius, abs(p1[1]-p2[1])/2)
-                gc.DrawRoundedRectangle(f.Inflate(2 + thickness/2), radius)
+                gc.DrawRoundedRectangle(wx.Rect(f).Inflate(2 + thickness/2), radius)
 
             gc.SetPen(wx.TRANSPARENT_PEN)
             gc.SetBrush(wx.Brush('blue', wx.BRUSHSTYLE_SOLID))
             for box in self.GetResizeBoxRects():
-                if self.model.type not in ["line", "pen"]:
-                    box.Offset((thickness / 2, thickness / 2))
                 gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
 
     def MakeHitRegion(self):
@@ -111,27 +109,34 @@ class UiShape(UiView):
         s = self.model.GetProperty("size")
         extraThick = 6 if (self.model.type in ["pen", "line"]) else 0
         thickness = self.model.GetProperty("penThickness") + extraThick
-        bmp = wx.Bitmap(width=s.width+thickness+20, height=s.height+thickness+20, depth=1)
+
+        # Draw the region offset up/right, to allow space for bottom/left resize boxes,
+        # since they would otherwise be at negative coords, which would be outside the
+        # hitRegion bitmap.  Then set the offset of the hitRegion bitmap down/left to make up for it.
+        regOffset = (thickness+20)/2
+
+        bmp = wx.Bitmap(width=s.width+2*regOffset, height=s.height+2*regOffset, depth=1)
         dc = wx.MemoryDC(bmp)
         dc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
         dc.Clear()
         penColor = 'white'
         fillColor = 'white'
-        self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(thickness/2+10, thickness/2+10))
+        self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(regOffset, regOffset))
         f = self.model.GetAbsoluteFrame()
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
             for resizerRect in self.GetResizeBoxRects():
-                resizerRect.Offset((10, 10))
+                resizerRect.Offset((regOffset, regOffset))
                 dc.DrawRectangle(resizerRect)
         reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
-        reg.Offset(-thickness/2-10, -thickness/2-10)
+        reg.Offset(-regOffset, -regOffset)
         self.hitRegion = reg
 
     def GetResizeBoxRects(self):
-        thickness = self.model.GetProperty("penThickness")
+        thicknessOffset = self.model.GetProperty("penThickness")/2
         resizerRects = super().GetResizeBoxRects()
         for r in resizerRects:
-            r.Offset((thickness/2, thickness/2))
+                r.Offset((thicknessOffset-3 if r.Left >= 0 else -thicknessOffset-2,
+                            thicknessOffset-2 if r.Top >= 0 else -thicknessOffset-2))
         return resizerRects
 
     def OnPropertyChanged(self, model, key):
@@ -341,7 +346,7 @@ class Line(ViewProxy):
                 animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
             def onUpdate(progress, animDict):
-                self._model.SetProperty("penColor", [animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)])
+                self._model.SetProperty("penColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
             self._model.AddAnimation("penColor", duration, onUpdate, onStart, onFinished)
 
@@ -398,7 +403,7 @@ class Shape(Line):
                 animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
             def onUpdate(progress, animDict):
-                self._model.SetProperty("fillColor", [animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)])
+                self._model.SetProperty("fillColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
             self._model.AddAnimation("fillColor", duration, onUpdate, onStart, onFinished)
 

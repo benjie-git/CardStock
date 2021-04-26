@@ -310,7 +310,7 @@ class Card(ViewProxy):
                 animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
             def onUpdate(progress, animDict):
-                self._model.SetProperty("bgColor", [animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)])
+                self._model.SetProperty("bgColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
             self._model.AddAnimation("bgColor", duration, onUpdate, onStart, onFinished)
 

@@ -204,9 +204,9 @@ class UiView(object):
         # native widgets which can obscure the full frame.
         s = self.model.GetProperty("size")
         return [wx.Rect(-6, -6, 12, 12),
-                wx.Rect(s.width - 4, -6, 12, 12),
-                wx.Rect(-6, s.height - 4, 12, 12),
-                wx.Rect(s.width - 4, s.height - 4, 12, 12)]
+                wx.Rect(s.width - 2, -6, 12, 12),
+                wx.Rect(-6, s.height - 2, 12, 12),
+                wx.Rect(s.width - 2, s.height - 2, 12, 12)]
 
     def ClearHitRegion(self):
         self.hitRegion = None
@@ -583,6 +583,8 @@ class ViewModel(object):
             value = wx.Size(value)
         elif key in self.propertyTypes and self.propertyTypes[key] == "choice" and value not in self.propertyChoices[key]:
             return
+        elif key in self.propertyTypes and self.propertyTypes[key] == "color" and isinstance(value, wx.Colour):
+            value = value.GetAsString(flags=wx.C2S_HTML_SYNTAX)
 
         if key == "name":
             value = re.sub(r'\W+', '', value)

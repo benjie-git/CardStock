@@ -1,6 +1,6 @@
 import wx
 from commands import *
-from uiShape import ShapeModel
+from uiShape import UiShape, ShapeModel
 import math
 
 """
@@ -223,12 +223,24 @@ class HandTool(BaseTool):
                                                min(self.resizeAnchorPoint[1], pos[1])),
                                       wx.Point(max(self.resizeAnchorPoint[0], pos[0]),
                                                max(self.resizeAnchorPoint[1], pos[1])))
-                    self.targetUi.model.SetProperty("position", newRect.TopLeft)
-                    self.targetUi.model.SetProperty("size", newRect.Size)
 
                     thickness = 0
-                    if self.targetUi.model.type in ['line', 'pen']:
+                    if isinstance(self.targetUi, UiShape):
+                        # Account for thickness of shapes while resizing
                         thickness = self.targetUi.model.GetProperty("penThickness")
+                        if pos[0] == newRect.Left:
+                            newRect.Left += min(thickness/2, newRect.Width)
+                            newRect.Width -= min(thickness/2, newRect.Width)
+                        else:
+                            newRect.Right -= thickness / 2
+                        if pos[1] == newRect.Top:
+                            newRect.Top += min(thickness/2, newRect.Height)
+                            newRect.Height -= min(thickness/2, newRect.Height)
+                        else:
+                            newRect.Bottom -= thickness / 2
+
+                    self.targetUi.model.SetProperty("position", newRect.TopLeft)
+                    self.targetUi.model.SetProperty("size", newRect.Size)
 
                     if self.resizeCorner[0]:
                         xFlipped = (pos[0] > self.resizeAnchorPoint[0] + thickness/2)

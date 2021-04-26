@@ -212,6 +212,6 @@ class TextBaseProxy(ViewProxy):
                 animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
             def onUpdate(progress, animDict):
-                self._model.SetProperty("textColor", [animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)])
+                self._model.SetProperty("textColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
             self._model.AddAnimation("textColor", duration, onUpdate, onStart, onFinished)
