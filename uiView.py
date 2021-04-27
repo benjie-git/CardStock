@@ -767,6 +767,13 @@ class ViewProxy(object):
                 self._model.stackManager.runner.SetupForCard(self._model.stackManager.uiCard.model)
         else:
             newModel = self._model.stackManager.DuplicateCard()
+
+            if "center" in kwargs and "size" in kwargs:
+                newModel.SetProperty("size", kwargs["size"])
+                newModel.SetProperty("center", kwargs["center"])
+                kwargs.pop("size")
+                kwargs.pop("center")
+
             for k,v in kwargs.items():
                 if k in newModel.propertyTypes:
                     newModel.SetProperty(k, v)

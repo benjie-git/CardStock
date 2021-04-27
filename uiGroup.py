@@ -81,7 +81,7 @@ class UiGroup(UiView):
         for ui in self.uiViews.copy():
             if ui.view:
                 self.stackManager.view.RemoveChild(ui.view)
-                wx.CallAfter(ui.view.Destroy)
+                ui.view.Destroy()
             if ui.model.type == "group":
                 ui.RemoveChildViews()
             self.uiViews.remove(ui)

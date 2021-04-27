@@ -194,6 +194,16 @@ class StackManager(object):
                 self.uiViews.remove(ui)
                 ui.DestroyView()
 
+                if ui.model.type == "group":
+                    ui.RemoveChildViews()
+
+                def DelFromMap(ui):
+                    del self.modelToViewMap[ui.model]
+                    if ui.model.type == "group":
+                        for childUi in ui.uiViews:
+                            DelFromMap(childUi)
+                DelFromMap(ui)
+
     def CreateViews(self, cardModel):
         self.uiCard.SetModel(cardModel)
         self.uiViews = []
@@ -474,10 +484,14 @@ class StackManager(object):
                 self.SelectUiView(ui, True)
             if ui.model.type == "group":
                 ui.RemoveChildViews()
-                for childUi in ui.uiViews:
-                    del self.modelToViewMap[childUi.model]
-            if ui.model in self.modelToViewMap:
+
+            def DelFromMap(ui):
                 del self.modelToViewMap[ui.model]
+                if ui.model.type == "group":
+                    for childUi in ui.uiViews:
+                        DelFromMap(childUi)
+            DelFromMap(ui)
+
             self.uiViews.remove(ui)
             self.view.Refresh(True)
             self.uiCard.model.RemoveChild(ui.model)

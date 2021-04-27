@@ -218,6 +218,12 @@ class CardModel(ViewModel):
                 self.AddChild(model)
 
             if kwargs:
+                if "center" in kwargs and "size" in kwargs:
+                    model.SetProperty("size", kwargs["size"])
+                    model.SetProperty("center", kwargs["center"])
+                    kwargs.pop("size")
+                    kwargs.pop("center")
+
                 for k,v in kwargs.items():
                     if k in model.propertyTypes:
                         model.SetProperty(k, v)
