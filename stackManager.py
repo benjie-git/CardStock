@@ -44,6 +44,7 @@ class DeferredRefreshWindow(wx.Window):
         self.stackManager = stackManager
         self.needsRefresh = False
         self.deferredRefresh = False
+        self.didResize = False
 
     def Refresh(self, eraseBackground=True, rect=None):
         if not self.deferredRefresh:
@@ -56,6 +57,9 @@ class DeferredRefreshWindow(wx.Window):
 
     @RunOnMain
     def RefreshIfNeeded(self):
+        if self.didResize:
+            self.stackManager.RepositionViews()
+            self.didResize = False
         if self.needsRefresh:
             super().Refresh(True, None)
             self.Update()
@@ -680,18 +684,23 @@ class StackManager(object):
             self.lastMouseMovedUiView.OnMouseExit(event)
         self.lastMouseMovedUiView = None
 
-    def OnResize(self, event):
-        if wx.Platform != '__WXMAC__':
-            self.UpdateBuffer()
+    def RepositionViews(self):
         for uiView in self.uiViews:
             if uiView.view:
                 # Make sure native subview positions get adjusted based on the new origin
                 uiView.OnPropertyChanged(uiView.model, "position")
-        self.view.Refresh(True)
-        self.view.RefreshIfNeeded()
+
+    def OnResize(self, event):
+        if wx.Platform != '__WXMAC__':
+            self.UpdateBuffer()
+        didEnqueue = False
+        self.view.didResize = True
         if not self.isEditing and self.runner:
             self.uiCard.model.SetProperty("size", self.view.GetTopLevelParent().GetClientSize())
-            self.runner.RunHandler(self.uiCard.model, "OnResize", None)
+            didEnqueue = self.runner.RunHandler(self.uiCard.model, "OnResize", None)
+        if self.isEditing or not didEnqueue:
+            self.view.Refresh(True)
+            self.view.RefreshIfNeeded()
         event.Skip()
 
     def ConvPoint(self, pt):

@@ -211,7 +211,7 @@ class Runner():
         """
         handlerStr = uiModel.handlers[handlerName].strip()
         if handlerStr == "":
-            return
+            return False
 
         mousePos = None
         keyName = None
@@ -220,7 +220,7 @@ class Runner():
         if event and handlerName.startswith("OnKey"):
             keyName = self.KeyNameForEvent(event)
             if not keyName:
-                return
+                return False
 
         if threading.currentThread() == self.runnerThread:
             self.RunHandlerInternal(uiModel, handlerName, handlerStr, mousePos, keyName, arg)
@@ -234,6 +234,7 @@ class Runner():
                 elapsedTime = now - self.stackStartTime
             uiModel.lastIdleTime = now
             self.handlerQueue.put((uiModel, handlerName, handlerStr, mousePos, keyName, elapsedTime))
+        return True
 
     def RunHandlerInternal(self, uiModel, handlerName, handlerStr, mousePos, keyName, arg):
         """ Run an eventHandler.  This always runs on the runnerThread. """
