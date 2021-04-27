@@ -201,11 +201,6 @@ class Runner():
                 error = CardStockError(model.GetCard(), model, handlerName, 0, msg)
                 error.count = 1
                 self.errors.append(error)
-            else:
-                error = CardStockError(None, None, None, 0,
-                                       "Exited while code was still running.  Maybe you have a long or infinite loop?")
-                error.count = 1
-                self.errors.append(error)
 
     def RunHandler(self, uiModel, handlerName, event, arg=None):
         """
