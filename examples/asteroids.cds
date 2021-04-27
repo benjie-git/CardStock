@@ -14,7 +14,7 @@
       "type": "card",
       "handlers": {
         "OnSetup": "from random import randint\nfrom math import radians, sin, cos\n\n# rotate point by angle in degrees around (0,0)\ndef rotate(point, angle):\n   angle = radians(angle)\n   px, py = point\n   return [-(cos(angle) * px - sin(angle) * py),\n           sin(angle) * px + cos(angle) * py]\n\ntry_again.Hide()\nasteroid.Hide()\nisGameOver = False\n\nself.SendMessage(\"start\")",
-        "OnKeyDown": "# Respond to these keys once per press, on KeyDown\nif keyName == \"Space\" and isGameOver == False:\n   shot = card.AddOval(\"shot\",\n      size=(10,10),\n      center=(ship.center+rotate((0, 60), ship.rotation)),\n      speed=ship.speed+rotate((0, 150), ship.rotation))\n   RunAfterDelay(2, shot.Delete)\n\nelif keyName == \"Space\" and isGameOver == True:\n      isGameOver = False\n      ship.rotation = 0\n      ship.center = card.center\n      ast = asteroid.Clone()\n      ast.position = (100,100)\n      ast.speed += (randint(-100,100), randint(-100,100))\n      ast.Show()\n      numAsteroids = 1\n      try_again.Hide()\n",
+        "OnKeyDown": "# Respond to these keys once per press, on KeyDown\nif keyName == \"Space\" and isGameOver == False:\n   shot = card.AddOval(\"shot\",\n      size=(10,10),\n      center=(ship.center+rotate((0, 60), ship.rotation)),\n      speed=ship.speed+rotate((0, 150), ship.rotation))\n   RunAfterDelay(2, shot.Delete)\n\nelif keyName == \"Return\" and isGameOver == True:\n      isGameOver = False\n      ship.rotation = 0\n      ship.center = card.center\n      ast = asteroid.Clone()\n      ast.position = (100,100)\n      ast.speed += (randint(-100,100), randint(-100,100))\n      ast.Show()\n      numAsteroids = 1\n      try_again.Hide()\n",
         "OnMessage": "if message == \"start\":\n   # Set up the first asteroid, as a clone of the original, hidden one\n   ast = asteroid.Clone()\n   ast.position = (100,100)\n   ast.speed += (randint(-100,100), randint(-100,100))\n   ast.Show()\n   numAsteroids = 1\n\nelif message == \"gameOver\":\n   # Stop the ship\n   ship.speed = (0,0)\n   \n   # Delete all asteroids and shots\n   for c in card.children.copy():\n      if c.name.startswith(\"asteroid_\") or c.name.startswith(\"shot\"):\n         c.Delete()\n   isGameOver = True\n   try_again.Show()\n"
       },
       "properties": {
@@ -69,7 +69,7 @@
               0.0,
               756.0
             ],
-            "text": "Press Space to Play Again",
+            "text": "Press Return to Play Again",
             "alignment": "Center",
             "textColor": "white",
             "font": "Default",

@@ -296,8 +296,11 @@ class Runner():
         try:
             exec(handlerStr, self.clientVars)
         except SyntaxError as err:
+            if err.msg == "'return' outside function":
+                detail = "'return' can't currently be used at the top level of CardStock event code"
+            else:
+                detail = err.msg
             error_class = err.__class__.__name__
-            detail = err.args[0]
             line_number = err.lineno
         except Exception as err:
             error_class = err.__class__.__name__
