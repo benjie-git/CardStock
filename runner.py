@@ -245,9 +245,6 @@ class Runner():
             return
 
         self.runnerDepth += 1
-        error_class = None
-        line_number = None
-        detail = None
 
         noValue = ("no", "value")  # Use this if this var didn't exist/had no value (not even None)
 
@@ -292,6 +289,10 @@ class Runner():
         self.lastHandlerStack.append((uiModel, handlerName))
 
         error = None
+        error_class = None
+        line_number = None
+        in_func = []
+        detail = None
         try:
             exec(handlerStr, self.clientVars)
         except SyntaxError as err:
@@ -303,10 +304,11 @@ class Runner():
             detail = err.args[0]
             cl, exc, tb = sys.exc_info()
             trace = traceback.extract_tb(tb)
-            for i in range(len(trace)-1, -1, -1):
-                if trace[i][0] == "<string>":
-                    line_number = trace[i][1]
-                    break
+            for i in range(len(trace)):
+                if not line_number and trace[i].filename == "<string>" and trace[i].name == "<module>":
+                    line_number = trace[i].lineno
+                elif line_number and trace[i].filename == "<string>" and trace[i].name != "<module>":
+                    in_func.append((trace[i].name, trace[i].lineno))
 
         del self.lastHandlerStack[-1]
 
@@ -320,6 +322,8 @@ class Runner():
 
         if error_class:
             msg = f"{error_class} in {self.HandlerPath(uiModel, handlerName)}, line {line_number}: {detail}"
+            for f in in_func:
+                msg += f" (in function '{f[0]}, line {f[1]}')"
 
             for e in self.errors:
                 if e.msg == msg:
