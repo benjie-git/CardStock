@@ -33,9 +33,8 @@ class Runner():
     runnerThread.  From there, run all UI calls synchronously on the main thread, as required by wxPython.
     """
 
-    def __init__(self, stackManager, sb=None):
+    def __init__(self, stackManager):
         self.stackManager = stackManager
-        self.statusBar = sb
         self.cardVarKeys = []  # store names of views on the current card, to remove from clientVars before setting up the next card
         self.pressedKeys = []
         self.timers = []
@@ -340,9 +339,6 @@ class Runner():
             error.count += 1
 
             sys.stderr.write(msg + os.linesep)
-
-            if self.statusBar:
-                self.statusBar.SetStatusText(msg)
 
         self.runnerDepth -= 1
 

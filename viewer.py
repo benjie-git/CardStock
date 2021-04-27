@@ -15,7 +15,6 @@ import wx.html
 from stackManager import StackManager
 from stackModel import StackModel
 from uiCard import CardModel
-import version
 from runner import Runner
 import helpDialogs
 from findEngineViewer import FindEngine
@@ -50,8 +49,6 @@ class ViewerFrame(wx.Frame):
 
         wx.Frame.__init__(self, parent, -1, self.title, size=(500,500), style=style)
         # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.ico')))
-
-        self.CreateStatusBar()
 
         self.stackManager = StackManager(self)
         self.stackManager.view.UseDeferredRefresh(True)
@@ -102,11 +99,9 @@ class ViewerFrame(wx.Frame):
         self.stackManager.SetStackModel(stackModel)
         self.stackManager.SetEditing(False)
         size = self.stackManager.stackModel.GetProperty("size")
-        if wx.Platform == "__WXMSW__" or \
-                (wx.Platform == "__WXGTK__" and stackModel.GetProperty("canResize")):
-            # Silly Windows doesn't leave room for the status bar.
-            # GTK too, but only if resizing is enabled (?)
-            size += (0, self.GetStatusBar().GetRect().height)
+        if wx.Platform == "__WXMSW__":
+            # Silly Windows doesn't leave room for the menu bar?
+            size += (0, 20)
         self.SetClientSize(size)
         self.stackManager.view.SetFocus()
         if self.stackManager.filename:
@@ -314,11 +309,11 @@ class ViewerFrame(wx.Frame):
         self.consoleWindow.Clear()
 
     def RunViewer(self, cardIndex):
-        runner = Runner(self.stackManager, self.GetStatusBar())
+        runner = Runner(self.stackManager)
         self.stackManager.runner = runner
         self.stackManager.SetEditing(False)
-        self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))
         self.MakeMenu()
+        self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))
         if self.designer:
             runner.AddSyntaxErrors(self.designer.cPanel.codeEditor.analyzer.syntaxErrors)
         self.stackManager.LoadCardAtIndex(None, True)

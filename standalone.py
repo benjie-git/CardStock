@@ -15,7 +15,6 @@ import wx.html
 from stackManager import StackManager
 from stackModel import StackModel
 from uiCard import CardModel
-import version
 from runner import Runner
 import helpDialogs
 from findEngineViewer import FindEngine
@@ -83,11 +82,9 @@ class StandaloneFrame(wx.Frame):
         self.stackManager.SetStackModel(stackModel)
         self.stackManager.SetEditing(False)
         size = self.stackManager.stackModel.GetProperty("size")
-        if wx.Platform == "__WXMSW__" or \
-                (wx.Platform == "__WXGTK__" and stackModel.GetProperty("canResize")):
-            # Silly Windows doesn't leave room for the status bar.
-            # GTK too, but only if resizing is enabled (?)
-            size += (0, self.GetStatusBar().GetRect().height)
+        if wx.Platform == "__WXMSW__":
+            # Silly Windows doesn't leave room for the menu bar?
+            size += (0, 20)
         self.SetClientSize(size)
         self.stackManager.view.SetFocus()
 
@@ -245,11 +242,11 @@ class StandaloneFrame(wx.Frame):
         dlg.Destroy()
 
     def RunViewer(self):
-        runner = Runner(self.stackManager, None)
+        runner = Runner(self.stackManager)
         self.stackManager.runner = runner
         self.stackManager.SetEditing(False)
-        self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))
         self.MakeMenu()
+        self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))
         self.stackManager.LoadCardAtIndex(None)
         self.stackManager.stackModel.RunSetup(runner)
         self.stackManager.LoadCardAtIndex(0)
