@@ -1,3 +1,4 @@
+import re
 import sys
 import os
 import traceback
@@ -43,6 +44,7 @@ class Runner():
         self.didSetup = False
         self.runnerDepth = 0
         self.numOnIdlesQueued = 0
+        self.rewrittenHandlerMap = {}
 
         # queue of tasks to run on the runnerThread
         # each task is put onto the queue as a list.
@@ -281,6 +283,10 @@ class Runner():
                 oldVars["keyName"] = noValue
             self.clientVars["keyName"] = keyName
 
+        # rewrite handlers that use return outside of a function, and replace with an exception that we catch, to
+        # act like a return.
+        handlerStr = self.RewriteHandler(handlerStr)
+
         self.lastHandlerStack.append((uiModel, handlerName))
 
         error = None
@@ -291,22 +297,23 @@ class Runner():
         try:
             exec(handlerStr, self.clientVars)
         except SyntaxError as err:
-            if err.msg == "'return' outside function":
-                detail = "'return' can't currently be used at the top level of CardStock event code"
-            else:
-                detail = err.msg
+            detail = err.msg
             error_class = err.__class__.__name__
             line_number = err.lineno
         except Exception as err:
-            error_class = err.__class__.__name__
-            detail = err.args[0]
-            cl, exc, tb = sys.exc_info()
-            trace = traceback.extract_tb(tb)
-            for i in range(len(trace)):
-                if not line_number and trace[i].filename == "<string>" and trace[i].name == "<module>":
-                    line_number = trace[i].lineno
-                elif line_number and trace[i].filename == "<string>" and trace[i].name != "<module>":
-                    in_func.append((trace[i].name, trace[i].lineno))
+            if err.__class__.__name__ == "RuntimeError" and err.args[0] == "Return":
+                # Catch our exception-based return calls
+                pass
+            else:
+                error_class = err.__class__.__name__
+                detail = err.args[0]
+                cl, exc, tb = sys.exc_info()
+                trace = traceback.extract_tb(tb)
+                for i in range(len(trace)):
+                    if not line_number and trace[i].filename == "<string>" and trace[i].name == "<module>":
+                        line_number = trace[i].lineno
+                    elif line_number and trace[i].filename == "<string>" and trace[i].name != "<module>":
+                        in_func.append((trace[i].name, trace[i].lineno))
 
         del self.lastHandlerStack[-1]
 
@@ -338,6 +345,46 @@ class Runner():
                 self.statusBar.SetStatusText(msg)
 
         self.runnerDepth -= 1
+
+    def RewriteHandler(self, handlerStr):
+        # rewrite handlers that use return outside of a function, and replace with an exception that we catch, to
+        # act like a return.
+        if "return" in handlerStr:
+            if handlerStr in self.rewrittenHandlerMap:
+                # we cache the rewritten handlers
+                return self.rewrittenHandlerMap[handlerStr]
+            else:
+                lines = handlerStr.split('\n')
+                funcIndent = None
+                updatedLines = []
+                for line in lines:
+                    if funcIndent is not None:
+                        # if we were inside a function definition, check if it's done
+                        m = re.match(rf"^(\s{{{funcIndent}}})\b", line)
+                        if m:
+                            funcIndent = None
+                    if funcIndent is None:
+                        m = re.match(r"^(\s*)def ", line)
+                        if m:
+                            # mark that we're inside a function def now, so don't replace returns.
+                            funcIndent = len(m.group(1))
+                            updatedLines.append(line)
+                        else:
+                            # not inside a function def, so replace returns with a RuntimeError('Return')
+                            # and catch these later, while running the handler
+                            u = re.sub(r"^(\s*)return\b", r"\1raise RuntimeError('Return')", line)
+                            u = re.sub(r":\s+return\b", ": raise RuntimeError('Return')", u)
+                            updatedLines.append(u)
+                    else:
+                        # now we're inside a function def, so don't replace returns.  they're valid here!
+                        updatedLines.append(line)
+
+                updated = '\n'.join(updatedLines)
+                self.rewrittenHandlerMap[handlerStr] = updated  # cache the updated handler
+                return updated
+        else:
+            # No return used, so keep the handler as-is
+            return handlerStr
 
     def HandlerPath(self, model, handlerName):
         if model.type == "card":
