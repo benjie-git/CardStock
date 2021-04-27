@@ -805,8 +805,9 @@ class StackManager(object):
 
             self.tool.OnKeyDown(uiView, event)
         else:
-            self.runner.OnKeyDown(event)
-            self.uiCard.OnKeyDown(event)
+            isNonAutoRepeatKeyDown = self.runner.OnKeyDown(event)
+            if isNonAutoRepeatKeyDown:
+                self.uiCard.OnKeyDown(event)
             if uiView.model.type in ["textfield", "button"]:
                 event.Skip()
 

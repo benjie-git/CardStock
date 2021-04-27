@@ -404,6 +404,8 @@ class Runner():
         keyName = self.KeyNameForEvent(event)
         if keyName and keyName not in self.pressedKeys:
             self.pressedKeys.append(keyName)
+            return True
+        return False
 
     def OnKeyUp(self, event):
         keyName = self.KeyNameForEvent(event)
