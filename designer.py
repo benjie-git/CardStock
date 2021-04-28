@@ -191,41 +191,41 @@ class DesignerFrame(wx.Frame):
 
     def ReadFile(self, filename):
         if filename:
+            stackModel = None
             try:
                 with open(filename, 'r') as f:
                     data = json.load(f)
                 if data:
                     stackModel = StackModel(self.stackManager)
                     stackModel.SetData(data)
-                    self.stackManager.SetDesigner(self)
-                    self.filename = filename
-                    self.stackManager.filename = filename
-                    self.stackManager.resPathMan.Reset()
-                    self.stackManager.SetStackModel(stackModel)
-                    self.stackManager.SetEditing(True)
-                    self.stackManager.SelectUiView(self.stackManager.uiCard)
-                    self.SetFrameSizeFromModel()
-                    self.stackManager.stackModel.SetDirty(False)
-                    self.UpdateCardList()
-                    self.stackManager.view.SetFocus()
-                    self.SetTitle(self.title + ' -- ' + os.path.basename(self.filename))
-                    self.WriteConfig()
-                    self.cPanel.SetToolByName("hand")
-                    if self.allCodeWindow:
-                        self.allCodeWindow.Destroy()
-                        self.allCodeWindow = None
-                    if self.errorListWindow:
-                        self.errorListWindow.Destroy()
-                        self.errorListWindow = None
-                    self.lastRunErrors = []
             except:
-                # e = sys.exc_info()
-                # print(e)
+                stackModel = None
                 self.NewFile()
                 wx.YieldIfNeeded()
                 wx.MessageDialog(None, str("Couldn't read file"), "", wx.OK).ShowModal()
 
-
+            if stackModel:
+                self.stackManager.SetDesigner(self)
+                self.filename = filename
+                self.stackManager.filename = filename
+                self.stackManager.resPathMan.Reset()
+                self.stackManager.SetStackModel(stackModel)
+                self.stackManager.SetEditing(True)
+                self.stackManager.SelectUiView(self.stackManager.uiCard)
+                self.SetFrameSizeFromModel()
+                self.stackManager.stackModel.SetDirty(False)
+                self.UpdateCardList()
+                self.stackManager.view.SetFocus()
+                self.SetTitle(self.title + ' -- ' + os.path.basename(self.filename))
+                self.WriteConfig()
+                self.cPanel.SetToolByName("hand")
+                if self.allCodeWindow:
+                    self.allCodeWindow.Destroy()
+                    self.allCodeWindow = None
+                if self.errorListWindow:
+                    self.errorListWindow.Destroy()
+                    self.errorListWindow = None
+                self.lastRunErrors = []
 
     def SetFrameSizeFromModel(self):
         self.stackContainer.SetSize(self.stackManager.view.GetSize())
@@ -726,7 +726,7 @@ class DesignerFrame(wx.Frame):
         if not self.filename:
             config = self.ReadConfig()
             self.cPanel.ShowContextHelp(config["show_context_help"] == "True")
-            if config["last_open_file"]:
+            if config["last_open_file"] and os.path.exists(config["last_open_file"]):
                 self.ReadFile(config["last_open_file"])
 
     def WriteConfig(self):
