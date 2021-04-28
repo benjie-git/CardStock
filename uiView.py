@@ -330,10 +330,20 @@ class ViewModel(object):
         return displayTypes[self.type]
 
     def SetDirty(self, isDirty):
-        self.isDirty = isDirty
+        if isDirty:
+            self.isDirty = True
+        else:
+            self.isDirty = False
+            for child in self.childModels:
+                child.SetDirty(False)
 
     def GetDirty(self):
-        return self.isDirty
+        if self.isDirty:
+            return True
+        for card in self.childModels:
+            if card.GetDirty():
+                return True
+        return False
 
     def GetPath(self):
         parts = []

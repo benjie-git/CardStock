@@ -70,16 +70,6 @@ class StackModel(ViewModel):
                 return None
         return m
 
-    def GetDirty(self):
-        for card in self.childModels:
-            if card.GetDirty():
-                return True
-        return False
-
-    def SetDirty(self, dirty):
-        for card in self.childModels:
-            card.SetDirty(dirty)
-
     def GetData(self):
         data = super().GetData()
         data["cards"] = [m.GetData() for m in self.childModels]

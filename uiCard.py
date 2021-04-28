@@ -146,22 +146,6 @@ class CardModel(ViewModel):
                 allModels.extend(child.GetAllChildModels())
         return allModels
 
-    def GetDirty(self):
-        if self.isDirty:
-            return True
-        for child in self.GetAllChildModels():
-            if child.isDirty:
-                return True
-        return False
-
-    def SetDirty(self, isDirty):
-        if isDirty:
-            self.isDirty = True
-        else:
-            self.isDirty = False
-            for child in self.GetAllChildModels():
-                child.isDirty = False
-
     def GetData(self):
         data = super().GetData()
         data["childModels"] = []
