@@ -104,7 +104,6 @@ class TextLabel(TextBaseProxy):
 
     pass
 
-
 def wordwrap(text, width, dc):
     """
     CardStock -- Bug-Fixed and simplified wx.lib.wordwrap
@@ -120,12 +119,20 @@ def wordwrap(text, width, dc):
         idx = 0
         start = 0
         startIdx = 0
+        spcIdx = -1
         while idx < len(pte):
+            # remember the last seen space
+            if line[idx] == ' ':
+                spcIdx = idx
+
             # have we reached the max width?
             if pte[idx] - start > width:
+                if spcIdx != -1:
+                    idx = min(spcIdx + 1, len(pte) - 1)
                 wrapped_lines.append(line[startIdx : idx])
                 start = pte[idx-1]
                 startIdx = idx
+                spcIdx = -1
 
             idx += 1
 
