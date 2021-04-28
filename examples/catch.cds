@@ -13,7 +13,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "from random import randint\nscore = 0\nnextMoveTime = Time() + 3\n",
+        "OnSetup": "from random import randint\n\nscore = 0\nnextMoveTime = Time() + 3\n",
         "OnIdle": "if IsKeyPressed(\"Left\"):\n   guy.position.x -= 8\nif IsKeyPressed(\"Right\"):\n   guy.position.x += 8\nif IsKeyPressed(\"Up\"):\n   guy.position.y += 8\nif IsKeyPressed(\"Down\"):\n   guy.position.y -= 8\n\nsize = card.size\ndidUpdate = False\n\nif guy.IsTouching(goal):\n   score += 1\n   didUpdate = True\n\nif Time() >= nextMoveTime:\n   score -= 1\n   didUpdate = True\n   \nif didUpdate:\n   label.text = score\n   goal.position = [randint(0,size.x-goal.size.width),\\\n      randint(0,size.y-goal.size.height)]\n   nextMoveTime = Time() + 3\n"
       },
       "properties": {

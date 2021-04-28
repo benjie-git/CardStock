@@ -31,11 +31,11 @@
             "name": "day",
             "size": [
               124,
-              29
+              24
             ],
             "position": [
-              41.0,
-              418.0
+              39.0,
+              425.0
             ],
             "title": "Day",
             "border": true
@@ -182,11 +182,11 @@
             "name": "night",
             "size": [
               124,
-              29
+              24
             ],
             "position": [
               39.0,
-              450.0
+              455.0
             ],
             "title": "Night",
             "border": true

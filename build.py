@@ -8,10 +8,15 @@ EXTRA_MODULES = []
 
 try:
     import requests
-    REQUESTS_AVAILABLE = True
     EXTRA_MODULES.append("requests")
 except ModuleNotFoundError:
-    REQUESTS_AVAILABLE = False
+    pass
+
+try:
+    import serial
+    EXTRA_MODULES.append("serial")
+except ModuleNotFoundError:
+    pass
 
 
 """PyInstaller commands for building the standalone Designer and Viewer apps on Mac and Windows"""

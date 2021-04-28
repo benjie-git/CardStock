@@ -23,7 +23,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "result = requests.get('https://geek-jokes.sameerkumar.website/api?format=json')\ndict = json.loads(result.text)\nfield_1.text = dict[\"joke\"]\n"
+            "OnClick": "field_1.text = \"Loading...\"\nresult = requests.get('https://geek-jokes.sameerkumar.website/api?format=json')\ndict = json.loads(result.text)\nfield_1.text = dict[\"joke\"]\n"
           },
           "properties": {
             "name": "button_1",
@@ -57,7 +57,7 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "editable": true,
+            "editable": false,
             "multiline": true
           }
         }

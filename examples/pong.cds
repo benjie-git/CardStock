@@ -13,9 +13,9 @@
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "from random import randint\n",
+        "OnSetup": "from random import randint",
         "OnKeyDown": "if keyName == \"Space\":\n   # Only start a game if the ball wasn't already moving\n   if ball.speed.x == 0 and ball.speed.y == 0:\n      ball.SendMessage(\"StartGame\")\n",
-        "OnResize": "# Make the paddle follow the window's height\npaddle.center.y = 40\nlabel.position.y = card.size.height - label.size.height",
+        "OnResize": "# Keep the label at the top, following the window's height\nlabel.position.y = card.size.height - label.size.height - 5",
         "OnMouseDown": "if ball.speed.x == 0 and ball.speed.y == 0:\n   # Only start a game if the ball wasn't already moving\n   ball.SendMessage(\"StartGame\")\n",
         "OnMouseMove": "# Make the paddle follow the mouse's X position\npaddle.center = [mousePos.x, 40]\n"
       },
@@ -79,7 +79,7 @@
         {
           "type": "oval",
           "handlers": {
-            "OnSetup": "self.Hide()\n",
+            "OnSetup": "self.Hide()",
             "OnMessage": "if message == \"StartGame\":\n   self.speed.x = randint(200,400)\n   self.speed.y = self.speed.x - 800\n   self.position = [50,card.size.height - 80]\n   self.Show()\n   score = 0\n   label.text = score\n",
             "OnIdle": "if self.IsTouching(paddle) and self.speed.y < 0:\n   # We hit the ball with the paddle!\n   # Switch vertical sign and inrease the score\n   self.speed.y = -self.speed.y\n   score += 1\n   label.text = score\n   \n   # Speed up or slow down horizontally\n   # based on which side of the paddle\n   # we hit\n   if ball.center.x < paddle.center.x:\n      self.speed.x -= randint(50,100)\n   elif ball.center.x > paddle.center.x:\n      self.speed.x += randint(50,100)\n   # keep the ball from getting too fast\n   self.speed.x = min(self.speed.x, 500)\n   self.speed.x = max(self.speed.x, -500)\n\n# Bounce if we hit a top or side\nif self.position.y +self.size.height >= card.size.height and self.speed.y > 0:\n   self.speed.y = -self.speed.y\nelif self.position.x <= 0 and self.speed.x < 0:\n   self.speed.x = -self.speed.x\nelif self.position.x + self.size.width >= card.size.width\\\n   and self.speed.x > 0:\n      self.speed.x = -self.speed.x\n\n# Lose if we hit the bottom of the card\nelif self.position.y <= 0 and self.speed.y < 0:\n      self.speed.x = 0\n      self.speed.y = 0\n      self.Hide()\n      label.text = \"Oh no!\"\n"
           },
