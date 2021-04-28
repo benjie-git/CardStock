@@ -1,6 +1,5 @@
 import wx
 from uiView import *
-from wx.lib.wordwrap import wordwrap
 from uiTextBase import *
 from killableThread import RunOnMain
 
@@ -104,3 +103,32 @@ class TextLabel(TextBaseProxy):
     """
 
     pass
+
+
+def wordwrap(text, width, dc):
+    """
+    CardStock -- Bug-Fixed and simplified wx.lib.wordwrap
+    Returns a copy of text with newline characters inserted where long
+    lines should be broken such that they will fit within the given
+    width, on the given `wx.DC` using its current font settings.
+    """
+
+    wrapped_lines = []
+    text = text.split('\n')
+    for line in text:
+        pte = dc.GetPartialTextExtents(line)
+        idx = 0
+        start = 0
+        startIdx = 0
+        while idx < len(pte):
+            # have we reached the max width?
+            if pte[idx] - start > width:
+                wrapped_lines.append(line[startIdx : idx])
+                start = pte[idx-1]
+                startIdx = idx
+
+            idx += 1
+
+        wrapped_lines.append(line[startIdx : idx])
+
+    return '\n'.join(wrapped_lines)
