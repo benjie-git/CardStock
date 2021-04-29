@@ -62,10 +62,10 @@ class UiCard(UiView):
         if self.stackManager.runner and self.model.GetHandler("OnKeyUp"):
             self.stackManager.runner.RunHandler(self.model, "OnKeyUp", event)
 
-    def OnIdle(self, event):
-        didRun = super().OnIdle(event)
+    def OnPeriodic(self, event):
+        didRun = super().OnPeriodic(event)
         for child in self.stackManager.GetAllUiViews():
-            if child.OnIdle(event):
+            if child.OnPeriodic(event):
                 didRun = True
         return didRun
 

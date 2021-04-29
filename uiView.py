@@ -162,7 +162,7 @@ class UiView(object):
                         animDict["onUpdate"](1.0, animDict)
                     self.model.FinishAnimation(key)
 
-    def OnIdle(self, event):
+    def OnPeriodic(self, event):
         didRun = False
         if self.hasMouseMoved:
             self.hasMouseMoved = False
@@ -170,8 +170,8 @@ class UiView(object):
                 self.stackManager.runner.RunHandler(self.model, "OnMouseMove", event)
                 didRun = True
 
-        if self.stackManager.runner and self.model.GetHandler("OnIdle"):
-            self.stackManager.runner.RunHandler(self.model, "OnIdle", event)
+        if self.stackManager.runner and self.model.GetHandler("OnPeriodic"):
+            self.stackManager.runner.RunHandler(self.model, "OnPeriodic", event)
             didRun = True
 
         return didRun
@@ -242,7 +242,7 @@ class UiView(object):
         'OnKeyDown':    "OnKeyDown(keyName):",
         'OnKeyUp':      "OnKeyUp(keyName):",
         'OnResize':     "OnResize():",
-        'OnIdle':       "OnIdle(elapsedTime):",
+        'OnPeriodic':   "OnPeriodic(elapsedTime):",
     }
 
 
@@ -268,7 +268,7 @@ class ViewModel(object):
                          "OnMouseUp": "",
                          "OnMouseExit": "",
                          "OnMessage": "",
-                         "OnIdle": ""
+                         "OnPeriodic": ""
                          }
         self.initialEditHandler = "OnMouseDown"
 
@@ -294,7 +294,7 @@ class ViewModel(object):
         self.stackManager = stackManager
         self.isDirty = False
         self.proxy = None
-        self.lastIdleTime = None
+        self.lastOnPeriodicTime = None
         self.animations = {}
         self.proxyClass = ViewProxy
 

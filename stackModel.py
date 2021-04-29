@@ -103,7 +103,7 @@ class StackModel(ViewModel):
             In File Format Version 1, the cards used the top-left corner as the origin, y increased while moving down.
             In File Format Version 2, the cards use the bottom-left corner as the origin, y increases while moving up.
             Migrate all of the static objects to look the same in the new world order, but user code will need updating.
-            Also update names of the old StopAnimations() and StopAllAnimations() methods.
+            Also update names of the old StopAnimations() and StopAllAnimations() methods, and move OnIdle to OnPeriodic.
             """
             def UnflipImages(obj):
                 if obj.type == "image":
@@ -116,14 +116,15 @@ class StackModel(ViewModel):
                 card.PerformFlips(False, True)
                 UnflipImages(card)
 
-            # Update names of StopAnimating methods
+            # Update names of StopAnimating methods, OnIdle->OnPeriodic
             def replaceNames(obj):
+                if "OnIdle" in obj.handlers:
+                    obj.handlers["OnPeriodic"] = obj.handlers.pop("OnIdle")
                 for k,v in obj.handlers.items():
                     obj.handlers[k] = v.replace(".StopAnimations(", ".StopAnimating(")
                     obj.handlers[k] = v.replace(".StopAllAnimations(", ".StopAllAnimating(")
                 for child in obj.childModels:
                     replaceNames(child)
-
             replaceNames(stackModel)
 
 

@@ -92,12 +92,12 @@ class UiGroup(UiView):
             uiView = generator.StackGenerator.UiViewFromModel(self, self.stackManager, m)
             self.uiViews.append(uiView)
 
-    def OnIdle(self, event):
+    def OnPeriodic(self, event):
         didRun = False
-        if super().OnIdle(event):
+        if super().OnPeriodic(event):
             didRun = True
         for child in self.uiViews:
-            if child.OnIdle(event):
+            if child.OnPeriodic(event):
                 didRun = True
         return didRun
 

@@ -23,7 +23,7 @@
         {
           "type": "textfield",
           "handlers": {
-            "OnIdle": "if ser:\n   bytes = ser.read(1024)\n   if len(bytes):\n      self.text += bytes.decode(\"utf-8\")"
+            "OnPeriodic": "if ser:\n   bytes = ser.read(1024)\n   if len(bytes):\n      self.text += bytes.decode(\"utf-8\")"
           },
           "properties": {
             "name": "receiveField",

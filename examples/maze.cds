@@ -57,7 +57,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnIdle": "if self.IsTouching(ball):\n   ball.SendMessage(\"win\")\n"
+            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"win\")\n"
           },
           "properties": {
             "name": "goal",
@@ -91,7 +91,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnIdle": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
           },
           "properties": {
             "name": "wall_1",
@@ -125,7 +125,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnIdle": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
           },
           "properties": {
             "name": "wall_2",
@@ -159,7 +159,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnIdle": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
           },
           "properties": {
             "name": "wall_3",
@@ -193,7 +193,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnIdle": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
           },
           "properties": {
             "name": "wall_4",
@@ -227,7 +227,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnIdle": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
           },
           "properties": {
             "name": "wall_5",
@@ -261,7 +261,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnIdle": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
           },
           "properties": {
             "name": "wall_6",
@@ -295,7 +295,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnIdle": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
           },
           "properties": {
             "name": "wall_7",
@@ -329,7 +329,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnIdle": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
           },
           "properties": {
             "name": "wall_8",
@@ -363,7 +363,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnIdle": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
           },
           "properties": {
             "name": "wall_9",

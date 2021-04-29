@@ -42,7 +42,7 @@ class Runner():
         self.lastHandlerStack = []
         self.didSetup = False
         self.runnerDepth = 0
-        self.numOnIdlesQueued = 0
+        self.numOnPeriodicsQueued = 0
         self.rewrittenHandlerMap = {}
 
         # queue of tasks to run on the runnerThread
@@ -187,8 +187,8 @@ class Runner():
                     self.SetupForCardInternal(*args)
                 elif len(args) == 6:
                     self.RunHandlerInternal(*args)
-                    if args[1] == "OnIdle":
-                        self.numOnIdlesQueued -= 1
+                    if args[1] == "OnPeriodic":
+                        self.numOnPeriodicsQueued -= 1
 
                 if self.stopRunnerThread:
                     break
@@ -225,14 +225,14 @@ class Runner():
         if threading.currentThread() == self.runnerThread:
             self.RunHandlerInternal(uiModel, handlerName, handlerStr, mousePos, keyName, arg)
         else:
-            if handlerName == "OnIdle":
-                self.numOnIdlesQueued += 1
+            if handlerName == "OnPeriodic":
+                self.numOnPeriodicsQueued += 1
             now = time()
-            if uiModel.lastIdleTime:
-                elapsedTime = now - uiModel.lastIdleTime
+            if uiModel.lastOnPeriodicTime:
+                elapsedTime = now - uiModel.lastOnPeriodicTime
             else:
                 elapsedTime = now - self.stackStartTime
-            uiModel.lastIdleTime = now
+            uiModel.lastOnPeriodicTime = now
             self.handlerQueue.put((uiModel, handlerName, handlerStr, mousePos, keyName, elapsedTime))
         return True
 
@@ -262,7 +262,7 @@ class Runner():
                 oldVars["message"] = noValue
             self.clientVars["message"] = arg
 
-        if arg and handlerName == "OnIdle":
+        if arg and handlerName == "OnPeriodic":
             if "elapsedTime" in self.clientVars:
                 oldVars["elapsedTime"] = self.clientVars["elapsedTime"]
             else:

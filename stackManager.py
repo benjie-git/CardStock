@@ -95,7 +95,7 @@ class StackManager(object):
         self.runner = None
         self.filename = None
         self.resPathMan = resourcePathManager.ResourcePathManager(self)
-        self.lastIdleTime = None
+        self.lastOnPeriodicTime = None
 
         self.stackModel = StackModel(self)
         self.stackModel.AppendCardModel(CardModel(self))
@@ -132,7 +132,7 @@ class StackManager(object):
         if not editing:
             self.SelectUiView(None)
             self.timer = wx.Timer(self.view)
-            self.view.Bind(wx.EVT_TIMER, self.OnIdleTimer, self.timer)
+            self.view.Bind(wx.EVT_TIMER, self.OnPeriodicTimer, self.timer)
             if wx.Platform == "__WXMSW__":
                 self.timer.Start(30)
             else:
@@ -162,13 +162,13 @@ class StackManager(object):
                 if uiView.view:
                     uiView.view.SetCursor(wx.Cursor(viewCursor if viewCursor else cursor))
 
-    def OnIdleTimer(self, event):
+    def OnPeriodicTimer(self, event):
         if not self.runner.stopRunnerThread:
-            # Determine elapsed time since last round of OnIdle calls
+            # Determine elapsed time since last round of OnPeriodic calls
             now = time()
-            if not self.lastIdleTime:
-                self.lastIdleTime = self.runner.stackStartTime
-            elapsedTime = now - self.lastIdleTime
+            if not self.lastOnPeriodicTime:
+                self.lastOnPeriodicTime = self.runner.stackStartTime
+            elapsedTime = now - self.lastOnPeriodicTime
             onFinishedCalls = []
             self.uiCard.RunAnimations(onFinishedCalls, elapsedTime)
             for ui in self.GetAllUiViews():
@@ -177,11 +177,11 @@ class StackManager(object):
             # which could start new animations.
             for c in onFinishedCalls:
                 c()
-            self.lastIdleTime = now
+            self.lastOnPeriodicTime = now
 
             didRun = False
-            if self.runner.numOnIdlesQueued == 0:
-                didRun = self.uiCard.OnIdle(event)
+            if self.runner.numOnPeriodicsQueued == 0:
+                didRun = self.uiCard.OnPeriodic(event)
 
             if didRun:
                 self.runner.EnqueueRefresh()

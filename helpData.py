@@ -538,8 +538,8 @@ class HelpDataObject():
                       "info": "The <b>OnMessage</b> event is run when BroadcastMessage() is called, or SendMessage() "
                               "is called on this object.  The <b>message</b> string passed into SendMessage() or "
                               "BroadcastMessage() is delivered here."},
-        "OnIdle": {"args": {"elapsedTime": {"type": "float", "info": "This is the number of seconds since the last time this event was run, normally about 0.03."}},
-                   "info": "The <b>OnIdle</b> event is run approximately 30 times per second on every object on the current page, "
+        "OnPeriodic": {"args": {"elapsedTime": {"type": "float", "info": "This is the number of seconds since the last time this event was run, normally about 0.03."}},
+                   "info": "The <b>OnPeriodic</b> event is run approximately 30 times per second on every object on the current page, "
                            "and gives your object a chance to run periodic checks, for example checking for collisions using IsTouching()."},
     }
 

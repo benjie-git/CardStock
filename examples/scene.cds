@@ -15,7 +15,7 @@
       "handlers": {
         "OnSetup": "from random import randint",
         "OnKeyDown": "if keyName == \"N\":\n   night.Click()\nelif keyName == \"D\":\n   day.Click()",
-        "OnIdle": "o = card.AddOval(\n   size = (10,10),\n   position = (randint(0,490),490),\n   fillColor = 'white',\n   penThickness = 1)\n\no.AnimatePosition(\n   randint(300,450)/100.0,\n   (o.position.x + randint(-20,20), -10),\n   o.Delete)\n"
+        "OnPeriodic": "o = card.AddOval(\n   size = (10,10),\n   position = (randint(0,490),490),\n   fillColor = 'white',\n   penThickness = 1)\n\no.AnimatePosition(\n   randint(300,450)/100.0,\n   (o.position.x + randint(-20,20), -10),\n   o.Delete)\n"
       },
       "properties": {
         "name": "card_1",
