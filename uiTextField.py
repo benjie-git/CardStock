@@ -11,11 +11,7 @@ class UiTextField(UiTextBase):
     This class is a controller that coordinates management of a TextField view, based on data from a TextFieldModel.
     """
 
-    def __init__(self, parent, stackManager, model=None):
-        if not model:
-            model = TextFieldModel(stackManager)
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("field"), notify=False)
-
+    def __init__(self, parent, stackManager, model):
         self.stackManager = stackManager
         self.isInlineEditing = False
         field = self.CreateField(stackManager, model)
@@ -222,6 +218,7 @@ class TextFieldModel(TextBaseModel):
         self.handlers = handlers
         self.initialEditHandler = "OnTextEnter"
 
+        self.properties["name"] = "field_1"
         self.properties["editable"] = True
         self.properties["multiline"] = False
         self.properties["fontSize"] = 12

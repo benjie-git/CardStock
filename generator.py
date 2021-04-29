@@ -27,7 +27,7 @@ class StackGenerator(object):
         elif model.type == "group":
             return uiGroup.UiGroup(parent, stackManager, model)
         elif model.type in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
-            return uiShape.UiShape(parent, stackManager, type, model)
+            return uiShape.UiShape(parent, stackManager, model)
         return None
 
     @classmethod

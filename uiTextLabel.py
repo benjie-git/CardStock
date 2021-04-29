@@ -9,11 +9,7 @@ class UiTextLabel(UiTextBase):
     This class is a controller that coordinates management of a TextLabel view, based on data from a TextLabelModel.
     """
 
-    def __init__(self, parent, stackManager, model=None):
-        if not model:
-            model = TextLabelModel(stackManager)
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("label"), notify=False)
-
+    def __init__(self, parent, stackManager, model):
         super().__init__(parent, stackManager, model, None)
         self.UpdateFont(model, None)
 
@@ -95,6 +91,7 @@ class TextLabelModel(TextBaseModel):
         super().__init__(stackManager)
         self.type = "textlabel"
         self.proxyClass = TextLabel
+        self.properties["name"] = "label_1"
 
 
 class TextLabel(TextBaseProxy):

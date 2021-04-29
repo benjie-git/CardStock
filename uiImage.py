@@ -14,11 +14,7 @@ class UiImage(UiView):
 
     imgCache = {}
 
-    def __init__(self, parent, stackManager, model=None):
-        if not model:
-            model = ImageModel(stackManager)
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("image"), notify=False)
-
+    def __init__(self, parent, stackManager, model):
         super().__init__(parent, stackManager, model, None)
         self.rotatedBitmap = None
         self.origImage = self.GetImg(model)
@@ -139,6 +135,7 @@ class ImageModel(ViewModel):
         self.type = "image"
         self.proxyClass = Image
 
+        self.properties["name"] = "image_1"
         self.properties["file"] = ""
         self.properties["fit"] = "Contain"
         self.properties["rotation"] = 0

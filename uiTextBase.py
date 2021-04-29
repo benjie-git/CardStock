@@ -126,7 +126,6 @@ class TextBaseModel(ViewModel):
 
     def __init__(self, stackManager):
         super().__init__(stackManager)
-        self.type = None
         self.proxyClass = None
 
         self.properties["text"] = "Text"

@@ -11,11 +11,7 @@ class UiShape(UiView):
     A shape does not use its own wx.Window as a view, but instead draws itself onto the stack view.
     """
 
-    def __init__(self, parent, stackManager, shapeType, model=None):
-        if not model:
-            model = self.CreateModelForType(stackManager, shapeType)
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("shape"), notify=False)
-
+    def __init__(self, parent, stackManager, model):
         super().__init__(parent, stackManager, model, None)
 
     def DrawShape(self, dc, thickness, penColor, fillColor, offset):
@@ -169,6 +165,7 @@ class LineModel(ViewModel):
         self.points = []
         self.scaledPoints = None
 
+        self.properties["name"] = "shape_1"
         self.properties["originalSize"] = None
         self.properties["penColor"] = "black"
         self.properties["penThickness"] = 2

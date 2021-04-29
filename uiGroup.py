@@ -12,11 +12,7 @@ class UiGroup(UiView):
     """
 
     def __init__(self, parent, stackManager, model):
-        if not model.GetProperty("name"):
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("group"), notify=False)
-
         self.uiViews = []
-
         super().__init__(parent, stackManager, model, None)
 
     def SetModel(self, model):
@@ -116,6 +112,7 @@ class GroupModel(ViewModel):
         self.type = "group"
         self.origFrame = None
         self.proxyClass = Group
+        self.properties["name"] = "group_1"
 
     def GetAllChildModels(self):
         allModels = []

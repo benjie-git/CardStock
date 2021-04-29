@@ -394,7 +394,10 @@ class StackManager(object):
         elif objType == "group":
             uiView = UiGroup(self.uiCard, self, model)
         elif objType in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
-            uiView = UiShape(self.uiCard, self, objType, model)
+            uiView = UiShape(self.uiCard, self, model)
+
+        uiView.model.SetProperty("name", self.uiCard.model.DeduplicateNameInCard(
+            uiView.model.GetProperty("name")), notify=False)
 
         def AddToMap(ui):
             self.modelToViewMap[ui.model] = ui

@@ -14,9 +14,6 @@ class UiCard(UiView):
     """
 
     def __init__(self, parent, stackManager, model):
-        if not model.GetProperty("name"):
-            model.SetProperty("name", model.GetNextAvailableNameInCard("card"), notify=False)
-
         super().__init__(parent, stackManager, model, stackManager.view)
         self.stackManager.stackModel.SetProperty("size", self.view.GetSize(), notify=False)
 
@@ -91,6 +88,7 @@ class CardModel(ViewModel):
         self.initialEditHandler = "OnSetup"
 
         # Custom property order and mask for the inspector
+        self.properties["name"] = "card_1"
         self.properties["bgColor"] = "white"
         self.propertyKeys = ["name", "bgColor", "size", "canSave", "canResize"]
 

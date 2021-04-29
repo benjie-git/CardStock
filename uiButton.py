@@ -11,14 +11,9 @@ class UiButton(UiView):
     This class is a controller that coordinates management of a Button view, based on data from a ButtonModel.
     """
 
-    def __init__(self, parent, stackManager, model=None):
-        if not model:
-            model = ButtonModel(stackManager)
-            model.SetProperty("name", stackManager.uiCard.model.GetNextAvailableNameInCard("button"), notify=False)
-
+    def __init__(self, parent, stackManager, model):
         self.stackManager = stackManager
         self.button = self.CreateButton(stackManager, model)
-
         super().__init__(parent, stackManager, model, self.button)
 
     def GetCursor(self):
@@ -91,6 +86,7 @@ class ButtonModel(ViewModel):
         self.handlers = handlers
         self.initialEditHandler = "OnClick"
 
+        self.properties["name"] = "button_1"
         self.properties["title"] = "Button"
         self.properties["border"] = True
         self.propertyTypes["title"] = "string"
