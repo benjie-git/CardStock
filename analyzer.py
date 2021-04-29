@@ -11,8 +11,8 @@ class CodeAnalyzer(object):
     """
     def __init__(self):
         super().__init__()
-        self.varNames = []
-        self.funcNames = []
+        self.varNames = None
+        self.funcNames = None
         self.globalVars = helpData.HelpDataGlobals.variables.keys()
         self.globalFuncs = helpData.HelpDataGlobals.functions.keys()
         self.cardNames = []
@@ -75,32 +75,44 @@ class CodeAnalyzer(object):
             path.pop()
 
     def ScanCode(self, model, handlerName, completionHandler):
-        thread = threading.Thread(target=self.ScanCodeInternal, args=(model, handlerName, completionHandler))
-        thread.start()
-
-    def ScanCodeInternal(self, model, handlerName, completionHandler):
         self.objNames = []
         self.cardNames = []
         codeDict = {}
         self.CollectCode(model, [], codeDict)
+        thread = threading.Thread(target=self.ScanCodeInternal, args=(codeDict, handlerName, completionHandler))
+        thread.start()
 
+    def ScanCodeInternal(self, codeDict, handlerName, completionHandler):
         self.varNames = set()
         self.funcNames = set()
         self.syntaxErrors = {}
 
         for path,code in codeDict.items():
-            try:
-                root = ast.parse(code, path)
-
-                for node in ast.walk(root):
-                    if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
-                        self.varNames.add(node.id)
-                    elif isinstance(node, ast.FunctionDef):
-                        self.funcNames.add(node.name)
-            except SyntaxError as e:
-                self.syntaxErrors[path] = (e.args[0], e.args[1][3], e.args[1][1], e.args[1][2])
+            self.ParseWithFallback(code, path)
 
         self.BuildACLists(handlerName)
 
         if completionHandler:
             wx.CallAfter(completionHandler)
+
+    def ParseWithFallback(self, code, path):
+        try:
+            root = ast.parse(code, path)
+
+            for node in ast.walk(root):
+                if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+                    self.varNames.add(node.id)
+                elif isinstance(node, ast.FunctionDef):
+                    self.funcNames.add(node.name)
+        except SyntaxError as e:
+            lineStr = e.args[1][3]
+            lineNum = e.args[1][1]
+            linePos = e.args[1][2]
+            self.syntaxErrors[path] = (e.args[0], lineStr, lineNum, linePos)
+
+            # Syntax error?  Try again will all code in this handler, up to right before the bad line,
+            # to make sure we find any variables we can, that appear before the bad line
+            lines = code.split('\n')
+            firstPart = "\n".join(lines[:lineNum-1])
+            if len(firstPart):
+                self.ParseWithFallback(firstPart, path)
