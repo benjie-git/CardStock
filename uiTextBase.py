@@ -24,7 +24,7 @@ class UiTextBase(UiView):
         super().OnPropertyChanged(model, key)
         if key == "text":
             if self.model.type == "textlabel":
-                self.stackManager.view.Refresh(True)
+                self.stackManager.view.Refresh()
             else:
                 if self.view:
                     wasEditable = self.view.IsEditable()
@@ -32,18 +32,18 @@ class UiTextBase(UiView):
                         self.view.SetEditable(True)
                     self.view.ChangeValue(str(self.model.GetProperty(key)))
                     self.view.SetEditable(wasEditable)
-                    self.view.Refresh(True)
+                    self.view.Refresh()
             self.OnResize(None)
         elif key in ["font", "fontSize", "textColor"]:
             self.UpdateFont(model, self.view)
             self.OnResize(None)
             if self.view:
-                self.view.Refresh(True)
+                self.view.Refresh()
             else:
-                self.stackManager.view.Refresh(True)
+                self.stackManager.view.Refresh()
         elif key == "alignment":
             if self.model.type == "textlabel":
-                self.stackManager.view.Refresh(True)
+                self.stackManager.view.Refresh()
             else:
                 self.stackManager.SelectUiView(None)
                 self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
@@ -71,7 +71,7 @@ class UiTextBase(UiView):
         if view == None:
             self.font = font
             self.textColor = colorStr
-            self.stackManager.view.Refresh(True)
+            self.stackManager.view.Refresh()
         elif not isinstance(view, stc.StyledTextCtrl):
             view.SetFont(font)
             view.SetForegroundColour(colorStr)

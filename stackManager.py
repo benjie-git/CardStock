@@ -46,14 +46,18 @@ class DeferredRefreshWindow(wx.Window):
         self.deferredRefresh = False
         self.didResize = False
 
+    def UseDeferredRefresh(self, deferred):
+        self.deferredRefresh = deferred
+
     def Refresh(self, eraseBackground=True, rect=None):
         if not self.deferredRefresh:
-            super().Refresh(eraseBackground, self.stackManager.ConvRect(rect))
+            super().Refresh(eraseBackground)
         else:
             self.needsRefresh = True
 
-    def UseDeferredRefresh(self, deferred):
-        self.deferredRefresh = deferred
+    def Update(self):
+        if not self.deferredRefresh:
+            super().Update()
 
     @RunOnMain
     def RefreshIfNeeded(self):
@@ -62,7 +66,7 @@ class DeferredRefreshWindow(wx.Window):
             self.didResize = False
         if self.needsRefresh:
             super().Refresh(True, None)
-            self.Update()
+            super().Update()
             self.needsRefresh = False
 
     def ScreenToClient(self, *args, **kwargs):
@@ -112,6 +116,7 @@ class StackManager(object):
 
         self.view.Bind(wx.EVT_SIZE, self.OnResize)
         self.view.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.view.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.view.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
         self.view.Bind(wx.EVT_WINDOW_DESTROY, self.Cleanup)
 
@@ -161,16 +166,17 @@ class StackManager(object):
         if not self.runner.stopRunnerThread:
             # Determine elapsed time since last round of OnIdle calls
             now = time()
-            if self.lastIdleTime:
-                elapsedTime = now - self.lastIdleTime
-                onFinishedCalls = []
-                self.uiCard.RunAnimations(onFinishedCalls, elapsedTime)
-                for ui in self.GetAllUiViews():
-                    ui.RunAnimations(onFinishedCalls, elapsedTime)
-                # Let all animations process, before running their onFinished handlers,
-                # which could start new animations.
-                for c in onFinishedCalls:
-                    c()
+            if not self.lastIdleTime:
+                self.lastIdleTime = self.runner.stackStartTime
+            elapsedTime = now - self.lastIdleTime
+            onFinishedCalls = []
+            self.uiCard.RunAnimations(onFinishedCalls, elapsedTime)
+            for ui in self.GetAllUiViews():
+                ui.RunAnimations(onFinishedCalls, elapsedTime)
+            # Let all animations process, before running their onFinished handlers,
+            # which could start new animations.
+            for c in onFinishedCalls:
+                c()
             self.lastIdleTime = now
 
             didRun = False
@@ -188,7 +194,7 @@ class StackManager(object):
         self.tool = tool
         if self.tool:
             self.tool.Activate()
-        self.view.Refresh(True)
+        self.view.Refresh()
         self.UpdateCursor()
 
     def ClearAllViews(self):
@@ -253,7 +259,7 @@ class StackManager(object):
                     if not reload:
                         if self.uiCard.model.GetHandler("OnShowCard"):
                             self.runner.RunHandler(self.uiCard.model, "OnShowCard", None)
-                self.view.Refresh(True)
+                self.view.Refresh()
 
     def SetDesigner(self, designer):
         self.designer = designer
@@ -373,21 +379,22 @@ class StackManager(object):
                     self.AddUiViewsFromModels(childModels, False)
         return modelSets
 
-    def AddUiViewInternal(self, type, model=None):
+    def AddUiViewInternal(self, model):
         uiView = None
+        objType = model.type
 
-        if type == "button":
+        if objType == "button":
             uiView = UiButton(self.uiCard, self, model)
-        elif type == "textfield" or type == "field":
+        elif objType == "textfield" or objType == "field":
             uiView = UiTextField(self.uiCard, self, model)
-        elif type == "textlabel" or type == "label":
+        elif objType == "textlabel" or objType == "label":
             uiView = UiTextLabel(self.uiCard, self, model)
-        elif type == "image":
+        elif objType == "image":
             uiView = UiImage(self.uiCard, self, model)
-        elif type == "group":
+        elif objType == "group":
             uiView = UiGroup(self.uiCard, self, model)
-        elif type in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
-            uiView = UiShape(self.uiCard, self, type, model)
+        elif objType in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
+            uiView = UiShape(self.uiCard, self, objType, model)
 
         def AddToMap(ui):
             self.modelToViewMap[ui.model] = ui
@@ -397,10 +404,6 @@ class StackManager(object):
         AddToMap(uiView)
 
         if uiView:
-            if uiView.view and not model:
-                uiView.view.Center()
-                uiView.model.SetProperty("position", uiView.view.GetPosition())
-                uiView.model.SetProperty("size", uiView.view.GetSize())
             self.uiViews.append(uiView)
 
             if uiView.model not in self.uiCard.model.childModels:
@@ -497,7 +500,7 @@ class StackManager(object):
             DelFromMap(ui)
 
             self.uiViews.remove(ui)
-            self.view.Refresh(True)
+            self.view.Refresh()
             self.uiCard.model.RemoveChild(ui.model)
             ui.DestroyView()
 
@@ -699,7 +702,7 @@ class StackManager(object):
             self.uiCard.model.SetProperty("size", self.view.GetTopLevelParent().GetClientSize())
             didEnqueue = self.runner.RunHandler(self.uiCard.model, "OnResize", None)
         if self.isEditing or not didEnqueue:
-            self.view.Refresh(True)
+            self.view.Refresh()
             self.view.RefreshIfNeeded()
         event.Skip()
 
@@ -722,6 +725,11 @@ class StackManager(object):
 
     def UpdateBuffer(self):
         self.buffer = wx.Bitmap.FromRGBA(self.view.GetSize().Width, self.view.GetSize().Height)
+
+    def OnEraseBackground(self, event):
+        # No thank you!
+        # This event was causing bad flickering on Windows.  Much better now!
+        pass
 
     def OnPaint(self, event):
         if wx.Platform == '__WXMAC__':
@@ -833,11 +841,11 @@ class StackManager(object):
         self.command_processor.Undo()
         if not self.command_processor.CanUndo():
             self.stackModel.SetDirty(False)
-        self.view.Refresh(True)
+        self.view.Refresh()
 
     def Redo(self):
         self.command_processor.Redo()
-        self.view.Refresh(True)
+        self.view.Refresh()
 
     def GetDesignerFindPath(self):
         cPanel = self.designer.cPanel

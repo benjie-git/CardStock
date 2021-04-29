@@ -278,6 +278,8 @@ class ControlPanel(wx.Panel):
                 else:
                     self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
                 r += 1
+            self.inspector.Refresh()
+            self.inspector.Update()
 
     def UpdateInspectorForUiViews(self, uiViews):
         # Catch a still-open editor and handle it before we move on to a newly selected uiView

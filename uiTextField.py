@@ -31,7 +31,9 @@ class UiTextField(UiTextBase):
             alignment = wx.TE_CENTER
 
         if model.GetProperty("multiline"):
-            field = stc.StyledTextCtrl(parent=stackManager.view, style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
+            field = stc.StyledTextCtrl(parent=stackManager.view, size=model.GetProperty("size"),
+                                       pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft,
+                                       style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
             field.SetUseHorizontalScrollBar(False)
             field.SetTabWidth(3)
             field.SetUseTabs(0)
@@ -42,7 +44,9 @@ class UiTextField(UiTextBase):
             field.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
             field.EmptyUndoBuffer()
         else:
-            field = CDSTextCtrl(parent=stackManager.view, style=wx.TE_PROCESS_ENTER | alignment)
+            field = CDSTextCtrl(parent=stackManager.view, size=model.GetProperty("size"),
+                                pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft,
+                                style=wx.TE_PROCESS_ENTER | alignment)
             field.ChangeValue(text)
             field.Bind(wx.EVT_TEXT, self.OnTextChanged)
             field.EmptyUndoBuffer()

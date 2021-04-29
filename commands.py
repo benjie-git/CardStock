@@ -97,7 +97,7 @@ class AddNewUiViewCommand(Command):
             self.stackManager.LoadCardAtIndex(self.cardIndex)
         else:
             self.stackManager.LoadCardAtIndex(self.cardIndex)
-            uiView = self.stackManager.AddUiViewInternal(self.viewType, self.viewModel)
+            uiView = self.stackManager.AddUiViewInternal(self.viewModel)
             if not self.viewModel:
                 self.viewModel = uiView.model
             self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.viewModel))
@@ -127,7 +127,7 @@ class AddUiViewsCommand(Command):
         self.stackManager.LoadCardAtIndex(self.cardIndex)
         self.stackManager.SelectUiView(None)
         for m in self.viewModels:
-            self.stackManager.AddUiViewInternal(m.type, m)
+            self.stackManager.AddUiViewInternal(m)
             self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(m), True)
         return True
 

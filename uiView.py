@@ -81,21 +81,25 @@ class UiView(object):
             if self.view:
                 rect = wx.Rect(wx.Point(self.model.GetAbsolutePosition()), s)
                 self.view.SetRect(self.stackManager.ConvRect(rect))
-                self.view.Refresh(True)
-            self.stackManager.view.Refresh(True)
+                self.view.Refresh()
+                self.view.Update()
+            self.stackManager.view.Refresh()
+            self.stackManager.view.Update()
         elif key == "position":
             pos = wx.Point(self.model.GetAbsolutePosition())
             if self.view:
                 rect = wx.Rect(pos, self.model.GetProperty("size"))
                 self.view.SetRect(self.stackManager.ConvRect(rect))
-                self.view.Refresh(True)
-            self.stackManager.view.Refresh(True)
+                self.view.Refresh()
+                self.view.Update()
+            self.stackManager.view.Refresh()
+            self.stackManager.view.Update()
             if self.parent.model.type == "group":
                 self.parent.ClearHitRegion()
         elif key == "hidden":
             if self.view:
                 self.view.Show(not self.model.GetProperty(key))
-            self.stackManager.view.Refresh(True)
+            self.stackManager.view.Refresh()
 
     def OnResize(self, event):
         pass
@@ -114,7 +118,7 @@ class UiView(object):
         if self.isSelected != selected:
             self.isSelected = selected
             self.ClearHitRegion()
-            self.stackManager.view.Refresh(True)
+            self.stackManager.view.Refresh()
 
     def OnMouseDown(self, event):
         if self.stackManager.runner and self.model.GetHandler("OnMouseDown"):
@@ -554,7 +558,7 @@ class ViewModel(object):
     def GetHandlers(self):
         return self.handlers
 
-    def PerformFlips(self, fx, fy):
+    def PerformFlips(self, fx, fy, notify=True):
         pass
 
     def OrderMoveTo(self, index):

@@ -1,4 +1,6 @@
 import wx
+
+import generator
 from commands import *
 from uiShape import UiShape, ShapeModel
 import math
@@ -195,9 +197,8 @@ class HandTool(BaseTool):
                     return
 
             if self.mode == "box":
-                self.stackManager.view.Refresh(True, self.selectionRect.Inflate(2))
                 self.selectionRect = ShapeModel.RectFromPoints([self.absOrigin, pos])
-                self.stackManager.view.Refresh(True, self.selectionRect.Inflate(2))
+                self.stackManager.view.Refresh()
                 self.UpdateBoxSelection()
                 return
 
@@ -209,7 +210,6 @@ class HandTool(BaseTool):
                     offset = (pos.x - self.absOrigin.x, pos.y - self.absOrigin.y)
                     origPos = self.oldFrames[ui.model.GetProperty("name")].Position
                     ui.model.SetProperty("position", [origPos.x + offset[0], origPos.y + offset[1]])
-                self.stackManager.view.Refresh(True)
             elif self.mode == "resize":
                 if self.targetUi.model.type == "card":
                     pos = self.ConstrainDragPointAspect(self.resizeAnchorPoint, origSize, event)
@@ -233,31 +233,31 @@ class HandTool(BaseTool):
                             newRect.Width -= min(thickness/2, newRect.Width)
                         else:
                             newRect.Right -= thickness / 2
+
+                        if self.resizeCorner[0]:
+                            xFlipped = (pos[0] > self.resizeAnchorPoint[0] + thickness / 2)
+                        else:
+                            xFlipped = (pos[0] < self.resizeAnchorPoint[0] + thickness / 2)
+
+                        if self.resizeCorner[1]:
+                            yFlipped = (pos[1] > self.resizeAnchorPoint[1] + thickness / 2)
+                        else:
+                            yFlipped = (pos[1] < self.resizeAnchorPoint[1] + thickness / 2)
+
+                        flipX = (xFlipped != self.xFlipped)
+                        flipY = (yFlipped != self.yFlipped)
+                        self.xFlipped = xFlipped
+                        self.yFlipped = yFlipped
+                        self.targetUi.model.PerformFlips(flipX, flipY)
+
                         if pos[1] == newRect.Top:
                             newRect.Top += min(thickness/2, newRect.Height)
                             newRect.Height -= min(thickness/2, newRect.Height)
                         else:
                             newRect.Bottom -= thickness / 2
 
-                    self.targetUi.model.SetProperty("position", newRect.TopLeft)
+                    self.targetUi.model.SetProperty("position", newRect.TopLeft, notify=False)
                     self.targetUi.model.SetProperty("size", newRect.Size)
-
-                    if self.resizeCorner[0]:
-                        xFlipped = (pos[0] > self.resizeAnchorPoint[0] + thickness/2)
-                    else:
-                        xFlipped = (pos[0] < self.resizeAnchorPoint[0] + thickness/2)
-
-                    if self.resizeCorner[1]:
-                        yFlipped = (pos[1] > self.resizeAnchorPoint[1] + thickness/2)
-                    else:
-                        yFlipped = (pos[1] < self.resizeAnchorPoint[1] + thickness/2)
-
-                    flipX = (xFlipped != self.xFlipped)
-                    flipY = (yFlipped != self.yFlipped)
-                    self.xFlipped = xFlipped
-                    self.yFlipped = yFlipped
-                    self.targetUi.model.PerformFlips(flipX, flipY)
-                    self.stackManager.view.Refresh(True)
         event.Skip()
 
     def ConstrainDragPointAspect(self, startPoint, startSize, event):
@@ -285,7 +285,6 @@ class HandTool(BaseTool):
         self.mode = "box"
         self.selectionRect = ShapeModel.RectFromPoints([self.absOrigin])
         self.lastBoxList = []
-        self.stackManager.view.Refresh(True, self.selectionRect.Inflate(2))
 
     def Paint(self, gc):
         if self.selectionRect:
@@ -313,9 +312,9 @@ class HandTool(BaseTool):
                 if topView and topView.model.parent.type != "group":
                     self.stackManager.SelectUiView(topView)
         elif self.mode == "box":
-            self.stackManager.view.Refresh(True, self.selectionRect.Inflate(2))
             self.selectionRect = None
             self.lastBoxList = None
+            self.stackManager.view.Refresh()
         elif self.mode == "move":
             pos = self.targetUi.model.GetAbsolutePosition()
             viewOrigin = self.oldFrames[self.targetUi.model.GetProperty("name")].Position
@@ -329,7 +328,7 @@ class HandTool(BaseTool):
                                              models, offset)
                 for m in models:
                     viewOrigin = self.oldFrames[m.GetProperty("name")].Position
-                    m.SetProperty("position", viewOrigin)
+                    m.SetProperty("position", viewOrigin, notify=False)
                 self.stackManager.command_processor.Submit(command)
         elif self.mode == "resize":
             pos = self.targetUi.model.GetAbsolutePosition()
@@ -350,15 +349,17 @@ class HandTool(BaseTool):
                                                     self.stackManager.cardIndex,
                                                     self.targetUi.model, sizeOffset))
                 if self.xFlipped or self.yFlipped:
-                    self.targetUi.model.PerformFlips(self.xFlipped, self.yFlipped)  # First unflip
+                    self.targetUi.model.PerformFlips(self.xFlipped, self.yFlipped, notify=False)  # First unflip
                     commands.append(FlipShapeCommand(True, 'Resize-Flip', self.stackManager,
                                                      self.stackManager.cardIndex,
                                                      self.targetUi.model, self.xFlipped, self.yFlipped))
 
-                self.targetUi.model.SetProperty("position", viewOrigin)
-                self.targetUi.model.SetProperty("size", origSize)
+                self.stackManager.view.Freeze()
+                self.targetUi.model.SetProperty("position", viewOrigin, notify=False)
+                self.targetUi.model.SetProperty("size", origSize, notify=False)
                 command = CommandGroup(True, "Resize", commands)
                 self.stackManager.command_processor.Submit(command)
+                self.stackManager.view.Thaw()
 
         self.mode = None
         self.stackManager.view.SetFocus()
@@ -474,22 +475,21 @@ class ViewTool(BaseTool):
 
     def OnMouseMove(self, uiView, event):
         if self.stackManager.view.HasCapture():
-            pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
             pos = self.ConstrainDragPoint(self.name, self.origMousePos, event)
 
             if not self.targetUi and dist(self.origMousePos, pos) > MOVE_THRESHOLD:
-                self.targetUi = self.stackManager.AddUiViewInternal(self.name)
-                self.targetUi.model.SetProperty("position", self.origMousePos)
-                self.targetUi.model.SetProperty("size", [0,0])
+                m = generator.StackGenerator.ModelFromType(self.stackManager, self.name)
+                m.SetProperty("size", [0,0], notify=False)
+                m.SetProperty("position", self.origMousePos, notify=False)
+                self.targetUi = self.stackManager.AddUiViewInternal(m)
                 self.stackManager.SelectUiView(self.targetUi)
                 self.origSize = [0,0]
 
             if self.targetUi:
                 offset = (pos.x-self.origMousePos[0], pos.y-self.origMousePos[1])
                 topLeft = (min(pos[0], self.origMousePos[0]), min(pos[1], self.origMousePos[1]))
-                self.targetUi.model.SetProperty("position", topLeft)
+                self.targetUi.model.SetProperty("position", topLeft, notify=False)
                 self.targetUi.model.SetProperty("size", [abs(self.origSize[0]+offset[0]), abs(self.origSize[1]+offset[1])])
-                self.stackManager.view.Refresh(True)
         event.Skip()
 
     def OnMouseUp(self, uiView, event):
@@ -500,10 +500,12 @@ class ViewTool(BaseTool):
                 offset = (endw-self.origSize[0], endh-self.origSize[1])
                 if offset != (0, 0):
                     model = self.targetUi.model
+                    self.stackManager.view.Freeze()
                     command = AddNewUiViewCommand(True, 'Add View', self.stackManager, self.stackManager.cardIndex, model.type, model)
                     self.stackManager.RemoveUiViewByModel(model)
                     self.stackManager.command_processor.Submit(command)
                     self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
+                self.stackManager.view.Thaw()
                 self.stackManager.view.SetFocus()
                 self.targetUi = None
                 self.stackManager.designer.cPanel.SetToolByName("hand")
@@ -538,9 +540,10 @@ class PenTool(BaseTool):
     def OnMouseDown(self, uiView, event):
         self.pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
 
-        self.targetUi = self.stackManager.AddUiViewInternal(self.name)
-        self.targetUi.model.SetProperty("position", [0,0])
-        self.targetUi.model.SetProperty("size", self.stackManager.stackModel.GetProperty("size"))
+        m = generator.StackGenerator.ModelFromType(self.stackManager, self.name)
+        m.SetProperty("position", [0,0], notify=False)
+        m.SetProperty("size", self.stackManager.stackModel.GetProperty("size"))
+        self.targetUi = self.stackManager.AddUiViewInternal(m)
         # self.stackManager.SelectUiView(self.targetUi)
 
         self.stackManager.view.CaptureMouse()
@@ -559,7 +562,6 @@ class PenTool(BaseTool):
                     self.curLine.append(coords)
                 self.targetUi.model.DidUpdateShape()
                 self.pos = pos
-                self.stackManager.view.Refresh(True)
 
     def OnMouseUp(self, uiView, event):
         if self.targetUi and self.stackManager.view.HasCapture():
@@ -568,12 +570,14 @@ class PenTool(BaseTool):
             self.stackManager.view.ReleaseMouse()
             self.targetUi = None
 
+            self.stackManager.view.Freeze()
             model.ReCropShape()
 
             command = AddNewUiViewCommand(True, 'Add Shape', self.stackManager, self.stackManager.cardIndex, model.type, model)
             self.stackManager.RemoveUiViewByModel(model)
             self.stackManager.command_processor.Submit(command)
             self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
+            self.stackManager.view.Thaw()
             self.stackManager.designer.cPanel.SetToolByName("hand")
         self.stackManager.view.SetFocus()
 
@@ -612,17 +616,17 @@ class ShapeTool(BaseTool):
         if self.stackManager.view.HasCapture():
             pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
             if not self.targetUi and dist(self.startPoint, pos) > MOVE_THRESHOLD:
-                self.targetUi = self.stackManager.AddUiViewInternal(self.name)
-                self.targetUi.model.SetProperty("position", [0, 0])
-                self.targetUi.model.SetProperty("size", self.stackManager.stackModel.GetProperty("size"))
-                self.targetUi.model.SetShape({"type": self.name, "penColor": self.penColor, "fillColor": self.fillColor,
-                                              "thickness": self.thickness, "points": self.points})
+                m = generator.StackGenerator.ModelFromType(self.stackManager, self.name)
+                m.SetProperty("position", [0, 0], notify=False)
+                m.SetProperty("size", self.stackManager.stackModel.GetProperty("size"), notify=False)
+                m.SetShape({"type": self.name, "penColor": self.penColor, "fillColor": self.fillColor,
+                            "thickness": self.thickness, "points": self.points})
+                self.targetUi = self.stackManager.AddUiViewInternal(m)
                 # self.stackManager.SelectUiView(self.targetUi)
             if self.targetUi:
                 if pos != self.points[1]:
                     self.points[1] = self.ConstrainDragPoint(self.name, self.startPoint, event)
                     self.targetUi.model.DidUpdateShape()
-                    self.stackManager.view.Refresh(True)
 
     def OnMouseUp(self, uiView, event):
         if self.stackManager.view.HasCapture():
@@ -631,13 +635,14 @@ class ShapeTool(BaseTool):
                 model = self.targetUi.model
                 self.targetUi = None
 
+                self.stackManager.view.Freeze()
                 model.ReCropShape()
 
                 command = AddNewUiViewCommand(True, 'Add Shape', self.stackManager, self.stackManager.cardIndex, model.type, model)
                 self.stackManager.RemoveUiViewByModel(model)
                 self.stackManager.command_processor.Submit(command)
                 self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
-                # self.stackManager.view.Refresh(True)
+                self.stackManager.view.Thaw()
                 self.stackManager.designer.cPanel.SetToolByName("hand")
         self.stackManager.view.SetFocus()
 
@@ -672,11 +677,12 @@ class PolyTool(BaseTool):
         mousePos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         if not self.stackManager.view.HasCapture():
             self.points = [mousePos]
-            self.targetUi = self.stackManager.AddUiViewInternal(self.name)
-            self.targetUi.model.SetProperty("position", [0, 0])
-            self.targetUi.model.SetProperty("size", self.stackManager.stackModel.GetProperty("size"))
-            self.targetUi.model.SetShape({"type": self.name, "penColor": self.penColor, "fillColor": self.fillColor,
-                                          "thickness": self.thickness, "points": self.points})
+            m = generator.StackGenerator.ModelFromType(self.stackManager, self.name)
+            m.SetProperty("position", [0, 0], notify=False)
+            m.SetProperty("size", self.stackManager.stackModel.GetProperty("size"), notify=False)
+            m.SetShape({"type": self.name, "penColor": self.penColor, "fillColor": self.fillColor,
+                        "thickness": self.thickness, "points": self.points})
+            self.targetUi = self.stackManager.AddUiViewInternal(m)
             self.stackManager.view.CaptureMouse()
         elif dist(mousePos, self.points[0]) < 5:
             self.FinishShape()
@@ -702,9 +708,8 @@ class PolyTool(BaseTool):
                     points = [self.points[0], self.points[-1], self.mousePos]
                     if self.lastMousePos:
                         points.append(self.lastMousePos)
-                    self.stackManager.view.Refresh(True, self.targetUi.model.RectFromPoints(points).Inflate(5))
+                    self.targetUi.model.DidUpdateShape()
                     self.lastMousePos = self.mousePos
-            self.stackManager.view.Refresh(True)
 
     def OnMouseUp(self, uiView, event):
         pass
@@ -742,6 +747,7 @@ class PolyTool(BaseTool):
 
             model.ReCropShape()
 
+            self.stackManager.view.Freeze()
             if len(self.points) >= 3:
                 command = AddNewUiViewCommand(True, 'Add Shape', self.stackManager, self.stackManager.cardIndex, model.type, model)
                 self.stackManager.RemoveUiViewByModel(model)
@@ -749,6 +755,7 @@ class PolyTool(BaseTool):
                 self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
             else:
                 self.stackManager.RemoveUiViewByModel(model)
+            self.stackManager.view.Thaw()
 
             self.stackManager.designer.cPanel.SetToolByName("hand")
         self.points = None

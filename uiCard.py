@@ -19,26 +19,10 @@ class UiCard(UiView):
 
         super().__init__(parent, stackManager, model, stackManager.view)
         self.stackManager.stackModel.SetProperty("size", self.view.GetSize(), notify=False)
-        bg = wx.Colour(self.model.GetProperty("bgColor"))
-        if not bg:
-            bg = wx.Colour('white')
-        self.view.SetBackgroundColour(bg)
 
     def SetView(self, view):
         super().SetView(view)
         self.model.SetProperty("size", self.view.GetSize(), notify=False)
-        bg = wx.Colour(self.model.GetProperty("bgColor"))
-        if not bg:
-            bg = wx.Colour('white')
-        self.view.SetBackgroundColour(bg)
-
-    def SetModel(self, model):
-        super().SetModel(model)
-        if self.view:
-            bg = wx.Colour(self.model.GetProperty("bgColor"))
-            if not bg:
-                bg = wx.Colour('white')
-            self.view.SetBackgroundColour(bg)
 
     def GetCursor(self):
         return None
@@ -71,11 +55,7 @@ class UiCard(UiView):
         if key == "name":
             self.stackManager.designer.UpdateCardList()
         elif key == "bgColor":
-            bg = wx.Colour(self.model.GetProperty(key))
-            if not bg:
-                bg = wx.Colour('white')
-            self.view.SetBackgroundColour(bg)
-            self.view.Refresh(True)
+            self.view.Refresh()
 
     def OnKeyDown(self, event):
         if self.stackManager.runner and self.model.GetHandler("OnKeyDown"):
@@ -212,23 +192,24 @@ class CardModel(ViewModel):
                     if k in model.propertyTypes:
                         model.SetProperty(k, v)
 
-            self.stackManager.view.Refresh(True)
+            self.stackManager.view.Refresh()
 
             return model
         return func()
 
-    def PerformFlips(self, fx, fy):
+    def PerformFlips(self, fx, fy, notify=True):
         cardSize = self.GetProperty("size")
         if fx or fy:
+            for m in self.childModels:
+                m.PerformFlips(fx, fy, notify=False)
             for m in self.childModels:
                 pos = m.GetProperty("position")
                 size = m.GetProperty("size")
                 pos = wx.Point((cardSize.width - (pos.x + size.width)) if fx else pos.x,
                                (cardSize.height - (pos.y + size.height)) if fy else pos.y)
-                m.SetProperty("position", pos)
-            for m in self.childModels:
-                m.PerformFlips(fx, fy)
-        self.Notify("size")
+                m.SetProperty("position", pos, notify=notify)
+        if notify:
+            self.Notify("size")
 
     def GetDedupNameList(self, exclude):
         names = [m.properties["name"] for m in self.GetAllChildModels()]

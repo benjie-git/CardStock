@@ -143,7 +143,8 @@ class UiShape(UiView):
         super().OnPropertyChanged(model, key)
         if key in ["size", "shape", "penColor", "penThickness", "fillColor", "cornerRadius"]:
             self.ClearHitRegion()
-            self.stackManager.view.Refresh(True)
+            self.stackManager.view.Refresh()
+            self.stackManager.view.Update()
 
     @staticmethod
     def CreateModelForType(stackManager, name):
@@ -200,10 +201,10 @@ class LineModel(ViewModel):
 
     @RunOnMain
     def SetProperty(self, key, value, notify=True):
-        super().SetProperty(key, value, notify)
         if key == "size":
             self.scaledPoints = None
-        elif key == "penThickness":
+        super().SetProperty(key, value, notify)
+        if key == "penThickness":
             self.ReCropShape()
 
     def DidUpdateShape(self):  # If client updates the points list already passed to AddShape
@@ -211,13 +212,14 @@ class LineModel(ViewModel):
         self.scaledPoints = None
         self.Notify("shape")
 
-    def PerformFlips(self, fx, fy):
+    def PerformFlips(self, fx, fy, notify=True):
         if self.type in ["line", "pen", "poly"]:
             if fx or fy:
                 origSize = self.properties["originalSize"]
                 self.points = [((origSize[0] - p[0]) if fx else p[0], (origSize[1] - p[1]) if fy else p[1]) for p in self.points]
                 self.scaledPoints = None
-                self.Notify("size")
+                if notify:
+                    self.Notify("size")
 
 
     # scale from originalSize to Size

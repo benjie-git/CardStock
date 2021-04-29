@@ -97,17 +97,17 @@ class UiImage(UiView):
 
         if key in ["size", "rotation", "fit", "file", "xFlipped", "yFlipped"]:
             self.rotatedBitmap = None
-            self.stackManager.view.Refresh(True)
+            self.stackManager.view.Refresh()
 
         if key == "file":
             self.origImage = self.GetImg(self.model)
             self.rotatedBitmap = None
-            self.stackManager.view.Refresh(True)
+            self.stackManager.view.Refresh()
         elif key == "fit":
-            self.stackManager.view.Refresh(True,)
+            self.stackManager.view.Refresh()
         elif key == "rotation":
             if model.GetProperty("file") != "":
-                self.stackManager.view.Refresh(True)
+                self.stackManager.view.Refresh()
 
     def Paint(self, gc):
         if self.origImage:
@@ -161,11 +161,11 @@ class ImageModel(ViewModel):
             value = value % 360
         super().SetProperty(key, value, notify)
 
-    def PerformFlips(self, fx, fy):
+    def PerformFlips(self, fx, fy, notify=True):
         if fx:
-            self.SetProperty("xFlipped", not self.GetProperty("xFlipped"))
+            self.SetProperty("xFlipped", not self.GetProperty("xFlipped"), notify=notify)
         if fy:
-            self.SetProperty("yFlipped", not self.GetProperty("yFlipped"))
+            self.SetProperty("yFlipped", not self.GetProperty("yFlipped"), notify=notify)
 
 
 class Image(ViewProxy):

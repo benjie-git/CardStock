@@ -75,7 +75,7 @@ class UiGroup(UiView):
             self.model.ResizeChildModels()
         elif key == "child":
             self.RebuildViews()
-            self.stackManager.view.Refresh(True)
+            self.stackManager.view.Refresh()
 
     def RemoveChildViews(self):
         for ui in self.uiViews.copy():
@@ -191,7 +191,7 @@ class GroupModel(ViewModel):
                 oldPos = m.GetProperty("position")
                 m.SetProperty("position", [oldPos[0] - offset[0], oldPos[1] - offset[1]], notify=False)
 
-    def PerformFlips(self, fx, fy):
+    def PerformFlips(self, fx, fy, notify=True):
         if fx or fy:
             for m in self.childModels:
                 pos = m.origGroupSubviewFrame.Position
@@ -200,9 +200,10 @@ class GroupModel(ViewModel):
                                (self.origFrame.Size.height - (pos.y + size.height)) if fy else pos.y)
                 m.origGroupSubviewFrame.Position = pos
             for m in self.childModels:
-                m.PerformFlips(fx, fy)
+                m.PerformFlips(fx, fy, notify=notify)
             self.ResizeChildModels()
-        self.Notify("size")
+        if notify:
+            self.Notify("size")
 
     def ResizeChildModels(self):
         scaleX = 1

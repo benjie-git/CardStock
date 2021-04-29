@@ -38,8 +38,9 @@ class UiButton(UiView):
     def FwdOnMouseUp(   self, event): self.stackManager.OnMouseUp(   self, self.HackEvent(event))
 
     def CreateButton(self, stackManager, model):
-        button = wx.Button(parent=stackManager.view, label="Button",
-                         style=(wx.BORDER_DEFAULT if model.GetProperty("border") else wx.BORDER_NONE))
+        button = wx.Button(parent=stackManager.view, label="Button", size=model.GetProperty("size"),
+                           pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft,
+                           style=(wx.BORDER_DEFAULT if model.GetProperty("border") else wx.BORDER_NONE))
         button.SetLabel(model.GetProperty("title"))
         button.Bind(wx.EVT_BUTTON, self.OnButton)
         button.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
