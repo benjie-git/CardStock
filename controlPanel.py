@@ -299,6 +299,8 @@ class ControlPanel(wx.Panel):
         if len(uiViews) != 1:
             self.inspector.Enable(False)
             self.inspector.SetColLabelValue(0, "Objects" if len(uiViews) else "None")
+            self.inspector.InsertRows(0, 3)
+            self.Layout()
             return
 
         self.inspector.Enable(True)

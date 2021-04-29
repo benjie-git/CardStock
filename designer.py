@@ -472,6 +472,7 @@ class DesignerFrame(wx.Frame):
 
         self.Hide()
         self.viewer.Show(True)
+        self.viewer.Refresh()
         self.viewer.RunViewer(cardIndex)
         self.isStartingViewer = False
 
@@ -490,6 +491,7 @@ class DesignerFrame(wx.Frame):
         self.lastRunErrors = self.viewer.stackManager.runner.errors
         self.viewer.Destroy()
         self.viewer = None
+        self.Refresh()
         self.Show()
 
         if len(self.lastRunErrors):
