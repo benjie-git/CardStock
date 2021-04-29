@@ -72,6 +72,8 @@ class UiShape(UiView):
             f = self.model.GetAbsoluteFrame()
             f = wx.Rect(f.TopLeft, f.Size - (1,1))
             thickness = self.model.GetProperty("penThickness")
+            if wx.Platform != "__WXMAC":
+                thickness -=1
             gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
             if self.model.type in ["line", "pen", "poly"]:
