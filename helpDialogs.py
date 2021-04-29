@@ -158,13 +158,26 @@ function.  See the CardStock Reference for a description of each type of event, 
 
 <p>In your python event-handling code, you have access to all of the objects in the current card, including their
 properties and methods, and some global variables and functions that are always available.
-You can always access a special variable called self, which refers to the object 
-who's event is being run.  (So in a button's OnClick code, self refers to that button object.  In a card's OnShowCard code, self is that
+You can always access a special variable called self, which refers to the object who's event is being run.
+(So in a button's OnClick code, self refers to that button object.  In a card's OnShowCard code, self is that
 card object.)  There is also a variable for each object's name.  So if your button is called yes_button, you could write
 yes_button.SetTitle("Done") to change your button's title to Done.  See the CardStock Reference for a list of all 
 variables that are automatically provided to your code.  You can of course also create your own variables as well.  It 
 is suggested that when you do, you set up the starting value of each variable in one of your
 objects' OnSetup events, to make sure that it will always have a value, from the very start of your program running.</p>
+
+<p>When a stack first starts running, all of the cards and all objects on all of the cards will run their OnSetup() 
+events.  OnSetup() will also run for any new objects you create using any of the card.AddObject() methods.  
+Then the first card's OnShowCard() event will run.  Any time you Goto another card, the current card's OnHideCard() 
+event will run, immediately followed by the next card's OnShowCard() event.  After your stack is done starting up, all 
+of the current card's objects (including the card itself) will start running their OnIdle() events, approximately every 
+1/30th of a second, immediately after each step or frame of animation runs, and before each screen update.  This is a 
+great place to run any periodic checks that need to keep happening often.  The OnResize() event runs on a card object 
+when the stack window is resized while that card is shown, to give your stack a chance to re-layout objects based on 
+the new card size.  The OnMessage() event runs on an object when any of your other code calls that object's 
+object.SendMessage() method, or calls the BroadcastMessage() function, which sends the message to all objects in the 
+stack.  Other events happen in response to key presses, mouse movement, and mouse button presses, and you can read 
+all the details in the CardStock Reference.</p>
 
 <p>You can also animate changes to many objects' properties.  For example, you could animate the current card's 
 background color from its current color to red, over a duration of 2 seconds, using the code: 
