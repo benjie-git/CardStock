@@ -224,7 +224,6 @@ class HandTool(BaseTool):
                                       wx.Point(max(self.resizeAnchorPoint[0], pos[0]),
                                                max(self.resizeAnchorPoint[1], pos[1])))
 
-                    thickness = 0
                     if isinstance(self.targetUi, UiShape):
                         # Account for thickness of shapes while resizing
                         thickness = self.targetUi.model.GetProperty("penThickness")
@@ -483,13 +482,12 @@ class ViewTool(BaseTool):
                 m.SetProperty("position", self.origMousePos, notify=False)
                 self.targetUi = self.stackManager.AddUiViewInternal(m)
                 self.stackManager.SelectUiView(self.targetUi)
-                self.origSize = [0,0]
 
             if self.targetUi:
                 offset = (pos.x-self.origMousePos[0], pos.y-self.origMousePos[1])
                 topLeft = (min(pos[0], self.origMousePos[0]), min(pos[1], self.origMousePos[1]))
                 self.targetUi.model.SetProperty("position", topLeft, notify=False)
-                self.targetUi.model.SetProperty("size", [abs(self.origSize[0]+offset[0]), abs(self.origSize[1]+offset[1])])
+                self.targetUi.model.SetProperty("size", [abs(offset[0]), abs(offset[1])])
         event.Skip()
 
     def OnMouseUp(self, uiView, event):
@@ -497,7 +495,7 @@ class ViewTool(BaseTool):
             self.stackManager.view.ReleaseMouse()
             if self.targetUi:
                 endw, endh = self.targetUi.model.GetProperty("size")
-                offset = (endw-self.origSize[0], endh-self.origSize[1])
+                offset = (endw, endh)
                 if offset != (0, 0):
                     model = self.targetUi.model
                     self.stackManager.view.Freeze()
@@ -505,7 +503,7 @@ class ViewTool(BaseTool):
                     self.stackManager.RemoveUiViewByModel(model)
                     self.stackManager.command_processor.Submit(command)
                     self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
-                self.stackManager.view.Thaw()
+                    self.stackManager.view.Thaw()
                 self.stackManager.view.SetFocus()
                 self.targetUi = None
                 self.stackManager.designer.cPanel.SetToolByName("hand")

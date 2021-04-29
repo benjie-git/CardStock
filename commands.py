@@ -304,7 +304,7 @@ class SetHandlerCommand(Command):
 
         allCodeWin = self.cPanel.stackManager.designer.allCodeWindow
         if allCodeWin and allCodeWin.IsShown():
-            allCodeWin.Update()
+            allCodeWin.UpdateCode()
 
         self.hasRun = True
         return True
@@ -325,7 +325,7 @@ class SetHandlerCommand(Command):
 
         allCodeWin = self.cPanel.stackManager.designer.allCodeWindow
         if allCodeWin and allCodeWin.IsShown():
-            allCodeWin.Update()
+            allCodeWin.UpdateCode()
 
         return True
 

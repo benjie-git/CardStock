@@ -29,7 +29,7 @@ class AllCodeWindow(wx.Frame):
         self.textBox.ChangeValue("")
         self.textBox.SetEditable(False)
 
-    def Update(self):
+    def UpdateCode(self):
         self.text = ""
         self.numLines = 0
         self.methodStartLines = []

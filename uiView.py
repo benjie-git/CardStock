@@ -82,18 +82,14 @@ class UiView(object):
                 rect = wx.Rect(wx.Point(self.model.GetAbsolutePosition()), s)
                 self.view.SetRect(self.stackManager.ConvRect(rect))
                 self.view.Refresh()
-                self.view.Update()
             self.stackManager.view.Refresh()
-            self.stackManager.view.Update()
         elif key == "position":
             pos = wx.Point(self.model.GetAbsolutePosition())
             if self.view:
                 rect = wx.Rect(pos, self.model.GetProperty("size"))
                 self.view.SetRect(self.stackManager.ConvRect(rect))
                 self.view.Refresh()
-                self.view.Update()
             self.stackManager.view.Refresh()
-            self.stackManager.view.Update()
             if self.parent.model.type == "group":
                 self.parent.ClearHitRegion()
         elif key == "hidden":

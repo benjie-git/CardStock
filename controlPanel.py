@@ -47,13 +47,18 @@ class ControlPanel(wx.Panel):
             toolBitmaps[k] = v.GetBitmap()
 
         self.toolGrid = wx.GridSizer(cols=numCols, hgap=3, vgap=2)
-        for name in self.toolNames:
+        for i in range(len(self.toolNames)):
+            name = self.toolNames[i]
             b = buttons.GenBitmapToggleButton(self, self.toolNames.index(name), toolBitmaps[name], size=btnSize)
             b.SetBezelWidth(1)
             b.SetUseFocusIndicator(False)
             b.Bind(wx.EVT_BUTTON, self.OnSetTool)
             b.Bind(wx.EVT_ENTER_WINDOW, self.OnToolEnter)
             b.Bind(wx.EVT_LEAVE_WINDOW, self.OnToolExit)
+            if wx.Platform == "__WXMSW__":
+                tip = wx.ToolTip(self.tooltips[i])
+                tip.SetDelay(100)
+                b.SetToolTip(tip)
             self.toolGrid.Add(b, 0)
             self.toolBtns[name] = b
         self.toolBtns["hand"].SetToggle(True)
@@ -279,7 +284,6 @@ class ControlPanel(wx.Panel):
                     self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
                 r += 1
             self.inspector.Refresh()
-            self.inspector.Update()
 
     def UpdateInspectorForUiViews(self, uiViews):
         # Catch a still-open editor and handle it before we move on to a newly selected uiView
@@ -471,25 +475,28 @@ class ControlPanel(wx.Panel):
         if self.toolTip:
             self.toolTip.Destroy()
 
-        toolId = event.GetId()
-        toolTip = self.tooltips[toolId]
-        button = event.GetEventObject()
-        pos = button.GetPosition() + wx.Size(0, button.GetSize().Height-10)
-        tipBg = wx.Window(self, pos=pos + (button.GetSize().Width/2, -1))
-        tipBg.Enable(False)
-        tipBg.SetBackgroundColour('black')
-        tip = wx.StaticText(tipBg, pos=wx.Point(1, 1), label=toolTip)
-        tip.Enable(False)
-        tip.SetForegroundColour('black')
-        tip.SetBackgroundColour('white')
-        tipBg.SetSize(tip.GetSize()+(2, 2))
-
-        self.toolTip = tipBg
+        if wx.Platform != "__WXMSW__":
+            toolId = event.GetId()
+            toolTip = self.tooltips[toolId]
+            button = event.GetEventObject()
+            pos = button.GetRect().BottomLeft + wx.Size(0, -2)
+            tipBg = wx.Window(self, pos=pos + (button.GetSize().Width/2, -1))
+            tipBg.Enable(False)
+            tipBg.SetBackgroundColour('black')
+            tip = wx.StaticText(tipBg, pos=wx.Point(1, 1), label=toolTip)
+            tip.Enable(False)
+            tip.SetForegroundColour('black')
+            tip.SetBackgroundColour('white')
+            tipBg.SetSize(tip.GetSize()+(2, 2))
+            self.toolTip = tipBg
+            event.Skip()
 
     def OnToolExit(self, event):
         if self.toolTip:
             self.toolTip.Destroy()
             self.toolTip = None
+            self.inspector.Refresh()
+        event.Skip()
 
     def OnSetTool(self, event):
         toolId = event.GetId()

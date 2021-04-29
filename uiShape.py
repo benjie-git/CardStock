@@ -144,7 +144,6 @@ class UiShape(UiView):
         if key in ["size", "shape", "penColor", "penThickness", "fillColor", "cornerRadius"]:
             self.ClearHitRegion()
             self.stackManager.view.Refresh()
-            self.stackManager.view.Update()
 
     @staticmethod
     def CreateModelForType(stackManager, name):

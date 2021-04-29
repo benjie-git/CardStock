@@ -516,12 +516,12 @@ class DesignerFrame(wx.Frame):
                 self.allCodeWindow.Hide()
                 self.allCodeWindow.Clear()
             else:
-                self.allCodeWindow.Update()
+                self.allCodeWindow.UpdateCode()
                 self.allCodeWindow.Show()
         else:
             self.allCodeWindow = AllCodeWindow(self)
             self.allCodeWindow.SetPosition(self.GetPosition() + (50, 100))
-            self.allCodeWindow.Update()
+            self.allCodeWindow.UpdateCode()
             self.allCodeWindow.Show()
             self.allCodeWindow.Bind(wx.EVT_CLOSE, self.OnAllCodeWindowClose)
 
