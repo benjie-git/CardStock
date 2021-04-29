@@ -101,7 +101,7 @@ class UiShape(UiView):
                 gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
 
     def MakeHitRegion(self):
-        if self.model.GetProperty("hidden"):
+        if self.model.IsHidden():
             self.hitRegion = wx.Region((0,0), (0,0))
 
         s = self.model.GetProperty("size")

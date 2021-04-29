@@ -375,15 +375,17 @@ class HelpDataObject():
                  "info": "The <b>size</b> property is a size value that describes how big this object is on screen. "
                          "The first number, <b>width</b>, is how wide the object is, and the second number, <b>height</b>, is how tall."},
         "center": {"type": "point",
-                   "info": "The <b>center</b> property is a point value that describes where on the "
-                           "card this object's center is'.  The first number, <b>x</b>, is how many pixels the object's center "
+                   "info": "The <b>center</b> property is a point value that describes where on the card this "
+                           "object's center point is.  The first number, <b>x</b>, is how many pixels the object's center "
                            "is from the left edge of the card.  The second number, <b>y</b>, is how far up from the bottom.  "
                            "This value is not stored, but computed based on position and size."},
         "speed": {"type": "point",
                   "info": "This is a point value corresponding to the current speed of the object, in pixels/second "
                           "in both the <b>x</b> and <b>y</b> directions."},
         "visible": {"type": "bool",
-                    "info": "<b>True</b> if this object is <b>visible</b>, or <b>False</b> if it is hidden."},
+                    "info": "<b>True</b> if this object is <b>visible</b>, or <b>False</b> if it is hidden.  If this "
+                            "object is in a group that has been hidden, this object's <b>visible</b> property will be "
+                            "<b>False</b> as well."},
         "hasFocus": {"type": "bool",
                      "info": "<b>True</b> if this object is focused (if it is selected for typing into), otherwise "
                              "<b>False</b>. This value is not settable, but you can call the method Focus() to try to "

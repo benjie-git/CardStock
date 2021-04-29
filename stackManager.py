@@ -752,7 +752,7 @@ class StackManager(object):
         gc.SetBrush(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
         gc.DrawRectangle(self.view.GetRect().Inflate(1))
 
-        paintUiViews = [ui for ui in self.GetAllUiViews() if not ui.model.GetProperty("hidden")]
+        paintUiViews = [ui for ui in self.GetAllUiViews() if not ui.model.IsHidden()]
         if len(paintUiViews):
             for uiView in paintUiViews:
                 uiView.Paint(gc)
@@ -779,13 +779,13 @@ class StackManager(object):
                         return hit
         # Native views first
         for uiView in reversed(self.uiViews):
-            if not uiView.model.GetProperty("hidden") and uiView.view:
+            if not uiView.model.IsHidden() and uiView.view:
                 hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
                 if hit:
                     return hit
         # Then virtual views
         for uiView in reversed(self.uiViews):
-            if not uiView.model.GetProperty("hidden") and not uiView.view:
+            if not uiView.model.IsHidden() and not uiView.view:
                 hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
                 if hit:
                     return hit

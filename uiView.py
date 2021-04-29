@@ -62,7 +62,7 @@ class UiView(object):
                 rect = wx.Rect(wx.Point(self.model.GetAbsolutePosition()), mSize)
                 self.view.SetRect(self.stackManager.ConvRect(rect))
 
-            self.view.Show(not self.model.GetProperty("hidden"))
+            self.view.Show(not self.model.IsHidden())
 
     def SetModel(self, model):
         self.model = model
@@ -94,7 +94,7 @@ class UiView(object):
                 self.parent.ClearHitRegion()
         elif key == "hidden":
             if self.view:
-                self.view.Show(not self.model.GetProperty(key))
+                self.view.Show(not self.model.IsHidden())
             self.stackManager.view.Refresh()
 
     def OnResize(self, event):
@@ -376,6 +376,14 @@ class ViewModel(object):
             pos -= parentPos
             parent = parent.parent
         self.SetProperty("position", pos)
+
+    def IsHidden(self):
+        """ Returns True iff this object or any of its ancestors has its hidden property set to True """
+        if self.properties["hidden"]:
+            return True
+        if self.parent:
+            return self.parent.IsHidden()
+        return False
 
     def GetCenter(self):
         return self.GetProperty("center")
@@ -913,7 +921,7 @@ class ViewProxy(object):
 
     @property
     def visible(self):
-        return not self._model.GetProperty("hidden")
+        return not self._model.IsHidden()
     @visible.setter
     def visible(self, val):
         self._model.SetProperty("hidden", not bool(val))
