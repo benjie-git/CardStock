@@ -73,6 +73,8 @@ class ButtonModel(ViewModel):
     This is the model for a Button object.
     """
 
+    minSize = wx.Size(34,20)
+
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "button"

@@ -206,6 +206,8 @@ class TextFieldModel(TextBaseModel):
     This is the model for a TextField object.
     """
 
+    minSize = wx.Size(32,20)
+
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "textfield"
