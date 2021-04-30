@@ -293,6 +293,9 @@ class HelpDataGlobals():
         "Wait": {"args": {"duration": {"type": "float", "info": "Number of seconds to delay."}}, "return": None,
                  "info": "Delays the program from running for <b>duration</b> seconds.  No movements or animations "
                          "will happen during this time."},
+        "Distance": {"args": {"pointA": {"type": "point", "info": "One location on the card."},
+                              "pointB": {"type": "point", "info": "Another location on the card."}}, "return": "float",
+                     "info": "Return the distance between <b>pointA</b> and <b>pointB</b>."},
         "RunAfterDelay": {"args": {"duration": {"type": "float", "info": "Number of seconds to delay."},
                                    "func": {"type": "function", "info": "A function to call after the delay."},
                                    "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>func</b>."}}, "return": None,

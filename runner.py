@@ -7,6 +7,7 @@ import uiView
 from uiCard import Card
 from wx.adv import Sound
 from time import sleep, time
+import math
 from errorListWindow import CardStockError
 import threading
 from killableThread import KillableThread, RunOnMain
@@ -64,6 +65,7 @@ class Runner():
             "Wait": self.Wait,
             "RunAfterDelay": self.RunAfterDelay,
             "Time": self.Time,
+            "Distance": self.Distance,
             "Paste": self.Paste,
             "Alert": self.Alert,
             "Ask": self.Ask,
@@ -480,6 +482,17 @@ class Runner():
 
     def Time(self):
         return time()
+
+    def Distance(self, pointA, pointB):
+        try:
+            pointA = wx.RealPoint(pointA[0], pointA[1])
+        except:
+            raise ValueError("pointA must be a point or a list of two numbers")
+        try:
+            pointB = wx.RealPoint(pointB[0], pointB[1])
+        except:
+            raise ValueError("pointB must be a point or a list of two numbers")
+        return math.sqrt((pointB[0] - pointA[0]) ** 2 + (pointB[1] - pointA[1]) ** 2)
 
     @RunOnMain
     def Alert(self, message):
