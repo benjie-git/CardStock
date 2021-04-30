@@ -242,24 +242,38 @@ class StackExporter(object):
             standalonePath = os.path.join(standaloneDir, "standalone.app")
             appPath = filepath + ".app"
             shutil.copytree(standalonePath, appPath)
-            shutil.copyfile(self.stackManager.filename, appPath + "/Contents/MacOS/stack.cds")
-            print("Export finished.")
+            resDir = appPath + "/Contents/MacOS"
+            shutil.copyfile(self.stackManager.filename, os.path.join(resDir, "stack.cds"))
         elif wx.Platform == "__WXMSW__":
             standalonePath = os.path.join(bundle_dir, "standalone.exe")
             exeName = os.path.basename(filepath) + ".exe"
             appPath = os.path.join(filepath, exeName)
             os.mkdir(filepath)
             shutil.copyfile(standalonePath, appPath)
-            shutil.copyfile(self.stackManager.filename, os.path.join(filepath, "stack.cds"))
-            print("Export finished.")
+            resDir = os.path.join(filepath, "Resources")
+            shutil.copyfile(self.stackManager.filename, os.path.join(resDir, "stack.cds"))
         else:
             standalonePath = os.path.join(bundle_dir, "standalone")
             exeName = os.path.basename(filepath)
             appPath = os.path.join(filepath, exeName)
             os.mkdir(filepath)
             shutil.copyfile(standalonePath, appPath)
-            shutil.copyfile(self.stackManager.filename, os.path.join(filepath, "stack.cds"))
-            print("Export finished.")
+            resDir = os.path.join(filepath, "Resources")
+            shutil.copyfile(self.stackManager.filename, os.path.join(resDir, "stack.cds"))
+
+        # Create ResourceMap.json
+        self.BuildResMap()
+        jsonData = json.dumps(self.resMap)
+        mapFile = os.path.join(resDir, 'ResourceMap.json')
+        with open(mapFile, 'w') as f:
+            f.write(jsonData)
+
+        stackDir = os.path.dirname(self.stackManager.filename)
+        for (origPath, newPath) in self.resMap.items():
+            absPath = os.path.join(stackDir, origPath)
+            shutil.copyfile(absPath, os.path.join(resDir, newPath))
+
+        print("Export finished.")
 
 
 class ExportDialog(wx.Dialog):

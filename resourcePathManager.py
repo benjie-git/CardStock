@@ -34,6 +34,8 @@ class ResourcePathManager(object):
             if self.pathMap:
                 # we are running in a standalone app bundle
                 base_dir = sys._MEIPASS
+                if not os.path.exists(os.path.join(base_dir, path)):
+                    base_dir = os.path.join(os.path.dirname(sys.executable), 'Resources')
             else:
                 base_dir = os.path.dirname(self.stackManager.filename)
         else:
