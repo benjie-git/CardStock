@@ -224,6 +224,7 @@ class HandTool(BaseTool):
                                       wx.Point(max(self.resizeAnchorPoint[0], pos[0]),
                                                max(self.resizeAnchorPoint[1], pos[1])))
 
+                    thickness = 0
                     if isinstance(self.targetUi, UiShape):
                         # Account for thickness of shapes while resizing
                         thickness = self.targetUi.model.GetProperty("penThickness")
@@ -233,27 +234,27 @@ class HandTool(BaseTool):
                         else:
                             newRect.Right -= thickness / 2
 
-                        if self.resizeCorner[0]:
-                            xFlipped = (pos[0] > self.resizeAnchorPoint[0] + thickness / 2)
-                        else:
-                            xFlipped = (pos[0] < self.resizeAnchorPoint[0] + thickness / 2)
+                    if self.resizeCorner[0]:
+                        xFlipped = (pos[0] > self.resizeAnchorPoint[0] + thickness / 2)
+                    else:
+                        xFlipped = (pos[0] < self.resizeAnchorPoint[0] + thickness / 2)
 
-                        if self.resizeCorner[1]:
-                            yFlipped = (pos[1] > self.resizeAnchorPoint[1] + thickness / 2)
-                        else:
-                            yFlipped = (pos[1] < self.resizeAnchorPoint[1] + thickness / 2)
+                    if self.resizeCorner[1]:
+                        yFlipped = (pos[1] > self.resizeAnchorPoint[1] + thickness / 2)
+                    else:
+                        yFlipped = (pos[1] < self.resizeAnchorPoint[1] + thickness / 2)
 
-                        flipX = (xFlipped != self.xFlipped)
-                        flipY = (yFlipped != self.yFlipped)
-                        self.xFlipped = xFlipped
-                        self.yFlipped = yFlipped
-                        self.targetUi.model.PerformFlips(flipX, flipY)
+                    flipX = (xFlipped != self.xFlipped)
+                    flipY = (yFlipped != self.yFlipped)
+                    self.xFlipped = xFlipped
+                    self.yFlipped = yFlipped
+                    self.targetUi.model.PerformFlips(flipX, flipY)
 
-                        if pos[1] == newRect.Top:
-                            newRect.Top += min(thickness/2, newRect.Height)
-                            newRect.Height -= min(thickness/2, newRect.Height)
-                        else:
-                            newRect.Bottom -= thickness / 2
+                    if pos[1] == newRect.Top:
+                        newRect.Top += min(thickness/2, newRect.Height)
+                        newRect.Height -= min(thickness/2, newRect.Height)
+                    else:
+                        newRect.Bottom -= thickness / 2
 
                     self.targetUi.model.SetProperty("position", newRect.TopLeft, notify=False)
                     self.targetUi.model.SetProperty("size", newRect.Size)
