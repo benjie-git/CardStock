@@ -248,6 +248,8 @@ class StackManager(object):
                 if self.runner:
                     self.runner.RunHandler(oldCardModel, "OnHideCard", None)
             self.cardIndex = index
+            if self.designer:
+                self.designer.Freeze()
             self.ClearAllViews()
             self.lastFocusedTextField = None
             if index is not None:
@@ -262,6 +264,8 @@ class StackManager(object):
                         if self.uiCard.model.GetHandler("OnShowCard"):
                             self.runner.RunHandler(self.uiCard.model, "OnShowCard", None)
                 self.view.Refresh()
+            if self.designer:
+                self.designer.Thaw()
 
     def SetDesigner(self, designer):
         self.designer = designer
