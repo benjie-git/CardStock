@@ -85,6 +85,7 @@ class StackManager(object):
         self.isEditing = False  # Is in Editing mode (running from the designer), as opposed to just the viewer
         self.command_processor = CommandProcessor()
         self.timer = None
+        self.timerCount = 0
         self.tool = None
         self.globalCursor = None
         self.lastMousePos = wx.Point(0,0)
@@ -133,10 +134,7 @@ class StackManager(object):
             self.SelectUiView(None)
             self.timer = wx.Timer(self.view)
             self.view.Bind(wx.EVT_TIMER, self.OnPeriodicTimer, self.timer)
-            if wx.Platform == "__WXMSW__":
-                self.timer.Start(30)
-            else:
-                self.timer.Start(33)
+            self.timer.Start(15)
         else:
             if self.timer:
                 self.timer.Stop()
@@ -164,11 +162,14 @@ class StackManager(object):
 
     def OnPeriodicTimer(self, event):
         if not self.runner.stopRunnerThread:
+            self.timerCount += 1
             # Determine elapsed time since last round of OnPeriodic calls
             now = time()
             if not self.lastOnPeriodicTime:
                 self.lastOnPeriodicTime = self.runner.stackStartTime
             elapsedTime = now - self.lastOnPeriodicTime
+
+            # Run animations at 60 Hz / FPS
             onFinishedCalls = []
             self.uiCard.RunAnimations(onFinishedCalls, elapsedTime)
             for ui in self.GetAllUiViews():
@@ -179,8 +180,9 @@ class StackManager(object):
                 c()
             self.lastOnPeriodicTime = now
 
+            # Run OnPeriodic at 30 Hz
             didRun = False
-            if self.runner.numOnPeriodicsQueued == 0:
+            if self.timerCount % 2 == 0 and self.runner.numOnPeriodicsQueued == 0:
                 didRun = self.uiCard.OnPeriodic(event)
 
             if didRun:

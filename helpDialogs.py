@@ -171,7 +171,7 @@ events.  OnSetup() will also run for any new objects you create using any of the
 Then the first card's OnShowCard() event will run.  Any time you Goto another card, the current card's OnHideCard() 
 event will run, immediately followed by the next card's OnShowCard() event.  After your stack is done starting up, all 
 of the current card's objects (including the card itself) will start running their OnPeriodic() events, approximately every 
-1/30th of a second, immediately after each step or frame of animation runs, and before each screen update.  This is a 
+1/30th of a second.  This is a 
 great place to run any periodic checks that need to keep happening often.  The OnResize() event runs on a card object 
 when the stack window is resized while that card is shown, to give your stack a chance to re-layout objects based on 
 the new card size.  The OnMessage() event runs on an object when any of your other code calls that object's 
