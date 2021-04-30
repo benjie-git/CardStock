@@ -47,14 +47,14 @@
               41
             ],
             "position": [
-              74.0,
-              13.0
+              202.0,
+              56.0
             ],
             "text": "(Later, when you run the stack, this button\n will take you to the next card.)",
             "alignment": "Right",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 9
+            "fontSize": 11
           }
         },
         {
@@ -63,18 +63,18 @@
           "properties": {
             "name": "label_1",
             "size": [
-              351,
-              38
+              406,
+              49
             ],
             "position": [
-              79.0,
-              446.0
+              48.0,
+              435.0
             ],
             "text": "Welcome to CardStock!",
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 18
+            "fontSize": 25
           }
         },
         {
@@ -88,7 +88,7 @@
             ],
             "position": [
               28.0,
-              362.0
+              262.0
             ],
             "text": "A CardStock program is called a stack.  And each page of your program is called a card.",
             "alignment": "Left",
@@ -99,18 +99,38 @@
         },
         {
           "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "label_2",
+            "size": [
+              404,
+              52
+            ],
+            "position": [
+              28.0,
+              337.0
+            ],
+            "text": "CardStock lets you build programs by drawing them out, and then adding bits of code right where you need it.",
+            "alignment": "Left",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 12
+          }
+        },
+        {
+          "type": "textlabel",
           "handlers": {
-            "OnSetup": "self.Hide()"
+            "OnSetup": "# Make this label disappear when we run the stack\nself.Hide()"
           },
           "properties": {
             "name": "label_6",
             "size": [
-              408,
-              83
+              397,
+              68
             ],
             "position": [
-              30.0,
-              213.0
+              50.0,
+              153.0
             ],
             "text": "Here in the Designer, you can move to\nthe next card by clicking the \"Next Card\" \nbutton in the top right of this window...",
             "alignment": "Left",
@@ -161,11 +181,11 @@
               79.0,
               446.0
             ],
-            "text": "Welcome to CardStock!",
+            "text": "Objects",
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 18
+            "fontSize": 25
           }
         },
         {
@@ -299,6 +319,25 @@
           ]
         },
         {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoPreviousCard()"
+          },
+          "properties": {
+            "name": "button_1",
+            "size": [
+              118,
+              39
+            ],
+            "position": [
+              20.0,
+              14.0
+            ],
+            "title": "<= Prev Card",
+            "border": true
+          }
+        },
+        {
           "type": "textlabel",
           "handlers": {},
           "properties": {
@@ -311,7 +350,7 @@
               34.0,
               203.0
             ],
-            "text": "For example, this is a Text Label.  It shows text, but is not editable when you run the stack.  But in the Designer, you can double click it to edit the text.",
+            "text": "For example, this is a Text Label.  It shows text, but is not editable by the user when you run the stack.  But in the Designer, you can double click it to edit the text.",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
@@ -353,149 +392,19 @@
           "properties": {
             "name": "label_1",
             "size": [
-              351,
-              38
+              354,
+              45
             ],
             "position": [
               79.0,
-              446.0
+              439.0
             ],
-            "text": "Welcome to CardStock!",
+            "text": "Objects",
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 18
+            "fontSize": 25
           }
-        },
-        {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
-            "name": "label_2",
-            "size": [
-              330,
-              66
-            ],
-            "position": [
-              34.0,
-              342.0
-            ],
-            "text": "You can draw objects like buttons,\ntext fields, text labels, and shapes\nonto your cards using the tools up here.",
-            "alignment": "Left",
-            "textColor": "black",
-            "font": "Default",
-            "fontSize": 12
-          }
-        },
-        {
-          "type": "line",
-          "handlers": {},
-          "properties": {
-            "name": "shape_6",
-            "size": [
-              105,
-              97
-            ],
-            "position": [
-              372.0,
-              359.0
-            ],
-            "originalSize": [
-              115,
-              88
-            ],
-            "penColor": "#000000",
-            "penThickness": 4
-          },
-          "points": [
-            [
-              0.0,
-              0.0
-            ],
-            [
-              115.0,
-              88.0
-            ]
-          ]
-        },
-        {
-          "type": "pen",
-          "handlers": {},
-          "properties": {
-            "name": "shape_7",
-            "size": [
-              23,
-              21
-            ],
-            "position": [
-              471.0,
-              446.0
-            ],
-            "originalSize": [
-              23,
-              21
-            ],
-            "penColor": "#000000",
-            "penThickness": 4
-          },
-          "points": [
-            [
-              0.0,
-              21.0
-            ],
-            [
-              7.0,
-              21.0
-            ],
-            [
-              13.0,
-              21.0
-            ],
-            [
-              19.0,
-              20.0
-            ],
-            [
-              23.0,
-              17.0
-            ],
-            [
-              21.0,
-              13.0
-            ],
-            [
-              17.0,
-              10.0
-            ],
-            [
-              15.0,
-              5.0
-            ],
-            [
-              13.0,
-              0.0
-            ],
-            [
-              9.0,
-              2.0
-            ],
-            [
-              6.0,
-              6.0
-            ],
-            [
-              5.0,
-              12.0
-            ],
-            [
-              2.0,
-              16.0
-            ],
-            [
-              0.0,
-              21.0
-            ]
-          ]
         },
         {
           "type": "textfield",
@@ -510,7 +419,7 @@
             ],
             "position": [
               73.0,
-              202.0
+              282.0
             ],
             "text": "Edit me!  I'm a Text Field.",
             "alignment": "Left",
@@ -519,6 +428,25 @@
             "fontSize": 12,
             "editable": true,
             "multiline": false
+          }
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoPreviousCard()"
+          },
+          "properties": {
+            "name": "button_1",
+            "size": [
+              118,
+              39
+            ],
+            "position": [
+              20.0,
+              14.0
+            ],
+            "title": "<= Prev Card",
+            "border": true
           }
         },
         {
@@ -532,7 +460,7 @@
             ],
             "position": [
               34.0,
-              263.0
+              343.0
             ],
             "text": "And below is a Text Field.  It lets users of your stack enter and edit text, that your stack can use.",
             "alignment": "Left",
@@ -574,156 +502,6 @@
           "type": "textlabel",
           "handlers": {},
           "properties": {
-            "name": "label_1",
-            "size": [
-              351,
-              38
-            ],
-            "position": [
-              79.0,
-              446.0
-            ],
-            "text": "Welcome to CardStock!",
-            "alignment": "Center",
-            "textColor": "black",
-            "font": "Default",
-            "fontSize": 18
-          }
-        },
-        {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
-            "name": "label_2",
-            "size": [
-              330,
-              66
-            ],
-            "position": [
-              34.0,
-              342.0
-            ],
-            "text": "You can draw objects like buttons,\ntext fields, text labels, and shapes\nonto your cards using the tools up here.",
-            "alignment": "Left",
-            "textColor": "black",
-            "font": "Default",
-            "fontSize": 12
-          }
-        },
-        {
-          "type": "line",
-          "handlers": {},
-          "properties": {
-            "name": "shape_6",
-            "size": [
-              105,
-              97
-            ],
-            "position": [
-              372.0,
-              359.0
-            ],
-            "originalSize": [
-              115,
-              88
-            ],
-            "penColor": "#000000",
-            "penThickness": 4
-          },
-          "points": [
-            [
-              0.0,
-              0.0
-            ],
-            [
-              115.0,
-              88.0
-            ]
-          ]
-        },
-        {
-          "type": "pen",
-          "handlers": {},
-          "properties": {
-            "name": "shape_7",
-            "size": [
-              23,
-              21
-            ],
-            "position": [
-              471.0,
-              446.0
-            ],
-            "originalSize": [
-              23,
-              21
-            ],
-            "penColor": "#000000",
-            "penThickness": 4
-          },
-          "points": [
-            [
-              0.0,
-              21.0
-            ],
-            [
-              7.0,
-              21.0
-            ],
-            [
-              13.0,
-              21.0
-            ],
-            [
-              19.0,
-              20.0
-            ],
-            [
-              23.0,
-              17.0
-            ],
-            [
-              21.0,
-              13.0
-            ],
-            [
-              17.0,
-              10.0
-            ],
-            [
-              15.0,
-              5.0
-            ],
-            [
-              13.0,
-              0.0
-            ],
-            [
-              9.0,
-              2.0
-            ],
-            [
-              6.0,
-              6.0
-            ],
-            [
-              5.0,
-              12.0
-            ],
-            [
-              2.0,
-              16.0
-            ],
-            [
-              0.0,
-              21.0
-            ]
-          ]
-        },
-        {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
             "name": "label_3",
             "size": [
               400,
@@ -731,13 +509,52 @@
             ],
             "position": [
               34.0,
-              263.0
+              343.0
             ],
             "text": "Buttons let your program do something when they are clicked.",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
             "fontSize": 12
+          }
+        },
+        {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "label_1",
+            "size": [
+              354,
+              45
+            ],
+            "position": [
+              79.0,
+              439.0
+            ],
+            "text": "Objects",
+            "alignment": "Center",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 25
+          }
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoPreviousCard()"
+          },
+          "properties": {
+            "name": "button_3",
+            "size": [
+              118,
+              39
+            ],
+            "position": [
+              20.0,
+              14.0
+            ],
+            "title": "<= Prev Card",
+            "border": true
           }
         },
         {
@@ -753,7 +570,7 @@
             ],
             "position": [
               108.0,
-              211.0
+              271.0
             ],
             "title": "I am a Button",
             "border": true
@@ -792,156 +609,6 @@
           "type": "textlabel",
           "handlers": {},
           "properties": {
-            "name": "label_1",
-            "size": [
-              351,
-              38
-            ],
-            "position": [
-              79.0,
-              446.0
-            ],
-            "text": "Welcome to CardStock!",
-            "alignment": "Center",
-            "textColor": "black",
-            "font": "Default",
-            "fontSize": 18
-          }
-        },
-        {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
-            "name": "label_2",
-            "size": [
-              330,
-              66
-            ],
-            "position": [
-              34.0,
-              342.0
-            ],
-            "text": "You can draw objects like buttons,\ntext fields, text labels, and shapes\nonto your cards using the tools up here.",
-            "alignment": "Left",
-            "textColor": "black",
-            "font": "Default",
-            "fontSize": 12
-          }
-        },
-        {
-          "type": "line",
-          "handlers": {},
-          "properties": {
-            "name": "shape_6",
-            "size": [
-              105,
-              97
-            ],
-            "position": [
-              372.0,
-              359.0
-            ],
-            "originalSize": [
-              115,
-              88
-            ],
-            "penColor": "#000000",
-            "penThickness": 4
-          },
-          "points": [
-            [
-              0.0,
-              0.0
-            ],
-            [
-              115.0,
-              88.0
-            ]
-          ]
-        },
-        {
-          "type": "pen",
-          "handlers": {},
-          "properties": {
-            "name": "shape_7",
-            "size": [
-              23,
-              21
-            ],
-            "position": [
-              471.0,
-              446.0
-            ],
-            "originalSize": [
-              23,
-              21
-            ],
-            "penColor": "#000000",
-            "penThickness": 4
-          },
-          "points": [
-            [
-              0.0,
-              21.0
-            ],
-            [
-              7.0,
-              21.0
-            ],
-            [
-              13.0,
-              21.0
-            ],
-            [
-              19.0,
-              20.0
-            ],
-            [
-              23.0,
-              17.0
-            ],
-            [
-              21.0,
-              13.0
-            ],
-            [
-              17.0,
-              10.0
-            ],
-            [
-              15.0,
-              5.0
-            ],
-            [
-              13.0,
-              0.0
-            ],
-            [
-              9.0,
-              2.0
-            ],
-            [
-              6.0,
-              6.0
-            ],
-            [
-              5.0,
-              12.0
-            ],
-            [
-              2.0,
-              16.0
-            ],
-            [
-              0.0,
-              21.0
-            ]
-          ]
-        },
-        {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
             "name": "label_3",
             "size": [
               400,
@@ -949,7 +616,7 @@
             ],
             "position": [
               34.0,
-              263.0
+              343.0
             ],
             "text": "Image objects can show an image from a file, and you can also draw shapes.",
             "alignment": "Left",
@@ -1487,6 +1154,45 @@
           ]
         },
         {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "label_1",
+            "size": [
+              354,
+              45
+            ],
+            "position": [
+              79.0,
+              439.0
+            ],
+            "text": "Objects",
+            "alignment": "Center",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 25
+          }
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoPreviousCard()"
+          },
+          "properties": {
+            "name": "button_1",
+            "size": [
+              118,
+              39
+            ],
+            "position": [
+              20.0,
+              14.0
+            ],
+            "title": "<= Prev Card",
+            "border": true
+          }
+        },
+        {
           "type": "oval",
           "handlers": {},
           "properties": {
@@ -1545,26 +1251,6 @@
             ],
             "title": "Next Card  =>",
             "border": true
-          }
-        },
-        {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
-            "name": "label_1",
-            "size": [
-              351,
-              38
-            ],
-            "position": [
-              79.0,
-              446.0
-            ],
-            "text": "Welcome to CardStock!",
-            "alignment": "Center",
-            "textColor": "black",
-            "font": "Default",
-            "fontSize": 18
           }
         },
         {
@@ -2162,11 +1848,50 @@
               24.0,
               241.0
             ],
-            "text": "Here, we've changed the some of the objects' properties.  Try clicking each object to explore its properties, and edit them yourself!  Note that when you click on a property, you'll get a desciption of that property right below the Property Editor.",
+            "text": "Here, we've changed some of the objects' properties.  Try clicking each object to explore its properties, and edit them yourself!  Note that when you click on a property, you'll get a desciption of that property right below the Property Editor, in the Context Help area.",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
             "fontSize": 12
+          }
+        },
+        {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "label_1",
+            "size": [
+              354,
+              45
+            ],
+            "position": [
+              79.0,
+              439.0
+            ],
+            "text": "Properties",
+            "alignment": "Center",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 25
+          }
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoPreviousCard()"
+          },
+          "properties": {
+            "name": "button_1",
+            "size": [
+              118,
+              39
+            ],
+            "position": [
+              20.0,
+              14.0
+            ],
+            "title": "<= Prev Card",
+            "border": true
           }
         },
         {
@@ -2345,18 +2070,141 @@
           "properties": {
             "name": "label_1",
             "size": [
-              449,
-              42
+              354,
+              45
             ],
             "position": [
-              24.0,
-              442.0
+              79.0,
+              439.0
             ],
-            "text": "Welcome to CardStock!",
+            "text": "Properties",
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 18
+            "fontSize": 25
+          }
+        },
+        {
+          "type": "poly",
+          "handlers": {},
+          "properties": {
+            "name": "shape_1",
+            "size": [
+              449,
+              177
+            ],
+            "position": [
+              22.0,
+              254.0
+            ],
+            "originalSize": [
+              296,
+              242
+            ],
+            "penColor": "#498F4D",
+            "penThickness": 4,
+            "fillColor": "#E6E7EA"
+          },
+          "points": [
+            [
+              118.0,
+              193.0
+            ],
+            [
+              159.0,
+              242.0
+            ],
+            [
+              174.0,
+              190.0
+            ],
+            [
+              256.0,
+              219.0
+            ],
+            [
+              225.0,
+              152.0
+            ],
+            [
+              296.0,
+              152.0
+            ],
+            [
+              255.0,
+              101.0
+            ],
+            [
+              292.0,
+              57.0
+            ],
+            [
+              223.0,
+              67.0
+            ],
+            [
+              225.0,
+              0.0
+            ],
+            [
+              181.0,
+              48.0
+            ],
+            [
+              136.0,
+              1.0
+            ],
+            [
+              134.0,
+              61.0
+            ],
+            [
+              67.0,
+              22.0
+            ],
+            [
+              89.0,
+              85.0
+            ],
+            [
+              30.0,
+              78.0
+            ],
+            [
+              77.0,
+              136.0
+            ],
+            [
+              0.0,
+              162.0
+            ],
+            [
+              61.0,
+              177.0
+            ],
+            [
+              75.0,
+              242.0
+            ]
+          ]
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoPreviousCard()"
+          },
+          "properties": {
+            "name": "button_1",
+            "size": [
+              118,
+              39
+            ],
+            "position": [
+              20.0,
+              14.0
+            ],
+            "title": "<= Prev Card",
+            "border": true
           }
         },
         {
@@ -2365,15 +2213,15 @@
           "properties": {
             "name": "label_3",
             "size": [
-              359,
-              48
+              216,
+              63
             ],
             "position": [
-              24.0,
-              378.0
+              143.0,
+              320.0
             ],
-            "text": "Try adding your own objects below, and editing their properties yourself!",
-            "alignment": "Left",
+            "text": "Try drawing out your own\nobjects below, and editing\ntheir properties yourself!",
+            "alignment": "Center",
             "textColor": "black",
             "font": "Default",
             "fontSize": 12
@@ -2393,26 +2241,6 @@
           "type": "textlabel",
           "handlers": {},
           "properties": {
-            "name": "label_1",
-            "size": [
-              449,
-              42
-            ],
-            "position": [
-              24.0,
-              442.0
-            ],
-            "text": "Welcome to CardStock!",
-            "alignment": "Center",
-            "textColor": "black",
-            "font": "Default",
-            "fontSize": 18
-          }
-        },
-        {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
             "name": "label_2",
             "size": [
               351,
@@ -2422,7 +2250,7 @@
               18.0,
               374.0
             ],
-            "text": "Whenever you have the Hand tool selected, you'll see the Code Editor down here.",
+            "text": "Whenever you have the Hand tool selected, you'll also see the Code Editor down here.",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
@@ -2591,18 +2419,57 @@
           "properties": {
             "name": "label_3",
             "size": [
-              446,
-              101
+              456,
+              116
             ],
             "position": [
               23.0,
-              58.0
+              59.0
             ],
-            "text": "This code is run when the currently chosen event happens.  The above button has code in its OnClick() event, and will run whenever the button is clicked.  You can change which event's code you're editing using the event picker just above your code.",
+            "text": "This code is run when the currently chosen event happens.  The above button has code in its OnClick() event, which will run whenever this button is clicked.  Each type of object can respond to a different set of events.  For any selected object, you can choose which event's code to view and edit using the event picker just above the Code Editor.",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
             "fontSize": 12
+          }
+        },
+        {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "label_1",
+            "size": [
+              354,
+              45
+            ],
+            "position": [
+              79.0,
+              439.0
+            ],
+            "text": "Code Editor",
+            "alignment": "Center",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 25
+          }
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoPreviousCard()"
+          },
+          "properties": {
+            "name": "button_3",
+            "size": [
+              118,
+              39
+            ],
+            "position": [
+              20.0,
+              14.0
+            ],
+            "title": "<= Prev Card",
+            "border": true
           }
         },
         {
@@ -2616,7 +2483,7 @@
             ],
             "position": [
               23.0,
-              188.0
+              198.0
             ],
             "text": "Select an object to see the code that will run when its events are triggered.",
             "alignment": "Left",
@@ -2624,6 +2491,274 @@
             "font": "Default",
             "fontSize": 12
           }
+        }
+      ]
+    },
+    {
+      "type": "card",
+      "handlers": {},
+      "properties": {
+        "name": "code_1",
+        "bgColor": "white"
+      },
+      "childModels": [
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "number_field.text = int(number_field.text)+1"
+          },
+          "properties": {
+            "name": "button_1",
+            "size": [
+              124,
+              30
+            ],
+            "position": [
+              335.0,
+              386.0
+            ],
+            "title": "Add One",
+            "border": true
+          }
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoNextCard()"
+          },
+          "properties": {
+            "name": "button_2",
+            "size": [
+              118,
+              39
+            ],
+            "position": [
+              363.0,
+              14.0
+            ],
+            "title": "Next Card  =>",
+            "border": true
+          }
+        },
+        {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "label_3",
+            "size": [
+              450,
+              243
+            ],
+            "position": [
+              29.0,
+              75.0
+            ],
+            "text": "This button:\n- takes the text from the above field, using number_field.text\n- converts it to a number (an integer), using int()\n- adds 1 to it, (+1)\n- and sets that new number as the new text for number_field.\n\nClick the button to see the code, and how it fits together.\n\n\nCan you add a 2nd button that will double the number instead of adding 1?",
+            "alignment": "Left",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 12
+          }
+        },
+        {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "label_1",
+            "size": [
+              354,
+              45
+            ],
+            "position": [
+              79.0,
+              439.0
+            ],
+            "text": "Event Code",
+            "alignment": "Center",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 25
+          }
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoPreviousCard()"
+          },
+          "properties": {
+            "name": "button_3",
+            "size": [
+              118,
+              39
+            ],
+            "position": [
+              20.0,
+              14.0
+            ],
+            "title": "<= Prev Card",
+            "border": true
+          }
+        },
+        {
+          "type": "textfield",
+          "handlers": {},
+          "properties": {
+            "name": "number_field",
+            "size": [
+              104,
+              26
+            ],
+            "position": [
+              217.0,
+              388.0
+            ],
+            "text": "1",
+            "alignment": "Left",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 12,
+            "editable": true,
+            "multiline": false
+          }
+        }
+      ]
+    },
+    {
+      "type": "card",
+      "handlers": {},
+      "properties": {
+        "name": "code_2",
+        "bgColor": "white"
+      },
+      "childModels": [
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "# Animate the ball to a point on the left over 1 second,\n# and then back to the right over 1 more second.\n# This queues up both animations to happen one after another,\n# since they are animating the same property.\nball.AnimatePosition(1, [  0, 325])\nball.AnimatePosition(1, [440, 325])\n\n# If you also add animations for a different property, for\n# example ball.AnimateSize(1, [20, 20]), this will\n# run simultaneously with the position animations."
+          },
+          "properties": {
+            "name": "animate_button",
+            "size": [
+              124,
+              30
+            ],
+            "position": [
+              361.0,
+              395.0
+            ],
+            "title": "Animate",
+            "border": true
+          }
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoNextCard()"
+          },
+          "properties": {
+            "name": "button_2",
+            "size": [
+              118,
+              39
+            ],
+            "position": [
+              363.0,
+              14.0
+            ],
+            "title": "Next Card  =>",
+            "border": true
+          }
+        },
+        {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "label_3",
+            "size": [
+              436,
+              242
+            ],
+            "position": [
+              29.0,
+              56.0
+            ],
+            "text": "This button animates the ball to move across the screen and back.\n\nCan you make the ball also animate its fillColor to blue and back to red, from the same animate_button click?",
+            "alignment": "Left",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 12
+          }
+        },
+        {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "label_1",
+            "size": [
+              354,
+              45
+            ],
+            "position": [
+              79.0,
+              439.0
+            ],
+            "text": "Event Code",
+            "alignment": "Center",
+            "textColor": "black",
+            "font": "Default",
+            "fontSize": 25
+          }
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoPreviousCard()"
+          },
+          "properties": {
+            "name": "button_3",
+            "size": [
+              118,
+              39
+            ],
+            "position": [
+              20.0,
+              14.0
+            ],
+            "title": "<= Prev Card",
+            "border": true
+          }
+        },
+        {
+          "type": "oval",
+          "handlers": {},
+          "properties": {
+            "name": "ball",
+            "size": [
+              54,
+              54
+            ],
+            "position": [
+              440.0,
+              325.0
+            ],
+            "originalSize": [
+              54,
+              54
+            ],
+            "penColor": "black",
+            "penThickness": 1,
+            "fillColor": "#E62332"
+          },
+          "points": [
+            [
+              0.0,
+              54.0
+            ],
+            [
+              54.0,
+              0.0
+            ]
+          ]
         }
       ]
     },
@@ -2648,11 +2783,11 @@
               84.0,
               446.0
             ],
-            "text": "Welcome to CardStock!",
+            "text": "Run Your Stack!",
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 18
+            "fontSize": 25
           }
         },
         {
@@ -2812,7 +2947,7 @@
             ],
             "position": [
               34.0,
-              168.0
+              188.0
             ],
             "text": "For more info on how CardStock works, check out the Manual in the Help menu.",
             "alignment": "Left",
@@ -2832,7 +2967,7 @@
             ],
             "position": [
               34.0,
-              105.0
+              125.0
             ],
             "text": "For more info on writing CardStock code, check out the Reference Guide in the Help menu.",
             "alignment": "Left",
@@ -2848,17 +2983,36 @@
             "name": "label_5",
             "size": [
               336,
-              53
+              46
             ],
             "position": [
               34.0,
-              38.0
+              65.0
             ],
             "text": "You can also explore lots more CardStock code in the example CardStock stacks.",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
             "fontSize": 12
+          }
+        },
+        {
+          "type": "button",
+          "handlers": {
+            "OnClick": "GotoPreviousCard()"
+          },
+          "properties": {
+            "name": "button_1",
+            "size": [
+              118,
+              39
+            ],
+            "position": [
+              20.0,
+              14.0
+            ],
+            "title": "<= Prev Card",
+            "border": true
           }
         },
         {
