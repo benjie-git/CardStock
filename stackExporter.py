@@ -251,6 +251,7 @@ class StackExporter(object):
             os.mkdir(filepath)
             shutil.copyfile(standalonePath, appPath)
             resDir = os.path.join(filepath, "Resources")
+            os.mkdir(resDir)
             shutil.copyfile(self.stackManager.filename, os.path.join(resDir, "stack.cds"))
         else:
             standalonePath = os.path.join(bundle_dir, "standalone")
@@ -259,6 +260,7 @@ class StackExporter(object):
             os.mkdir(filepath)
             shutil.copyfile(standalonePath, appPath)
             resDir = os.path.join(filepath, "Resources")
+            os.mkdir(resDir)
             shutil.copyfile(self.stackManager.filename, os.path.join(resDir, "stack.cds"))
 
         # Create ResourceMap.json
