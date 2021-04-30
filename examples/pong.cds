@@ -116,5 +116,5 @@
     }
   ],
   "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.8.12"
+  "CardStock_stack_version": "0.9"
 }
