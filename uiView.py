@@ -772,6 +772,7 @@ class ViewProxy(object):
     def Clone(self, **kwargs):
         if self._model.type != "card":
             newModel = self._model.CreateCopy()
+            newModel.SetProperty("speed", self._model.GetProperty("speed"))
             if not self.visible:
                 newModel.SetProperty("hidden", True)
             for k,v in kwargs.items():

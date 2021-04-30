@@ -73,6 +73,7 @@ class ErrorListWindow(wx.Frame):
 
     def JumpToError(self, error):
         if error.card:
+            self.designer.cPanel.SetToolByName("hand")
             self.designer.stackManager.LoadCardAtIndex(error.card.parent.childModels.index(error.card))
             if error.obj:
                 uiView = self.designer.stackManager.GetUiViewByModel(error.obj)
