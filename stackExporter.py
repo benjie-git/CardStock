@@ -259,6 +259,7 @@ class StackExporter(object):
             appPath = os.path.join(filepath, exeName)
             os.mkdir(filepath)
             shutil.copyfile(standalonePath, appPath)
+            os.chmod(appPath, 0o775)
             resDir = os.path.join(filepath, "Resources")
             os.mkdir(resDir)
             shutil.copyfile(self.stackManager.filename, os.path.join(resDir, "stack.cds"))
