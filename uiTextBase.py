@@ -56,7 +56,7 @@ class UiTextBase(UiView):
         if wx.Platform == '__WXMAC__':
             platformScale = 1.2 if isinstance(view, stc.StyledTextCtrl) else 1.4
         elif wx.Platform == '__WXMSW__':
-            platformScale = 1.0 if isinstance(view, stc.StyledTextCtrl) else 1.3
+            platformScale = 1.0 if isinstance(view, stc.StyledTextCtrl) else 1.2
         else:
             platformScale = 0.9 if isinstance(view, stc.StyledTextCtrl) else 1.4
 
