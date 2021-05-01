@@ -141,7 +141,7 @@ class CardModel(ViewModel):
             self.childModels.append(m)
 
     def AddChild(self, model):
-        self.InsertChild(model, -1)
+        self.InsertChild(model, len(self.childModels))
 
     def InsertChild(self, model, index):
         self.childModels.insert(index, model)
