@@ -96,6 +96,11 @@ class UiTextBase(UiView):
         if z != 0:
             event.GetEventObject().SetZoom(0)
 
+    def OnLoseFocus(self, event):
+        if self.isInlineEditing:
+            self.StopInlineEditing()
+        event.Skip()
+
     def StartInlineEditing(self):
         pass
 

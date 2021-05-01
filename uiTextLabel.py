@@ -26,6 +26,7 @@ class UiTextLabel(UiTextBase):
         field.SetRect(self.stackManager.ConvRect(rect))
         field.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         field.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
+        field.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
         self.UpdateFont(self.model, field)
         if self.view:
             self.view.Hide()

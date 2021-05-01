@@ -50,6 +50,7 @@ class UiTextField(UiTextBase):
         self.BindEvents(field)
         field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
         field.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
+        field.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
         field.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.UpdateFont(model, field)
 
