@@ -309,8 +309,11 @@ class HandTool(BaseTool):
                 self.stackManager.SelectUiView(self.targetUi, True)
             elif not event.ShiftDown():
                 topView = self.stackManager.HitTest(self.absOrigin, False)
-                if topView and topView.model.parent.type != "group":
-                    self.stackManager.SelectUiView(topView)
+                if topView:
+                    if topView.model.parent.type != "group":
+                        self.stackManager.SelectUiView(topView)
+                    else:
+                        self.stackManager.SelectUiView(topView.parent)
         elif self.mode == "box":
             self.selectionRect = None
             self.lastBoxList = None
