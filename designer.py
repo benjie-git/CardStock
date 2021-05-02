@@ -13,6 +13,7 @@ import json
 import configparser
 import wx
 from time import sleep
+import version
 from tools import *
 from stackManager import StackManager
 from controlPanel import ControlPanel
@@ -736,13 +737,15 @@ class DesignerFrame(wx.Frame):
     def WriteConfig(self):
         config = configparser.ConfigParser()
         config['User'] = {"last_open_file": self.filename if self.filename else "",
-                          "show_context_help": str(self.cPanel.IsContextHelpShown())}
+                          "show_context_help": str(self.cPanel.IsContextHelpShown()),
+                          "cardstock_app_version": version.VERSION}
         with open(self.full_config_file_path, 'w') as configfile:
             config.write(configfile)
 
     def ReadConfig(self):
         last_open_file = None
-        context_help = True
+        show_context_help = True
+        cardstock_app_version = "0"
         if not os.path.exists(self.full_config_file_path) \
                 or os.stat(self.full_config_file_path).st_size == 0:
             self.WriteConfig()
@@ -750,7 +753,8 @@ class DesignerFrame(wx.Frame):
             config = configparser.ConfigParser()
             config.read(self.full_config_file_path)
             last_open_file = config['User'].get('last_open_file', None)
-            context_help = config['User'].get('show_context_help', "True") == "True"
+            show_context_help = config['User'].get('show_context_help', "True") == "True"
+            cardstock_app_version = config['User'].get('cardstock_app_version', "0")
 
         if not last_open_file:
             # On first run, open the welcome stack
@@ -763,7 +767,9 @@ class DesignerFrame(wx.Frame):
                 if not welcomeExistsHere(base_dir):
                     base_dir = sys._MEIPASS
             last_open_file = os.path.join(base_dir, os.path.join("examples", "welcome.cds"))
-        return {"last_open_file": last_open_file, "show_context_help": context_help}
+        return {"last_open_file": last_open_file,
+                "show_context_help": show_context_help,
+                "cardstock_app_version": cardstock_app_version}
 
 # ----------------------------------------------------------------------
 
