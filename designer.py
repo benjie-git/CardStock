@@ -729,7 +729,7 @@ class DesignerFrame(wx.Frame):
     def FinishedStarting(self):
         if not self.filename:
             config = self.ReadConfig()
-            self.cPanel.ShowContextHelp(config["show_context_help"] == "True")
+            self.cPanel.ShowContextHelp(config["show_context_help"])
             if config["last_open_file"] and os.path.exists(config["last_open_file"]):
                 self.ReadFile(config["last_open_file"])
 
@@ -742,7 +742,7 @@ class DesignerFrame(wx.Frame):
 
     def ReadConfig(self):
         last_open_file = None
-        context_help = "True"
+        context_help = True
         if not os.path.exists(self.full_config_file_path) \
                 or os.stat(self.full_config_file_path).st_size == 0:
             self.WriteConfig()
@@ -750,7 +750,19 @@ class DesignerFrame(wx.Frame):
             config = configparser.ConfigParser()
             config.read(self.full_config_file_path)
             last_open_file = config['User'].get('last_open_file', None)
-            context_help = config['User'].get('show_context_help', "True")
+            context_help = config['User'].get('show_context_help', "True") == "True"
+
+        if not last_open_file:
+            # On first run, open the welcome stack
+            def welcomeExistsHere(path):
+                return os.path.exists(os.path.join(path, os.path.join("examples", "welcome.cds")))
+
+            base_dir = os.path.dirname(__file__)
+            if not welcomeExistsHere(base_dir):
+                base_dir = os.path.dirname(sys.executable)
+                if not welcomeExistsHere(base_dir):
+                    base_dir = sys._MEIPASS
+            last_open_file = os.path.join(base_dir, os.path.join("examples", "welcome.cds"))
         return {"last_open_file": last_open_file, "show_context_help": context_help}
 
 # ----------------------------------------------------------------------

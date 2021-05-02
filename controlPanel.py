@@ -33,7 +33,7 @@ class ControlPanel(wx.Panel):
         self.penColor = "black"
         self.fillColor = "white"
         self.penThickness = 4
-        self.isContextHelpEnabled = False
+        self.isContextHelpEnabled = True
         numCols = 11
         spacing = 6
 
