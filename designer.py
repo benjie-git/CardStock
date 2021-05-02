@@ -766,7 +766,7 @@ class DesignerFrame(wx.Frame):
                 base_dir = os.path.dirname(sys.executable)
                 if not welcomeExistsHere(base_dir):
                     base_dir = sys._MEIPASS
-            last_open_file = os.path.join(base_dir, os.path.join("examples", "welcome.cds"))
+            last_open_file = os.path.abspath(os.path.join(base_dir, os.path.join("examples", "welcome.cds")))
         return {"last_open_file": last_open_file,
                 "show_context_help": show_context_help,
                 "cardstock_app_version": cardstock_app_version}
