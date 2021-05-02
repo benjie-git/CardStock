@@ -2634,7 +2634,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "# Animate the ball to a point on the left over 1 second,\n# and then back to the right over 1 more second.\n# This queues up both animations to happen one after another,\n# since they are animating the same property.\nball.AnimatePosition(1, [  0, 325])\nball.AnimatePosition(1, [440, 325])\n\n# If you also add animations for a different property, for\n# example ball.AnimateSize(1, [20, 20]), this will\n# run simultaneously with the position animations."
+            "OnClick": "# Animate the ball to a point on the left over 1 second,\n# and then back to the right over 1 more second.\n# This queues up both animations to happen one after another,\n# since they are animating the same property.\nball.AnimatePosition(1, [  0, 325])\nball.AnimatePosition(1, [440, 325])\n\n# If you also add animations for a different property, for\n# example ball.AnimateSize(1, [20, 20]), this will\n# run simultaneously with ball's position animations."
           },
           "properties": {
             "name": "animate_button",
@@ -2682,7 +2682,7 @@
               29.0,
               56.0
             ],
-            "text": "This button animates the ball to move across the screen and back.\n\nCan you make the ball also animate its fillColor to blue and back to red, from the same animate_button click?",
+            "text": "This button animates the ball to move across the screen and back.\n\nCan you make the ball also animate its fillColor to blue and back to red, from the same button click?",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
