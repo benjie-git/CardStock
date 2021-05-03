@@ -297,12 +297,14 @@ class SetHandlerCommand(Command):
         self.model.SetHandler(self.key, self.newVal)
 
         if self.hasRun and uiView:
-            firstLine = self.cPanel.codeEditor.GetFirstVisibleLine()
+            firstLine = 0
+            if self.cPanel.lastSelectedUiView == uiView and self.cPanel.currentHandler == self.key:
+                firstLine = self.cPanel.codeEditor.GetFirstVisibleLine()
             self.cPanel.UpdateHandlerForUiViews([uiView], self.key)
-        if uiView and self.hasRun and self.interactive and self.newSel:
-            self.cPanel.codeEditor.SetSelection(*self.newSel)
-            self.cPanel.codeEditor.ScrollToLine(firstLine)
-            self.cPanel.codeEditor.ScrollRange(*self.newSel)
+            if self.interactive and self.newSel:
+                self.cPanel.codeEditor.SetSelection(*self.newSel)
+                self.cPanel.codeEditor.ScrollToLine(firstLine)
+                self.cPanel.codeEditor.ScrollRange(*self.newSel)
 
         allCodeWin = self.cPanel.stackManager.designer.allCodeWindow
         if allCodeWin and allCodeWin.IsShown():
@@ -320,12 +322,14 @@ class SetHandlerCommand(Command):
         self.model.SetHandler(self.key, self.oldVal)
 
         if uiView:
-            firstLine = self.cPanel.codeEditor.GetFirstVisibleLine()
+            firstLine = 0
+            if self.cPanel.lastSelectedUiView == uiView and self.cPanel.currentHandler == self.key:
+                firstLine = self.cPanel.codeEditor.GetFirstVisibleLine()
             self.cPanel.UpdateHandlerForUiViews([uiView], self.key)
-        if uiView and self.interactive and self.oldSel:
-            self.cPanel.codeEditor.SetSelection(*self.oldSel)
-            self.cPanel.codeEditor.ScrollToLine(firstLine)
-            self.cPanel.codeEditor.ScrollRange(*self.oldSel)
+            if self.interactive and self.oldSel:
+                self.cPanel.codeEditor.SetSelection(*self.oldSel)
+                self.cPanel.codeEditor.ScrollToLine(firstLine)
+                self.cPanel.codeEditor.ScrollRange(*self.oldSel)
 
         allCodeWin = self.cPanel.stackManager.designer.allCodeWindow
         if allCodeWin and allCodeWin.IsShown():
