@@ -301,6 +301,7 @@ class SetHandlerCommand(Command):
         if self.interactive:
             if self.newSel:
                 self.cPanel.codeEditor.SetSelection(*self.newSel)
+                self.cPanel.codeEditor.ScrollRange(*self.newSel)
 
         allCodeWin = self.cPanel.stackManager.designer.allCodeWindow
         if allCodeWin and allCodeWin.IsShown():
@@ -322,6 +323,7 @@ class SetHandlerCommand(Command):
         if self.interactive:
             if self.oldSel:
                 self.cPanel.codeEditor.SetSelection(*self.oldSel)
+                self.cPanel.codeEditor.ScrollRange(*self.oldSel)
 
         allCodeWin = self.cPanel.stackManager.designer.allCodeWindow
         if allCodeWin and allCodeWin.IsShown():
