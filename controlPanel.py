@@ -362,6 +362,8 @@ class ControlPanel(wx.Panel):
                 if val != origVal:
                     needsUpdate = True
 
+            if key == "text":
+                val = val.replace('\r', '\n')
             command = SetPropertyCommand(True, "Set Property", self, self.stackManager.cardIndex, uiView.model, key, val)
             self.stackManager.command_processor.Submit(command)
             if needsUpdate:

@@ -198,6 +198,14 @@ class UiView(object):
             return self
         return None
 
+    def HasGroupAncestor(self, uiView):
+        ui = self
+        while ui and ui.model.type not in ["card", "stack"]:
+            if ui == uiView:
+                return True
+            ui = ui.parent
+        return False
+
     def GetResizeBoxRects(self):
         # The returned rects are relative to the position of the object
         # The resize box/handles should hang out of the frame, to allow grabbing it from behind

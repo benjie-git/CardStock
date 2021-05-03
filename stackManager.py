@@ -781,7 +781,7 @@ class StackManager(object):
             for uiView in self.selectedViews:
                 if uiView.model.type != "card":
                     hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
-                    if hit == uiView:
+                    if hit and (hit == uiView or hit.HasGroupAncestor(uiView)):
                         return hit
         # Native views first
         for uiView in reversed(self.uiViews):
