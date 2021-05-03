@@ -119,6 +119,7 @@ class PythonEditor(stc.StyledTextCtrl):
                 if pos > 1 and self.GetCharAt(pos-1) == ord(":"):
                     numSpaces += TAB_WIDTH
                 self.AddText("\n" + " "*numSpaces)
+                self.ScrollRange(self.GetCurrentPos(), self.GetCurrentPos())
         else:
             if key == ord("Z") and event.ControlDown():
                 if not event.ShiftDown():

@@ -19,6 +19,38 @@
       },
       "childModels": [
         {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "shape_1",
+            "size": [
+              431,
+              70
+            ],
+            "position": [
+              37.0,
+              422.0
+            ],
+            "originalSize": [
+              431,
+              70
+            ],
+            "penColor": "black",
+            "penThickness": 2,
+            "fillColor": "#ADCEA2"
+          },
+          "points": [
+            [
+              0.0,
+              70.0
+            ],
+            [
+              431.0,
+              0.0
+            ]
+          ]
+        },
+        {
           "type": "button",
           "handlers": {
             "OnClick": "GotoNextCard()"
@@ -39,7 +71,9 @@
         },
         {
           "type": "textlabel",
-          "handlers": {},
+          "handlers": {
+            "OnSetup": "# Make this text black when we run the stack,\n# and update the text.\nself.textColor = \"black\"\nself.text = \"Now that you're running the stack, this button will take you to the next card.\"\n"
+          },
           "properties": {
             "name": "label_5",
             "size": [
@@ -50,9 +84,9 @@
               202.0,
               56.0
             ],
-            "text": "(Later, when you run the stack, this button\n will take you to the next card.)",
+            "text": "(Later, when you run the stack, this button\r will take you to the next card.)",
             "alignment": "Right",
-            "textColor": "black",
+            "textColor": "#A0A0A0",
             "font": "Default",
             "fontSize": 11
           }
@@ -83,12 +117,12 @@
           "properties": {
             "name": "label_4",
             "size": [
-              356,
-              47
+              400,
+              45
             ],
             "position": [
               28.0,
-              262.0
+              244.0
             ],
             "text": "A CardStock program is called a stack.  And each page of your program is called a card.",
             "alignment": "Left",
@@ -103,14 +137,14 @@
           "properties": {
             "name": "label_2",
             "size": [
-              404,
-              52
+              400,
+              66
             ],
             "position": [
               28.0,
-              337.0
+              323.0
             ],
-            "text": "CardStock lets you build programs by drawing them out, and then adding bits of code right where you need it.",
+            "text": "CardStock lets you build programs by drawing them out, and then adding bits of code right where you need it.  Then, later, you can click Run to try it out.",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
@@ -125,18 +159,18 @@
           "properties": {
             "name": "label_6",
             "size": [
-              397,
+              400,
               68
             ],
             "position": [
-              50.0,
-              153.0
+              28.0,
+              149.0
             ],
-            "text": "Here in the Designer, you can move to\nthe next card by clicking the \"Next Card\" \nbutton in the top right of this window...",
+            "text": "Here in the Designer, you can move to the next card by clicking the \"Next Card\" button in the top right of this window.  Try it!",
             "alignment": "Left",
-            "textColor": "red",
+            "textColor": "black",
             "font": "Default",
-            "fontSize": 14
+            "fontSize": 12
           }
         }
       ]
@@ -149,6 +183,38 @@
         "bgColor": "white"
       },
       "childModels": [
+        {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "shape_1",
+            "size": [
+              359,
+              55
+            ],
+            "position": [
+              76.0,
+              436.0
+            ],
+            "originalSize": [
+              431,
+              70
+            ],
+            "penColor": "black",
+            "penThickness": 2,
+            "fillColor": "#ADCEA2"
+          },
+          "points": [
+            [
+              0.0,
+              70.0
+            ],
+            [
+              431.0,
+              0.0
+            ]
+          ]
+        },
         {
           "type": "button",
           "handlers": {
@@ -368,6 +434,38 @@
       },
       "childModels": [
         {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "shape_1",
+            "size": [
+              359,
+              55
+            ],
+            "position": [
+              76.0,
+              436.0
+            ],
+            "originalSize": [
+              431,
+              70
+            ],
+            "penColor": "black",
+            "penThickness": 2,
+            "fillColor": "#ADCEA2"
+          },
+          "points": [
+            [
+              0.0,
+              70.0
+            ],
+            [
+              431.0,
+              0.0
+            ]
+          ]
+        },
+        {
           "type": "button",
           "handlers": {
             "OnClick": "GotoNextCard()"
@@ -396,7 +494,7 @@
               45
             ],
             "position": [
-              79.0,
+              77.0,
               439.0
             ],
             "text": "Objects",
@@ -462,7 +560,7 @@
               34.0,
               343.0
             ],
-            "text": "And below is a Text Field.  It lets users of your stack enter and edit text, that your stack can use.",
+            "text": "And below is a Text Field.  Users of your stack can enter and edit text here, that your stack can use.",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
@@ -479,6 +577,38 @@
         "bgColor": "white"
       },
       "childModels": [
+        {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "shape_1",
+            "size": [
+              359,
+              55
+            ],
+            "position": [
+              76.0,
+              436.0
+            ],
+            "originalSize": [
+              431,
+              70
+            ],
+            "penColor": "black",
+            "penThickness": 2,
+            "fillColor": "#ADCEA2"
+          },
+          "points": [
+            [
+              0.0,
+              70.0
+            ],
+            [
+              431.0,
+              0.0
+            ]
+          ]
+        },
         {
           "type": "button",
           "handlers": {
@@ -511,7 +641,7 @@
               34.0,
               343.0
             ],
-            "text": "Buttons let your program do something when they are clicked.",
+            "text": "Buttons let your stack perform actions when they are clicked, while your stack is running.",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
@@ -528,7 +658,7 @@
               45
             ],
             "position": [
-              79.0,
+              77.0,
               439.0
             ],
             "text": "Objects",
@@ -586,6 +716,38 @@
         "bgColor": "white"
       },
       "childModels": [
+        {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "shape_1",
+            "size": [
+              359,
+              55
+            ],
+            "position": [
+              76.0,
+              436.0
+            ],
+            "originalSize": [
+              431,
+              70
+            ],
+            "penColor": "black",
+            "penThickness": 2,
+            "fillColor": "#ADCEA2"
+          },
+          "points": [
+            [
+              0.0,
+              70.0
+            ],
+            [
+              431.0,
+              0.0
+            ]
+          ]
+        },
         {
           "type": "button",
           "handlers": {
@@ -1163,7 +1325,7 @@
               45
             ],
             "position": [
-              79.0,
+              77.0,
               439.0
             ],
             "text": "Objects",
@@ -1234,6 +1396,38 @@
         "bgColor": "white"
       },
       "childModels": [
+        {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "shape_8",
+            "size": [
+              359,
+              55
+            ],
+            "position": [
+              76.0,
+              436.0
+            ],
+            "originalSize": [
+              431,
+              70
+            ],
+            "penColor": "black",
+            "penThickness": 2,
+            "fillColor": "#ADCEA2"
+          },
+          "points": [
+            [
+              0.0,
+              70.0
+            ],
+            [
+              431.0,
+              0.0
+            ]
+          ]
+        },
         {
           "type": "button",
           "handlers": {
@@ -2046,6 +2240,38 @@
       },
       "childModels": [
         {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "shape_2",
+            "size": [
+              359,
+              55
+            ],
+            "position": [
+              76.0,
+              436.0
+            ],
+            "originalSize": [
+              431,
+              70
+            ],
+            "penColor": "black",
+            "penThickness": 2,
+            "fillColor": "#ADCEA2"
+          },
+          "points": [
+            [
+              0.0,
+              70.0
+            ],
+            [
+              431.0,
+              0.0
+            ]
+          ]
+        },
+        {
           "type": "button",
           "handlers": {
             "OnClick": "GotoNextCard()"
@@ -2095,13 +2321,13 @@
             ],
             "position": [
               22.0,
-              254.0
+              247.0
             ],
             "originalSize": [
               296,
               242
             ],
-            "penColor": "#498F4D",
+            "penColor": "#FB0207",
             "penThickness": 4,
             "fillColor": "#E6E7EA"
           },
@@ -2218,7 +2444,7 @@
             ],
             "position": [
               143.0,
-              320.0
+              313.0
             ],
             "text": "Try drawing out your own\nobjects below, and editing\ntheir properties yourself!",
             "alignment": "Center",
@@ -2237,6 +2463,38 @@
         "bgColor": "white"
       },
       "childModels": [
+        {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "shape_3",
+            "size": [
+              359,
+              55
+            ],
+            "position": [
+              76.0,
+              436.0
+            ],
+            "originalSize": [
+              431,
+              70
+            ],
+            "penColor": "black",
+            "penThickness": 2,
+            "fillColor": "#ADCEA2"
+          },
+          "points": [
+            [
+              0.0,
+              70.0
+            ],
+            [
+              431.0,
+              0.0
+            ]
+          ]
+        },
         {
           "type": "textlabel",
           "handlers": {},
@@ -2478,14 +2736,14 @@
           "properties": {
             "name": "label_5",
             "size": [
-              311,
-              43
+              315,
+              60
             ],
             "position": [
               23.0,
               198.0
             ],
-            "text": "Select an object to see the code that will run when its events are triggered.",
+            "text": "Select an object to see the code that will run when its events are triggered.  Try clicking on the button above.",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
@@ -2503,12 +2761,44 @@
       },
       "childModels": [
         {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "shape_1",
+            "size": [
+              359,
+              55
+            ],
+            "position": [
+              76.0,
+              436.0
+            ],
+            "originalSize": [
+              431,
+              70
+            ],
+            "penColor": "black",
+            "penThickness": 2,
+            "fillColor": "#ADCEA2"
+          },
+          "points": [
+            [
+              0.0,
+              70.0
+            ],
+            [
+              431.0,
+              0.0
+            ]
+          ]
+        },
+        {
           "type": "button",
           "handlers": {
             "OnClick": "number_field.text = int(number_field.text)+1"
           },
           "properties": {
-            "name": "button_1",
+            "name": "add_button",
             "size": [
               124,
               30
@@ -2553,7 +2843,7 @@
               29.0,
               75.0
             ],
-            "text": "This button:\n- takes the text from the above field, using number_field.text\n- converts it to a number (an integer), using int()\n- adds 1 to it, (+1)\n- and sets that new number as the new text for number_field.\n\nClick the button to see the code, and how it fits together.\n\n\nCan you add a 2nd button that will double the number instead of adding 1?",
+            "text": "This button does the following when clicked:\n- It takes the text from the above field, using number_field.text,\n- converts it to a number (an integer), using int(),\n- adds 1 to it, (+1)\n- and sets that new number as the new text for number_field.\n\nClick the button to select it, and see the code, and how it fits together.  Later, when you Run the stack, you'll be able to see this code work.\n\n\nCan you add a 2nd button that will double the number instead of adding 1?",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
@@ -2632,6 +2922,38 @@
       },
       "childModels": [
         {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "shape_1",
+            "size": [
+              359,
+              55
+            ],
+            "position": [
+              76.0,
+              436.0
+            ],
+            "originalSize": [
+              431,
+              70
+            ],
+            "penColor": "black",
+            "penThickness": 2,
+            "fillColor": "#ADCEA2"
+          },
+          "points": [
+            [
+              0.0,
+              70.0
+            ],
+            [
+              431.0,
+              0.0
+            ]
+          ]
+        },
+        {
           "type": "button",
           "handlers": {
             "OnClick": "# Animate the ball to a point on the left over 1 second,\n# and then back to the right over 1 more second.\n# This queues up both animations to happen one after another,\n# since they are animating the same property.\nball.AnimatePosition(1, [  0, 325])\nball.AnimatePosition(1, [440, 325])\n\n# If you also add animations for a different property, for\n# example ball.AnimateSize(1, [20, 20]), this will\n# run simultaneously with ball's position animations."
@@ -2682,7 +3004,7 @@
               29.0,
               56.0
             ],
-            "text": "This button animates the ball to move across the screen and back.\n\nCan you make the ball also animate its fillColor to blue and back to red, from the same button click?",
+            "text": "This button animates the ball to move across the screen and back.\n\nNote that the circle has its name property set to \"ball\".  So the code in the button can perform actions on the ball object by name.\n\nCan you make the ball also animate its fillColor to blue and back to red, from the same button click?",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
@@ -2770,6 +3092,38 @@
         "bgColor": "white"
       },
       "childModels": [
+        {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "shape_3",
+            "size": [
+              359,
+              55
+            ],
+            "position": [
+              76.0,
+              436.0
+            ],
+            "originalSize": [
+              431,
+              70
+            ],
+            "penColor": "black",
+            "penThickness": 2,
+            "fillColor": "#ADCEA2"
+          },
+          "points": [
+            [
+              0.0,
+              70.0
+            ],
+            [
+              431.0,
+              0.0
+            ]
+          ]
+        },
         {
           "type": "textlabel",
           "handlers": {},
@@ -3028,7 +3382,7 @@
               92.0,
               303.0
             ],
-            "text": "When you're done running your stack, close the Viewer window to return to the Designer.",
+            "text": "When you're done running your stack, close the Viewer window to return here, to the Designer.",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
