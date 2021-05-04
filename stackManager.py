@@ -227,7 +227,6 @@ class StackManager(object):
             allUiViews.append(uiView)
             if uiView.model.type == "group":
                 uiView.GetAllUiViews(allUiViews)
-        # self.allUiViews = allUiViews
         return allUiViews
 
     def SetStackModel(self, model):
@@ -280,7 +279,9 @@ class StackManager(object):
         wx.TheClipboard.Close()
 
     def Copy(self):
-        self.CopyModels([ui.model for ui in self.selectedViews])
+        # Re-order self.selectedViews to be lowest z-order first, so when pasted, they will end up in the right order
+        models = [ui.model for ui in self.GetAllUiViews() if ui in self.selectedViews]
+        self.CopyModels(models)
 
     def SelectAll(self):
         self.SelectUiView(None)
@@ -300,7 +301,9 @@ class StackManager(object):
         self.DeleteModels(models, canUndo)
 
     def Cut(self, canUndo=True):
-        self.CutModels([ui.model for ui in self.selectedViews], canUndo)
+        # Re-order self.selectedViews to be lowest z-order first, so when pasted, they will end up in the right order
+        models = [ui.model for ui in self.GetAllUiViews() if ui in self.selectedViews]
+        self.CutModels(models, canUndo)
 
     def Paste(self, canUndo=True):
         models = []
