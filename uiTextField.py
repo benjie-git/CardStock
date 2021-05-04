@@ -1,5 +1,6 @@
 import wx
 from uiView import *
+from commands import SetPropertyCommand
 from uiTextBase import *
 import wx.stc as stc
 from wx.lib.docview import CommandProcessor, Command
@@ -14,6 +15,7 @@ class UiTextField(UiTextBase):
     def __init__(self, parent, stackManager, model):
         self.stackManager = stackManager
         self.isInlineEditing = False
+        self.inlineStartText = None
         field = self.CreateField(stackManager, model)
 
         super().__init__(parent, stackManager, model, field)
@@ -78,6 +80,7 @@ class UiTextField(UiTextBase):
 
     def StartInlineEditing(self):
         if self.stackManager.isEditing and not self.isInlineEditing:
+            self.inlineStartText = self.model.GetProperty("text")
             self.view.SetEditable(True)
             self.view.SetFocus()
             self.isInlineEditing = True
@@ -85,13 +88,16 @@ class UiTextField(UiTextBase):
 
     def StopInlineEditing(self, notify=True):
         if self.stackManager.isEditing and self.isInlineEditing:
+            self.isInlineEditing = False
+            endText = self.view.GetValue()
+            self.view.SetValue(self.inlineStartText)
+            command = SetPropertyCommand(True, "Set Property", self, self.stackManager.cardIndex, self.model,
+                                         "text", endText)
+            self.stackManager.command_processor.Submit(command)
             self.view.SetEditable(False)
             self.view.SetSelection(0,0)
-            self.isInlineEditing = False
             self.stackManager.inlineEditingView = None
             self.stackManager.view.SetFocus()
-            if notify:
-                self.model.Notify("text")
 
     def OnResize(self, event):
         if self.view and self.model.GetProperty("multiline"):
@@ -120,8 +126,8 @@ class UiTextField(UiTextBase):
                 self.stackManager.runner.RunHandler(self.model, "OnTextEnter", event)
 
     def OnTextChanged(self, event):
-        self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
         if not self.stackManager.isEditing:
+            self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
             if self.stackManager.runner and self.model.GetHandler("OnTextChanged"):
                 self.stackManager.runner.RunHandler(self.model, "OnTextChanged", event)
         event.Skip()

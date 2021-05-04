@@ -1,4 +1,5 @@
 import wx
+from commands import SetPropertyCommand
 from uiView import *
 from uiTextBase import *
 from killableThread import RunOnMain
@@ -41,7 +42,9 @@ class UiTextLabel(UiTextBase):
         if self.stackManager.isEditing and self.isInlineEditing:
             if self.view:
                 self.view.Show()
-            self.model.SetProperty("text", self.inlineEditor.GetValue(), notify=notify)
+            command = SetPropertyCommand(True, "Set Property", self, self.stackManager.cardIndex, self.model,
+                                         "text", self.inlineEditor.GetValue())
+            self.stackManager.command_processor.Submit(command)
             self.stackManager.view.RemoveChild(self.inlineEditor)
             wx.CallAfter(self.inlineEditor.Destroy)
             self.inlineEditor = None
