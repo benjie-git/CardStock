@@ -174,9 +174,6 @@ class PythonEditor(stc.StyledTextCtrl):
             self.BraceBadLight(braceAtCaret)
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
-            pt = self.PointFromPosition(braceOpposite)
-            self.Refresh(True, wx.Rect(pt.x, pt.y, 5,5))
-            self.Refresh(False)
 
     def PyEditorOnFocus(self, event):
         self.RunDeferredAnalysis()
