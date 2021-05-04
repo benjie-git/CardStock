@@ -266,11 +266,11 @@ class DesignerFrame(wx.Frame):
         # wx.AcceleratorTable for this frame and binds the keys to
         # the menu items.
         fileMenu = wx.Menu()
-        fileMenu.Append(wx.ID_NEW, "&New Card\tCtrl-N", "Create a new file")
-        fileMenu.Append(wx.ID_OPEN, "&Open...\tCtrl-O", "Open a Stack")
+        fileMenu.Append(wx.ID_NEW, "&New Stack\tCtrl-N", "Create a new Stack file")
+        fileMenu.Append(wx.ID_OPEN, "&Open Stack...\tCtrl-O", "Open a Stack")
         fileMenu.AppendSeparator()
-        fileMenu.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save the Stack")
-        fileMenu.Append(wx.ID_SAVEAS, "Save &As...\tCtrl-Shift-S", "Save the Stack in a new file")
+        fileMenu.Append(wx.ID_SAVE, "&Save Stack\tCtrl-S", "Save the Stack")
+        fileMenu.Append(wx.ID_SAVEAS, "Save Stack &As...\tCtrl-Shift-S", "Save the Stack in a new file")
         fileMenu.Append(ID_EXPORT, "&Export Stack...\tCtrl-Shift-E", "Export the current Stack")
         fileMenu.AppendSeparator()
         fileMenu.Append(ID_RUN, "&Run Stack\tCtrl-R", "Run the current Stack")
