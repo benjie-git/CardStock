@@ -13,8 +13,8 @@
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "from random import randint\n\nisMoving = False\nspace.Hide() # hide the space piece\n\npieces = [c for c in card.children if c.name.startswith(\"group\")]\npieces.append(space)\n\norigPieces = pieces.copy()\n\ndef Shuffle():\n   # Switch each piece with a random other piece.\n   # Make one more swap so it's an even number of swaps\n   # otherwise it would be unsolvable.\n   shuffleList = list(range(len(pieces)-1))\n   shuffleList.append(randint(0,14))\n   for i in shuffleList:\n      j = i\n      while j == i:\n         # make sure we're not swapping a piece with itself\n         j = randint(0,len(pieces)-2)\n      pieces[i], pieces[j] = pieces[j], pieces[i]\n      tmp = pieces[j].position\n      pieces[j].position = pieces[i].position\n      pieces[i].position = tmp\n\ndef SwapSpots(i, j):\n   # Animate swapping a piece with the space piece\n   global isMoving\n   if not isMoving:\n      pieces[i], pieces[j] = pieces[j], pieces[i]\n      isMoving = True\n      pieces[i].AnimatePosition(0.15, pieces[j].position)\n      pieces[j].AnimatePosition(0.15, pieces[i].position, DoneMoving)\n\ndef DoneMoving():\n   global isMoving\n   isMoving = False\n\ndef CheckForWin():\n   if pieces == origPieces:\n      SoundPlay(\"yay.wav\")\n      Wait(3)\n      Shuffle()\n   \ndef MoveDir(dir):\n   i = pieces.index(space)\n   if dir == \"Right\" and i%4 != 0:\n      SwapSpots(i, i-1)\n   elif dir == \"Left\" and i%4 != 3:\n      SwapSpots(i, i+1)\n   elif dir == \"Up\" and i<12:\n      SwapSpots(i, i+4)\n   elif dir == \"Down\" and i>=4:\n      SwapSpots(i, i-4)\n   CheckForWin()\n\ndef MoveFrom(obj):\n   global isMoving\n   i = pieces.index(space)\n   j = pieces.index(obj)\n   diff = j-i\n   if diff == 4:\n      MoveDir(\"Up\")\n   elif diff == -4:\n      MoveDir(\"Down\")\n   elif diff == 1:\n      MoveDir(\"Left\")\n   elif diff == -1:\n      MoveDir(\"Right\")\n\n# Shuffle when we start the stack\nShuffle()",
-        "OnKeyDown": "if keyName in [\"Left\", \"Right\", \"Up\", \"Down\"]:\n   MoveDir(keyName)"
+        "OnSetup": "from random import randint\n\nisMoving = False\nspace.Hide() # hide the space piece\n\npieces = [c for c in card.children if c.name.startswith(\"group\")]\npieces.append(space)\n\norigPieces = pieces.copy()\n\ndef Shuffle():\n   # Switch each piece with a random other piece.\n   # Make one more swap so it's an even number of swaps\n   # otherwise it would be unsolvable.\n   shuffleList = list(range(len(pieces)-1))\n   shuffleList.append(randint(0,14))\n   for i in shuffleList:\n      j = i\n      while j == i:\n         # make sure we're not swapping a piece with itself\n         j = randint(0,len(pieces)-2)\n      pieces[i], pieces[j] = pieces[j], pieces[i]\n      tmp = pieces[j].position\n      pieces[j].position = pieces[i].position\n      pieces[i].position = tmp\n\ndef SlideSpots(moves):\n   # Animate sliding\n   global isMoving\n   if not isMoving:\n      tmpPieces = {}\n      tmpPositions = {}\n      for i,j in moves:\n         tmpPieces[i] = pieces[i]\n         tmpPositions[i] = pieces[i].position\n      for i,j in moves:\n         pieces[i].AnimatePosition(0.15, tmpPositions[j], DoneMoving)\n      for i,j in moves:\n         pieces[j] = tmpPieces[i]\n      isMoving = True\n\ndef DoneMoving():\n   global isMoving\n   isMoving = False\n\ndef CheckForWin():\n   if pieces == origPieces:\n      SoundPlay(\"yay.wav\")\n      Wait(3)\n      Shuffle()\n\ndef BuildCycleList(start, offset, n):\n   # Create move list that moves n peices, and swaps the space piece to the other end of the list\n   spots = list(reversed([start + offset*i for i in range(n+1)]))\n   moves = []\n   for i in range(len(spots)-1):\n      moves.append((spots[i], spots[i+1]))\n   moves.append((spots[-1], spots[0]))\n   return moves\n\ndef MoveDir(dir, n):\n   # Move n pieces in direction\n   i = pieces.index(space)\n   if dir == \"Right\" and i%4 != 0:\n      SlideSpots(BuildCycleList(i, -1, n))\n   elif dir == \"Left\" and i%4 != 3:\n      SlideSpots(BuildCycleList(i, 1, n))\n   elif dir == \"Up\" and i<12:\n      SlideSpots(BuildCycleList(i, 4, n))\n   elif dir == \"Down\" and i>=4:\n      SlideSpots(BuildCycleList(i, -4, n))\n   CheckForWin()\n\ndef MoveFrom(obj):\n   # Slide pieces from the clicked object obj, to the space piece, if they are in the same row/col\n   global isMoving\n   s = pieces.index(space)\n   o = pieces.index(obj)\n   sx, sy = s%4, int(s/4)\n   ox, oy = o%4, int(o/4)\n   if sx == ox and sy < oy:\n      MoveDir(\"Up\", oy-sy)\n   elif sx == ox and sy > oy:\n      MoveDir(\"Down\", sy-oy)\n   elif sy == oy and sx < ox:\n      MoveDir(\"Left\", ox-sx)\n   elif sy == oy and sx > ox:\n      MoveDir(\"Right\", sx-ox)\n\n# Shuffle when we start the stack\nShuffle()",
+        "OnKeyDown": "if keyName in [\"Left\", \"Right\", \"Up\", \"Down\"]:\n   MoveDir(keyName, 1)"
       },
       "properties": {
         "name": "card_1",
@@ -50,6 +50,38 @@
             [
               438.0,
               0.0
+            ]
+          ]
+        },
+        {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "space",
+            "size": [
+              100,
+              100
+            ],
+            "position": [
+              328.0,
+              31.0
+            ],
+            "originalSize": [
+              103,
+              102
+            ],
+            "penColor": "black",
+            "penThickness": 4,
+            "fillColor": "#FFFFFF00"
+          },
+          "points": [
+            [
+              103.0,
+              0.0
+            ],
+            [
+              0.0,
+              102.0
             ]
           ]
         },
@@ -1117,42 +1149,10 @@
               }
             }
           ]
-        },
-        {
-          "type": "rect",
-          "handlers": {},
-          "properties": {
-            "name": "space",
-            "size": [
-              100,
-              100
-            ],
-            "position": [
-              328.0,
-              31.0
-            ],
-            "originalSize": [
-              103,
-              102
-            ],
-            "penColor": "black",
-            "penThickness": 4,
-            "fillColor": "white"
-          },
-          "points": [
-            [
-              103.0,
-              0.0
-            ],
-            [
-              0.0,
-              102.0
-            ]
-          ]
         }
       ]
     }
   ],
   "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9"
+  "CardStock_stack_version": "0.9.1"
 }
