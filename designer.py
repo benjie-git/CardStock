@@ -618,7 +618,7 @@ class DesignerFrame(wx.Frame):
         views = [self.stackContainer, self.stackManager.view, self.cPanel, self.splitter, self.cPanel.inspector, self.cPanel.codeEditor]
         if allowEditors:
             views = [self.stackContainer, self.stackManager.view, self.splitter, self.cPanel]
-        if not f or f in views:
+        if not f or f in views or isinstance(f, wx.lib.buttons.GenBitmapToggleButton):
             f = self.stackManager
         return f
 
