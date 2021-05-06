@@ -52,9 +52,8 @@ class ViewerFrame(wx.Frame):
         wx.Frame.__init__(self, parent, -1, self.title, size=(500,500), style=style)
         # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.ico')))
 
-        self.stackManager = StackManager(self)
+        self.stackManager = StackManager(self, False)
         self.stackManager.view.UseDeferredRefresh(True)
-        self.stackManager.SetEditing(False)
 
         if not stackModel:
             stackModel = StackModel(self.stackManager)
@@ -99,7 +98,6 @@ class ViewerFrame(wx.Frame):
 
     def SetStackModel(self, stackModel):
         self.stackManager.SetStackModel(stackModel)
-        self.stackManager.SetEditing(False)
         size = self.stackManager.stackModel.GetProperty("size")
         if wx.Platform == "__WXMSW__":
             # Silly Windows doesn't leave room for the menu bar?
@@ -323,12 +321,10 @@ class ViewerFrame(wx.Frame):
     def RunViewer(self, cardIndex):
         runner = Runner(self.stackManager)
         self.stackManager.runner = runner
-        self.stackManager.SetEditing(False)
         self.MakeMenu()
         self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))
         if self.designer:
             runner.AddSyntaxErrors(self.designer.cPanel.codeEditor.analyzer.syntaxErrors)
-        self.stackManager.LoadCardAtIndex(None, True)
         self.stackManager.stackModel.RunSetup(runner)
         self.stackManager.LoadCardAtIndex(cardIndex)
 

@@ -43,9 +43,8 @@ class StandaloneFrame(wx.Frame):
         wx.Frame.__init__(self, parent, -1, os.path.basename(sys.executable), size=(500, 500), style=style)
         # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.ico')))
 
-        self.stackManager = StackManager(self)
+        self.stackManager = StackManager(self, False)
         self.stackManager.view.UseDeferredRefresh(True)
-        self.stackManager.SetEditing(False)
         self.stackManager.resPathMan.SetPathMap(resMap)
 
         if not stackModel:
@@ -55,6 +54,7 @@ class StandaloneFrame(wx.Frame):
         self.designer = None
         self.stackManager.filename = filename
         self.SetStackModel(stackModel)
+        self.stackManager.LoadCardAtIndex(0)
         self.Bind(wx.EVT_SIZE, self.OnResize)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
@@ -80,7 +80,6 @@ class StandaloneFrame(wx.Frame):
 
     def SetStackModel(self, stackModel):
         self.stackManager.SetStackModel(stackModel)
-        self.stackManager.SetEditing(False)
         size = self.stackManager.stackModel.GetProperty("size")
         if wx.Platform == "__WXMSW__":
             # Silly Windows doesn't leave room for the menu bar?
@@ -244,7 +243,6 @@ class StandaloneFrame(wx.Frame):
     def RunViewer(self):
         runner = Runner(self.stackManager)
         self.stackManager.runner = runner
-        self.stackManager.SetEditing(False)
         self.MakeMenu()
         self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))
         self.stackManager.LoadCardAtIndex(None)
@@ -289,6 +287,7 @@ class StandaloneApp(wx.App, InspectionMixin):
             stackModel = StackModel(self.frame.stackManager)
             stackModel.SetData(data)
             self.frame.stackManager.SetStackModel(stackModel)
+            self.frame.stackManager.LoadCardAtIndex(0)
 
             self.SetTopWindow(self.frame)
             self.frame.stackManager.filename = stackPath

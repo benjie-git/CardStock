@@ -138,6 +138,7 @@ class Stack(ViewProxy):
 
     @property
     def currentCard(self):
+        if self._model.didSetDown: return None
         return self._model.stackManager.uiCard.model.GetProxy()
 
     def AddCard(self, name="card", atIndex=-1):
@@ -146,6 +147,8 @@ class Stack(ViewProxy):
         atIndex = int(atIndex)
         if atIndex < -1 or atIndex > len(self._model.childModels)-1:
             raise ValueError("atIndex is out of bounds")
+
+        if self._model.didSetDown: return
 
         @RunOnMain
         def func():

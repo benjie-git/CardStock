@@ -249,6 +249,7 @@ class TextField(TextBaseProxy):
         return self._model.GetProperty("editable")
     @editable.setter
     def editable(self, val):
+        if self._model.didSetDown: return
         self._model.SetProperty("editable", val)
 
     @property
@@ -256,12 +257,15 @@ class TextField(TextBaseProxy):
         return self._model.GetProperty("multiline")
     @multiline.setter
     def multiline(self, val):
+        if self._model.didSetDown: return
         self._model.SetProperty("multiline", val)
 
     @RunOnMain
     def SelectAll(self):
+        if self._model.didSetDown: return
         self._model.Notify("selectAll")
 
     def Enter(self):
+        if self._model.didSetDown: return
         if self._model.stackManager.runner and self._model.GetHandler("OnTextEnter"):
             self._model.stackManager.runner.RunHandler(self._model, "OnTextEnter", None)

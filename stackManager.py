@@ -78,12 +78,12 @@ class DeferredRefreshWindow(wx.Window):
 
 
 class StackManager(object):
-    def __init__(self, parentView):
+    def __init__(self, parentView, isEditing):
         super().__init__()
         self.view = DeferredRefreshWindow(self, parentView, style=wx.WANTS_CHARS)
         self.listeners = []
         self.designer = None
-        self.isEditing = False  # Is in Editing mode (running from the designer), as opposed to just the viewer
+        self.isEditing = isEditing
         self.command_processor = CommandProcessor()
         self.timer = None
         self.timerCount = 0
@@ -108,7 +108,6 @@ class StackManager(object):
         self.modelToViewMap = {}
         self.cardIndex = None
         self.uiCard = UiCard(None, self, self.stackModel.childModels[0])
-        self.LoadCardAtIndex(0)
 
         self.uiCard.model.SetDirty(False)
         self.command_processor.ClearCommands()
@@ -116,6 +115,11 @@ class StackManager(object):
         if wx.Platform != '__WXMAC__':
             # Skip double-buffering on Mac, as it's much faster without it, and looks great
             self.buffer = None
+
+        if not self.isEditing:
+            self.timer = wx.Timer(self.view)
+            self.view.Bind(wx.EVT_TIMER, self.OnPeriodicTimer, self.timer)
+            self.timer.Start(15)
 
         self.view.Bind(wx.EVT_SIZE, self.OnResize)
         self.view.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -128,18 +132,26 @@ class StackManager(object):
         if event.GetEventObject() == self.view:
             if self.timer:
                 self.timer.Stop()
+        self.timer = None
+        self.uiCard.SetDown()
+        self.uiCard = None
+        self.stackModel.SetDown()
+        self.stackModel = None
+        self.listeners = None
+        self.designer = None
+        self.command_processor = None
+        self.tool = None
+        self.lastFocusedTextField = None
+        self.lastMouseMovedUiView = None
+        self.inlineEditingView = None
+        self.runner = None
+        self.resPathMan = None
+        self.lastOnPeriodicTime = None
+        self.analyzer.SetDown()
+        self.analyzer = None
+        self.selectedViews = None
+        self.modelToViewMap = None
         event.Skip()
-
-    def SetEditing(self, editing):
-        self.isEditing = editing
-        if not editing:
-            self.SelectUiView(None)
-            self.timer = wx.Timer(self.view)
-            self.view.Bind(wx.EVT_TIMER, self.OnPeriodicTimer, self.timer)
-            self.timer.Start(15)
-        else:
-            if self.timer:
-                self.timer.Stop()
 
     def UpdateCursor(self):
         if self.tool:
@@ -206,10 +218,6 @@ class StackManager(object):
         for ui in self.uiViews.copy():
             if ui.model.type != "card":
                 self.uiViews.remove(ui)
-                ui.DestroyView()
-
-                if ui.model.type == "group":
-                    ui.RemoveChildViews()
 
                 def DelFromMap(ui):
                     del self.modelToViewMap[ui.model]
@@ -217,6 +225,7 @@ class StackManager(object):
                         for childUi in ui.uiViews:
                             DelFromMap(childUi)
                 DelFromMap(ui)
+            ui.SetDown()
 
     def CreateViews(self, cardModel):
         self.uiCard.SetModel(cardModel)
@@ -233,10 +242,10 @@ class StackManager(object):
 
     def SetStackModel(self, model):
         self.ClearAllViews()
-        model.SetStackView(self)
+        self.stackModel.SetDown()
+        model.SetStackManager(self)
         self.stackModel = model
         self.cardIndex = None
-        self.LoadCardAtIndex(0)
         if self.isEditing:
             self.analyzer.RunDeferredAnalysis()
         self.view.SetSize(self.stackModel.GetProperty("size"))
@@ -256,6 +265,7 @@ class StackManager(object):
                 self.designer.Freeze()
             self.ClearAllViews()
             self.lastFocusedTextField = None
+            self.lastMouseMovedUiView = None
             if index is not None:
                 cardModel = self.stackModel.GetCardModel(index)
                 self.CreateViews(cardModel)
@@ -368,11 +378,14 @@ class StackManager(object):
                 if not name:
                     name = "group"
                 group.SetProperty("name", card.GetNextAvailableNameInCard(name), notify=False)
+            else:
+                group.SetBackUp(self)
             validModels = []
             for m in models:
                 if m.GetCard() == card:
                     validModels.append(m)
                     self.RemoveUiViewByModel(m)
+                    m.SetBackUp(self)
             group.AddChildModels(validModels)
             if card == self.uiCard.model:
                 self.AddUiViewsFromModels([group], False)
@@ -386,8 +399,9 @@ class StackManager(object):
                 childModels = []
                 modelSets.append(childModels)
                 for child in group.childModels.copy():
-                    group.RemoveChild(child)
                     childModels.append(child)
+                    group.RemoveChild(child)
+                    child.SetBackUp(self)
                 if group.GetCard() == self.uiCard.model:
                     self.RemoveUiViewByModel(group)
                     self.AddUiViewsFromModels(childModels, False)
@@ -507,8 +521,6 @@ class StackManager(object):
         if ui:
             if ui in self.selectedViews:
                 self.SelectUiView(ui, True)
-            if ui.model.type == "group":
-                ui.RemoveChildViews()
 
             def DelFromMap(ui):
                 del self.modelToViewMap[ui.model]
@@ -518,9 +530,9 @@ class StackManager(object):
             DelFromMap(ui)
 
             self.uiViews.remove(ui)
-            self.view.Refresh()
             self.uiCard.model.RemoveChild(ui.model)
-            ui.DestroyView()
+            ui.SetDown()
+            self.view.Refresh()
 
     def ReorderSelectedViews(self, direction):
         oldIndexes = []

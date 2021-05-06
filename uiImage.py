@@ -177,6 +177,7 @@ class Image(ViewProxy):
     def file(self, val):
         if not isinstance(val, str):
             raise TypeError("file must be a string")
+        if self._model.didSetDown: return
         self._model.SetProperty("file", val)
 
     @property
@@ -186,6 +187,7 @@ class Image(ViewProxy):
     def rotation(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("rotation must be a number")
+        if self._model.didSetDown: return
         self._model.SetProperty("rotation", val)
 
     @property
@@ -195,6 +197,7 @@ class Image(ViewProxy):
     def fit(self, val):
         if not isinstance(val, str):
             raise TypeError("fit must be a string")
+        if self._model.didSetDown: return
         self._model.SetProperty("fit", val)
 
     def AnimateRotation(self, duration, endRotation, onFinished=None, *args, **kwargs):
@@ -202,6 +205,8 @@ class Image(ViewProxy):
             raise TypeError("duration must be a number")
         if not (isinstance(endRotation, int) or isinstance(endRotation, float)):
             raise TypeError("endRotation must be a number")
+
+        if self._model.didSetDown: return
 
         def onStart(animDict):
             origVal = self.rotation

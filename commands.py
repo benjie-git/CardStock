@@ -89,6 +89,8 @@ class AddNewUiViewCommand(Command):
         self.viewModel = args[5] if len(args) > 5 else None
 
     def Do(self):
+        if self.viewModel:
+            self.viewModel.SetBackUp(self.stackManager)
         if self.viewType == "card":
             self.stackManager.LoadCardAtIndex(None)
             self.stackManager.stackModel.InsertCardModel(self.cardIndex, self.viewModel)
@@ -126,6 +128,8 @@ class AddUiViewsCommand(Command):
         self.viewModels = args[4]
 
     def Do(self):
+        for m in self.viewModels:
+            m.SetBackUp(self.stackManager)
         self.stackManager.LoadCardAtIndex(self.cardIndex)
         self.stackManager.SelectUiView(None)
         for m in self.viewModels:
@@ -168,6 +172,8 @@ class RemoveUiViewsCommand(Command):
         return True
 
     def Undo(self):
+        for m in self.viewModels:
+            m.SetBackUp(self.stackManager)
         if len(self.viewModels) == 1 and self.viewModels[0].type == "card":
             self.stackManager.LoadCardAtIndex(None)
             self.stackManager.stackModel.InsertCardModel(self.cardIndex, self.viewModels[0])
@@ -373,6 +379,7 @@ class UngroupUiViewsCommand(Command):
         self.stackManager = args[2]
         self.cardIndex = args[3]
         self.groups = args[4]
+        self.modelSets = []
 
     def Do(self):
         self.stackManager.LoadCardAtIndex(self.cardIndex)

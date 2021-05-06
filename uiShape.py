@@ -303,6 +303,7 @@ class Line(ViewProxy):
     def penColor(self, val):
         if not isinstance(val, str):
             raise TypeError("penColor must be a string")
+        if self._model.didSetDown: return
         self._model.SetProperty("penColor", val)
 
     @property
@@ -312,6 +313,7 @@ class Line(ViewProxy):
     def penThickness(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("penThickness must be a number")
+        if self._model.didSetDown: return
         self._model.SetProperty("penThickness", val)
 
     def AnimatePenThickness(self, duration, endVal, onFinished=None, *args, **kwargs):
@@ -319,6 +321,8 @@ class Line(ViewProxy):
             raise TypeError("duration must be a number")
         if not (isinstance(endVal, int) or isinstance(endVal, float)):
             raise TypeError("endThickness must be a number")
+
+        if self._model.didSetDown: return
 
         def onStart(animDict):
             origVal = self.penThickness
@@ -335,6 +339,8 @@ class Line(ViewProxy):
             raise TypeError("duration must be a number")
         if not isinstance(endVal, str):
             raise TypeError("endColor must be a string")
+
+        if self._model.didSetDown: return
 
         endColor = wx.Colour(endVal)
         if endColor.IsOk():
@@ -385,6 +391,7 @@ class Shape(Line):
     def fillColor(self, val):
         if not isinstance(val, str):
             raise TypeError("fillColor must be a string")
+        if self._model.didSetDown: return
         self._model.SetProperty("fillColor", val)
 
     def AnimateFillColor(self, duration, endVal, onFinished=None, *args, **kwargs):
@@ -392,6 +399,8 @@ class Shape(Line):
             raise TypeError("duration must be a number")
         if not isinstance(endVal, str):
             raise TypeError("endColor must be a string")
+
+        if self._model.didSetDown: return
 
         endColor = wx.Colour(endVal)
         if endColor.IsOk():
@@ -442,6 +451,7 @@ class RoundRect(Shape):
     def cornerRadius(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("cornerRadius must be a number")
+        if self._model.didSetDown: return
         self._model.SetProperty("cornerRadius", val)
 
     def AnimateCornerRadius(self, duration, endVal, onFinished=None, *args, **kwargs):
@@ -449,6 +459,8 @@ class RoundRect(Shape):
             raise TypeError("duration must be a number")
         if not (isinstance(endVal, int) or isinstance(endVal, float)):
             raise TypeError("endCornerRadius must be a number")
+
+        if self._model.didSetDown: return
 
         def onStart(animDict):
             origVal = self.cornerRadius

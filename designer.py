@@ -109,7 +109,7 @@ class DesignerFrame(wx.Frame):
         self.stackContainer = wx.Window(self.splitter)
         self.stackContainer.SetBackgroundColour("#E0E0E0")
         self.stackContainer.Bind(wx.EVT_SET_FOCUS, self.OnStackContainerFocus)
-        self.stackManager = StackManager(self.stackContainer)
+        self.stackManager = StackManager(self.stackContainer, True)
         self.stackManager.SetDesigner(self)
 
         self.stackManager.command_processor.SetEditMenu(self.editMenu)
@@ -158,7 +158,7 @@ class DesignerFrame(wx.Frame):
         self.stackManager.filename = None
         self.stackManager.resPathMan.Reset()
         self.stackManager.SetStackModel(stackModel)
-        self.stackManager.SetEditing(True)
+        self.stackManager.LoadCardAtIndex(0)
         self.Layout()
         stackModel.SetProperty("size", self.stackManager.view.GetSize())
         self.stackManager.SelectUiView(self.stackManager.uiCard)
@@ -212,7 +212,7 @@ class DesignerFrame(wx.Frame):
                 self.stackManager.filename = filename
                 self.stackManager.resPathMan.Reset()
                 self.stackManager.SetStackModel(stackModel)
-                self.stackManager.SetEditing(True)
+                self.stackManager.LoadCardAtIndex(0)
                 self.stackManager.SelectUiView(self.stackManager.uiCard)
                 self.SetFrameSizeFromModel()
                 self.stackManager.stackModel.SetDirty(False)
@@ -501,9 +501,11 @@ class DesignerFrame(wx.Frame):
         newModel = StackModel(self.stackManager)
         newModel.SetData(stackModel.GetData())
         self.stackManager.SetStackModel(newModel)
+        self.stackManager.LoadCardAtIndex(0)
 
     def OnViewerClose(self, event):
         self.lastRunErrors = self.viewer.stackManager.runner.errors
+        self.viewer.stackManager.runner.errors = None
         self.viewer.Destroy()
         self.viewer = None
         self.Refresh()

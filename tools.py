@@ -396,6 +396,7 @@ class HandTool(BaseTool):
 
         if code in [wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE, wx.WXK_BACK]:
             self.stackManager.DeleteModels([ui.model for ui in uiViews])
+            return
 
         if code == wx.WXK_TAB:
             allUiViews = self.stackManager.GetAllUiViews()
@@ -422,6 +423,7 @@ class HandTool(BaseTool):
                         else:
                             nextUi = allUiViews[allUiViews.index(ui) - 1]
                             self.stackManager.SelectUiView(nextUi)
+            return
 
         for uiView in uiViews.copy():
             if uiView.model.type == "card":
@@ -505,6 +507,7 @@ class ViewTool(BaseTool):
                     self.stackManager.view.Freeze()
                     command = AddNewUiViewCommand(True, 'Add View', self.stackManager, self.stackManager.cardIndex, model.type, model)
                     self.stackManager.RemoveUiViewByModel(model)
+                    model.SetBackUp(self.stackManager)
                     self.stackManager.command_processor.Submit(command)
                     self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
                     self.stackManager.view.Thaw()
@@ -577,6 +580,7 @@ class PenTool(BaseTool):
 
             command = AddNewUiViewCommand(True, 'Add Shape', self.stackManager, self.stackManager.cardIndex, model.type, model)
             self.stackManager.RemoveUiViewByModel(model)
+            model.SetBackUp(self.stackManager)
             self.stackManager.command_processor.Submit(command)
             self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
             self.stackManager.view.Thaw()
@@ -642,6 +646,7 @@ class ShapeTool(BaseTool):
 
                 command = AddNewUiViewCommand(True, 'Add Shape', self.stackManager, self.stackManager.cardIndex, model.type, model)
                 self.stackManager.RemoveUiViewByModel(model)
+                model.SetBackUp(self.stackManager)
                 self.stackManager.command_processor.Submit(command)
                 self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
                 self.stackManager.view.Thaw()
@@ -753,6 +758,7 @@ class PolyTool(BaseTool):
             if len(self.points) >= 3:
                 command = AddNewUiViewCommand(True, 'Add Shape', self.stackManager, self.stackManager.cardIndex, model.type, model)
                 self.stackManager.RemoveUiViewByModel(model)
+                model.SetBackUp(self.stackManager)
                 self.stackManager.command_processor.Submit(command)
                 self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(model))
             else:

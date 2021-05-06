@@ -150,8 +150,6 @@ class Runner():
             for t in self.timers:
                 t.Stop()
             self.timers = []
-            self.SoundStop()
-            self.soundCache = {}
             self.handlerQueue.put([]) # Wake up the runner thread get() call
 
             # Wait up to 1.0 sec for the stack to finish
@@ -169,7 +167,14 @@ class Runner():
                 self.runnerThread.terminate()
                 self.runnerThread.join(0.05)
             self.runnerThread = None
-        self.lastHandlerStack = []
+        self.lastHandlerStack = None
+        self.SoundStop()
+        self.soundCache = None
+        self.cardVarKeys = None
+        self.timers = None
+        self.rewrittenHandlerMap = None
+        self.funcDefs = None
+        self.handlerQueue = None
 
     def EnqueueRefresh(self):
         self.handlerQueue.put([])

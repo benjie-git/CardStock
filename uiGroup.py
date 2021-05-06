@@ -15,13 +15,15 @@ class UiGroup(UiView):
         self.uiViews = []
         super().__init__(parent, stackManager, model, None)
 
+    def SetDown(self):
+        for ui in self.uiViews:
+            ui.SetDown()
+        self.uiViews = None
+        super().SetDown()
+
     def SetModel(self, model):
         super().SetModel(model)
         self.RebuildViews()
-
-    def DestroyView(self):
-        for uiView in self.uiViews:
-            uiView.DestroyView()
 
     def GetAllUiViews(self, allUiViews):
         for uiView in self.uiViews:
@@ -168,8 +170,8 @@ class GroupModel(ViewModel):
 
     def RemoveChild(self, model):
         self.childModels.remove(model)
-        model.parent = None
         model.origGroupSubviewFrame = None
+        model.SetDown()
         pos = model.GetProperty("position")
         selfPos = self.GetProperty("position")
         model.SetProperty("position", [pos[0]+selfPos[0], pos[1]+selfPos[1]], notify=False)
@@ -226,11 +228,13 @@ class Group(ViewProxy):
 
     @RunOnMain
     def Ungroup(self):
+        if self._model.didSetDown: return
         groups = self._model.stackManager.UngroupModelsInternal([self._model])
         if groups and len(groups) > 0:
             return groups[0]
 
     def StopAllAnimating(self, propertyName=None):
+        if self._model.didSetDown: return
         self._model.StopAnimation(propertyName)
         for child in self._model.GetAllChildModels():
             child.StopAnimation(propertyName)

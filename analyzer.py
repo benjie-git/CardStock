@@ -44,6 +44,12 @@ class CodeAnalyzer(object):
         self.built_in.extend(["abs()", "str()", "bool()", "list()", "int()", "float()", "dict()", "tuple()",
                               "len()", "min()", "max()", "print()", "range()"])
 
+    def SetDown(self):
+        self.syntaxErrors = None
+        self.notifyList = None
+        self.analysisTimer.Stop()
+        self.analysisTimer = None
+
     def AddScanCompleteNotification(self, func):
         self.notifyList.append(func)
 
