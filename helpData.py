@@ -315,14 +315,11 @@ class HelpDataGlobals():
         "Ask": {"args": {"message": {"type": "string", "info": "Text to show in the Ask dialog."}}, "return": "bool",
                 "info": "Shows an alert dialog to the user, with the <b>message</b> you provide, and offers Yes and No "
                         "buttons.  Returns True if Yes is clicked, and False if No is clicked."},
-        "GotoCard": {"args": {"card": {"type": "object or string", "info": "The card object, or name of the card to go to."}}, "return": None,
-                     "info": "Goes to the card passed in as <b>card</b>, or the card with the name passed in as <b>card</b>.  This sends the OnHideCard event "
+        "GotoCard": {"args": {"card": {"type": "(object, string, or int)", "info": "A card object, a card name, or the index of a card to go to."}}, "return": None,
+                     "info": "Goes to the card passed in as <b>card</b>, the card with the name passed in as <b>card</b>, "
+                             "or the card with the index passed in as <b>card</b>.  This sends the OnHideCard event "
                              "for the current card, and then the OnShowCard event for the new card, or does nothing if "
-                             "there is no card with that name."},
-        "GotoCardIndex": {"args": {"cardIndex": {"type": "int", "info": "The index number of the card to go to, with 0 meaning the first card."}}, "return": None,
-                          "info": "Goes to the card with the index passed in as <b>cardIndex</b>.  This sends the OnHideCard event "
-                                  "for the current card, and then the OnShowCard event for the new card, or raises an error "
-                                  "if the given index is less than 0, or larger than the number of cards-1."},
+                             "there is no card with that name or index."},
         "GotoNextCard": {"args": {}, "return": None,
                          "info": "Goes to the next card in the stack.  If we're already on the last card, then loop back to "
                                  "the first card.  This sends the OnHideCard event for the current card, and then the "

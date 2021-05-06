@@ -74,7 +74,6 @@ class Runner():
             "GotoCard": self.GotoCard,
             "GotoNextCard": self.GotoNextCard,
             "GotoPreviousCard": self.GotoPreviousCard,
-            "GotoCardIndex": self.GotoCardIndex,
             "SoundPlay": self.SoundPlay,
             "SoundStop": self.SoundStop,
             "BroadcastMessage": self.BroadcastMessage,
@@ -460,30 +459,24 @@ class Runner():
             self.RunHandler(ui.model, "OnMessage", None, message)
 
     def GotoCard(self, card):
+        index = None
         if isinstance(card, str):
             cardName = card
         elif isinstance(card, Card):
             cardName = card._model.GetProperty("name")
+        elif isinstance(card, int):
+            index = card
         else:
-            raise TypeError("card must be card object or a string")
+            raise TypeError("card must be card object, a string, or an int")
 
-        index = None
-        for m in self.stackManager.stackModel.childModels:
-            if m.GetProperty("name") == cardName:
-                index = self.stackManager.stackModel.childModels.index(m)
+        if index is None:
+            for m in self.stackManager.stackModel.childModels:
+                if m.GetProperty("name") == cardName:
+                    index = self.stackManager.stackModel.childModels.index(m)
         if index is not None:
             self.stackManager.LoadCardAtIndex(index)
         else:
             raise ValueError("cardName '" + cardName + "' does not exist")
-
-    def GotoCardIndex(self, cardIndex):
-        if not isinstance(cardIndex, int):
-            raise TypeError("cardIndex must be an int")
-
-        if cardIndex >= 0 and cardIndex <= len(self.stackManager.stackModel.childModels)-1:
-            self.stackManager.LoadCardAtIndex(cardIndex)
-        else:
-            raise TypeError("cardIndex " + str(cardIndex) + " is out of range")
 
     def GotoNextCard(self):
         cardIndex = self.stackManager.cardIndex + 1
