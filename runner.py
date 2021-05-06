@@ -605,14 +605,14 @@ class Runner():
             return
 
         @RunOnMain
-        def func():
+        def f():
             timer = wx.Timer()
             def onTimer(event):
                 func(*args, **kwargs)
             timer.Bind(wx.EVT_TIMER, onTimer)
             timer.StartOnce(int(duration*1000))
             self.timers.append(timer)
-        func()
+        f()
 
     @RunOnMain
     def Quit(self):

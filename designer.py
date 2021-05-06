@@ -464,11 +464,12 @@ class DesignerFrame(wx.Frame):
         stackModel.SetData(data)
 
         self.Hide()
-
-        while self.stackManager.analyzer.analysisPending:
-            # make sure we have an up-to-date analysis and set of syntax errors
-            wx.YieldIfNeeded()
-            sleep(0.05)
+        if self.stackManager.analyzer.analysisPending:
+            self.stackManager.analyzer.RunAnalysis()
+            while self.stackManager.analyzer.analysisPending:
+                # make sure we have an up-to-date analysis and set of syntax errors
+                wx.YieldIfNeeded()
+                sleep(0.05)
 
         self.viewer = ViewerFrame(self, stackModel, self.filename)
         self.viewer.designer = self

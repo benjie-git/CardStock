@@ -3,7 +3,7 @@ import ast
 import helpData
 import threading
 
-ANALYSIS_TIMEOUT = 500  # in ms
+ANALYSIS_TIMEOUT = 1000  # in ms
 
 
 class CodeAnalyzer(object):
@@ -18,6 +18,7 @@ class CodeAnalyzer(object):
         self.analysisTimer = wx.Timer()
         self.analysisTimer.Bind(wx.EVT_TIMER, self.OnAnalysisTimer)
         self.analysisPending = False
+        self.analysisRunning = False
 
         self.varNames = None
         self.funcNames = None
@@ -57,9 +58,12 @@ class CodeAnalyzer(object):
         self.RunAnalysis()
 
     def RunAnalysis(self):
-        self.analysisPending = True
-        self.ACListHandlerName = self.stackManager.designer.cPanel.currentHandler
-        self.ScanCode()
+        if self.stackManager.isEditing:
+            self.analysisTimer.Stop()
+            if not self.analysisRunning:
+                self.analysisPending = True
+                self.ACListHandlerName = self.stackManager.designer.cPanel.currentHandler
+                self.ScanCode()
 
     def BuildACLists(self):
         names = []
@@ -107,6 +111,7 @@ class CodeAnalyzer(object):
         self.objNames = []
         self.cardNames = []
         codeDict = {}
+        self.analysisRunning = True
         self.CollectCode(self.stackManager.stackModel, [], codeDict)
         thread = threading.Thread(target=self.ScanCodeInternal, args=(codeDict,))
         thread.start()
@@ -121,10 +126,14 @@ class CodeAnalyzer(object):
 
         self.BuildACLists()
 
-        for func in self.notifyList:
-            wx.CallAfter(func)
+        wx.CallAfter(self.ScanFinished)
 
+    def ScanFinished(self):
+        for func in self.notifyList:
+            func()
         self.analysisPending = False
+        self.analysisRunning = False
+
 
     def ParseWithFallback(self, code, path):
         try:

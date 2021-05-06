@@ -101,6 +101,7 @@ class AddNewUiViewCommand(Command):
             if not self.viewModel:
                 self.viewModel = uiView.model
             self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.viewModel))
+        self.stackManager.analyzer.RunDeferredAnalysis()
         return True
 
     def Undo(self):
@@ -113,6 +114,7 @@ class AddNewUiViewCommand(Command):
         else:
             self.stackManager.LoadCardAtIndex(self.cardIndex)
             self.stackManager.RemoveUiViewByModel(self.viewModel)
+        self.stackManager.analyzer.RunDeferredAnalysis()
         return True
 
 
@@ -129,12 +131,14 @@ class AddUiViewsCommand(Command):
         for m in self.viewModels:
             self.stackManager.AddUiViewInternal(m)
             self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(m), True)
+        self.stackManager.analyzer.RunDeferredAnalysis()
         return True
 
     def Undo(self):
         self.stackManager.LoadCardAtIndex(self.cardIndex)
         for m in self.viewModels:
             self.stackManager.RemoveUiViewByModel(m)
+        self.stackManager.analyzer.RunDeferredAnalysis()
         return True
 
 
@@ -160,6 +164,7 @@ class RemoveUiViewsCommand(Command):
             for m in self.viewModels.copy():
                 self.modelIndexes.append(self.stackManager.uiCard.model.childModels.index(m))
                 self.stackManager.RemoveUiViewByModel(m)
+        self.stackManager.analyzer.RunDeferredAnalysis()
         return True
 
     def Undo(self):
@@ -179,6 +184,7 @@ class RemoveUiViewsCommand(Command):
             self.stackManager.SelectUiView(None)
             for m in models:
                 self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(m), True)
+        self.stackManager.analyzer.RunDeferredAnalysis()
         return True
 
 
@@ -300,6 +306,7 @@ class SetHandlerCommand(Command):
             firstLine = 0
             if self.cPanel.lastSelectedUiView == uiView and self.cPanel.currentHandler == self.key:
                 firstLine = self.cPanel.codeEditor.GetFirstVisibleLine()
+                self.cPanel.codeEditor.AutoCompCancel()
             self.cPanel.UpdateHandlerForUiViews([uiView], self.key)
             if self.interactive and self.newSel:
                 self.cPanel.codeEditor.SetSelection(*self.newSel)
@@ -325,6 +332,7 @@ class SetHandlerCommand(Command):
             firstLine = 0
             if self.cPanel.lastSelectedUiView == uiView and self.cPanel.currentHandler == self.key:
                 firstLine = self.cPanel.codeEditor.GetFirstVisibleLine()
+                self.cPanel.codeEditor.AutoCompCancel()
             self.cPanel.UpdateHandlerForUiViews([uiView], self.key)
             if self.interactive and self.oldSel:
                 self.cPanel.codeEditor.SetSelection(*self.oldSel)
@@ -349,11 +357,13 @@ class GroupUiViewsCommand(Command):
     def Do(self):
         self.stackManager.LoadCardAtIndex(self.cardIndex)
         self.group = self.stackManager.GroupModelsInternal(self.models, self.group)
+        self.stackManager.analyzer.RunDeferredAnalysis()
         return True
 
     def Undo(self):
         self.stackManager.LoadCardAtIndex(self.cardIndex)
         self.stackManager.UngroupModelsInternal([self.group])
+        self.stackManager.analyzer.RunDeferredAnalysis()
         return True
 
 
@@ -367,6 +377,7 @@ class UngroupUiViewsCommand(Command):
     def Do(self):
         self.stackManager.LoadCardAtIndex(self.cardIndex)
         self.modelSets = self.stackManager.UngroupModelsInternal(self.groups)
+        self.stackManager.analyzer.RunDeferredAnalysis()
         return True
 
     def Undo(self):
@@ -376,6 +387,7 @@ class UngroupUiViewsCommand(Command):
             self.stackManager.GroupModelsInternal(subviews, self.groups[i])
             i += 1
         self.modelSets = None
+        self.stackManager.analyzer.RunDeferredAnalysis()
         return True
 
 

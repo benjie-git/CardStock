@@ -124,6 +124,7 @@ class PythonEditor(stc.StyledTextCtrl):
                     self.stackManager.Undo()
                 else:
                     self.stackManager.Redo()
+                self.AutoCompCancel()
                 return
             elif ord('a') <= key <= ord('z') or ord('A') <= key <= ord('Z'):
                 wx.CallAfter(self.UpdateAC)
