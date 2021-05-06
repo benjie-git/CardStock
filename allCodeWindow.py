@@ -11,7 +11,9 @@ class AllCodeWindow(wx.Frame):
         self.SetClientSize(wx.Size(500,500))
 
         self.designer = designer
-        self.analyzer = self.designer.cPanel.codeEditor.analyzer
+        self.analyzer = self.designer.stackManager.analyzer
+        self.analyzer.AddScanCompleteNotification(self.MarkAllSyntaxErrors)
+
         self.text = ""
         self.numLines = 0
         self.lastLineNum = 0
@@ -20,6 +22,11 @@ class AllCodeWindow(wx.Frame):
         self.textBox.SetCaretStyle(stc.STC_CARETSTYLE_INVISIBLE)
         self.textBox.Bind(stc.EVT_STC_UPDATEUI, self.OnUpdateUi)
         self.Bind(wx.EVT_SIZE, self.OnResize)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
+
+    def OnDestroy(self, event):
+        self.analyzer.RemoveScanCompleteNotification(self.MarkAllSyntaxErrors)
+        event.Skip()
 
     def Clear(self):
         self.text = ""
@@ -99,6 +106,8 @@ class AllCodeWindow(wx.Frame):
             self.AppendNonSetupCode(child)
 
     def MarkAllSyntaxErrors(self):
+        if not self.IsShown():
+            return
         self.textBox.ClearSyntaxErrorMarks()
         for path, e in self.analyzer.syntaxErrors.items():
             for info in self.methodStartLines:

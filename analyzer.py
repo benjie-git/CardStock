@@ -3,14 +3,22 @@ import ast
 import helpData
 import threading
 
+ANALYSIS_TIMEOUT = 500  # in ms
+
 
 class CodeAnalyzer(object):
     """
     Get object, function, and variable names from the stack, for use in Autocomplete,
     and find and report any syntax errors along the way.
     """
-    def __init__(self):
+    def __init__(self, stackManager):
         super().__init__()
+        self.stackManager = stackManager
+
+        self.analysisTimer = wx.Timer()
+        self.analysisTimer.Bind(wx.EVT_TIMER, self.OnAnalysisTimer)
+        self.analysisPending = False
+
         self.varNames = None
         self.funcNames = None
         self.globalVars = helpData.HelpDataGlobals.variables.keys()
@@ -20,6 +28,9 @@ class CodeAnalyzer(object):
         self.objProps = []
         self.objMethods = []
         self.syntaxErrors = {}
+        self.ACListHandlerName = None
+        self.notifyList = []
+
         for cls in helpData.helpClasses:
             self.objProps += cls.properties.keys()
             self.objMethods += cls.methods.keys()
@@ -32,7 +43,25 @@ class CodeAnalyzer(object):
         self.built_in.extend(["abs()", "str()", "bool()", "list()", "int()", "float()", "dict()", "tuple()",
                               "len()", "min()", "max()", "print()", "range()"])
 
-    def BuildACLists(self, handlerName):
+    def AddScanCompleteNotification(self, func):
+        self.notifyList.append(func)
+
+    def RemoveScanCompleteNotification(self, func):
+        self.notifyList.remove(func)
+
+    def RunDeferredAnalysis(self):
+        self.analysisPending = True
+        self.analysisTimer.StartOnce(ANALYSIS_TIMEOUT)
+
+    def OnAnalysisTimer(self, event):
+        self.RunAnalysis()
+
+    def RunAnalysis(self):
+        self.analysisPending = True
+        self.ACListHandlerName = self.stackManager.designer.cPanel.currentHandler
+        self.ScanCode()
+
+    def BuildACLists(self):
         names = []
         names.extend(self.varNames)
         names.extend([s+"()" for s in self.funcNames])
@@ -40,10 +69,10 @@ class CodeAnalyzer(object):
         names.extend([s+"()" for s in self.globalFuncs])
         names.extend(self.objNames)
         names.extend(self.built_in)
-        if "Mouse" in handlerName: names.append("mousePos")
-        if "Key" in handlerName: names.append("keyName")
-        if "Periodic" in handlerName: names.append("elapsedTime")
-        if "Message" in handlerName: names.append("message")
+        if "Mouse" in self.ACListHandlerName: names.append("mousePos")
+        if "Key" in self.ACListHandlerName: names.append("keyName")
+        if "Periodic" in self.ACListHandlerName: names.append("elapsedTime")
+        if "Message" in self.ACListHandlerName: names.append("message")
         names = list(set(names))
         names.sort(key=str.casefold)
         self.ACNames = names
@@ -74,15 +103,15 @@ class CodeAnalyzer(object):
         if model.type != "stack":
             path.pop()
 
-    def ScanCode(self, model, handlerName, completionHandler):
+    def ScanCode(self):
         self.objNames = []
         self.cardNames = []
         codeDict = {}
-        self.CollectCode(model, [], codeDict)
-        thread = threading.Thread(target=self.ScanCodeInternal, args=(codeDict, handlerName, completionHandler))
+        self.CollectCode(self.stackManager.stackModel, [], codeDict)
+        thread = threading.Thread(target=self.ScanCodeInternal, args=(codeDict,))
         thread.start()
 
-    def ScanCodeInternal(self, codeDict, handlerName, completionHandler):
+    def ScanCodeInternal(self, codeDict):
         self.varNames = set()
         self.funcNames = set()
         self.syntaxErrors = {}
@@ -90,10 +119,12 @@ class CodeAnalyzer(object):
         for path,code in codeDict.items():
             self.ParseWithFallback(code, path)
 
-        self.BuildACLists(handlerName)
+        self.BuildACLists()
 
-        if completionHandler:
-            wx.CallAfter(completionHandler)
+        for func in self.notifyList:
+            wx.CallAfter(func)
+
+        self.analysisPending = False
 
     def ParseWithFallback(self, code, path):
         try:

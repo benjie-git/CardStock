@@ -108,7 +108,7 @@ class ConsoleWindow(wx.Frame):
                 if scrollPos > scrollRange - 4:
                     self.textBox.ScrollToEnd()
 
-                if not self.hasShown and stream == self.stdoutIO:
+                if not self.hasShown:
                     self.Show()
                     self.hasShown = True
             return pos + len(s)

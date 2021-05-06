@@ -17,6 +17,7 @@ from commands import *
 import generator
 import findEngineDesigner
 import resourcePathManager
+import analyzer
 from stackModel import StackModel
 from uiCard import UiCard, CardModel
 from uiButton import UiButton
@@ -98,6 +99,7 @@ class StackManager(object):
         self.resPathMan = resourcePathManager.ResourcePathManager(self)
         self.lastOnPeriodicTime = None
 
+        self.analyzer = analyzer.CodeAnalyzer(self)
         self.stackModel = StackModel(self)
         self.stackModel.AppendCardModel(CardModel(self))
 
@@ -235,11 +237,14 @@ class StackManager(object):
         self.stackModel = model
         self.cardIndex = None
         self.LoadCardAtIndex(0)
+        if self.isEditing:
+            self.analyzer.RunDeferredAnalysis()
         self.view.SetSize(self.stackModel.GetProperty("size"))
         self.command_processor.ClearCommands()
         self.stackModel.SetDirty(False)
         self.UpdateCursor()
 
+    @RunOnMain
     def LoadCardAtIndex(self, index, reload=False):
         if index != self.cardIndex or reload == True:
             if not self.isEditing and self.cardIndex is not None and not reload:

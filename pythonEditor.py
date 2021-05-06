@@ -10,7 +10,6 @@ It offers syntax highlighting, brace pairing, and simple code autocompletion.
 """
 
 TAB_WIDTH = 3
-ANALYSIS_TIMEOUT = 500  # in ms
 
 
 if wx.Platform == '__WXMSW__':
@@ -42,10 +41,9 @@ class PythonEditor(stc.StyledTextCtrl):
         self.currentHandler = None
         self.cPanel = cPanel
 
-        self.analyzer = analyzer.CodeAnalyzer()
-        self.analysisTimer = wx.Timer()
-        self.analysisTimer.Bind(wx.EVT_TIMER, self.OnAnalysisTimer)
-        self.analysisPending = False
+        self.analyzer = self.stackManager.analyzer
+        if cPanel:
+            self.analyzer.AddScanCompleteNotification(self.ScanFinished)
 
         self.SetAutoLayout(True)
 
@@ -190,16 +188,7 @@ class PythonEditor(stc.StyledTextCtrl):
         event.Skip()
 
     def RunDeferredAnalysis(self):
-        self.analysisPending = True
-        self.analysisTimer.StartOnce(ANALYSIS_TIMEOUT)
-
-    def OnAnalysisTimer(self, event):
-        self.UpdateACLists()
-
-    def UpdateACLists(self):
-        if not self.cPanel:
-            return
-        self.analyzer.ScanCode(self.cPanel.stackManager.stackModel, self.currentHandler, self.ScanFinished)
+        self.analyzer.RunDeferredAnalysis()
 
     def ClearSyntaxErrorMarks(self):
         self.SetIndicatorCurrent(2)
@@ -210,7 +199,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.IndicatorFillRange(startPos, length)
 
     def ScanFinished(self):
-        if self.currentModel:
+        if self.currentModel and self.cPanel:
             key = self.currentModel.GetPath() + "." + self.currentHandler
             self.ClearSyntaxErrorMarks()
             if key in self.analyzer.syntaxErrors:
@@ -222,11 +211,6 @@ class PythonEditor(stc.StyledTextCtrl):
                 startPos = lineStartPos + linePos-1
                 remaining = self.GetLastPosition() - (startPos)
                 self.MarkSyntaxError(startPos, min(2, remaining))
-
-        allCodeWin = self.stackManager.designer.allCodeWindow
-        if allCodeWin and allCodeWin.IsShown():
-            allCodeWin.MarkAllSyntaxErrors()
-        self.analysisPending = False
 
     def UpdateAC(self):
         if self.IsInCommentOrString():

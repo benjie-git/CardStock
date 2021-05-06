@@ -4,6 +4,7 @@ import os
 import traceback
 import wx
 import uiView
+import types
 from uiCard import Card
 from wx.adv import Sound
 from time import sleep, time
@@ -45,6 +46,7 @@ class Runner():
         self.runnerDepth = 0
         self.numOnPeriodicsQueued = 0
         self.rewrittenHandlerMap = {}
+        self.funcDefs = {}
 
         # queue of tasks to run on the runnerThread
         # each task is put onto the queue as a list.
@@ -294,15 +296,26 @@ class Runner():
         error = None
         error_class = None
         line_number = None
+        errModel = None
+        errHandlerName = None
         in_func = []
         detail = None
+
+        # Use this for noticing user-definitions of new functions
+        oldClientVars = self.clientVars.copy()
+
         try:
             exec(handlerStr, self.clientVars)
+            self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
         except SyntaxError as err:
+            self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
             detail = err.msg
             error_class = err.__class__.__name__
             line_number = err.lineno
+            errModel = uiModel
+            errHandlerName = handlerName
         except Exception as err:
+            self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
             if err.__class__.__name__ == "RuntimeError" and err.args[0] == "Return":
                 # Catch our exception-based return calls
                 pass
@@ -312,9 +325,16 @@ class Runner():
                 cl, exc, tb = sys.exc_info()
                 trace = traceback.extract_tb(tb)
                 for i in range(len(trace)):
-                    if not line_number and trace[i].filename == "<string>" and trace[i].name == "<module>":
+                    if trace[i].filename == "<string>" and trace[i].name == "<module>":
+                        errModel = uiModel
+                        errHandlerName = handlerName
                         line_number = trace[i].lineno
+                        in_func.append((handlerName, trace[i].lineno))
                     elif line_number and trace[i].filename == "<string>" and trace[i].name != "<module>":
+                        if trace[i].name in self.funcDefs:
+                            errModel = self.funcDefs[trace[i].name][0]
+                            errHandlerName = self.funcDefs[trace[i].name][1]
+                            line_number = trace[i].lineno
                         in_func.append((trace[i].name, trace[i].lineno))
 
         del self.lastHandlerStack[-1]
@@ -328,16 +348,17 @@ class Runner():
                 self.clientVars[k] = v
 
         if error_class:
-            msg = f"{error_class} in {self.HandlerPath(uiModel, handlerName)}, line {line_number}: {detail}"
-            for f in in_func:
-                msg += f" (in function '{f[0]}, line {f[1]}')"
+            msg = f"{error_class} in {self.HandlerPath(errModel, errHandlerName)}, line {line_number}: {detail}"
+            if len(in_func) > 1:
+                frames = [f"{f[0]}():{f[1]}" for f in in_func]
+                msg += f" (from {' => '.join(frames)})"
 
             for e in self.errors:
                 if e.msg == msg:
                     error = e
                     break
             if not error:
-                error = CardStockError(uiModel.GetCard(), uiModel, handlerName, line_number, msg)
+                error = CardStockError(uiModel.GetCard(), errModel, errHandlerName, line_number, msg)
                 self.errors.append(error)
             error.count += 1
 
@@ -385,6 +406,12 @@ class Runner():
             # No return used, so keep the handler as-is
             return handlerStr
 
+    def ScrapeNewFuncDefs(self, oldVars, newVars, model, handlerName):
+        # Keep track of where each user function has been defined, so we can send you to the right handler on an error
+        for (k, v) in newVars.items():
+            if isinstance(v, types.FunctionType) and (k not in oldVars or oldVars[k] != v):
+                self.funcDefs[k] = (model, handlerName)
+
     def HandlerPath(self, model, handlerName):
         if model.type == "card":
             return f"{model.GetProperty('name')}.{handlerName}()"
@@ -427,7 +454,6 @@ class Runner():
         for ui in self.stackManager.GetAllUiViews():
             self.RunHandler(ui.model, "OnMessage", None, message)
 
-    @RunOnMain
     def GotoCard(self, card):
         if isinstance(card, str):
             cardName = card
@@ -445,7 +471,6 @@ class Runner():
         else:
             raise ValueError("cardName '" + cardName + "' does not exist")
 
-    @RunOnMain
     def GotoCardIndex(self, cardIndex):
         if not isinstance(cardIndex, int):
             raise TypeError("cardIndex must be an int")
@@ -455,13 +480,11 @@ class Runner():
         else:
             raise TypeError("cardIndex " + str(cardIndex) + " is out of range")
 
-    @RunOnMain
     def GotoNextCard(self):
         cardIndex = self.stackManager.cardIndex + 1
         if cardIndex >= len(self.stackManager.stackModel.childModels): cardIndex = 0
         self.stackManager.LoadCardAtIndex(cardIndex)
 
-    @RunOnMain
     def GotoPreviousCard(self):
         cardIndex = self.stackManager.cardIndex - 1
         if cardIndex < 0: cardIndex = len(self.stackManager.stackModel.childModels) - 1
@@ -494,7 +517,6 @@ class Runner():
             raise ValueError("pointB must be a point or a list of two numbers")
         return math.sqrt((pointB[0] - pointA[0]) ** 2 + (pointB[1] - pointA[1]) ** 2)
 
-    @RunOnMain
     def Alert(self, message):
         if not isinstance(message, str):
             raise TypeError("message must be a string")
@@ -502,9 +524,11 @@ class Runner():
         if self.stopRunnerThread:
             return
 
-        wx.MessageDialog(None, str(message), "", wx.OK).ShowModal()
+        @RunOnMain
+        def func():
+            wx.MessageDialog(None, str(message), "", wx.OK).ShowModal()
+        func()
 
-    @RunOnMain
     def Ask(self, message):
         if not isinstance(message, str):
             raise TypeError("message must be a string")
@@ -512,8 +536,11 @@ class Runner():
         if self.stopRunnerThread:
             return None
 
-        r = wx.MessageDialog(None, str(message), "", wx.YES_NO).ShowModal()
-        return (r == wx.ID_YES)
+        @RunOnMain
+        def func():
+            return wx.MessageDialog(None, str(message), "", wx.YES_NO).ShowModal()
+
+        return (func() == wx.ID_YES)
 
     def SoundPlay(self, filepath):
         if not isinstance(filepath, str):
@@ -568,7 +595,6 @@ class Runner():
     def IsMouseDown(self):
         return wx.GetMouseState().LeftIsDown()
 
-    @RunOnMain
     def RunAfterDelay(self, duration, func, *args, **kwargs):
         try:
             duration = float(duration)
@@ -578,12 +604,15 @@ class Runner():
         if self.stopRunnerThread:
             return
 
-        timer = wx.Timer()
-        def onTimer(event):
-            func(*args, **kwargs)
-        timer.Bind(wx.EVT_TIMER, onTimer)
-        timer.StartOnce(int(duration*1000))
-        self.timers.append(timer)
+        @RunOnMain
+        def func():
+            timer = wx.Timer()
+            def onTimer(event):
+                func(*args, **kwargs)
+            timer.Bind(wx.EVT_TIMER, onTimer)
+            timer.StartOnce(int(duration*1000))
+            self.timers.append(timer)
+        func()
 
     @RunOnMain
     def Quit(self):

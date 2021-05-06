@@ -463,15 +463,16 @@ class DesignerFrame(wx.Frame):
         stackModel = StackModel(None)
         stackModel.SetData(data)
 
-        while self.cPanel.codeEditor.analysisPending:
-            # make sure we have an up-to-date set of syntax errors
+        self.Hide()
+
+        while self.stackManager.analyzer.analysisPending:
+            # make sure we have an up-to-date analysis and set of syntax errors
             wx.YieldIfNeeded()
             sleep(0.05)
 
         self.viewer = ViewerFrame(self, stackModel, self.filename)
         self.viewer.designer = self
 
-        self.Hide()
         self.viewer.Show(True)
         self.viewer.Refresh()
         self.viewer.RunViewer(cardIndex)

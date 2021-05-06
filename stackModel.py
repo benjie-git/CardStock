@@ -140,11 +140,14 @@ class Stack(ViewProxy):
     def currentCard(self):
         return self._model.stackManager.uiCard.model.GetProxy()
 
-    @RunOnMain
     def AddCard(self, name="card", atIndex=-1):
         if not isinstance(name, str):
             raise TypeError("name is not a string")
         atIndex = int(atIndex)
         if atIndex < -1 or atIndex > len(self._model.childModels)-1:
             raise ValueError("atIndex is out of bounds")
-        return self._model.InsertNewCard(name, atIndex).GetProxy()
+
+        @RunOnMain
+        def func():
+            return self._model.InsertNewCard(name, atIndex).GetProxy()
+        return func()

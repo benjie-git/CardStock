@@ -423,7 +423,7 @@ class ControlPanel(wx.Panel):
         self.codeEditor.Enable(True)
         self.codeEditor.currentModel = uiView.model
         self.codeEditor.currentHandler = self.currentHandler
-        self.codeEditor.UpdateACLists()
+        self.stackManager.analyzer.RunAnalysis()
         uiView.lastEditedHandler = self.currentHandler
 
     def SaveCurrentHandler(self):
