@@ -396,6 +396,16 @@ class DesignerFrame(wx.Frame):
         self.NewFile()
         self.SetTitle(self.title)
 
+    def OpenFile(self, filename):
+        if self.stackManager.stackModel.GetDirty():
+            r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
+                                 "Save before Opening a file?", wx.YES_NO | wx.CANCEL).ShowModal()
+            if r == wx.ID_CANCEL:
+                return
+            if r == wx.ID_YES:
+                self.OnMenuSave(None)
+        self.ReadFile(filename)
+
     def OnMenuOpen(self, event):
         if self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
@@ -459,11 +469,8 @@ class DesignerFrame(wx.Frame):
             self.allCodeWindow.Hide()
             self.allCodeWindow.Clear()
 
-        data = self.stackManager.stackModel.GetData()
-        stackModel = StackModel(None)
-        stackModel.SetData(data)
-
         self.Hide()
+
         if self.stackManager.analyzer.analysisPending:
             self.stackManager.analyzer.RunAnalysis()
             while self.stackManager.analyzer.analysisPending:
@@ -471,8 +478,13 @@ class DesignerFrame(wx.Frame):
                 wx.YieldIfNeeded()
                 sleep(0.05)
 
-        self.viewer = ViewerFrame(self, stackModel, self.filename)
+        self.viewer = ViewerFrame(self, None, self.filename)
         self.viewer.designer = self
+
+        data = self.stackManager.stackModel.GetData()
+        stackModel = StackModel(self.viewer.stackManager)
+        stackModel.SetData(data)
+        self.viewer.SetStackModel(stackModel)
 
         self.viewer.Show(True)
         self.viewer.Refresh()
@@ -787,16 +799,24 @@ class DesignerApp(wx.App, InspectionMixin):
         self.SetAppDisplayName('CardStock')
         return True
 
+    def MacOpenFile(self, filename):
+        self.frame.OpenFile(filename)
+
     def MacReopenApp(self):
         """
         Restore the main frame (if it's minimized) when the Dock icon is
         clicked on OSX.
         """
         top = self.GetTopWindow()
-        if top and top.IsIconized():
-            top.Iconize(False)
-        if top:
-            top.Raise()
+        if top.IsShown():
+            if top and top.IsIconized():
+                top.Iconize(False)
+            if top:
+                top.Raise()
+        elif self.frame.viewer:
+            if self.frame.viewer.IsIconized():
+                self.frame.viewer.Iconize(False)
+            self.frame.viewer.Raise()
 
 # ----------------------------------------------------------------------
 
@@ -805,8 +825,8 @@ if __name__ == '__main__':
     app = DesignerApp(redirect=False)
 
     if len(sys.argv) > 1:
-        filename = sys.argv[1]
-        app.frame.ReadFile(filename)
+        argFilename = sys.argv[1]
+        app.frame.ReadFile(argFilename)
     app.frame.FinishedStarting()
     # import wx.lib.inspection
     # wx.lib.inspection.InspectionTool().Show()

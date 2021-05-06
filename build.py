@@ -41,12 +41,12 @@ if wx.Platform == "__WXMAC__":
         shutil.rmtree("dist/containerDir")
     os.mkdir("dist/containerDir")
     shutil.move("dist/standalone.app", "dist/containerDir/")
-    pyinstall(f"--onedir --clean -y --windowed {extraModsStr} --exclude-module PyInstaller --add-data dist/containerDir:. -n CardStock_Designer designer.py")
+    pyinstall("-y CardStock_Designer_mac.spec")
     shutil.rmtree("dist/containerDir")
     shutil.rmtree("dist/CardStock_Designer")
 
     # Build the viewer binary
-    pyinstall(f"--onedir --clean -y --windowed {extraModsStr} -n CardStock_Viewer viewer.py")
+    pyinstall("-y CardStock_Viewer_mac.spec")
     shutil.rmtree("dist/CardStock_Viewer")
 
     # Build the package directory
@@ -64,8 +64,6 @@ if wx.Platform == "__WXMAC__":
     shutil.rmtree("__pycache__")
     shutil.rmtree("build")
     os.remove("standalone.spec")
-    os.remove("CardStock_Designer.spec")
-    os.remove("CardStock_Viewer.spec")
 
 
 elif wx.Platform == "__WXMSW__":

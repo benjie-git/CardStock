@@ -284,9 +284,12 @@ class StandaloneApp(wx.App, InspectionMixin):
         with open(stackPath, 'r') as f:
             data = json.load(f)
         if data:
-            stackModel = StackModel(None)
+            self.frame = StandaloneFrame(None, None, stackPath, resMap)
+
+            stackModel = StackModel(self.frame.stackManager)
             stackModel.SetData(data)
-            self.frame = StandaloneFrame(None, stackModel, stackPath, resMap)
+            self.frame.stackManager.SetStackModel(stackModel)
+
             self.SetTopWindow(self.frame)
             self.frame.stackManager.filename = stackPath
             self.frame.Show(True)

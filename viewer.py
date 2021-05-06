@@ -31,6 +31,8 @@ ID_MENU_REPLACE = wx.NewIdRef()
 ID_SHOW_CONSOLE = wx.NewIdRef()
 ID_CLEAR_CONSOLE = wx.NewIdRef()
 
+argFilename = None
+
 # ----------------------------------------------------------------------
 
 
@@ -169,6 +171,16 @@ class ViewerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
 
     wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
+
+    def OpenFile(self, filename):
+        if self.stackManager.filename and self.stackManager.stackModel.GetProperty("canSave") and self.stackManager.stackModel.GetDirty():
+            r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
+                                 "Save before Closing?", wx.YES_NO | wx.CANCEL).ShowModal()
+            if r == wx.ID_CANCEL:
+                return
+            if r == wx.ID_YES:
+                self.SaveFile()
+        wx.GetApp().OpenFile(filename)
 
     def OnMenuOpen(self, event):
         if self.stackManager.filename and self.stackManager.stackModel.GetProperty("canSave") and self.stackManager.stackModel.GetDirty():
@@ -329,6 +341,7 @@ class ViewerApp(wx.App, InspectionMixin):
         self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
         self.SetAppDisplayName('CardStock')
         self.frame = None
+        self.doneStarting = False
 
         return True
 
@@ -353,9 +366,10 @@ class ViewerApp(wx.App, InspectionMixin):
                         self.frame.stackManager.runner.CleanupFromRun()
                         self.frame.Destroy()
 
-                    stackModel = StackModel(None)
+                    self.frame = ViewerFrame(None, None, filename)
+                    stackModel = StackModel(self.frame.stackManager)
                     stackModel.SetData(data)
-                    self.frame = ViewerFrame(None, stackModel, filename)
+                    self.frame.stackManager.SetStackModel(stackModel)
                     self.SetTopWindow(self.frame)
                     self.frame.stackManager.filename = filename
                     self.frame.Show(True)
@@ -376,16 +390,26 @@ class ViewerApp(wx.App, InspectionMixin):
         if top:
             top.Raise()
 
+    def MacOpenFile(self, filename):
+        global argFilename
+        argFilename = filename
+        if self.doneStarting:
+            self.frame.OpenFile(argFilename)
 
 # ----------------------------------------------------------------------
 
 
 if __name__ == '__main__':
     app = ViewerApp(redirect=False)
-    if len(sys.argv) > 1:
-        filename = sys.argv[1]
-        app.OpenFile(filename)
+
+    if len(sys.argv) > 1 and not argFilename:
+        argFilename = sys.argv[1]
+
+    if argFilename:
+        app.OpenFile(argFilename)
     else:
         app.NewFile()
+
+    app.doneStarting = True
 
     app.MainLoop()
