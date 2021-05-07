@@ -135,9 +135,12 @@ class StackManager(object):
         if self.timer:
             self.timer.Stop()
         self.timer = None
+
+        if self.runner:
+            self.runner.CleanupFromRun()
+
         for ui in self.uiViews:
             ui.SetDown()
-
         self.uiViews = None
         self.uiCard.SetDown()
         self.uiCard = None
@@ -152,8 +155,6 @@ class StackManager(object):
         self.lastFocusedTextField = None
         self.lastMouseMovedUiView = None
         self.inlineEditingView = None
-        if self.runner:
-            self.runner.CleanupFromRun()
         self.runner = None
         self.resPathMan = None
         self.lastOnPeriodicTime = None
