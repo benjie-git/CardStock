@@ -221,8 +221,6 @@ class ViewerFrame(wx.Frame):
                 self.SaveFile()
 
         if not self.stackManager.runner.stopRunnerThread:
-            if self.designer:
-                self.designer.OnViewerClose(event)
             self.stackManager.SetDown()
             if self.consoleWindow:
                 self.consoleWindow.Destroy()
@@ -323,6 +321,7 @@ class ViewerFrame(wx.Frame):
 
     def RunViewer(self, cardIndex):
         runner = Runner(self.stackManager)
+        runner.onRunFinished = self.designer.OnRunnerFinished
         self.stackManager.runner = runner
         self.MakeMenu()
         self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))

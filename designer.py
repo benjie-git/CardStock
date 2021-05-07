@@ -503,9 +503,8 @@ class DesignerFrame(wx.Frame):
         self.stackManager.SetStackModel(newModel)
         self.stackManager.LoadCardAtIndex(0)
 
-    def OnViewerClose(self, event):
-        self.lastRunErrors = self.viewer.stackManager.runner.errors
-        self.viewer.stackManager.runner.errors = None
+    def OnRunnerFinished(self, runner):
+        self.lastRunErrors = runner.errors
         self.viewer = None
         self.Refresh()
         self.Show()

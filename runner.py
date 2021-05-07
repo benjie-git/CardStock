@@ -46,6 +46,7 @@ class Runner():
         self.runnerDepth = 0
         self.numOnPeriodicsQueued = 0
         self.rewrittenHandlerMap = {}
+        self.onRunFinished = None
         self.funcDefs = {}
 
         # queue of tasks to run on the runnerThread
@@ -151,19 +152,23 @@ class Runner():
             self.timers = []
             self.handlerQueue.put([]) # Wake up the runner thread get() call
 
-            # Wait up to 1.0 sec for the stack to finish
-            # run wx.YieldIfNeeded() to process main thread events while waiting, to allow @RunOnMain methods to complete
-            endTime = time() + 0.9
-            while time() < endTime:
-                breakpoint = time() + 0.05
-                if len(self.lastHandlerStack) == 0:
-                    break
-                while time() < breakpoint:
-                    wx.YieldIfNeeded()
+            def waitAndYield(duration):
+                # Wait up to 1.0 sec for the stack to finish
+                # run wx.YieldIfNeeded() to process main thread events while waiting, to allow @RunOnMain methods to complete
+                endTime = time() + duration
+                while time() < endTime:
+                    breakpoint = time() + 0.05
+                    if len(self.lastHandlerStack) == 0:
+                        break
+                    while time() < breakpoint:
+                        wx.YieldIfNeeded()
+
+            waitAndYield(0.7)
             self.runnerThread.join(0.05)
 
             if self.runnerThread.is_alive():
                 self.runnerThread.terminate()
+                waitAndYield(0.2)
                 self.runnerThread.join(0.05)
             self.runnerThread = None
 
@@ -177,6 +182,10 @@ class Runner():
         self.funcDefs = None
         self.handlerQueue = None
         self.stackManager = None
+        if self.onRunFinished:
+            self.onRunFinished(self)
+        self.errors = None
+        self.onRunFinished = None
 
     def EnqueueRefresh(self):
         self.handlerQueue.put([])
@@ -188,6 +197,7 @@ class Runner():
         """
         try:
             while True:
+                lastCard = None
                 args = self.handlerQueue.get()
                 if len(args) == 0:
                     # This is an enqueued task meant to Refresh after running all other tasks,
@@ -197,6 +207,7 @@ class Runner():
                 elif len(args) == 1:
                     self.SetupForCardInternal(*args)
                 elif len(args) == 6:
+                    lastCard = args[0].GetCard()
                     self.RunHandlerInternal(*args)
                     if args[1] == "OnPeriodic":
                         self.numOnPeriodicsQueued -= 1
@@ -206,14 +217,13 @@ class Runner():
 
         except SystemExit:
             # The killableThread got killed, because we told it to stop.
-            if len(self.lastHandlerStack):
-                model = self.lastHandlerStack[-1][0]
-                handlerName = self.lastHandlerStack[-1][1]
-                msg = f"Exited while {self.HandlerPath(model, handlerName)} was still running.  Maybe you have a long or infinite loop?"
-                error = CardStockError(model.GetCard(), model, handlerName, 0, msg)
-                error.count = 1
-                if self.errors:
-                    self.errors.append(error)
+            model = self.lastHandlerStack[-1][0]
+            handlerName = self.lastHandlerStack[-1][1]
+            msg = f"Exited while {self.HandlerPath(model, handlerName, lastCard)} was still running.  Maybe you have a long or infinite loop?"
+            error = CardStockError(lastCard, model, handlerName, 0, msg)
+            error.count = 1
+            if self.errors is not None:
+                self.errors.append(error)
 
     def RunHandler(self, uiModel, handlerName, event, arg=None):
         """
@@ -420,11 +430,13 @@ class Runner():
             if isinstance(v, types.FunctionType) and (k not in oldVars or oldVars[k] != v):
                 self.funcDefs[k] = (model, handlerName)
 
-    def HandlerPath(self, model, handlerName):
+    def HandlerPath(self, model, handlerName, card=None):
         if model.type == "card":
             return f"{model.GetProperty('name')}.{handlerName}()"
         else:
-            return f"{model.GetProperty('name')}.{handlerName}() on card '{model.GetCard().GetProperty('name')}'"
+            if card == None:
+                card = model.GetCard()
+            return f"{model.GetProperty('name')}.{handlerName}() on card '{card.GetProperty('name')}'"
 
     def KeyNameForEvent(self, event):
         code = event.GetKeyCode()
