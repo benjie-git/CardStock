@@ -125,25 +125,35 @@ class StackManager(object):
         self.view.Bind(wx.EVT_PAINT, self.OnPaint)
         self.view.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.view.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
-        self.view.Bind(wx.EVT_WINDOW_DESTROY, self.Cleanup)
 
-    def Cleanup(self, event):
-        """When the window is destroyed, clean up resources."""
-        if event.GetEventObject() == self.view:
-            if self.timer:
-                self.timer.Stop()
+    def SetDown(self):
+        self.view.Unbind(wx.EVT_SIZE, handler=self.OnResize)
+        self.view.Unbind(wx.EVT_PAINT, handler=self.OnPaint)
+        self.view.Unbind(wx.EVT_ERASE_BACKGROUND, handler=self.OnEraseBackground)
+        self.view.Unbind(wx.EVT_LEAVE_WINDOW, handler=self.OnMouseExit)
+
+        if self.timer:
+            self.timer.Stop()
         self.timer = None
+        for ui in self.uiViews:
+            ui.SetDown()
+
+        self.uiViews = None
         self.uiCard.SetDown()
         self.uiCard = None
         self.stackModel.SetDown()
+        self.stackModel.DismantleChildTree()
         self.stackModel = None
         self.listeners = None
         self.designer = None
+        self.command_processor.ClearCommands()
         self.command_processor = None
         self.tool = None
         self.lastFocusedTextField = None
         self.lastMouseMovedUiView = None
         self.inlineEditingView = None
+        if self.runner:
+            self.runner.CleanupFromRun()
         self.runner = None
         self.resPathMan = None
         self.lastOnPeriodicTime = None
@@ -151,7 +161,8 @@ class StackManager(object):
         self.analyzer = None
         self.selectedViews = None
         self.modelToViewMap = None
-        event.Skip()
+        self.view.stackManager = None
+        self.view = None
 
     def UpdateCursor(self):
         if self.tool:

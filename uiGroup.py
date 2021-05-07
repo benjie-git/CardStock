@@ -149,6 +149,7 @@ class GroupModel(ViewModel):
 
     @RunOnMain
     def SetProperty(self, key, value, notify=True):
+        if self.didSetDown: return
         super().SetProperty(key, value, notify)
         if key == "hidden":
             for m in self.GetAllChildModels():
@@ -228,13 +229,15 @@ class Group(ViewProxy):
 
     @RunOnMain
     def Ungroup(self):
-        if self._model.didSetDown: return
-        groups = self._model.stackManager.UngroupModelsInternal([self._model])
+        model = self._model
+        if not model: return None
+        groups = model.stackManager.UngroupModelsInternal([model])
         if groups and len(groups) > 0:
             return groups[0]
 
     def StopAllAnimating(self, propertyName=None):
-        if self._model.didSetDown: return
-        self._model.StopAnimation(propertyName)
-        for child in self._model.GetAllChildModels():
+        model = self._model
+        if not model: return
+        model.StopAnimation(propertyName)
+        for child in model.GetAllChildModels():
             child.StopAnimation(propertyName)

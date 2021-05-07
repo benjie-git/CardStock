@@ -154,7 +154,7 @@ class StandaloneFrame(wx.Frame):
             if r == wx.ID_YES:
                 self.SaveFile()
 
-        self.stackManager.runner.CleanupFromRun()
+        self.stackManager.SetDown()
         event.Skip()
 
     def OnCut(self, event):

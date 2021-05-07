@@ -166,14 +166,17 @@ class Runner():
                 self.runnerThread.terminate()
                 self.runnerThread.join(0.05)
             self.runnerThread = None
+
         self.lastHandlerStack = None
         self.SoundStop()
         self.soundCache = None
         self.cardVarKeys = None
+        self.clientVars = None
         self.timers = None
         self.rewrittenHandlerMap = None
         self.funcDefs = None
         self.handlerQueue = None
+        self.stackManager = None
 
     def EnqueueRefresh(self):
         self.handlerQueue.put([])
@@ -209,7 +212,8 @@ class Runner():
                 msg = f"Exited while {self.HandlerPath(model, handlerName)} was still running.  Maybe you have a long or infinite loop?"
                 error = CardStockError(model.GetCard(), model, handlerName, 0, msg)
                 error.count = 1
-                self.errors.append(error)
+                if self.errors:
+                    self.errors.append(error)
 
     def RunHandler(self, uiModel, handlerName, event, arg=None):
         """
@@ -351,7 +355,7 @@ class Runner():
             else:
                 self.clientVars[k] = v
 
-        if error_class:
+        if error_class and self.errors is not None:
             msg = f"{error_class} in {self.HandlerPath(errModel, errHandlerName)}, line {line_number}: {detail}"
             if len(in_func) > 1:
                 frames = [f"{f[0]}():{f[1]}" for f in in_func]
@@ -599,11 +603,9 @@ class Runner():
         except ValueError:
             raise TypeError("duration must be a number")
 
-        if self.stopRunnerThread:
-            return
-
         @RunOnMain
         def f():
+            if self.stopRunnerThread: return
             timer = wx.Timer()
             def onTimer(event):
                 func(*args, **kwargs)
@@ -614,4 +616,5 @@ class Runner():
 
     @RunOnMain
     def Quit(self):
+        if self.stopRunnerThread: return
         self.stackManager.view.TopLevelParent.OnMenuClose(None)

@@ -17,12 +17,6 @@ class UiCard(UiView):
         super().__init__(parent, stackManager, model, stackManager.view)
         self.stackManager.stackModel.SetProperty("size", self.view.GetSize(), notify=False)
 
-    def SetDown(self):
-        for ui in self.stackManager.uiViews:
-            ui.SetDown()
-        self.stackManager.uiViews = None
-        super().SetDown()
-
     def DestroyView(self):
         if self.view:
             if self.view.HasCapture():
@@ -175,6 +169,7 @@ class CardModel(ViewModel):
 
         @RunOnMain
         def func():
+            if self.didSetDown: return None
             model = generator.StackGenerator.ModelFromType(self.stackManager, typeStr)
             model.SetProperty("name", name)
             self.DeduplicateNamesForModels([model])
@@ -264,18 +259,22 @@ class Card(ViewProxy):
 
     @property
     def bgColor(self):
-        return self._model.GetProperty("bgColor")
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("bgColor")
     @bgColor.setter
     def bgColor(self, val):
         if not isinstance(val, str):
             raise TypeError("bgColor must be a string")
-        if self._model.didSetDown: return
-        self._model.SetProperty("bgColor", val)
+        model = self._model
+        if not model: return
+        model.SetProperty("bgColor", val)
 
     @property
     def index(self):
-        if self._model.didSetDown: return None
-        return self._model.parent.childModels.index(self._model)
+        model = self._model
+        if not model: return -1
+        return model.parent.childModels.index(model)
 
     def AnimateBgColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
@@ -283,7 +282,9 @@ class Card(ViewProxy):
         if not isinstance(endVal, str):
             raise TypeError("endColor must be a string")
 
-        if self._model.didSetDown: return
+        model = self._model
+        if not model: return
+
         endColor = wx.Colour(endVal)
         if endColor.IsOk():
             def onStart(animDict):
@@ -294,37 +295,51 @@ class Card(ViewProxy):
                 animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
             def onUpdate(progress, animDict):
-                self._model.SetProperty("bgColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
+                model.SetProperty("bgColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
-            self._model.AddAnimation("bgColor", duration, onUpdate, onStart, onFinished)
+            model.AddAnimation("bgColor", duration, onUpdate, onStart, onFinished)
 
     def AddButton(self, name="button", **kwargs):
-        if self._model.didSetDown: return
-        return self._model.AddNewObject("button", name, (100,24), kwargs).GetProxy()
+        model = self._model
+        if not model: return None
+        obj = model.AddNewObject("button", name, (100,24), kwargs)
+        return obj.GetProxy() if obj else None
 
     def AddTextField(self, name="field", **kwargs):
-        if self._model.didSetDown: return
-        return self._model.AddNewObject("textfield", name, (100,24), kwargs).GetProxy()
+        model = self._model
+        if not model: return None
+        obj = model.AddNewObject("textfield", name, (100,24), kwargs)
+        return obj.GetProxy() if obj else None
 
     def AddTextLabel(self, name="label", **kwargs):
-        if self._model.didSetDown: return
-        return self._model.AddNewObject("textlabel", name, (100,24), kwargs).GetProxy()
+        model = self._model
+        if not model: return None
+        obj = model.AddNewObject("textlabel", name, (100,24), kwargs)
+        return obj.GetProxy() if obj else None
 
     def AddImage(self, name="image", **kwargs):
-        if self._model.didSetDown: return
-        return self._model.AddNewObject("image", name, (80,80), kwargs).GetProxy()
+        model = self._model
+        if not model: return None
+        obj = model.AddNewObject("image", name, (80,80), kwargs)
+        return obj.GetProxy() if obj else None
 
     def AddOval(self, name="oval", **kwargs):
-        if self._model.didSetDown: return
-        return self._model.AddNewObject("oval", name, None, [(10, 10), (100, 100)], kwargs).GetProxy()
+        model = self._model
+        if not model: return None
+        obj = model.AddNewObject("oval", name, None, [(10, 10), (100, 100)], kwargs)
+        return obj.GetProxy() if obj else None
 
     def AddRectangle(self, name="rect", **kwargs):
-        if self._model.didSetDown: return
-        return self._model.AddNewObject("rect", name, None, [(10, 10), (100, 100)], kwargs).GetProxy()
+        model = self._model
+        if not model: return None
+        obj = model.AddNewObject("rect", name, None, [(10, 10), (100, 100)], kwargs)
+        return obj.GetProxy() if obj else None
 
     def AddRoundRectangle(self, name="roundrect", **kwargs):
-        if self._model.didSetDown: return
-        return self._model.AddNewObject("roundrect", name, None, [(10, 10), (100, 100)], kwargs).GetProxy()
+        model = self._model
+        if not model: return None
+        obj = model.AddNewObject("roundrect", name, None, [(10, 10), (100, 100)], kwargs)
+        return obj.GetProxy() if obj else None
 
     def AddLine(self, points, name="line", **kwargs):
         if not isinstance(points, (list, tuple)):
@@ -341,9 +356,11 @@ class Card(ViewProxy):
             except:
                 raise ValueError("points items each need to be a point or a list of two numbers")
 
-        if self._model.didSetDown: return
-        line = self._model.AddNewObject("line", name, None, points, kwargs)
-        return line.GetProxy()
+        model = self._model
+        if not model: return None
+
+        line = model.AddNewObject("line", name, None, points, kwargs)
+        return line.GetProxy() if line else None
 
     def AddPolygon(self, points, name="polygon", **kwargs):
         if not isinstance(points, (list, tuple)):
@@ -360,9 +377,11 @@ class Card(ViewProxy):
             except:
                 raise ValueError("points items each need to be a point or a list of two numbers")
 
-        if self._model.didSetDown: return
-        poly = self._model.AddNewObject("poly", name, None, points, kwargs)
-        return poly.GetProxy()
+        model = self._model
+        if not model: return None
+
+        poly = model.AddNewObject("poly", name, None, points, kwargs)
+        return poly.GetProxy() if poly else None
 
     def AddGroup(self, objects, name="group"):
         models = []
@@ -372,14 +391,19 @@ class Card(ViewProxy):
             if o._model.type not in ["card", "stack"] and o._model.GetCard() == self._model:
                 models.append(o._model)
 
-        if self._model.didSetDown: return
+        model = self._model
+        if not model: return None
+
         @RunOnMain
         def func():
-            return self._model.stackManager.GroupModelsInternal(models, name=name).GetProxy()
+            if model.didSetDown: return None
+            g = model.stackManager.GroupModelsInternal(models, name=name)
+            return g.GetProxy() if g else None
         return func()
 
     def StopAllAnimating(self, propertyName=None):
-        if self._model.didSetDown: return
-        self._model.StopAnimation(propertyName)
-        for child in self._model.GetAllChildModels():
+        model = self._model
+        if not model: return
+        model.StopAnimation(propertyName)
+        for child in model.GetAllChildModels():
             child.StopAnimation(propertyName)

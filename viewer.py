@@ -74,6 +74,10 @@ class ViewerFrame(wx.Frame):
         if self.consoleWindow:
             self.consoleWindow.Destroy()
             self.consoleWindow = None
+        self.findEngine.stackManager = None
+        self.findEngine = None
+        self.designer = None
+        self.stackManager = None
         return super().Destroy()
 
     def OnResize(self, event):
@@ -217,10 +221,9 @@ class ViewerFrame(wx.Frame):
                 self.SaveFile()
 
         if not self.stackManager.runner.stopRunnerThread:
-            self.stackManager.runner.CleanupFromRun()
             if self.designer:
                 self.designer.OnViewerClose(event)
-
+            self.stackManager.SetDown()
             if self.consoleWindow:
                 self.consoleWindow.Destroy()
                 self.consoleWindow = None
@@ -359,7 +362,7 @@ class ViewerApp(wx.App, InspectionMixin):
                 if data:
                     if self.frame:
                         self.frame.Hide()
-                        self.frame.stackManager.runner.CleanupFromRun()
+                        self.frame.stackManager.SetDown()
                         self.frame.Destroy()
 
                     self.frame = ViewerFrame(None, None, filename)

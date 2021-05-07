@@ -172,33 +172,42 @@ class Image(ViewProxy):
 
     @property
     def file(self):
-        return self._model.GetProperty("file")
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("file")
     @file.setter
     def file(self, val):
         if not isinstance(val, str):
             raise TypeError("file must be a string")
-        if self._model.didSetDown: return
-        self._model.SetProperty("file", val)
+        model = self._model
+        if not model: return
+        model.SetProperty("file", val)
 
     @property
     def rotation(self):
-        return self._model.GetProperty("rotation")
+        model = self._model
+        if not model: return 0
+        return model.GetProperty("rotation")
     @rotation.setter
     def rotation(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("rotation must be a number")
-        if self._model.didSetDown: return
-        self._model.SetProperty("rotation", val)
+        model = self._model
+        if not model: return
+        model.SetProperty("rotation", val)
 
     @property
     def fit(self):
-        return self._model.GetProperty("fit")
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("fit")
     @fit.setter
     def fit(self, val):
         if not isinstance(val, str):
             raise TypeError("fit must be a string")
-        if self._model.didSetDown: return
-        self._model.SetProperty("fit", val)
+        model = self._model
+        if not model: return
+        model.SetProperty("fit", val)
 
     def AnimateRotation(self, duration, endRotation, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
@@ -206,7 +215,8 @@ class Image(ViewProxy):
         if not (isinstance(endRotation, int) or isinstance(endRotation, float)):
             raise TypeError("endRotation must be a number")
 
-        if self._model.didSetDown: return
+        model = self._model
+        if not model: return
 
         def onStart(animDict):
             origVal = self.rotation
@@ -214,6 +224,6 @@ class Image(ViewProxy):
             animDict["offset"] = endRotation - origVal
 
         def onUpdate(progress, animDict):
-            self._model.SetProperty("rotation", animDict["origVal"] + animDict["offset"] * progress)
+            model.SetProperty("rotation", animDict["origVal"] + animDict["offset"] * progress)
 
-        self._model.AddAnimation("rotation", duration, onUpdate, onStart, onFinished)
+        model.AddAnimation("rotation", duration, onUpdate, onStart, onFinished)

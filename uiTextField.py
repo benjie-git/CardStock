@@ -246,26 +246,35 @@ class TextField(TextBaseProxy):
 
     @property
     def editable(self):
-        return self._model.GetProperty("editable")
+        model = self._model
+        if not model: return False
+        return model.GetProperty("editable")
     @editable.setter
     def editable(self, val):
-        if self._model.didSetDown: return
-        self._model.SetProperty("editable", val)
+        model = self._model
+        if not model: return
+        model.SetProperty("editable", val)
 
     @property
     def multiline(self):
-        return self._model.GetProperty("multiline")
+        model = self._model
+        if not model: return False
+        return model.GetProperty("multiline")
     @multiline.setter
     def multiline(self, val):
-        if self._model.didSetDown: return
-        self._model.SetProperty("multiline", val)
+        model = self._model
+        if not model: return
+        model.SetProperty("multiline", val)
 
     @RunOnMain
     def SelectAll(self):
-        if self._model.didSetDown: return
-        self._model.Notify("selectAll")
+        model = self._model
+        if not model: return
+        model.Notify("selectAll")
 
     def Enter(self):
-        if self._model.didSetDown: return
-        if self._model.stackManager.runner and self._model.GetHandler("OnTextEnter"):
-            self._model.stackManager.runner.RunHandler(self._model, "OnTextEnter", None)
+        model = self._model
+        if not model: return
+        if model.didSetDown: return
+        if model.stackManager.runner and model.GetHandler("OnTextEnter"):
+            model.stackManager.runner.RunHandler(model, "OnTextEnter", None)

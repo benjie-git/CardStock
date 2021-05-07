@@ -32,7 +32,9 @@ class UiView(object):
         self.delta = ((0, 0))
 
     def __repr__(self):
-        return "<"+str(self.__class__.__name__) + ":" + self.model.type + ":'" + self.model.GetProperty("name")+"'>"
+        if self.model:
+            return "<"+str(self.__class__.__name__) + ":" + self.model.type + ":'" + self.model.GetProperty("name")+"'>"
+        return "<"+str(self.__class__.__name__)+">"
 
     def SetDown(self):
         self.DestroyView()
@@ -328,13 +330,20 @@ class ViewModel(object):
                 child.parent = self
 
     def SetDown(self):
+        self.didSetDown = True
         for child in self.childModels:
             child.SetDown()
-        if not self.didSetDown:
-            self.animations = {}
-            self.stackManager = None
-            self.parent = None
-            self.didSetDown = True
+        if self.proxy:
+            self.proxy._model = None
+            self.proxy = None
+        self.animations = {}
+        self.stackManager = None
+        self.parent = None
+
+    def DismantleChildTree(self):
+        for child in self.childModels:
+            child.DismantleChildTree()
+        self.childModels = None
 
     def CreateCopy(self):
         data = self.GetData()
@@ -628,6 +637,7 @@ class ViewModel(object):
 
     @RunOnMain
     def SetProperty(self, key, value, notify=True):
+        if self.didSetDown: return
         if key in self.propertyTypes and self.propertyTypes[key] == "point" and not isinstance(value, wx.Point):
             value = wx.Point(value)
         elif key in self.propertyTypes and self.propertyTypes[key] == "floatpoint" and not isinstance(value, wx.RealPoint):
@@ -688,6 +698,7 @@ class ViewModel(object):
 
     @RunOnMain
     def AddAnimation(self, key, duration, onUpdate, onStart=None, onFinish=None, onCancel=None):
+        if self.didSetDown: return
         animDict = {"duration": duration,
                     "onStart": onStart,
                     "onUpdate": onUpdate,
@@ -779,57 +790,62 @@ class ViewProxy(object):
         self._model = model
 
     def __getattr__(self, item):
-        if not self._model.didSetDown:
-            for model in self._model.childModels:
-                if model.properties["name"] == item:
-                    return model.GetProxy()
+        model = self._model
+        if model:
+            for m in model.childModels:
+                if m.properties["name"] == item:
+                    return m.GetProxy()
         return super().__getattribute__(item)
 
     def SendMessage(self, message):
         if not isinstance(message, str):
             raise TypeError("message must be a string")
 
-        if self._model.didSetDown: return
+        model = self._model
+        if not model: return
 
-        if self._model.stackManager.runner:
-            self._model.stackManager.runner.RunHandler(self._model, "OnMessage", None, message)
+        if model.stackManager.runner:
+           model.stackManager.runner.RunHandler(model, "OnMessage", None, message)
 
     @RunOnMain
     def Focus(self):
-        if self._model.didSetDown: return
+        model = self._model
+        if not model: return
 
-        if self._model.stackManager.runner:
-            self._model.stackManager.runner.SetFocus(self)
+        if model.stackManager.runner:
+            model.stackManager.runner.SetFocus(self)
 
     @property
     @RunOnMain
     def hasFocus(self):
-        if self._model.didSetDown: return False
+        model = self._model
+        if not model: return False
 
-        uiView = self._model.stackManager.GetUiViewByModel(self._model)
+        uiView = model.stackManager.GetUiViewByModel(model)
         if uiView and uiView.view:
             return uiView.view.HasFocus()
 
     @RunOnMain
     def Clone(self, **kwargs):
-        if self._model.didSetDown: return None
+        model = self._model
+        if not model: return None
 
-        if self._model.type != "card":
-            newModel = self._model.CreateCopy()
-            newModel.SetProperty("speed", self._model.GetProperty("speed"))
+        if model.type != "card":
+            newModel = model.CreateCopy()
+            newModel.SetProperty("speed", model.GetProperty("speed"))
             if not self.visible:
                 newModel.SetProperty("hidden", True)
             for k,v in kwargs.items():
                 if k in newModel.propertyTypes:
                     newModel.SetProperty(k, v)
-            self._model.stackManager.AddUiViewsFromModels([newModel], False)
-            self._model.stackManager.runner.SetupForCard(newModel.GetCard())
+            model.stackManager.AddUiViewsFromModels([newModel], False)
+            model.stackManager.runner.SetupForCard(newModel.GetCard())
 
-            newModel.RunSetup(self._model.stackManager.runner)
-            if newModel.GetCard() != self._model.stackManager.uiCard.model:
-                self._model.stackManager.runner.SetupForCard(self._model.stackManager.uiCard.model)
+            newModel.RunSetup(model.stackManager.runner)
+            if newModel.GetCard() != model.stackManager.uiCard.model:
+                model.stackManager.runner.SetupForCard(model.stackManager.uiCard.model)
         else:
-            newModel = self._model.stackManager.DuplicateCard()
+            newModel = model.stackManager.DuplicateCard()
 
             if "center" in kwargs and "size" in kwargs:
                 newModel.SetProperty("size", kwargs["size"])
@@ -845,75 +861,96 @@ class ViewProxy(object):
 
     @RunOnMain
     def Delete(self):
-        if self._model.didSetDown: return
+        model = self._model
+        if not model: return
 
-        if self._model.type != "card":
-            self._model.stackManager.RemoveUiViewByModel(self._model)
+        if model.type != "card":
+            model.stackManager.RemoveUiViewByModel(model)
         else:
-            self._model.stackManager.RemoveCardRaw(self._model)
+            model.stackManager.RemoveCardRaw(model)
 
     @RunOnMain
     def Cut(self):
-        if self._model.didSetDown: return
+        model = self._model
+        if not model: return
 
-        self._model.stackManager.CutModels([self._model], False)
+        model.stackManager.CutModels([model], False)
 
     @RunOnMain
     def Copy(self):
-        if self._model.didSetDown: return
+        model = self._model
+        if not model: return
 
-        self._model.stackManager.CopyModels([self._model])
+        model.stackManager.CopyModels([model])
     #   Paste is in the runner
 
     @property
     def name(self):
-        return self._model.GetProperty("name")
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("name")
 
     @property
     def type(self):
-        return self._model.type
+        model = self._model
+        if not model: return None
+        return model.type
 
     @property
     def data(self):
-        return self._model.GetProperty("data")
+        model = self._model
+        if not model: return {}
+        return model.GetProperty("data")
 
     @property
     def parent(self):
-        parent = self._model.parent
+        model = self._model
+        if not model: return None
+        parent = model.parent
         if parent: parent = parent.GetProxy()
         return parent
 
     @property
     def children(self):
-        return [m.GetProxy() for m in self._model.childModels]
+        model = self._model
+        if not model: return []
+        return [m.GetProxy() for m in model.childModels]
 
     @property
     def size(self):
-        return CDSSize(self._model.GetProperty("size"), model=self._model, role="size")
+        model = self._model
+        if not model: return wx.Size(0,0)
+        return CDSSize(model.GetProperty("size"), model=model, role="size")
     @size.setter
     def size(self, val):
         try:
             val = wx.Size(val[0], val[1])
         except:
             raise ValueError("size must be a size or a list of two numbers")
-        if self._model.didSetDown: return
-        self._model.SetProperty("size", val)
+        model = self._model
+        if not model: return
+        model.SetProperty("size", val)
 
     @property
     def position(self):
-        return CDSRealPoint(self._model.GetAbsolutePosition(), model=self._model, role="position")
+        model = self._model
+        if not model: return wx.Point(0,0)
+        return CDSRealPoint(model.GetAbsolutePosition(), model=model, role="position")
     @position.setter
     def position(self, val):
         try:
             val = wx.RealPoint(val[0], val[1])
         except:
             raise ValueError("position must be a point or a list of two numbers")
-        if self._model.didSetDown: return
-        self._model.SetAbsolutePosition(val)
+        model = self._model
+        if not model: return
+        model.SetAbsolutePosition(val)
 
     @property
     def speed(self):
-        speed = CDSPoint(self._model.GetProperty("speed"), model=self._model, role="speed")
+        model = self._model
+        if not model: return wx.Point(0,0)
+        speed = CDSPoint(model.GetProperty("speed"), model=model, role="speed")
         return speed
     @speed.setter
     def speed(self, val):
@@ -921,59 +958,72 @@ class ViewProxy(object):
             val = wx.RealPoint(val[0], val[1])
         except:
             raise ValueError("speed must be a point or a list of two numbers")
-        if self._model.didSetDown: return
-        self._model.SetProperty("speed", val)
+        model = self._model
+        if not model: return
+        model.SetProperty("speed", val)
 
     @property
     def center(self):
-        return CDSRealPoint(self._model.GetCenter(), model=self._model, role="center")
+        model = self._model
+        if not model: return wx.Point(0,0)
+        return CDSRealPoint(model.GetCenter(), model=model, role="center")
     @center.setter
     def center(self, center):
         try:
             center = wx.RealPoint(center[0], center[1])
         except:
             raise ValueError("center must be a point or a list of two numbers")
-        if self._model.didSetDown: return
-        self._model.SetCenter(center)
+        model = self._model
+        if not model: return
+        model.SetCenter(center)
 
     @RunOnMain
     def FlipHorizontal(self):
-        if self._model.didSetDown: return
-        self._model.PerformFlips(True, False)
+        model = self._model
+        if not model: return
+        model.PerformFlips(True, False)
 
     @RunOnMain
     def FlipVertical(self):
-        if self._model.didSetDown: return
-        self._model.PerformFlips(False, True)
+        model = self._model
+        if not model: return
+        model.PerformFlips(False, True)
 
     @RunOnMain
     def OrderToFront(self):
-        if self._model.didSetDown: return
-        self._model.OrderMoveTo(-1)
+        model = self._model
+        if not model: return
+        model.OrderMoveTo(-1)
 
     @RunOnMain
     def OrderForward(self):
-        if self._model.didSetDown: return
-        self._model.OrderMoveBy(1)
+        model = self._model
+        if not model: return
+        model.OrderMoveBy(1)
 
     @RunOnMain
     def OrderBackward(self):
-        if self._model.didSetDown: return
-        self._model.OrderMoveBy(-1)
+        model = self._model
+        if not model: return
+        model.OrderMoveBy(-1)
 
     @RunOnMain
     def OrderToBack(self):
-        if self._model.didSetDown: return
-        self._model.OrderMoveTo(0)
+        model = self._model
+        if not model: return
+        model.OrderMoveTo(0)
 
     def OrderToIndex(self, i):
         if not isinstance(i, int):
             raise TypeError("i must be a number")
 
+        model = self._model
+        if not model: return
+
         @RunOnMain
         def f():
-            if self._model.didSetDown: return
-            self._model.OrderMoveTo(i)
+            if model.didSetDown: return
+            model.OrderMoveTo(i)
         f()
 
     def Show(self):
@@ -983,15 +1033,20 @@ class ViewProxy(object):
 
     @property
     def visible(self):
-        return not self._model.IsHidden()
+        model = self._model
+        if not model: return False
+        return not model.IsHidden()
     @visible.setter
     def visible(self, val):
-        if self._model.didSetDown: return
-        self._model.SetProperty("hidden", not bool(val))
+        model = self._model
+        if not model: return
+        model.SetProperty("hidden", not bool(val))
 
     @property
     def eventHandlers(self):
-        return self._model.handlers
+        model = self._model
+        if not model: return {}
+        return model.handlers
 
     def IsTouchingPoint(self, point):
         if not isinstance(point, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
@@ -1003,15 +1058,18 @@ class ViewProxy(object):
         except:
             raise ValueError("point needs to be a point or a list of two numbers")
 
+        model = self._model
+        if not model: return False
+
         @RunOnMain
         def f():
-            if self._model.didSetDown: return
-            s = self._model.stackManager.GetUiViewByModel(self._model)
+            if model.didSetDown: return False
+            s = model.stackManager.GetUiViewByModel(model)
             if not s:
                 return False
             sreg = s.GetHitRegion()
             sreg = wx.Region(sreg)
-            sreg.Offset(*self._model.GetProperty("position"))
+            sreg.Offset(*model.GetProperty("position"))
             return sreg.Contains(wx.Point(point)) == wx.InRegion
         return f()
 
@@ -1019,20 +1077,23 @@ class ViewProxy(object):
         if not isinstance(obj, ViewProxy):
             raise TypeError("obj must be a CardStock object")
 
+        model = self._model
+        oModel = obj._model
+        if not model or not oModel: return False
+
         @RunOnMain
         def f():
-            if self._model.didSetDown or obj._model.didSetDown: return False
-
-            s = self._model.stackManager.GetUiViewByModel(self._model)
-            o = self._model.stackManager.GetUiViewByModel(obj._model)
+            if model.didSetDown: return False
+            s = model.stackManager.GetUiViewByModel(model)
+            o = model.stackManager.GetUiViewByModel(oModel)
             if not s or not o:
                 return False
             sreg = s.GetHitRegion()
             oreg = o.GetHitRegion()
             sreg = wx.Region(sreg)
             oreg = wx.Region(oreg)
-            sreg.Offset(*self._model.GetProperty("position"))
-            oreg.Offset(*obj._model.GetProperty("position"))
+            sreg.Offset(*model.GetProperty("position"))
+            oreg.Offset(*oModel.GetProperty("position"))
             sreg.Intersect(oreg)
             return not sreg.IsEmpty()
         return f()
@@ -1041,12 +1102,15 @@ class ViewProxy(object):
         if not isinstance(obj, ViewProxy):
             raise TypeError("obj must be a CardStock object")
 
+        model = self._model
+        oModel = obj._model
+        if not model or not oModel: return None
+
         @RunOnMain
         def f():
-            if self._model.didSetDown or obj._model.didSetDown: return None
-
-            sf = self._model.GetAbsoluteFrame() # self frame in card coords
-            f = obj._model.GetAbsoluteFrame() # other frame in card soords
+            if model.didSetDown: return None
+            sf = model.GetAbsoluteFrame() # self frame in card coords
+            f = oModel.GetAbsoluteFrame() # other frame in card coords
             top = wx.Rect(f.Left, f.Top, f.Width, 1)
             bottom = wx.Rect(f.Left, f.Bottom, f.Width, 1)
             left = wx.Rect(f.Left, f.Top, 1, f.Height)
@@ -1066,27 +1130,28 @@ class ViewProxy(object):
         except:
             raise ValueError("endPosition must be a point or a list of two numbers")
 
-        if self._model.didSetDown: return
+        model = self._model
+        if not model: return
 
         def onStart(animDict):
-            origPosition = self._model.GetAbsolutePosition()
+            origPosition = model.GetAbsolutePosition()
             offsetPt = endPosition - origPosition
             offset = wx.RealPoint(offsetPt[0], offsetPt[1])
             animDict["origPosition"] = origPosition
             animDict["offset"] = offset
-            self._model.SetProperty("speed", offset*(1.0/duration))
+            model.SetProperty("speed", offset*(1.0/duration))
 
         def onUpdate(progress, animDict):
-            self._model.SetAbsolutePosition(animDict["origPosition"] + animDict["offset"] * progress)
+            model.SetAbsolutePosition(animDict["origPosition"] + animDict["offset"] * progress)
 
         def internalOnFinished(animDict):
-            self._model.SetProperty("speed", (0,0))
+            model.SetProperty("speed", (0,0))
             if onFinished: onFinished(*args, **kwargs)
 
         def onCanceled(animDict):
-            self._model.SetProperty("speed", (0,0))
+            model.SetProperty("speed", (0,0))
 
-        self._model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
+        model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
     def AnimateCenter(self, duration, endCenter, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
@@ -1096,10 +1161,11 @@ class ViewProxy(object):
         except:
             raise ValueError("endCenter must be a point or a list of two numbers")
 
-        if self._model.didSetDown: return
+        model = self._model
+        if not model: return
 
         def onStart(animDict):
-            origCenter = self._model.GetCenter()
+            origCenter = model.GetCenter()
             offsetPt = endCenter - origCenter
             offset = wx.RealPoint(offsetPt[0], offsetPt[1])
             animDict["origCenter"] = origCenter
@@ -1107,16 +1173,16 @@ class ViewProxy(object):
             self._model.SetProperty("speed", offset*(1.0/duration))
 
         def onUpdate(progress, animDict):
-            self._model.SetCenter(animDict["origCenter"] + animDict["offset"] * progress)
+            model.SetCenter(animDict["origCenter"] + animDict["offset"] * progress)
 
         def internalOnFinished(animDict):
-            self._model.SetProperty("speed", (0,0))
+            model.SetProperty("speed", (0,0))
             if onFinished: onFinished(*args, **kwargs)
 
         def onCanceled(animDict):
-            self._model.SetProperty("speed", (0,0))
+            model.SetProperty("speed", (0,0))
 
-        self._model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
+        model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
     def AnimateSize(self, duration, endSize, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
@@ -1126,19 +1192,21 @@ class ViewProxy(object):
         except:
             raise ValueError("endSize must be a size or a list of two numbers")
 
-        if self._model.didSetDown: return
+        model = self._model
+        if not model: return
 
         def onStart(animDict):
-            origSize = self._model.GetProperty("size")
+            origSize = model.GetProperty("size")
             offset = wx.Size(endSize-origSize)
             animDict["origSize"] = origSize
             animDict["offset"] = offset
 
         def onUpdate(progress, animDict):
-            self._model.SetProperty("size", animDict["origSize"] + animDict["offset"] * progress)
+            model.SetProperty("size", animDict["origSize"] + animDict["offset"] * progress)
 
-        self._model.AddAnimation("size", duration, onUpdate, onStart, onFinished)
+        model.AddAnimation("size", duration, onUpdate, onStart, onFinished)
 
     def StopAnimating(self, propertyName=None):
-        if self._model.didSetDown: return
-        self._model.StopAnimation(propertyName)
+        model = self._model
+        if not model: return
+        model.StopAnimation(propertyName)

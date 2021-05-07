@@ -15,7 +15,8 @@ def _async_raise(tid, exctype):
         raise TypeError("Only types can be raised (not instances)")
     res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(tid), ctypes.py_object(exctype))
     if res == 0:
-        raise ValueError("invalid thread id")
+        # raise ValueError("invalid thread id")
+        pass
     elif res != 1:
         # """if it returns a number greater than one, you're in trouble,
         # and you should call it again with exc=NULL to revert the effect"""
@@ -78,8 +79,14 @@ def to_main_sync(callable, *args, **kwargs):
 def to_main_helper(thread, callable, *args, **kwargs):
     # On main thread
     if not thread.is_terminated:
-        ret = callable(*args, **kwargs)
-        thread.returnQueue.put(ret) # send return value to calling thread
+        try:
+            ret = callable(*args, **kwargs)
+            thread.returnQueue.put(ret) # send return value to calling thread
+        except Exception as e:
+            thread.returnQueue.put(None) # send empty return value to calling thread
+            raise e
+    else:
+        thread.returnQueue.put(None) # send empty return value to calling thread
 
 
 def RunOnMain(func):

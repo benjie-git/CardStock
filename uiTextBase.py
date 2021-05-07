@@ -159,51 +159,66 @@ class TextBaseProxy(ViewProxy):
 
     @property
     def text(self):
-        return self._model.GetProperty("text")
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("text")
     @text.setter
     def text(self, val):
-        if self._model.didSetDown: return
-        self._model.SetProperty("text", str(val))
+        model = self._model
+        if not model: return
+        model.SetProperty("text", str(val))
 
     @property
     def alignment(self):
-        return self._model.GetProperty("alignment")
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("alignment")
     @alignment.setter
     def alignment(self, val):
         if not isinstance(val, str):
             raise TypeError("alignment must be a string")
-        if self._model.didSetDown: return
-        self._model.SetProperty("alignment", val)
+        model = self._model
+        if not model: return
+        model.SetProperty("alignment", val)
 
     @property
     def textColor(self):
-        return self._model.GetProperty("textColor")
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("textColor")
     @textColor.setter
     def textColor(self, val):
         if not isinstance(val, str):
             raise TypeError("textColor must be a string")
-        if self._model.didSetDown: return
-        self._model.SetProperty("textColor", val)
+        model = self._model
+        if not model: return
+        model.SetProperty("textColor", val)
 
     @property
     def font(self):
-        return self._model.GetProperty("font")
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("font")
     @font.setter
     def font(self, val):
         if not isinstance(val, str):
             raise TypeError("font must be a string")
-        if self._model.didSetDown: return
-        self._model.SetProperty("font", val)
+        model = self._model
+        if not model: return
+        model.SetProperty("font", val)
 
     @property
     def fontSize(self):
-        return self._model.GetProperty("fontSize")
+        model = self._model
+        if not model: return 0
+        return model.GetProperty("fontSize")
     @fontSize.setter
     def fontSize(self, val):
         if not (isinstance(val, int) or isinstance(val, float)):
             raise TypeError("fontSize must be a number")
-        if self._model.didSetDown: return
-        self._model.SetProperty("fontSize", val)
+        model = self._model
+        if not model: return
+        model.SetProperty("fontSize", val)
 
     def AnimateTextColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
@@ -211,7 +226,8 @@ class TextBaseProxy(ViewProxy):
         if not isinstance(endVal, str):
             raise TypeError("endColor must be a string")
 
-        if self._model.didSetDown: return
+        model = self._model
+        if not model: return
 
         endColor = wx.Colour(endVal)
         if endColor.IsOk():
@@ -223,6 +239,6 @@ class TextBaseProxy(ViewProxy):
                 animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
             def onUpdate(progress, animDict):
-                self._model.SetProperty("textColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
+                model.SetProperty("textColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
-            self._model.AddAnimation("textColor", duration, onUpdate, onStart, onFinished)
+            model.AddAnimation("textColor", duration, onUpdate, onStart, onFinished)

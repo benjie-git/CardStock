@@ -506,7 +506,6 @@ class DesignerFrame(wx.Frame):
     def OnViewerClose(self, event):
         self.lastRunErrors = self.viewer.stackManager.runner.errors
         self.viewer.stackManager.runner.errors = None
-        self.viewer.Destroy()
         self.viewer = None
         self.Refresh()
         self.Show()
