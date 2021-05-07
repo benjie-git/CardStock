@@ -172,10 +172,10 @@ class GroupModel(ViewModel):
     def RemoveChild(self, model):
         self.childModels.remove(model)
         model.origGroupSubviewFrame = None
-        model.SetDown()
         pos = model.GetProperty("position")
         selfPos = self.GetProperty("position")
         model.SetProperty("position", [pos[0]+selfPos[0], pos[1]+selfPos[1]], notify=False)
+        model.SetDown()
         self.isDirty = True
 
     def UpdateFrame(self):
