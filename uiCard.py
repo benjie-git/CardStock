@@ -271,10 +271,10 @@ class Card(ViewProxy):
         model.SetProperty("bgColor", val)
 
     @property
-    def index(self):
+    def number(self):
         model = self._model
         if not model: return -1
-        return model.parent.childModels.index(model)
+        return model.parent.childModels.index(model)+1
 
     def AnimateBgColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):

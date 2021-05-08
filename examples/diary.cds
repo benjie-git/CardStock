@@ -13,7 +13,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "i = card.index+1\ntotal = stack.numCards\ncardNum.text = str(i) + '/' + str(total)\nfield.Focus()\n"
+        "OnShowCard": "i = card.number\ntotal = stack.numCards\ncardNum.text = str(i) + '/' + str(total)\nfield.Focus()\n"
       },
       "properties": {
         "name": "card_1",

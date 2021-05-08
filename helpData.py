@@ -315,11 +315,11 @@ class HelpDataGlobals():
         "Ask": {"args": {"message": {"type": "string", "info": "Text to show in the Ask dialog."}}, "return": "bool",
                 "info": "Shows an alert dialog to the user, with the <b>message</b> you provide, and offers Yes and No "
                         "buttons.  Returns True if Yes is clicked, and False if No is clicked."},
-        "GotoCard": {"args": {"card": {"type": "(object, string, or int)", "info": "A card object, a card name, or the index of a card to go to."}}, "return": None,
+        "GotoCard": {"args": {"card": {"type": "(object, string, or int)", "info": "A card object, a card name, or the number of a card to go to."}}, "return": None,
                      "info": "Goes to the card passed in as <b>card</b>, the card with the name passed in as <b>card</b>, "
-                             "or the card with the index passed in as <b>card</b>.  This sends the OnHideCard event "
+                             "or the card number passed in as <b>card</b>.  This sends the OnHideCard event "
                              "for the current card, and then the OnShowCard event for the new card, or does nothing if "
-                             "there is no card with that name or index."},
+                             "there is no card with that name or number."},
         "GotoNextCard": {"args": {}, "return": None,
                          "info": "Goes to the next card in the stack.  If we're already on the last card, then loop back to "
                                  "the first card.  This sends the OnHideCard event for the current card, and then the "
@@ -807,8 +807,8 @@ class HelpDataCard():
         "bgColor": {"type": "string",
                     "info": "The color used for the background of this card.  This can be a color word like white, "
                             "or an HTML color like #EEEEEE for a light grey."},
-        "index": {"type": "int",
-                  "info": "This is the card number of this card.  The first card has <b>index</b> 0.  You can "
+        "number": {"type": "int",
+                  "info": "This is the card number of this card.  The first card is <b>number</b> 1.  You can "
                           "read this value, but not set it."},
         "canSave": {"type": "bool",
                     "info": "If <b>canSave</b> is <b>True</b>, the user can save the stack while running it. "
@@ -950,21 +950,25 @@ class HelpDataStack():
                      "info": "This is the number of cards in this stack.  You can "
                              "read this value, but not set it."},
         "currentCard": {"type": "object",
-                        "info": "This is the card object that is currently visible.  stack.<b>currentCard</b>.index will "
-                                "give you the index of the current card."},
+                        "info": "This is the card object that is currently visible.  stack.<b>currentCard</b>.number will "
+                                "give you the number of the current card."},
     }
 
     methods = {
         "AddCard": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new card object.  If omitted, the name will be "
                                                                 "'card_{N}'."},
-                             "atIndex": {"type": "int", "info": "an optional argument giving the positional index in "
-                                                                "the stack where the card should be added.  Index 0 is "
+                             "atNumber": {"type": "int", "info": "an optional argument giving the card number in "
+                                                                "the stack where the card should be added.  Number 1 is "
                                                                 "at the beginning.  If omitted, the card will be added "
                                                                 "at the end of the stack."},
                              },
                             "return": "object",
                             "info": "Adds a new empty card to the stack, and returns the card object."},
+        "CardWithNumber": {"args": {"number": {"type": "int",
+                                    "info": "the card number of the card to get."}},
+                           "return": "object",
+                           "info": "Returns the card at card <b>number</b>.  The first card is <b>number</b> 1."},
     }
 
     handlers = {}

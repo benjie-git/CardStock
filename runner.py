@@ -481,7 +481,7 @@ class Runner():
         elif isinstance(card, Card):
             cardName = card._model.GetProperty("name")
         elif isinstance(card, int):
-            index = card
+            index = card-1
         else:
             raise TypeError("card must be card object, a string, or an int")
 
