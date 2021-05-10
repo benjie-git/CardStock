@@ -234,6 +234,8 @@ class DesignerFrame(wx.Frame):
 
     def SetFrameSizeFromModel(self):
         self.stackContainer.SetSize(self.stackManager.view.GetSize())
+        self.stackContainer.Refresh()
+        self.stackManager.view.SetSize(self.stackManager.view.GetSize())
         clientSize = (self.stackManager.view.GetSize().Width + self.splitter.GetSashSize() + self.cPanel.GetSize().Width,
                       max(self.stackManager.view.GetSize().Height, 500))
         self.splitter.SetSize(clientSize)
@@ -480,13 +482,13 @@ class DesignerFrame(wx.Frame):
                 wx.YieldIfNeeded()
                 sleep(0.05)
 
-        self.viewer = ViewerFrame(self, None, self.filename)
-        self.viewer.designer = self
-
         data = self.stackManager.stackModel.GetData()
-        stackModel = StackModel(self.viewer.stackManager)
+        stackModel = StackModel(None)
         stackModel.SetData(data)
-        self.viewer.SetStackModel(stackModel)
+
+        self.viewer = ViewerFrame(self, stackModel, self.filename)
+        self.viewer.designer = self
+        stackModel.SetStackManager(self.viewer.stackManager)
 
         self.viewer.Show(True)
         self.viewer.Refresh()

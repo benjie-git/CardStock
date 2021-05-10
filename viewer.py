@@ -321,7 +321,8 @@ class ViewerFrame(wx.Frame):
 
     def RunViewer(self, cardIndex):
         runner = Runner(self.stackManager)
-        runner.onRunFinished = self.designer.OnRunnerFinished
+        if self.designer:
+            runner.onRunFinished = self.designer.OnRunnerFinished
         self.stackManager.runner = runner
         self.MakeMenu()
         self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))
@@ -364,10 +365,10 @@ class ViewerApp(wx.App, InspectionMixin):
                         self.frame.stackManager.SetDown()
                         self.frame.Destroy()
 
-                    self.frame = ViewerFrame(None, None, filename)
-                    stackModel = StackModel(self.frame.stackManager)
+                    stackModel = StackModel(None)
                     stackModel.SetData(data)
-                    self.frame.stackManager.SetStackModel(stackModel)
+                    self.frame = ViewerFrame(None, stackModel, filename)
+                    stackModel.SetStackManager(self.frame.stackManager)
                     self.SetTopWindow(self.frame)
                     self.frame.stackManager.filename = filename
                     self.frame.Show(True)

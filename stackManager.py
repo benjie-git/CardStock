@@ -736,6 +736,8 @@ class StackManager(object):
                 uiView.OnPropertyChanged(uiView.model, "position")
 
     def OnResize(self, event):
+        if not self.uiCard.model.parent:
+            return # Not fully set up yet
         if wx.Platform != '__WXMAC__':
             self.UpdateBuffer()
         didEnqueue = False

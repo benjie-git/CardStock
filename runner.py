@@ -217,13 +217,14 @@ class Runner():
 
         except SystemExit:
             # The killableThread got killed, because we told it to stop.
-            model = self.lastHandlerStack[-1][0]
-            handlerName = self.lastHandlerStack[-1][1]
-            msg = f"Exited while {self.HandlerPath(model, handlerName, lastCard)} was still running.  Maybe you have a long or infinite loop?"
-            error = CardStockError(lastCard, model, handlerName, 0, msg)
-            error.count = 1
-            if self.errors is not None:
-                self.errors.append(error)
+            if len(self.lastHandlerStack) > 0:
+                model = self.lastHandlerStack[-1][0]
+                handlerName = self.lastHandlerStack[-1][1]
+                msg = f"Exited while {self.HandlerPath(model, handlerName, lastCard)} was still running.  Maybe you have a long or infinite loop?"
+                error = CardStockError(lastCard, model, handlerName, 0, msg)
+                error.count = 1
+                if self.errors is not None:
+                    self.errors.append(error)
 
     def RunHandler(self, uiModel, handlerName, event, arg=None):
         """

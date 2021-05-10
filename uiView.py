@@ -633,7 +633,8 @@ class ViewModel(object):
             self.SetProperty("speed", cdsFramePart)
 
     def Notify(self, key):
-        self.stackManager.OnPropertyChanged(self, key)
+        if self.stackManager:
+            self.stackManager.OnPropertyChanged(self, key)
 
     @RunOnMain
     def SetProperty(self, key, value, notify=True):
