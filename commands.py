@@ -225,29 +225,29 @@ class ReorderUiViewsCommand(Command):
     def Do(self):
         models = []
         viewList = self.stackManager.stackModel.childModels[self.cardIndex].childModels
-        selected = self.stackManager.GetSelectedUiViews()
+        selectedModels = [ui.model for ui in self.stackManager.GetSelectedUiViews()]
         for i in reversed(self.oldIndexes):
             models.append(viewList.pop(i))
         for i in self.newIndexes:
             viewList.insert(i, models.pop())
         self.stackManager.LoadCardAtIndex(self.cardIndex, reload=True)
         self.stackManager.SelectUiView(None)
-        for ui in selected:
-            self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(ui.model), True)
+        for m in selectedModels:
+            self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(m), True)
         return True
 
     def Undo(self):
         models = []
         viewList = self.stackManager.stackModel.childModels[self.cardIndex].childModels
-        selected = self.stackManager.GetSelectedUiViews()
+        selectedModels = [ui.model for ui in self.stackManager.GetSelectedUiViews()]
         for i in reversed(self.newIndexes):
             models.append(viewList.pop(i))
         for i in self.oldIndexes:
             viewList.insert(i, models.pop())
         self.stackManager.LoadCardAtIndex(self.cardIndex, reload=True)
         self.stackManager.SelectUiView(None)
-        for ui in selected:
-            self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(ui.model), True)
+        for m in selectedModels:
+            self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(m), True)
         return True
 
 
