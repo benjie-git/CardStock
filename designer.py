@@ -233,14 +233,16 @@ class DesignerFrame(wx.Frame):
                 self.lastRunErrors = []
 
     def SetFrameSizeFromModel(self):
-        self.stackContainer.SetSize(self.stackManager.view.GetSize())
+        size = self.stackManager.view.GetSize()
+        self.stackContainer.SetSize(size)
         self.stackContainer.Refresh()
-        self.stackManager.view.SetSize(self.stackManager.view.GetSize())
-        clientSize = (self.stackManager.view.GetSize().Width + self.splitter.GetSashSize() + self.cPanel.GetSize().Width,
-                      max(self.stackManager.view.GetSize().Height, 500))
+        self.stackManager.view.SetSize(size)
+        self.stackManager.UpdateBuffer()
+        clientSize = (size.Width + self.splitter.GetSashSize() + self.cPanel.GetSize().Width,
+                      max(size.Height, 500))
         self.splitter.SetSize(clientSize)
         self.SetClientSize(clientSize)
-        self.splitter.SetSashPosition(self.stackManager.view.GetSize().Width)
+        self.splitter.SetSashPosition(size.Width)
 
     def SetSelectedUiViews(self, views):
         self.cPanel.UpdateForUiViews(views)
