@@ -26,6 +26,7 @@ from uiCard import CardModel
 from findEngineDesigner import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
 from stackExporter import StackExporter
+# import gc
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -82,6 +83,7 @@ class DesignerFrame(wx.Frame):
         self.MakeMenu()
         self.filename = None
         self.app = None
+        # self.lastStats = {}
 
         toolbar = self.CreateToolBar(style=wx.TB_TEXT)
         toolbar.AddTool(ID_RUN, 'Run', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
@@ -506,11 +508,31 @@ class DesignerFrame(wx.Frame):
     def OnRunnerFinished(self, runner):
         self.lastRunErrors = runner.errors
         self.viewer = None
-        self.Refresh()
         self.Show()
+        self.Refresh()
+        self.Update()
+
+        # wx.CallLater(500, self.UpdateGC_Data)
 
         if len(self.lastRunErrors):
             self.OnMenuShowErrorList(None)
+
+    # def UpdateGC_Data(self):
+    #     gc.collect()
+    #     stats = {}
+    #     for o in gc.get_objects():
+    #         if type(o) in stats:
+    #             stats[type(o)] += 1
+    #         else:
+    #             stats[type(o)] = 1
+    #     for k,v in stats.items():
+    #         lastV = 0
+    #         if k in self.lastStats:
+    #             lastV = self.lastStats[k]
+    #         if v != lastV:
+    #             print(f"{v}: {k} (+{v-lastV})")
+    #     print("")
+    #     self.lastStats = stats
 
     def OnMenuShowErrorList(self, event):
         if self.errorListWindow:
