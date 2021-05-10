@@ -1,5 +1,4 @@
 import wx
-from killableThread import RunOnMain
 
 # CardStock-specific Point, Size, RealPoint subclasses
 # These notify their model when their components are changed, so that, for example:

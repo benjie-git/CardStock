@@ -1,6 +1,5 @@
 import wx
 from uiView import *
-from killableThread import RunOnMain
 
 # Native Button Mouse event positions on Mac are offset (?!?)
 MAC_BUTTON_OFFSET_HACK = wx.Point(6,4)

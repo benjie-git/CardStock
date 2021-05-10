@@ -1,7 +1,7 @@
 import wx
 from uiView import *
 import generator
-from killableThread import RunOnMain
+from codeRunnerThread import RunOnMain
 
 
 class UiGroup(UiView):

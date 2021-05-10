@@ -3,7 +3,7 @@ import wx
 import generator
 from math import pi
 from uiView import *
-from killableThread import RunOnMain
+from codeRunnerThread import RunOnMain
 
 
 class UiImage(UiView):

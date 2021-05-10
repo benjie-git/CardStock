@@ -1,7 +1,6 @@
 import wx
 import wx.stc as stc
 from uiView import *
-from killableThread import RunOnMain
 
 
 class UiTextBase(UiView):

@@ -4,7 +4,7 @@ from commands import SetPropertyCommand
 from uiTextBase import *
 import wx.stc as stc
 from wx.lib.docview import CommandProcessor, Command
-from killableThread import RunOnMain
+from codeRunnerThread import RunOnMain
 
 
 class UiTextField(UiTextBase):

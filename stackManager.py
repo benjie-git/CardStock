@@ -26,7 +26,7 @@ from uiTextLabel import UiTextLabel
 from uiImage import UiImage
 from uiShape import UiShape
 from uiGroup import UiGroup, GroupModel
-from killableThread import RunOnMain
+from codeRunnerThread import RunOnMain
 
 
 # ----------------------------------------------------------------------

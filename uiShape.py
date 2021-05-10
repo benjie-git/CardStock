@@ -1,7 +1,7 @@
 import wx
 import generator
 from uiView import *
-from killableThread import RunOnMain
+from codeRunnerThread import RunOnMain
 
 
 class UiShape(UiView):

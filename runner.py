@@ -11,7 +11,7 @@ from time import sleep, time
 import math
 from errorListWindow import CardStockError
 import threading
-from killableThread import KillableThread, RunOnMain
+from codeRunnerThread import CodeRunnerThread, RunOnMain
 import queue
 
 try:
@@ -56,7 +56,7 @@ class Runner():
         # 0-item list means just wake up to check if the thread is supposed to stop
         self.handlerQueue = queue.Queue()
 
-        self.runnerThread = KillableThread(target=self.StartRunLoop)
+        self.runnerThread = CodeRunnerThread(target=self.StartRunLoop)
         self.runnerThread.start()
         self.stopRunnerThread = False
 
@@ -216,7 +216,7 @@ class Runner():
                     break
 
         except SystemExit:
-            # The killableThread got killed, because we told it to stop.
+            # The runnerThread got killed, because we told it to stop.
             if len(self.lastHandlerStack) > 0:
                 model = self.lastHandlerStack[-1][0]
                 handlerName = self.lastHandlerStack[-1][1]

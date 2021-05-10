@@ -2,7 +2,7 @@ import wx
 from uiView import *
 import uiShape
 import generator
-from killableThread import RunOnMain
+from codeRunnerThread import RunOnMain
 
 
 class UiCard(UiView):

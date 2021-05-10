@@ -4,7 +4,7 @@ import wx
 from uiView import ViewModel, ViewProxy
 from uiCard import CardModel
 import version
-from killableThread import RunOnMain
+from codeRunnerThread import RunOnMain
 
 class StackModel(ViewModel):
     """

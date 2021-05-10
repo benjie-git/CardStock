@@ -2,7 +2,6 @@ import wx
 from commands import SetPropertyCommand
 from uiView import *
 from uiTextBase import *
-from killableThread import RunOnMain
 
 
 class UiTextLabel(UiTextBase):

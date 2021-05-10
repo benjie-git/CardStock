@@ -24,7 +24,7 @@ def _async_raise(tid, exctype):
         raise SystemError("PyThreadState_SetAsyncExc failed")
 
 
-class KillableThread(threading.Thread):
+class CodeRunnerThread(threading.Thread):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.returnQueue = queue.Queue()

@@ -6,7 +6,7 @@ import re
 import generator
 import helpData
 from time import time
-from killableThread import RunOnMain
+from codeRunnerThread import RunOnMain
 from cardstockFrameParts import *
 
 
