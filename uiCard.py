@@ -2,7 +2,7 @@ import wx
 from uiView import *
 import uiShape
 import generator
-from codeRunnerThread import RunOnMain
+from codeRunnerThread import RunOnMain, RunOnMainAsync
 
 
 class UiCard(UiView):
@@ -102,7 +102,6 @@ class CardModel(ViewModel):
         self.propertyTypes["canSave"] = 'bool'
         self.propertyTypes["canResize"] = 'bool'
 
-    @RunOnMain
     def SetProperty(self, key, value, notify=True):
         if key in ["size", "canSave", "canResize"]:
             self.parent.SetProperty(key, value, notify)
@@ -401,6 +400,7 @@ class Card(ViewProxy):
             return g.GetProxy() if g else None
         return func()
 
+    @RunOnMainAsync
     def StopAllAnimating(self, propertyName=None):
         model = self._model
         if not model: return

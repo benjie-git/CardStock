@@ -9,6 +9,10 @@ import queue
 from wx import CallAfter
 import ctypes
 
+# -----------------------------------------
+# Handle Stopping the runner thread, by injecting an exception, and then catching it in
+# the runnerThread's runloop in runner.py - StartRunLoop()
+
 def _async_raise(tid, exctype):
     """raises the exception, performs cleanup if needed"""
     if not inspect.isclass(exctype):
@@ -60,27 +64,31 @@ class CodeRunnerThread(threading.Thread):
         self.returnQueue.put(None) # Stop waiting for any currently running main-thread task
 
 
-def to_main_sync(callable, *args, **kwargs):
+# -----------------------------------------
+# Build the @RunOnMain decorator, to run the function on the Main thread, and make the runnerThread wait for the
+# return value, passed back through a queue
+
+def to_main_sync(func, *args, **kwargs):
     """Run a function on the main thread, and await its return value so we can return it on the calling thread"""
     if threading.current_thread() == threading.main_thread():
         # on main thread
-        return callable(*args, **kwargs)
+        return func(*args, **kwargs)
     else:
         # on non-main thread
         thread = threading.current_thread()
         # no more to_main calls once we're terminated
         if not thread.is_terminated:
-            CallAfter(to_main_helper, thread, callable, *args, **kwargs)
+            CallAfter(to_main_sync_helper, thread, func, *args, **kwargs)
             ret = thread.returnQueue.get() # wait for return value
             return ret
         return None
 
 
-def to_main_helper(thread, callable, *args, **kwargs):
+def to_main_sync_helper(thread, func, *args, **kwargs):
     # On main thread
     if not thread.is_terminated:
         try:
-            ret = callable(*args, **kwargs)
+            ret = func(*args, **kwargs)
             thread.returnQueue.put(ret) # send return value to calling thread
         except Exception as e:
             thread.returnQueue.put(None) # send empty return value to calling thread
@@ -94,3 +102,35 @@ def RunOnMain(func):
     def wrapper_run_on_main(*args, **kwargs):
         return to_main_sync(func, *args, **kwargs)
     return wrapper_run_on_main
+
+
+# -----------------------------------------
+# Build the @RunOnMainAsync decorator, to run the function on the Main thread, and let the runnerThread continue
+# without waiting for a return value -- no queue needed
+
+
+def to_main_async(func, *args, **kwargs):
+    """Run a function on the main thread, and await its return value so we can return it on the calling thread"""
+    if threading.current_thread() == threading.main_thread():
+        # on main thread
+        func(*args, **kwargs)
+    else:
+        # on non-main thread
+        thread = threading.current_thread()
+        # no more to_main calls once we're terminated
+        if not thread.is_terminated:
+            CallAfter(to_main_async_helper, thread, func, *args, **kwargs)
+        return None
+
+
+def to_main_async_helper(thread, func, *args, **kwargs):
+    # On main thread
+    if not thread.is_terminated:
+        func(*args, **kwargs)
+
+
+def RunOnMainAsync(func):
+    """ Used as a decorator, to make Proxy object functions run on the main thread. """
+    def wrapper_run_on_main_async(*args, **kwargs):
+        return to_main_async(func, *args, **kwargs)
+    return wrapper_run_on_main_async

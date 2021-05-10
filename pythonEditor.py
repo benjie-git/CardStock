@@ -263,6 +263,7 @@ class PythonEditor(stc.StyledTextCtrl):
                 self.cPanel.UpdateHelpText(helpText)
                 return
         self.cPanel.UpdateHelpText("")
+        event.Skip()
 
     def IsInCommentOrString(self):
         # Use STC's syntax coloring styles to determine whether we're in a comment or string

@@ -6,7 +6,7 @@ import re
 import generator
 import helpData
 from time import time
-from codeRunnerThread import RunOnMain
+from codeRunnerThread import RunOnMain, RunOnMainAsync
 from cardstockFrameParts import *
 
 
@@ -60,9 +60,6 @@ class UiView(object):
     def SetView(self, view):
         self.view = view
         if view:
-            self.BindEvents(view)
-            view.Bind(wx.EVT_SIZE, self.OnResize)
-
             if self.GetCursor():
                 self.view.SetCursor(wx.Cursor(self.GetCursor()))
 
@@ -71,6 +68,8 @@ class UiView(object):
                 rect = wx.Rect(wx.Point(self.model.GetAbsolutePosition()), mSize)
                 self.view.SetRect(self.stackManager.ConvRect(rect))
 
+            self.BindEvents(view)
+            view.Bind(wx.EVT_SIZE, self.OnResize)
             self.view.Show(not self.model.IsHidden())
 
     def SetModel(self, model):
@@ -636,7 +635,6 @@ class ViewModel(object):
         if self.stackManager:
             self.stackManager.OnPropertyChanged(self, key)
 
-    @RunOnMain
     def SetProperty(self, key, value, notify=True):
         if self.didSetDown: return
         if key in self.propertyTypes and self.propertyTypes[key] == "point" and not isinstance(value, wx.Point):
@@ -697,7 +695,7 @@ class ViewModel(object):
             self.handlers[key] = value
             self.isDirty = True
 
-    @RunOnMain
+    @RunOnMainAsync
     def AddAnimation(self, key, duration, onUpdate, onStart=None, onFinish=None, onCancel=None):
         if self.didSetDown: return
         animDict = {"duration": duration,
@@ -808,7 +806,6 @@ class ViewProxy(object):
         if model.stackManager.runner:
            model.stackManager.runner.RunHandler(model, "OnMessage", None, message)
 
-    @RunOnMain
     def Focus(self):
         model = self._model
         if not model: return
@@ -860,7 +857,7 @@ class ViewProxy(object):
 
         return newModel.GetProxy()
 
-    @RunOnMain
+    @RunOnMainAsync
     def Delete(self):
         model = self._model
         if not model: return
@@ -870,14 +867,14 @@ class ViewProxy(object):
         else:
             model.stackManager.RemoveCardRaw(model)
 
-    @RunOnMain
+    @RunOnMainAsync
     def Cut(self):
         model = self._model
         if not model: return
 
         model.stackManager.CutModels([model], False)
 
-    @RunOnMain
+    @RunOnMainAsync
     def Copy(self):
         model = self._model
         if not model: return
@@ -978,37 +975,37 @@ class ViewProxy(object):
         if not model: return
         model.SetCenter(center)
 
-    @RunOnMain
+    @RunOnMainAsync
     def FlipHorizontal(self):
         model = self._model
         if not model: return
         model.PerformFlips(True, False)
 
-    @RunOnMain
+    @RunOnMainAsync
     def FlipVertical(self):
         model = self._model
         if not model: return
         model.PerformFlips(False, True)
 
-    @RunOnMain
+    @RunOnMainAsync
     def OrderToFront(self):
         model = self._model
         if not model: return
         model.OrderMoveTo(-1)
 
-    @RunOnMain
+    @RunOnMainAsync
     def OrderForward(self):
         model = self._model
         if not model: return
         model.OrderMoveBy(1)
 
-    @RunOnMain
+    @RunOnMainAsync
     def OrderBackward(self):
         model = self._model
         if not model: return
         model.OrderMoveBy(-1)
 
-    @RunOnMain
+    @RunOnMainAsync
     def OrderToBack(self):
         model = self._model
         if not model: return
@@ -1021,7 +1018,7 @@ class ViewProxy(object):
         model = self._model
         if not model: return
 
-        @RunOnMain
+        @RunOnMainAsync
         def f():
             if model.didSetDown: return
             model.OrderMoveTo(i)
@@ -1207,6 +1204,7 @@ class ViewProxy(object):
 
         model.AddAnimation("size", duration, onUpdate, onStart, onFinished)
 
+    @RunOnMainAsync
     def StopAnimating(self, propertyName=None):
         model = self._model
         if not model: return

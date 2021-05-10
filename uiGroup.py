@@ -147,7 +147,6 @@ class GroupModel(ViewModel):
             model.origGroupSubviewFrame = model.GetFrame()
         self.origFrame = self.GetFrame()
 
-    @RunOnMain
     def SetProperty(self, key, value, notify=True):
         if self.didSetDown: return
         super().SetProperty(key, value, notify)
@@ -235,6 +234,7 @@ class Group(ViewProxy):
         if groups and len(groups) > 0:
             return groups[0]
 
+    @RunOnMainAsync
     def StopAllAnimating(self, propertyName=None):
         model = self._model
         if not model: return

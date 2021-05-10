@@ -152,7 +152,6 @@ class ImageModel(ViewModel):
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "file", "fit", "rotation", "position", "size"]
 
-    @RunOnMain
     def SetProperty(self, key, value, notify=True):
         if key == "rotation":
             value = value % 360

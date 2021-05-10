@@ -14,6 +14,7 @@ class UiTextBase(UiView):
         self.inlineEditor = None
         self.font = None
         self.textColor = None
+        self.settingValueInternally = False
 
     def DestroyView(self):
         self.StopInlineEditing(notify=False)
@@ -29,7 +30,9 @@ class UiTextBase(UiView):
                     wasEditable = self.view.IsEditable()
                     if not wasEditable:
                         self.view.SetEditable(True)
+                    self.settingValueInternally = True
                     self.view.ChangeValue(str(self.model.GetProperty(key)))
+                    self.settingValueInternally = False
                     self.view.SetEditable(wasEditable)
                     self.view.Refresh()
             self.OnResize(None)

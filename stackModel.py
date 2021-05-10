@@ -88,6 +88,7 @@ class StackModel(ViewModel):
         self.childModels = []
         for data in stackData["cards"]:
             m = CardModel(self.stackManager)
+            m.parent = self
             m.SetData(data)
             self.AppendCardModel(m)
 

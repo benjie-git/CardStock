@@ -127,7 +127,8 @@ class UiTextField(UiTextBase):
 
     def OnTextChanged(self, event):
         if not self.stackManager.isEditing:
-            self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
+            if not self.settingValueInternally:
+                self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
             if self.stackManager.runner and self.model.GetHandler("OnTextChanged"):
                 self.stackManager.runner.RunHandler(self.model, "OnTextChanged", event)
         event.Skip()
@@ -266,7 +267,6 @@ class TextField(TextBaseProxy):
         if not model: return
         model.SetProperty("multiline", val)
 
-    @RunOnMain
     def SelectAll(self):
         model = self._model
         if not model: return

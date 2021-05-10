@@ -26,7 +26,7 @@ from uiTextLabel import UiTextLabel
 from uiImage import UiImage
 from uiShape import UiShape
 from uiGroup import UiGroup, GroupModel
-from codeRunnerThread import RunOnMain
+from codeRunnerThread import RunOnMain, RunOnMainAsync
 
 
 # ----------------------------------------------------------------------
@@ -60,15 +60,15 @@ class DeferredRefreshWindow(wx.Window):
         if not self.deferredRefresh:
             super().Update()
 
-    @RunOnMain
+    @RunOnMainAsync
     def RefreshIfNeeded(self):
         if self.didResize:
             self.stackManager.RepositionViews()
             self.didResize = False
         if self.needsRefresh:
+            self.needsRefresh = False
             super().Refresh(True, None)
             super().Update()
-            self.needsRefresh = False
 
     def ScreenToClient(self, *args, **kwargs):
         """
@@ -119,7 +119,7 @@ class StackManager(object):
         if not self.isEditing:
             self.timer = wx.Timer(self.view)
             self.view.Bind(wx.EVT_TIMER, self.OnPeriodicTimer, self.timer)
-            self.timer.Start(15)
+            self.timer.Start(15 if wx.Platform != "__WXMSW__" else 11)
 
         self.view.Bind(wx.EVT_SIZE, self.OnResize)
         self.view.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -502,6 +502,7 @@ class StackManager(object):
             if self.designer:
                 self.designer.SetSelectedUiViews(self.selectedViews)
 
+    @RunOnMainAsync
     def OnPropertyChanged(self, model, key):
         uiView = self.GetUiViewByModel(model)
         if model == self.stackModel:
@@ -730,7 +731,7 @@ class StackManager(object):
         self.lastMouseMovedUiView = None
 
     def RepositionViews(self):
-        for uiView in self.uiViews:
+        for uiView in self.GetAllUiViews():
             if uiView.view:
                 # Make sure native subview positions get adjusted based on the new origin
                 uiView.OnPropertyChanged(uiView.model, "position")

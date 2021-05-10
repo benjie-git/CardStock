@@ -11,7 +11,7 @@ from time import sleep, time
 import math
 from errorListWindow import CardStockError
 import threading
-from codeRunnerThread import CodeRunnerThread, RunOnMain
+from codeRunnerThread import CodeRunnerThread, RunOnMain, RunOnMainAsync
 import queue
 
 try:
@@ -459,6 +459,7 @@ class Runner():
         if keyName and keyName in self.pressedKeys:
             self.pressedKeys.remove(keyName)
 
+    @RunOnMainAsync
     def SetFocus(self, obj):
         uiView = self.stackManager.GetUiViewByModel(obj._model)
         if uiView:
@@ -616,7 +617,7 @@ class Runner():
         except ValueError:
             raise TypeError("duration must be a number")
 
-        @RunOnMain
+        @RunOnMainAsync
         def f():
             if self.stopRunnerThread: return
             timer = wx.Timer()

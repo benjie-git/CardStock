@@ -197,7 +197,6 @@ class LineModel(ViewModel):
         self.isDirty = True
         self.Notify("shape")
 
-    @RunOnMain
     def SetProperty(self, key, value, notify=True):
         if self.didSetDown: return
         if key == "size":
