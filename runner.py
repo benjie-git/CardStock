@@ -622,6 +622,7 @@ class Runner():
             if self.stopRunnerThread: return
             timer = wx.Timer()
             def onTimer(event):
+                if self.stopRunnerThread: return
                 func(*args, **kwargs)
             timer.Bind(wx.EVT_TIMER, onTimer)
             timer.StartOnce(int(duration*1000))

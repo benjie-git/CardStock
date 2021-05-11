@@ -515,6 +515,8 @@ class StackManager(object):
             self.designer.cPanel.UpdatedProperty(uiView, key)
 
     def GetUiViewByModel(self, model):
+        if not self.uiCard:
+            return None
         if model == self.uiCard.model:
             return self.uiCard
         if model in self.modelToViewMap:
