@@ -81,9 +81,6 @@ class StandaloneFrame(wx.Frame):
     def SetStackModel(self, stackModel):
         self.stackManager.SetStackModel(stackModel)
         size = self.stackManager.stackModel.GetProperty("size")
-        if wx.Platform == "__WXMSW__":
-            # Silly Windows doesn't leave room for the menu bar?
-            size += (0, 20)
         self.SetClientSize(size)
         self.stackManager.view.SetFocus()
 
