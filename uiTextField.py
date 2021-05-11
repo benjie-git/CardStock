@@ -109,9 +109,10 @@ class UiTextField(UiTextBase):
         super().OnPropertyChanged(model, key)
         if key == "multiline":
             self.StopInlineEditing(notify=False)
-            self.stackManager.SelectUiView(None)
-            self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
-            self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.model))
+            sm = self.stackManager
+            sm.SelectUiView(None)
+            sm.LoadCardAtIndex(sm.cardIndex, reload=True)
+            sm.SelectUiView(sm.GetUiViewByModel(model))
         elif key == "editable":
             if self.stackManager.isEditing:
                 self.view.SetEditable(False)

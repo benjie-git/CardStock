@@ -46,9 +46,10 @@ class UiButton(UiView):
         if key == "title":
             self.button.SetLabel(str(self.model.GetProperty(key)))
         elif key == "border":
-            self.stackManager.SelectUiView(None)
-            self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
-            self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.model))
+            sm = self.stackManager
+            sm.SelectUiView(None)
+            sm.LoadCardAtIndex(sm.cardIndex, reload=True)
+            sm.SelectUiView(sm.GetUiViewByModel(model))
 
     def OnKeyDown(self, event):
         if event.GetKeyCode() in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:

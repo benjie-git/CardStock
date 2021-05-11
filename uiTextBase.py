@@ -47,9 +47,10 @@ class UiTextBase(UiView):
             if self.model.type == "textlabel":
                 self.stackManager.view.Refresh()
             else:
-                self.stackManager.SelectUiView(None)
-                self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
-                self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(self.model))
+                sm = self.stackManager
+                sm.SelectUiView(None)
+                sm.LoadCardAtIndex(sm.cardIndex, reload=True)
+                sm.SelectUiView(sm.GetUiViewByModel(model))
 
     def UpdateFont(self, model, view):
         familyName = model.GetProperty("font")

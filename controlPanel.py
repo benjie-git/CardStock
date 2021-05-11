@@ -163,7 +163,7 @@ class ControlPanel(wx.Panel):
 
         self.helpResizer.Bind(EVT_RW_LAYOUT_NEEDED, self.OnRwLayoutNeeded)
 
-        self.UpdateHelpText("-")
+        self.UpdateHelpText("")
         self.SetSizer(self.box)
         self.SetAutoLayout(True)
 
@@ -268,6 +268,7 @@ class ControlPanel(wx.Panel):
         else:
             self.UpdateInspectorForUiViews(uiViews)
             self.UpdateHandlerForUiViews(uiViews, None)
+            self.UpdateHelpText("")
             self.lastSelectedUiView = None
 
     def UpdatedProperty(self, uiView, key):
