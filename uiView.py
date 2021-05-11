@@ -325,7 +325,7 @@ class ViewModel(object):
             self.stackManager = stackManager
             self.didSetDown = False
             for child in self.childModels:
-                child.ReSetUp()
+                child.SetBackUp(stackManager)
                 child.parent = self
 
     def SetDown(self):
