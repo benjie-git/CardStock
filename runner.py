@@ -32,7 +32,17 @@ class Runner():
     finishing those events.
 
     Keep the UI responsive even if an event handler runs an infinite loop.  Do this by running all handler code in the
-    runnerThread.  From there, run all UI calls synchronously on the main thread, as required by wxPython.
+    runnerThread.  From there, run all UI calls on the main thread, as required by wxPython.  If we need a return value
+    from the main thread call, then run the call synchronously using @RunOnMain, and pause the runner thread until the
+    main thread call returns a value.  Otherwise, just fire off the main thread call using @RunOnMainAsync and keep on
+    truckin'.  In general, the stack model is modified on the runnerThread, and uiView and other UI changes are made on
+    the Main thread.  This lets us consolidate many model changes made quickly, into one UI update, to avoid flickering
+    the screen as the stack makes changes to multiple objects.  We try to minimize UI updates, and only display changes
+    once per frame (~60Hz), and then only if something actually changed.  Exceptions are that we will update immediately
+    if the stack changes to another card, or actual native views (buttons and text fields) get created or destroyed.
+
+    When we want to stop the stack running, but a handler is still going, then we tell the thread to terminate, which
+    injects a SystemExit("Return") exception into the runnerThread, so it will stop and allow us to close viewer.
     """
 
     def __init__(self, stackManager):
@@ -48,6 +58,7 @@ class Runner():
         self.rewrittenHandlerMap = {}
         self.onRunFinished = None
         self.funcDefs = {}
+        self.lastCard = None
 
         # queue of tasks to run on the runnerThread
         # each task is put onto the queue as a list.
@@ -119,6 +130,10 @@ class Runner():
             self.errors.append(error)
 
     def SetupForCard(self, cardModel):
+        """
+        This request comes in on the main thread, so we dispatch it to the runner thread,
+        which synchronizes this with any running event handler code.
+        """
         if threading.currentThread() == self.runnerThread:
             self.SetupForCardInternal(cardModel)
         else:
@@ -150,11 +165,11 @@ class Runner():
             for t in self.timers:
                 t.Stop()
             self.timers = []
-            self.handlerQueue.put([]) # Wake up the runner thread get() call
+            self.handlerQueue.put([]) # Wake up the runner thread get() call so it can see that we're stopping
 
             def waitAndYield(duration):
-                # Wait up to 1.0 sec for the stack to finish
-                # run wx.YieldIfNeeded() to process main thread events while waiting, to allow @RunOnMain methods to complete
+                # Wait up to duration seconds for the stack to finish running
+                # run wx.YieldIfNeeded() to process main thread events while waiting, to allow @RunOnMain* methods to complete
                 endTime = time() + duration
                 while time() < endTime:
                     breakpoint = time() + 0.05
@@ -163,16 +178,32 @@ class Runner():
                     while time() < breakpoint:
                         wx.YieldIfNeeded()
 
-            waitAndYield(0.7)
-            self.runnerThread.join(0.05)
+            waitAndYield(0.7) # wait 0.7 sec for the stack to finish
+            self.runnerThread.join(0.05) # try to join the finished thread
 
             if self.runnerThread.is_alive():
-                self.runnerThread.terminate()
-                waitAndYield(0.2)
-                self.runnerThread.join(0.05)
+                # Thread didn't finish.  So kill it and wait for the thread to stop
+                for i in range(4):
+                    # Try a few times, on the off chance that someone has a long/infinite loop in their code,
+                    # inside a try block, with another long/infinite loop inside the exception handler
+                    self.runnerThread.terminate()
+                    waitAndYield(0.15)
+                    self.runnerThread.join(0.05)
+                    if not self.runnerThread.is_alive():
+                        break
+                if self.runnerThread.is_alive():
+                    # If the runnerThread is still going now, something went wrong
+                    model = self.lastHandlerStack[-1][0]
+                    handlerName = self.lastHandlerStack[-1][1]
+                    msg = f"Exited while {self.HandlerPath(model, handlerName, self.lastCard)} was still running, and " \
+                          f"could not be stopped.  Maybe you have a long or infinite loop?"
+                    error = CardStockError(self.lastCard, model, handlerName, 1, msg)
+                    self.errors.append(error)
+
             self.runnerThread = None
 
         self.lastHandlerStack = None
+        self.lastCard = None
         self.SoundStop()
         self.soundCache = None
         self.cardVarKeys = None
@@ -197,7 +228,6 @@ class Runner():
         """
         try:
             while True:
-                lastCard = None
                 args = self.handlerQueue.get()
                 if len(args) == 0:
                     # This is an enqueued task meant to Refresh after running all other tasks,
@@ -207,7 +237,7 @@ class Runner():
                 elif len(args) == 1:
                     self.SetupForCardInternal(*args)
                 elif len(args) == 6:
-                    lastCard = args[0].GetCard()
+                    self.lastCard = args[0].GetCard()
                     self.RunHandlerInternal(*args)
                     if args[1] == "OnPeriodic":
                         self.numOnPeriodicsQueued -= 1
@@ -220,8 +250,8 @@ class Runner():
             if len(self.lastHandlerStack) > 0:
                 model = self.lastHandlerStack[-1][0]
                 handlerName = self.lastHandlerStack[-1][1]
-                msg = f"Exited while {self.HandlerPath(model, handlerName, lastCard)} was still running.  Maybe you have a long or infinite loop?"
-                error = CardStockError(lastCard, model, handlerName, 0, msg)
+                msg = f"Exited while {self.HandlerPath(model, handlerName, self.lastCard)} was still running.  Maybe you have a long or infinite loop?"
+                error = CardStockError(self.lastCard, model, handlerName, 0, msg)
                 error.count = 1
                 if self.errors is not None:
                     self.errors.append(error)
