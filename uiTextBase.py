@@ -234,8 +234,9 @@ class TextBaseProxy(ViewProxy):
 
         endColor = wx.Colour(endVal)
         if endColor.IsOk():
+            origVal = wx.Colour(self.textColor)
+
             def onStart(animDict):
-                origVal = wx.Colour(self.textColor)
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
                 animDict["origParts"] = origParts
                 endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]

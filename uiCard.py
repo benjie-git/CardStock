@@ -286,8 +286,9 @@ class Card(ViewProxy):
 
         endColor = wx.Colour(endVal)
         if endColor.IsOk():
+            origVal = wx.Colour(self.bgColor)
+
             def onStart(animDict):
-                origVal = wx.Colour(self.bgColor)
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
                 animDict["origParts"] = origParts
                 endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]

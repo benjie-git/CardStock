@@ -331,8 +331,9 @@ class Line(ViewProxy):
         model = self._model
         if not model: return
 
+        origVal = self.penThickness
+
         def onStart(animDict):
-            origVal = self.penThickness
             animDict["origVal"] = origVal
             animDict["offset"] = endVal - origVal
 
@@ -352,8 +353,9 @@ class Line(ViewProxy):
 
         endColor = wx.Colour(endVal)
         if endColor.IsOk():
+            origVal = wx.Colour(self.penColor)
+
             def onStart(animDict):
-                origVal = wx.Colour(self.penColor)
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
                 animDict["origParts"] = origParts
                 endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
@@ -416,8 +418,9 @@ class Shape(Line):
 
         endColor = wx.Colour(endVal)
         if endColor.IsOk():
+            origVal = wx.Colour(self.fillColor)
+
             def onStart(animDict):
-                origVal = wx.Colour(self.fillColor)
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
                 animDict["origParts"] = origParts
                 endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
@@ -478,8 +481,9 @@ class RoundRect(Shape):
         model = self._model
         if not model: return
 
+        origVal = self.cornerRadius
+
         def onStart(animDict):
-            origVal = self.cornerRadius
             animDict["origVal"] = origVal
             animDict["offset"] = endVal - origVal
 

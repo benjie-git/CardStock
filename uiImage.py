@@ -217,8 +217,9 @@ class Image(ViewProxy):
         model = self._model
         if not model: return
 
+        origVal = self.rotation
+
         def onStart(animDict):
-            origVal = self.rotation
             animDict["origVal"] = origVal
             animDict["offset"] = endRotation - origVal
 
