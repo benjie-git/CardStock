@@ -7,7 +7,7 @@
       455
     ],
     "canSave": false,
-    "canResize": true
+    "canResize": false
   },
   "cards": [
     {

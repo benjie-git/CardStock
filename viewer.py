@@ -31,8 +31,6 @@ ID_MENU_REPLACE = wx.NewIdRef()
 ID_SHOW_CONSOLE = wx.NewIdRef()
 ID_CLEAR_CONSOLE = wx.NewIdRef()
 
-argFilename = None
-
 # ----------------------------------------------------------------------
 
 
@@ -333,11 +331,12 @@ class ViewerFrame(wx.Frame):
 
 class ViewerApp(wx.App, InspectionMixin):
     def OnInit(self):
+        self.argFilename = None
+        self.doneStarting = False
         self.Init(self)  # for InspectionMixin
         self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
         self.SetAppDisplayName('CardStock')
         self.frame = None
-        self.doneStarting = False
 
         return True
 
@@ -387,10 +386,9 @@ class ViewerApp(wx.App, InspectionMixin):
             top.Raise()
 
     def MacOpenFile(self, filename):
-        global argFilename
-        argFilename = filename
+        self.argFilename = filename
         if self.doneStarting:
-            self.frame.OpenFile(argFilename)
+            self.frame.OpenFile(self.argFilename)
 
 # ----------------------------------------------------------------------
 
@@ -398,14 +396,15 @@ class ViewerApp(wx.App, InspectionMixin):
 if __name__ == '__main__':
     app = ViewerApp(redirect=False)
 
-    if len(sys.argv) > 1 and not argFilename:
-        argFilename = sys.argv[1]
+    if len(sys.argv) > 1 and not app.argFilename:
+        app.argFilename = sys.argv[1]
 
-    if argFilename:
-        app.OpenFile(argFilename)
+    if app.argFilename:
+        app.OpenFile(app.argFilename)
     else:
         app.NewFile()
 
     app.doneStarting = True
+    app.argFilename = None
 
     app.MainLoop()

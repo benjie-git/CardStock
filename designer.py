@@ -202,11 +202,11 @@ class DesignerFrame(wx.Frame):
                 if data:
                     stackModel = StackModel(self.stackManager)
                     stackModel.SetData(data)
-            except:
+            except Exception as e:
                 stackModel = None
                 self.NewFile()
                 wx.YieldIfNeeded()
-                wx.MessageDialog(None, str("Couldn't read file"), "", wx.OK).ShowModal()
+                wx.MessageDialog(None, "Couldn't read file:" + str(e), "", wx.OK).ShowModal()
 
             if stackModel:
                 self.stackManager.SetDesigner(self)
@@ -816,6 +816,8 @@ class DesignerFrame(wx.Frame):
 
 class DesignerApp(wx.App, InspectionMixin):
     def OnInit(self):
+        self.argFilename = None
+        self.doneStarting = False
         self.Init() # for InspectionMixin
         self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
         self.frame = DesignerFrame(None)
@@ -826,7 +828,9 @@ class DesignerApp(wx.App, InspectionMixin):
         return True
 
     def MacOpenFile(self, filename):
-        self.frame.OpenFile(filename)
+        self.argFilename = filename
+        if self.doneStarting:
+            self.frame.OpenFile(self.argFilename)
 
     def MacReopenApp(self):
         """
@@ -850,10 +854,15 @@ class DesignerApp(wx.App, InspectionMixin):
 if __name__ == '__main__':
     app = DesignerApp(redirect=False)
 
-    if len(sys.argv) > 1:
-        argFilename = sys.argv[1]
-        app.frame.ReadFile(argFilename)
+    if len(sys.argv) > 1 and not app.argFilename:
+        app.argFilename = sys.argv[1]
+
+    if app.argFilename:
+        app.frame.ReadFile(app.argFilename)
+
     app.frame.FinishedStarting()
+    app.doneStarting = True
+    app.argFilename = None
     # import wx.lib.inspection
     # wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
