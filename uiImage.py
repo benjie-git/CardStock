@@ -217,13 +217,15 @@ class Image(ViewProxy):
         model = self._model
         if not model: return
 
-        origVal = self.rotation
-
         def onStart(animDict):
+            origVal = self.rotation
             animDict["origVal"] = origVal
             animDict["offset"] = endRotation - origVal
 
         def onUpdate(progress, animDict):
             model.SetProperty("rotation", animDict["origVal"] + animDict["offset"] * progress)
 
-        model.AddAnimation("rotation", duration, onUpdate, onStart, onFinished)
+        def internalOnFinished(animDict):
+            if onFinished: onFinished(*args, **kwargs)
+
+        model.AddAnimation("rotation", duration, onUpdate, onStart, internalOnFinished)

@@ -234,9 +234,8 @@ class TextBaseProxy(ViewProxy):
 
         endColor = wx.Colour(endVal)
         if endColor.IsOk():
-            origVal = wx.Colour(self.textColor)
-
             def onStart(animDict):
+                origVal = wx.Colour(self.textColor)
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
                 animDict["origParts"] = origParts
                 endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
@@ -245,4 +244,7 @@ class TextBaseProxy(ViewProxy):
             def onUpdate(progress, animDict):
                 model.SetProperty("textColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
-            model.AddAnimation("textColor", duration, onUpdate, onStart, onFinished)
+            def internalOnFinished(animDict):
+                if onFinished: onFinished(*args, **kwargs)
+
+            model.AddAnimation("textColor", duration, onUpdate, onStart, internalOnFinished)

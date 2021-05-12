@@ -1131,9 +1131,8 @@ class ViewProxy(object):
         model = self._model
         if not model: return
 
-        origPosition = model.GetAbsolutePosition()
-
         def onStart(animDict):
+            origPosition = model.GetAbsolutePosition()
             offsetPt = endPosition - origPosition
             offset = wx.RealPoint(offsetPt[0], offsetPt[1])
             animDict["origPosition"] = origPosition
@@ -1163,9 +1162,8 @@ class ViewProxy(object):
         model = self._model
         if not model: return
 
-        origCenter = model.GetCenter()
-
         def onStart(animDict):
+            origCenter = model.GetCenter()
             offsetPt = endCenter - origCenter
             offset = wx.RealPoint(offsetPt[0], offsetPt[1])
             animDict["origCenter"] = origCenter
@@ -1195,9 +1193,8 @@ class ViewProxy(object):
         model = self._model
         if not model: return
 
-        origSize = model.GetProperty("size")
-
         def onStart(animDict):
+            origSize = model.GetProperty("size")
             offset = wx.Size(endSize-origSize)
             animDict["origSize"] = origSize
             animDict["offset"] = offset
@@ -1205,7 +1202,10 @@ class ViewProxy(object):
         def onUpdate(progress, animDict):
             model.SetProperty("size", animDict["origSize"] + animDict["offset"] * progress)
 
-        model.AddAnimation("size", duration, onUpdate, onStart, onFinished)
+        def internalOnFinished(animDict):
+            if onFinished: onFinished(*args, **kwargs)
+
+        model.AddAnimation("size", duration, onUpdate, onStart, internalOnFinished)
 
     @RunOnMainAsync
     def StopAnimating(self, propertyName=None):

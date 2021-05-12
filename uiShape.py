@@ -331,16 +331,18 @@ class Line(ViewProxy):
         model = self._model
         if not model: return
 
-        origVal = self.penThickness
-
         def onStart(animDict):
+            origVal = self.penThickness
             animDict["origVal"] = origVal
             animDict["offset"] = endVal - origVal
 
         def onUpdate(progress, animDict):
             model.SetProperty("penThickness", animDict["origVal"] + animDict["offset"] * progress)
 
-        model.AddAnimation("penThickness", duration, onUpdate, onStart, onFinished)
+        def internalOnFinished(animDict):
+            if onFinished: onFinished(*args, **kwargs)
+
+        model.AddAnimation("penThickness", duration, onUpdate, onStart, internalOnFinished)
 
     def AnimatePenColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
@@ -353,9 +355,8 @@ class Line(ViewProxy):
 
         endColor = wx.Colour(endVal)
         if endColor.IsOk():
-            origVal = wx.Colour(self.penColor)
-
             def onStart(animDict):
+                origVal = wx.Colour(self.penColor)
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
                 animDict["origParts"] = origParts
                 endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
@@ -364,7 +365,10 @@ class Line(ViewProxy):
             def onUpdate(progress, animDict):
                 model.SetProperty("penColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
-            model.AddAnimation("penColor", duration, onUpdate, onStart, onFinished)
+            def internalOnFinished(animDict):
+                if onFinished: onFinished(*args, **kwargs)
+
+            model.AddAnimation("penColor", duration, onUpdate, onStart, internalOnFinished)
 
 
 class ShapeModel(LineModel):
@@ -418,9 +422,8 @@ class Shape(Line):
 
         endColor = wx.Colour(endVal)
         if endColor.IsOk():
-            origVal = wx.Colour(self.fillColor)
-
             def onStart(animDict):
+                origVal = wx.Colour(self.fillColor)
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
                 animDict["origParts"] = origParts
                 endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
@@ -429,7 +432,10 @@ class Shape(Line):
             def onUpdate(progress, animDict):
                 model.SetProperty("fillColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
-            model.AddAnimation("fillColor", duration, onUpdate, onStart, onFinished)
+            def internalOnFinished(animDict):
+                if onFinished: onFinished(*args, **kwargs)
+
+            model.AddAnimation("fillColor", duration, onUpdate, onStart, internalOnFinished)
 
 
 class RoundRectModel(ShapeModel):
@@ -481,13 +487,15 @@ class RoundRect(Shape):
         model = self._model
         if not model: return
 
-        origVal = self.cornerRadius
-
         def onStart(animDict):
+            origVal = self.cornerRadius
             animDict["origVal"] = origVal
             animDict["offset"] = endVal - origVal
 
         def onUpdate(progress, animDict):
             model.SetProperty("cornerRadius", animDict["origVal"] + animDict["offset"] * progress)
 
-        model.AddAnimation("cornerRadius", duration, onUpdate, onStart, onFinished)
+        def internalOnFinished(animDict):
+            if onFinished: onFinished(*args, **kwargs)
+
+        model.AddAnimation("cornerRadius", duration, onUpdate, onStart, internalOnFinished)
