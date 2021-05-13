@@ -209,7 +209,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMessage": "if message == \"update\":\n   items = stats_list[2:]\n   low = min(items)\n   high = max(items)\n   num_points = len(items)\n\n   pos = graph_frame.position\n   s = graph_frame.size\n\n   xStep = (s.width-2)/(num_points-1)\n   yStep = (s.height-3)/(high)\n\n   points = []\n   for i in range(len(items)):\n      points.append((xStep*i+pos.x, yStep*(items[i])+pos.y))\n\n   for obj in card.children:\n      if obj.name == \"line_1\":\n         obj.Delete()\n   line = card.AddLine(points, \"line_1\")"
+            "OnMessage": "if message == \"update\":\n   items = stats_list[2:]\n   low = min(items)\n   high = max(items)\n   num_points = len(items)\n\n   pos = graph_frame.position\n   s = graph_frame.size\n\n   xStep = (s.width-2)/(num_points-1)\n   yStep = (s.height-3)/(high)\n\n   points = []\n   for i in range(len(items)):\n      points.append((xStep*i+pos.x, yStep*(items[i])+pos.y))\n\n   for obj in card.children:\n      if obj.name == \"line_1\":\n         obj.Delete()\n   line = card.AddLine(points, \"line_1\")\n"
           },
           "properties": {
             "name": "graph_frame",
@@ -244,5 +244,5 @@
     }
   ],
   "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9"
+  "CardStock_stack_version": "0.9.2.2"
 }

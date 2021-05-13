@@ -459,6 +459,7 @@ class StackManager(object):
         return uiView
 
     def AddUiViewsFromModels(self, models, canUndo=True):
+        models = [m for m in models if not m.didSetDown]
         self.uiCard.model.DeduplicateNamesForModels(models)
         command = AddUiViewsCommand(True, 'Add Views', self, self.cardIndex, models)
 
@@ -545,7 +546,8 @@ class StackManager(object):
             DelFromMap(ui)
 
             self.uiViews.remove(ui)
-            self.uiCard.model.RemoveChild(ui.model)
+            if ui.model.parent:
+                self.uiCard.model.RemoveChild(ui.model)
             ui.SetDown()
             self.view.Refresh()
 

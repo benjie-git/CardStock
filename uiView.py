@@ -874,15 +874,22 @@ class ViewProxy(object):
 
         return newModel.GetProxy()
 
-    @RunOnMainAsync
     def Delete(self):
         model = self._model
-        if not model: return
+        if not model or not model.parent or model.parent.type == "group":
+            return
 
+        sm = model.stackManager
         if model.type != "card":
-            model.stackManager.RemoveUiViewByModel(model)
-        else:
-            model.stackManager.RemoveCardRaw(model)
+            model.parent.RemoveChild(model)
+
+        @RunOnMainAsync
+        def func():
+            if model.type != "card":
+                sm.RemoveUiViewByModel(model)
+            else:
+                sm.RemoveCardRaw(model)
+        func()
 
     @RunOnMainAsync
     def Cut(self):

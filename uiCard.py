@@ -188,13 +188,13 @@ class CardModel(ViewModel):
                 if k in model.propertyTypes:
                     model.SetProperty(k, v, notify=False)
 
+        self.AddChild(model)
+
         @RunOnMainAsync
         def func():
             if self.didSetDown: return
             if self.stackManager.uiCard.model == self:
                 self.stackManager.AddUiViewsFromModels([model], canUndo=False)
-            else:
-                self.AddChild(model)
             self.stackManager.view.Refresh()
         func()
 
