@@ -166,6 +166,7 @@ class CardModel(ViewModel):
         if not isinstance(name, str):
             raise TypeError("name is not a string")
 
+        # immediately create the new object and add it to the card model
         model = generator.StackGenerator.ModelFromType(self.stackManager, typeStr)
         model.SetProperty("name", name, notify=False)
         self.DeduplicateNamesForModels([model])
@@ -192,6 +193,7 @@ class CardModel(ViewModel):
 
         @RunOnMainAsync
         def func():
+            # add the view on the main thread
             if self.didSetDown: return
             if self.stackManager.uiCard.model == self:
                 self.stackManager.AddUiViewsFromModels([model], canUndo=False)

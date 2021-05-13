@@ -879,12 +879,14 @@ class ViewProxy(object):
         if not model or not model.parent or model.parent.type == "group":
             return
 
+        # immediately update the model
         sm = model.stackManager
         if model.type != "card":
             model.parent.RemoveChild(model)
 
         @RunOnMainAsync
         def func():
+            # update views on the main thread
             if model.type != "card":
                 sm.RemoveUiViewByModel(model)
             else:
