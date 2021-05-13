@@ -361,7 +361,7 @@ class ViewModel(object):
             self.stackManager.uiCard.model.DeduplicateNamesForModels([newModel])
         else:
             newModel.SetProperty("name", newModel.DeduplicateName("card_1",
-                                                                  [m.GetProperty("name") for m in self.stackManager.stackModel.childModels]))
+                [m.GetProperty("name") for m in self.stackManager.stackModel.childModels]), notify=False)
         return newModel
 
     def GetType(self):
@@ -840,37 +840,45 @@ class ViewProxy(object):
         if uiView and uiView.view:
             return uiView.view.HasFocus()
 
-    @RunOnMain
     def Clone(self, **kwargs):
         model = self._model
         if not model: return None
 
         if model.type != "card":
             newModel = model.CreateCopy()
-            newModel.SetProperty("speed", model.GetProperty("speed"))
+            newModel.SetProperty("speed", model.GetProperty("speed"), notify=False)
             if not self.visible:
-                newModel.SetProperty("hidden", True)
+                newModel.SetProperty("hidden", True, notify=False)
             for k,v in kwargs.items():
                 if k in newModel.propertyTypes:
-                    newModel.SetProperty(k, v)
-            model.stackManager.AddUiViewsFromModels([newModel], False)
-            model.stackManager.runner.SetupForCard(newModel.GetCard())
+                    newModel.SetProperty(k, v, notify=False)
 
+            model.GetCard().AddChild(newModel)
             newModel.RunSetup(model.stackManager.runner)
             if newModel.GetCard() != model.stackManager.uiCard.model:
                 model.stackManager.runner.SetupForCard(model.stackManager.uiCard.model)
+
+            @RunOnMainAsync
+            def func():
+                if not newModel.didSetDown:
+                    newModel.stackManager.AddUiViewsFromModels([newModel], False)
+            func()
         else:
-            newModel = model.stackManager.DuplicateCard()
+            @RunOnMain
+            def func():
+                newModel = model.stackManager.DuplicateCard()
 
-            if "center" in kwargs and "size" in kwargs:
-                newModel.SetProperty("size", kwargs["size"])
-                newModel.SetProperty("center", kwargs["center"])
-                kwargs.pop("size")
-                kwargs.pop("center")
+                if "center" in kwargs and "size" in kwargs:
+                    newModel.SetProperty("size", kwargs["size"])
+                    newModel.SetProperty("center", kwargs["center"])
+                    kwargs.pop("size")
+                    kwargs.pop("center")
 
-            for k,v in kwargs.items():
-                if k in newModel.propertyTypes:
-                    newModel.SetProperty(k, v)
+                for k,v in kwargs.items():
+                    if k in newModel.propertyTypes:
+                        newModel.SetProperty(k, v)
+                return newModel
+            newModel = func()
 
         return newModel.GetProxy()
 
