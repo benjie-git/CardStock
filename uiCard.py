@@ -297,7 +297,7 @@ class Card(ViewProxy):
                 model.SetProperty("bgColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
             def internalOnFinished(animDict):
-                if onFinished: onFinished(*args, **kwargs)
+                if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
             model.AddAnimation("bgColor", duration, onUpdate, onStart, internalOnFinished)
 

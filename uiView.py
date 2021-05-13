@@ -348,7 +348,6 @@ class ViewModel(object):
             self.animations = {}
             self.stackManager = None
             self.parent = None
-        self.animLock = None
 
     def DismantleChildTree(self):
         for child in self.childModels:
@@ -1164,8 +1163,8 @@ class ViewProxy(object):
             model.SetAbsolutePosition(animDict["origPosition"] + animDict["offset"] * progress)
 
         def internalOnFinished(animDict):
-            model.SetProperty("speed", (0,0))
-            if onFinished: onFinished(*args, **kwargs)
+            model.SetProperty("speed", (0,0), notify=False)
+            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
         def onCanceled(animDict):
             model.SetProperty("speed", (0,0))
@@ -1195,8 +1194,8 @@ class ViewProxy(object):
             model.SetCenter(animDict["origCenter"] + animDict["offset"] * progress)
 
         def internalOnFinished(animDict):
-            model.SetProperty("speed", (0,0))
-            if onFinished: onFinished(*args, **kwargs)
+            model.SetProperty("speed", (0,0), notify=False)
+            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
         def onCanceled(animDict):
             model.SetProperty("speed", (0,0))
@@ -1224,7 +1223,7 @@ class ViewProxy(object):
             model.SetProperty("size", animDict["origSize"] + animDict["offset"] * progress)
 
         def internalOnFinished(animDict):
-            if onFinished: onFinished(*args, **kwargs)
+            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
         model.AddAnimation("size", duration, onUpdate, onStart, internalOnFinished)
 

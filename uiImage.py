@@ -226,6 +226,6 @@ class Image(ViewProxy):
             model.SetProperty("rotation", animDict["origVal"] + animDict["offset"] * progress)
 
         def internalOnFinished(animDict):
-            if onFinished: onFinished(*args, **kwargs)
+            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
         model.AddAnimation("rotation", duration, onUpdate, onStart, internalOnFinished)

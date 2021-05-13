@@ -221,6 +221,18 @@ class Runner():
     def EnqueueRefresh(self):
         self.handlerQueue.put([])
 
+    def EnqueueFunction(self, func, *args, **kwargs):
+        """
+        Add an arbitrary callable to the runner queue.
+        This is used to send RunAfterDelay(), and animation onFinished functions
+        from the main thread, back onto the runner thread, where we can properly
+        catch errors in RunWithExceptionHandling(), to display to the user
+        and avoid totally blowing up the app.
+        """
+        if not args: args = ()
+        if not kwargs: kwargs = {}
+        self.handlerQueue.put([func, args, kwargs])
+
     def StartRunLoop(self):
         """
         This is the runnerThread's run loop.  Start waiting for queued handlers, and process them until
@@ -235,8 +247,13 @@ class Runner():
                     if not self.stopRunnerThread:
                         self.stackManager.view.RefreshIfNeeded()
                 elif len(args) == 1:
+                    # Run Setup for the given card
                     self.SetupForCardInternal(*args)
+                elif len(args) == 3:
+                    # Run the given function with optional args, kwargs
+                    self.RunWithExceptionHandling(args[0], *args[1], **args[2])
                 elif len(args) == 6:
+                    # Run this handler
                     self.lastCard = args[0].GetCard()
                     self.RunHandlerInternal(*args)
                     if args[1] == "OnPeriodic":
@@ -455,8 +472,73 @@ class Runner():
             # No return used, so keep the handler as-is
             return handlerStr
 
+    def RunWithExceptionHandling(self, func, *args, **kwargs):
+        """ Run a function with exception handling.  This always runs on the runnerThread. """
+        error = None
+        error_class = None
+        line_number = None
+        errModel = None
+        errHandlerName = None
+        in_func = []
+        detail = None
+
+        uiModel = None
+        oldCard = None
+        oldSelf = None
+        funcName = func.__name__
+        if funcName in self.funcDefs:
+            uiModel = self.funcDefs[funcName][0]
+            if self.lastCard != uiModel.GetCard():
+                self.oldCard = self.lastCard
+                self.SetupForCard(uiModel.GetCard())
+            if "self" in self.clientVars:
+                oldSelf = self.clientVars["self"]
+            self.clientVars["self"] = uiModel.GetProxy()
+
+        try:
+            func(*args, **kwargs)
+        except Exception as err:
+            error_class = err.__class__.__name__
+            detail = err.args[0]
+            cl, exc, tb = sys.exc_info()
+            trace = traceback.extract_tb(tb)
+            for i in range(len(trace)):
+                if trace[i].filename == "<string>" and trace[i].name != "<module>":
+                    if trace[i].name in self.funcDefs:
+                        errModel = self.funcDefs[trace[i].name][0]
+                        errHandlerName = self.funcDefs[trace[i].name][1]
+                        line_number = trace[i].lineno
+                    in_func.append((trace[i].name, trace[i].lineno))
+
+        if error_class and errModel and self.errors is not None:
+            msg = f"{error_class} in {self.HandlerPath(errModel, errHandlerName)}, line {line_number}: {detail}"
+            if len(in_func) > 1:
+                frames = [f"{f[0]}():{f[1]}" for f in in_func]
+                msg += f" (from {' => '.join(frames)})"
+
+            for e in self.errors:
+                if e.msg == msg:
+                    error = e
+                    break
+            if not error:
+                error = CardStockError(errModel.GetCard() if errModel else None,
+                                       errModel, errHandlerName, line_number, msg)
+                self.errors.append(error)
+            error.count += 1
+
+            sys.stderr.write(msg + os.linesep)
+
+        if oldCard:
+            self.SetupForCard(oldCard)
+        if oldSelf:
+            self.clientVars["self"] = oldSelf
+        else:
+            if "self" in self.clientVars:
+                self.clientVars.pop("self")
+
     def ScrapeNewFuncDefs(self, oldVars, newVars, model, handlerName):
-        # Keep track of where each user function has been defined, so we can send you to the right handler on an error
+        # Keep track of where each user function has been defined, so we can send you to the right handler's code in
+        # the Designer when the user clicks on an error in the ErrorList.
         for (k, v) in newVars.items():
             if isinstance(v, types.FunctionType) and (k not in oldVars or oldVars[k] != v):
                 self.funcDefs[k] = (model, handlerName)
@@ -647,16 +729,24 @@ class Runner():
         except ValueError:
             raise TypeError("duration must be a number")
 
+        startTime = time()
+
         @RunOnMainAsync
         def f():
             if self.stopRunnerThread: return
-            timer = wx.Timer()
-            def onTimer(event):
-                if self.stopRunnerThread: return
-                func(*args, **kwargs)
-            timer.Bind(wx.EVT_TIMER, onTimer)
-            timer.StartOnce(int(duration*1000))
-            self.timers.append(timer)
+
+            adjustedDuration = duration + startTime - time()
+            if adjustedDuration > 0.010:
+                timer = wx.Timer()
+                def onTimer(event):
+                    if self.stopRunnerThread: return
+                    self.EnqueueFunction(func, *args, **kwargs)
+                timer.Bind(wx.EVT_TIMER, onTimer)
+                timer.StartOnce(int(adjustedDuration*1000))
+                self.timers.append(timer)
+            else:
+                self.EnqueueFunction(func, *args, **kwargs)
+
         f()
 
     @RunOnMain
