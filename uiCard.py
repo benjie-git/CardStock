@@ -206,7 +206,7 @@ class CardModel(ViewModel):
         cardSize = self.GetProperty("size")
         if fx or fy:
             for m in self.childModels:
-                m.PerformFlips(fx, fy, notify=False)
+                m.PerformFlips(fx, fy, notify=notify)
             for m in self.childModels:
                 pos = m.GetProperty("position")
                 size = m.GetProperty("size")
