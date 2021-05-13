@@ -41,7 +41,7 @@ class UiTextLabel(UiTextBase):
         if self.stackManager.isEditing and self.isInlineEditing:
             if self.view:
                 self.view.Show()
-            command = SetPropertyCommand(True, "Set Property", self, self.stackManager.cardIndex, self.model,
+            command = SetPropertyCommand(True, "Set Property", self.stackManager.designer.cPanel, self.stackManager.cardIndex, self.model,
                                          "text", self.inlineEditor.GetValue())
             self.stackManager.command_processor.Submit(command)
             self.stackManager.view.RemoveChild(self.inlineEditor)

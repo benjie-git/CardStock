@@ -91,7 +91,7 @@ class UiTextField(UiTextBase):
             self.isInlineEditing = False
             endText = self.view.GetValue()
             self.view.SetValue(self.inlineStartText)
-            command = SetPropertyCommand(True, "Set Property", self, self.stackManager.cardIndex, self.model,
+            command = SetPropertyCommand(True, "Set Property", self.stackManager.designer.cPanel, self.stackManager.cardIndex, self.model,
                                          "text", endText)
             self.stackManager.command_processor.Submit(command)
             self.view.SetEditable(False)
