@@ -255,18 +255,19 @@ class LineModel(ViewModel):
 
         # First move all points to be relative to the card origin
         offset = self.GetProperty("position")
+        points = self.points.copy()
         # adjust all points in shape
         i = 0
-        for x, y in self.points.copy():
-            self.points[i] = (x + offset[0], y + offset[1])
+        for x, y in points:
+            points[i] = (x + offset[0], y + offset[1])
             i += 1
 
         rect = None
-        if len(self.points) > 0:
+        if len(points) > 0:
             # calculate bounding rect
             if not rect:
-                rect = wx.Rect(self.points[0][0], self.points[0][1], 1, 1)
-            for x,y in self.points:
+                rect = wx.Rect(points[0][0], points[0][1], 1, 1)
+            for x,y in points:
                 rect = rect.Union(wx.Rect(x, y, 1, 1))
 
         rect = wx.Rect(rect.Left, rect.Top, rect.Width-1, rect.Height-1)
@@ -282,13 +283,14 @@ class LineModel(ViewModel):
             self.SetProperty("size", rect.Size)
         self.SetProperty("originalSize", rect.Size)
 
-        if len(self.points) > 0:
+        if len(points) > 0:
             # adjust all points in shape
             i = 0
-            for x,y in self.points.copy():
-                self.points[i] = (x-rect.Left, y-rect.Top)
+            for x,y in points:
+                points[i] = (x-rect.Left, y-rect.Top)
                 i += 1
 
+        self.points = points
         self.DidUpdateShape()
 
 

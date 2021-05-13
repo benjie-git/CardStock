@@ -732,7 +732,6 @@ class ViewModel(object):
 
     def FinishAnimation(self, key):
         # On Main thread
-        f = None
         with self.animLock:
             if key in self.animations:
                 animList = self.animations[key]
@@ -743,9 +742,7 @@ class ViewModel(object):
                 else:
                     del self.animations[key]
                 if "startTime" in animDict and animDict["onFinish"]:
-                    f = animDict["onFinish"]
-        if f:
-            f(animDict)
+                    animDict["onFinish"](animDict)
 
     def StopAnimation(self, key=None):
         # On Runner thread

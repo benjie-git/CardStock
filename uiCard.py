@@ -166,40 +166,39 @@ class CardModel(ViewModel):
         if not isinstance(name, str):
             raise TypeError("name is not a string")
 
-        @RunOnMain
-        def func():
-            if self.didSetDown: return None
-            model = generator.StackGenerator.ModelFromType(self.stackManager, typeStr)
-            model.SetProperty("name", name)
-            self.DeduplicateNamesForModels([model])
-            if size:
-                model.SetProperty("size", size, notify=False)
-            if isinstance(model, uiShape.LineModel):
-                model.type = typeStr
-                if points:
-                    model.points = points
-                    model.ReCropShape()
+        model = generator.StackGenerator.ModelFromType(self.stackManager, typeStr)
+        model.SetProperty("name", name, notify=False)
+        self.DeduplicateNamesForModels([model])
+        if size:
+            model.SetProperty("size", size, notify=False)
+        if isinstance(model, uiShape.LineModel):
+            model.type = typeStr
+            if points:
+                model.points = points
+                model.ReCropShape()
 
+        if kwargs:
+            if "center" in kwargs and "size" in kwargs:
+                model.SetProperty("size", kwargs["size"], notify=False)
+                model.SetProperty("center", kwargs["center"], notify=False)
+                kwargs.pop("size")
+                kwargs.pop("center")
+
+            for k, v in kwargs.items():
+                if k in model.propertyTypes:
+                    model.SetProperty(k, v, notify=False)
+
+        @RunOnMainAsync
+        def func():
+            if self.didSetDown: return
             if self.stackManager.uiCard.model == self:
                 self.stackManager.AddUiViewsFromModels([model], canUndo=False)
             else:
                 self.AddChild(model)
-
-            if kwargs:
-                if "center" in kwargs and "size" in kwargs:
-                    model.SetProperty("size", kwargs["size"])
-                    model.SetProperty("center", kwargs["center"])
-                    kwargs.pop("size")
-                    kwargs.pop("center")
-
-                for k,v in kwargs.items():
-                    if k in model.propertyTypes:
-                        model.SetProperty(k, v)
-
             self.stackManager.view.Refresh()
+        func()
 
-            return model
-        return func()
+        return model
 
     def PerformFlips(self, fx, fy, notify=True):
         cardSize = self.GetProperty("size")
