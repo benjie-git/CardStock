@@ -242,7 +242,7 @@ class LineModel(ViewModel):
     @staticmethod
     def RectFromPoints(points):
         rect = wx.Rect(points[0][0], points[0][1], 1, 1)
-        for x, y in points:
+        for x, y in points[1:]:
             rect = rect.Union(wx.Rect(x, y, 1, 1))
         return wx.Rect(rect.Left, rect.Top, rect.Width-1, rect.Height-1)
 
