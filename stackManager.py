@@ -713,7 +713,9 @@ class StackManager(object):
             return
 
         if self.tool and self.isEditing:
+            m = uiView.model
             self.tool.OnMouseUp(uiView, event)
+            uiView = self.GetUiViewByModel(m)
             if uiView and uiView.model.type.startswith("text") and self.isDoubleClick:
                 # Fire it up!
                 uiView.StartInlineEditing()
