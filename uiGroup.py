@@ -234,7 +234,6 @@ class Group(ViewProxy):
         if groups and len(groups) > 0:
             return groups[0]
 
-    @RunOnMainAsync
     def StopAllAnimating(self, propertyName=None):
         model = self._model
         if not model: return

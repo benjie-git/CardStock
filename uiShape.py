@@ -202,8 +202,6 @@ class LineModel(ViewModel):
         if key == "size":
             self.scaledPoints = None
         super().SetProperty(key, value, notify)
-        if key == "penThickness":
-            self.ReCropShape()
 
     def DidUpdateShape(self):  # If client updates the points list already passed to AddShape
         self.isDirty = True
@@ -225,15 +223,18 @@ class LineModel(ViewModel):
     def GetScaledPoints(self):
         if self.scaledPoints:
             return self.scaledPoints
-        if not self.properties["originalSize"] or self.properties["originalSize"][0] == 0 or self.properties["originalSize"][1] == 0:
+
+        origSize = self.properties["originalSize"]
+        size = self.GetProperty("size")
+
+        if not origSize or origSize[0] == 0 or origSize[1] == 0:
             return self.points
         scaleX = 1
         scaleY = 1
-        origSize = self.properties["originalSize"]
         if origSize[0] != 0:
-            scaleX = self.GetProperty("size")[0] / origSize[0]
+            scaleX = size[0] / origSize[0]
         if origSize[1] != 0:
-            scaleY = self.GetProperty("size")[1] / origSize[1]
+            scaleY = size[1] / origSize[1]
         points = [(p[0] * scaleX, p[1] * scaleY) for p in self.points]
         self.scaledPoints = points
         return self.scaledPoints

@@ -403,7 +403,6 @@ class Card(ViewProxy):
             return g.GetProxy() if g else None
         return func()
 
-    @RunOnMainAsync
     def StopAllAnimating(self, propertyName=None):
         model = self._model
         if not model: return

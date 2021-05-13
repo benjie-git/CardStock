@@ -1,6 +1,7 @@
 import threading
 
 import wx
+import threading
 import ast
 import re
 import generator
@@ -146,31 +147,38 @@ class UiView(object):
         event.Skip()
 
     def OnMouseExit(self, event):
-        if self.stackManager.runner and self.model.GetHandler("OnMouseExit"):
+        if self.stackManager and self.stackManager.runner and self.model.GetHandler("OnMouseExit"):
             self.stackManager.runner.RunHandler(self.model, "OnMouseExit", event)
         event.Skip()
 
     def RunAnimations(self, onFinishedCalls, elapsedTime):
         # Move the object by speed.x and speed.y pixels per second
-        if self.model.type not in ["stack", "card"]:
-            speed = self.model.GetProperty("speed")
-            if speed != (0,0) and "position" not in self.model.animations:
-                pos = self.model.GetProperty("position")
-                self.model.SetProperty("position", [pos.x + speed.x*elapsedTime, pos.y + speed.y*elapsedTime])
+        updateList = []
+        finishList = []
+        with self.model.animLock:
+            if self.model.type not in ["stack", "card"]:
+                speed = self.model.GetProperty("speed")
+                if speed != (0,0) and "position" not in self.model.animations:
+                    pos = self.model.GetProperty("position")
+                    self.model.SetProperty("position", [pos.x + speed.x*elapsedTime, pos.y + speed.y*elapsedTime])
 
-        # Run any in-progress animations
-        now = time()
-        for (key, animList) in self.model.animations.copy().items():
-            animDict = animList[0]
-            if "startTime" in animDict:
-                progress = (now - animDict["startTime"]) / animDict["duration"]
-                if progress < 1.0:
-                    if animDict["onUpdate"]:
-                        animDict["onUpdate"](progress, animDict)
-                else:
-                    if animDict["onUpdate"]:
-                        animDict["onUpdate"](1.0, animDict)
-                    self.model.FinishAnimation(key)
+            # Run any in-progress animations
+            now = time()
+            for (key, animList) in self.model.animations.copy().items():
+                animDict = animList[0]
+                if "startTime" in animDict:
+                    progress = (now - animDict["startTime"]) / animDict["duration"]
+                    if progress < 1.0:
+                        if animDict["onUpdate"]:
+                            updateList.append([animDict, progress])
+                    else:
+                        if animDict["onUpdate"]:
+                            updateList.append([animDict, 1.0])
+                        finishList.append(key)
+        for (d,p) in updateList:
+            d["onUpdate"](p, d)
+        for key in finishList:
+            self.model.FinishAnimation(key)
 
     def OnPeriodic(self, event):
         didRun = False
@@ -315,6 +323,7 @@ class ViewModel(object):
         self.lastOnPeriodicTime = None
         self.animations = {}
         self.proxyClass = ViewProxy
+        self.animLock = threading.Lock()
         self.didSetDown = False
 
     def __repr__(self):
@@ -329,15 +338,17 @@ class ViewModel(object):
                 child.parent = self
 
     def SetDown(self):
-        self.didSetDown = True
-        for child in self.childModels:
-            child.SetDown()
-        if self.proxy:
-            self.proxy._model = None
-            self.proxy = None
-        self.animations = {}
-        self.stackManager = None
-        self.parent = None
+        with self.animLock:
+            self.didSetDown = True
+            for child in self.childModels:
+                child.SetDown()
+            if self.proxy:
+                self.proxy._model = None
+                self.proxy = None
+            self.animations = {}
+            self.stackManager = None
+            self.parent = None
+        self.animLock = None
 
     def DismantleChildTree(self):
         for child in self.childModels:
@@ -695,8 +706,8 @@ class ViewModel(object):
             self.handlers[key] = value
             self.isDirty = True
 
-    @RunOnMainAsync
     def AddAnimation(self, key, duration, onUpdate, onStart=None, onFinish=None, onCancel=None):
+        # On Runner thread
         if self.didSetDown: return
         animDict = {"duration": duration,
                     "onStart": onStart,
@@ -704,13 +715,15 @@ class ViewModel(object):
                     "onFinish": onFinish,
                     "onCancel": onCancel
                     }
-        if key not in self.animations:
-            self.animations[key] = [animDict]
-            self.StartAnimation(key)
-        else:
-            self.animations[key].append(animDict)
+        with self.animLock:
+            if key not in self.animations:
+                self.animations[key] = [animDict]
+                self.StartAnimation(key)
+            else:
+                self.animations[key].append(animDict)
 
     def StartAnimation(self, key):
+        # On Runner or Main thread
         if key in self.animations:
             animDict = self.animations[key][0]
             if "startTime" not in animDict:
@@ -719,33 +732,41 @@ class ViewModel(object):
                     animDict["onStart"](animDict)
 
     def FinishAnimation(self, key):
-        if key in self.animations:
-            animList = self.animations[key]
-            animDict = animList[0]
-            if len(animList) > 1:
-                del animList[0]
-                self.StartAnimation(key)
-            else:
-                del self.animations[key]
-            if "startTime" in animDict and animDict["onFinish"]:
-                animDict["onFinish"](animDict)
+        # On Main thread
+        f = None
+        with self.animLock:
+            if key in self.animations:
+                animList = self.animations[key]
+                animDict = animList[0]
+                if len(animList) > 1:
+                    del animList[0]
+                    self.StartAnimation(key)
+                else:
+                    del self.animations[key]
+                if "startTime" in animDict and animDict["onFinish"]:
+                    f = animDict["onFinish"]
+        if f:
+            f(animDict)
 
     def StopAnimation(self, key=None):
+        # On Runner thread
         if key:
             # Stop animating this one property
-            if key in self.animations:
-                animDict = self.animations[key][0]
-                if "startTime" in animDict and animDict["onCancel"]:
-                    animDict["onCancel"](animDict)
-                del self.animations[key]
+            with self.animLock:
+                if key in self.animations:
+                    animDict = self.animations[key][0]
+                    if "startTime" in animDict and animDict["onCancel"]:
+                        animDict["onCancel"](animDict)
+                    del self.animations[key]
             return
 
         # Stop animating all properties
-        for (key, animList) in self.animations.items():
-            animDict = animList[0]
-            if "startTime" in animDict and animDict["onCancel"]:
-                animDict["onCancel"](animDict)
-        self.animations = {}
+        with self.animLock:
+            for (key, animList) in self.animations.items():
+                animDict = animList[0]
+                if "startTime" in animDict and animDict["onCancel"]:
+                    animDict["onCancel"](animDict)
+            self.animations = {}
 
     def DeduplicateName(self, name, existingNames):
         existingNames.extend(self.reservedNames) # disallow globals
@@ -1207,7 +1228,6 @@ class ViewProxy(object):
 
         model.AddAnimation("size", duration, onUpdate, onStart, internalOnFinished)
 
-    @RunOnMainAsync
     def StopAnimating(self, propertyName=None):
         model = self._model
         if not model: return
