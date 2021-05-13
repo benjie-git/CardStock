@@ -13,7 +13,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "from random import randint\n\n# Set up empty stats\nstats_list = [0 for i in range(0,13)]\nstats_label.SendMessage(\"update\")"
+        "OnSetup": "from random import randint\n\n# Set up empty stats\nstats_list = [0 for i in range(0,13)]\nstats_label.SendMessage(\"update\")\n\ndef RollOnce():\n   # Roll the dice\n   a = randint(1,6)\n   b = randint(1,6)\n   label_1.text = a\n   label_2.text = b\n\n   # Show the total\n   total = a+b\n   totalLabel.text = \"The total is \" + str(total)\n\n   # Update the stats\n   stats_list[total] += 1\n"
       },
       "properties": {
         "name": "card_1",
@@ -149,7 +149,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "# Roll the dice\na = randint(1,6)\nb = randint(1,6)\nlabel_1.text = a\nlabel_2.text = b\n\n# Show the total\ntotal = a+b\ntotalLabel.text = \"The total is \" + str(total)\n\n# Update the stats\nstats_list[total] += 1\nstats_label.SendMessage(\"update\")\ngraph_frame.SendMessage(\"update\")"
+            "OnClick": "RollOnce()\nstats_label.SendMessage(\"update\")\ngraph_frame.SendMessage(\"update\")"
           },
           "properties": {
             "name": "roll",
@@ -190,10 +190,10 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "for i in range(1000):\n   roll.Click()\n"
+            "OnClick": "stepSize = 200\n\nfor i in range(5000):\n   RollOnce()\n   \n   # Update the stats displays once per 200 rolls\n   if i % stepSize == stepSize-1:\n      stats_label.SendMessage(\"update\")\n      graph_frame.SendMessage(\"update\")\n"
           },
           "properties": {
-            "name": "roll_1000",
+            "name": "roll_5000",
             "size": [
               93,
               20
@@ -202,7 +202,7 @@
               279.0,
               428.0
             ],
-            "title": "Roll 1000x",
+            "title": "Roll 5000x",
             "border": true
           }
         },
