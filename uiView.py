@@ -845,6 +845,7 @@ class ViewProxy(object):
         if not model: return None
 
         if model.type != "card":
+            # update the model immediately on the runner thread
             newModel = model.CreateCopy()
             newModel.SetProperty("speed", model.GetProperty("speed"), notify=False)
             if not self.visible:
@@ -861,11 +862,13 @@ class ViewProxy(object):
             @RunOnMainAsync
             def func():
                 if not newModel.didSetDown:
+                    # add the view on the main thread
                     newModel.stackManager.AddUiViewsFromModels([newModel], False)
             func()
         else:
             @RunOnMain
             def func():
+                # When cloning a card, update the model and view together in a rare synchronous call to the main thread
                 newModel = model.stackManager.DuplicateCard()
 
                 if "center" in kwargs and "size" in kwargs:
@@ -894,27 +897,31 @@ class ViewProxy(object):
 
         @RunOnMainAsync
         def func():
-            # update views on the main thread
             if model.type != "card":
+                # update views on the main thread
                 sm.RemoveUiViewByModel(model)
             else:
+                # When cloning a card, update the model and view together in a rare synchronous call to the main thread
                 sm.RemoveCardRaw(model)
         func()
 
-    @RunOnMainAsync
+    @RunOnMain
     def Cut(self):
+        # update the model and view together in a rare synchronous call to the main thread
         model = self._model
         if not model: return
 
         model.stackManager.CutModels([model], False)
 
-    @RunOnMainAsync
+    @RunOnMain
     def Copy(self):
+        # update the model and view together in a rare synchronous call to the main thread
         model = self._model
         if not model: return
 
         model.stackManager.CopyModels([model])
-    #   Paste is in the runner
+
+    # Paste is in the runner
 
     @property
     def name(self):
