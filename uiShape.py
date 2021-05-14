@@ -14,7 +14,7 @@ class UiShape(UiView):
     def __init__(self, parent, stackManager, model):
         super().__init__(parent, stackManager, model, None)
 
-    def DrawShape(self, dc, thickness, penColor, fillColor, offset):
+    def DrawShape(self, dc, thickness, penColor, fillColor, offset, points):
         penColor = wx.Colour(penColor)
         if not penColor:
             penColor = wx.Colour('black')
@@ -25,8 +25,6 @@ class UiShape(UiView):
 
         pen = wx.Pen(penColor, thickness, wx.PENSTYLE_SOLID)
         dc.SetPen(pen)
-
-        points = self.model.GetScaledPoints()
 
         if self.model.type in ["pen", "line"]:
             if len(points) > 1:
@@ -60,24 +58,40 @@ class UiShape(UiView):
             dc.DrawPolygon(points, offset.x, offset.y)
 
     def Paint(self, gc):
-        thickness = self.model.GetProperty("penThickness")
-        fillColor = self.model.GetProperty("fillColor")
-        penColor = self.model.GetProperty("penColor")
-        offset = wx.Point(self.model.GetAbsolutePosition())
-        self.DrawShape(gc, thickness, penColor, fillColor, offset)
+        thickness = None
+        fillColor = None
+        penColor = None
+        offset = None
+        points = None
+        with self.model.animLock:
+            thickness = self.model.GetProperty("penThickness")
+            fillColor = self.model.GetProperty("fillColor")
+            penColor = self.model.GetProperty("penColor")
+            offset = wx.Point(self.model.GetAbsolutePosition())
+            points = self.model.GetScaledPoints()
+
+        self.DrawShape(gc, thickness, penColor, fillColor, offset, points)
         super().Paint(gc)
 
     def PaintSelectionBox(self, gc):
         if self.isSelected and self.stackManager.tool.name == "hand":
-            f = self.model.GetAbsoluteFrame()
+            f = None
+            thickness = None
+            points = None
+            radius = None
+            with self.model.animLock:
+                f = self.model.GetAbsoluteFrame()
+                thickness = self.model.GetProperty("penThickness")
+                points = self.model.GetScaledPoints()
+                if self.model.type == "roundrect":
+                    radius = self.model.GetProperty("cornerRadius")
+
             f = wx.Rect(f.TopLeft, f.Size - (1,1))
-            thickness = self.model.GetProperty("penThickness")
             if wx.Platform != "__WXMAC":
                 thickness -=1
             gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
             if self.model.type in ["line", "pen", "poly"]:
-                points = self.model.GetScaledPoints()
                 gc.SetPen(wx.Pen('Blue', 3 + thickness, wx.PENSTYLE_SHORT_DASH))
                 if self.model.type == "poly":
                     points.append(points[0])
@@ -88,7 +102,6 @@ class UiShape(UiView):
             elif self.model.type == "oval":
                 gc.DrawEllipse(wx.Rect(f).Inflate(2 + thickness/2))
             elif self.model.type == "roundrect":
-                radius = self.model.GetProperty("cornerRadius")
                 p1 = f.TopLeft
                 p2 = f.BottomRight
                 radius = min(radius, abs(p1[0]-p2[0])/2)
@@ -104,9 +117,24 @@ class UiShape(UiView):
         if self.model.IsHidden():
             self.hitRegion = wx.Region((0,0), (0,0))
 
-        s = self.model.GetProperty("size")
+        thickness = None
+        fillColor = None
+        penColor = None
+        offset = None
+        s = None
+        f = None
+        points = None
+        with self.model.animLock:
+            thickness = self.model.GetProperty("penThickness")
+            fillColor = self.model.GetProperty("fillColor")
+            penColor = self.model.GetProperty("penColor")
+            offset = wx.Point(self.model.GetAbsolutePosition())
+            s = self.model.GetProperty("size")
+            f = self.model.GetAbsoluteFrame()
+            points = self.model.GetScaledPoints()
+
         extraThick = 6 if (self.model.type in ["pen", "line"]) else 0
-        thickness = self.model.GetProperty("penThickness") + extraThick
+        thickness = thickness + extraThick
 
         # Draw the region offset up/right, to allow space for bottom/left resize boxes,
         # since they would otherwise be at negative coords, which would be outside the
@@ -119,8 +147,7 @@ class UiShape(UiView):
         dc.Clear()
         penColor = 'white'
         fillColor = 'white'
-        self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(regOffset, regOffset))
-        f = self.model.GetAbsoluteFrame()
+        self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(regOffset, regOffset), points)
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
             for resizerRect in self.GetResizeBoxRects():
                 resizerRect.Offset((regOffset, regOffset))
@@ -239,6 +266,10 @@ class LineModel(ViewModel):
         self.scaledPoints = points
         return self.scaledPoints
 
+    def GetAbsolutePoints(self):
+        pos = self.GetAbsolutePosition()
+        return [p + pos for p in self.points]
+
     @staticmethod
     def RectFromPoints(points):
         rect = wx.Rect(points[0][0], points[0][1], 1, 1)
@@ -293,6 +324,15 @@ class LineModel(ViewModel):
         self.points = points
         self.DidUpdateShape()
 
+    def SetPoints(self, points):
+        with self.animLock:
+            cardSize = self.GetCard().GetProperty("size")
+            self.SetProperty("position", (0,0), notify=False)
+            self.SetProperty("size", cardSize, notify=False)
+            self.properties["originalSize"] = None
+            self.points = points
+            self.ReCropShape()
+
 
 class Line(ViewProxy):
     """
@@ -324,6 +364,17 @@ class Line(ViewProxy):
         model = self._model
         if not model: return
         model.SetProperty("penThickness", val)
+
+    @property
+    def points(self):
+        model = self._model
+        if not model or not model.parent: return []
+        return model.GetAbsolutePoints()
+    @points.setter
+    def points(self, points):
+        model = self._model
+        if not model or not model.parent: return
+        model.SetPoints(points)
 
     def AnimatePenThickness(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not (isinstance(duration, int) or isinstance(duration, float)):
@@ -400,6 +451,23 @@ class Shape(Line):
     Shape proxy objects are the user-accessible objects exposed to event handler code for oval and rect objects.
     They're extended from the Line proxy class.
     """
+
+    @property
+    def points(self):
+        model = self._model
+        if model and model.parent:
+            if model.type == "poly":
+                return model.GetAbsolutePoints()
+            else:
+                raise TypeError(f"The points property is not available for shapes of type {model.type}.")
+    @points.setter
+    def points(self, points):
+        model = self._model
+        if model and model.parent:
+            if model.type == "poly":
+                model.SetPoints(points)
+            else:
+                raise TypeError(f"The points property is not available for shapes of type {model.type}.")
 
     @property
     def fillColor(self):

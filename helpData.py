@@ -22,7 +22,7 @@ class HelpData():
         if typeStr == "image":                  return HelpDataImage
         if typeStr == "group":                  return HelpDataGroup
         if typeStr in ["line", "pen"]:          return HelpDataLine
-        if typeStr in ["shape", "oval", "rect"]:return HelpDataShape
+        if typeStr in ["shape", "oval", "rect", "poly"]:return HelpDataShape
         if typeStr == "roundrect":              return HelpDataRoundRectangle
         if typeStr == "card":                   return HelpDataCard
         if typeStr == "stack":                  return HelpDataStack
@@ -722,6 +722,9 @@ class HelpDataLine():
         "penColor": {"type": "string",
                      "info": "The color used for the line or shape border.  This can be a color word like red, or an "
                              "HTML color like #FF0000 for pure red."},
+        "points":   {"type": "list",
+                     "info": "This is the list of points that define this line, pen, or polygon object.  The other "
+                             "shape types do not provide access to this list."},
     }
 
     methods = {
