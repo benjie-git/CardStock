@@ -255,8 +255,8 @@ class StandaloneApp(wx.App, InspectionMixin):
         self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
         self.SetAppDisplayName('CardStock')
 
-        if getattr(sys, 'frozen', False):
-            if wx.Platform != "__WXMAC__" and hasattr(sys, "_MEIPASS"):
+        if getattr(sys, 'frozen', False) and hasattr(sys, "_MEIPASS"):
+            if wx.Platform != "__WXMAC__":
                 bundle_dir = sys._MEIPASS
             else:
                 bundle_dir = os.path.join(os.path.dirname(sys.executable), "Resources")
@@ -264,7 +264,10 @@ class StandaloneApp(wx.App, InspectionMixin):
             bundle_dir = os.path.dirname(os.path.realpath(__file__))
         stackPath = os.path.join(bundle_dir, "stack.cds")
         if not os.path.exists(stackPath):
-            bundle_dir = os.path.join(os.path.dirname(sys.executable), "Resources")
+            if wx.Platform != "__WXMAC__":
+                bundle_dir = os.path.join(os.path.dirname(sys.executable), "Resources")
+            else:
+                bundle_dir = os.path.dirname(sys.executable)
             stackPath = os.path.join(bundle_dir, "stack.cds")
 
         if not os.path.exists(stackPath):

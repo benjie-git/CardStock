@@ -188,7 +188,9 @@ class StackExporter(object):
             elif wx.Platform == "__WXMSW__":
                 if canSave:
                     os.mkdir(filepath)
-                    shutil.copyfile(tmpStack, os.path.join(filepath, "stack.cds"))
+                    resPath = os.path.join(filepath, "Resources")
+                    os.mkdir(resPath)
+                    shutil.copyfile(tmpStack, os.path.join(resPath, "stack.cds"))
                     distpath = filepath
                 else:
                     distpath = os.path.dirname(filepath)
@@ -201,7 +203,9 @@ class StackExporter(object):
             else:
                 if canSave:
                     os.mkdir(filepath)
-                    shutil.copyfile(tmpStack, os.path.join(filepath, "stack.cds"))
+                    resPath = os.path.join(filepath, "Resources")
+                    os.mkdir(resPath)
+                    shutil.copyfile(tmpStack, os.path.join(resPath, "stack.cds"))
                     distpath = filepath
                 else:
                     distpath = os.path.dirname(filepath)
