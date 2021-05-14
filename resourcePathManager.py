@@ -31,7 +31,7 @@ class ResourcePathManager(object):
             return self.pathCache[path]
 
         if self.stackManager.filename:
-            if self.pathMap:
+            if self.pathMap and hasattr(sys, "_MEIPASS"):
                 # we are running in a standalone app bundle
                 base_dir = sys._MEIPASS
                 if not os.path.exists(os.path.join(base_dir, path)):

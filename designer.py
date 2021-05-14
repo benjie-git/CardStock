@@ -83,6 +83,7 @@ class DesignerFrame(wx.Frame):
         self.MakeMenu()
         self.filename = None
         self.app = None
+        self.configInfo = None
         # self.lastStats = {}
 
         toolbar = self.CreateToolBar(style=wx.TB_TEXT)
@@ -421,7 +422,10 @@ class DesignerFrame(wx.Frame):
             if r == wx.ID_YES:
                 self.OnMenuSave(None)
 
-        dlg = wx.FileDialog(self, "Open CardStock file...", os.getcwd(),
+        initialDir = os.getcwd()
+        if self.configInfo and "last_open_file" in self.configInfo:
+            initialDir = os.path.dirname(self.configInfo["last_open_file"])
+        dlg = wx.FileDialog(self, "Open CardStock file...", initialDir,
                            style=wx.FD_OPEN, wildcard = self.wildcard)
         self.stackContainer.Enable(False)
         if dlg.ShowModal() == wx.ID_OK:
@@ -437,7 +441,10 @@ class DesignerFrame(wx.Frame):
             self.SaveFile()
 
     def OnMenuSaveAs(self, event):
-        dlg = wx.FileDialog(self, "Save CaardStock file as...", os.getcwd(),
+        initialDir = os.getcwd()
+        if self.configInfo and "last_open_file" in self.configInfo:
+            initialDir = os.path.dirname(self.configInfo["last_open_file"])
+        dlg = wx.FileDialog(self, "Save CaardStock file as...", initialDir,
                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
                            wildcard = self.wildcard)
         self.stackContainer.Enable(False)
@@ -769,16 +776,17 @@ class DesignerFrame(wx.Frame):
 
     def FinishedStarting(self):
         if not self.filename:
-            config = self.ReadConfig()
-            self.cPanel.ShowContextHelp(config["show_context_help"])
-            if config["last_open_file"] and os.path.exists(config["last_open_file"]):
-                self.ReadFile(config["last_open_file"])
+            self.configInfo = self.ReadConfig()
+            self.cPanel.ShowContextHelp(self.configInfo["show_context_help"])
+            if self.configInfo["last_open_file"] and os.path.exists(self.configInfo["last_open_file"]):
+                self.ReadFile(self.configInfo["last_open_file"])
 
     def WriteConfig(self):
         config = configparser.ConfigParser()
-        config['User'] = {"last_open_file": self.filename if self.filename else "",
+        self.configInfo = {"last_open_file": self.filename if self.filename else "",
                           "show_context_help": str(self.cPanel.IsContextHelpShown()),
                           "cardstock_app_version": version.VERSION}
+        config['User'] = self.configInfo
         with open(self.full_config_file_path, 'w') as configfile:
             config.write(configfile)
 
@@ -804,7 +812,7 @@ class DesignerFrame(wx.Frame):
             base_dir = os.path.dirname(__file__)
             if not welcomeExistsHere(base_dir):
                 base_dir = os.path.dirname(sys.executable)
-                if not welcomeExistsHere(base_dir):
+                if not welcomeExistsHere(base_dir) and hasattr(sys, "_MEIPASS"):
                     base_dir = sys._MEIPASS
             last_open_file = os.path.abspath(os.path.join(base_dir, os.path.join("examples", "welcome.cds")))
         return {"last_open_file": last_open_file,

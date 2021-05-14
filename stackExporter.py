@@ -133,7 +133,7 @@ class StackExporter(object):
 
     def Export(self):
         filepath = self.GetOutputPath()
-        if getattr(sys, 'frozen', False):
+        if getattr(sys, 'frozen', False) and hasattr(sys, "_MEIPASS"):
             # We're running in a bundle
             self.ExportFromBundle(filepath)
         else:

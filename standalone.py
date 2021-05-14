@@ -256,7 +256,7 @@ class StandaloneApp(wx.App, InspectionMixin):
         self.SetAppDisplayName('CardStock')
 
         if getattr(sys, 'frozen', False):
-            if wx.Platform == "__WXMAC__":
+            if wx.Platform == "__WXMAC__" and hasattr(sys, "_MEIPASS"):
                 bundle_dir = sys._MEIPASS
             else:
                 bundle_dir = os.path.join(os.path.dirname(sys.executable), "Resources")
