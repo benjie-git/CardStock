@@ -120,7 +120,8 @@ class StackExporter(object):
             if plainFileName.endswith(".cds"):
                 plainFileName = plainFileName[:-4]
 
-            dlg = wx.FileDialog(self.stackManager.designer, "Export CardStock application to...", os.getcwd(),
+            initialDir = os.path.dirname(self.stackManager.filename)
+            dlg = wx.FileDialog(self.stackManager.designer, "Export CardStock application to...", initialDir,
                                 plainFileName,
                                 style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
                                 wildcard="CardStock Application (*)|*")
@@ -337,7 +338,8 @@ class ExportDialog(wx.Dialog):
         sizer.Layout()
 
     def OnAdd(self, event):
-        dlg = wx.FileDialog(self.exporter.stackManager.designer, "Add Resource File(s)", os.getcwd(),
+        initialDir = os.path.dirname(self.exporter.stackManager.filename)
+        dlg = wx.FileDialog(self.exporter.stackManager.designer, "Add Resource File(s)", initialDir,
                             "",
                             style=wx.FD_OPEN | wx.FD_MULTIPLE,
                             wildcard="Any File (*)|*")

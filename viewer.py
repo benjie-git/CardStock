@@ -188,7 +188,10 @@ class ViewerFrame(wx.Frame):
             if r == wx.ID_YES:
                 self.SaveFile()
 
-        dlg = wx.FileDialog(self, "Open CardStock file...", os.getcwd(),
+        initialDir = os.getcwd()
+        if self.stackManager.filename:
+            initialDir = os.path.dirname(self.stackManager.filename)
+        dlg = wx.FileDialog(self, "Open CardStock file...", initialDir,
                            style=wx.FD_OPEN, wildcard = self.wildcard)
         self.stackManager.view.Enable(False)
         if dlg.ShowModal() == wx.ID_OK:
