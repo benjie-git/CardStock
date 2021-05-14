@@ -136,6 +136,9 @@ class UiView(object):
         self.hasMouseMoved = True
         event.Skip()
 
+    def OnMouseUpOutside(self, event):
+        pass
+
     def OnMouseUp(self, event):
         if self.stackManager.runner and self.model.GetHandler("OnMouseUp"):
             self.stackManager.runner.RunHandler(self.model, "OnMouseUp", event)

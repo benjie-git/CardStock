@@ -1,5 +1,6 @@
 import wx
 from uiView import *
+from uiTextLabel import wordwrap
 
 # Native Button Mouse event positions on Mac are offset (?!?)
 MAC_BUTTON_OFFSET_HACK = wx.Point(6,4)
@@ -14,6 +15,7 @@ class UiButton(UiView):
         self.stackManager = stackManager
         self.button = self.CreateButton(stackManager, model)
         super().__init__(parent, stackManager, model, self.button)
+        self.mouseDownInside = False
 
     def GetCursor(self):
         return wx.CURSOR_HAND
@@ -32,9 +34,12 @@ class UiButton(UiView):
     def FwdOnMouseUp(   self, event): self.stackManager.OnMouseUp(   self, self.HackEvent(event))
 
     def CreateButton(self, stackManager, model):
+        if not model.GetProperty("border"):
+            return None
+
         button = wx.Button(parent=stackManager.view, label="Button", size=model.GetProperty("size"),
                            pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft,
-                           style=(wx.BORDER_DEFAULT if model.GetProperty("border") else wx.BORDER_NONE))
+                           style=wx.BORDER_DEFAULT)
         button.SetLabel(model.GetProperty("title"))
         button.Bind(wx.EVT_BUTTON, self.OnButton)
         button.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
@@ -44,12 +49,33 @@ class UiButton(UiView):
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "title":
-            self.button.SetLabel(str(self.model.GetProperty(key)))
+            if self.button:
+                self.button.SetLabel(str(self.model.GetProperty(key)))
+            else:
+                self.stackManager.view.Refresh()
         elif key == "border":
             sm = self.stackManager
             sm.SelectUiView(None)
             sm.LoadCardAtIndex(sm.cardIndex, reload=True)
             sm.SelectUiView(sm.GetUiViewByModel(model))
+
+    def OnMouseDown(self, event):
+        if not self.stackManager.isEditing and not self.button:
+            self.mouseDownInside = True
+            self.stackManager.view.Refresh()
+
+    def OnMouseUpOutside(self, event):
+        if not self.button and self.mouseDownInside:
+            self.mouseDownInside = False
+            if self.stackManager:
+                self.stackManager.view.Refresh()
+
+    def OnMouseUp(self, event):
+        if self.stackManager and not self.stackManager.isEditing and not self.button:
+            if self.mouseDownInside:
+                self.OnButton(event)
+                self.mouseDownInside = False
+                self.stackManager.view.Refresh()
 
     def OnKeyDown(self, event):
         if event.GetKeyCode() in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
@@ -62,6 +88,23 @@ class UiButton(UiView):
                 self.stackManager.runner.RunHandler(self.model, "OnClick", event)
 
     def Paint(self, gc):
+        if not self.button:
+            title = self.model.GetProperty("title")
+            if len(title):
+                (width, height) = self.model.GetProperty("size")
+                font = wx.Font(wx.FontInfo(wx.Size(0, 15)).Family(wx.FONTFAMILY_DEFAULT))
+                lineHeight = font.GetPixelSize().height
+                (startX, startY) = self.model.GetAbsoluteFrame().BottomLeft - (0, (height-lineHeight)/2)
+
+                lines = wordwrap(title, width, gc)
+                line = lines.split("\n")[0]
+
+                gc.SetFont(font)
+                gc.SetTextForeground(wx.Colour('#404040' if self.mouseDownInside else 'black'))
+                textWidth = gc.GetTextExtent(line).Width
+                xPos = startX + (width - textWidth) / 2
+                gc.DrawText(line, wx.Point(xPos, startY))
+
         if self.stackManager.isEditing:
             gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)

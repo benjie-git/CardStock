@@ -98,6 +98,7 @@ class StackManager(object):
         self.filename = None
         self.resPathMan = resourcePathManager.ResourcePathManager(self)
         self.lastOnPeriodicTime = None
+        self.lastMouseDownView = None
 
         self.analyzer = analyzer.CodeAnalyzer(self)
         self.stackModel = StackModel(self)
@@ -154,6 +155,7 @@ class StackManager(object):
         self.tool = None
         self.lastFocusedTextField = None
         self.lastMouseMovedUiView = None
+        self.lastMouseDownView = None
         self.inlineEditingView = None
         self.runner = None
         self.resPathMan = None
@@ -653,6 +655,7 @@ class StackManager(object):
                 self.tool.OnMouseDown(uiView, event)
         else:
             uiView.OnMouseDown(event)
+            self.lastMouseDownView = uiView
             event.Skip()
             parent = uiView.parent
             while parent and parent.model.type == "group":
@@ -723,6 +726,10 @@ class StackManager(object):
                 uiView.StartInlineEditing()
                 event.Skip()
         else:
+            if self.lastMouseDownView:
+                if self.lastMouseDownView != uiView:
+                    self.lastMouseDownView.OnMouseUpOutside(event)
+                self.lastMouseDownView = None
             uiView.OnMouseUp(event)
             event.Skip()
             parent = uiView.parent
