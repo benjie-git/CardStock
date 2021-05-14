@@ -21,7 +21,7 @@ class StackModel(ViewModel):
         self.properties["size"] = wx.Size(500, 500)
         self.properties["name"] = "stack"
         self.properties["canSave"] = False
-        self.properties["canResize"] = True
+        self.properties["canResize"] = False
 
         self.propertyTypes["canSave"] = 'bool'
         self.propertyTypes["canResize"] = 'bool'
