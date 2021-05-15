@@ -1,4 +1,5 @@
 import wx
+import wx.html
 
 
 class CardStockError(object):
@@ -21,7 +22,7 @@ class ErrorListWindow(wx.Frame):
         self.SetClientSize(wx.Size(500,50))
         self.designer = designer
         self.errors = []
-        self.listBox = wx.ListBox(self, style=wx.LB_SINGLE)
+        self.listBox = wx.html.SimpleHtmlListBox(self, choices=[""], style=wx.html.HLB_DEFAULT_STYLE)
         self.listBox.SetBackgroundColour('#EE3333')
         self.listBox.Bind(wx.EVT_LISTBOX, self.OnListBox)
         self.listBox.Bind(wx.EVT_SIZE, self.OnListBoxResize)
@@ -34,6 +35,7 @@ class ErrorListWindow(wx.Frame):
 
     def OnListBoxResize(self, event):
         self.listBox.SetSize(self.GetClientSize())
+        event.Skip(True)
 
     def OnListBox(self, event):
         self.JumpToError(self.errors[event.GetSelection()])
