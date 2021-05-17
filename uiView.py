@@ -898,15 +898,18 @@ class ViewProxy(object):
         if model.type != "card":
             model.parent.RemoveChild(model)
 
-        @RunOnMainAsync
-        def func():
-            if model.type != "card":
+        if model.type != "card":
+            @RunOnMainAsync
+            def func():
                 # update views on the main thread
                 sm.RemoveUiViewByModel(model)
-            else:
+            func()
+        else:
+            @RunOnMain
+            def func():
                 # When cloning a card, update the model and view together in a rare synchronous call to the main thread
                 sm.RemoveCardRaw(model)
-        func()
+            func()
 
     @RunOnMain
     def Cut(self):
