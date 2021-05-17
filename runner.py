@@ -604,6 +604,9 @@ class Runner():
                 if m.GetProperty("name") == cardName:
                     index = self.stackManager.stackModel.childModels.index(m)
         if index is not None:
+            if index > len(self.stackManager.stackModel.childModels):
+                # Modify index back to 1 based for user visible error message
+                raise ValueError(f'card number {index + 1} does not exist')
             self.stackManager.LoadCardAtIndex(index)
         else:
             raise ValueError("cardName '" + cardName + "' does not exist")
