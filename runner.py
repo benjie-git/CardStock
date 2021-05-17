@@ -679,6 +679,9 @@ class Runner():
 
         filepath = self.stackManager.resPathMan.GetAbsPath(filepath)
 
+        if not os.path.exists(filepath):
+            raise ValueError("No readable audio file at '" + filepath + "'")
+
         if filepath in self.soundCache:
             s = self.soundCache[filepath]
         else:
