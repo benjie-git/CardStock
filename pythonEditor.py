@@ -126,7 +126,7 @@ class PythonEditor(stc.StyledTextCtrl):
                     self.stackManager.Redo()
                 self.AutoCompCancel()
                 return
-            elif ord('a') <= key <= ord('z') or ord('A') <= key <= ord('Z'):
+            elif ord('a') <= key <= ord('z') or ord('A') <= key <= ord('Z') or key == ord('.'):
                 wx.CallAfter(self.UpdateAC)
             elif self.AutoCompActive() and (key == wx.WXK_BACK or (event.ShiftDown() and key == ord('-')) or \
                                             (not event.ShiftDown() and ord('0') <= key <= ord('9'))):
@@ -223,22 +223,23 @@ class PythonEditor(stc.StyledTextCtrl):
         # Find the word start
         currentPos = self.GetCurrentPos()
         wordStartPos = self.WordStartPosition(currentPos, True)
-
-        # Display the autocompletion list
+        lineNum = self.LineFromPosition(currentPos)
+        lineStartPos = self.GetLineEndPosition(lineNum) - self.GetLineLength(lineNum)
         lenEntered = currentPos - wordStartPos
-        if wordStartPos > 0 and chr(self.GetCharAt(wordStartPos-1)) == '.':
-            acList = self.analyzer.ACAttributes
-        else:
-            acList = self.analyzer.ACNames
 
         if lenEntered > 0:
             prefix = self.GetTextRange(wordStartPos, currentPos).lower()
-            acList = [s for s in acList if prefix in s.lower()]
-            if len(acList) > 1 or (len(acList) == 1 and len(prefix) < len(acList[0])):
-                self.AutoCompShow(lenEntered, " ".join(acList))
-            else:
-                if self.AutoCompActive():
-                    self.AutoCompCancel()
+        else:
+            prefix = ""
+        leadingStr = self.GetRange(lineStartPos, wordStartPos)
+
+        acList = self.analyzer.GetACList(self.currentModel, self.currentHandler, leadingStr, prefix)
+
+        if len(acList) > 1 or (len(acList) == 1 and len(prefix) < len(acList[0])):
+            self.AutoCompShow(lenEntered, " ".join(acList))
+        else:
+            if self.AutoCompActive():
+                self.AutoCompCancel()
 
     def OnACCompleted(self, event):
         s = event.GetString()

@@ -2,6 +2,7 @@ import wx
 import ast
 import helpData
 import threading
+import re
 
 ANALYSIS_TIMEOUT = 1000  # in ms
 
@@ -25,18 +26,39 @@ class CodeAnalyzer(object):
         self.globalVars = helpData.HelpDataGlobals.variables.keys()
         self.globalFuncs = helpData.HelpDataGlobals.functions.keys()
         self.cardNames = []
-        self.objNames = []
-        self.objProps = []
-        self.objMethods = []
+        self.objNames = {}
+        self.objProps = {}
+        self.objMethods = {}
         self.syntaxErrors = {}
-        self.ACListHandlerName = None
+        self.lastHandlerObj = None
+        self.lastHandlerName = None
         self.notifyList = []
 
+        # Create list of known properties and methods for each object type
         for cls in helpData.helpClasses:
-            self.objProps += cls.properties.keys()
-            self.objMethods += cls.methods.keys()
-        self.ACNames = []
-        self.ACAttributes = []
+            types = ["any"]
+            types.extend(cls.types)
+            for t in types:
+                self.objProps[t] = []
+                self.objMethods[t] = []
+        for cls in helpData.helpClasses:
+            c = cls
+            types = ["any", "object"]
+            types.extend(cls.types)
+            while c:
+                for t in types:
+                    self.objProps[t] += c.properties.keys()
+                    self.objMethods[t] += c.methods.keys()
+                c = c.parent
+
+        for t in ["bool", "int", "float", "string", "list", "dictionary", "point", "size"]: self.objProps[t] = []
+        for t in ["bool", "int", "float", "string", "list", "dictionary", "point", "size"]: self.objMethods[t] = []
+        self.objProps["point"] += ["x", "y"]
+        self.objProps["size"] += ["width", "height"]
+        self.objProps["any"] += ["x", "y", "width", "height"]
+
+        self.objProps = {key:list(set(l)) for (key, l) in self.objProps.items()}  # unique the items
+        self.objMethods = {key:list(set(l)) for (key, l) in self.objMethods.items()}  # unique the items
 
         self.built_in = ["False", "True", "None"]
         self.built_in.extend("else import pass break except in raise finally is return and continue for lambda try "
@@ -68,40 +90,94 @@ class CodeAnalyzer(object):
             self.analysisTimer.Stop()
             if not self.analysisRunning:
                 self.analysisPending = True
-                self.ACListHandlerName = self.stackManager.designer.cPanel.currentHandler
                 self.ScanCode()
 
-    def BuildACLists(self):
-        names = []
-        names.extend(self.varNames)
-        names.extend([s+"()" for s in self.funcNames])
-        names.extend(self.globalVars)
-        names.extend([s+"()" for s in self.globalFuncs])
-        names.extend(self.objNames)
-        names.extend(self.built_in)
-        if "Mouse" in self.ACListHandlerName: names.append("mousePos")
-        if "Key" in self.ACListHandlerName: names.append("keyName")
-        if "Periodic" in self.ACListHandlerName: names.append("elapsedTime")
-        if "Message" in self.ACListHandlerName: names.append("message")
-        names = list(set(names))
-        names.sort(key=str.casefold)
-        self.ACNames = names
+    def GetTypeFromLeadingString(self, handlerObj, handlerName, leadingStr):
+        cleaned = re.sub(r'\([^)]*\)', '', leadingStr)
+        cleaned = cleaned.split(' ')[-1]
+        cleaned = cleaned.split('(')[-1]
+        cleaned = cleaned.split('[')[-1]
+        cleaned = cleaned.split('{')[-1]
+        parts = cleaned.split('.')
 
-        attributes = []
-        attributes.extend(self.objProps)
-        attributes.extend([s+"()" for s in self.objMethods])
-        attributes.extend(self.cardNames)
-        attributes.extend(self.objNames)
-        attributes.extend(["x", "y", "width", "height"])
-        attributes = list(set(attributes))
-        attributes.sort(key=str.casefold)
-        self.ACAttributes = attributes
+        if len(parts) == 1 and parts[0] == '':
+            return None
+
+        if len(parts) > 1:
+            p = parts[-1]
+            if p in self.objProps["any"]:
+                return helpData.HelpData.GetTypeForProp(p)
+            elif p in self.objMethods["any"]:
+                return helpData.HelpData.GetTypeForMethod(p)
+            elif p in self.cardNames:
+                return "card"
+            elif p in self.objNames:
+                return self.objNames[p]
+            elif p in self.built_in:
+                return None
+            elif p in self.built_in:
+                return None
+
+        elif len(parts) > 0:
+            p = parts[-1]
+            if p == "self":
+                return handlerObj.type
+            elif p in self.objNames:
+                return self.objNames[p]
+            elif p in self.globalVars:
+                return helpData.HelpDataGlobals.variables[p]["type"]
+            elif p in self.globalFuncs:
+                return helpData.HelpDataGlobals.functions[p]["return"]
+            elif p in self.varNames or p in self.funcNames:
+                return None
+            elif p == "mousePos":
+                return "point"
+            elif p == "elapsedTime":
+                return "float"
+            elif p in ["message", "keyName"]:
+                return "string"
+        return "any"
+
+    def GetACList(self, handlerObj, handlerName, leadingStr, prefix):
+        if len(leadingStr) == 0 or leadingStr[-1] != '.':
+            if len(prefix) < 1:
+                return []
+            names = []
+            names.extend(self.built_in)
+            names.extend(self.globalVars)
+            names.extend([s+"()" for s in self.globalFuncs])
+            names.extend(self.varNames)
+            names.extend([s+"()" for s in self.funcNames])
+            names.extend(self.objNames.keys())
+            if "Mouse" in handlerName: names.append("mousePos")
+            if "Key" in handlerName: names.append("keyName")
+            if "Periodic" in handlerName: names.append("elapsedTime")
+            if "Message" in handlerName: names.append("message")
+            names = [n for n in list(set(names)) if prefix.lower() in n.lower()]
+            names.sort(key=str.casefold)
+            return names
+        else:
+            t = self.GetTypeFromLeadingString(handlerObj, handlerName, leadingStr[:-1])
+            if t is None:
+                return []
+            if t == "any" and len(prefix) < 1:
+                return []
+            attributes = []
+            attributes.extend(self.objProps[t])
+            attributes.extend([s+"()" for s in self.objMethods[t]])
+            if t in ["stack", None]:
+                attributes.extend(self.cardNames)
+            if t in ["card", None]:
+                attributes.extend(self.objNames.keys())
+            attributes = [n for n in list(set(attributes)) if prefix.lower() in n.lower()]
+            attributes.sort(key=str.casefold)
+            return attributes
 
     def CollectCode(self, model, path, codeDict):
         if model.type == "card":
             self.cardNames.append(model.GetProperty("name"))  # also collect all card names
         else:
-            self.objNames.append(model.GetProperty("name"))  # and other object names
+            self.objNames[model.GetProperty("name")] = model.type  # and other object names, with their types
 
         if model.type != "stack":
             path.append(model.GetProperty("name"))
@@ -114,7 +190,7 @@ class CodeAnalyzer(object):
             path.pop()
 
     def ScanCode(self):
-        self.objNames = []
+        self.objNames = {}
         self.cardNames = []
         codeDict = {}
         self.analysisRunning = True
@@ -129,8 +205,6 @@ class CodeAnalyzer(object):
 
         for path,code in codeDict.items():
             self.ParseWithFallback(code, path)
-
-        self.BuildACLists()
 
         wx.CallAfter(self.ScanFinished)
 

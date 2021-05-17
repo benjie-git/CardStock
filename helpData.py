@@ -29,6 +29,20 @@ class HelpData():
         return HelpDataObject
 
     @classmethod
+    def GetTypeForProp(cls, propName):
+        for c in helpClasses:
+            if propName in c.properties:
+                return c.properties[propName]["type"]
+        return None
+
+    @classmethod
+    def GetTypeForMethod(cls, methodName):
+        for c in helpClasses:
+            if methodName in c.methods:
+                return c.methods[methodName]["return"]
+        return None
+
+    @classmethod
     def GetPropertyHelp(cls, obj, key):
         data = cls.ForObject(obj)
         while data:
@@ -260,11 +274,10 @@ class HelpData():
         return cls.reservedNames
 
 HelpDataTypes = [["Type", "Description"],
-                 ["<i>bool</i>", "A bool or boolean value holds a simple True or False"],
-                 ["<i>int</i>", "An int or integer value holds any whole number, positive or negative"],
-                 ["<i>float</i>", "A float or floating point value holds any number, including with a decimal point"],
-                 ["<i>string</i>", "A string value holds text"],
-                 ["<i>object</i>", "An object value holds a CardStock object, like a button, card, or oval"],
+                 ["<i>bool</i>", "A bool or boolean value holds a simple True or False."],
+                 ["<i>int</i>", "An int or integer value holds any whole number, positive or negative."],
+                 ["<i>float</i>", "A float or floating point value holds any number, including with a decimal point."],
+                 ["<i>string</i>", "A string value holds text."],
                  ["<i>list</i>", "A list value is a container that holds a list of other values."],
                  ["<i>dictionary</i>", "A dictionary value is a container that holds named items, as key, value pairs."],
                  ["<i>point</i>", "A point value is like a list of two numbers, x and y, that describes a location in "
@@ -272,7 +285,9 @@ HelpDataTypes = [["Type", "Description"],
                                   "the y value as either p[1] or p.y."],
                  ["<i>size</i>", "A size value is like a list of two numbers, width and height, that describes the "
                                  "size of an object in the card.  For a size variable s, you can access the width "
-                                 "value as s[0] or s.width, and the height value as either s[1] or s.height."],
+                                 "value as s[0] or s.width, and the height value as either s[1] or s.height"],
+                 ["<i>object</i>", "An object value can hold any CardStock object, like a button, card, or oval."],
+                 ["<i>button, textfield, textlabel, image, oval, rect, roundrect, poly, line</i>", "A value of any of these types holds a CardStock object of that specific type."],
                  ]
 
 
@@ -280,10 +295,10 @@ class HelpDataGlobals():
     variables = {
         "self": {"type": "object",
                   "info": "In any object's event code, <b>self</b> always refers to the object that contains this code."},
-        "stack": {"type": "object",
+        "stack": {"type": "stack",
                   "info": "The <b>stack</b> is the object that represents your whole program.  You can access cards "
                           "in this stack as stack.cardName."},
-        "card": {"type": "object",
+        "card": {"type": "card",
                  "info": "The <b>card</b> is the object that represents the currently loaded card in your stack.  You "
                          "can access the objects on this card as card.objectName."},
     }
@@ -356,6 +371,7 @@ class HelpDataGlobals():
 
 class HelpDataObject():
     parent = None
+    types = ["object"]
     properties = {
         "name": {"type": "string",
                  "info": "Every object has a <b>name</b> property.  These are forced to be unique within each card, "
@@ -548,6 +564,7 @@ class HelpDataObject():
 
 class HelpDataButton():
     parent = HelpDataObject
+    types = ["button"]
 
     properties = {
         "title": {"type": "string",
@@ -574,6 +591,7 @@ class HelpDataButton():
 
 class HelpDataTextField():
     parent = HelpDataObject
+    types = ["textfield"]
 
     properties = {
         "text": {"type": "string",
@@ -623,6 +641,7 @@ class HelpDataTextField():
 
 class HelpDataTextLabel():
     parent = HelpDataObject
+    types = ["textlabel"]
 
     properties = {
         "text": {"type": "string",
@@ -657,6 +676,7 @@ class HelpDataTextLabel():
 
 class HelpDataImage():
     parent = HelpDataObject
+    types = ["image"]
 
     properties = {
         "file": {"type": "string",
@@ -691,6 +711,7 @@ class HelpDataImage():
 
 class HelpDataGroup():
     parent = HelpDataObject
+    types = ["group"]
 
     properties = {}
 
@@ -715,6 +736,7 @@ class HelpDataGroup():
 
 class HelpDataLine():
     parent = HelpDataObject
+    types = ["line", "pen"]
 
     properties = {
         "penThickness": {"type": "int",
@@ -756,6 +778,7 @@ class HelpDataLine():
 
 class HelpDataShape():
     parent = HelpDataLine
+    types = ["oval", "rect", "poly"]
 
     properties = {
         "fillColor": {"type": "string",
@@ -781,6 +804,7 @@ class HelpDataShape():
 
 class HelpDataRoundRectangle():
     parent = HelpDataShape
+    types = ["roundrect"]
 
     properties = {
         "cornerRadius": {"type": "int",
@@ -805,6 +829,7 @@ class HelpDataRoundRectangle():
 
 class HelpDataCard():
     parent = HelpDataObject
+    types = ["card"]
 
     properties = {
         "bgColor": {"type": "string",
@@ -828,49 +853,49 @@ class HelpDataCard():
                                                                 "'button_{N}'."},
                                "...": {"info": "optionally set more properties here.  For example, "
                                                               "include position=(10,10)"}},
-                    "return": "object",
+                    "return": "button",
                     "info": "Adds a new Button to the card, and returns the new object."},
         "AddTextField": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Text Field object.  If omitted, the name will be "
                                                                 "'field_{N}'."},
                                   "...": {"info": "optionally set more properties here.  For example, "
                                                                  "include position=(10,10)"}},
-                    "return": "object",
+                    "return": "textfield",
                     "info": "Adds a new Text Field to the card, and returns the new object."},
         "AddTextLabel": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Text Label object.  If omitted, the name will be "
                                                                 "'label_{N}'."},
                                   "...": {"info": "optionally set more properties here.  For example, "
                                                                  "include position=(10,10)"}},
-                         "return": "object",
+                         "return": "textlabel",
                     "info": "Adds a new Text Label to the card, and returns the new object."},
         "AddImage": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Image object.  If omitted, the name will be "
                                                                 "'image_{N}'."},
                               "...": {"info": "optionally set more properties here.  For example, "
                                                              "include position=(10,10)"}},
-                     "return": "object",
-                    "info": "Adds a new Image to the card, and returns the new object."},
+                     "return": "image",
+                     "info": "Adds a new Image to the card, and returns the new object."},
         "AddOval": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Oval object.  If omitted, the name will be "
                                                                 "'shape_{N}'."},
                              "...": {"info": "optionally set more properties here.  For example, "
                                                             "include position=(10,10)"}},
-                    "return": "object",
+                    "return": "oval",
                     "info": "Adds a new Image to the card, and returns the new object."},
         "AddRectangle": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Rectangle object.  If omitted, the name will be "
                                                                 "'shape_{N}'."},
                                   "...": {"info": "optionally set more properties here.  For example, "
                                                                  "include position=(10,10)"}},
-                         "return": "object",
+                         "return": "rect",
                     "info": "Adds a new Rectangle to the card, and returns the new object."},
         "AddRoundRectangle": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Round Rectangle object.  If omitted, the name will be "
                                                                 "'shape_{N}'."},
                                        "...": {"info": "optionally set more properties here.  For example, "
                                                        "include position=(10,10)"}},
-                              "return": "object",
+                              "return": "roundrect",
                     "info": "Adds a new Round Rectangle to the card, and returns the new object."},
         "AddLine": {"args": {"points": {"type": "list", "info": "a list of points, that are the locations of each "
                                                                 "vertex along the line, relative to the bottom-left "
@@ -882,7 +907,7 @@ class HelpDataCard():
                                                                 "'shape_{N}'."},
                              "...": {"info": "optionally set more properties here.  For example, "
                                                             "include position=(10,10)"}},
-                    "return": "object",
+                    "return": "line",
                     "info": "Adds a new Line to the card, and returns the new object."},
         "AddPolygon": {"args": {"points": {"type": "list", "info": "a list of points, that are the locations of each "
                                                                    "vertex along the outline of the polygon, relative "
@@ -894,7 +919,7 @@ class HelpDataCard():
                                                                 "'shape_{N}'."},
                                 "...": {"info": "optionally set more properties here.  For example, "
                                                                "include position=(10,10)"}},
-                       "return": "object",
+                       "return": "poly",
                     "info": "Adds a new Polygon shape to the card, and returns the new object."},
         "AddGroup": {"args": {"objects": {"type": "list", "info": "a list of object, all on the same card, to include "
                                                                   "in the new group object."},
@@ -902,7 +927,7 @@ class HelpDataCard():
                                                                 "new Group object.  If omitted, the name will be "
                                                                 "'group_{N}'."}
                              },
-                    "return": "object",
+                    "return": "group",
                     "info": "Adds a new Group to the card, and returns the new object."},
         "AnimateBgColor": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                       "endColor": {"type": "string",
@@ -947,6 +972,7 @@ class HelpDataCard():
 
 class HelpDataStack():
     parent = HelpDataObject
+    types = ["stack"]
 
     properties = {
         "numCards": {"type": "int",
@@ -966,11 +992,11 @@ class HelpDataStack():
                                                                 "at the beginning.  If omitted, the card will be added "
                                                                 "at the end of the stack."},
                              },
-                            "return": "object",
+                            "return": "card",
                             "info": "Adds a new empty card to the stack, and returns the card object."},
         "CardWithNumber": {"args": {"number": {"type": "int",
                                     "info": "the card number of the card to get."}},
-                           "return": "object",
+                           "return": "card",
                            "info": "Returns the card at card <b>number</b>.  The first card is <b>number</b> 1."},
     }
 
