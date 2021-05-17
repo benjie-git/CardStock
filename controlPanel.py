@@ -135,7 +135,7 @@ class ControlPanel(wx.Panel):
         self.codeEditor.Bind(wx.EVT_IDLE, self.CodeEditorOnIdle)
         self.codeEditor.Bind(wx.EVT_SET_FOCUS, self.CodeEditorFocused)
 
-        self.lastSelectedUiView = None
+        self.lastSelectedUiViews = []
         self.UpdateInspectorForUiViews([])
         self.UpdateHandlerForUiViews([], None)
 
@@ -195,36 +195,34 @@ class ControlPanel(wx.Panel):
         event.Skip()
 
     def SelectInInspectorForPropertyName(self, key, selectStart, selectEnd):
-        lastUi = self.lastSelectedUiView
-        if not lastUi:
-            return
-        keys = lastUi.model.PropertyKeys()
-        self.inspector.SetGridCursor(keys.index(key), 1)
-        editor = self.inspector.GetCellEditor(keys.index(key), 1)
-        self.inspector.EnableCellEditControl(True)
-        control = editor.GetControl()
-        control.SetSelection(selectStart, selectEnd)
+        if len(self.lastSelectedUiViews) == 1:
+            lastUi = self.lastSelectedUiViews[0]
+            keys = lastUi.model.PropertyKeys()
+            self.inspector.SetGridCursor(keys.index(key), 1)
+            editor = self.inspector.GetCellEditor(keys.index(key), 1)
+            self.inspector.EnableCellEditControl(True)
+            control = editor.GetControl()
+            control.SetSelection(selectStart, selectEnd)
 
     def GetInspectorSelection(self):
-        lastUi = self.lastSelectedUiView
-        if not lastUi:
-            return (None, None, None)
-        if self.inspector.IsCellEditControlShown():
-            row = self.inspector.GetGridCursorRow()
-            editor = self.inspector.GetCellEditor(row, 1)
-            control = editor.GetControl()
-            if control:
-                start, end = control.GetSelection()
-                text = control.GetStringSelection()
-                return (start, end, text)
+        if len(self.lastSelectedUiViews) == 1:
+            if self.inspector.IsCellEditControlShown():
+                row = self.inspector.GetGridCursorRow()
+                editor = self.inspector.GetCellEditor(row, 1)
+                control = editor.GetControl()
+                if control:
+                    start, end = control.GetSelection()
+                    text = control.GetStringSelection()
+                    return (start, end, text)
         return (None, None, None)
 
     def OnGridCellSelected(self, event):
-        uiView = self.lastSelectedUiView
-        if uiView:
-            keys = uiView.model.PropertyKeys()
-            helpText = HelpData.GetPropertyHelp(uiView, keys[event.GetRow()])
-            self.UpdateHelpText(helpText)
+        if len(self.lastSelectedUiViews) > 0:
+            uiView = self.lastSelectedUiViews[0]
+            if uiView:
+                key = self.inspector.GetCellValue(event.GetRow(), 0)
+                helpText = HelpData.GetPropertyHelp(uiView, key)
+                self.UpdateHelpText(helpText)
         event.Skip()
 
     def OnGridEnter(self, event):
@@ -259,21 +257,19 @@ class ControlPanel(wx.Panel):
         return (start, end, text)
 
     def UpdateForUiViews(self, uiViews):
-        if len(uiViews) == 1:
-            lastUi = self.lastSelectedUiView
-            if uiViews[0] != lastUi:
+        if len(uiViews) > 0:
+            if uiViews != self.lastSelectedUiViews:
                 self.UpdateInspectorForUiViews(uiViews)
-                self.lastSelectedUiView = uiViews[0]
+                self.lastSelectedUiViews = uiViews.copy()
                 self.UpdateHandlerForUiViews(uiViews, None)
         else:
-            self.UpdateInspectorForUiViews(uiViews)
-            self.UpdateHandlerForUiViews(uiViews, None)
+            self.UpdateInspectorForUiViews([])
+            self.UpdateHandlerForUiViews([], None)
             self.UpdateHelpText("")
-            self.lastSelectedUiView = None
+            self.lastSelectedUiViews = []
 
     def UpdatedProperty(self, uiView, key):
-        lastUi = self.lastSelectedUiView
-        if uiView == lastUi:
+        if len(self.lastSelectedUiViews) == 1 and uiView == self.lastSelectedUiViews[0]:
             keys = uiView.model.PropertyKeys()
             r = 0
             for k in keys:
@@ -291,86 +287,136 @@ class ControlPanel(wx.Panel):
         if self.inspector.IsCellEditControlShown():
             ed = self.inspector.GetCellEditor(self.inspector.GetGridCursorRow(), self.inspector.GetGridCursorCol())
             val = ed.GetValue()
-            self.InspectorValueChanged(self.lastSelectedUiView, self.inspector.GetGridCursorRow(), val)
+            self.InspectorValueChanged(self.inspector.GetGridCursorRow(), val)
             self.inspector.HideCellEditControl()
 
         if self.inspector.GetNumberRows() > 0:
             self.inspector.DeleteRows(0, self.inspector.GetNumberRows())
 
-        if len(uiViews) != 1:
+        if len(uiViews) == 0:
             self.inspector.Enable(False)
-            self.inspector.SetColLabelValue(0, "Objects" if len(uiViews) else "None")
+            self.inspector.SetColLabelValue(0, "None")
             self.inspector.InsertRows(0, 3)
             self.Layout()
             return
 
-        self.inspector.Enable(True)
-        uiView = uiViews[0]
-        self.inspector.SetColLabelValue(0, uiView.model.GetDisplayType())
-        keys = uiView.model.PropertyKeys()
-        self.inspector.InsertRows(0,len(keys))
-        r = 0
-        for k in keys:
-            self.inspector.SetCellValue(r, 0, k)
-            self.inspector.SetReadOnly(r, 0)
-            if uiView.model.GetPropertyType(k) in ["point", "floatpoint", "size"]:
-                l = list(uiView.model.GetProperty(k))
-                l = [int(i) if math.modf(i)[0] == 0 else i for i in l]
-                self.inspector.SetCellValue(r, 1, str(l))
-            else:
-                self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
+        if len(uiViews) == 1:
+            self.inspector.Enable(True)
+            uiView = uiViews[0]
+            self.inspector.SetColLabelValue(0, uiView.model.GetDisplayType())
+            keys = uiView.model.PropertyKeys()
+            self.inspector.InsertRows(0,len(keys))
+            r = 0
+            for k in keys:
+                self.inspector.SetCellValue(r, 0, k)
+                self.inspector.SetReadOnly(r, 0)
+                if uiView.model.GetPropertyType(k) in ["point", "floatpoint", "size"]:
+                    l = list(uiView.model.GetProperty(k))
+                    l = [int(i) if math.modf(i)[0] == 0 else i for i in l]
+                    self.inspector.SetCellValue(r, 1, str(l))
+                else:
+                    self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
 
-            renderer = None
-            editor = None
-            if uiView.model.GetPropertyType(k) == "bool":
-                editor = wx.grid.GridCellChoiceEditor(["True", "False"])
-            elif uiView.model.GetPropertyType(k) == "choice":
-                editor = wx.grid.GridCellChoiceEditor(uiView.model.GetPropertyChoices(k))
-            elif uiView.model.GetPropertyType(k) == "color":
-                editor = GridCellColorEditor(self)
-                renderer = GridCellColorRenderer()
-            elif uiView.model.GetPropertyType(k) == "file":
-                editor = GridCellFileEditor(self)
-                renderer = GridCellFileRenderer()
+                renderer = None
+                editor = None
+                if uiView.model.GetPropertyType(k) == "bool":
+                    editor = wx.grid.GridCellChoiceEditor(["True", "False"])
+                elif uiView.model.GetPropertyType(k) == "choice":
+                    editor = wx.grid.GridCellChoiceEditor(uiView.model.GetPropertyChoices(k))
+                elif uiView.model.GetPropertyType(k) == "color":
+                    editor = GridCellColorEditor(self)
+                    renderer = GridCellColorRenderer()
+                elif uiView.model.GetPropertyType(k) == "file":
+                    editor = GridCellFileEditor(self)
+                    renderer = GridCellFileRenderer()
 
-            if renderer:
-                self.inspector.SetCellRenderer(r, 1, renderer)
-            if editor:
-                self.inspector.SetCellEditor(r, 1, editor)
-            r+=1
+                if renderer:
+                    self.inspector.SetCellRenderer(r, 1, renderer)
+                if editor:
+                    self.inspector.SetCellEditor(r, 1, editor)
+                r+=1
+
+        if len(uiViews) > 1:
+            self.inspector.Enable(True)
+            self.inspector.SetColLabelValue(0, "Objects")
+            keys = uiViews[0].model.PropertyKeys().copy()
+            keys.remove("name")
+            for uiView in uiViews[1:]:
+                oKeys = uiView.model.PropertyKeys()
+                keys = [k for k in keys if k in oKeys]
+            self.inspector.InsertRows(0, len(keys))
+            r = 0
+            for k in keys:
+                self.inspector.SetCellValue(r, 0, k)
+                self.inspector.SetReadOnly(r, 0)
+                self.inspector.SetCellValue(r, 1, "")
+
+                renderer = None
+                editor = None
+                if uiView.model.GetPropertyType(k) == "bool":
+                    editor = wx.grid.GridCellChoiceEditor(["True", "False"])
+                elif uiView.model.GetPropertyType(k) == "choice":
+                    editor = wx.grid.GridCellChoiceEditor(uiView.model.GetPropertyChoices(k))
+                elif uiView.model.GetPropertyType(k) == "color":
+                    editor = GridCellColorEditor(self)
+                    renderer = GridCellColorRenderer()
+                elif uiView.model.GetPropertyType(k) == "file":
+                    editor = GridCellFileEditor(self)
+                    renderer = GridCellFileRenderer()
+
+                if renderer:
+                    self.inspector.SetCellRenderer(r, 1, renderer)
+                if editor:
+                    self.inspector.SetCellEditor(r, 1, editor)
+                r += 1
+
         self.Layout()
 
     def OnInspectorValueChanged(self, event):
-        uiView = self.stackManager.GetSelectedUiViews()[0]
-        self.InspectorValueChanged(uiView, event.GetRow(),
+        self.InspectorValueChanged(event.GetRow(),
                                    self.inspector.GetCellValue(event.GetRow(), 1))
 
-    def InspectorValueChanged(self, uiView, row, valStr):
+    def InspectorValueChanged(self, row, valStr):
         key = self.inspector.GetCellValue(row, 0)
-        oldVal = uiView.model.GetProperty(key)
+        if len(self.lastSelectedUiViews) == 1:
+            uiView = self.lastSelectedUiViews[0]
+            oldVal = uiView.model.GetProperty(key)
+            val = uiView.model.InterpretPropertyFromString(key, valStr)
+            if val is not None and val != oldVal:
+                needsUpdate = False
+                if key == "name":
+                    origVal = val
+                    if uiView.model.type == "card":
+                        existingNames = [m.GetProperty("name") for m in self.stackManager.stackModel.childModels]
+                        existingNames.remove(uiView.model.GetProperty("name"))
+                        val = uiView.model.DeduplicateName(val, existingNames)
+                    else:
+                        val = self.stackManager.uiCard.model.DeduplicateNameInCard(val, [uiView.model.GetProperty("name")])
+                    if val != origVal:
+                        needsUpdate = True
 
-        val = uiView.model.InterpretPropertyFromString(key, valStr)
-        if val is not None and val != oldVal:
-            needsUpdate = False
-            if key == "name":
-                origVal = val
-                if uiView.model.type == "card":
-                    existingNames = [m.GetProperty("name") for m in self.stackManager.stackModel.childModels]
-                    existingNames.remove(uiView.model.GetProperty("name"))
-                    val = uiView.model.DeduplicateName(val, existingNames)
-                else:
-                    val = self.stackManager.uiCard.model.DeduplicateNameInCard(val, [uiView.model.GetProperty("name")])
-                if val != origVal:
-                    needsUpdate = True
-
-            if key == "text":
-                val = val.replace('\r', '\n')
-            command = SetPropertyCommand(True, "Set Property", self, self.stackManager.cardIndex, uiView.model, key, val)
-            self.stackManager.command_processor.Submit(command)
-            if needsUpdate:
+                if key == "text":
+                    val = val.replace('\r', '\n')
+                command = SetPropertyCommand(True, "Set Property", self, self.stackManager.cardIndex, uiView.model, key, val)
+                self.stackManager.command_processor.Submit(command)
+                if needsUpdate:
+                    self.UpdatedProperty(uiView, "")
+            else:
                 self.UpdatedProperty(uiView, "")
-        else:
-            self.UpdatedProperty(uiView, "")
+        else: # Multiple views selected
+            val = self.lastSelectedUiViews[0].model.InterpretPropertyFromString(key, valStr)
+            if val is not None:
+                if key == "text":
+                    val = val.replace('\r', '\n')
+                commands = []
+                for uiView in self.lastSelectedUiViews:
+                    oldVal = uiView.model.GetProperty(key)
+                    if val != oldVal:
+                        commands.append(SetPropertyCommand(True, "Set Property", self, self.stackManager.cardIndex,
+                                                           uiView.model, key, val))
+                if len(commands):
+                    self.stackManager.command_processor.Submit(CommandGroup(True, "Set Property", commands))
+                    self.UpdateInspectorForUiViews(self.lastSelectedUiViews)
 
     def OnGridResized(self, event):
         width, height = self.inspector.GetSize()
@@ -388,7 +434,7 @@ class ControlPanel(wx.Panel):
             self.codeEditor.currentHandler = None
             return
 
-        if uiViews[0] != self.lastSelectedUiView:
+        if len(self.lastSelectedUiViews) == 0 or uiViews[0] != self.lastSelectedUiViews[0]:
             return
 
         self.codeEditor.Enable(True)
@@ -443,8 +489,8 @@ class ControlPanel(wx.Panel):
 
     def CodeEditorFocused(self, event):
         helpText = None
-        if self.lastSelectedUiView:
-            helpText = HelpData.GetHandlerHelp(self.lastSelectedUiView, self.currentHandler)
+        if len(self.lastSelectedUiViews) == 1:
+            helpText = HelpData.GetHandlerHelp(self.lastSelectedUiViews[0], self.currentHandler)
         self.UpdateHelpText(helpText)
         event.Skip()
 
@@ -659,7 +705,7 @@ class GridCellColorEditor(wx.grid.GridCellTextEditor):
 
     def UpdateColor(self, color):
         self.grid.SetCellValue(self.row, self.col, color)
-        self.cPanel.InspectorValueChanged(self.cPanel.lastSelectedUiView, self.row, color)
+        self.cPanel.InspectorValueChanged(self.row, color)
 
 
 class GridCellFileRenderer(wx.grid.GridCellStringRenderer):
@@ -705,7 +751,9 @@ class GridCellFileEditor(wx.grid.GridCellTextEditor):
         text = self.grid.GetCellValue(self.row, self.col)
         x,y = self.grid.ScreenToClient(wx.GetMousePosition())
         if x > self.grid.GetSize().Width - COLOR_PATCH_WIDTH:
-            startDir = os.path.dirname(self.cPanel.stackManager.filename)
+            startDir = ""
+            if self.cPanel.stackManager.filename:
+                startDir = os.path.dirname(self.cPanel.stackManager.filename)
             startFile = ""
             if text:
                 if self.cPanel.stackManager.filename:
@@ -725,4 +773,4 @@ class GridCellFileEditor(wx.grid.GridCellTextEditor):
 
     def UpdateFile(self, filename):
         self.grid.SetCellValue(self.row, self.col, filename)
-        self.cPanel.InspectorValueChanged(self.cPanel.lastSelectedUiView, self.row, filename)
+        self.cPanel.InspectorValueChanged(self.row, filename)
