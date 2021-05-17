@@ -115,8 +115,6 @@ class CodeAnalyzer(object):
                 return self.objNames[p]
             elif p in self.built_in:
                 return None
-            elif p in self.built_in:
-                return None
 
         elif len(parts) > 0:
             p = parts[-1]
@@ -129,7 +127,8 @@ class CodeAnalyzer(object):
             elif p in self.globalFuncs:
                 return helpData.HelpDataGlobals.functions[p]["return"]
             elif p in self.varNames or p in self.funcNames:
-                return None
+                # Later, track the actual type of each user variable
+                return "any"
             elif p == "mousePos":
                 return "point"
             elif p == "elapsedTime":
