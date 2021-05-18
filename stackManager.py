@@ -375,6 +375,56 @@ class StackManager(object):
             command = UngroupUiViewsCommand(True, 'Ungroup Views', self, self.cardIndex, models)
             self.command_processor.Submit(command)
 
+    def AlignOrDistributeSelectedViews(self, doAlign, dir):
+        if len(self.selectedViews) < 2:
+            return
+        for ui in self.selectedViews:
+            if ui == self.uiCard or ui.model.parent.type == "group":
+                return
+
+        def getAlignPos(model):
+            if dir == "Left": return model.GetAbsoluteFrame().Left
+            if dir == "HCenter": return model.GetCenter()[0]
+            if dir == "Right": return model.GetAbsoluteFrame().Right
+            if dir == "Top": return model.GetAbsoluteFrame().Bottom  # Bottom and Top are switched since we use positive y axis pointing up
+            if dir == "VCenter": return model.GetCenter()[1]
+            if dir == "Bottom": return model.GetAbsoluteFrame().Top  # Bottom and Top are switched since we use positive y axis pointing up
+
+        def setAlignPos(model, val):
+            rect = model.GetAbsoluteFrame()
+            pos = wx.Point(model.GetProperty("position"))
+            if dir == "Left": pos.x += val - rect.Left
+            if dir == "HCenter": pos.x += val - (rect.Left + (rect.Right - rect.Left)/2)
+            if dir == "Right": pos.x += val - rect.Right
+            # Bottom and Top are switched since we use positive y axis pointing up
+            if dir == "Top": pos.y += val - rect.Bottom
+            if dir == "VCenter": pos.y += val - (rect.Top + (rect.Bottom - rect.Top)/2)
+            if dir == "Bottom": pos.y += val - rect.Top
+            return SetPropertyCommand(True, "Set Property", self.designer.cPanel, self.cardIndex,
+                                      model, "position", pos)
+
+        if doAlign:
+            sharedPos = getAlignPos(self.selectedViews[0].model)
+            commands = []
+            for ui in self.selectedViews[1:]:
+                commands.append(setAlignPos(ui.model, sharedPos))
+            cmdGroup = CommandGroup(True, "Align", commands)
+            self.command_processor.Submit(cmdGroup)
+        else:
+            # Distribute objects
+            ordered = sorted([(getAlignPos(ui.model), ui.model) for ui in self.selectedViews])
+            first = ordered[0][0]
+            last = ordered[-1][0]
+            num = len(ordered)
+            offset = 0
+            commands = []
+            for (pos, model) in ordered[1:-1]:  # No need to distribute the first and last
+                offset += (last-first)/(num-1)
+                commands.append(setAlignPos(model, first + offset))
+            if len(commands):
+                cmdGroup = CommandGroup(True, "Align", commands)
+                self.command_processor.Submit(cmdGroup)
+
     def FlipSelection(self, flipHorizontal):
         commands = []
         for ui in self.selectedViews:
