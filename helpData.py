@@ -414,10 +414,6 @@ class HelpDataObject():
                      "info": "<b>children</b> is the list of objects that this object contains.  A stack has children "
                              "that are cards.  A card and a group can both have children objects. Other objects have "
                              "no children."},
-        "eventHandlers": {"type": "dictionary",
-                   "info": "<b>eventHandlers</b> is a dictionary of all of this object's event handling code.  Each "
-                           "key in the dictionary is the event name, for example 'OnClick', and each value is a string "
-                           "holding the code."},
     }
 
     methods = {
@@ -479,6 +475,15 @@ class HelpDataObject():
                          "info": "Moves this object to the given index, in the list of "
                                  "its parent's children, with 0 being at the back.  But note that "
                                  "all buttons and text fields will remain in front of all other objects."},
+        "GetEventHandler": {"args": {"eventName": {"type": "string", "info": "The name of the event handler to look up."}},
+                            "return": "string",
+                            "info": "Returns a string containing this object's event handling code for the given "
+                                    "<b>eventName</b>"},
+        "SetEventHandler": {"args": {"eventName": {"type": "string", "info": "The name of the event handler to set."},
+                                     "code": {"type": "string", "info": "The code to run on this event."}},
+                            "return": None,
+                            "info": "Sets this object's event handling code for the given <b>eventName</b> to"
+                                    "<b>code</b>."},
         "IsTouching": {"args": {"other": {"type": "object", "info": "The other object to compare to this one"}},
                        "return": "bool",
                        "info": "Returns <b>True</b> if this object is touching the <b>other</b> object passed into "

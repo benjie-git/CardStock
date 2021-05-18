@@ -78,7 +78,7 @@
             {
               "type": "button",
               "handlers": {
-                "OnClick": "c = card.Clone()\nc.eventHandlers[\"OnSetup\"] = \"\"\nGotoCard(c.name)"
+                "OnClick": "c = card.Clone()\nc.SetEventHandler(\"OnSetup\", \"\")\nGotoCard(c.name)"
               },
               "properties": {
                 "name": "new",
@@ -953,5 +953,5 @@
     }
   ],
   "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9"
+  "CardStock_stack_version": "0.9.3"
 }

@@ -151,11 +151,11 @@ class Stack(ViewProxy):
             raise ValueError("number is out of bounds")
         return model.childModels[number-1].GetProxy()
 
-    def AddCard(self, name="card", atNumber=-1):
+    def AddCard(self, name="card", atNumber=0):
         if not isinstance(name, str):
             raise TypeError("name is not a string")
         atNumber = int(atNumber)
-        if atNumber < 1 or atNumber > len(self._model.childModels)+1:
+        if atNumber < 0 or atNumber > len(self._model.childModels)+1:
             raise ValueError("atNumber is out of bounds")
 
         @RunOnMain

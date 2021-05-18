@@ -403,6 +403,8 @@ class StackManager(object):
             group.AddChildModels(validModels)
             if card == self.uiCard.model:
                 self.AddUiViewsFromModels([group], False)
+            else:
+                card.AddChild(group)
         return group
 
     def UngroupModelsInternal(self, groups):
@@ -419,6 +421,12 @@ class StackManager(object):
                 if group.GetCard() == self.uiCard.model:
                     self.RemoveUiViewByModel(group)
                     self.AddUiViewsFromModels(childModels, False)
+                else:
+                    p = group.parent
+                    p.RemoveChild(group)
+                    for child in childModels:
+                        p.AddChild(child)
+
         return modelSets
 
     def AddUiViewInternal(self, model):
@@ -552,6 +560,9 @@ class StackManager(object):
                 self.uiCard.model.RemoveChild(ui.model)
             ui.SetDown()
             self.view.Refresh()
+        else:
+            if viewModel.parent:
+                viewModel.parent.RemoveChild(viewModel)
 
     def ReorderSelectedViews(self, direction):
         oldIndexes = []

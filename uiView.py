@@ -1090,11 +1090,22 @@ class ViewProxy(object):
         if not model: return
         model.SetProperty("hidden", not bool(val))
 
-    @property
-    def eventHandlers(self):
+    def GetEventHandler(self, eventName):
         model = self._model
-        if not model: return {}
-        return model.handlers
+        if not model: return ""
+        return model.handlers[eventName]
+
+    def SetEventHandler(self, eventName, code):
+        model = self._model
+        if not model: return
+        if not isinstance(eventName, str):
+            raise TypeError("eventName must be a string")
+        if not isinstance(code, str):
+            raise TypeError("code must be a string")
+        if eventName not in model.handlers:
+            raise TypeError(f"this object has no event handler called '{eventName}'")
+
+        model.handlers[eventName] = code
 
     def IsTouchingPoint(self, point):
         if not isinstance(point, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
