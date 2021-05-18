@@ -856,6 +856,8 @@ class ViewProxy(object):
             for k,v in kwargs.items():
                 if hasattr(newModel.GetProxy(), k):
                     setattr(newModel.GetProxy(), k, v)
+                else:
+                    raise TypeError(f"unable to set property {k}")
 
             model.GetCard().AddChild(newModel)
             newModel.RunSetup(model.stackManager.runner)
@@ -881,8 +883,11 @@ class ViewProxy(object):
                     kwargs.pop("center")
 
                 for k,v in kwargs.items():
-                    if k in newModel.propertyTypes:
-                        newModel.SetProperty(k, v)
+                    if hasattr(newModel.GetProxy(), k):
+                        setattr(newModel.GetProxy(), k, v)
+                    else:
+                        raise TypeError(f"unable to set property {k}")
+
                 return newModel
             newModel = func()
 

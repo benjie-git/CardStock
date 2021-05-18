@@ -466,6 +466,7 @@ class StackManager(object):
             if self.globalCursor:
                 if uiView.view:
                     uiView.view.SetCursor(wx.Cursor(self.globalCursor))
+            self.view.Refresh()
         return uiView
 
     def AddUiViewsFromModels(self, models, canUndo=True):

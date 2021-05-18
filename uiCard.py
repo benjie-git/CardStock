@@ -188,6 +188,8 @@ class CardModel(ViewModel):
             for k,v in kwargs.items():
                 if hasattr(model.GetProxy(), k):
                     setattr(model.GetProxy(), k, v)
+                else:
+                    raise TypeError(f"unable to set property {k}")
 
         self.AddChild(model)
 
