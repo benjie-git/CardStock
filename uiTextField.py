@@ -255,7 +255,7 @@ class TextField(TextBaseProxy):
     def editable(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("editable", val)
+        model.SetProperty("editable", bool(val))
 
     @property
     def multiline(self):
@@ -266,7 +266,7 @@ class TextField(TextBaseProxy):
     def multiline(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("multiline", val)
+        model.SetProperty("multiline", bool(val))
 
     def SelectAll(self):
         model = self._model

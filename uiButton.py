@@ -154,11 +154,9 @@ class Button(ViewProxy):
         return model.GetProperty("title")
     @title.setter
     def title(self, val):
-        if not isinstance(val, str):
-            raise TypeError("title must be a string")
         model = self._model
         if not model: return
-        model.SetProperty("title", val)
+        model.SetProperty("title", str(val))
 
     @property
     def border(self):
@@ -169,7 +167,7 @@ class Button(ViewProxy):
     def border(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("border", val)
+        model.SetProperty("border", bool(val))
 
     def Click(self):
         model = self._model
