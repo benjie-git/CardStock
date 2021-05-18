@@ -185,9 +185,9 @@ class CardModel(ViewModel):
                 kwargs.pop("size")
                 kwargs.pop("center")
 
-            for k, v in kwargs.items():
-                if k in model.propertyTypes:
-                    model.SetProperty(k, v, notify=False)
+            for k,v in kwargs.items():
+                if hasattr(model.GetProxy(), k):
+                    setattr(model.GetProxy(), k, v)
 
         self.AddChild(model)
 

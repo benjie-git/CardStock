@@ -374,6 +374,12 @@ class Line(ViewProxy):
     def points(self, points):
         model = self._model
         if not model or not model.parent: return
+
+        try:
+            points = [wx.RealPoint(p[0], p[1]) for p in points]
+        except:
+            raise ValueError("points must be either a list of points, or a list of lists of two numbers")
+
         model.SetPoints(points)
 
     def AnimatePenThickness(self, duration, endVal, onFinished=None, *args, **kwargs):
@@ -465,6 +471,10 @@ class Shape(Line):
         model = self._model
         if model and model.parent:
             if model.type == "poly":
+                try:
+                    points = [wx.RealPoint(p[0], p[1]) for p in points]
+                except:
+                    raise ValueError("points must be either a list of points, or a list of lists of two numbers")
                 model.SetPoints(points)
             else:
                 raise TypeError(f"The points property is not available for shapes of type {model.type}.")

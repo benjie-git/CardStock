@@ -854,8 +854,8 @@ class ViewProxy(object):
             if not self.visible:
                 newModel.SetProperty("hidden", True, notify=False)
             for k,v in kwargs.items():
-                if k in newModel.propertyTypes:
-                    newModel.SetProperty(k, v, notify=False)
+                if hasattr(newModel.GetProxy(), k):
+                    setattr(newModel.GetProxy(), k, v)
 
             model.GetCard().AddChild(newModel)
             newModel.RunSetup(model.stackManager.runner)
@@ -1060,10 +1060,13 @@ class ViewProxy(object):
 
     def OrderToIndex(self, i):
         if not isinstance(i, int):
-            raise TypeError("i must be a number")
+            raise TypeError("index must be a number")
 
         model = self._model
         if not model: return
+
+        if i < 0 or i >= len(model.parent.childModels):
+            raise TypeError("index is out of bounds")
 
         @RunOnMainAsync
         def f():
