@@ -909,12 +909,14 @@ class StackManager(object):
         cPanel = self.designer.cPanel
         cardModel = self.uiCard.model
         cardIndex = self.stackModel.childModels.index(cardModel)
-        uiView = cPanel.lastSelectedUiView
+        uiView = None
+        if len(cPanel.lastSelectedUiViews) == 1:
+            uiView = cPanel.lastSelectedUiViews[0]
         model = uiView.model if uiView else None
 
         start, end, text = self.designer.cPanel.GetInspectorSelection()
         if text:
-            propName = cPanel.lastSelectedUiView.model.PropertyKeys()[cPanel.inspector.GetGridCursorRow()]
+            propName = uiView.model.PropertyKeys()[cPanel.inspector.GetGridCursorRow()]
             return (str(cardIndex) + "." + model.GetProperty("name") + ".property." + propName, (start, end, text))
 
         start, end, text = self.designer.cPanel.GetCodeEditorSelection()

@@ -310,7 +310,10 @@ class SetHandlerCommand(Command):
 
         if self.hasRun and uiView:
             firstLine = 0
-            if self.cPanel.lastSelectedUiView == uiView and self.cPanel.currentHandler == self.key:
+            currentUiView = None
+            if len(self.cPanel.lastSelectedUiViews) == 1:
+                currentUiView = self.cPanel.lastSelectedUiViews[0]
+            if currentUiView == uiView and self.cPanel.currentHandler == self.key:
                 firstLine = self.cPanel.codeEditor.GetFirstVisibleLine()
                 self.cPanel.codeEditor.AutoCompCancel()
             self.cPanel.UpdateHandlerForUiViews([uiView], self.key)
@@ -336,7 +339,10 @@ class SetHandlerCommand(Command):
 
         if uiView:
             firstLine = 0
-            if self.cPanel.lastSelectedUiView == uiView and self.cPanel.currentHandler == self.key:
+            currentUiView = None
+            if len(self.cPanel.lastSelectedUiViews) == 1:
+                currentUiView = self.cPanel.lastSelectedUiViews[0]
+            if currentUiView == uiView and self.cPanel.currentHandler == self.key:
                 firstLine = self.cPanel.codeEditor.GetFirstVisibleLine()
                 self.cPanel.codeEditor.AutoCompCancel()
             self.cPanel.UpdateHandlerForUiViews([uiView], self.key)

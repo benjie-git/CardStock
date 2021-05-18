@@ -76,7 +76,10 @@ class FindEngine(object):
             parts = findPath.split(".")
             key = parts[3]
             if parts[2] == "handler":
-                self.stackManager.designer.cPanel.UpdateHandlerForUiViews([self.stackManager.designer.cPanel.lastSelectedUiView], key)
+                uiViews = []
+                if len(self.stackManager.designer.cPanel.lastSelectedUiViews) == 1:
+                    uiViews = [self.stackManager.designer.cPanel.lastSelectedUiViews[0]]
+                self.stackManager.designer.cPanel.UpdateHandlerForUiViews(uiViews, key)
                 pos = textSel[0] + len(replaceStr)
                 self.stackManager.designer.cPanel.codeEditor.SetSelection(pos, pos)
                 self.stackManager.designer.cPanel.codeEditor.ScrollRange(pos, pos)
