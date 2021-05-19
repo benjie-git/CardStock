@@ -101,7 +101,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.Bind(stc.EVT_STC_CHANGE, self.PyEditorOnChange)
         self.Bind(wx.EVT_SET_FOCUS, self.PyEditorOnFocus)
         self.Bind(wx.EVT_KILL_FOCUS, self.PyEditorOnLoseFocus)
-        self.Bind(wx.EVT_KEY_DOWN, self.PyEditorOnKeyPress)
+        self.Bind(wx.EVT_CHAR, self.PyEditorOnKeyPress)
         self.Bind(stc.EVT_STC_ZOOM, self.PyEditorOnZoom)
         self.Bind(stc.EVT_STC_UPDATEUI, self.PyEditorOnUpdateUi)
 
@@ -112,7 +112,6 @@ class PythonEditor(stc.StyledTextCtrl):
                 self.AutoCompComplete()
             else:
                 numSpaces = self.GetLineIndentation(self.GetCurrentLine())
-                line = self.GetLine(self.GetCurrentLine())
                 pos = self.GetCurrentPos()
                 if pos > 1 and self.GetCharAt(pos-1) == ord(":"):
                     numSpaces += TAB_WIDTH
@@ -147,7 +146,6 @@ class PythonEditor(stc.StyledTextCtrl):
         # check for matching braces
         braceAtCaret = -1
         braceOpposite = -1
-        charBefore = None
         caretPos = self.GetCurrentPos()
 
         if caretPos > 0:
@@ -173,6 +171,7 @@ class PythonEditor(stc.StyledTextCtrl):
             self.BraceBadLight(braceAtCaret)
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
+        event.Skip()
 
     def PyEditorOnFocus(self, event):
         self.RunDeferredAnalysis()
