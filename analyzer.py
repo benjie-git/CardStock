@@ -189,15 +189,16 @@ class CodeAnalyzer(object):
             path.pop()
 
     def ScanCode(self):
+        self.analysisRunning = True
+        thread = threading.Thread(target=self.ScanCodeInternal)
+        thread.start()
+
+    def ScanCodeInternal(self):
         self.objNames = {}
         self.cardNames = []
         codeDict = {}
-        self.analysisRunning = True
         self.CollectCode(self.stackManager.stackModel, [], codeDict)
-        thread = threading.Thread(target=self.ScanCodeInternal, args=(codeDict,))
-        thread.start()
 
-    def ScanCodeInternal(self, codeDict):
         self.varNames = set()
         self.funcNames = set()
         self.syntaxErrors = {}
