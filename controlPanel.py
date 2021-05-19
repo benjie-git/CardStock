@@ -341,6 +341,7 @@ class ControlPanel(wx.Panel):
             self.inspector.SetColLabelValue(0, "Objects")
             keys = uiViews[0].model.PropertyKeys().copy()
             keys.remove("name")
+            # Only show properties that exist for all selected objects
             for uiView in uiViews[1:]:
                 oKeys = uiView.model.PropertyKeys()
                 keys = [k for k in keys if k in oKeys]
@@ -350,6 +351,7 @@ class ControlPanel(wx.Panel):
                 self.inspector.SetCellValue(r, 0, k)
                 self.inspector.SetReadOnly(r, 0)
                 val = uiViews[0].model.GetProperty(k)
+                # Only show values for properties that are the same for all selected objects
                 for ui in uiViews[1:]:
                     if val != ui.model.GetProperty(k):
                         val = None
@@ -366,14 +368,14 @@ class ControlPanel(wx.Panel):
 
                 renderer = None
                 editor = None
-                if uiView.model.GetPropertyType(k) == "bool":
+                if uiViews[0].model.GetPropertyType(k) == "bool":
                     editor = wx.grid.GridCellChoiceEditor(["True", "False"])
-                elif uiView.model.GetPropertyType(k) == "choice":
-                    editor = wx.grid.GridCellChoiceEditor(uiView.model.GetPropertyChoices(k))
-                elif uiView.model.GetPropertyType(k) == "color":
+                elif uiViews[0].model.GetPropertyType(k) == "choice":
+                    editor = wx.grid.GridCellChoiceEditor(uiViews[0].model.GetPropertyChoices(k))
+                elif uiViews[0].model.GetPropertyType(k) == "color":
                     editor = GridCellColorEditor(self)
                     renderer = GridCellColorRenderer()
-                elif uiView.model.GetPropertyType(k) == "file":
+                elif uiViews[0].model.GetPropertyType(k) == "file":
                     editor = GridCellFileEditor(self)
                     renderer = GridCellFileRenderer()
 
