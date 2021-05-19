@@ -412,7 +412,7 @@ class StackManager(object):
             self.command_processor.Submit(cmdGroup)
         else:
             # Distribute objects
-            ordered = sorted([(getAlignPos(ui.model), ui.model) for ui in self.selectedViews])
+            ordered = sorted([(getAlignPos(ui.model), ui.model) for ui in self.selectedViews], key=lambda l: l[0])
             first = ordered[0][0]
             last = ordered[-1][0]
             num = len(ordered)
