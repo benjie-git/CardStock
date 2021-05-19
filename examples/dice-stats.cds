@@ -190,7 +190,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "stepSize = 20\n\nfor i in range(5000):\n   RollOnce()\n   \n   # Update the stats displays once per 200 rolls\n   if i % stepSize == stepSize-1:\n      stats_label.SendMessage(\"update\")\n      graph_frame.SendMessage(\"update\")\n"
+            "OnClick": "stepSize = 20\n\nfor i in range(5000):\n   RollOnce()\n   \n   # Update the stats displays once per step_size rolls\n   if i % stepSize == stepSize-1:\n      stats_label.SendMessage(\"update\")\n      graph_frame.SendMessage(\"update\")\n"
           },
           "properties": {
             "name": "roll_5000",
@@ -209,7 +209,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMessage": "if message == \"update\":\n   items = stats_list[2:]\n   low = min(items)\n   high = max(items)\n   num_points = len(items)\n\n   pos = graph_frame.position\n   s = graph_frame.size\n\n   xStep = (s.width-2)/(num_points-1)\n   yStep = (s.height-3)/(high)\n\n   points = []\n   for i in range(len(items)):\n      points.append((xStep*i+pos.x, yStep*(items[i])+pos.y))\n\n   stat_line.points = points"
+            "OnMessage": "if message == \"update\":\n   items = stats_list[2:]\n   low = min(items)\n   high = max(items)\n   num_points = len(items)\n\n   pos = graph_frame.position\n   s = graph_frame.size\n\n   xStep = (s.width-2)/(num_points-1)\n   yStep = (s.height-3)/(high)\n\n   points = []\n   for n in range(len(items)):\n      points.append((xStep*n+pos.x, yStep*(items[n])+pos.y))\n\n   stat_line.points = points"
           },
           "properties": {
             "name": "graph_frame",
@@ -275,5 +275,5 @@
     }
   ],
   "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9.2.2"
+  "CardStock_stack_version": "0.9.3"
 }

@@ -349,7 +349,20 @@ class ControlPanel(wx.Panel):
             for k in keys:
                 self.inspector.SetCellValue(r, 0, k)
                 self.inspector.SetReadOnly(r, 0)
-                self.inspector.SetCellValue(r, 1, "")
+                val = uiViews[0].model.GetProperty(k)
+                for ui in uiViews[1:]:
+                    if val != ui.model.GetProperty(k):
+                        val = None
+                        break
+                if val is not None:
+                    if uiViews[0].model.GetPropertyType(k) in ["point", "floatpoint", "size"]:
+                        l = list(val)
+                        l = [int(i) if math.modf(i)[0] == 0 else i for i in l]
+                        self.inspector.SetCellValue(r, 1, str(l))
+                    else:
+                        self.inspector.SetCellValue(r, 1, str(val))
+                else:
+                    self.inspector.SetCellValue(r, 1, "")
 
                 renderer = None
                 editor = None
@@ -416,7 +429,6 @@ class ControlPanel(wx.Panel):
                                                            uiView.model, key, val))
                 if len(commands):
                     self.stackManager.command_processor.Submit(CommandGroup(True, "Set Property", commands))
-                    self.UpdateInspectorForUiViews(self.lastSelectedUiViews)
 
     def OnGridResized(self, event):
         width, height = self.inspector.GetSize()
