@@ -111,15 +111,17 @@ class PythonEditor(stc.StyledTextCtrl):
         if key == stc.STC_KEY_RETURN:
             if self.AutoCompActive():
                 self.AutoCompComplete()
+                return
             else:
                 numSpaces = self.GetLineIndentation(self.GetCurrentLine())
+                self.ReplaceSelection("")
                 pos = self.GetCurrentPos()
                 if pos > 1 and self.GetCharAt(pos-1) == ord(":"):
                     numSpaces += TAB_WIDTH
                 self.AddText("\n" + " "*numSpaces)
                 self.ScrollRange(self.GetCurrentPos(), self.GetCurrentPos())
-        else:
-            event.Skip()
+                return
+        event.Skip()
 
     def PyEditorOnChar(self, event):
         key = event.GetKeyCode()
