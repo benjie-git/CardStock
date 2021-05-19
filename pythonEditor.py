@@ -101,7 +101,8 @@ class PythonEditor(stc.StyledTextCtrl):
         self.Bind(stc.EVT_STC_CHANGE, self.PyEditorOnChange)
         self.Bind(wx.EVT_SET_FOCUS, self.PyEditorOnFocus)
         self.Bind(wx.EVT_KILL_FOCUS, self.PyEditorOnLoseFocus)
-        self.Bind(wx.EVT_CHAR, self.PyEditorOnKeyPress)
+        self.Bind(wx.EVT_KEY_DOWN, self.PyEditorOnKeyPress)
+        self.Bind(wx.EVT_CHAR, self.PyEditorOnChar)
         self.Bind(stc.EVT_STC_ZOOM, self.PyEditorOnZoom)
         self.Bind(stc.EVT_STC_UPDATEUI, self.PyEditorOnUpdateUi)
 
@@ -118,23 +119,24 @@ class PythonEditor(stc.StyledTextCtrl):
                 self.AddText("\n" + " "*numSpaces)
                 self.ScrollRange(self.GetCurrentPos(), self.GetCurrentPos())
         else:
-            if key == ord("Z") and event.ControlDown():
-                if not event.ShiftDown():
-                    self.stackManager.Undo()
-                else:
-                    self.stackManager.Redo()
-                self.AutoCompCancel()
-                return
-            elif ord('a') <= key <= ord('z') or ord('A') <= key <= ord('Z') or key == ord('.'):
-                wx.CallAfter(self.UpdateAC)
-            elif self.AutoCompActive() and (key == wx.WXK_BACK or (event.ShiftDown() and key == ord('-')) or \
-                                            (not event.ShiftDown() and ord('0') <= key <= ord('9'))):
-                wx.CallAfter(self.UpdateAC)
-            elif self.AutoCompActive() and (key in [stc.STC_KEY_ESCAPE, ord(' '), ord('['), ord('.'), ord("'"),
-                    ord('`'), ord(']'), ord(';'), ord(','), ord('.'), ord('\\'), ord('/'), ord('-'), ord('=')] or \
-                    (event.ShiftDown() and ord('0') <= key <= ord('9'))):
-                self.AutoCompCancel()
             event.Skip()
+
+    def PyEditorOnChar(self, event):
+        key = event.GetKeyCode()
+        if key == ord("Z") and event.ControlDown():
+            if not event.ShiftDown():
+                self.stackManager.Undo()
+            else:
+                self.stackManager.Redo()
+            self.AutoCompCancel()
+            return
+        elif ord('a') <= key <= ord('z') or ord('A') <= key <= ord('Z') or key in [ord('.'), ord('_')]:
+            wx.CallAfter(self.UpdateAC)
+        elif self.AutoCompActive() and (key == wx.WXK_BACK or ord('0') <= key <= ord('9')):
+            wx.CallAfter(self.UpdateAC)
+        elif self.AutoCompActive():
+            self.AutoCompCancel()
+        event.Skip()
 
     def PyEditorOnZoom(self, event):
         # Disable Zoom
