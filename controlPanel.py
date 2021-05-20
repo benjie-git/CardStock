@@ -430,7 +430,8 @@ class ControlPanel(wx.Panel):
                         commands.append(SetPropertyCommand(True, "Set Property", self, self.stackManager.cardIndex,
                                                            uiView.model, key, val))
                 if len(commands):
-                    self.stackManager.command_processor.Submit(CommandGroup(True, "Set Property", commands))
+                    self.stackManager.command_processor.Submit(CommandGroup(True, "Set Property", self.stackManager,
+                                                                            commands, [ui.model for ui in self.lastSelectedUiViews]))
 
     def OnGridResized(self, event):
         width, height = self.inspector.GetSize()

@@ -407,14 +407,26 @@ class UngroupUiViewsCommand(Command):
 class CommandGroup(Command):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
-        self.commands = args[2]
+        self.stackManager = args[2]
+        self.commands = args[3]
+        self.selectedModels = None
+        if len(args) >= 5:
+            self.selectedModels = args[4]
 
     def Do(self):
         for c in self.commands:
             c.Do()
+        if self.selectedModels:
+            self.stackManager.SelectUiView(None)
+            for m in self.selectedModels:
+                self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(m), True)
         return True
 
     def Undo(self):
         for c in reversed(self.commands):
             c.Undo()
+        if self.selectedModels:
+            self.stackManager.SelectUiView(None)
+            for m in self.selectedModels:
+                self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(m), True)
         return True

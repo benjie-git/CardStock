@@ -58,9 +58,11 @@ ID_ALIGN_VC = wx.NewIdRef()
 ID_ALIGN_VB = wx.NewIdRef()
 ID_DISTRIBUTE_HL = wx.NewIdRef()
 ID_DISTRIBUTE_HC = wx.NewIdRef()
+ID_DISTRIBUTE_HS = wx.NewIdRef()
 ID_DISTRIBUTE_HR = wx.NewIdRef()
 ID_DISTRIBUTE_VT = wx.NewIdRef()
 ID_DISTRIBUTE_VC = wx.NewIdRef()
+ID_DISTRIBUTE_VS = wx.NewIdRef()
 ID_DISTRIBUTE_VB = wx.NewIdRef()
 ID_FLIP_HORIZ = wx.NewIdRef()
 ID_FLIP_VERT = wx.NewIdRef()
@@ -339,9 +341,11 @@ class DesignerFrame(wx.Frame):
         distMenu = wx.Menu()
         distMenu.Append(ID_DISTRIBUTE_HL, "Distribute Left", "Distribute Objects Left")
         distMenu.Append(ID_DISTRIBUTE_HC, "Distribute Center (Horizontal)", "Distribute Objects Horizontal Center")
+        distMenu.Append(ID_DISTRIBUTE_HS, "Distribute Spacing (Horizontal)", "Distribute Objects Horizontal Even Spacing")
         distMenu.Append(ID_DISTRIBUTE_HR, "Distribute Right", "Distribute Objects Left")
         distMenu.Append(ID_DISTRIBUTE_VT, "Distribute Top", "Distribute Objects Top")
         distMenu.Append(ID_DISTRIBUTE_VC, "Distribute Center (Vertical)", "Distribute Objects Vertical Center")
+        distMenu.Append(ID_DISTRIBUTE_VS, "Distribute Spacing (Vertical)", "Distribute Objects Vertical Even Spacing")
         distMenu.Append(ID_DISTRIBUTE_VB, "Distribute Bottom", "Distribute Objects Bottom")
         viewMenu.AppendSubMenu(distMenu, "Distribute Objects...", "Distribute Objects")
         viewMenu.AppendSeparator()
@@ -416,9 +420,11 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuAlign, id=ID_ALIGN_VB)
         self.Bind(wx.EVT_MENU, self.OnMenuDistribute, id=ID_DISTRIBUTE_HL)
         self.Bind(wx.EVT_MENU, self.OnMenuDistribute, id=ID_DISTRIBUTE_HC)
+        self.Bind(wx.EVT_MENU, self.OnMenuDistribute, id=ID_DISTRIBUTE_HS)
         self.Bind(wx.EVT_MENU, self.OnMenuDistribute, id=ID_DISTRIBUTE_HR)
         self.Bind(wx.EVT_MENU, self.OnMenuDistribute, id=ID_DISTRIBUTE_VT)
         self.Bind(wx.EVT_MENU, self.OnMenuDistribute, id=ID_DISTRIBUTE_VC)
+        self.Bind(wx.EVT_MENU, self.OnMenuDistribute, id=ID_DISTRIBUTE_VS)
         self.Bind(wx.EVT_MENU, self.OnMenuDistribute, id=ID_DISTRIBUTE_VB)
         self.Bind(wx.EVT_MENU, self.OnMenuFlipHorizontal, id=ID_FLIP_HORIZ)
         self.Bind(wx.EVT_MENU, self.OnMenuFlipVertical, id=ID_FLIP_VERT)
@@ -660,9 +666,11 @@ class DesignerFrame(wx.Frame):
         dir = ""
         if id == ID_DISTRIBUTE_HL: dir = "Left"
         elif id == ID_DISTRIBUTE_HC: dir = "HCenter"
+        elif id == ID_DISTRIBUTE_HS: dir = "HSpacing"
         elif id == ID_DISTRIBUTE_HR: dir = "Right"
         elif id == ID_DISTRIBUTE_VT: dir = "Top"
         elif id == ID_DISTRIBUTE_VC: dir = "VCenter"
+        elif id == ID_DISTRIBUTE_VS: dir = "VSpacing"
         elif id == ID_DISTRIBUTE_VB: dir = "Bottom"
         self.stackManager.AlignOrDistributeSelectedViews(False, dir)
 

@@ -360,7 +360,7 @@ class HandTool(BaseTool):
                 self.stackManager.view.Freeze()
                 self.targetUi.model.SetProperty("position", viewOrigin, notify=False)
                 self.targetUi.model.SetProperty("size", origSize, notify=False)
-                command = CommandGroup(True, "Resize", commands)
+                command = CommandGroup(True, "Resize", self, commands)
                 self.stackManager.command_processor.Submit(command)
                 self.stackManager.view.Thaw()
 

@@ -187,7 +187,7 @@ class FindEngine(object):
             commands.append(command)
 
         if len(commands):
-            command = CommandGroup(True, "Replace All", commands)
+            command = CommandGroup(True, "Replace All", self.stackManager, commands)
             self.stackManager.command_processor.Submit(command)
 
         for ui in selectedUiViews:
