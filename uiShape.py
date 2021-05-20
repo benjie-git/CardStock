@@ -173,11 +173,11 @@ class UiShape(UiView):
     @staticmethod
     def CreateModelForType(stackManager, name):
         if name in ["pen", "line"]:
-            return LineModel(stackManager)
+            return LineModel(stackManager, name)
         if name in ["rect", "oval", "poly"]:
-            return ShapeModel(stackManager)
+            return ShapeModel(stackManager, name)
         if name == "roundrect":
-            return RoundRectModel(stackManager)
+            return RoundRectModel(stackManager, name)
 
 
 class LineModel(ViewModel):
@@ -187,14 +187,20 @@ class LineModel(ViewModel):
 
     minSize = wx.Size(2, 2)
 
-    def __init__(self, stackManager):
+    def __init__(self, stackManager, shapeType):
         super().__init__(stackManager)
-        self.type = "line"  # Gets rewritten on SetShape (to "line" or "pen")
+        self.type = shapeType
         self.proxyClass = Line
         self.points = []
         self.scaledPoints = None
 
-        self.properties["name"] = "shape_1"
+        if shapeType == "pen":
+            self.properties["name"] = "line_1"
+        elif shapeType == "poly":
+            self.properties["name"] = "polygon_1"
+        else:
+            self.properties["name"] = f"{shapeType}_1"
+
         self.properties["originalSize"] = None
         self.properties["penColor"] = "black"
         self.properties["penThickness"] = 2
@@ -436,9 +442,8 @@ class ShapeModel(LineModel):
     This is the model class for Oval and Rectangle objects, and the superclass for models for round-rects.
     """
 
-    def __init__(self, stackManager):
-        super().__init__(stackManager)
-        self.type = "shape"  # Gets rewritten on SetShape (to "oval", "rect", or "poly")
+    def __init__(self, stackManager, shapeType):
+        super().__init__(stackManager, shapeType)
         self.proxyClass = Shape
 
         self.properties["fillColor"] = "white"
@@ -524,9 +529,8 @@ class RoundRectModel(ShapeModel):
     This is the model class for Round Rectangle objects.
     """
 
-    def __init__(self, stackManager):
-        super().__init__(stackManager)
-        self.type = "roundrect"
+    def __init__(self, stackManager, shapeType):
+        super().__init__(stackManager, shapeType)
         self.proxyClass = RoundRect
 
         self.properties["cornerRadius"] = 8
