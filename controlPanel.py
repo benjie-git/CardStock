@@ -243,6 +243,7 @@ class ControlPanel(wx.Panel):
         vals = list(UiView.handlerDisplayNames.values())
         self.SaveCurrentHandler()
         self.UpdateHandlerForUiViews(self.stackManager.GetSelectedUiViews(), keys[vals.index(displayName)])
+        self.codeEditor.SetFocus()
 
     def SelectInCodeForHandlerName(self, key, selectStart, selectEnd):
         self.SaveCurrentHandler()
