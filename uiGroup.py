@@ -1,7 +1,7 @@
 import wx
 from uiView import *
 import generator
-from codeRunnerThread import RunOnMain
+from codeRunnerThread import RunOnMainSync
 
 
 class UiGroup(UiView):
@@ -226,7 +226,7 @@ class Group(ViewProxy):
     Group proxy objects are the user-accessible objects exposed to event handler code for group objects.
     """
 
-    @RunOnMain
+    @RunOnMainSync
     def Ungroup(self):
         model = self._model
         if not model: return None

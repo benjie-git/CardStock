@@ -11,7 +11,7 @@ from time import sleep, time
 import math
 from errorListWindow import CardStockError
 import threading
-from codeRunnerThread import CodeRunnerThread, RunOnMain, RunOnMainAsync
+from codeRunnerThread import CodeRunnerThread, RunOnMainSync, RunOnMainAsync
 import queue
 
 try:
@@ -33,7 +33,7 @@ class Runner():
 
     Keep the UI responsive even if an event handler runs an infinite loop.  Do this by running all handler code in the
     runnerThread.  From there, run all UI calls on the main thread, as required by wxPython.  If we need a return value
-    from the main thread call, then run the call synchronously using @RunOnMain, and pause the runner thread until the
+    from the main thread call, then run the call synchronously using @RunOnMainSync, and pause the runner thread until the
     main thread call returns a value.  Otherwise, just fire off the main thread call using @RunOnMainAsync and keep on
     truckin'.  In general, the stack model is modified on the runnerThread, and uiView and other UI changes are made on
     the Main thread.  This lets us consolidate many model changes made quickly, into one UI update, to avoid flickering
@@ -169,7 +169,7 @@ class Runner():
 
             def waitAndYield(duration):
                 # Wait up to duration seconds for the stack to finish running
-                # run wx.YieldIfNeeded() to process main thread events while waiting, to allow @RunOnMain* methods to complete
+                # run wx.YieldIfNeeded() to process main thread events while waiting, to allow @RunOnMainSync* methods to complete
                 endTime = time() + duration
                 while time() < endTime:
                     breakpoint = time() + 0.05
@@ -655,7 +655,7 @@ class Runner():
         if self.stopRunnerThread:
             return
 
-        @RunOnMain
+        @RunOnMainSync
         def func():
             wx.MessageDialog(None, str(message), "", wx.OK).ShowModal()
         func()
@@ -667,7 +667,7 @@ class Runner():
         if self.stopRunnerThread:
             return None
 
-        @RunOnMain
+        @RunOnMainSync
         def func():
             return wx.MessageDialog(None, str(message), "", wx.YES_NO).ShowModal()
 
@@ -712,7 +712,7 @@ class Runner():
             for (filepath, s) in self.soundCache.items():
                 s.Stop()
 
-    @RunOnMain
+    @RunOnMainSync
     def Paste(self):
         models = self.stackManager.Paste(False)
         for model in models:
@@ -725,7 +725,7 @@ class Runner():
 
         return name in self.pressedKeys
 
-    @RunOnMain
+    @RunOnMainSync
     def IsMouseDown(self):
         return wx.GetMouseState().LeftIsDown()
 
@@ -755,7 +755,7 @@ class Runner():
 
         f()
 
-    @RunOnMain
+    @RunOnMainSync
     def Quit(self):
         if self.stopRunnerThread: return
         self.stackManager.view.TopLevelParent.OnMenuClose(None)

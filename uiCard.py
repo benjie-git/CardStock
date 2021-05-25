@@ -2,7 +2,7 @@ import wx
 from uiView import *
 import uiShape
 import generator
-from codeRunnerThread import RunOnMain, RunOnMainAsync
+from codeRunnerThread import RunOnMainSync, RunOnMainAsync
 
 
 class UiCard(UiView):
@@ -399,7 +399,7 @@ class Card(ViewProxy):
         model = self._model
         if not model: return None
 
-        @RunOnMain
+        @RunOnMainSync
         def func():
             if model.didSetDown: return None
             g = model.stackManager.GroupModelsInternal(models, name=name)

@@ -65,7 +65,7 @@ class CodeRunnerThread(threading.Thread):
 
 
 # -----------------------------------------
-# Build the @RunOnMain decorator, to run the function on the Main thread, and make the runnerThread wait for the
+# Build the @RunOnMainSync decorator, to run the function on the Main thread, and make the runnerThread wait for the
 # return value, passed back through a queue
 
 def to_main_sync(func, *args, **kwargs):
@@ -97,7 +97,7 @@ def to_main_sync_helper(thread, func, *args, **kwargs):
         thread.returnQueue.put(None) # send empty return value to calling thread
 
 
-def RunOnMain(func):
+def RunOnMainSync(func):
     """ Used as a decorator, to make Proxy object functions run on the main thread. """
     def wrapper_run_on_main(*args, **kwargs):
         return to_main_sync(func, *args, **kwargs)

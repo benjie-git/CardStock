@@ -26,7 +26,7 @@ from uiTextLabel import UiTextLabel
 from uiImage import UiImage
 from uiShape import UiShape
 from uiGroup import UiGroup, GroupModel
-from codeRunnerThread import RunOnMain, RunOnMainAsync
+from codeRunnerThread import RunOnMainSync, RunOnMainAsync
 
 
 # ----------------------------------------------------------------------
@@ -267,7 +267,7 @@ class StackManager(object):
         self.stackModel.SetDirty(False)
         self.UpdateCursor()
 
-    @RunOnMain
+    @RunOnMainSync
     def LoadCardAtIndex(self, index, reload=False):
         if index != self.cardIndex or reload == True:
             if not self.isEditing and self.cardIndex is not None and not reload:
@@ -466,6 +466,7 @@ class StackManager(object):
             self.command_processor.Submit(command)
 
     def GroupModelsInternal(self, models, group=None, name=None):
+        """ Groups both the models and uiView objects, so while running, call this within a @RunOnMainSync. """
         if len(models) > 1:
             card = models[0].GetCard()
             if not group:
@@ -489,6 +490,7 @@ class StackManager(object):
         return group
 
     def UngroupModelsInternal(self, groups):
+        """ Ungroups both the models and uiView objects, so while running, call this within a @RunOnMainSync. """
         modelSets = []
         if len(groups) > 0:
             self.SelectUiView(None)
@@ -511,6 +513,7 @@ class StackManager(object):
         return modelSets
 
     def AddUiViewInternal(self, model):
+        """ Only used while editing / in the designer. """
         uiView = None
         objType = model.type
 
@@ -551,6 +554,11 @@ class StackManager(object):
         return uiView
 
     def AddUiViewsFromModels(self, models, canUndo=True):
+        """
+        Adds views for the given models, and adds the models as children of the current card model
+        if they're not already somewhere in the stack's model tree.  To split model changes from view changes,
+        just add the model to the stack before calling this, and then this method will only make changes to the views.
+        """
         models = [m for m in models if not m.didSetDown]
         self.uiCard.model.DeduplicateNamesForModels(models)
         command = AddUiViewsCommand(True, 'Add Views', self, self.cardIndex, models)
@@ -625,6 +633,11 @@ class StackManager(object):
         return None
 
     def RemoveUiViewByModel(self, viewModel):
+        """
+        Removes views for the given models, and removes the models from the stack if they're still in the stack tree.
+        To split model changes from view changes, just remove the model from the stack before calling this, and then
+        this method will only make changes to the views.
+        """
         ui = self.GetUiViewByModel(viewModel)
         if ui:
             if ui in self.selectedViews:

@@ -4,7 +4,7 @@ import wx
 from uiView import ViewModel, ViewProxy
 from uiCard import CardModel
 import version
-from codeRunnerThread import RunOnMain
+from codeRunnerThread import RunOnMainSync
 
 class StackModel(ViewModel):
     """
@@ -158,7 +158,7 @@ class Stack(ViewProxy):
         if atNumber < 0 or atNumber > len(self._model.childModels)+1:
             raise ValueError("atNumber is out of bounds")
 
-        @RunOnMain
+        @RunOnMainSync
         def func():
             if self._model.didSetDown: return None
             return self._model.InsertNewCard(name, atNumber-1).GetProxy()

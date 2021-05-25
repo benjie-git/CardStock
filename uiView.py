@@ -7,7 +7,7 @@ import re
 import generator
 import helpData
 from time import time
-from codeRunnerThread import RunOnMain, RunOnMainAsync
+from codeRunnerThread import RunOnMainSync, RunOnMainAsync
 from cardstockFrameParts import *
 
 
@@ -835,7 +835,7 @@ class ViewProxy(object):
             model.stackManager.runner.SetFocus(self)
 
     @property
-    @RunOnMain
+    @RunOnMainSync
     def hasFocus(self):
         model = self._model
         if not model: return False
@@ -872,7 +872,7 @@ class ViewProxy(object):
                     newModel.stackManager.AddUiViewsFromModels([newModel], False)
             func()
         else:
-            @RunOnMain
+            @RunOnMainSync
             def func():
                 # When cloning a card, update the model and view together in a rare synchronous call to the main thread
                 newModel = model.stackManager.DuplicateCard()
@@ -911,13 +911,13 @@ class ViewProxy(object):
                 sm.RemoveUiViewByModel(model)
             func()
         else:
-            @RunOnMain
+            @RunOnMainSync
             def func():
                 # When cloning a card, update the model and view together in a rare synchronous call to the main thread
                 sm.RemoveCardRaw(model)
             func()
 
-    @RunOnMain
+    @RunOnMainSync
     def Cut(self):
         # update the model and view together in a rare synchronous call to the main thread
         model = self._model
@@ -925,7 +925,7 @@ class ViewProxy(object):
 
         model.stackManager.CutModels([model], False)
 
-    @RunOnMain
+    @RunOnMainSync
     def Copy(self):
         # update the model and view together in a rare synchronous call to the main thread
         model = self._model
@@ -1126,7 +1126,7 @@ class ViewProxy(object):
         model = self._model
         if not model: return False
 
-        @RunOnMain
+        @RunOnMainSync
         def f():
             if model.didSetDown: return False
             s = model.stackManager.GetUiViewByModel(model)
@@ -1146,7 +1146,7 @@ class ViewProxy(object):
         oModel = obj._model
         if not model or not oModel: return False
 
-        @RunOnMain
+        @RunOnMainSync
         def f():
             if model.didSetDown: return False
             s = model.stackManager.GetUiViewByModel(model)
@@ -1171,7 +1171,7 @@ class ViewProxy(object):
         oModel = obj._model
         if not model or not oModel: return None
 
-        @RunOnMain
+        @RunOnMainSync
         def f():
             if model.didSetDown: return None
             sf = model.GetAbsoluteFrame() # self frame in card coords
