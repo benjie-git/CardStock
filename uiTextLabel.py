@@ -72,6 +72,7 @@ class UiTextLabel(UiTextBase):
         extraLineSpacing = 6 if wx.Platform == "__WXMSW__" else 2
 
         for line in lines.split('\n'):
+            line = line.strip()
             if align in ["Center", "Right"]:
                 textWidth = gc.GetTextExtent(line).Width
                 if align == "Center":
