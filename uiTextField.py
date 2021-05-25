@@ -158,6 +158,8 @@ class CDSTextCtrl(wx.TextCtrl):
     def EmptyUndoBuffer(self):
         if self.command_processor:
             self.command_processor.ClearCommands()
+        self.oldText = self.GetValue()
+        self.oldSel = self.GetSelection()
 
     def CanUndo(self):
         if wx.Platform != '__WXMSW__':

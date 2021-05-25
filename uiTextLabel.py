@@ -2,6 +2,7 @@ import wx
 from commands import SetPropertyCommand
 from uiView import *
 from uiTextBase import *
+from uiTextField import CDSTextCtrl
 
 
 class UiTextLabel(UiTextBase):
@@ -16,12 +17,17 @@ class UiTextLabel(UiTextBase):
     def StartInlineEditing(self):
         # Show a temporary StyledTextCtrl with the same frame and font as the label
         text = self.model.GetProperty("text")
-        field = stc.StyledTextCtrl(parent=self.stackManager.view, style=wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
-        field.SetUseHorizontalScrollBar(False)
-        field.SetUseVerticalScrollBar(False)
-        field.SetWrapMode(stc.STC_WRAP_WORD)
-        field.SetMarginWidth(1, 0)
-        rect = self.model.GetAbsoluteFrame().Inflate(1)
+
+        alignment = wx.TE_LEFT
+        if self.model.GetProperty("alignment") == "Right":
+            alignment = wx.TE_RIGHT
+        elif self.model.GetProperty("alignment") == "Center":
+            alignment = wx.TE_CENTER
+
+        field = CDSTextCtrl(parent=self.stackManager.view, size=self.model.GetProperty("size"),
+                            pos=self.stackManager.ConvRect(self.model.GetAbsoluteFrame()).BottomLeft,
+                            style=wx.TE_MULTILINE | alignment)
+        rect = self.model.GetAbsoluteFrame().Inflate(2)
         rect.width += 20
         field.SetRect(self.stackManager.ConvRect(rect))
         field.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
