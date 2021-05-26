@@ -101,7 +101,8 @@ class DesignerFrame(wx.Frame):
         # self.lastStats = {}
 
         toolbar = self.CreateToolBar(style=wx.TB_TEXT)
-        toolbar.AddTool(ID_RUN, 'Run', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
+        toolbar.AddTool(ID_RUN, 'Run Stack', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
+        toolbar.AddTool(ID_RUN_FROM, 'Run This Card', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
 
         toolbar.AddStretchableSpace()
 

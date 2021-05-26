@@ -45,7 +45,7 @@ class AllCodeWindow(wx.Frame):
         self.AppendNonSetupCode(stack)
         self.lastLineNum = 0
         self.textBox.SetEditable(True)
-        self.textBox.ChangeValue(self.text)
+        self.textBox.SetupWithText(self.text)
         self.MarkAllSyntaxErrors()
         self.textBox.SetEditable(False)
 

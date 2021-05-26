@@ -131,7 +131,6 @@ class ControlPanel(wx.Panel):
         self.currentHandler = None
 
         self.codeEditor = PythonEditor(self, self, self.stackManager, style=wx.BORDER_SUNKEN)
-        self.codeEditor.SetSize((150,2000))
         self.codeEditor.Bind(wx.EVT_IDLE, self.CodeEditorOnIdle)
         self.codeEditor.Bind(wx.EVT_SET_FOCUS, self.CodeEditorFocused)
 
@@ -443,7 +442,7 @@ class ControlPanel(wx.Panel):
 
     def UpdateHandlerForUiViews(self, uiViews, handlerName):
         if len(uiViews) != 1:
-            self.codeEditor.SetText("")
+            self.codeEditor.SetupWithText("")
             self.codeEditor.Enable(False)
             self.handlerPicker.Enable(False)
             self.codeEditor.currentModel = None
@@ -479,7 +478,7 @@ class ControlPanel(wx.Panel):
         self.handlerPicker.SetItems(displayNames)
 
         self.handlerPicker.SetSelection(list(uiView.model.GetHandlers().keys()).index(self.currentHandler))
-        self.codeEditor.SetText(uiView.model.GetHandler(self.currentHandler))
+        self.codeEditor.SetupWithText(uiView.model.GetHandler(self.currentHandler))
         self.lastCursorSel = self.codeEditor.GetSelection()
         self.codeEditor.EmptyUndoBuffer()
         self.handlerPicker.Enable(True)

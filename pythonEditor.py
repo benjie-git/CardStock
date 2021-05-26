@@ -56,6 +56,8 @@ class PythonEditor(stc.StyledTextCtrl):
         self.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
         self.SetMarginWidth(1, 24)
         self.SetUndoCollection(False)
+        self.SetScrollWidth(300)
+        self.SetScrollWidthTracking(True)
         self.CmdKeyClear(ord("Z"), stc.STC_SCMOD_CTRL)
         self.CmdKeyClear(ord("Z"), stc.STC_SCMOD_CTRL|stc.STC_SCMOD_SHIFT)
         self.CmdKeyClear(ord("Y"), stc.STC_SCMOD_CTRL)
@@ -120,6 +122,7 @@ class PythonEditor(stc.StyledTextCtrl):
                     numSpaces += TAB_WIDTH
                 self.AddText("\n" + " "*numSpaces)
                 self.ScrollRange(self.GetCurrentPos(), self.GetCurrentPos())
+                self.SetXOffset(0)
                 return
         event.Skip()
 
@@ -185,6 +188,11 @@ class PythonEditor(stc.StyledTextCtrl):
         if self.AutoCompActive():
             self.AutoCompCancel()
         event.Skip()
+
+    def SetupWithText(self, text):
+        self.SetScrollWidth(300)
+        self.SetValue(text)
+        self.SetXOffset(0)
 
     def PyEditorOnChange(self, event):
         if self.HasFocus():
