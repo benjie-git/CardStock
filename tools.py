@@ -374,7 +374,7 @@ class HandTool(BaseTool):
 
     def UpdateBoxSelection(self):
         uiList = []
-        for ui in self.stackManager.uiViews:
+        for ui in self.stackManager.uiCard.uiViews:
             if self.selectionRect.Contains(ui.model.GetCenter()):
                 uiList.append(ui)
         if uiList != self.lastBoxList:
@@ -399,7 +399,7 @@ class HandTool(BaseTool):
             return
 
         if code == wx.WXK_TAB:
-            allUiViews = self.stackManager.GetAllUiViews()
+            allUiViews = self.stackManager.uiCard.GetAllUiViews()
             searchReverse = event.ShiftDown()
             if len(uiViews) == 0:
                 nextUi = self.stackManager.uiCard

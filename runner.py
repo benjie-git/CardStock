@@ -585,7 +585,7 @@ class Runner():
             raise TypeError("message must be a string")
 
         self.RunHandler(self.stackManager.uiCard.model, "OnMessage", None, message)
-        for ui in self.stackManager.GetAllUiViews():
+        for ui in self.stackManager.uiCard.GetAllUiViews():
             self.RunHandler(ui.model, "OnMessage", None, message)
 
     def GotoCard(self, card):

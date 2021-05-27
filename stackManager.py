@@ -105,9 +105,10 @@ class StackManager(object):
         self.stackModel.AppendCardModel(CardModel(self))
 
         self.selectedViews = []
-        self.uiViews = []
         self.modelToViewMap = {}
         self.cardIndex = None
+
+        # This is the only UiCard in the designer or viewer.  It gets re-set-up with each card model, one at a time.
         self.uiCard = UiCard(None, self, self.stackModel.childModels[0])
 
         self.uiCard.model.SetDirty(False)
@@ -140,9 +141,6 @@ class StackManager(object):
         if self.runner:
             self.runner.CleanupFromRun()
 
-        for ui in self.uiViews:
-            ui.SetDown()
-        self.uiViews = None
         self.uiCard.SetDown()
         self.uiCard = None
         self.stackModel.SetDown()
@@ -173,7 +171,7 @@ class StackManager(object):
         else:
             self.globalCursor = None
 
-        allUiViews = self.GetAllUiViews()
+        allUiViews = self.uiCard.GetAllUiViews()
         if self.globalCursor:
             cur = wx.Cursor(self.globalCursor)
             self.view.SetCursor(cur)
@@ -200,7 +198,7 @@ class StackManager(object):
             # Run animations at 60 Hz / FPS
             onFinishedCalls = []
             self.uiCard.RunAnimations(onFinishedCalls, elapsedTime)
-            for ui in self.GetAllUiViews():
+            for ui in self.uiCard.GetAllUiViews():
                 ui.RunAnimations(onFinishedCalls, elapsedTime)
             # Let all animations process, before running their onFinished handlers,
             # which could start new animations.
@@ -229,30 +227,20 @@ class StackManager(object):
 
     def ClearAllViews(self):
         self.SelectUiView(None)
-        for ui in self.uiViews.copy():
-            if ui.model.type != "card":
-                self.uiViews.remove(ui)
 
-                def DelFromMap(ui):
-                    del self.modelToViewMap[ui.model]
-                    if ui.model.type == "group":
-                        for childUi in ui.uiViews:
-                            DelFromMap(childUi)
-                DelFromMap(ui)
-            ui.SetDown()
+        def DelFromMap(ui):
+            if ui.model.type != "card":
+                del self.modelToViewMap[ui.model]
+            if ui.model.type in ["card", "group"]:
+                for childUi in ui.uiViews:
+                    DelFromMap(childUi)
+        DelFromMap(self.uiCard)
+
+        self.uiCard.RemoveUiViews()
 
     def CreateViews(self, cardModel):
         self.uiCard.SetModel(cardModel)
-        self.uiViews = []
         self.AddUiViewsFromModels(cardModel.childModels, canUndo=False)  # Don't allow undoing card loads
-
-    def GetAllUiViews(self):
-        allUiViews = []
-        for uiView in self.uiViews:
-            allUiViews.append(uiView)
-            if uiView.model.type == "group":
-                uiView.GetAllUiViews(allUiViews)
-        return allUiViews
 
     def SetStackModel(self, model):
         self.ClearAllViews()
@@ -309,12 +297,12 @@ class StackManager(object):
 
     def Copy(self):
         # Re-order self.selectedViews to be lowest z-order first, so when pasted, they will end up in the right order
-        models = [ui.model for ui in self.GetAllUiViews() if ui in self.selectedViews]
+        models = [ui.model for ui in self.uiCard.GetAllUiViews() if ui in self.selectedViews]
         self.CopyModels(models)
 
     def SelectAll(self):
         self.SelectUiView(None)
-        for ui in self.uiViews:
+        for ui in self.uiCard.uiViews:
             self.SelectUiView(ui, True)
 
     def DeleteModels(self, models, canUndo=True):
@@ -331,7 +319,7 @@ class StackManager(object):
 
     def Cut(self, canUndo=True):
         # Re-order self.selectedViews to be lowest z-order first, so when pasted, they will end up in the right order
-        models = [ui.model for ui in self.GetAllUiViews() if ui in self.selectedViews]
+        models = [ui.model for ui in self.uiCard.GetAllUiViews() if ui in self.selectedViews]
         self.CutModels(models, canUndo)
 
     def Paste(self, canUndo=True):
@@ -359,7 +347,7 @@ class StackManager(object):
 
     def GroupSelectedViews(self):
         models = []
-        for ui in self.uiViews:
+        for ui in self.uiCard.uiViews:
             if ui.isSelected:
                 models.append(ui.model)
         if len(models) >= 2:
@@ -368,7 +356,7 @@ class StackManager(object):
 
     def UngroupSelectedViews(self):
         models = []
-        for ui in self.uiViews:
+        for ui in self.uiCard.uiViews:
             if ui.isSelected and ui.model.type == "group":
                 models.append(ui.model)
         if len(models) >= 1:
@@ -542,7 +530,7 @@ class StackManager(object):
         AddToMap(uiView)
 
         if uiView:
-            self.uiViews.append(uiView)
+            self.uiCard.uiViews.append(uiView)
 
             if uiView.model not in self.uiCard.model.childModels:
                 self.uiCard.model.AddChild(uiView.model)
@@ -569,7 +557,7 @@ class StackManager(object):
             # Don't mess with the Undo queue when we're just building a pgae
             command.Do()
 
-        uiViews = self.uiViews[-len(models):]
+        uiViews = self.uiCard.uiViews[-len(models):]
 
         if self.globalCursor:
             for uiView in uiViews:
@@ -627,7 +615,7 @@ class StackManager(object):
     def GetUiViewByName(self, name):
         if self.uiCard.model.properties["name"] == name:
             return self.uiCard
-        for ui in self.GetAllUiViews():
+        for ui in self.uiCard.GetAllUiViews():
             if ui.model.properties["name"] == name:
                 return ui
         return None
@@ -650,7 +638,7 @@ class StackManager(object):
                         DelFromMap(childUi)
             DelFromMap(ui)
 
-            self.uiViews.remove(ui)
+            self.uiCard.uiViews.remove(ui)
             if ui.model.parent:
                 self.uiCard.model.RemoveChild(ui.model)
             ui.SetDown()
@@ -850,7 +838,7 @@ class StackManager(object):
         self.lastMouseMovedUiView = None
 
     def RepositionViews(self):
-        for uiView in self.GetAllUiViews():
+        for uiView in self.uiCard.GetAllUiViews():
             if uiView.view:
                 # Make sure native subview positions get adjusted based on the new origin
                 uiView.OnPropertyChanged(uiView.model, "position")
@@ -912,7 +900,7 @@ class StackManager(object):
         gc.SetBrush(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
         gc.DrawRectangle(self.view.GetRect().Inflate(1))
 
-        paintUiViews = [ui for ui in self.GetAllUiViews() if not ui.model.IsHidden()]
+        paintUiViews = [ui for ui in self.uiCard.GetAllUiViews() if not ui.model.IsHidden()]
         if len(paintUiViews):
             for uiView in paintUiViews:
                 uiView.Paint(gc)
@@ -938,13 +926,13 @@ class StackManager(object):
                     if hit and (hit == uiView or hit.HasGroupAncestor(uiView)):
                         return hit
         # Native views first
-        for uiView in reversed(self.uiViews):
+        for uiView in reversed(self.uiCard.uiViews):
             if not uiView.model.IsHidden() and uiView.view:
                 hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
                 if hit:
                     return hit
         # Then virtual views
-        for uiView in reversed(self.uiViews):
+        for uiView in reversed(self.uiCard.uiViews):
             if not uiView.model.IsHidden() and not uiView.view:
                 hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
                 if hit:
@@ -1049,7 +1037,7 @@ class StackManager(object):
     def GetViewerFindPath(self):
         cardModel = self.uiCard.model
         cardIndex = self.stackModel.childModels.index(cardModel)
-        uiViews = self.GetAllUiViews()
+        uiViews = self.uiCard.GetAllUiViews()
         uiView = None
         if self.lastFocusedTextField in uiViews:
             uiView = self.lastFocusedTextField

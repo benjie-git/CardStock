@@ -14,6 +14,7 @@ class UiCard(UiView):
     """
 
     def __init__(self, parent, stackManager, model):
+        self.uiViews = []
         super().__init__(parent, stackManager, model, stackManager.view)
         self.stackManager.stackModel.SetProperty("size", self.view.GetSize(), notify=False)
 
@@ -22,6 +23,30 @@ class UiCard(UiView):
             if self.view.HasCapture():
                 self.view.ReleaseMouse()
             self.view = None
+
+    def SetDown(self):
+        for ui in self.uiViews:
+            ui.SetDown()
+        self.uiViews = None
+        super().SetDown()
+
+    def RemoveUiViews(self):
+        for ui in self.uiViews.copy():
+            if ui.model.type != "card":
+                self.uiViews.remove(ui)
+            ui.SetDown()
+
+    def GetAllUiViews(self):
+        allUiViews = []
+        for uiView in self.uiViews:
+            allUiViews.append(uiView)
+            if uiView.model.type == "group":
+                uiView.GetAllUiViews(allUiViews)
+        return allUiViews
+
+    def SetModel(self, model):
+        super().SetModel(model)
+        self.RemoveUiViews()
 
     def SetView(self, view):
         super().SetView(view)
@@ -70,7 +95,7 @@ class UiCard(UiView):
 
     def OnPeriodic(self, event):
         didRun = super().OnPeriodic(event)
-        for child in self.stackManager.GetAllUiViews():
+        for child in self.GetAllUiViews():
             if child.OnPeriodic(event):
                 didRun = True
         return didRun
