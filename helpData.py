@@ -654,6 +654,9 @@ class HelpDataTextLabel():
         "alignment": {"type": "[Left, Center, Right]",
                       "info": "By default text fields start aligned to the left, but you can change this property to make "
                               "your text centered, or aligned to the right."},
+        "autoShrink": {"type": "bool",
+                       "info": "When the <b>autoShrink</b> property is True, the size of the text in this label will "
+                               "shrink if needed, to fit into the label's current size."},
         "textColor": {"type": "string",
                       "info": "The color used for the text in this label.  This can be a color word like red, or an "
                               "HTML color like #333333 for dark gray."},

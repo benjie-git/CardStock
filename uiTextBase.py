@@ -36,7 +36,7 @@ class UiTextBase(UiView):
                     self.view.SetEditable(wasEditable)
                     self.view.Refresh()
             self.OnResize(None)
-        elif key in ["font", "fontSize", "textColor"]:
+        elif key in ["font", "fontSize", "textColor", "autoShrink"]:
             self.UpdateFont(model, self.view)
             self.OnResize(None)
             if self.view:
@@ -52,9 +52,7 @@ class UiTextBase(UiView):
                 sm.LoadCardAtIndex(sm.cardIndex, reload=True)
                 sm.SelectUiView(sm.GetUiViewByModel(model))
 
-    def UpdateFont(self, model, view):
-        familyName = model.GetProperty("font")
-
+    def ScaleFontSize(self, fontSize, view):
         # Adjust font sizes by platform
         if wx.Platform == '__WXMAC__':
             platformScale = 1.2 if isinstance(view, stc.StyledTextCtrl) else 1.4
@@ -62,8 +60,12 @@ class UiTextBase(UiView):
             platformScale = 1.0 if isinstance(view, stc.StyledTextCtrl) else 1.2
         else:
             platformScale = 0.9 if isinstance(view, stc.StyledTextCtrl) else 1.4
+        return int(fontSize * platformScale)
 
-        size = int(model.GetProperty("fontSize") * platformScale)
+    def UpdateFont(self, model, view):
+        familyName = model.GetProperty("font")
+
+        size = self.ScaleFontSize(model.GetProperty("fontSize"), view)
         font = wx.Font(wx.FontInfo(wx.Size(0, size)).Family(self.FamilyForName(familyName)))
         color = wx.Colour(model.GetProperty("textColor"))
         if color.IsOk():
