@@ -110,7 +110,14 @@ class PythonEditor(stc.StyledTextCtrl):
 
     def PyEditorOnKeyPress(self, event):
         key = event.GetKeyCode()
-        if key == stc.STC_KEY_RETURN:
+        if key == ord("Z") and event.ControlDown():
+            if not event.ShiftDown():
+                self.stackManager.Undo()
+            else:
+                self.stackManager.Redo()
+            self.AutoCompCancel()
+            return
+        elif key == stc.STC_KEY_RETURN:
             if self.AutoCompActive():
                 self.AutoCompComplete()
                 return
@@ -128,14 +135,7 @@ class PythonEditor(stc.StyledTextCtrl):
 
     def PyEditorOnChar(self, event):
         key = event.GetKeyCode()
-        if key == ord("Z") and event.ControlDown():
-            if not event.ShiftDown():
-                self.stackManager.Undo()
-            else:
-                self.stackManager.Redo()
-            self.AutoCompCancel()
-            return
-        elif ord('a') <= key <= ord('z') or ord('A') <= key <= ord('Z') or key in [ord('.'), ord('_')]:
+        if ord('a') <= key <= ord('z') or ord('A') <= key <= ord('Z') or key in [ord('.'), ord('_')]:
             wx.CallAfter(self.UpdateAC)
         elif self.AutoCompActive() and (key == wx.WXK_BACK or ord('0') <= key <= ord('9')):
             wx.CallAfter(self.UpdateAC)
