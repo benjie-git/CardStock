@@ -661,6 +661,8 @@ class ViewModel(object):
             return
         elif key in self.propertyTypes and self.propertyTypes[key] == "color" and isinstance(value, wx.Colour):
             value = value.GetAsString(flags=wx.C2S_HTML_SYNTAX)
+        elif key in self.propertyTypes and self.propertyTypes[key] == "uint" and value < 0:
+            value = 0
 
         if key == "name":
             value = re.sub(r'\W+', '', value)
@@ -688,8 +690,10 @@ class ViewModel(object):
         try:
             if propType == "bool":
                 val = valStr == "True"
-            elif propType == "int":
+            elif propType in ["int", "uint"]:
                 val = int(valStr)
+                if propType == "uint" and val < 0:
+                    val = 0
             elif propType == "float":
                 val = float(valStr)
             elif propType in ["point", "floatpoint"]:

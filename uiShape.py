@@ -206,7 +206,7 @@ class LineModel(ViewModel):
 
         self.propertyTypes["originalSize"] = "size"
         self.propertyTypes["penColor"] = "color"
-        self.propertyTypes["penThickness"] = "int"
+        self.propertyTypes["penThickness"] = "uint"
 
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "penColor", "penThickness", "position", "size"]
@@ -533,7 +533,7 @@ class RoundRectModel(ShapeModel):
         self.proxyClass = RoundRect
 
         self.properties["cornerRadius"] = 8
-        self.propertyTypes["cornerRadius"] = "int"
+        self.propertyTypes["cornerRadius"] = "uint"
 
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "penColor", "penThickness", "fillColor", "cornerRadius", "position", "size"]

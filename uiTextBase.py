@@ -60,7 +60,7 @@ class UiTextBase(UiView):
             platformScale = 1.0 if isinstance(view, stc.StyledTextCtrl) else 1.2
         else:
             platformScale = 0.9 if isinstance(view, stc.StyledTextCtrl) else 1.4
-        return int(fontSize * platformScale)
+        return max(1, int(fontSize * platformScale))
 
     def UpdateFont(self, model, view):
         familyName = model.GetProperty("font")
@@ -148,7 +148,7 @@ class TextBaseModel(ViewModel):
         self.propertyTypes["alignment"] = "choice"
         self.propertyTypes["textColor"] = "color"
         self.propertyTypes["font"] = "choice"
-        self.propertyTypes["fontSize"] = "int"
+        self.propertyTypes["fontSize"] = "uint"
         self.propertyChoices["alignment"] = ["Left", "Center", "Right"]
         self.propertyChoices["font"] = ["Default", "Serif", "Sans-Serif", "Mono"]
 
