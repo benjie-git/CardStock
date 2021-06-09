@@ -971,6 +971,10 @@ class HelpDataCard():
                       "info": "The <b>OnKeyDown</b> event is run any time a keyboard key is pressed down.  Regular "
                               "keys are named as capital letters and digits, like 'A' or '1', and other keys have "
                               "keyNames like 'Shift', 'Return', 'Escape', 'Left', and 'Right'."},
+        "OnKeyHold": {"args": {"keyName": {"type": "string", "info": "The name of the key that is still being held down"}},
+                      "info": "The <b>OnKeyHold</b> event is run repeatedly, while any keyboard key is pressed down.  "
+                              "Regular keys are named as capital letters and digits, like 'A' or '1', and other keys "
+                              "have keyNames like 'Shift', 'Return', 'Escape', 'Left', and 'Right'."},
         "OnKeyUp": {"args": {"keyName": {"type": "string", "info": "The name of the released key"}},
                     "info": "The <b>OnKeyUp</b> event is run any time a pressed keyboard key is released.  Regular "
                             "keys are named as capital letters and digits, like 'A' or '1', and other keys have "
