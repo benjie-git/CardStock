@@ -287,7 +287,9 @@ class Runner():
         keyName = None
         if event and handlerName.startswith("OnMouse"):
             mousePos = self.stackManager.view.ScreenToClient(wx.GetMousePosition())
-        if event and handlerName.startswith("OnKey"):
+        elif arg and handlerName == "OnKeyHold":
+            keyName = arg
+        elif event and handlerName.startswith("OnKey"):
             keyName = self.KeyNameForEvent(event)
             if not keyName:
                 return False

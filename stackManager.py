@@ -127,6 +127,7 @@ class StackManager(object):
         self.view.Bind(wx.EVT_PAINT, self.OnPaint)
         self.view.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.view.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
+        self.view.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
 
     def SetDown(self):
         self.view.Unbind(wx.EVT_SIZE, handler=self.OnResize)
@@ -224,6 +225,10 @@ class StackManager(object):
             self.tool.Activate()
         self.view.Refresh()
         self.UpdateCursor()
+
+    def OnLoseFocus(self, event):
+        if self.runner:
+            self.runner.pressedKeys = []
 
     def ClearAllViews(self):
         self.SelectUiView(None)

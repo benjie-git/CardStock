@@ -94,6 +94,9 @@ class UiCard(UiView):
             self.stackManager.runner.RunHandler(self.model, "OnKeyUp", event)
 
     def OnPeriodic(self, event):
+        if self.stackManager.runner and self.model.GetHandler("OnKeyHold"):
+            for keyName in self.stackManager.runner.pressedKeys:
+                self.stackManager.runner.RunHandler(self.model, "OnKeyHold", event, keyName)
         didRun = super().OnPeriodic(event)
         for child in self.GetAllUiViews():
             if child.OnPeriodic(event):
@@ -112,7 +115,7 @@ class CardModel(ViewModel):
         self.type = "card"
         self.proxyClass = Card
         # Add custom handlers to the top of the list
-        handlers = {"OnSetup": "", "OnShowCard": "", "OnHideCard": "", "OnKeyDown": "", "OnKeyUp": "", "OnResize":""}
+        handlers = {"OnSetup": "", "OnShowCard": "", "OnHideCard": "", "OnKeyDown": "", "OnKeyHold": "", "OnKeyUp": "", "OnResize":""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
