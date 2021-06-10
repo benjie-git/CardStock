@@ -151,6 +151,7 @@ class CodeAnalyzer(object):
             if "Mouse" in handlerName: names.append("mousePos")
             if "Key" in handlerName: names.append("keyName")
             if "Periodic" in handlerName: names.append("elapsedTime")
+            if "KeyHold" in handlerName: names.append("elapsedTime")
             if "Message" in handlerName: names.append("message")
             names = [n for n in list(set(names)) if prefix.lower() in n.lower()]
             names.sort(key=str.casefold)

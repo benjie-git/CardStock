@@ -49,6 +49,7 @@ class Runner():
         self.stackManager = stackManager
         self.cardVarKeys = []  # store names of views on the current card, to remove from clientVars before setting up the next card
         self.pressedKeys = []
+        self.keyTimings = {}
         self.timers = []
         self.errors = []
         self.lastHandlerStack = []
@@ -217,6 +218,7 @@ class Runner():
             self.onRunFinished(self)
         self.errors = None
         self.onRunFinished = None
+        self.keyTimings = None
 
     def EnqueueRefresh(self):
         self.handlerQueue.put([])
@@ -299,13 +301,7 @@ class Runner():
         else:
             if handlerName == "OnPeriodic":
                 self.numOnPeriodicsQueued += 1
-            now = time()
-            if uiModel.lastOnPeriodicTime:
-                elapsedTime = now - uiModel.lastOnPeriodicTime
-            else:
-                elapsedTime = now - self.stackStartTime
-            uiModel.lastOnPeriodicTime = now
-            self.handlerQueue.put((uiModel, handlerName, handlerStr, mousePos, keyName, elapsedTime))
+            self.handlerQueue.put((uiModel, handlerName, handlerStr, mousePos, keyName, arg))
         return True
 
     def RunHandlerInternal(self, uiModel, handlerName, handlerStr, mousePos, keyName, arg):
@@ -339,7 +335,13 @@ class Runner():
                 oldVars["elapsedTime"] = self.clientVars["elapsedTime"]
             else:
                 oldVars["elapsedTime"] = noValue
-            self.clientVars["elapsedTime"] = arg
+            now = time()
+            if uiModel.lastOnPeriodicTime:
+                elapsedTime = now - uiModel.lastOnPeriodicTime
+            else:
+                elapsedTime = now - self.stackStartTime
+            uiModel.lastOnPeriodicTime = now
+            self.clientVars["elapsedTime"] = elapsedTime
 
         if mousePos and handlerName.startswith("OnMouse"):
             if "mousePos" in self.clientVars:
@@ -354,6 +356,20 @@ class Runner():
             else:
                 oldVars["keyName"] = noValue
             self.clientVars["keyName"] = keyName
+
+        if arg and handlerName == "OnKeyHold":
+            if "elapsedTime" in self.clientVars:
+                oldVars["elapsedTime"] = self.clientVars["elapsedTime"]
+            else:
+                oldVars["elapsedTime"] = noValue
+            if keyName in self.keyTimings:
+                now = time()
+                elapsedTime = now - self.keyTimings[keyName]
+                self.keyTimings[keyName] = now
+                self.clientVars["elapsedTime"] = elapsedTime
+            else:
+                # Shouldn't happen!  But just in case, return something that won't crash if the users divides by it
+                self.clientVars["elapsedTime"] = 0.01
 
         # rewrite handlers that use return outside of a function, and replace with an exception that we catch, to
         # act like a return.
@@ -565,6 +581,7 @@ class Runner():
         keyName = self.KeyNameForEvent(event)
         if keyName and keyName not in self.pressedKeys:
             self.pressedKeys.append(keyName)
+            self.keyTimings[keyName] = time()
             return True
         return False
 
@@ -572,6 +589,11 @@ class Runner():
         keyName = self.KeyNameForEvent(event)
         if keyName and keyName in self.pressedKeys:
             self.pressedKeys.remove(keyName)
+            del self.keyTimings[keyName]
+
+    def ClearPressedKeys(self):
+        self.pressedKeys = []
+        self.keyTimings = {}
 
     @RunOnMainAsync
     def SetFocus(self, obj):

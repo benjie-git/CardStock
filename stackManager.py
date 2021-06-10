@@ -228,7 +228,7 @@ class StackManager(object):
 
     def OnLoseFocus(self, event):
         if self.runner:
-            self.runner.pressedKeys = []
+            self.runner.ClearPressedKeys()
 
     def ClearAllViews(self):
         self.SelectUiView(None)

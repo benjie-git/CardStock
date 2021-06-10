@@ -270,7 +270,7 @@ class UiView(object):
         'OnMouseExit':  "OnMouseExit(mousePos):",
         'OnMessage':    "OnMessage(message):",
         'OnKeyDown':    "OnKeyDown(keyName):",
-        'OnKeyHold':    "OnKeyHold(keyName):",
+        'OnKeyHold':    "OnKeyHold(keyName, elapsedTime):",
         'OnKeyUp':      "OnKeyUp(keyName):",
         'OnResize':     "OnResize():",
         'OnPeriodic':   "OnPeriodic(elapsedTime):",
