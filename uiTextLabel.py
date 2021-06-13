@@ -11,8 +11,15 @@ class UiTextLabel(UiTextBase):
     """
 
     def __init__(self, parent, stackManager, model):
+        self.lastFontSize = None
+        self.lastDidShrink = False
         super().__init__(parent, stackManager, model, None)
         self.UpdateFont(model, None)
+
+    def OnPropertyChanged(self, model, key):
+        super().OnPropertyChanged(model, key)
+        if key in ["text", "font", "fontSize", "size", "autoShrink"]:
+            self.lastFontSize = None
 
     def StartInlineEditing(self):
         # Show a temporary StyledTextCtrl with the same frame and font as the label
@@ -69,10 +76,16 @@ class UiTextLabel(UiTextBase):
         return height > lineHeight * len(lines.split('\n'))
 
     def GetFontSizeFit(self, gc):
+        if self.lastFontSize is not None:
+            return (self.lastFontSize, self.lastDidShrink)
         fontSize = self.ScaleFontSize(self.model.GetProperty("fontSize"), None)
         if self.DoesTextFitWithSize(gc, fontSize):
+            self.lastFontSize = fontSize
+            self.lastDidShrink = False
             return (fontSize, False)
-        return (self.FindFittingFontSize(gc, 1, fontSize), True)
+        self.lastFontSize = self.FindFittingFontSize(gc, 1, fontSize)
+        self.lastDidShrink = True
+        return (self.lastFontSize, True)
 
     def FindFittingFontSize(self, gc, lower, upper):
         fontSize = int((upper + lower) / 2)
