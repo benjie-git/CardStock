@@ -94,7 +94,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.AutoCompSetIgnoreCase(True)
         self.AutoCompSetFillUps("\t\r\n")
         self.AutoCompSetCancelAtStart(True)
-        self.AutoCompSetDropRestOfWord(True)
+        self.AutoCompSetDropRestOfWord(False)
         self.AutoCompSetCaseInsensitiveBehaviour(stc.STC_CASEINSENSITIVEBEHAVIOUR_IGNORECASE)
         self.Bind(stc.EVT_STC_AUTOCOMP_COMPLETED, self.OnACCompleted)
         self.Bind(stc.EVT_STC_AUTOCOMP_CANCELLED, self.OnACCancelled)
