@@ -46,6 +46,7 @@ class UiTextField(UiTextBase):
                                 style=wx.TE_PROCESS_ENTER | alignment)
             field.ChangeValue(text)
             field.Bind(wx.EVT_TEXT, self.OnTextChanged)
+            field.Bind(CDS_EVT_TEXT_UNDO, self.OnTextChanged)
             field.EmptyUndoBuffer()
 
         self.BindEvents(field)
@@ -134,17 +135,18 @@ class UiTextField(UiTextBase):
         event.Skip()
 
 
+CDS_EVT_TEXT_UNDO_TYPE = wx.NewEventType()
+CDS_EVT_TEXT_UNDO = wx.PyEventBinder(CDS_EVT_TEXT_UNDO_TYPE, 1)
+
+
 class CDSTextCtrl(wx.TextCtrl):
-    '''TextCtrl only handles Undo/Redo on Windows, not Mac or Liunx, so add that functionality here.'''
+    """TextCtrl only handles Undo/Redo on Windows, not Mac or Linux, so add that functionality here."""
     def __init__(self, *args, **kwards):
         super().__init__(*args, **kwards)
-        if wx.Platform != '__WXMSW__':
-            self.command_processor = CommandProcessor()
-            self.Bind(wx.EVT_TEXT, self.OnTextChanged)
-            self.oldText = self.GetValue()
-            self.oldSel = self.GetSelection()
-        else:
-            self.command_processor = None
+        self.command_processor = CommandProcessor()
+        self.Bind(wx.EVT_TEXT, self.OnTextChanged)
+        self.oldText = self.GetValue()
+        self.oldSel = self.GetSelection()
 
     def OnTextChanged(self, event):
         newText = self.GetValue()
@@ -162,30 +164,26 @@ class CDSTextCtrl(wx.TextCtrl):
         self.oldSel = self.GetSelection()
 
     def CanUndo(self):
-        if wx.Platform != '__WXMSW__':
-            return True
-        return super().CanUndo()
+        return self.command_processor.CanUndo()
 
     def CanRedo(self):
-        if wx.Platform != '__WXMSW__':
-            return True
-        return super().CanRedo()
+        return self.command_processor.CanRedo()
 
     def Undo(self):
-        if wx.Platform != '__WXMSW__':
-            if self.IsEditable():
-                self.command_processor.Undo()
-                self.oldText = self.GetValue()
-        else:
-            super().Undo()
+        if self.IsEditable():
+            self.command_processor.Undo()
+            self.oldText = self.GetValue()
+            event = wx.PyCommandEvent(CDS_EVT_TEXT_UNDO_TYPE, self.GetId())
+            event.SetEventObject(self)
+            self.GetEventHandler().ProcessEvent(event)
 
     def Redo(self):
-        if wx.Platform != '__WXMSW__':
-            if self.IsEditable():
-                self.command_processor.Redo()
-                self.oldText = self.GetValue()
-        else:
-            super().Redo()
+        if self.IsEditable():
+            self.command_processor.Redo()
+            self.oldText = self.GetValue()
+            event = wx.PyCommandEvent(CDS_EVT_TEXT_UNDO_TYPE, self.GetId())
+            event.SetEventObject(self)
+            self.GetEventHandler().ProcessEvent(event)
 
 
 class TextEditCommand(Command):
