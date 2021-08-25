@@ -970,7 +970,6 @@ class StackManager(object):
                             views.append(ui)
                         ui = ui.parent
         views.append(self.uiCard)
-        print(views)
         return views
 
     def OnKeyDown(self, uiView, event):
