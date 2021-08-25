@@ -60,6 +60,7 @@ class Runner():
         self.onRunFinished = None
         self.funcDefs = {}
         self.lastCard = None
+        self.stopHandlingMouseEvent = False
 
         # queue of tasks to run on the runnerThread
         # each task is put onto the queue as a list.
@@ -94,6 +95,7 @@ class Runner():
             "IsMouseDown": self.IsMouseDown,
             "Quit":self.Quit,
             "stack": self.stackManager.stackModel.GetProxy(),
+            "StopHandlingMouseEvent": self.StopHandlingMouseEvent,
         }
 
         self.keyCodeStringMap = {
@@ -251,6 +253,9 @@ class Runner():
                 elif len(args) == 1:
                     # Run Setup for the given card
                     self.SetupForCardInternal(*args)
+                elif len(args) == 2:
+                    # Reset StopHandlingMouseEvent
+                    self.stopHandlingMouseEvent = False
                 elif len(args) == 3:
                     # Run the given function with optional args, kwargs
                     self.RunWithExceptionHandling(args[0], *args[1], **args[2])
@@ -307,6 +312,9 @@ class Runner():
     def RunHandlerInternal(self, uiModel, handlerName, handlerStr, mousePos, keyName, arg):
         """ Run an eventHandler.  This always runs on the runnerThread. """
         if not self.didSetup:
+            return
+
+        if handlerName in ["OnMouseDown", "OnMouseMove", "OnMouseUp"] and self.stopHandlingMouseEvent:
             return
 
         self.runnerDepth += 1
@@ -783,3 +791,12 @@ class Runner():
     def Quit(self):
         if self.stopRunnerThread: return
         self.stackManager.view.TopLevelParent.OnMenuClose(None)
+
+    def ResetStopHandlingMouseEvent(self):
+        self.handlerQueue.put(("Command", "ResetStopHandlingMouseEvent"))
+
+    def StopHandlingMouseEvent(self):
+        self.stopHandlingMouseEvent = True
+
+    def DidStopHandlingMouseEvent(self):
+        return self.stopHandlingMouseEvent

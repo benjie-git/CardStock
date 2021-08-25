@@ -363,6 +363,13 @@ class HelpDataGlobals():
                          "return": "bool",
                          "info": "Returns <b>True</b> if the left mouse button is currently pressed down, otherwise "
                                  "returns <b>False</b>."},
+        "StopHandlingMouseEvent": {"args": {},
+                                   "return": None,
+                                   "info": "If you call this function from your event code for any OnMouseDown(), OnMouseMove(), "
+                                           "or OnMouseUp() event, CardStock will skip running code for this event "
+                                           "for any overlapping objects underneath this object, which would otherwise "
+                                           "be run immediately after this object's event code finishes.  Calling "
+                                           "this function from any non-mouse event code does nothing."},
         "Quit": {"args": {},
                       "return": None,
                       "info": "Stops running the stack, closes the stack window, and exits the stack viewer program."},
@@ -497,7 +504,6 @@ class HelpDataObject():
                            "info": "Returns <b>None</b> if this object is not touching any edges of the <b>other</b> "
                                    "object passed into this function.  If this object is touching any edges of the "
                                    "other object, the return value will be 'Top', 'Bottom', 'Left', or 'Right', accordingly."},
-
         "AnimatePosition": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                      "endPosition": {"type": "point",
                                                      "info": "the destination bottom-left corner position at the end of the animation"},
@@ -545,13 +551,20 @@ class HelpDataObject():
                             "program needs, and to define functions, and set up any variables with their initial values."},
         "OnMouseDown": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                         "info": "The <b>OnMouseDown</b> event is run when the mouse button gets clicked down inside of this object, "
-                                "and gives you the current mouse position as the point <b>mousePos</b>."},
+                                "and gives you the current mouse position as the point <b>mousePos</b>.  This event will be "
+                                "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
+                                "itself, unless this propagation is stopped by calling StopHandlingMouseEvent() from your code."},
         "OnMouseMove": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                         "info": "The <b>OnMouseMove</b> event is run every time the mouse moves, while over this object, whether "
-                                "or not the mouse button is down, and gives you the current mouse position as the point <b>mousePos</b>."},
+                                "or not the mouse button is down, and gives you the current mouse position as the point <b>mousePos</b>.  "
+                                "This event will be "
+                                "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
+                                "itself, unless this propagation is stopped by calling StopHandlingMouseEvent() from your code."},
         "OnMouseUp": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                       "info": "The <b>OnMouseUp</b> event is run when the mouse button is released over this object, and "
-                              "gives you the current mouse position as the point <b>mousePos</b>."},
+                              "gives you the current mouse position as the point <b>mousePos</b>.  This event will be "
+                                "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
+                                "itself, unless this propagation is stopped by calling StopHandlingMouseEvent() from your code."},
         "OnMouseEnter": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                          "info": "The <b>OnMouseEnter</b> event is run when the mouse pointer moves onto this object."},
         "OnMouseExit": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},

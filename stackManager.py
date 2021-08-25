@@ -736,10 +736,14 @@ class StackManager(object):
                 return
 
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        uiView = self.HitTest(pos, not event.ShiftDown())
+        if self.isEditing:
+            uiView = self.HitTest(pos, not event.ShiftDown())
+            uiViews = [uiView] if uiView else None
+        else:
+            uiViews = self.HitTestAll(pos)
 
         if self.inlineEditingView:
-            if uiView == self.inlineEditingView:
+            if uiViews and uiViews[0] == self.inlineEditingView:
                 # Let the inline editor handle clicks while it's enabled
                 event.Skip()
                 return
@@ -747,19 +751,17 @@ class StackManager(object):
                 self.inlineEditingView.StopInlineEditing()
 
         if self.tool and self.isEditing:
-            if uiView and uiView.model.type.startswith("text") and event.LeftDClick():
+            if uiViews and uiViews[0].model.type.startswith("text") and event.LeftDClick():
                 # Flag this is a double-click  On mouseUp, we'll start the inline editor.
                 self.isDoubleClick = True
             else:
-                self.tool.OnMouseDown(uiView, event)
+                self.tool.OnMouseDown(uiViews[0], event)
         else:
-            uiView.OnMouseDown(event)
-            self.lastMouseDownView = uiView
+            self.lastMouseDownView = uiViews[0]
+            self.runner.ResetStopHandlingMouseEvent()
+            for uiView in uiViews:
+                uiView.OnMouseDown(event)
             event.Skip()
-            parent = uiView.parent
-            while parent and parent.model.type == "group":
-                parent.OnMouseDown(event)
-                parent = parent.parent
 
     def OnMouseMove(self, uiView, event):
         if not event.GetEventObject().GetTopLevelParent():
@@ -771,12 +773,16 @@ class StackManager(object):
             event.Skip()
             return
 
-        uiView = self.HitTest(pos, not wx.KeyboardState().ShiftDown())
+        if self.isEditing:
+            uiView = self.HitTest(pos, not wx.KeyboardState().ShiftDown())
+            uiViews = [uiView] if uiView else None
+        else:
+            uiViews = self.HitTestAll(pos)
 
-        if uiView != self.lastMouseMovedUiView:
+        if uiViews and uiViews[0] != self.lastMouseMovedUiView:
             if not self.globalCursor:
-                if uiView and uiView.GetCursor():
-                    self.view.SetCursor(wx.Cursor(uiView.GetCursor()))
+                if uiViews and uiViews[0].GetCursor():
+                    self.view.SetCursor(wx.Cursor(uiViews[0].GetCursor()))
                 else:
                     self.view.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
 
@@ -787,20 +793,18 @@ class StackManager(object):
 
         if self.isEditing:
             if self.tool:
-                self.tool.OnMouseMove(uiView, event)
+                self.tool.OnMouseMove(uiViews[0], event)
         else:
-            if uiView != self.lastMouseMovedUiView:
+            if uiViews[0] != self.lastMouseMovedUiView:
                 if self.lastMouseMovedUiView:
                     self.lastMouseMovedUiView.OnMouseExit(event)
-                if uiView:
-                    uiView.OnMouseEnter(event)
-            uiView.OnMouseMove(event)
+                if uiViews[0]:
+                    uiViews[0].OnMouseEnter(event)
+            self.runner.ResetStopHandlingMouseEvent()
+            for uiView in uiViews:
+                uiView.OnMouseMove(event)
             event.Skip()
-            parent = uiView.parent
-            while parent:
-                parent.OnMouseMove(event)
-                parent = parent.parent
-        self.lastMouseMovedUiView = uiView
+        self.lastMouseMovedUiView = uiViews[0]
         self.lastMousePos = pos
 
     def OnMouseUp(self, uiView, event):
@@ -809,7 +813,11 @@ class StackManager(object):
             return
 
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        uiView = self.HitTest(pos, not event.ShiftDown())
+        if self.isEditing:
+            uiView = self.HitTest(pos, not event.ShiftDown())
+            uiViews = [uiView] if uiView else None
+        else:
+            uiViews = self.HitTestAll(pos)
 
         if self.inlineEditingView:
             # Let the inline editor handle clicks while it's enabled
@@ -817,24 +825,22 @@ class StackManager(object):
             return
 
         if self.tool and self.isEditing:
-            m = uiView.model
-            self.tool.OnMouseUp(uiView, event)
+            m = uiViews[0].model
+            self.tool.OnMouseUp(uiViews[0], event)
             uiView = self.GetUiViewByModel(m)
-            if uiView and uiView.model.type.startswith("text") and self.isDoubleClick:
+            if uiViews and uiViews[0].model.type.startswith("text") and self.isDoubleClick:
                 # Fire it up!
-                uiView.StartInlineEditing()
+                uiViews[0].StartInlineEditing()
                 event.Skip()
         else:
             if self.lastMouseDownView:
-                if self.lastMouseDownView != uiView:
+                if self.lastMouseDownView != uiViews[0]:
                     self.lastMouseDownView.OnMouseUpOutside(event)
                 self.lastMouseDownView = None
-            uiView.OnMouseUp(event)
+            self.runner.ResetStopHandlingMouseEvent()
+            for uiView in uiViews:
+                uiView.OnMouseUp(event)
             event.Skip()
-            parent = uiView.parent
-            while parent and parent.model.type == "group":
-                parent.OnMouseUp(event)
-                parent = parent.parent
         self.isDoubleClick = False
 
     def OnMouseExit(self, event):
@@ -943,6 +949,29 @@ class StackManager(object):
                 if hit:
                     return hit
         return self.uiCard
+
+    def HitTestAll(self, pt):
+        # Return a list of all views that the given point would touch, all the way down to the card.  Top views first.
+        views = []
+        for uiView in reversed(self.uiCard.uiViews):
+            if not uiView.model.IsHidden() and uiView.view:
+                hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
+                if hit:
+                    views.append(hit)
+        # Then virtual views
+        for uiView in reversed(self.uiCard.uiViews):
+            if not uiView.model.IsHidden() and not uiView.view:
+                hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
+                if hit:
+                    views.append(hit)
+                    ui = hit
+                    while ui:
+                        if ui.model.type == "group":
+                            views.append(ui)
+                        ui = ui.parent
+        views.append(self.uiCard)
+        print(views)
+        return views
 
     def OnKeyDown(self, uiView, event):
         if self.tool and self.isEditing:

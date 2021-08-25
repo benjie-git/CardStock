@@ -176,8 +176,26 @@ great place to run any periodic checks that need to keep happening often.  The O
 when the stack window is resized while that card is shown, to give your stack a chance to re-layout objects based on 
 the new card size.  The OnMessage() event runs on an object when any of your other code calls that object's 
 object.SendMessage() method, or calls the BroadcastMessage() function, which sends the message to all objects in the 
-stack.  Other events happen in response to key presses, mouse movement, and mouse button presses, and you can read 
-all the details in the CardStock Reference.</p>
+stack.</p>
+
+<p>The OnKeyDown() and OnKeyUp() events of the current card run when a keyboard key is pressed down, and released, 
+respectively.  And OnKeyHold() is called approximately every 1/30th of a second for each key that remains held pressed 
+down.</p>
+
+<p>The OnMouseEnter() and OnMouseExit() events for an object are run when the mouse enters and exits screen space that 
+overlaps that object.  The OnMouseDown() and OnMouseUp() events of an object are run when the main mouse button is 
+pressed and released while the mouse is inside that object.  These do not necessarily come in pairs for any particular 
+object, as the mouse could be pressed down while inside one object, moved, and then released outside of that object, or 
+vice versa.  The OnMouseMove() event of an object is run when the mouse position moves, while inside that object, 
+whether or not the mouse button is down.  The OnMouseDown(), OnMouseMove(), and OnMouseUp() events are all run for the 
+topmost object over which the mouse is 
+hovering, and then also called for any other objects underneath the mouse, top to bottom, all the way down to the current 
+card.  This allows, for example, a card's OnMouseMove() event to continue running for mouse movements, even when the 
+mouse moves over an oval object.  If you still want to allow the oval to handle this OnMouseMove() event, 
+but block the lower objects like the card from running their OnMouseMove() code too, then you can call the 
+StopHandlingMouseEvent() function in the oval's OnMouseMove() code, and then no other objects' event code will run for 
+this particular mouse movement.  You can read more details about each of these 
+events in the CardStock Reference.</p>
 
 <p>You can also animate changes to many objects' properties.  For example, you could animate the current card's 
 background color from its current color to red, over a duration of 2 seconds, using the code: 
