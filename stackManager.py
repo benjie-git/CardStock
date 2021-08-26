@@ -953,22 +953,18 @@ class StackManager(object):
     def HitTestAll(self, pt):
         # Return a list of all views that the given point would touch, all the way down to the card.  Top views first.
         views = []
-        for uiView in reversed(self.uiCard.uiViews):
+        allViews = list(reversed(self.uiCard.GetAllUiViews()))
+        for uiView in allViews:
             if not uiView.model.IsHidden() and uiView.view:
                 hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
                 if hit:
-                    views.append(hit)
+                    views.append(uiView)
         # Then virtual views
-        for uiView in reversed(self.uiCard.uiViews):
+        for uiView in allViews:
             if not uiView.model.IsHidden() and not uiView.view:
                 hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
                 if hit:
-                    views.append(hit)
-                    ui = hit
-                    while ui:
-                        if ui.model.type == "group":
-                            views.append(ui)
-                        ui = ui.parent
+                    views.append(uiView)
         views.append(self.uiCard)
         return views
 
