@@ -828,7 +828,7 @@ class StackManager(object):
             m = uiViews[0].model
             self.tool.OnMouseUp(uiViews[0], event)
             uiView = self.GetUiViewByModel(m)
-            if uiViews and uiViews[0].model.type.startswith("text") and self.isDoubleClick:
+            if uiViews and uiViews[0].model and uiViews[0].model.type.startswith("text") and self.isDoubleClick:
                 # Fire it up!
                 uiViews[0].StartInlineEditing()
                 event.Skip()
