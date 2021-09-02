@@ -338,7 +338,7 @@ class Runner():
                 oldVars["message"] = noValue
             self.clientVars["message"] = arg
 
-        if arg and handlerName == "OnPeriodic":
+        if handlerName == "OnPeriodic":
             if "elapsedTime" in self.clientVars:
                 oldVars["elapsedTime"] = self.clientVars["elapsedTime"]
             else:
