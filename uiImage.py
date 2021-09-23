@@ -18,6 +18,14 @@ class UiImage(UiView):
         self.rotatedBitmap = None
         self.origImage = self.GetImg(model)
 
+    @classmethod
+    def ClearCache(cls, path=None):
+        if path:
+            if path in cls.imgCache:
+                del cls.imgCache[path]
+        else:
+            cls.imgCache = {}
+
     def AspectStrToInt(self, str):
         if str == "Center":
             return 0
@@ -104,17 +112,25 @@ class UiImage(UiView):
             if model.GetProperty("file") != "":
                 self.stackManager.view.Refresh()
 
-    def Paint(self, gc):
-        if self.origImage:
-            if not self.rotatedBitmap:
-                self.MakeScaledAndRotatedBitmap()
-            r = self.model.GetAbsoluteFrame()
+    def ClearCachedData(self):
+        self.rotatedBitmap = None
+        self.origImage = None
+        self.stackManager.view.Refresh()
 
-            imgSize = self.rotatedBitmap.GetSize()
-            viewSize = r.Size
-            offX = 0 if (imgSize.Width >= viewSize.Width) else ((viewSize.Width - imgSize.Width) / 2)
-            offY = 0 if (imgSize.Height >= viewSize.Height) else ((viewSize.Height - imgSize.Height) / 2)
-            gc.DrawBitmap(self.rotatedBitmap, r.Left + offX, r.Bottom - offY)
+    def Paint(self, gc):
+        if self.model.GetProperty("file"):
+            if not self.origImage:
+                self.origImage = self.GetImg(self.model)
+            if self.origImage:
+                if not self.rotatedBitmap:
+                    self.MakeScaledAndRotatedBitmap()
+                r = self.model.GetAbsoluteFrame()
+
+                imgSize = self.rotatedBitmap.GetSize()
+                viewSize = r.Size
+                offX = 0 if (imgSize.Width >= viewSize.Width) else ((viewSize.Width - imgSize.Width) / 2)
+                offY = 0 if (imgSize.Height >= viewSize.Height) else ((viewSize.Height - imgSize.Height) / 2)
+                gc.DrawBitmap(self.rotatedBitmap, r.Left + offX, r.Bottom - offY)
 
         if self.stackManager.isEditing:
             gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))

@@ -1,0 +1,151 @@
+import wx
+import wx.html2
+import requests
+import os
+import uiImage
+
+
+class WebWindow(wx.Dialog):
+    def __init__(self, parent, title, url, cur_dir, callback):
+        wx.Dialog.__init__(self, parent, -1, title,
+                          size=(600, 600), style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+
+        self.browser = wx.html2.WebView.New(self)
+        self.browser.Bind(wx.html2.EVT_WEBVIEW_NAVIGATING, self.OnLoad)
+        self.browser.LoadURL(url)
+
+        self.cur_dir = cur_dir
+        self.callback = callback
+        self.fileLocation = None
+
+        # Set up the layout with a Sizer
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.browser, wx.SizerFlags(1).Expand().Border(wx.ALL, 5))
+        self.SetSizer(sizer)
+        self.Layout()
+
+    def Close(self, force=False):
+        if self.callback:
+            self.callback(None)
+            self.callback = None
+        super().Close(force)
+
+    def RunModal(self):
+        self.ShowModal()
+        return self.fileLocation
+
+    def OnLoad(self, event):
+        pass
+
+
+class ImageSearchDialog(WebWindow):
+    def __init__(self, parent, cur_dir, callback):
+        super().__init__(parent, "Image Search", "https://openclipart.org/", cur_dir, callback)
+
+    def OnLoad(self, event):
+        url = event.GetURL()
+
+        # Simple ad-blocking -- possibly uncool to do.  Need to figure out other options
+        if "googleads" in url or ".google" in url:
+            event.Veto()
+            return
+
+        if "/detail/" in url:
+            event.Veto()
+            parts = url.split("/")
+            image_id = parts[4]
+            name = parts[5]
+            self.SaveUrl(f"https://openclipart.org/image/400px/{image_id}", name)
+
+    def SaveUrl(self, url, name):
+        initialDir = os.getcwd()
+        if self.cur_dir:
+            initialDir = self.cur_dir
+        wildcard = "PNG files (*.png)|*.png"
+        dlg = wx.FileDialog(self, "Save Image as...", initialDir, name + ".png",
+                           style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                           wildcard = wildcard)
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetPath()
+            if not os.path.splitext(filename)[1]:
+                filename = filename + '.png'
+
+            r = requests.get(url)
+            data = r.content
+
+            f = open(filename, "wb")
+            f.write(data)
+            f.close()
+
+            uiImage.UiImage.ClearCache(filename)
+
+            if self.cur_dir:
+                filename = os.path.relpath(filename, self.cur_dir)
+
+            self.fileLocation = filename
+
+            if self.callback:
+                wx.CallAfter(self.callback, filename)
+                self.callback = None
+
+            wx.CallAfter(self.Close)
+
+        dlg.Destroy()
+
+
+class AudioSearchDialog(WebWindow):
+    def __init__(self, parent, lastOpenFile, callback):
+        super().__init__(parent, "Sound Search", "https://freesound.org/", lastOpenFile, callback)
+        self.referrer = None
+
+    def OnLoad(self, event):
+        url = event.GetURL()
+
+        if url.endswith(".wav"):
+            event.Veto()
+            parts = url.split("/")
+            name = parts[-1]
+            self.SaveUrl(url, name)
+        elif "/sounds/" in url:
+            self.referrer = url
+
+    def SaveUrl(self, url, name):
+        initialDir = os.getcwd()
+        if self.cur_dir:
+            initialDir = self.cur_dir
+        wildcard = "WAV files (*.wav)|*.wav"
+        dlg = wx.FileDialog(self, "Save Sound as...", initialDir, name,
+                           style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                           wildcard = wildcard)
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetPath()
+            if not os.path.splitext(filename)[1]:
+                filename = filename + '.wav'
+
+            self.browser.RunScript("document.title = document.cookie.toString()")
+            cookie_data = self.browser.GetCurrentTitle()
+            cookie_parts = cookie_data.split(';')
+            cookies = {}
+            for cookie in cookie_parts:
+                parts = cookie.split('=')
+                if len(parts) == 2:
+                    cookies[parts[0]] = parts[1]
+            r = requests.get(url, headers={'referer': self.referrer}, cookies=cookies)
+            data = r.content
+
+            f = open(filename, "wb")
+            f.write(data)
+            f.close()
+
+            if self.cur_dir:
+                filename = os.path.relpath(filename, self.cur_dir)
+
+            self.fileLocation = filename
+
+            if self.callback:
+                wx.CallAfter(self.callback, filename)
+                self.callback = None
+
+            wx.CallAfter(self.Close)
+
+        dlg.Destroy()

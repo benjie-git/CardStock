@@ -26,6 +26,7 @@ from uiCard import CardModel
 from findEngineDesigner import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
 from stackExporter import StackExporter
+import mediaWebDialogs
 # import gc
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -35,6 +36,8 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 ID_EXPORT = wx.NewIdRef()
 ID_RUN = wx.NewIdRef()
 ID_RUN_FROM = wx.NewIdRef()
+ID_SEARCH_IMAGE = wx.NewIdRef()
+ID_SEARCH_SOUND = wx.NewIdRef()
 ID_EDIT = wx.NewIdRef()
 ID_MENU_FIND = wx.NewIdRef()
 ID_MENU_FIND_SEL = wx.NewIdRef()
@@ -314,6 +317,9 @@ class DesignerFrame(wx.Frame):
         editMenu.Append(ID_MENU_FIND_NEXT, "&Find Next\tCtrl-G", "Find Next in stack")
         editMenu.Append(ID_MENU_FIND_PREV, "&Find Previous\tCtrl-Shift-G", "Find Previous in stack")
         editMenu.Append(ID_MENU_REPLACE, "&Replace...\tCtrl-Shift-F", "Replace in stack")
+        editMenu.AppendSeparator()
+        editMenu.Append(ID_SEARCH_IMAGE, "Insert Clip-art...\tCtrl-I", "Search clip-art web site")
+        editMenu.Append(ID_SEARCH_SOUND, "Download Sound...", "Search sound web site")
         self.editMenu = editMenu
 
         cardMenu = wx.Menu()
@@ -384,6 +390,8 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuExport, id=ID_EXPORT)
         self.Bind(wx.EVT_MENU, self.OnMenuRun, id=ID_RUN)
         self.Bind(wx.EVT_MENU, self.OnMenuRunFrom, id=ID_RUN_FROM)
+        self.Bind(wx.EVT_MENU, self.OnMenuSearchImage, id=ID_SEARCH_IMAGE)
+        self.Bind(wx.EVT_MENU, self.OnMenuSearchSound, id=ID_SEARCH_SOUND)
         self.Bind(wx.EVT_MENU, self.OnMenuExit, id=wx.ID_EXIT)
 
         self.Bind(wx.EVT_MENU, self.OnMenuAbout, id=wx.ID_ABOUT)
@@ -492,7 +500,7 @@ class DesignerFrame(wx.Frame):
         initialDir = os.getcwd()
         if self.configInfo and "last_open_file" in self.configInfo:
             initialDir = os.path.dirname(self.configInfo["last_open_file"])
-        dlg = wx.FileDialog(self, "Save CaardStock file as...", initialDir,
+        dlg = wx.FileDialog(self, "Save CardStock file as...", initialDir,
                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
                            wildcard = self.wildcard)
         self.stackContainer.Enable(False)
@@ -557,6 +565,24 @@ class DesignerFrame(wx.Frame):
 
     def OnMenuRunFrom(self, event):
         self.RunFromCard(self.stackManager.cardIndex)
+
+    def OnMenuSearchImage(self, event):
+        cur_dir = None
+        if self.configInfo and "last_open_file" in self.configInfo:
+            cur_dir = os.path.dirname(self.configInfo["last_open_file"])
+
+        def onImageLoaded(path):
+            self.stackManager.AddImageFromPath(path)
+
+        dlg = mediaWebDialogs.ImageSearchDialog(self, cur_dir, onImageLoaded)
+        dlg.RunModal()
+
+    def OnMenuSearchSound(self, event):
+        cur_dir = None
+        if self.configInfo and "last_open_file" in self.configInfo:
+            cur_dir = os.path.dirname(self.configInfo["last_open_file"])
+        dlg = mediaWebDialogs.AudioSearchDialog(self, cur_dir, None)
+        dlg.RunModal()
 
     def OnViewerSave(self, stackModel):
         newModel = StackModel(self.stackManager)

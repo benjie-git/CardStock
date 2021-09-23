@@ -2,6 +2,7 @@ import wx
 import wx.grid
 import wx.html
 import os
+import mediaWebDialogs
 from tools import *
 from commands import *
 from wx.lib import buttons # for generic button classes
@@ -327,8 +328,8 @@ class ControlPanel(wx.Panel):
                     editor = GridCellColorEditor(self)
                     renderer = GridCellColorRenderer()
                 elif uiView.model.GetPropertyType(k) == "file":
-                    editor = GridCellFileEditor(self)
-                    renderer = GridCellFileRenderer()
+                    editor = GridCellImageFileEditor(self)
+                    renderer = GridCellImageFileRenderer()
 
                 if renderer:
                     self.inspector.SetCellRenderer(r, 1, renderer)
@@ -397,6 +398,10 @@ class ControlPanel(wx.Panel):
             uiView = self.lastSelectedUiViews[0]
             oldVal = uiView.model.GetProperty(key)
             val = uiView.model.InterpretPropertyFromString(key, valStr)
+
+            if key == "file":
+                uiView.ClearCachedData()
+
             if val is not None and val != oldVal:
                 needsUpdate = False
                 if key == "name":
@@ -425,6 +430,9 @@ class ControlPanel(wx.Panel):
                     val = val.replace('\r', '\n')
                 commands = []
                 for uiView in self.lastSelectedUiViews:
+                    if key == "file":
+                        uiView.ClearCachedData()
+
                     oldVal = uiView.model.GetProperty(key)
                     if val != oldVal:
                         commands.append(SetPropertyCommand(True, "Set Property", self, self.stackManager.cardIndex,
@@ -671,6 +679,7 @@ class ColorIndicator(wx.Window):
 
 
 COLOR_PATCH_WIDTH = 70
+BUTTON_WIDTH = 50
 
 class GridCellColorRenderer(wx.grid.GridCellStringRenderer):
     def Draw(self, grid, attr, dc, rect, row, col, isSelected):
@@ -723,8 +732,77 @@ class GridCellColorEditor(wx.grid.GridCellTextEditor):
         self.cPanel.InspectorValueChanged(self.row, color)
 
 
-class GridCellFileRenderer(wx.grid.GridCellStringRenderer):
+# class GridCellFileRenderer(wx.grid.GridCellStringRenderer):
+#     fileBmp = None
+#
+#     def Draw(self, grid, attr, dc, rect, row, col, isSelected):
+#         text = grid.GetCellValue(row, col)
+#
+#         if isSelected:
+#             bg = grid.GetSelectionBackground()
+#             fg = grid.GetSelectionForeground()
+#         else:
+#             bg = attr.GetBackgroundColour()
+#             fg = attr.GetTextColour()
+#         dc.SetTextBackground(bg)
+#         dc.SetTextForeground(fg)
+#         dc.SetPen(wx.TRANSPARENT_PEN)
+#         dc.SetBrush(wx.Brush(bg, wx.SOLID))
+#         dc.DrawRectangle(rect)
+#         dc.SetPen(wx.Pen('black', 1, wx.PENSTYLE_SOLID))
+#         dc.SetBrush(wx.Brush('white', wx.SOLID))
+#         dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
+#         if not self.fileBmp:
+#             self.fileBmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, size=wx.Size(rect.Height, rect.Height))
+#         dc.DrawBitmap(self.fileBmp, wx.Point(rect.Left + rect.Width-((BUTTON_WIDTH+self.fileBmp.Width)/2), rect.Top))
+#
+#         hAlign, vAlign = attr.GetAlignment()
+#         dc.SetFont(attr.GetFont())
+#         grid.DrawTextRectangle(dc, text, rect, hAlign, vAlign)
+#
+#
+# class GridCellFileEditor(wx.grid.GridCellTextEditor):
+#     def __init__(self, cPanel):
+#         super().__init__()
+#         self.cPanel = cPanel
+#         self.grid = cPanel.inspector
+#
+#     wildcard = "Image Files (*.jpeg,*.jpg,*.png,*.gif,*.bmp)|*.jpeg;*.jpg;*.png;*.gif;*.bmp"
+#
+#     def StartingClick(self):
+#         self.row = self.grid.GetGridCursorRow()
+#         self.col = self.grid.GetGridCursorCol()
+#         text = self.grid.GetCellValue(self.row, self.col)
+#         x,y = self.grid.ScreenToClient(wx.GetMousePosition())
+#         if x > self.grid.GetSize().Width - BUTTON_WIDTH:
+#             startDir = ""
+#             if self.cPanel.stackManager.filename:
+#                 startDir = os.path.dirname(self.cPanel.stackManager.filename)
+#             startFile = ""
+#             if text:
+#                 if self.cPanel.stackManager.filename:
+#                     cdsFileDir = os.path.dirname(self.cPanel.stackManager.filename)
+#                     path = os.path.join(cdsFileDir, text)
+#                     startDir = os.path.dirname(path)
+#                     startFile = os.path.basename(path)
+#             dlg = wx.FileDialog(self.cPanel, "Choose Image file...", defaultDir=startDir,
+#                                 defaultFile=startFile, style=wx.FD_OPEN, wildcard=self.wildcard)
+#             if dlg.ShowModal() == wx.ID_OK:
+#                 filename = dlg.GetPath()
+#                 if self.cPanel.stackManager.filename:
+#                     cdsFileDir = os.path.dirname(self.cPanel.stackManager.filename)
+#                     filename = os.path.relpath(filename, cdsFileDir)
+#                 self.UpdateFile(filename)
+#             dlg.Destroy()
+#
+#     def UpdateFile(self, filename):
+#         self.grid.SetCellValue(self.row, self.col, filename)
+#         self.cPanel.InspectorValueChanged(self.row, filename)
+
+
+class GridCellImageFileRenderer(wx.grid.GridCellStringRenderer):
     fileBmp = None
+    clipArtBmp = None
 
     def Draw(self, grid, attr, dc, rect, row, col, isSelected):
         text = grid.GetCellValue(row, col)
@@ -742,17 +820,23 @@ class GridCellFileRenderer(wx.grid.GridCellStringRenderer):
         dc.DrawRectangle(rect)
         dc.SetPen(wx.Pen('black', 1, wx.PENSTYLE_SOLID))
         dc.SetBrush(wx.Brush('white', wx.SOLID))
-        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH, rect.Top+1, COLOR_PATCH_WIDTH, rect.Height-1))
+
+        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH*2, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
+        if not self.clipArtBmp:
+            self.clipArtBmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, size=wx.Size(rect.Height, rect.Height))
+        dc.DrawBitmap(self.clipArtBmp, wx.Point(rect.Left + rect.Width-BUTTON_WIDTH-((BUTTON_WIDTH+self.clipArtBmp.Width)/2), rect.Top))
+
+        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
         if not self.fileBmp:
             self.fileBmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, size=wx.Size(rect.Height, rect.Height))
-        dc.DrawBitmap(self.fileBmp, wx.Point(rect.Left + rect.Width-((COLOR_PATCH_WIDTH+self.fileBmp.Width)/2), rect.Top))
+        dc.DrawBitmap(self.fileBmp, wx.Point(rect.Left + rect.Width-((BUTTON_WIDTH+self.fileBmp.Width)/2), rect.Top))
 
         hAlign, vAlign = attr.GetAlignment()
         dc.SetFont(attr.GetFont())
         grid.DrawTextRectangle(dc, text, rect, hAlign, vAlign)
 
 
-class GridCellFileEditor(wx.grid.GridCellTextEditor):
+class GridCellImageFileEditor(wx.grid.GridCellTextEditor):
     def __init__(self, cPanel):
         super().__init__()
         self.cPanel = cPanel
@@ -765,7 +849,7 @@ class GridCellFileEditor(wx.grid.GridCellTextEditor):
         self.col = self.grid.GetGridCursorCol()
         text = self.grid.GetCellValue(self.row, self.col)
         x,y = self.grid.ScreenToClient(wx.GetMousePosition())
-        if x > self.grid.GetSize().Width - COLOR_PATCH_WIDTH:
+        if x > self.grid.GetSize().Width - BUTTON_WIDTH:
             startDir = ""
             if self.cPanel.stackManager.filename:
                 startDir = os.path.dirname(self.cPanel.stackManager.filename)
@@ -785,6 +869,17 @@ class GridCellFileEditor(wx.grid.GridCellTextEditor):
                     filename = os.path.relpath(filename, cdsFileDir)
                 self.UpdateFile(filename)
             dlg.Destroy()
+        elif x > self.grid.GetSize().Width - BUTTON_WIDTH*2:
+            cur_dir = None
+            if self.cPanel.stackManager.designer.configInfo and "last_open_file" in self.cPanel.stackManager.designer.configInfo:
+                cur_dir = os.path.dirname(self.cPanel.stackManager.designer.configInfo["last_open_file"])
+
+            def onImageLoaded(path):
+                self.UpdateFile(path)
+
+            dlg = mediaWebDialogs.ImageSearchDialog(self.cPanel.stackManager.designer, cur_dir, onImageLoaded)
+            dlg.RunModal()
+
 
     def UpdateFile(self, filename):
         self.grid.SetCellValue(self.row, self.col, filename)

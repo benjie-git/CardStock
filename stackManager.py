@@ -23,7 +23,7 @@ from uiCard import UiCard, CardModel
 from uiButton import UiButton
 from uiTextField import UiTextField
 from uiTextLabel import UiTextLabel
-from uiImage import UiImage
+from uiImage import UiImage, ImageModel
 from uiShape import UiShape
 from uiGroup import UiGroup, GroupModel
 from codeRunnerThread import RunOnMainSync, RunOnMainAsync
@@ -570,6 +570,13 @@ class StackManager(object):
                     uiView.view.SetCursor(wx.Cursor(self.globalCursor))
 
         return uiViews
+
+    def AddImageFromPath(self, path):
+        im = ImageModel(self)
+        im.SetProperty("file", path)
+        im.SetProperty("size", (200,200))
+        im.SetProperty("center", self.uiCard.model.GetProperty("center"))
+        self.AddUiViewsFromModels([im], True)
 
     def GetSelectedUiViews(self):
         return self.selectedViews.copy()
