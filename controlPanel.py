@@ -791,7 +791,10 @@ class GridCellColorEditor(wx.grid.GridCellTextEditor):
 #                 filename = dlg.GetPath()
 #                 if self.cPanel.stackManager.filename:
 #                     cdsFileDir = os.path.dirname(self.cPanel.stackManager.filename)
-#                     filename = os.path.relpath(filename, cdsFileDir)
+#                     try:
+#                         filename = os.path.relpath(filename, cdsFileDir)
+#                     except:
+#                         pass
 #                 self.UpdateFile(filename)
 #             dlg.Destroy()
 #
@@ -866,7 +869,10 @@ class GridCellImageFileEditor(wx.grid.GridCellTextEditor):
                 filename = dlg.GetPath()
                 if self.cPanel.stackManager.filename:
                     cdsFileDir = os.path.dirname(self.cPanel.stackManager.filename)
-                    filename = os.path.relpath(filename, cdsFileDir)
+                    try:
+                        filename = os.path.relpath(filename, cdsFileDir)
+                    except:
+                        pass
                 self.UpdateFile(filename)
             dlg.Destroy()
         elif x > self.grid.GetSize().Width - BUTTON_WIDTH*2:

@@ -92,7 +92,10 @@ class ImageSearchDialog(MediaSearchDialog):
             uiImage.UiImage.ClearCache(filename)
 
             if self.cur_dir:
-                filename = os.path.relpath(filename, self.cur_dir)
+                try:
+                    filename = os.path.relpath(filename, self.cur_dir)
+                except:
+                    pass
 
             self.fileLocation = filename
 
@@ -151,7 +154,10 @@ class AudioSearchDialog(MediaSearchDialog):
             f.close()
 
             if self.cur_dir:
-                filename = os.path.relpath(filename, self.cur_dir)
+                try:
+                    filename = os.path.relpath(filename, self.cur_dir)
+                except:
+                    pass
 
             self.fileLocation = filename
 

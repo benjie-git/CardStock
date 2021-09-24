@@ -349,8 +349,12 @@ class ExportDialog(wx.Dialog):
                             wildcard="Any File (*)|*")
         if dlg.ShowModal() == wx.ID_OK:
             for filepath in dlg.GetPaths():
-                relPath = os.path.relpath(filepath, os.path.dirname(self.exporter.stackManager.filename))
-                self.items.append(relPath)
+                path = filepath
+                try:
+                    path = os.path.relpath(path, os.path.dirname(self.exporter.stackManager.filename))
+                except:
+                    pass
+                self.items.append(path)
             self.listBox.SetItems(self.items)
         dlg.Destroy()
 
