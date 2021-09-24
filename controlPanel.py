@@ -377,8 +377,8 @@ class ControlPanel(wx.Panel):
                     editor = GridCellColorEditor(self)
                     renderer = GridCellColorRenderer()
                 elif uiViews[0].model.GetPropertyType(k) == "file":
-                    editor = GridCellFileEditor(self)
-                    renderer = GridCellFileRenderer()
+                    editor = GridCellImageFileEditor(self)
+                    renderer = GridCellImageFileRenderer()
 
                 if renderer:
                     self.inspector.SetCellRenderer(r, 1, renderer)
@@ -823,7 +823,7 @@ class GridCellImageFileRenderer(wx.grid.GridCellStringRenderer):
 
         dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH*2, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
         if not self.clipArtBmp:
-            self.clipArtBmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, size=wx.Size(rect.Height, rect.Height))
+            self.clipArtBmp = wx.ArtProvider.GetBitmap(wx.ART_CUT, size=wx.Size(rect.Height, rect.Height))
         dc.DrawBitmap(self.clipArtBmp, wx.Point(rect.Left + rect.Width-BUTTON_WIDTH-((BUTTON_WIDTH+self.clipArtBmp.Width)/2), rect.Top))
 
         dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
