@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Set DIR to the CardStock application directory
+DIR=.
+
+python3 $DIR/designer.py $@
