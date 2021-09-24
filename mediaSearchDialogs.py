@@ -4,8 +4,15 @@ import requests
 import os
 import uiImage
 
+'''
+The MediaSearchDialogs allow the user to search for images or sounds hosted on openclipart.com, and freesound.com, and
+to easily download these and add them into the stack.  Currently this is done using a web browser and intercepting 
+certain page loads to automatically download media.  But both sites have proper APIs, so we should switch to those,
+and build out a custom searching and browsing UI.
+'''
 
-class WebWindow(wx.Dialog):
+
+class MediaSearchDialog(wx.Dialog):
     def __init__(self, parent, title, url, cur_dir, callback):
         wx.Dialog.__init__(self, parent, -1, title,
                           size=(600, 600), style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
@@ -18,8 +25,12 @@ class WebWindow(wx.Dialog):
         self.callback = callback
         self.fileLocation = None
 
+        self.label = wx.StaticText(parent=self, style=wx.ALIGN_CENTRE_HORIZONTAL)
+        self.label.SetFont(wx.Font(wx.FontInfo(16).Weight(wx.FONTWEIGHT_BOLD).Family(wx.FONTFAMILY_DEFAULT)))
+
         # Set up the layout with a Sizer
         sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.label, wx.SizerFlags(0).Expand().Border(wx.ALL, 5))
         sizer.Add(self.browser, wx.SizerFlags(1).Expand().Border(wx.ALL, 5))
         self.SetSizer(sizer)
         self.Layout()
@@ -38,9 +49,10 @@ class WebWindow(wx.Dialog):
         pass
 
 
-class ImageSearchDialog(WebWindow):
+class ImageSearchDialog(MediaSearchDialog):
     def __init__(self, parent, cur_dir, callback):
         super().__init__(parent, "Image Search", "https://openclipart.org/", cur_dir, callback)
+        self.label.SetLabel("Search for clip art here, and click an image to download and use it.")
 
     def OnLoad(self, event):
         url = event.GetURL()
@@ -93,9 +105,10 @@ class ImageSearchDialog(WebWindow):
         dlg.Destroy()
 
 
-class AudioSearchDialog(WebWindow):
+class AudioSearchDialog(MediaSearchDialog):
     def __init__(self, parent, lastOpenFile, callback):
         super().__init__(parent, "Sound Search", "https://freesound.org/", lastOpenFile, callback)
+        self.label.SetLabel("Search for sounds here, and click \"Download\" to download and use it.")
         self.referrer = None
 
     def OnLoad(self, event):
@@ -122,8 +135,8 @@ class AudioSearchDialog(WebWindow):
             if not os.path.splitext(filename)[1]:
                 filename = filename + '.wav'
 
-            self.browser.RunScript("document.title = document.cookie.toString()")
-            cookie_data = self.browser.GetCurrentTitle()
+            # FIXME: Attempt to grab all cookies.  But the sessionId cookie is htmlOnly, so no dice.
+            success, cookie_data = self.browser.RunScript("document.cookie")
             cookie_parts = cookie_data.split(';')
             cookies = {}
             for cookie in cookie_parts:

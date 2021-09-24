@@ -2,7 +2,7 @@ import wx
 import wx.grid
 import wx.html
 import os
-import mediaWebDialogs
+import mediaSearchDialogs
 from tools import *
 from commands import *
 from wx.lib import buttons # for generic button classes
@@ -877,7 +877,7 @@ class GridCellImageFileEditor(wx.grid.GridCellTextEditor):
             def onImageLoaded(path):
                 self.UpdateFile(path)
 
-            dlg = mediaWebDialogs.ImageSearchDialog(self.cPanel.stackManager.designer, cur_dir, onImageLoaded)
+            dlg = mediaSearchDialogs.ImageSearchDialog(self.cPanel.stackManager.designer, cur_dir, onImageLoaded)
             dlg.RunModal()
 
 
