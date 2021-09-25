@@ -876,14 +876,12 @@ class GridCellImageFileEditor(wx.grid.GridCellTextEditor):
                 self.UpdateFile(filename)
             dlg.Destroy()
         elif x > self.grid.GetSize().Width - BUTTON_WIDTH*2:
-            cur_dir = None
-            if self.cPanel.stackManager.designer.configInfo and "last_open_file" in self.cPanel.stackManager.designer.configInfo:
-                cur_dir = os.path.dirname(self.cPanel.stackManager.designer.configInfo["last_open_file"])
-
             def onImageLoaded(path):
                 self.UpdateFile(path)
 
-            dlg = mediaSearchDialogs.ImageSearchDialog(self.cPanel.stackManager.designer, cur_dir, onImageLoaded)
+            dlg = mediaSearchDialogs.ImageSearchDialog(self.cPanel.stackManager.designer,
+                                                       self.cPanel.stackManager.designer.GetCurDir(),
+                                                       onImageLoaded)
             dlg.RunModal()
 
 

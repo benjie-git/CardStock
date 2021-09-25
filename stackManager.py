@@ -27,6 +27,7 @@ from uiImage import UiImage, ImageModel
 from uiShape import UiShape
 from uiGroup import UiGroup, GroupModel
 from codeRunnerThread import RunOnMainSync, RunOnMainAsync
+import mediaSearchDialogs
 
 
 # ----------------------------------------------------------------------
@@ -334,8 +335,8 @@ class StackManager(object):
                 if wx.TheClipboard.IsSupported(wx.DataFormat("org.cardstock.models")):
                     clipData = wx.CustomDataObject("org.cardstock.models")
                     if wx.TheClipboard.GetData(clipData):
-                        rawdata = clipData.GetData()
-                        list = json.loads(rawdata.tobytes().decode('utf8'))
+                        rawData = clipData.GetData()
+                        list = json.loads(rawData.tobytes().decode('utf8'))
                         models = [generator.StackGenerator.ModelFromData(self, dict) for dict in list]
                         if len(models) == 1 and models[0].type == "card":
                             models[0].SetProperty("name", models[0].DeduplicateName(models[0].GetProperty("name"),
@@ -347,6 +348,16 @@ class StackManager(object):
                             self.uiCard.model.DeduplicateNamesForModels(models)
                             command = AddUiViewsCommand(True, 'Add Views', self, self.cardIndex, models)
                             self.command_processor.Submit(command, storeIt=canUndo)
+                elif wx.TheClipboard.IsSupported(wx.DataFormat(wx.DF_BITMAP)):
+                    clipData = wx.CustomDataObject(wx.DataFormat(wx.DF_BITMAP))
+                    if wx.TheClipboard.GetData(clipData):
+                        rawData = clipData.GetData()
+                        if rawData:
+                            path = mediaSearchDialogs.ImageSearchDialog.SaveImageData(self.designer,
+                                                                                      self.designer.GetCurDir(),
+                                                                                      "image", rawData)
+                            if path:
+                                self.AddImageFromPath(path)
                 wx.TheClipboard.Close()
         return models
 

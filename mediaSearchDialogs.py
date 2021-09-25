@@ -70,33 +70,10 @@ class ImageSearchDialog(MediaSearchDialog):
             self.SaveUrl(f"https://openclipart.org/image/400px/{image_id}", name)
 
     def SaveUrl(self, url, name):
-        initialDir = os.getcwd()
-        if self.cur_dir:
-            initialDir = self.cur_dir
-        wildcard = "PNG files (*.png)|*.png"
-        dlg = wx.FileDialog(self, "Save Image as...", initialDir, name + ".png",
-                           style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
-                           wildcard = wildcard)
-        if dlg.ShowModal() == wx.ID_OK:
-            filename = dlg.GetPath()
-            if not os.path.splitext(filename)[1]:
-                filename = filename + '.png'
-
-            r = requests.get(url)
-            data = r.content
-
-            f = open(filename, "wb")
-            f.write(data)
-            f.close()
-
-            uiImage.UiImage.ClearCache(filename)
-
-            if self.cur_dir:
-                try:
-                    filename = os.path.relpath(filename, self.cur_dir)
-                except:
-                    pass
-
+        r = requests.get(url)
+        data = r.content
+        filename = self.SaveImageData(self, self.cur_dir, name, data)
+        if filename:
             self.fileLocation = filename
 
             if self.callback:
@@ -105,7 +82,35 @@ class ImageSearchDialog(MediaSearchDialog):
 
             wx.CallAfter(self.Close)
 
+    @staticmethod
+    def SaveImageData(parent, cur_dir, name, data):
+        filename = None
+        initialDir = os.getcwd()
+        if cur_dir:
+            initialDir = cur_dir
+        wildcard = "PNG files (*.png)|*.png"
+        dlg = wx.FileDialog(parent, "Save Image as...", initialDir, name + ".png",
+                           style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                           wildcard = wildcard)
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetPath()
+            if not os.path.splitext(filename)[1]:
+                filename = filename + '.png'
+
+            f = open(filename, "wb")
+            f.write(data)
+            f.close()
+
+            uiImage.UiImage.ClearCache(filename)
+
+            if cur_dir:
+                try:
+                    filename = os.path.relpath(filename, cur_dir)
+                except:
+                    pass
+
         dlg.Destroy()
+        return filename
 
 
 class AudioSearchDialog(MediaSearchDialog):

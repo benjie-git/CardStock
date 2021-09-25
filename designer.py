@@ -567,21 +567,14 @@ class DesignerFrame(wx.Frame):
         self.RunFromCard(self.stackManager.cardIndex)
 
     def OnMenuSearchImage(self, event):
-        cur_dir = None
-        if self.configInfo and "last_open_file" in self.configInfo:
-            cur_dir = os.path.dirname(self.configInfo["last_open_file"])
-
         def onImageLoaded(path):
             self.stackManager.AddImageFromPath(path)
 
-        dlg = mediaSearchDialogs.ImageSearchDialog(self, cur_dir, onImageLoaded)
+        dlg = mediaSearchDialogs.ImageSearchDialog(self, self.GetCurDir(), onImageLoaded)
         dlg.RunModal()
 
     # def OnMenuSearchSound(self, event):
-    #     cur_dir = None
-    #     if self.configInfo and "last_open_file" in self.configInfo:
-    #         cur_dir = os.path.dirname(self.configInfo["last_open_file"])
-    #     dlg = mediaWebDialogs.AudioSearchDialog(self, cur_dir, None)
+    #     dlg = mediaWebDialogs.AudioSearchDialog(self, self.GetCurDir(), None)
     #     dlg.RunModal()
 
     def OnViewerSave(self, stackModel):
@@ -878,6 +871,12 @@ class DesignerFrame(wx.Frame):
             self.cPanel.ShowContextHelp(self.configInfo["show_context_help"])
             if self.configInfo["last_open_file"] and os.path.exists(self.configInfo["last_open_file"]):
                 self.ReadFile(self.configInfo["last_open_file"])
+
+    def GetCurDir(self):
+        cur_dir = None
+        if self.configInfo and "last_open_file" in self.configInfo:
+            cur_dir = os.path.dirname(self.configInfo["last_open_file"])
+        return cur_dir
 
     def WriteConfig(self):
         config = configparser.ConfigParser()
