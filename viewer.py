@@ -207,6 +207,7 @@ class ViewerFrame(wx.Frame):
 
     def OnMenuClose(self, event):
         self.Close()
+        self.Refresh()
 
     def OnClose(self, event):
         if self.stackManager.filename and self.stackManager.stackModel.GetProperty("canSave") and self.stackManager.stackModel.GetDirty():

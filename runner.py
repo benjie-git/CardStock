@@ -787,7 +787,7 @@ class Runner():
 
         f()
 
-    @RunOnMainSync
+    @RunOnMainAsync
     def Quit(self):
         if self.stopRunnerThread: return
         self.stackManager.view.TopLevelParent.OnMenuClose(None)
