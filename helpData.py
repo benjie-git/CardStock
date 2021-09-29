@@ -356,12 +356,12 @@ class HelpDataGlobals():
         "ReturnFromStack": {"args": {"returnValue": {"type": "any", "info": "An optional value to pass back to the old stack that we are returning to."}},
                       "return": None,
                       "info": "This function exits the current stack, and goes back to the stack we were on before "
-                              "calling <b>GotoStack()</b>. Once we return "
+                              "calling <b>RunStack()</b>. Once we return "
                               "back to the previous stack, the current event stops running, and this "
                               "function never actually returns.  If you include a <b>returnValue</b>, this value will "
-                              "be returned by the calling stack's GotoStack() call."},
+                              "be returned by the calling stack's RunStack() call."},
         "GetStackSetupValue": {"args": {}, "return": None,
-                                "info": "If this stack was started by another stack calling GotoStack() with a setupValue argument, "
+                                "info": "If this stack was started by another stack calling RunStack() with a setupValue argument, "
                                         "you can call this <b>GetStackSetupValue()</b> function "
                                         "to get the setupValue that was passed in from the calling stack.  Otherwise this "
                                         "will return None."},

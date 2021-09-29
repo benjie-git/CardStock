@@ -6,7 +6,7 @@ This is the root frame of the CardStock stack viewer application.  It also is us
 the designer, and is used to run the stack from a standalone, exported app as well.
 It allows running and using a stack, and even saving its updated state, if the stack has its canSave flag set to True.
 
-Another thing to note is that this class manages the nesting of stacks when calling GotoStack() and ReturnFromStack().
+Another thing to note is that this class manages the nesting of stacks when calling RunStack() and ReturnFromStack().
 The list stackStack is a stack of cardstock stacks, and keeps the runner, stackModel, filename, and current cardIndex
 of each stack(file) in the stack(list).
 """
@@ -76,7 +76,7 @@ class ViewerFrame(wx.Frame):
 
         self.stackStack = []
 
-        # The original runner for the stack that the user runs.  (As opposed to ones reached by GotoStack().)
+        # The original runner for the stack that the user runs.  (As opposed to ones reached by RunStack().)
         self.rootRunner = None
 
         self.findDlg = None

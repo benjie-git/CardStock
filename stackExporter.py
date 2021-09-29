@@ -50,7 +50,7 @@ class StackExporter(object):
         subStackList = self.GatherSubStacks()
         if len(subStackList) > 0:
             wx.MessageDialog(self.stackManager.designer,
-                             "CardStock is not currently able to export a stack that includes any GotoStack() calls.",
+                             "CardStock is not currently able to export a stack that includes any RunStack() calls.",
                              "Unable to Export", wx.OK).ShowModal()
             return
 
@@ -88,8 +88,8 @@ class StackExporter(object):
     def GatherSubStacks(self):
         stackList = set()
 
-        # Find all uses of GotoStack()
-        patterns = [[re.compile(r'\s*GotoStack\("([^"]+)"\)', re.MULTILINE)]]
+        # Find all uses of RunStack()
+        patterns = [[re.compile(r'\s*RunStack\("([^"]+)"\)', re.MULTILINE)]]
         self.ScanObjTree(self.stackManager.stackModel, [], patterns, stackList)
         return stackList
 
