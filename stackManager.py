@@ -331,6 +331,11 @@ class StackManager(object):
         models = [ui.model for ui in self.uiCard.GetAllUiViews() if ui in self.selectedViews]
         self.CutModels(models, canUndo)
 
+    def Delete(self, canUndo=True):
+        models = [ui.model for ui in self.selectedViews]
+        if len(models):
+            self.DeleteModels(models, canUndo)
+
     def Paste(self, canUndo=True):
         models = []
         if not wx.TheClipboard.IsOpened():  # may crash, otherwise

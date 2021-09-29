@@ -403,6 +403,7 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnRedo, id=wx.ID_REDO)
         self.Bind(wx.EVT_MENU, self.OnSelectAll, id=wx.ID_SELECTALL)
         self.Bind(wx.EVT_MENU, self.OnCut, id=wx.ID_CUT)
+        self.Bind(wx.EVT_MENU, self.OnDelete, id=wx.ID_DELETE)
         self.Bind(wx.EVT_MENU, self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU, self.OnPaste, id=wx.ID_PASTE)
         self.Bind(wx.EVT_MENU, self.OnMenuFind, id=ID_MENU_FIND)
@@ -450,6 +451,7 @@ class DesignerFrame(wx.Frame):
         contextMenu = wx.Menu()
         contextMenu.Append(wx.ID_CUT,  "C&ut\tCtrl-X", "Cut Selection")
         contextMenu.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
+        contextMenu.Append(wx.ID_DELETE,  "Delete\tDelete", "Delete Selection")
 
         hasGroups = False
         for ui in uiViews:
@@ -833,6 +835,11 @@ class DesignerFrame(wx.Frame):
         f = self.GetDesiredFocus(True)
         if f and hasattr(f, "Cut"):
             f.Cut()
+
+    def OnDelete(self, event):
+        f = self.GetDesiredFocus(True)
+        if f and hasattr(f, "Delete"):
+            f.Delete()
 
     def OnCopy(self, event):
         f = self.GetDesiredFocus(True)
