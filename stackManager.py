@@ -752,6 +752,17 @@ class StackManager(object):
             if index >= 0:
                 self.LoadCardAtIndex(index)
 
+    def OnRightDown(self, uiView, event):
+        if self.isEditing:
+            pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+            uiView = self.HitTest(pos)
+            if uiView.parent and uiView.parent.isSelected:
+                uiView = uiView.parent
+            if not uiView.isSelected:
+                self.SelectUiView(uiView)
+            menu = self.designer.MakeContextMenu(self.selectedViews)
+            self.designer.PopupMenu(menu, event.GetPosition())
+
     def OnMouseDown(self, uiView, event):
         if self.view.HasCapture() and event.LeftDClick():
             # Make sure we don't double-capture the mouse on GTK/Linux

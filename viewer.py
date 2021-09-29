@@ -122,7 +122,7 @@ class ViewerFrame(wx.Frame):
         if not self.isStandalone and self.stackManager.filename:
             self.SetTitle(self.title + ' -- ' + os.path.basename(self.stackManager.filename))
 
-    def MakeMenu(self):
+    def MakeMenuBar(self):
         # create the file menu
         fileMenu = wx.Menu()
         if not self.isStandalone and not self.designer:
@@ -408,7 +408,7 @@ class ViewerFrame(wx.Frame):
         if not isGoingBack:
             runner.stackSetupValue = ioValue
         self.stackManager.runner = runner
-        self.MakeMenu()
+        self.MakeMenuBar()
         self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))
         if self.designer:
             runner.AddSyntaxErrors(self.designer.cPanel.codeEditor.analyzer.syntaxErrors)

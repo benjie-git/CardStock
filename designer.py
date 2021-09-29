@@ -97,7 +97,7 @@ class DesignerFrame(wx.Frame):
         # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.png')))
         self.CreateStatusBar()
         self.editMenu = None
-        self.MakeMenu()
+        self.MakeMenuBar()
         self.filename = None
         self.app = None
         self.configInfo = None
@@ -285,7 +285,7 @@ class DesignerFrame(wx.Frame):
     def FwdOnKeyUp(self, event):
         self.stackManager.OnKeyUp(None, event)
 
-    def MakeMenu(self):
+    def MakeMenuBar(self):
         # create the file menu
         # Using the "\tKeyName" syntax automatically creates a
         # wx.AcceleratorTable for this frame and binds the keys to
@@ -444,6 +444,65 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuShowErrorList, id=ID_SHOW_ERROR_LIST)
         self.Bind(wx.EVT_MENU, self.OnMenuShowAllCodeWindow, id=ID_SHOW_ALL_CODE)
 
+
+    def MakeContextMenu(self, uiViews):
+        # create a context menu for the given set of views
+        contextMenu = wx.Menu()
+        contextMenu.Append(wx.ID_CUT,  "C&ut\tCtrl-X", "Cut Selection")
+        contextMenu.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
+
+        hasGroups = False
+        for ui in uiViews:
+            if ui.model.type == "group":
+                hasGroups = True
+                break
+
+        if len(uiViews) == 1 and uiViews[0].model.type == "card":
+            contextMenu.AppendSeparator()
+            contextMenu.Append(ID_DUPLICATE_CARD, "&Duplicate Card\tCtrl-Alt-+", "Duplicate Card")
+            contextMenu.Append(ID_REMOVE_CARD, "&Remove Card", "Remove Card")
+            contextMenu.AppendSeparator()
+            contextMenu.Append(ID_MOVE_CARD_FWD, "Move Card &Forward\tCtrl-Shift-]", "Move Card Forward")
+            contextMenu.Append(ID_MOVE_CARD_BACK, "Move Card Bac&k\tCtrl-Shift-[", "Move Card Back")
+
+        if len(uiViews) > 1:
+            contextMenu.AppendSeparator()
+            contextMenu.Append(ID_GROUP, "&Group Objects\tCtrl-Alt-G", "Group Objects")
+            if hasGroups:
+                contextMenu.Append(ID_UNGROUP, "&Ungroup Objects\tCtrl-Alt-U", "Ungroup Objects")
+            contextMenu.AppendSeparator()
+            alignMenu = wx.Menu()
+            alignMenu.Append(ID_ALIGN_HL, "Align Left", "Align Objects Left")
+            alignMenu.Append(ID_ALIGN_HC, "Align Center (Horizontal)", "Align Objects Horizontal Center")
+            alignMenu.Append(ID_ALIGN_HR, "Align Right", "Align Objects Left")
+            alignMenu.Append(ID_ALIGN_VT, "Align Top", "Align Objects Top")
+            alignMenu.Append(ID_ALIGN_VC, "Align Center (Vertical)", "Align Objects Vertical Center")
+            alignMenu.Append(ID_ALIGN_VB, "Align Bottom", "Align Objects Bottom")
+            contextMenu.AppendSubMenu(alignMenu, "Align Objects...", "Align Objects")
+            distMenu = wx.Menu()
+            distMenu.Append(ID_DISTRIBUTE_HL, "Distribute Left", "Distribute Objects Left")
+            distMenu.Append(ID_DISTRIBUTE_HC, "Distribute Center (Horizontal)", "Distribute Objects Horizontal Center")
+            distMenu.Append(ID_DISTRIBUTE_HS, "Distribute Spacing (Horizontal)", "Distribute Objects Horizontal Even Spacing")
+            distMenu.Append(ID_DISTRIBUTE_HR, "Distribute Right", "Distribute Objects Left")
+            distMenu.Append(ID_DISTRIBUTE_VT, "Distribute Top", "Distribute Objects Top")
+            distMenu.Append(ID_DISTRIBUTE_VC, "Distribute Center (Vertical)", "Distribute Objects Vertical Center")
+            distMenu.Append(ID_DISTRIBUTE_VS, "Distribute Spacing (Vertical)", "Distribute Objects Vertical Even Spacing")
+            distMenu.Append(ID_DISTRIBUTE_VB, "Distribute Bottom", "Distribute Objects Bottom")
+            contextMenu.AppendSubMenu(distMenu, "Distribute Objects...", "Distribute Objects")
+        elif hasGroups:
+            contextMenu.AppendSeparator()
+            contextMenu.Append(ID_UNGROUP, "&Ungroup Objects\tCtrl-Alt-U", "Ungroup Objects")
+
+        contextMenu.AppendSeparator()
+        contextMenu.Append(ID_FLIP_HORIZ, "Flip Horizontal\tCtrl-Alt-H", "Flip Horizontal")
+        contextMenu.Append(ID_FLIP_VERT, "Flip Vertical\tCtrl-Alt-V", "Flip Vertical")
+        contextMenu.AppendSeparator()
+        contextMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Alt-Shift-F", "Move to Front")
+        contextMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward\tCtrl-Alt-F", "Move Forward")
+        contextMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&kward\tCtrl-Alt-B", "Move Back")
+        contextMenu.Append(ID_MOVE_VIEW_END, "Move to Back\tCtrl-Alt-Shift-B", "Move to Back")
+
+        return contextMenu
 
     wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
 

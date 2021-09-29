@@ -48,11 +48,13 @@ class UiView(object):
     def BindEvents(self, view):
         view.Bind(wx.EVT_LEFT_DOWN, self.FwdOnMouseDown)
         view.Bind(wx.EVT_LEFT_DCLICK, self.FwdOnMouseDown)
+        view.Bind(wx.EVT_RIGHT_DOWN, self.FwdOnRightDown)
         view.Bind(wx.EVT_MOTION, self.FwdOnMouseMove)
         view.Bind(wx.EVT_LEFT_UP, self.FwdOnMouseUp)
         view.Bind(wx.EVT_KEY_DOWN, self.FwdOnKeyDown)
         view.Bind(wx.EVT_KEY_UP, self.FwdOnKeyUp)
 
+    def FwdOnRightDown( self, event): self.stackManager.OnRightDown( self, event)
     def FwdOnMouseDown( self, event): self.stackManager.OnMouseDown( self, event)
     def FwdOnMouseMove( self, event): self.stackManager.OnMouseMove( self, event)
     def FwdOnMouseUp(   self, event): self.stackManager.OnMouseUp(   self, event)
