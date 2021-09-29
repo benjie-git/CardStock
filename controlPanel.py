@@ -876,6 +876,12 @@ class GridCellImageFileEditor(wx.grid.GridCellTextEditor):
                 self.UpdateFile(filename)
             dlg.Destroy()
         elif x > self.grid.GetSize().Width - BUTTON_WIDTH*2:
+            if not self.cPanel.stackManager.filename:
+                wx.MessageDialog(self.cPanel.stackManager.designer,
+                                 "Please save your stack before pasting an Image.",
+                                 "Unsaved Stack", wx.OK).ShowModal()
+                return
+
             def onImageLoaded(path):
                 self.UpdateFile(path)
 

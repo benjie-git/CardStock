@@ -84,33 +84,68 @@ class ImageSearchDialog(MediaSearchDialog):
 
     @staticmethod
     def SaveImageData(parent, cur_dir, name, data):
-        filename = None
+        skipWrite = False
         initialDir = os.getcwd()
         if cur_dir:
             initialDir = cur_dir
-        wildcard = "PNG files (*.png)|*.png"
-        dlg = wx.FileDialog(parent, "Save Image as...", initialDir, name + ".png",
-                           style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
-                           wildcard = wildcard)
-        if dlg.ShowModal() == wx.ID_OK:
-            filename = dlg.GetPath()
-            if not os.path.splitext(filename)[1]:
-                filename = filename + '.png'
 
+        filename = os.path.join(initialDir, name+'.png')
+        name, extension = os.path.splitext(filename)
+        counter = 1
+        while os.path.exists(filename):
+            f = open(filename, "rb")
+            old_data = f.read()
+            f.close()
+            if old_data == data:
+                skipWrite = True
+                break
+            filename = name + "_" + str(counter) + extension
+            counter += 1
+
+        if not skipWrite:
             f = open(filename, "wb")
             f.write(data)
             f.close()
 
-            uiImage.UiImage.ClearCache(filename)
+        uiImage.UiImage.ClearCache(filename)
 
-            if cur_dir:
-                try:
-                    filename = os.path.relpath(filename, cur_dir)
-                except:
-                    pass
+        if cur_dir:
+            try:
+                filename = os.path.relpath(filename, cur_dir)
+            except:
+                pass
 
-        dlg.Destroy()
         return filename
+
+    # @staticmethod
+    # def SaveImageData(parent, cur_dir, name, data):
+    #     filename = None
+    #     initialDir = os.getcwd()
+    #     if cur_dir:
+    #         initialDir = cur_dir
+    #     wildcard = "PNG files (*.png)|*.png"
+    #     dlg = wx.FileDialog(parent, "Save Image as...", initialDir, name + ".png",
+    #                        style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+    #                        wildcard = wildcard)
+    #     if dlg.ShowModal() == wx.ID_OK:
+    #         filename = dlg.GetPath()
+    #         if not os.path.splitext(filename)[1]:
+    #             filename = filename + '.png'
+    #
+    #         f = open(filename, "wb")
+    #         f.write(data)
+    #         f.close()
+    #
+    #         uiImage.UiImage.ClearCache(filename)
+    #
+    #         if cur_dir:
+    #             try:
+    #                 filename = os.path.relpath(filename, cur_dir)
+    #             except:
+    #                 pass
+    #
+    #     dlg.Destroy()
+    #     return filename
 
 
 class AudioSearchDialog(MediaSearchDialog):

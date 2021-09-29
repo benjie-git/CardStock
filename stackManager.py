@@ -356,6 +356,12 @@ class StackManager(object):
                     if wx.TheClipboard.GetData(clipData):
                         rawData = clipData.GetData()
                         if rawData:
+                            if not self.filename:
+                                wx.MessageDialog(self.designer,
+                                                 "Please save your stack before pasting an Image.",
+                                                 "Unsaved Stack", wx.OK).ShowModal()
+                                wx.TheClipboard.Close()
+                                return []
                             path = mediaSearchDialogs.ImageSearchDialog.SaveImageData(self.designer,
                                                                                       self.designer.GetCurDir(),
                                                                                       "image", rawData)

@@ -566,6 +566,12 @@ class DesignerFrame(wx.Frame):
         self.RunFromCard(self.stackManager.cardIndex)
 
     def OnMenuSearchImage(self, event):
+        if not self.stackManager.filename:
+            wx.MessageDialog(self.stackManager.designer,
+                             "Please save your stack before inserting Clip Art.",
+                             "Unsaved Stack", wx.OK).ShowModal()
+            return
+
         def onImageLoaded(path):
             self.stackManager.AddImageFromPath(path)
 
