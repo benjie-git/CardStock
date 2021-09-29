@@ -13,6 +13,7 @@ from errorListWindow import CardStockError
 import threading
 from codeRunnerThread import CodeRunnerThread, RunOnMainSync, RunOnMainAsync
 import queue
+import sanitizer
 
 try:
     import simpleaudio
@@ -45,8 +46,9 @@ class Runner():
     injects a SystemExit("Return") exception into the runnerThread, so it will stop and allow us to close viewer.
     """
 
-    def __init__(self, stackManager):
+    def __init__(self, stackManager, viewer):
         self.stackManager = stackManager
+        self.viewer = viewer
         self.cardVarKeys = []  # store names of views on the current card, to remove from clientVars before setting up the next card
         self.pressedKeys = []
         self.keyTimings = {}
@@ -61,6 +63,9 @@ class Runner():
         self.funcDefs = {}
         self.lastCard = None
         self.stopHandlingMouseEvent = False
+
+        self.stackSetupValue = None
+        self.stackReturnQueue = queue.Queue()
 
         # queue of tasks to run on the runnerThread
         # each task is put onto the queue as a list.
@@ -88,6 +93,7 @@ class Runner():
             "GotoCard": self.GotoCard,
             "GotoNextCard": self.GotoNextCard,
             "GotoPreviousCard": self.GotoPreviousCard,
+            "RunStack": self.RunStack,
             "SoundPlay": self.SoundPlay,
             "SoundStop": self.SoundStop,
             "BroadcastMessage": self.BroadcastMessage,
@@ -96,6 +102,8 @@ class Runner():
             "Quit":self.Quit,
             "stack": self.stackManager.stackModel.GetProxy(),
             "StopHandlingMouseEvent": self.StopHandlingMouseEvent,
+            "ReturnFromStack": self.ReturnFromStack,
+            "GetStackSetupValue": self.GetStackSetupValue,
         }
 
         self.keyCodeStringMap = {
@@ -121,8 +129,8 @@ class Runner():
             self.keyCodeStringMap[wx.WXK_CONTROL] = "Command"
             self.keyCodeStringMap[wx.WXK_RAW_CONTROL] = "Control"
 
-    def AddSyntaxErrors(self, analzerSyntaxErrors):
-        for path, e in analzerSyntaxErrors.items():
+    def AddSyntaxErrors(self, analyzerSyntaxErrors):
+        for path, e in analyzerSyntaxErrors.items():
             parts = path.split('.')
             modelPath = '.'.join(path.split('.')[:-1])
             model = self.stackManager.stackModel.GetModelFromPath(modelPath)
@@ -161,13 +169,19 @@ class Runner():
     def IsRunningHandler(self):
         return len(self.lastHandlerStack) > 0
 
-    def CleanupFromRun(self):
+    def StopTimers(self):
+        for t in self.timers:
+            t.Stop()
+        self.timers = []
+
+    def DoReturnFromStack(self, stackReturnVal):
+        self.stackReturnQueue.put(stackReturnVal)
+
+    def CleanupFromRun(self, notify=True):
         # On Main thread
         if self.runnerThread:
             self.stopRunnerThread = True
-            for t in self.timers:
-                t.Stop()
-            self.timers = []
+            self.StopTimers()
             self.handlerQueue.put([]) # Wake up the runner thread get() call so it can see that we're stopping
 
             def waitAndYield(duration):
@@ -216,11 +230,14 @@ class Runner():
         self.funcDefs = None
         self.handlerQueue = None
         self.stackManager = None
-        if self.onRunFinished:
+        if notify and self.onRunFinished:
             self.onRunFinished(self)
         self.errors = None
         self.onRunFinished = None
         self.keyTimings = None
+        self.viewer = None
+        self.stackReturnQueue = None
+        self.stackSetupValue = None
 
     def EnqueueRefresh(self):
         self.handlerQueue.put([])
@@ -652,6 +669,21 @@ class Runner():
         cardIndex = self.stackManager.cardIndex - 1
         if cardIndex < 0: cardIndex = len(self.stackManager.stackModel.childModels) - 1
         self.stackManager.LoadCardAtIndex(cardIndex)
+
+    def RunStack(self, filename, cardNumber=1, setupValue=None):
+        success = self.viewer.GosubStack(filename, cardNumber-1, sanitizer.SanitizeValue(setupValue, []))
+        if success:
+            return self.stackReturnQueue.get()
+        else:
+            raise RuntimeError(f"Couldn't find stack '{filename}'.")
+
+    def ReturnFromStack(self, result=None):
+        stackReturnValue = sanitizer.SanitizeValue(result, [])
+        if self.viewer.GosubStack(None,-1, stackReturnValue):
+            raise RuntimeError('Return')
+
+    def GetStackSetupValue(self):
+        return self.stackSetupValue
 
     def Wait(self, delay):
         try:

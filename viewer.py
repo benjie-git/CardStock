@@ -2,9 +2,13 @@
 
 # viewer.py
 """
-This is the root of the CardStock stack viewer application.
-It allows running and using a stack, and even saving its updated state,
-if the stack has its canSave flag set to True.
+This is the root frame of the CardStock stack viewer application.  It also is used to run stacks from within
+the designer, and is used to run the stack from a standalone, exported app as well.
+It allows running and using a stack, and even saving its updated state, if the stack has its canSave flag set to True.
+
+Another thing to note is that this class manages the nesting of stacks when calling GotoStack() and ReturnFromStack().
+The list stackStack is a stack of cardstock stacks, and keeps the runner, stackModel, filename, and current cardIndex
+of each stack(file) in the stack(list).
 """
 
 import os
@@ -20,6 +24,7 @@ import helpDialogs
 from findEngineViewer import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
 from consoleWindow import ConsoleWindow
+from codeRunnerThread import RunOnMainSync, RunOnMainAsync
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -36,32 +41,43 @@ ID_CLEAR_CONSOLE = wx.NewIdRef()
 
 class ViewerFrame(wx.Frame):
     """
-    A ViewerFrame contains a stackManger's view, and handles menu commands.
+    A ViewerFrame contains a stackManger's view, handles menu commands, manages the stack's runner, and the stack of stacks.
     """
 
     title = "CardStock"
 
-    def __init__(self, parent, stackModel, filename):
+    def __init__(self, parent, stackModel, filename, isStandalone, resMap=None):
         if stackModel and stackModel.GetProperty("canResize"):
             style = wx.DEFAULT_FRAME_STYLE
         else:
             style = wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
+
+        if isStandalone:
+            self.title = os.path.basename(sys.executable)
 
         wx.Frame.__init__(self, parent, -1, self.title, size=(500,500), style=style)
         # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.ico')))
 
         self.stackManager = StackManager(self, False)
         self.stackManager.view.UseDeferredRefresh(True)
+        if isStandalone and resMap:
+            self.stackManager.resPathMan.SetPathMap(resMap)
 
         if not stackModel:
             stackModel = StackModel(self.stackManager)
             stackModel.AppendCardModel(CardModel(self.stackManager))
 
-        self.designer = None
+        self.designer = None  # The designer sets this, if being run from the designer app
+        self.isStandalone = isStandalone  # Are we running as a standalone app?
         self.stackManager.filename = filename
         self.SetStackModel(stackModel)
         self.Bind(wx.EVT_SIZE, self.OnResize)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+
+        self.stackStack = []
+
+        # The original runner for the stack that the user runs.  (As opposed to ones reached by GotoStack().)
+        self.rootRunner = None
 
         self.findDlg = None
         self.findEngine = FindEngine(self.stackManager)
@@ -103,13 +119,13 @@ class ViewerFrame(wx.Frame):
         size = self.stackManager.stackModel.GetProperty("size")
         self.SetClientSize(size)
         self.stackManager.view.SetFocus()
-        if self.stackManager.filename:
+        if not self.isStandalone and self.stackManager.filename:
             self.SetTitle(self.title + ' -- ' + os.path.basename(self.stackManager.filename))
 
     def MakeMenu(self):
         # create the file menu
         fileMenu = wx.Menu()
-        if not self.designer:
+        if not self.isStandalone and not self.designer:
             fileMenu.Append(wx.ID_OPEN, "&Open\tCtrl-O", "Open Stack")
         if self.stackManager.filename and self.stackManager.stackModel.GetProperty("canSave"):
             fileMenu.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save Stack")
@@ -140,7 +156,8 @@ class ViewerFrame(wx.Frame):
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
-        menuBar.Append(fileMenu, "&File")
+        if self.designer or fileMenu.GetMenuItemCount() > 1:
+            menuBar.Append(fileMenu, "&File")
         menuBar.Append(editMenu, "&Edit")
         menuBar.Append(helpMenu, "&Help")
         self.SetMenuBar(menuBar)
@@ -220,6 +237,9 @@ class ViewerFrame(wx.Frame):
                 self.SaveFile()
 
         if not self.stackManager.runner.stopRunnerThread:
+            for l in range(len(self.stackStack)-1):
+                self.PopStack(None)
+
             self.stackManager.SetDown()
             if self.consoleWindow:
                 self.consoleWindow.Destroy()
@@ -318,17 +338,83 @@ class ViewerFrame(wx.Frame):
     def OnMenuClearConsoleWindow(self, event):
         self.consoleWindow.Clear()
 
-    def RunViewer(self, cardIndex):
-        runner = Runner(self.stackManager)
+    def GosubStack(self, filename, cardNumber, ioValue):
+        if filename:
+            # push
+            try:
+                if not os.path.isabs(filename):
+                    filename = os.path.join(os.path.dirname(self.stackManager.filename), filename)
+                with open(filename, 'r') as f:
+                    data = json.load(f)
+                if data:
+                    @RunOnMainAsync
+                    def func():
+                        stackModel = StackModel(None)
+                        stackModel.SetData(data)
+                        self.PushStack(stackModel, filename, cardNumber, ioValue)
+                    func()
+                    return True
+            except (TypeError, FileNotFoundError):
+                # e = sys.exc_info()
+                # print(e)
+                # wx.MessageDialog(None, f"Couldn't open stack '{filename}'.", "", wx.OK).ShowModal()
+                return False
+        else:
+            # pop
+            if len(self.stackStack) > 1:
+                @RunOnMainAsync
+                def func():
+                    self.PopStack(ioValue)
+                func()
+                return True
+            else:
+                return False
+
+    def PushStack(self, stackModel, filename, cardIndex, setupValue=None):
+        if len(self.stackStack) > 0:
+            self.stackStack[-1][3] = self.stackManager.cardIndex
+            self.stackManager.runner.StopTimers()
+
+        runner = Runner(self.stackManager, self)
+        if len(self.stackStack) == 0:
+            self.rootRunner = runner
+
+        self.stackStack.append([runner, stackModel, filename, cardIndex])
+        self.RunViewer(runner, stackModel, filename, cardIndex, setupValue, False)
+
+    def PopStack(self, returnValue):
+        if len(self.stackStack) > 1:
+            self.stackManager.runner.CleanupFromRun(notify=False)
+            self.stackManager.runner.errors = None  # Not the root stack, so we're not reporting any errors here upon return to the designer
+            self.stackManager.stackModel.SetDown()
+            self.stackManager.stackModel.DismantleChildTree()
+
+            self.stackStack.pop()
+            parts = self.stackStack[-1]
+            parts[1].SetBackUp(self.stackManager)
+            self.RunViewer(*parts, returnValue, True)
+
+    def RunViewer(self, runner, stackModel, filename, cardIndex, ioValue, isGoingBack):
+        self.stackManager.SetStackModel(stackModel, True)
+        self.stackManager.filename = filename
+
         if self.designer:
             runner.onRunFinished = self.designer.OnRunnerFinished
+        if not isGoingBack:
+            runner.stackSetupValue = ioValue
         self.stackManager.runner = runner
         self.MakeMenu()
         self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))
         if self.designer:
             runner.AddSyntaxErrors(self.designer.cPanel.codeEditor.analyzer.syntaxErrors)
-        self.stackManager.stackModel.RunSetup(runner)
+        if not isGoingBack:
+            self.stackManager.stackModel.RunSetup(runner)
+        self.stackManager.LoadCardAtIndex(None)
+        if not (0 <= cardIndex < len(self.stackManager.stackModel.childModels)):
+            cardIndex = 0
         self.stackManager.LoadCardAtIndex(cardIndex)
+        if isGoingBack:
+            runner.DoReturnFromStack(ioValue)
 
 
 # ----------------------------------------------------------------------
@@ -349,10 +435,10 @@ class ViewerApp(wx.App, InspectionMixin):
             self.frame.Hide()
             self.frame.Destroy()
 
-        self.frame = ViewerFrame(None, None, None)
+        self.frame = ViewerFrame(None, None, None, False)
+        self.frame.PushStack(self.frame.stackManager.stackModel, None, 0)
         self.SetTopWindow(self.frame)
         self.frame.Show(True)
-        self.frame.RunViewer(0)
 
     def OpenFile(self, filename):
         if filename:
@@ -367,12 +453,10 @@ class ViewerApp(wx.App, InspectionMixin):
 
                     stackModel = StackModel(None)
                     stackModel.SetData(data)
-                    self.frame = ViewerFrame(None, stackModel, filename)
-                    stackModel.SetStackManager(self.frame.stackManager)
+                    self.frame = ViewerFrame(None, stackModel, filename, False)
+                    self.frame.PushStack(stackModel, filename, 0)
                     self.SetTopWindow(self.frame)
-                    self.frame.stackManager.filename = filename
                     self.frame.Show(True)
-                    self.frame.RunViewer(0)
             except TypeError:
                 # e = sys.exc_info()
                 # print(e)

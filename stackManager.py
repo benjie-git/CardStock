@@ -141,7 +141,7 @@ class StackManager(object):
         self.timer = None
 
         if self.runner:
-            self.runner.CleanupFromRun()
+            self.runner.CleanupFromRun(notify=True)
 
         self.uiCard.SetDown()
         self.uiCard = None
@@ -248,9 +248,12 @@ class StackManager(object):
         self.uiCard.SetModel(cardModel)
         self.AddUiViewsFromModels(cardModel.childModels, canUndo=False)  # Don't allow undoing card loads
 
-    def SetStackModel(self, model):
+    def SetStackModel(self, model, skipSetDown=False):
+        if model == self.stackModel:
+            return
         self.ClearAllViews()
-        self.stackModel.SetDown()
+        if not skipSetDown:
+            self.stackModel.SetDown()
         model.SetStackManager(self)
         self.stackModel = model
         self.cardIndex = None

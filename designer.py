@@ -551,13 +551,12 @@ class DesignerFrame(wx.Frame):
         stackModel = StackModel(None)
         stackModel.SetData(data)
 
-        self.viewer = ViewerFrame(self, stackModel, self.filename)
+        self.viewer = ViewerFrame(self, StackModel(self.stackManager), None, False)
         self.viewer.designer = self
-        stackModel.SetStackManager(self.viewer.stackManager)
 
+        self.viewer.PushStack(stackModel, self.filename, cardIndex)
         self.viewer.Show(True)
         self.viewer.Refresh()
-        self.viewer.RunViewer(cardIndex)
         self.isStartingViewer = False
 
     def OnMenuRun(self, event):

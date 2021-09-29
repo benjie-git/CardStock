@@ -63,6 +63,7 @@ class UiButton(UiView):
         if not self.stackManager.isEditing and not self.button:
             self.mouseDownInside = True
             self.stackManager.view.Refresh()
+        super().OnMouseDown(event)
 
     def OnMouseUpOutside(self, event):
         if not self.button and self.mouseDownInside:
@@ -76,6 +77,7 @@ class UiButton(UiView):
                 self.OnButton(event)
                 self.mouseDownInside = False
                 self.stackManager.view.Refresh()
+        super().OnMouseUp(event)
 
     def OnKeyDown(self, event):
         if event.GetKeyCode() in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:

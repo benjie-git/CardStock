@@ -47,6 +47,13 @@ class StackExporter(object):
             if r == wx.ID_OK:
                 doSave()
 
+        subStackList = self.GatherSubStacks()
+        if len(subStackList) > 0:
+            wx.MessageDialog(self.stackManager.designer,
+                             "CardStock is not currently able to export a stack that includes any GotoStack() calls.",
+                             "Unable to Export", wx.OK).ShowModal()
+            return
+
         self.GatherResources()
         self.GatherModules()
         self.ConfirmResources()
@@ -77,6 +84,14 @@ class StackExporter(object):
                      re.compile(r"[\s,]*([^\s,]+)[\s,]*")],
                     [re.compile(r"^[^\S\r\n]*from[^\S\r\n]+([^\s,]+)[^\S\r\n]+import\s", re.MULTILINE)]]
         self.ScanObjTree(self.stackManager.stackModel, [], patterns, self.moduleList)
+
+    def GatherSubStacks(self):
+        stackList = set()
+
+        # Find all uses of GotoStack()
+        patterns = [[re.compile(r'\s*GotoStack\("([^"]+)"\)', re.MULTILINE)]]
+        self.ScanObjTree(self.stackManager.stackModel, [], patterns, stackList)
+        return stackList
 
     def ScanObjTree(self, obj, props, patterns, outputSet):
         for pList in props:

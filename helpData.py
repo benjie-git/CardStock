@@ -343,6 +343,28 @@ class HelpDataGlobals():
                              "info": "Goes to the previous card in the stack.  If we're already on the first card, then loop back to "
                                      "the last card.  This sends the OnHideCard event for the current card, and then the "
                                      "OnShowCard event for the new card."},
+        "RunStack": {"args": {"filename": {"type": "string", "info": "The path to a stack file to run"},
+                               "cardNumber": {"type": "int", "info": "An optional card number of the new stack to start on.  This defaults to card number 1, the first card."},
+                               "setupValue": {"type": "any", "info": "An optional value to pass into the new stack."}},
+                      "return": "any",
+                      "info": "Opens the stack at the path given by the <b>filename</b> argument, and optionally starts on "
+                              "the card number specified by the <b>cardNumber</b> argument.  If you include a "
+                              "<b>setupValue</b> argument, this will be passed into the new stack, which can access it by "
+                              "calling the GetStackSetupValue() function.  The RunStack() call waits "
+                              "until the new stack calls the ReturnFromStack(returnVal) function, and then returns the returnVal value,"
+                              "or returns None if no returnValue is given."},
+        "ReturnFromStack": {"args": {"returnValue": {"type": "any", "info": "An optional value to pass back to the old stack that we are returning to."}},
+                      "return": None,
+                      "info": "This function exits the current stack, and goes back to the stack we were on before "
+                              "calling <b>GotoStack()</b>. Once we return "
+                              "back to the previous stack, the current event stops running, and this "
+                              "function never actually returns.  If you include a <b>returnValue</b>, this value will "
+                              "be returned by the calling stack's GotoStack() call."},
+        "GetStackSetupValue": {"args": {}, "return": None,
+                                "info": "If this stack was started by another stack calling GotoStack() with a setupValue argument, "
+                                        "you can call this <b>GetStackSetupValue()</b> function "
+                                        "to get the setupValue that was passed in from the calling stack.  Otherwise this "
+                                        "will return None."},
         "SoundPlay": {"args": {"file": {"type": "string",
                                         "info": "This is the filename of the .wav format audio file to play, relative to where the stack file lives."}},
                       "return": None,
