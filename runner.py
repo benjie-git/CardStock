@@ -182,6 +182,7 @@ class Runner():
         if self.runnerThread:
             self.stopRunnerThread = True
             self.StopTimers()
+            self.stackReturnQueue.put(None)  # Stop waiting for a RunStack() call to return
             self.handlerQueue.put([]) # Wake up the runner thread get() call so it can see that we're stopping
 
             def waitAndYield(duration):
@@ -673,7 +674,11 @@ class Runner():
     def RunStack(self, filename, cardNumber=1, setupValue=None):
         success = self.viewer.GosubStack(filename, cardNumber-1, sanitizer.SanitizeValue(setupValue, []))
         if success:
-            return self.stackReturnQueue.get()
+            result = self.stackReturnQueue.get()
+            if not self.stopRunnerThread:
+                return result
+            else:
+                raise RuntimeError("Return")
         else:
             raise RuntimeError(f"Couldn't find stack '{filename}'.")
 

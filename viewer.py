@@ -238,7 +238,7 @@ class ViewerFrame(wx.Frame):
 
         if not self.stackManager.runner.stopRunnerThread:
             for l in range(len(self.stackStack)-1):
-                self.PopStack(None)
+                self.PopStack(None, True)
 
             self.stackManager.SetDown()
             if self.consoleWindow:
@@ -382,7 +382,7 @@ class ViewerFrame(wx.Frame):
         self.stackStack.append([runner, stackModel, filename, cardIndex])
         self.RunViewer(runner, stackModel, filename, cardIndex, setupValue, False)
 
-    def PopStack(self, returnValue):
+    def PopStack(self, returnValue, isShuttingDown=False):
         if len(self.stackStack) > 1:
             self.stackManager.runner.CleanupFromRun(notify=False)
             self.stackManager.runner.errors = None  # Not the root stack, so we're not reporting any errors here upon return to the designer
@@ -391,8 +391,13 @@ class ViewerFrame(wx.Frame):
 
             self.stackStack.pop()
             parts = self.stackStack[-1]
-            parts[1].SetBackUp(self.stackManager)
-            self.RunViewer(*parts, returnValue, True)
+
+            if not isShuttingDown:
+                parts[1].SetBackUp(self.stackManager)
+                self.RunViewer(*parts, returnValue, True)
+            else:
+                self.stackManager.runner = parts[0]
+                self.stackManager.SetStackModel(parts[1], True)
 
     def RunViewer(self, runner, stackModel, filename, cardIndex, ioValue, isGoingBack):
         self.stackManager.SetStackModel(stackModel, True)
