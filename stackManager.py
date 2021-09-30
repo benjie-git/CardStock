@@ -141,7 +141,7 @@ class StackManager(object):
         self.timer = None
 
         if self.runner:
-            self.runner.CleanupFromRun(notify=True)
+            self.runner.CleanupFromRun()
 
         self.uiCard.SetDown()
         self.uiCard = None

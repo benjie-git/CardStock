@@ -117,10 +117,12 @@ class CardModel(ViewModel):
         self.type = "card"
         self.proxyClass = Card
         # Add custom handlers to the top of the list
-        handlers = {"OnSetup": "", "OnShowCard": "", "OnHideCard": "", "OnKeyDown": "", "OnKeyHold": "", "OnKeyUp": "", "OnResize":""}
+        handlers = {"OnSetup": "", "OnShowCard": "", "OnHideCard": "", "OnKeyDown": "",
+                    "OnKeyHold": "", "OnKeyUp": "", "OnResize":""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
+        self.handlers["OnExitStack"] = ""
         self.initialEditHandler = "OnSetup"
 
         # Custom property order and mask for the inspector

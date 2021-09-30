@@ -384,10 +384,14 @@ class ViewerFrame(wx.Frame):
 
     def PopStack(self, returnValue, isShuttingDown=False):
         if len(self.stackStack) > 1:
-            self.stackManager.runner.CleanupFromRun(notify=False)
-            self.stackManager.runner.errors = None  # Not the root stack, so we're not reporting any errors here upon return to the designer
-            self.stackManager.stackModel.SetDown()
-            self.stackManager.stackModel.DismantleChildTree()
+            sModel = self.stackManager.stackModel
+            def onFinished(runner):
+                runner.errors = None  # Not the root stack, so we're not reporting any errors here upon return to the designer
+                sModel.SetDown()
+                sModel.DismantleChildTree()
+
+            self.stackManager.runner.onRunFinished = onFinished
+            self.stackManager.runner.CleanupFromRun()
 
             self.stackStack.pop()
             parts = self.stackStack[-1]

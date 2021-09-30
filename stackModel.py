@@ -28,7 +28,7 @@ class StackModel(ViewModel):
 
         self.propertyKeys = []
 
-        self.handlers = {"OnSetup": ""}
+        self.handlers = {}
 
     def AppendCardModel(self, cardModel):
         cardModel.parent = self

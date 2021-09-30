@@ -177,11 +177,13 @@ class Runner():
     def DoReturnFromStack(self, stackReturnVal):
         self.stackReturnQueue.put(stackReturnVal)
 
-    def CleanupFromRun(self, notify=True):
+    def CleanupFromRun(self):
         # On Main thread
         if self.runnerThread:
             self.stopRunnerThread = True
             self.StopTimers()
+            for card in self.stackManager.stackModel.childModels:
+                self.RunHandler(card, "OnExitStack", None)
             self.stackReturnQueue.put(None)  # Stop waiting for a RunStack() call to return
             self.handlerQueue.put([]) # Wake up the runner thread get() call so it can see that we're stopping
 
@@ -211,15 +213,17 @@ class Runner():
                         break
                 if self.runnerThread.is_alive():
                     # If the runnerThread is still going now, something went wrong
-                    model = self.lastHandlerStack[-1][0]
-                    handlerName = self.lastHandlerStack[-1][1]
-                    msg = f"Exited while {self.HandlerPath(model, handlerName, self.lastCard)} was still running, and " \
-                          f"could not be stopped.  Maybe you have a long or infinite loop?"
-                    error = CardStockError(self.lastCard, model, handlerName, 1, msg)
-                    self.errors.append(error)
+                    if len(self.lastHandlerStack) > 0:
+                        model = self.lastHandlerStack[-1][0]
+                        handlerName = self.lastHandlerStack[-1][1]
+                        msg = f"Exited while {self.HandlerPath(model, handlerName, self.lastCard)} was still running, and " \
+                              f"could not be stopped.  Maybe you have a long or infinite loop?"
+                        error = CardStockError(self.lastCard, model, handlerName, 1, msg)
+                        self.errors.append(error)
 
             self.runnerThread = None
 
+        self.StopTimers()
         self.lastHandlerStack = None
         self.lastCard = None
         self.SoundStop()
@@ -231,7 +235,7 @@ class Runner():
         self.funcDefs = None
         self.handlerQueue = None
         self.stackManager = None
-        if notify and self.onRunFinished:
+        if self.onRunFinished:
             self.onRunFinished(self)
         self.errors = None
         self.onRunFinished = None
@@ -260,14 +264,21 @@ class Runner():
         This is the runnerThread's run loop.  Start waiting for queued handlers, and process them until
         the runnerThread is told to stop.
         """
+
+        # Allow a few last events to run while shutting down, to make sure we got to running any OnExitStack events
+        exitCountdown = 4
+
         try:
             while True:
+                runningOnExitStack = False
                 args = self.handlerQueue.get()
                 if len(args) == 0:
                     # This is an enqueued task meant to Refresh after running all other tasks,
                     # and also serves to wake up the runner thread for stopping.
                     if not self.stopRunnerThread:
                         self.stackManager.view.RefreshIfNeeded()
+                    if self.stopRunnerThread:
+                        break
                 elif len(args) == 1:
                     # Run Setup for the given card
                     self.SetupForCardInternal(*args)
@@ -281,10 +292,14 @@ class Runner():
                     # Run this handler
                     self.lastCard = args[0].GetCard()
                     self.RunHandlerInternal(*args)
+                    if args[1] == "OnExitStack":
+                        runningOnExitStack = True
                     if args[1] == "OnPeriodic":
                         self.numOnPeriodicsQueued -= 1
 
                 if self.stopRunnerThread:
+                    exitCountdown -= 1
+                if exitCountdown == 0 and not runningOnExitStack:
                     break
 
         except SystemExit:
@@ -672,6 +687,8 @@ class Runner():
         self.stackManager.LoadCardAtIndex(cardIndex)
 
     def RunStack(self, filename, cardNumber=1, setupValue=None):
+        if self.stopRunnerThread:
+            return None
         success = self.viewer.GosubStack(filename, cardNumber-1, sanitizer.SanitizeValue(setupValue, []))
         if success:
             result = self.stackReturnQueue.get()

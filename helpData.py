@@ -999,6 +999,10 @@ class HelpDataCard():
         "OnHideCard": {"args": {},
                        "info": "The <b>OnHideCard</b> event is run when a card is hidden, right before the new "
                                "card's OnShowCard event is run, when going to another card."},
+        "OnExitStack": {"args": {},
+                        "info": "The <b>OnExitStack</b> event is run for all cards when the stack exits, whether "
+                                "from the File Close menu item, the Quit() function, the ReturnFromStack() function,"
+                                "or closing the stack viewer window."},
         "OnResize": {"args": {},
                      "info": "The <b>OnResize</b> event is run on the currently visible card when the stack window is "
                              "resized."},

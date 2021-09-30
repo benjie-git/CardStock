@@ -277,6 +277,7 @@ class UiView(object):
         'OnKeyUp':      "OnKeyUp(keyName):",
         'OnResize':     "OnResize():",
         'OnPeriodic':   "OnPeriodic(elapsedTime):",
+        'OnExitStack':  "OnExitStack():",
     }
 
 
