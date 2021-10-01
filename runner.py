@@ -304,7 +304,7 @@ class Runner():
 
         except SystemExit:
             # The runnerThread got killed, because we told it to stop.
-            if len(self.lastHandlerStack) > 0:
+            if self.lastHandlerStack and len(self.lastHandlerStack) > 0:
                 model = self.lastHandlerStack[-1][0]
                 handlerName = self.lastHandlerStack[-1][1]
                 msg = f"Exited while {self.HandlerPath(model, handlerName, self.lastCard)} was still running.  Maybe you have a long or infinite loop?"
