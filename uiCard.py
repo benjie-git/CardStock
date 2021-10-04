@@ -56,7 +56,7 @@ class UiCard(UiView):
         return None
 
     def OnResize(self, event):
-        if self.stackManager.isEditing or self.stackManager.stackModel.GetProperty("canResize"):
+        if self.stackManager and (self.stackManager.isEditing or self.stackManager.stackModel.GetProperty("canResize")):
             self.stackManager.stackModel.SetProperty("size", self.view.GetSize())
 
     def PaintSelectionBox(self, gc):

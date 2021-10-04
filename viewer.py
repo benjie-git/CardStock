@@ -64,9 +64,9 @@ class ViewerFrame(wx.Frame):
         self.designer = None  # The designer sets this, if being run from the designer app
         self.isStandalone = isStandalone  # Are we running as a standalone app?
         self.stackManager.filename = filename
-        self.SetStackModel(stackModel)
         self.Bind(wx.EVT_SIZE, self.OnResize)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.SetStackModel(stackModel)
 
         self.stackStack = []
 
@@ -92,9 +92,6 @@ class ViewerFrame(wx.Frame):
         if self.stackManager:
             if self.stackManager.stackModel.GetProperty("canResize"):
                 self.stackManager.view.SetSize(self.GetClientSize())
-            else:
-                viewSize = self.stackManager.view.GetSize()
-                self.SetClientSize(viewSize)
         event.Skip()
 
     def SaveFile(self):
@@ -115,8 +112,8 @@ class ViewerFrame(wx.Frame):
 
     def SetStackModel(self, stackModel):
         self.stackManager.SetStackModel(stackModel)
-        size = self.stackManager.stackModel.GetProperty("size")
-        self.SetClientSize(size)
+        cs = self.stackManager.stackModel.GetProperty("size")
+        self.SetupViewerSize(cs)
         self.stackManager.view.SetFocus()
         if not self.isStandalone and self.stackManager.filename:
             self.SetTitle(self.title + ' -- ' + os.path.basename(self.stackManager.filename))
@@ -403,6 +400,16 @@ class ViewerFrame(wx.Frame):
                 self.stackManager.runner = parts[0]
                 self.stackManager.SetStackModel(parts[1], True)
 
+    def SetupViewerSize(self, cs):
+        if self.stackManager.stackModel.GetProperty("canResize"):
+            self.SetMaxClientSize(wx.DefaultSize)
+            self.SetMinClientSize(wx.Size(200,200))
+        else:
+            self.SetMaxClientSize(wx.DefaultSize)  # Make sure setting the Min size won't conflict with the old Max size
+            self.SetMinClientSize(cs)
+            self.SetMaxClientSize(cs)
+        self.SetClientSize(cs)
+
     def RunViewer(self, runner, stackModel, filename, cardIndex, ioValue, isGoingBack):
         self.stackManager.SetStackModel(stackModel, True)
         self.stackManager.filename = filename
@@ -413,7 +420,11 @@ class ViewerFrame(wx.Frame):
             runner.stackSetupValue = ioValue
         self.stackManager.runner = runner
         self.MakeMenuBar()
-        self.SetClientSize(self.stackManager.stackModel.GetProperty("size"))
+        cs = self.stackManager.stackModel.GetProperty("size")
+        self.SetupViewerSize(cs)
+        if wx.Platform == "__WXGTK__":
+            wx.CallAfter(self.SetupViewerSize, cs)
+
         if self.designer:
             runner.AddSyntaxErrors(self.designer.cPanel.codeEditor.analyzer.syntaxErrors)
         if not isGoingBack:
