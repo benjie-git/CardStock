@@ -766,7 +766,7 @@ class StackManager(object):
             if not uiView.isSelected:
                 self.SelectUiView(uiView)
             menu = self.designer.MakeContextMenu(self.selectedViews)
-            self.designer.PopupMenu(menu, event.GetPosition())
+            self.designer.PopupMenu(menu, self.designer.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition())))
 
     def OnMouseDown(self, uiView, event):
         if self.view.HasCapture() and event.LeftDClick():
