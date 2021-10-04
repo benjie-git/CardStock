@@ -900,6 +900,9 @@ class StackManager(object):
     def OnResize(self, event):
         if not self.uiCard.model.parent:
             return # Not fully set up yet
+        if not self.isEditing and not self.uiCard.model.GetProperty("canResize"):
+            event.Skip()
+            return
         if wx.Platform != '__WXMAC__':
             self.UpdateBuffer()
         didEnqueue = False

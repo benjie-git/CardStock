@@ -47,16 +47,10 @@ class ViewerFrame(wx.Frame):
     title = "CardStock"
 
     def __init__(self, parent, stackModel, filename, isStandalone, resMap=None):
-        if stackModel and stackModel.GetProperty("canResize"):
-            style = wx.DEFAULT_FRAME_STYLE
-        else:
-            style = wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
-
         if isStandalone:
             self.title = os.path.basename(sys.executable)
 
-        wx.Frame.__init__(self, parent, -1, self.title, size=(500,500), style=style)
-        # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.ico')))
+        super().__init__(parent, -1, self.title, size=(500,500), style=wx.DEFAULT_FRAME_STYLE)
 
         self.stackManager = StackManager(self, False)
         self.stackManager.view.UseDeferredRefresh(True)
@@ -95,7 +89,12 @@ class ViewerFrame(wx.Frame):
         return super().Destroy()
 
     def OnResize(self, event):
-        self.stackManager.view.SetSize(self.GetClientSize())
+        if self.stackManager:
+            if self.stackManager.stackModel.GetProperty("canResize"):
+                self.stackManager.view.SetSize(self.GetClientSize())
+            else:
+                viewSize = self.stackManager.view.GetSize()
+                self.SetClientSize(viewSize)
         event.Skip()
 
     def SaveFile(self):
