@@ -350,16 +350,17 @@ class HelpDataGlobals():
                       "info": "Opens the stack at the path given by the <b>filename</b> argument, and optionally starts on "
                               "the card number specified by the <b>cardNumber</b> argument.  If you include a "
                               "<b>setupValue</b> argument, this will be passed into the new stack, which can access it by "
-                              "calling the GetStackSetupValue() function.  The RunStack() call waits "
-                              "until the new stack calls the ReturnFromStack(returnVal) function, and then returns the returnVal value,"
-                              "or returns None if no returnValue is given."},
-        "ReturnFromStack": {"args": {"returnValue": {"type": "any", "info": "An optional value to pass back to the old stack that we are returning to."}},
+                              "calling the <b>GetStackSetupValue()</b> function.  The <b>RunStack()</b> call waits "
+                              "until the new stack exits by calling the <b>ReturnFromStack(returnVal)</b> function, and then "
+                              "this <b>RunStack()</b> call returns that returnVal value, or None if no returnValue was given."},
+        "ReturnFromStack": {"args": {"returnValue": {"type": "any", "info": "An optional value to pass back to the previous stack, that we are returning to."}},
                       "return": None,
-                      "info": "This function exits the current stack, and goes back to the stack we were on before "
-                              "calling <b>RunStack()</b>. Once we return "
-                              "back to the previous stack, the current event stops running, and this "
-                              "function never actually returns.  If you include a <b>returnValue</b>, this value will "
-                              "be returned by the calling stack's RunStack() call."},
+                      "info": "If this stack was started from within another stack, by calling <b>RunStack()</b>, this "
+                              "function will immediately stop the current event without returning, exit this stack, and return to the "
+                              "previous stack. If you include a <b>returnValue</b>, this value will "
+                              "be returned by the calling stack's <b>RunStack()</b> call, which will now finally return. "
+                              "If the current stack was not started by a <b>RunStack()</b> call, this function does "
+                              "nothing, and returns normally."},
         "GetStackSetupValue": {"args": {}, "return": None,
                                 "info": "If this stack was started by another stack calling RunStack() with a setupValue argument, "
                                         "you can call this <b>GetStackSetupValue()</b> function "
@@ -1002,7 +1003,9 @@ class HelpDataCard():
         "OnExitStack": {"args": {},
                         "info": "The <b>OnExitStack</b> event is run for all cards when the stack exits, whether "
                                 "from the File Close menu item, the Quit() function, the ReturnFromStack() function,"
-                                "or closing the stack viewer window."},
+                                "or closing the stack viewer window.  You can use this to clean up any external "
+                                "resources -- for example, closing files.  This event needs to run quickly, so it's "
+                                "not able to call functions like Alert(), Ask(), RunStack(), etc."},
         "OnResize": {"args": {},
                      "info": "The <b>OnResize</b> event is run on the currently visible card when the stack window is "
                              "resized."},

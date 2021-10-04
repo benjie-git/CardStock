@@ -339,6 +339,7 @@ class ViewerFrame(wx.Frame):
         self.consoleWindow.Clear()
 
     def GosubStack(self, filename, cardNumber, ioValue):
+        # Go into, or back out of, another stack
         if filename:
             # push
             try:
