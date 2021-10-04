@@ -52,12 +52,13 @@ python module simpleaudio.  To export standalone applications, install the pytho
 ## Installation
 You can either, run it from source:
 1. install python
-2. pip install wxPython
-3. pip install simpleaudio (optional, but recommended for Windows and Linux)
-4. pip install pyinstaller (optional, but required for exporting stacks)
-5. download or clone this repository
-6. run designer.py and viewer.py as desired
-7. or run build.py to create your own standalone applications for the Designer and Viewer applications.
+2. Linux-only: apt install libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
+3. pip install wxPython
+4. pip install simpleaudio (optional, but recommended for Windows and Linux)
+5. pip install pyinstaller (optional, but required for exporting stacks)
+6. download or clone this repository
+7. run designer.py and viewer.py as desired
+8. or run build.py to create your own standalone applications for the Designer and Viewer applications.
 
 Or download the ready-to-go CardStock application for Mac or Windows here:
 https://github.com/benjie-git/CardStock/releases/latest
