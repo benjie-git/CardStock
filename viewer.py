@@ -53,13 +53,16 @@ class ViewerFrame(wx.Frame):
         super().__init__(parent, -1, self.title, size=(500,500), style=wx.DEFAULT_FRAME_STYLE)
 
         self.stackManager = StackManager(self, False)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.stackManager.view, wx.SizerFlags(1).Expand().Border(wx.ALL, 0))
+        self.SetSizer(sizer)
+
         self.stackManager.view.UseDeferredRefresh(True)
         if isStandalone and resMap:
             self.stackManager.resPathMan.SetPathMap(resMap)
 
         self.designer = None  # The designer sets this, if being run from the designer app
         self.isStandalone = isStandalone  # Are we running as a standalone app?
-        self.Bind(wx.EVT_SIZE, self.OnResize)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
         self.stackStack = []
@@ -82,12 +85,6 @@ class ViewerFrame(wx.Frame):
         self.stackManager = None
         return super().Destroy()
 
-    def OnResize(self, event):
-        if self.stackManager:
-            if self.stackManager.stackModel.GetProperty("canResize"):
-                self.stackManager.view.SetSize(self.GetClientSize())
-        event.Skip()
-
     def SaveFile(self):
         if self.designer:
             self.designer.OnViewerSave(self.stackManager.stackModel)
@@ -106,8 +103,7 @@ class ViewerFrame(wx.Frame):
 
     def SetStackModel(self, stackModel):
         self.stackManager.SetStackModel(stackModel)
-        cs = self.stackManager.stackModel.GetProperty("size")
-        self.SetupViewerSize(cs)
+        self.SetupViewerSize()
         self.stackManager.view.SetFocus()
         if not self.isStandalone and self.stackManager.filename:
             self.SetTitle(self.title + ' -- ' + os.path.basename(self.stackManager.filename))
@@ -394,15 +390,21 @@ class ViewerFrame(wx.Frame):
                 self.stackManager.runner = parts[0]
                 self.stackManager.SetStackModel(parts[1], True)
 
-    def SetupViewerSize(self, cs):
+    def SetupViewerSize(self):
+        self.SetMaxClientSize(wx.DefaultSize)
+        self.SetMinClientSize(wx.DefaultSize)
+
+        cs = self.stackManager.stackModel.GetProperty("size")
+        self.SetClientSize(cs)
+        self.Sizer.Layout()
+        self.stackManager.UpdateBuffer()
+        self.Refresh(True)
+
         if self.stackManager.stackModel.GetProperty("canResize"):
-            self.SetMaxClientSize(wx.DefaultSize)
             self.SetMinClientSize(wx.Size(200,200))
         else:
-            self.SetMaxClientSize(wx.DefaultSize)  # Make sure setting the Min size won't conflict with the old Max size
             self.SetMinClientSize(cs)
             self.SetMaxClientSize(cs)
-        self.SetClientSize(cs)
 
     def RunViewer(self, runner, stackModel, filename, cardIndex, ioValue, isGoingBack):
         self.stackManager.SetStackModel(stackModel, True)
@@ -414,10 +416,18 @@ class ViewerFrame(wx.Frame):
             runner.stackSetupValue = ioValue
         self.stackManager.runner = runner
         self.MakeMenuBar()
-        cs = self.stackManager.stackModel.GetProperty("size")
-        self.SetupViewerSize(cs)
-        if wx.Platform == "__WXGTK__":
-            wx.CallAfter(self.SetupViewerSize, cs)
+
+        # Work around a frame resizing bug on startup (bad WindowToClientSize conversions before window is done setting up?)
+        # So pretend we can't resize, and then allow resizing again once we're fully setup
+        canResize = stackModel.GetProperty("canResize")
+        if canResize:
+            stackModel.SetProperty("canResize", False)
+            def fixResize():
+                stackModel.SetProperty("canResize", True)
+                self.SetupViewerSize()
+            wx.CallLater(100, fixResize)
+
+        self.SetupViewerSize()
 
         if self.designer:
             runner.AddSyntaxErrors(self.designer.cPanel.codeEditor.analyzer.syntaxErrors)

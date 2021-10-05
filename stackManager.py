@@ -259,7 +259,7 @@ class StackManager(object):
         self.cardIndex = None
         if self.isEditing:
             self.analyzer.RunDeferredAnalysis()
-        self.view.SetSize(self.stackModel.GetProperty("size"))
+            self.view.SetSize(self.stackModel.GetProperty("size"))
         self.command_processor.ClearCommands()
         self.stackModel.SetDirty(False)
         self.UpdateCursor()
@@ -634,7 +634,10 @@ class StackManager(object):
         if model == self.stackModel:
             uiView = self.uiCard
             if key == "size":
-                self.view.SetSize(model.GetProperty(key))
+                if self.designer:
+                    self.view.SetSize(model.GetProperty(key))
+                else:
+                    self.view.GetTopLevelParent().SetClientSize(model.GetProperty(key))
         if uiView:
             uiView.OnPropertyChanged(model, key)
         if uiView and self.designer:
@@ -898,13 +901,14 @@ class StackManager(object):
                 uiView.OnPropertyChanged(uiView.model, "position")
 
     def OnResize(self, event):
+        if self.uiCard.model not in self.stackModel.childModels:
+            return
         if not self.uiCard.model.parent:
             return # Not fully set up yet
-        if wx.Platform != '__WXMAC__':
-            self.UpdateBuffer()
+        self.UpdateBuffer()
         didEnqueue = False
         self.view.didResize = True
-        if not self.isEditing and self.runner:
+        if not self.isEditing and self.runner and self.stackModel.GetProperty("canResize"):
             self.uiCard.model.SetProperty("size", self.view.GetTopLevelParent().GetClientSize())
             didEnqueue = self.runner.RunHandler(self.uiCard.model, "OnResize", None)
         if self.isEditing or not didEnqueue:
@@ -930,7 +934,8 @@ class StackManager(object):
         return None
 
     def UpdateBuffer(self):
-        self.buffer = wx.Bitmap.FromRGBA(self.view.GetSize().Width, self.view.GetSize().Height)
+        if wx.Platform != '__WXMAC__':
+            self.buffer = wx.Bitmap.FromRGBA(self.view.GetSize().Width, self.view.GetSize().Height)
 
     def OnEraseBackground(self, event):
         # No thank you!

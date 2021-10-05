@@ -16,7 +16,6 @@ class UiCard(UiView):
     def __init__(self, parent, stackManager, model):
         self.uiViews = []
         super().__init__(parent, stackManager, model, stackManager.view)
-        self.stackManager.stackModel.SetProperty("size", self.view.GetSize(), notify=False)
 
     def DestroyView(self):
         if self.view:
@@ -48,16 +47,12 @@ class UiCard(UiView):
         super().SetModel(model)
         self.RemoveUiViews()
 
-    def SetView(self, view):
-        super().SetView(view)
-        self.model.SetProperty("size", self.view.GetSize(), notify=False)
-
     def GetCursor(self):
         return None
 
     def OnResize(self, event):
-        if self.stackManager and (self.stackManager.isEditing or self.stackManager.stackModel.GetProperty("canResize")):
-            self.stackManager.stackModel.SetProperty("size", self.view.GetSize())
+        if self.stackManager and (self.stackManager.isEditing or self.model.parent.GetProperty("canResize")):
+            self.model.parent.SetProperty("size", self.view.GetSize())
         event.Skip()
 
     def PaintSelectionBox(self, gc):
