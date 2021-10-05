@@ -7,7 +7,7 @@
       400
     ],
     "canSave": false,
-    "canResize": true
+    "canResize": false
   },
   "cards": [
     {
@@ -132,5 +132,5 @@
     }
   ],
   "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9.5"
+  "CardStock_stack_version": "0.9.6"
 }
