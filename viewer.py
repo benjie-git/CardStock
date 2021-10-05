@@ -46,7 +46,7 @@ class ViewerFrame(wx.Frame):
 
     title = "CardStock"
 
-    def __init__(self, parent, stackModel, filename, isStandalone, resMap=None):
+    def __init__(self, parent, isStandalone, resMap=None):
         if isStandalone:
             self.title = os.path.basename(sys.executable)
 
@@ -57,16 +57,10 @@ class ViewerFrame(wx.Frame):
         if isStandalone and resMap:
             self.stackManager.resPathMan.SetPathMap(resMap)
 
-        if not stackModel:
-            stackModel = StackModel(self.stackManager)
-            stackModel.AppendCardModel(CardModel(self.stackManager))
-
         self.designer = None  # The designer sets this, if being run from the designer app
         self.isStandalone = isStandalone  # Are we running as a standalone app?
-        self.stackManager.filename = filename
         self.Bind(wx.EVT_SIZE, self.OnResize)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
-        self.SetStackModel(stackModel)
 
         self.stackStack = []
 
@@ -455,7 +449,7 @@ class ViewerApp(wx.App, InspectionMixin):
             self.frame.Hide()
             self.frame.Destroy()
 
-        self.frame = ViewerFrame(None, None, None, False)
+        self.frame = ViewerFrame(None, False)
         self.frame.PushStack(self.frame.stackManager.stackModel, None, 0)
         self.SetTopWindow(self.frame)
         self.frame.Show(True)
@@ -473,7 +467,7 @@ class ViewerApp(wx.App, InspectionMixin):
 
                     stackModel = StackModel(None)
                     stackModel.SetData(data)
-                    self.frame = ViewerFrame(None, stackModel, filename, False)
+                    self.frame = ViewerFrame(None, False)
                     self.frame.PushStack(stackModel, filename, 0)
                     self.SetTopWindow(self.frame)
                     self.frame.Show(True)

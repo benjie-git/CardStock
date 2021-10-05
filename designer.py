@@ -612,7 +612,7 @@ class DesignerFrame(wx.Frame):
         stackModel = StackModel(None)
         stackModel.SetData(data)
 
-        self.viewer = ViewerFrame(self, StackModel(self.stackManager), None, False)
+        self.viewer = ViewerFrame(self, False)
         self.viewer.designer = self
 
         self.viewer.PushStack(stackModel, self.filename, cardIndex)
@@ -819,9 +819,9 @@ class DesignerFrame(wx.Frame):
 
     def GetDesiredFocus(self, allowEditors):
         f = self.FindFocus()
-        views = [self.stackContainer, self.stackManager.view, self.cPanel, self.splitter, self.cPanel.inspector, self.cPanel.codeEditor]
+        views = [self, self.stackContainer, self.stackManager.view, self.cPanel, self.splitter, self.cPanel.inspector, self.cPanel.codeEditor]
         if allowEditors:
-            views = [self.stackContainer, self.stackManager.view, self.splitter, self.cPanel]
+            views = [self, self.stackContainer, self.stackManager.view, self.splitter, self.cPanel]
         if not f or f in views or isinstance(f, wx.lib.buttons.GenBitmapToggleButton):
             f = self.stackManager
         return f

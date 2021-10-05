@@ -59,7 +59,7 @@ class StandaloneApp(wx.App, InspectionMixin):
         if data:
             stackModel = StackModel(None)
             stackModel.SetData(data)
-            self.frame = ViewerFrame(None, stackModel, stackPath, True, resMap)
+            self.frame = ViewerFrame(None, True, resMap)
             self.frame.PushStack(stackModel, stackPath, 0)
             self.SetTopWindow(self.frame)
             self.frame.Show(True)
