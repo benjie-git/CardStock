@@ -393,6 +393,12 @@ class HelpDataGlobals():
                                            "for any overlapping objects underneath this object, which would otherwise "
                                            "be run immediately after this object's event code finishes.  Calling "
                                            "this function from any non-mouse event code does nothing."},
+        "MakeColor": {"args": {"r": {"type": "float", "info": "The red component of the color as a number from 0 to 1."},
+                               "g": {"type": "float", "info": "The green component of the color as a number from 0 to 1."},
+                               "b": {"type": "float", "info": "The blue component of the color as a number from 0 to 1."}},
+                         "return": "string",
+                         "info": "Returns an HTML color string of the form '#rrggbb'.  For example "
+                                 "<b>MakeColor(1, 0, 0)</b> returns '#FF0000' which is bright red."},
         "Quit": {"args": {},
                       "return": None,
                       "info": "Stops running the stack, closes the stack window, and exits the stack viewer program."},

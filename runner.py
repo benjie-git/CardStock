@@ -104,6 +104,7 @@ class Runner():
             "StopHandlingMouseEvent": self.StopHandlingMouseEvent,
             "ReturnFromStack": self.ReturnFromStack,
             "GetStackSetupValue": self.GetStackSetupValue,
+            "MakeColor": self.MakeColor,
         }
 
         self.keyCodeStringMap = {
@@ -814,6 +815,16 @@ class Runner():
     @RunOnMainSync
     def IsMouseDown(self):
         return wx.GetMouseState().LeftIsDown()
+
+    def MakeColor(self, r, g, b):
+        if not isinstance(r, (float, int)) or not 0 <= r <= 1:
+            raise TypeError("r must be a number between 0 and 1")
+        if not isinstance(g, (float, int)) or not 0 <= g <= 1:
+            raise TypeError("g must be a number between 0 and 1")
+        if not isinstance(b, (float, int)) or not 0 <= b <= 1:
+            raise TypeError("b must be a number between 0 and 1")
+        r, g, b = (int(r * 255), int(g * 255), int(b * 255))
+        return f"#{r:02X}{g:02X}{b:02X}"
 
     def RunAfterDelay(self, duration, func, *args, **kwargs):
         try:

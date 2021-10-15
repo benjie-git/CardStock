@@ -325,7 +325,11 @@ class ViewerFrame(wx.Frame):
         self.consoleWindow.Clear()
 
     def GosubStack(self, filename, cardNumber, ioValue):
+        # Enter here on a Runner thread
         # Go into, or back out of, another stack
+        # Push a stack if a filename is given, else pop
+        # ioValue is the setupValue or the returnValue
+        # return True iff successful
         if filename:
             # push
             try:
@@ -336,21 +340,20 @@ class ViewerFrame(wx.Frame):
                 if data:
                     @RunOnMainAsync
                     def func():
+                        # switch over to the main thread
                         stackModel = StackModel(None)
                         stackModel.SetData(data)
                         self.PushStack(stackModel, filename, cardNumber, ioValue)
                     func()
                     return True
             except (TypeError, FileNotFoundError):
-                # e = sys.exc_info()
-                # print(e)
-                # wx.MessageDialog(None, f"Couldn't open stack '{filename}'.", "", wx.OK).ShowModal()
                 return False
         else:
             # pop
             if len(self.stackStack) > 1:
                 @RunOnMainAsync
                 def func():
+                    # switch over to the main thread
                     self.PopStack(ioValue)
                 func()
                 return True
@@ -391,6 +394,7 @@ class ViewerFrame(wx.Frame):
                 self.stackManager.SetStackModel(parts[1], True)
 
     def SetupViewerSize(self):
+        # Size the stack viewer window for the new stack, and allow resizing only if canResize==True
         self.SetMaxClientSize(wx.DefaultSize)
         self.SetMinClientSize(wx.DefaultSize)
 
@@ -407,6 +411,7 @@ class ViewerFrame(wx.Frame):
             self.SetMaxClientSize(cs)
 
     def RunViewer(self, runner, stackModel, filename, cardIndex, ioValue, isGoingBack):
+        # Load the model, start the runner, and handle ioValues(setup and return values) for pushed/popped stacks
         self.stackManager.SetStackModel(stackModel, True)
         self.stackManager.filename = filename
 
