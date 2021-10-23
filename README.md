@@ -19,6 +19,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * You can build programs using objects including text and graphics, images, buttons, and text entry fields.
 * You can use your own python code to manipulate the objects and respond to mouse and keyboard events.
 * You can play sound files from your code.
+* You can search and use clip art in your stacks, thanks to integration with openclipart.com.
 * Design and build your stack in the CardStock Designer, and run it from there to test it out.  Or run your stack directly using the CardStock Viewer.
 * In-context help appears in the app, right where you need it.  And can be turned off when you no longer want it taking up space.
 * All of the creature comforts you've come to expect from a proper application, like full Undo/Redo, and a Find/Replace system that works throughout all of your code and object properties.
@@ -32,9 +33,9 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * You can export a stack into a standalone application that you can share and distribute.
 
 ### Future Plans
-* A built-in media library with some basic icons/images, and sound files.
+* Allow exporting a stack as a web page, to allow running it on any web-capable platform
 * Allow filling shapes with color gradients
-* Add python async support
+* Add python async support?
 * Add app icons for the CardStock Designer and Viewer
 ________
 ## Known Issues
