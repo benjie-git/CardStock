@@ -94,6 +94,8 @@ class UiTextBase(UiView):
     def OnKeyDown(self, event):
         if event.GetKeyCode() == wx.WXK_ESCAPE:
             self.StopInlineEditing()
+        elif event.GetKeyCode() == wx.WXK_TAB:
+            return
         event.Skip()
 
     def OnZoom(self, event):

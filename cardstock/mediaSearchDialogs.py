@@ -149,6 +149,12 @@ class ImageSearchDialog(MediaSearchDialog):
 
 
 class AudioSearchDialog(MediaSearchDialog):
+    """
+    Not currently used, and not complete (downloading doesn't work yet).
+    But no rush, since I feel the quality/usefulness of the audio clips at freesound is too low.
+    It may make more sense to curate our own small library of audio files to access here.
+    """
+
     def __init__(self, parent, lastOpenFile, callback):
         super().__init__(parent, "Sound Search", "https://freesound.org/", lastOpenFile, callback)
         self.label.SetLabel("Search for sounds here, and click \"Download\" to download and use it.")

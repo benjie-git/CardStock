@@ -557,7 +557,7 @@ class DesignerFrame(wx.Frame):
             d = os.path.dirname(self.configInfo["last_open_file"])
             ex = self.GetExamplesDir()
             print(d, ex)
-            if not os.path.samefile(d, ex):
+            if not os.path.exists(d) or not os.path.exists(ex) or not os.path.samefile(d, ex):
                 initialDir = d
 
         self.DoMenuOpen(initialDir)
