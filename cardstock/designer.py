@@ -1027,7 +1027,7 @@ class DesignerApp(wx.App, InspectionMixin):
 # ----------------------------------------------------------------------
 
 
-if __name__ == '__main__':
+def RunDesigner():
     app = DesignerApp(redirect=False)
 
     if len(sys.argv) > 1 and not app.argFilename:
@@ -1042,3 +1042,7 @@ if __name__ == '__main__':
     # import wx.lib.inspection
     # wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
+
+
+if __name__ == '__main__':
+    RunDesigner()
