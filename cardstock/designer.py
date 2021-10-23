@@ -33,6 +33,7 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 
 # ----------------------------------------------------------------------
 
+ID_OPEN_EXAMPLE = wx.NewIdRef()
 ID_EXPORT = wx.NewIdRef()
 ID_RUN = wx.NewIdRef()
 ID_RUN_FROM = wx.NewIdRef()
@@ -293,6 +294,7 @@ class DesignerFrame(wx.Frame):
         fileMenu = wx.Menu()
         fileMenu.Append(wx.ID_NEW, "&New Stack\tCtrl-N", "Create a new Stack file")
         fileMenu.Append(wx.ID_OPEN, "&Open Stack...\tCtrl-O", "Open a Stack")
+        fileMenu.Append(ID_OPEN_EXAMPLE, "&Open Example...\tCtrl-Shift-O", "Open an Example Stack")
         fileMenu.AppendSeparator()
         fileMenu.Append(wx.ID_SAVE, "&Save Stack\tCtrl-S", "Save the Stack")
         fileMenu.Append(wx.ID_SAVEAS, "Save Stack &As...\tCtrl-Shift-S", "Save the Stack in a new file")
@@ -385,6 +387,7 @@ class DesignerFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.OnMenuNew, id=wx.ID_NEW)
         self.Bind(wx.EVT_MENU, self.OnMenuOpen, id=wx.ID_OPEN)
+        self.Bind(wx.EVT_MENU, self.OnMenuOpenExample, id=ID_OPEN_EXAMPLE)
         self.Bind(wx.EVT_MENU, self.OnMenuSave, id=wx.ID_SAVE)
         self.Bind(wx.EVT_MENU, self.OnMenuSaveAs, id=wx.ID_SAVEAS)
         self.Bind(wx.EVT_MENU, self.OnMenuExport, id=ID_EXPORT)
@@ -530,7 +533,7 @@ class DesignerFrame(wx.Frame):
                 self.OnMenuSave(None)
         self.ReadFile(filename)
 
-    def OnMenuOpen(self, event):
+    def DoMenuOpen(self, initialDir):
         if self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before Opening a file?", wx.YES_NO | wx.CANCEL).ShowModal()
@@ -539,9 +542,6 @@ class DesignerFrame(wx.Frame):
             if r == wx.ID_YES:
                 self.OnMenuSave(None)
 
-        initialDir = os.getcwd()
-        if self.configInfo and "last_open_file" in self.configInfo:
-            initialDir = os.path.dirname(self.configInfo["last_open_file"])
         dlg = wx.FileDialog(self, "Open CardStock file...", initialDir,
                            style=wx.FD_OPEN, wildcard = self.wildcard)
         self.stackContainer.Enable(False)
@@ -550,6 +550,15 @@ class DesignerFrame(wx.Frame):
             self.ReadFile(filename)
         dlg.Destroy()
         wx.CallLater(50, self.stackContainer.Enable, True) # Needed to avoid a MSWindows FileDlg bug
+
+    def OnMenuOpen(self, event):
+        initialDir = os.getcwd()
+        if self.configInfo and "last_open_file" in self.configInfo:
+            initialDir = os.path.dirname(self.configInfo["last_open_file"])
+        self.DoMenuOpen(initialDir)
+
+    def OnMenuOpenExample(self, event):
+        self.DoMenuOpen(self.GetExamplesDir())
 
     def OnMenuSave(self, event):
         if not self.filename:
@@ -958,6 +967,20 @@ class DesignerFrame(wx.Frame):
         with open(self.full_config_file_path, 'w') as configfile:
             config.write(configfile)
 
+    def GetExamplesDir(self):
+        def welcomeExistsHere(path):
+            return os.path.exists(os.path.join(path, os.path.join("examples", "welcome.cds")))
+
+        base_dir = os.path.dirname(__file__)
+        if not welcomeExistsHere(base_dir):
+            base_dir = os.path.dirname(sys.executable)
+            if not welcomeExistsHere(base_dir) and hasattr(sys, "_MEIPASS"):
+                base_dir = sys._MEIPASS
+                if not welcomeExistsHere(base_dir):
+                    return None
+
+        return os.path.abspath(os.path.join(base_dir, "examples"))
+
     def ReadConfig(self):
         last_open_file = None
         show_context_help = True
@@ -973,16 +996,8 @@ class DesignerFrame(wx.Frame):
             cardstock_app_version = config['User'].get('cardstock_app_version', "0")
 
         if not last_open_file:
-            # On first run, open the welcome stack
-            def welcomeExistsHere(path):
-                return os.path.exists(os.path.join(path, os.path.join("examples", "welcome.cds")))
+            last_open_file = os.path.join(self.GetExamplesDir(), "welcome.cds")
 
-            base_dir = os.path.dirname(__file__)
-            if not welcomeExistsHere(base_dir):
-                base_dir = os.path.dirname(sys.executable)
-                if not welcomeExistsHere(base_dir) and hasattr(sys, "_MEIPASS"):
-                    base_dir = sys._MEIPASS
-            last_open_file = os.path.abspath(os.path.join(base_dir, os.path.join("examples", "welcome.cds")))
         return {"last_open_file": last_open_file,
                 "show_context_help": show_context_help,
                 "cardstock_app_version": cardstock_app_version}
