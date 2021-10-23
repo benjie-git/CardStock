@@ -344,6 +344,7 @@ class StackManager(object):
                     clipData = wx.CustomDataObject("org.cardstock.models")
                     if wx.TheClipboard.GetData(clipData):
                         rawData = clipData.GetData()
+                        wx.TheClipboard.Close()
                         list = json.loads(rawData.tobytes().decode('utf8'))
                         models = [generator.StackGenerator.ModelFromData(self, dict) for dict in list]
                         if len(models) == 1 and models[0].type == "card":
@@ -360,19 +361,23 @@ class StackManager(object):
                     clipData = wx.CustomDataObject(wx.DataFormat(wx.DF_BITMAP))
                     if wx.TheClipboard.GetData(clipData):
                         rawData = clipData.GetData()
+                        wx.TheClipboard.Close()
                         if rawData:
                             if not self.filename:
-                                wx.MessageDialog(self.designer,
-                                                 "Please save your stack before pasting an Image.",
-                                                 "Unsaved Stack", wx.OK).ShowModal()
-                                wx.TheClipboard.Close()
-                                return []
+                                r = wx.MessageDialog(self.designer,
+                                                     "You need to save this stack before pasting an Image.",
+                                                     "Save now?", wx.OK | wx.CANCEL).ShowModal()
+                                if r == wx.ID_CANCEL:
+                                    return []
+                                elif r == wx.ID_OK:
+                                    self.designer.OnMenuSave(None)
+                                    if not self.filename:
+                                        return []
                             path = mediaSearchDialogs.ImageSearchDialog.SaveImageData(self.designer,
                                                                                       self.designer.GetCurDir(),
                                                                                       "image", rawData)
                             if path:
                                 self.AddImageFromPath(path)
-                wx.TheClipboard.Close()
         return models
 
     def GroupSelectedViews(self):

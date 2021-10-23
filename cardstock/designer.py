@@ -554,7 +554,12 @@ class DesignerFrame(wx.Frame):
     def OnMenuOpen(self, event):
         initialDir = os.getcwd()
         if self.configInfo and "last_open_file" in self.configInfo:
-            initialDir = os.path.dirname(self.configInfo["last_open_file"])
+            d = os.path.dirname(self.configInfo["last_open_file"])
+            ex = self.GetExamplesDir()
+            print(d, ex)
+            if not os.path.samefile(d, ex):
+                initialDir = d
+
         self.DoMenuOpen(initialDir)
 
     def OnMenuOpenExample(self, event):
@@ -637,10 +642,15 @@ class DesignerFrame(wx.Frame):
 
     def OnMenuSearchImage(self, event):
         if not self.stackManager.filename:
-            wx.MessageDialog(self.stackManager.designer,
-                             "Please save your stack before inserting Clip Art.",
-                             "Unsaved Stack", wx.OK).ShowModal()
-            return
+            r = wx.MessageDialog(self.stackManager.designer,
+                                 "You need to save this stack before inserting Clip Art.",
+                                 "Save now?", wx.OK | wx.CANCEL).ShowModal()
+            if r == wx.ID_CANCEL:
+                return
+            elif r == wx.ID_OK:
+                self.OnMenuSave(None)
+                if not self.stackManager.filename:
+                    return
 
         def onImageLoaded(path):
             self.stackManager.AddImageFromPath(path)
