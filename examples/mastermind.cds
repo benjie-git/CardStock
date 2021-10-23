@@ -13,8 +13,8 @@
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "from random import randint\n\nindicators = [oval_1, oval_2, oval_3, oval_4, oval_5]\nfields = [field_1, field_2, field_3, field_4, field_5]\nnums = [0, 0, 0, 0, 0]\nnum_guesses = 0\n\ndef reset():\n   global num_guesses\n   \n   for i in range(5):\n      nums[i] = randint(0, 9)\n      indicators[i].fillColor = \"white\"\n      fields[i].text = 0\n   num_guesses = 0\n   num_guesses_label.text = \"Num Guesses: \" + str(num_guesses)\n   fields[0].Focus()\n   \n\ndef check():\n   global num_guesses\n   \n   num_greens = 0\n   num_guesses += 1\n   num_guesses_label.text = \"Num Guesses: \" + str(num_guesses)\n   \n   for i in range(5):\n      n = nums[i]\n      f = int(fields[i].text)\n      if f == n:\n         indicators[i].fillColor = \"green\"\n         num_greens += 1\n      elif f in nums:\n         indicators[i].fillColor = \"blue\"\n      else:\n         indicators[i].fillColor = \"red\"\n      if num_greens == 5:\n         Alert(f\"You Won in {num_guesses} guesses!\")\n         reset()\n\nreset()\n",
-        "OnKeyDown": "if keyName == \"Tab\":\n   offset = -1 if IsKeyPressed(\"Shift\") else 1\n   for i in range(0,len(fields)):\n      if fields[i].hasFocus:\n         fields[(i+offset) % len(fields)].Focus()\n         return\n   fields[0].Focus()\n      "
+        "OnSetup": "from random import randint\n\nindicators = [oval_1, oval_2, oval_3, oval_4, oval_5]\nfields = [field_1, field_2, field_3, field_4, field_5]\nnums = [0, 0, 0, 0, 0]\nnum_guesses = 0\n\ndef reset():\n   global num_guesses\n   \n   for i in range(5):\n      nums[i] = randint(0, 9)\n      indicators[i].fillColor = \"white\"\n      fields[i].text = 0\n   num_guesses = 0\n   num_guesses_label.text = \"Num Guesses: \" + str(num_guesses)\n   fields[0].Focus()\n   fields[0].SelectAll()   \n   \n\ndef check():\n   global num_guesses\n   \n   num_greens = 0\n   num_guesses += 1\n   num_guesses_label.text = \"Num Guesses: \" + str(num_guesses)\n   \n   for i in range(5):\n      n = nums[i]\n      f = int(fields[i].text)\n      if f == n:\n         indicators[i].fillColor = \"green\"\n         num_greens += 1\n      elif f in nums:\n         indicators[i].fillColor = \"blue\"\n      else:\n         indicators[i].fillColor = \"red\"\n      if num_greens == 5:\n         Alert(f\"You Won in {num_guesses} guesses!\")\n         reset()\n\nreset()\n",
+        "OnKeyDown": "if keyName == \"Tab\":\n   for f in fields:\n      if f.hasFocus:\n         f.SelectAll()"
       },
       "properties": {
         "name": "card_1",
@@ -341,7 +341,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "check()"
+            "OnClick": "check()\nfields[0].Focus()\nfields[0].SelectAll()\n"
           },
           "properties": {
             "name": "guess",

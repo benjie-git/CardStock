@@ -1022,11 +1022,11 @@ class StackManager(object):
         return views
 
     def OnKeyDown(self, uiView, event):
+        code = event.GetKeyCode()
         if self.tool and self.isEditing:
             ms = wx.GetMouseState()
             if not ms.LeftIsDown() and not self.inlineEditingView and not event.ControlDown() \
                     and not event.AltDown() and self.view.FindFocus() != self.designer.cPanel.inspector:
-                code = event.GetKeyCode()
                 if code == ord('H') or code == wx.WXK_ESCAPE:
                     self.designer.cPanel.SetToolByName("hand")
                 elif code == ord('B'):
@@ -1055,11 +1055,21 @@ class StackManager(object):
                 event.Skip()
 
             self.tool.OnKeyDown(uiView, event)
-        else:
+        elif not self.isEditing:
             isNonAutoRepeatKeyDown = self.runner.OnKeyDown(event)
             if isNonAutoRepeatKeyDown:
                 self.uiCard.OnKeyDown(event)
-            if uiView.model.type in ["textfield", "button"]:
+            if code == wx.WXK_TAB:
+                # Cycle through focusable objects
+                views = [ui for ui in self.uiCard.GetAllUiViews() if ui.view]
+                if len(views):
+                    offset = -1 if event.ShiftDown() else 1  # Backward / Fwd
+                    nextView = views[0]
+                    if uiView in views:
+                        i = views.index(uiView)
+                        nextView = views[(i+offset)%len(views)]
+                    nextView.view.SetFocus()
+            elif uiView.model.type in ["textfield", "button"]:
                 event.Skip()
 
     def OnKeyUp(self, uiView, event):
