@@ -56,9 +56,9 @@ if wx.Platform == "__WXMAC__":
     os.mkdir(package_dir)
     shutil.move("dist/CardStock_Designer.app", package_dir)
     shutil.move("dist/CardStock_Viewer.app", package_dir)
-    shutil.copytree("examples", package_dir + "/examples")
-    shutil.copy("README.md", package_dir)
-    shutil.copy("LICENSE", package_dir)
+    shutil.copytree("../examples", package_dir + "/examples")
+    shutil.copy("../README.md", package_dir)
+    shutil.copy("../LICENSE", package_dir)
 
     # More cleanup
     shutil.rmtree("__pycache__")
@@ -80,9 +80,9 @@ elif wx.Platform == "__WXMSW__":
     os.mkdir(package_dir)
     shutil.move("dist/CardStock_Designer.exe", package_dir)
     shutil.move("dist/CardStock_Viewer.exe", package_dir)
-    shutil.copytree("examples", package_dir + "/examples")
-    shutil.copy("README.md", package_dir)
-    shutil.copy("LICENSE", package_dir)
+    shutil.copytree("../examples", package_dir + "/examples")
+    shutil.copy("../README.md", package_dir)
+    shutil.copy("../LICENSE", package_dir)
 
     # More cleanup
     shutil.rmtree("__pycache__")
@@ -106,9 +106,9 @@ else:
     os.mkdir(package_dir)
     shutil.move("dist/CardStock_Designer", package_dir)
     shutil.move("dist/CardStock_Viewer", package_dir)
-    shutil.copytree("examples", package_dir + "/examples")
-    shutil.copy("README.md", package_dir)
-    shutil.copy("LICENSE", package_dir)
+    shutil.copytree("../examples", package_dir + "/examples")
+    shutil.copy("../README.md", package_dir)
+    shutil.copy("../LICENSE", package_dir)
 
     # More cleanup
     shutil.rmtree("__pycache__")
