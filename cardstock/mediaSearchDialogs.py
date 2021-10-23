@@ -57,8 +57,8 @@ class ImageSearchDialog(MediaSearchDialog):
     def OnLoad(self, event):
         url = event.GetURL()
 
-        # Simple ad-blocking -- possibly uncool to do.  Need to figure out other options
-        if "googleads" in url or ".google" in url:
+        # Keep users on this one site
+        if not url.startswith("https://openclipart.org/"):
             event.Veto()
             return
 
