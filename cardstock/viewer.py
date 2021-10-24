@@ -500,7 +500,7 @@ class ViewerApp(wx.App, InspectionMixin):
 # ----------------------------------------------------------------------
 
 
-def RunViewer():
+def RunViewerApp():
     app = ViewerApp(redirect=False)
 
     if len(sys.argv) > 1 and not app.argFilename:
@@ -518,4 +518,4 @@ def RunViewer():
 
 
 if __name__ == '__main__':
-    RunViewer()
+    RunViewerApp()
