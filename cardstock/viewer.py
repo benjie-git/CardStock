@@ -403,8 +403,9 @@ class ViewerFrame(wx.Frame):
         self.SetClientSize(cs)
 
         if wx.Platform != "__WXGTK__":
-            # TODO: Allow disabling resizing on Linux / GTK
-            # It's disabled currently due to bugs in converting Frame to Client sizing on that platform
+            # TODO: Allow disabling resizing on Linux / GTK when canResize==False
+            # This is disabled currently due to bugs in converting Frame to Client sizing on that platform
+            # SetMinClientSize and SetMaxClientSize don't work quite right.
             if self.stackManager.stackModel.GetProperty("canResize"):
                 self.SetMinClientSize(wx.Size(200,200))
             else:

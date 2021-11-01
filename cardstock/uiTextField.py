@@ -43,7 +43,7 @@ class UiTextField(UiTextBase):
         else:
             field = CDSTextCtrl(parent=stackManager.view, size=model.GetProperty("size"),
                                 pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft,
-                                style=wx.TE_PROCESS_ENTER | alignment)
+                                style=wx.TE_NOHIDESEL | wx.TE_PROCESS_ENTER | alignment)
             field.ChangeValue(text)
             field.Bind(wx.EVT_TEXT, self.OnTextChanged)
             field.Bind(CDS_EVT_TEXT_UNDO, self.OnTextChanged)
@@ -239,6 +239,38 @@ class TextFieldModel(TextBaseModel):
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "editable", "multiline", "position", "size"]
 
+    @RunOnMainSync
+    def GetSelectedText(self):
+        uiView = self.stackManager.GetUiViewByModel(self)
+        if uiView and uiView.view:
+            return uiView.view.GetStringSelection()
+        else:
+            return ""
+
+    @RunOnMainSync
+    def SetSelectedText(self, text):
+        uiView = self.stackManager.GetUiViewByModel(self)
+        if uiView and uiView.view:
+            sel = uiView.view.GetSelection()
+            length = len(self.GetProperty("text"))
+            str = uiView.view.GetRange(0,sel[0]) + text + uiView.view.GetRange(sel[1], length)
+            uiView.view.SetValue(str)
+            uiView.view.SetSelection(sel[0], sel[0]+len(text))
+
+    @RunOnMainSync
+    def GetSelection(self):
+        uiView = self.stackManager.GetUiViewByModel(self)
+        if uiView and uiView.view:
+            return uiView.view.GetSelection()
+        else:
+            return (0,0)
+
+    @RunOnMainSync
+    def SetSelection(self, start_index, end_index):
+        uiView = self.stackManager.GetUiViewByModel(self)
+        if uiView and uiView.view:
+            uiView.view.SetSelection(start_index, end_index)
+
 
 class TextField(TextBaseProxy):
     """
@@ -266,6 +298,35 @@ class TextField(TextBaseProxy):
         model = self._model
         if not model: return
         model.SetProperty("multiline", bool(val))
+
+    @property
+    def selection(self):
+        model = self._model
+        if not model: return False
+        return model.GetSelection()
+    @selection.setter
+    def selection(self, val):
+        model = self._model
+        if not model: return
+        if isinstance(val, (list, tuple)) and len(val) == 2:
+            if isinstance(val[0], int) and isinstance(val[1], int):
+                model.SetSelection(val[0], val[1])
+                return
+        raise TypeError("selection must be a list of 2 numbers (start_position, end_position)")
+
+    @property
+    def selectedText(self):
+        model = self._model
+        if not model: return False
+        return model.GetSelectedText()
+    @selectedText.setter
+    def selectedText(self, val):
+        model = self._model
+        if not model: return
+        if isinstance(val,str):
+            model.SetSelectedText(val)
+            return
+        raise TypeError("selectedText must be a string")
 
     def SelectAll(self):
         model = self._model

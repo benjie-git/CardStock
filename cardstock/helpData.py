@@ -653,6 +653,15 @@ class HelpDataTextField():
                  "info": "The <b>font</b> used for the text in this field."},
         "fontSize": {"type": "int",
                      "info": "The point size for the font used for the text in this field."},
+        "selection": {"type": "list",
+                      "info": "A text field's <b>selection</b> value is a list of 2 numbers.  The first is the start position "
+                              "of the selection within the field's text, and the second is the position of the end "
+                              "of the selection.  For example, if the text is 'Hello', and the 'He' is selected, then "
+                              "the value of <b>selection</b> would be (0, 2)."},
+        "selectedText": {"type": "string",
+                         "info": "A text field's <b>selectedText</b> value is the string that is currently selected within "
+                                 "the field's text.  For example, if the text is 'Hello', and the 'He' is selected, "
+                                 "then the <b>selectedText</b> value would be 'He'."},
         "editable": {"type": "bool",
                      "info": "By default text fields can be edited by the user.  But you can set this to <b>False</b> "
                              "so that the text can not be edited."},
