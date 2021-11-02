@@ -254,8 +254,13 @@ class TextFieldModel(TextBaseModel):
             sel = uiView.view.GetSelection()
             length = len(self.GetProperty("text"))
             str = uiView.view.GetRange(0,sel[0]) + text + uiView.view.GetRange(sel[1], length)
+            if self.GetProperty("multiline"):
+                pos = (uiView.view.GetScrollPos(wx.HORIZONTAL), uiView.view.GetScrollPos(wx.VERTICAL))
             uiView.view.SetValue(str)
             uiView.view.SetSelection(sel[0], sel[0]+len(text))
+            if self.GetProperty("multiline"):
+                uiView.view.ScrollToLine(pos[1])
+                uiView.view.ScrollToColumn(pos[0])
 
     @RunOnMainSync
     def GetSelection(self):
