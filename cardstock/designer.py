@@ -556,7 +556,6 @@ class DesignerFrame(wx.Frame):
         if self.configInfo and "last_open_file" in self.configInfo:
             d = os.path.dirname(self.configInfo["last_open_file"])
             ex = self.GetExamplesDir()
-            print(d, ex)
             if not os.path.exists(d) or not os.path.exists(ex) or not os.path.samefile(d, ex):
                 initialDir = d
 
