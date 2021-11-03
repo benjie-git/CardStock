@@ -251,14 +251,20 @@ class TextFieldModel(TextBaseModel):
     def SetSelectedText(self, text):
         uiView = self.stackManager.GetUiViewByModel(self)
         if uiView and uiView.view:
+            isMultiline = self.GetProperty("multiline")
+            isEditable = self.GetProperty("editable")
             sel = uiView.view.GetSelection()
             length = len(self.GetProperty("text"))
             str = uiView.view.GetRange(0,sel[0]) + text + uiView.view.GetRange(sel[1], length)
-            if self.GetProperty("multiline"):
+            if isMultiline:
                 pos = (uiView.view.GetScrollPos(wx.HORIZONTAL), uiView.view.GetScrollPos(wx.VERTICAL))
+            if isMultiline and not isEditable:
+                uiView.view.SetEditable(True)
             uiView.view.SetValue(str)
+            if isMultiline and not isEditable:
+                uiView.view.SetEditable(False)
             uiView.view.SetSelection(sel[0], sel[0]+len(text))
-            if self.GetProperty("multiline"):
+            if isMultiline:
                 uiView.view.ScrollToLine(pos[1])
                 uiView.view.ScrollToColumn(pos[0])
 
