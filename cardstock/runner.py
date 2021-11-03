@@ -641,7 +641,11 @@ class Runner():
     def SetFocus(self, obj):
         uiView = self.stackManager.GetUiViewByModel(obj._model)
         if uiView:
+            if uiView.model.type == "textfield":
+                sel = uiView.view.GetSelection()
             uiView.view.SetFocus()
+            if uiView.model.type == "textfield":
+                uiView.view.SetSelection(sel[0], sel[1])
 
 
     # --------- User-accessible view functions -----------

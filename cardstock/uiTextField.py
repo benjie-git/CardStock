@@ -43,7 +43,7 @@ class UiTextField(UiTextBase):
         else:
             field = CDSTextCtrl(parent=stackManager.view, size=model.GetProperty("size"),
                                 pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft,
-                                style=wx.TE_NOHIDESEL | wx.TE_PROCESS_ENTER | alignment)
+                                style=wx.TE_PROCESS_ENTER | alignment)
             field.ChangeValue(text)
             field.Bind(wx.EVT_TEXT, self.OnTextChanged)
             field.Bind(CDS_EVT_TEXT_UNDO, self.OnTextChanged)
@@ -252,17 +252,12 @@ class TextFieldModel(TextBaseModel):
         uiView = self.stackManager.GetUiViewByModel(self)
         if uiView and uiView.view:
             isMultiline = self.GetProperty("multiline")
-            isEditable = self.GetProperty("editable")
             sel = uiView.view.GetSelection()
             length = len(self.GetProperty("text"))
-            str = uiView.view.GetRange(0,sel[0]) + text + uiView.view.GetRange(sel[1], length)
+            s = uiView.view.GetRange(0,sel[0]) + text + uiView.view.GetRange(sel[1], length)
             if isMultiline:
                 pos = (uiView.view.GetScrollPos(wx.HORIZONTAL), uiView.view.GetScrollPos(wx.VERTICAL))
-            if isMultiline and not isEditable:
-                uiView.view.SetEditable(True)
-            uiView.view.SetValue(str)
-            if isMultiline and not isEditable:
-                uiView.view.SetEditable(False)
+            self.SetProperty("text", s)
             uiView.view.SetSelection(sel[0], sel[0]+len(text))
             if isMultiline:
                 uiView.view.ScrollToLine(pos[1])
