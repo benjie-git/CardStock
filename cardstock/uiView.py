@@ -812,6 +812,7 @@ class ViewProxy(object):
             # update the model immediately on the runner thread
             newModel = model.CreateCopy()
             newModel.SetProperty("speed", model.GetProperty("speed"), notify=False)
+            newModel.lastOnPeriodicTime = time()
             if not self.visible:
                 newModel.SetProperty("hidden", True, notify=False)
             for k,v in kwargs.items():
