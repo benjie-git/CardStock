@@ -672,7 +672,7 @@ class ViewModel(object):
     def AddAnimation(self, key, duration, onUpdate, onStart=None, onFinish=None, onCancel=None):
         # On Runner thread
         if self.didSetDown: return
-        animDict = {"duration": duration,
+        animDict = {"duration": duration if duration != 0 else 0.01,
                     "onStart": onStart,
                     "onUpdate": onUpdate,
                     "onFinish": onFinish,

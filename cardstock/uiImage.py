@@ -67,10 +67,6 @@ class UiImage(UiView):
                 img = img.Mirror(horizontally=True)
             if yFlipped:
                 img = img.Mirror(horizontally=False)
-        if rot != 0:
-            val = float(rot * -pi/180)  # make positive value rotate clockwise
-            img = img.Rotate(val, list(img.GetSize()/2))   # use original center
-            imgSize = img.GetSize()
 
         if fit == "Stretch":
             img = img.Scale(viewSize.width, viewSize.height, quality=wx.IMAGE_QUALITY_HIGH)
@@ -84,6 +80,11 @@ class UiImage(UiView):
             scaleY = viewSize.height / imgSize.height
             scale = max(scaleX, scaleY)
             img = img.Scale(imgSize.width * scale, imgSize.height * scale, quality=wx.IMAGE_QUALITY_HIGH)
+            imgSize = img.GetSize()
+
+        if rot != 0:
+            val = float(rot * -pi/180)  # make positive value rotate clockwise
+            img = img.Rotate(val, list(img.GetSize()/2))   # use original center
             imgSize = img.GetSize()
 
         if fit in ["Center", "Fill"]:
@@ -128,8 +129,8 @@ class UiImage(UiView):
 
                 imgSize = self.rotatedBitmap.GetSize()
                 viewSize = r.Size
-                offX = 0 if (imgSize.Width >= viewSize.Width) else ((viewSize.Width - imgSize.Width) / 2)
-                offY = 0 if (imgSize.Height >= viewSize.Height) else ((viewSize.Height - imgSize.Height) / 2)
+                offX = (viewSize.Width - imgSize.Width) / 2
+                offY = (viewSize.Height - imgSize.Height) / 2
                 gc.DrawBitmap(self.rotatedBitmap, r.Left + offX, r.Bottom - offY)
 
         if self.stackManager.isEditing:
@@ -235,7 +236,10 @@ class Image(ViewProxy):
         def onStart(animDict):
             origVal = self.rotation
             animDict["origVal"] = origVal
-            animDict["offset"] = endRotation - origVal
+            offset = endRotation - origVal
+            if offset > 180: offset -= 360
+            if offset < -180: offset += 360
+            animDict["offset"] = offset
 
         def onUpdate(progress, animDict):
             model.SetProperty("rotation", animDict["origVal"] + animDict["offset"] * progress)
