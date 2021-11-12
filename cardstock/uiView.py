@@ -1131,25 +1131,36 @@ class ViewProxy(object):
         model = self._model
         oModel = obj._model
         if not model or not oModel: return None
+        ui = model.stackManager.GetUiViewByModel(model)
 
         @RunOnMainSync
         def f():
             if model.didSetDown: return None
-            sf = model.GetAbsoluteFrame() # self frame in card coords
+
+            sf = model.GetAbsoluteFrame()  # self frame in card coords
             f = oModel.GetAbsoluteFrame() # other frame in card coords
-            top = wx.Rect(f.Left, f.Top, f.Width, 1)
-            bottom = wx.Rect(f.Left, f.Bottom, f.Width, 1)
+
+            reg = wx.Region(ui.GetHitRegion())
+            reg.Offset(sf.TopLeft)
+
+            bottom = wx.Rect(f.Left, f.Top, f.Width, 1)
+            top = wx.Rect(f.Left, f.Bottom, f.Width, 1)
             left = wx.Rect(f.Left, f.Top, 1, f.Height)
             right = wx.Rect(f.Right, f.Top, 1, f.Height)
-            if sf.Intersects(top): return "Top"
-            if sf.Intersects(bottom): return "Bottom"
-            if sf.Intersects(left): return "Left"
-            if sf.Intersects(right): return "Right"
+            def intersectTest(r, edge):
+                testReg = wx.Region(r)
+                testReg.Intersect(edge)
+                return not testReg.IsEmpty()
+
+            if intersectTest(reg, top): return "Top"
+            if intersectTest(reg, bottom): return "Bottom"
+            if intersectTest(reg, left): return "Left"
+            if intersectTest(reg, right): return "Right"
             return None
         return f()
 
     def AnimatePosition(self, duration, endPosition, onFinished=None, *args, **kwargs):
-        if not (isinstance(duration, int) or isinstance(duration, float)):
+        if not isinstance(duration, (int, float)):
             raise TypeError("duration must be a number")
         try:
             endPosition = wx.RealPoint(endPosition)
@@ -1180,7 +1191,7 @@ class ViewProxy(object):
         model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
     def AnimateCenter(self, duration, endCenter, onFinished=None, *args, **kwargs):
-        if not (isinstance(duration, int) or isinstance(duration, float)):
+        if not isinstance(duration, (int, float)):
             raise TypeError("duration must be a number")
         try:
             endCenter = wx.RealPoint(endCenter)
@@ -1211,7 +1222,7 @@ class ViewProxy(object):
         model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
     def AnimateSize(self, duration, endSize, onFinished=None, *args, **kwargs):
-        if not (isinstance(duration, int) or isinstance(duration, float)):
+        if not isinstance(duration, (int, float)):
             raise TypeError("duration must be a number")
         try:
             endSize = wx.Size(endSize)

@@ -116,20 +116,9 @@ class UiShape(UiView):
         if self.model.IsHidden():
             self.hitRegion = wx.Region((0,0), (0,0))
 
-        thickness = None
-        fillColor = None
-        penColor = None
-        offset = None
-        s = None
-        f = None
-        points = None
         with self.model.animLock:
             thickness = self.model.GetProperty("penThickness")
-            fillColor = self.model.GetProperty("fillColor")
-            penColor = self.model.GetProperty("penColor")
-            offset = wx.Point(self.model.GetAbsolutePosition())
             s = self.model.GetProperty("size")
-            f = self.model.GetAbsoluteFrame()
             points = self.model.GetScaledPoints()
 
         extraThick = 6 if (self.model.type in ["pen", "line"]) else 0
@@ -364,7 +353,7 @@ class Line(ViewProxy):
         return model.GetProperty("penThickness")
     @penThickness.setter
     def penThickness(self, val):
-        if not (isinstance(val, int) or isinstance(val, float)):
+        if not isinstance(val, (int, float)):
             raise TypeError("penThickness must be a number")
         model = self._model
         if not model: return
@@ -388,9 +377,9 @@ class Line(ViewProxy):
         model.SetPoints(points)
 
     def AnimatePenThickness(self, duration, endVal, onFinished=None, *args, **kwargs):
-        if not (isinstance(duration, int) or isinstance(duration, float)):
+        if not isinstance(duration, (int, float)):
             raise TypeError("duration must be a number")
-        if not (isinstance(endVal, int) or isinstance(endVal, float)):
+        if not isinstance(endVal, (int, float)):
             raise TypeError("endThickness must be a number")
 
         model = self._model
@@ -410,7 +399,7 @@ class Line(ViewProxy):
         model.AddAnimation("penThickness", duration, onUpdate, onStart, internalOnFinished)
 
     def AnimatePenColor(self, duration, endVal, onFinished=None, *args, **kwargs):
-        if not (isinstance(duration, int) or isinstance(duration, float)):
+        if not isinstance(duration, (int, float)):
             raise TypeError("duration must be a number")
         if not isinstance(endVal, str):
             raise TypeError("endColor must be a string")
@@ -497,7 +486,7 @@ class Shape(Line):
         model.SetProperty("fillColor", val)
 
     def AnimateFillColor(self, duration, endVal, onFinished=None, *args, **kwargs):
-        if not (isinstance(duration, int) or isinstance(duration, float)):
+        if not isinstance(duration, (int, float)):
             raise TypeError("duration must be a number")
         if not isinstance(endVal, str):
             raise TypeError("endColor must be a string")
@@ -556,16 +545,16 @@ class RoundRect(Shape):
         return model.GetProperty("cornerRadius")
     @cornerRadius.setter
     def cornerRadius(self, val):
-        if not (isinstance(val, int) or isinstance(val, float)):
+        if not isinstance(val, (int, float)):
             raise TypeError("cornerRadius must be a number")
         model = self._model
         if not model: return
         model.SetProperty("cornerRadius", val)
 
     def AnimateCornerRadius(self, duration, endVal, onFinished=None, *args, **kwargs):
-        if not (isinstance(duration, int) or isinstance(duration, float)):
+        if not isinstance(duration, (int, float)):
             raise TypeError("duration must be a number")
-        if not (isinstance(endVal, int) or isinstance(endVal, float)):
+        if not isinstance(endVal, (int, float)):
             raise TypeError("endCornerRadius must be a number")
 
         model = self._model

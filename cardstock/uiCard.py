@@ -307,7 +307,7 @@ class Card(ViewProxy):
         return model.parent.childModels.index(model)+1
 
     def AnimateBgColor(self, duration, endVal, onFinished=None, *args, **kwargs):
-        if not (isinstance(duration, int) or isinstance(duration, float)):
+        if not isinstance(duration, (int, float)):
             raise TypeError("duration must be a number")
         if not isinstance(endVal, str):
             raise TypeError("endColor must be a string")

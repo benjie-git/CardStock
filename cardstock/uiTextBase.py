@@ -221,14 +221,14 @@ class TextBaseProxy(ViewProxy):
         return model.GetProperty("fontSize")
     @fontSize.setter
     def fontSize(self, val):
-        if not (isinstance(val, int) or isinstance(val, float)):
+        if not isinstance(val, (int, float)):
             raise TypeError("fontSize must be a number")
         model = self._model
         if not model: return
         model.SetProperty("fontSize", val)
 
     def AnimateTextColor(self, duration, endVal, onFinished=None, *args, **kwargs):
-        if not (isinstance(duration, int) or isinstance(duration, float)):
+        if not isinstance(duration, (int, float)):
             raise TypeError("duration must be a number")
         if not isinstance(endVal, str):
             raise TypeError("endColor must be a string")
