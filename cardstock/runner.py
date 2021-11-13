@@ -21,9 +21,6 @@ try:
 except ModuleNotFoundError:
     SIMPLE_AUDIO_AVAILABLE = False
 
-if wx.Platform == '__WXMAC__':
-    SIMPLE_AUDIO_AVAILABLE = False
-
 
 class Runner():
     """
@@ -800,8 +797,7 @@ class Runner():
         if SIMPLE_AUDIO_AVAILABLE:
             simpleaudio.stop_all()
         else:
-            for (filepath, s) in self.soundCache.items():
-                s.Stop()
+            Sound.Stop()
 
     @RunOnMainSync
     def Paste(self):
