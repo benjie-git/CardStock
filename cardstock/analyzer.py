@@ -153,6 +153,7 @@ class CodeAnalyzer(object):
             if "Periodic" in handlerName: names.append("elapsedTime")
             if "KeyHold" in handlerName: names.append("elapsedTime")
             if "Message" in handlerName: names.append("message")
+            if "Bounce" in handlerName: names.extend(["otherObject", "edge"])
             names = [n for n in list(set(names)) if prefix.lower() in n.lower()]
             names.sort(key=str.casefold)
             return names

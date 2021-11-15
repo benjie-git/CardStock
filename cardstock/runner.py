@@ -410,6 +410,18 @@ class Runner():
                 # Shouldn't happen!  But just in case, return something that won't crash if the users divides by it
                 self.clientVars["elapsedTime"] = 0.01
 
+        if arg and handlerName == "OnBounce":
+            if "otherObject" in self.clientVars:
+                oldVars["otherObject"] = self.clientVars["otherObject"]
+            else:
+                oldVars["otherObject"] = noValue
+            self.clientVars["otherObject"] = arg[0]
+            if "edge" in self.clientVars:
+                oldVars["edge"] = self.clientVars["edge"]
+            else:
+                oldVars["edge"] = noValue
+            self.clientVars["edge"] = arg[1]
+
         # rewrite handlers that use return outside of a function, and replace with an exception that we catch, to
         # act like a return.
         handlerStr = self.RewriteHandler(handlerStr)

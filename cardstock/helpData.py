@@ -524,15 +524,22 @@ class HelpDataObject():
                        "return": "bool",
                        "info": "Returns <b>True</b> if this object is touching the <b>other</b> object passed into "
                                "this function, otherwise returns <b>False</b>."},
+        "SetBounceObjects": {"args": {"objects": {"type": "list", "info": "A list of objects that this object should bounce off of"}},
+                             "return": None,
+                             "info": "Sets up this object so that it will automatically bounce off "
+                                     "of the given objects, if it intersects with an edge of "
+                                     "any of the objects in the list, while this object's speed is non-zero.  When an "
+                                     "object bounces, its OnBounce() event will run."},
         "IsTouchingPoint": {"args": {"point": {"type": "point", "info": "Checks whether this point is inside the object."}},
                        "return": "bool",
                        "info": "Returns <b>True</b> if this object is touching the <b>point</b> passed into "
                                "this function, otherwise returns <b>False</b>."},
         "IsTouchingEdge": {"args": {"other": {"type": "object", "info":"The other object to compare to this one"}},
-                           "return": "string",
+                           "return": "list",
                            "info": "Returns <b>None</b> if this object is not touching any edges of the <b>other</b> "
                                    "object passed into this function.  If this object is touching any edges of the "
-                                   "other object, the return value will be 'Top', 'Bottom', 'Left', or 'Right', accordingly."},
+                                   "other object, the return value will be a list including one or more of the strings:"
+                                   " 'Top', 'Bottom', 'Left', or 'Right', accordingly."},
         "AnimatePosition": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                      "endPosition": {"type": "point",
                                                      "info": "the destination bottom-left corner position at the end of the animation"},
@@ -598,6 +605,15 @@ class HelpDataObject():
                          "info": "The <b>OnMouseEnter</b> event is run when the mouse pointer moves onto this object."},
         "OnMouseExit": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                         "info": "The <b>OnMouseExit</b> event is run when the mouse pointer moves back off of this object."},
+        "OnBounce": {"args": {"otherObject": {"type": "object", "info": "The other object that this object just bounced off of.",},
+                              "edge": {"type": "string", "info": "The edge of the other object that we just bounced off of ('Left', 'Right', 'Top', or 'Bottom')."}},
+                     "info": "The <b>OnBounce</b> event is run whenever this object collides with an object that it "
+                             "knows to bounce off of.  Set up the list of objects that this object will bounce off "
+                             "of by calling object.SetBounceObjects(list) with that list of objects.  For example, if "
+                             "you have called ball.SetBounceObjects([card]), then the ball object will bounce off of "
+                             "the edges of the card.  And when the ball touches the top of the card, ball.speed.y will "
+                             "flip from positive to negative, so that the ball will start moving downwards, and the "
+                             "<b>OnBounce(otherObject, edge)</b> event will run with otherObject=card and edge='Top'."},
         "OnMessage": {"args": {"message": {"type": "string", "info": "This is the message string that was passed into "
                                                                      "a SendMessage() or BroadcastMessage() call."}},
                       "info": "The <b>OnMessage</b> event is run when BroadcastMessage() is called, or SendMessage() "

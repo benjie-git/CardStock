@@ -115,6 +115,7 @@ class CardModel(ViewModel):
         # Add custom handlers to the top of the list
         handlers = {"OnSetup": "", "OnShowCard": "", "OnHideCard": "", "OnKeyDown": "",
                     "OnKeyHold": "", "OnKeyUp": "", "OnResize":""}
+        del self.handlers["OnBounce"]
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers

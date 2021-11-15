@@ -187,6 +187,55 @@ class UiView(object):
         for key in finishList:
             self.model.FinishAnimation(key)
 
+        # Check for and perform any required bounces
+        if tuple(self.model.GetProperty("speed")) != (0, 0):
+            for bounce_list in self.model.bounceObjs:
+                (other_model, mode, last_dist) = bounce_list
+
+                sc = self.model.GetProperty("center")
+                oc = other_model.GetProperty("center")
+                new_dist = (abs(sc[0]-oc[0]), abs(sc[1]-oc[1]))
+
+                if not mode:
+                    # Determine whether we're inside or outside of this object
+                    bounce_list[1] = "In" if other_model.GetProxy().IsTouchingPoint(self.model.GetCenter()) else "Out"
+                    bounce_list[2] = new_dist
+                    continue
+
+                edges = self.model.GetProxy().IsTouchingEdge(other_model.GetProxy())
+                if edges:
+                    didBounce = False
+                    ss = self.model.GetProperty("speed")
+                    if mode == "In":
+                        # Bounce if hitting an edge of the enclosing object, and only if moving toward the other object's edge
+                        if ("Left" in edges or "Right" in edges) and new_dist[0] > last_dist[0]:
+                            if (ss[0] > 0 and oc[0] < sc[0]) or  (ss[0] < 0 and oc[0] > sc[0]):
+                                ss.x = -ss.x
+                                didBounce = True
+                        if ("Top" in edges or "Bottom" in edges) and new_dist[1] > last_dist[1]:
+                            if (ss[1] > 0 and oc[1] < sc[1]) or  (ss[1] < 0 and oc[1] > sc[1]):
+                                ss.y = -ss.y
+                                didBounce = True
+                    elif mode == "Out":
+                        # Bounce if hitting an edge of the other object, and only if moving toward the other object
+                        if ("Left" in edges or "Right" in edges) and new_dist[0] < last_dist[0]:
+                            if (ss[0] > 0 and oc[0] > sc[0]) or  (ss[0] < 0 and oc[0] < sc[0]):
+                                ss.x = -ss.x
+                                didBounce = True
+                        if ("Top" in edges or "Bottom" in edges) and new_dist[1] < last_dist[1]:
+                            if (ss[1] > 0 and oc[1] > sc[1]) or  (ss[1] < 0 and oc[1] < sc[1]):
+                                ss.y = -ss.y
+                                didBounce = True
+
+                    bounce_list[2] = new_dist
+
+                    if didBounce:
+                        # Call the bounce handler.  It's possible to bounce off of 2 edges at once (a corner), in which
+                        # case we call this handler once per edge it bounced off of.
+                        for edge in edges:
+                            if self.stackManager.runner and self.model.GetHandler("OnBounce"):
+                                self.stackManager.runner.RunHandler(self.model, "OnBounce", None, [other_model.GetProxy(), edge])
+
     def OnPeriodic(self, event):
         didRun = False
         if self.hasMouseMoved:
@@ -271,6 +320,7 @@ class UiView(object):
         'OnMouseUp':    "OnMouseUp(mousePos):",
         'OnMouseEnter': "OnMouseEnter(mousePos):",
         'OnMouseExit':  "OnMouseExit(mousePos):",
+        'OnBounce':     "OnBounce(otherObject, edge)",
         'OnMessage':    "OnMessage(message):",
         'OnKeyDown':    "OnKeyDown(keyName):",
         'OnKeyHold':    "OnKeyHold(keyName, elapsedTime):",
@@ -302,6 +352,7 @@ class ViewModel(object):
                          "OnMouseMove": "",
                          "OnMouseUp": "",
                          "OnMouseExit": "",
+                         "OnBounce": "",
                          "OnMessage": "",
                          "OnPeriodic": ""
                          }
@@ -331,6 +382,7 @@ class ViewModel(object):
         self.proxy = None
         self.lastOnPeriodicTime = None
         self.animations = {}
+        self.bounceObjs = []
         self.proxyClass = ViewProxy
         self.animLock = threading.Lock()
         self.didSetDown = False
@@ -355,6 +407,7 @@ class ViewModel(object):
                 self.proxy._model = None
                 self.proxy = None
             self.animations = {}
+            self.bounceObjs = []
             self.stackManager = None
             self.parent = None
 
@@ -668,6 +721,9 @@ class ViewModel(object):
         if self.handlers[key] != value:
             self.handlers[key] = value
             self.isDirty = True
+
+    def SetBounceObjects(self, models):
+        self.bounceObjs = [[m, None, None] for m in models if isinstance(m, ViewModel)]
 
     def AddAnimation(self, key, duration, onUpdate, onStart=None, onFinish=None, onCancel=None):
         # On Runner thread
@@ -1074,6 +1130,12 @@ class ViewProxy(object):
 
         model.handlers[eventName] = code
 
+    def SetBounceObjects(self, objects):
+        if not isinstance(objects, (list, tuple)):
+            raise TypeError("objects needs to be a list of cardstock objects")
+        models = [o._model for o in objects if isinstance(o, ViewProxy)]
+        self._model.SetBounceObjects(models)
+
     def IsTouchingPoint(self, point):
         if not isinstance(point, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
             raise TypeError("point needs to be a point or a list of two numbers")
@@ -1135,7 +1197,7 @@ class ViewProxy(object):
 
         @RunOnMainSync
         def f():
-            if model.didSetDown: return None
+            if model.didSetDown or oModel.didSetDown: return None
 
             sf = model.GetAbsoluteFrame()  # self frame in card coords
             f = oModel.GetAbsoluteFrame() # other frame in card coords
@@ -1143,20 +1205,27 @@ class ViewProxy(object):
             reg = wx.Region(ui.GetHitRegion())
             reg.Offset(sf.TopLeft)
 
-            bottom = wx.Rect(f.Left, f.Top, f.Width, 1)
-            top = wx.Rect(f.Left, f.Bottom, f.Width, 1)
-            left = wx.Rect(f.Left, f.Top, 1, f.Height)
-            right = wx.Rect(f.Right, f.Top, 1, f.Height)
+            # Pull edge lines away from the corners, so we don't always hit a corner when 2 objects touch
+            x_pad = 7 if f.Width > 18 else 0
+            y_pad = 7 if f.Height > 18 else 0
+
+            bottom = wx.Rect(f.Left+x_pad, f.Top, f.Width-2*x_pad, 1)
+            top = wx.Rect(f.Left+x_pad, f.Bottom, f.Width-2*x_pad, 1)
+            left = wx.Rect(f.Left, f.Top+y_pad, 1, f.Height-2*y_pad)
+            right = wx.Rect(f.Right, f.Top+y_pad, 1, f.Height-2*y_pad)
             def intersectTest(r, edge):
                 testReg = wx.Region(r)
                 testReg.Intersect(edge)
                 return not testReg.IsEmpty()
 
-            if intersectTest(reg, top): return "Top"
-            if intersectTest(reg, bottom): return "Bottom"
-            if intersectTest(reg, left): return "Left"
-            if intersectTest(reg, right): return "Right"
-            return None
+            edges = []
+            if intersectTest(reg, top): edges.append("Top")
+            if intersectTest(reg, bottom): edges.append("Bottom")
+            if intersectTest(reg, left): edges.append("Left")
+            if intersectTest(reg, right): edges.append("Right")
+            if len(edges) == 0:
+                edges = None
+            return edges
         return f()
 
     def AnimatePosition(self, duration, endPosition, onFinished=None, *args, **kwargs):
