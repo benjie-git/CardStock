@@ -192,8 +192,8 @@ class UiView(object):
             for bounce_list in self.model.bounceObjs:
                 (other_model, mode, last_dist) = bounce_list
 
-                sc = self.model.GetProperty("center")
-                oc = other_model.GetProperty("center")
+                sc = self.model.GetProxy().center
+                oc = other_model.GetProxy().center
                 new_dist = (abs(sc[0]-oc[0]), abs(sc[1]-oc[1]))
 
                 if not mode:
@@ -210,20 +210,44 @@ class UiView(object):
                         # Bounce if hitting an edge of the enclosing object, and only if moving toward the other object's edge
                         if ("Left" in edges or "Right" in edges) and new_dist[0] > last_dist[0]:
                             if (ss[0] > 0 and oc[0] < sc[0]) or  (ss[0] < 0 and oc[0] > sc[0]):
+                                sf = self.model.GetAbsoluteFrame()
+                                of = other_model.GetAbsoluteFrame()
+                                if ss[0] > 0 and sf.Right > of.Right:
+                                    sc.x -= sf.Right - of.Right
+                                elif ss[0] < 0 and sf.Left < of.Left:
+                                    sc.x -= sf.Left - of.Left
                                 ss.x = -ss.x
                                 didBounce = True
                         if ("Top" in edges or "Bottom" in edges) and new_dist[1] > last_dist[1]:
                             if (ss[1] > 0 and oc[1] < sc[1]) or  (ss[1] < 0 and oc[1] > sc[1]):
+                                sf = self.model.GetAbsoluteFrame()
+                                of = other_model.GetAbsoluteFrame()
+                                if ss[1] > 0 and sf.Bottom > of.Bottom:
+                                    sc.y -= sf.Bottom - of.Bottom
+                                elif ss[1] < 0 and sf.Top < of.Top:
+                                    sc.y -= sf.Top - of.Top
                                 ss.y = -ss.y
                                 didBounce = True
                     elif mode == "Out":
                         # Bounce if hitting an edge of the other object, and only if moving toward the other object
                         if ("Left" in edges or "Right" in edges) and new_dist[0] < last_dist[0]:
                             if (ss[0] > 0 and oc[0] > sc[0]) or  (ss[0] < 0 and oc[0] < sc[0]):
+                                sf = self.model.GetAbsoluteFrame()
+                                of = other_model.GetAbsoluteFrame()
+                                if ss[0] > 0 and sf.Right > of.Left:
+                                    sc.x -= sf.Right - of.Left
+                                elif ss[0] < 0 and sf.Left < of.Right:
+                                    sc.x -= sf.Left - of.Right
                                 ss.x = -ss.x
                                 didBounce = True
                         if ("Top" in edges or "Bottom" in edges) and new_dist[1] < last_dist[1]:
                             if (ss[1] > 0 and oc[1] > sc[1]) or  (ss[1] < 0 and oc[1] < sc[1]):
+                                sf = self.model.GetAbsoluteFrame()
+                                of = other_model.GetAbsoluteFrame()
+                                if ss[1] > 0 and sf.Bottom > of.Top:
+                                    sc.y -= sf.Bottom - of.Top
+                                elif ss[1] < 0 and sf.Top < of.Bottom:
+                                    sc.y -= sf.Top - of.Bottom
                                 ss.y = -ss.y
                                 didBounce = True
 
