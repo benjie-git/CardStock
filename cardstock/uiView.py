@@ -89,11 +89,11 @@ class UiView(object):
     def OnPropertyChanged(self, model, key):
         if key == "size":
             s = self.model.GetProperty(key)
-            self.ClearHitRegion()
             if self.view:
                 rect = wx.Rect(wx.Point(self.model.GetAbsolutePosition()), s)
                 self.view.SetRect(self.stackManager.ConvRect(rect))
                 self.view.Refresh()
+            self.ClearHitRegion()
             self.stackManager.view.Refresh()
         elif key == "position":
             pos = wx.Point(self.model.GetAbsolutePosition())
@@ -101,9 +101,8 @@ class UiView(object):
                 rect = wx.Rect(pos, self.model.GetProperty("size"))
                 self.view.SetRect(self.stackManager.ConvRect(rect))
                 self.view.Refresh()
+            self.ClearHitRegion()
             self.stackManager.view.Refresh()
-            if self.parent.model.type == "group":
-                self.parent.ClearHitRegion()
         elif key == "hidden":
             if self.view:
                 self.view.Show(not self.model.IsHidden())
@@ -185,80 +184,157 @@ class UiView(object):
         for (d,p) in updateList:
             d["onUpdate"](p, d)
         for key in finishList:
-            self.model.FinishAnimation(key)
+            def deferFinish():
+                self.model.FinishAnimation(key)
+            onFinishedCalls.append(deferFinish)
 
-        # Check for and perform any required bounces
-        if tuple(self.model.GetProperty("speed")) != (0, 0):
-            for bounce_list in self.model.bounceObjs:
-                (other_model, mode, last_dist) = bounce_list
+    def FindCollisions(self, collisions):
+        # Find collisions between this object and others in its bounceObjs list
+        # and add them to the collisions list, to be handled after all are found.
+        removeFromBounceObjs = []
+        if not self.model.didSetDown and not self.model.GetProperty("hidden") and tuple(self.model.GetProperty("speed")) != (0, 0):
+            for k,v in self.model.bounceObjs.items():
+                other_ui = self.stackManager.GetUiViewByModel(k)
+                (mode, last_dist) = v
 
-                sc = self.model.GetProxy().center
-                oc = other_model.GetProxy().center
+                if other_ui.model.GetProperty("hidden"):
+                    continue
+
+                if other_ui.model.didSetDown:
+                    # remove deleted objects from the bounceObjs list, after this loop is done
+                    removeFromBounceObjs.append(k)
+                    continue
+
+                sc = self.model.GetProxy().center       # sc = self center
+                oc = other_ui.model.GetProxy().center   # oc = other center
                 new_dist = (abs(sc[0]-oc[0]), abs(sc[1]-oc[1]))
 
                 if not mode:
                     # Determine whether we're inside or outside of this object
-                    bounce_list[1] = "In" if other_model.GetProxy().IsTouchingPoint(self.model.GetCenter()) else "Out"
-                    bounce_list[2] = new_dist
+                    self.model.bounceObjs[k][0] = "In" if other_ui.model.GetProxy().IsTouchingPoint(self.model.GetCenter()) else "Out"
+                    self.model.bounceObjs[k][1] = new_dist
                     continue
 
-                edges = self.model.GetProxy().IsTouchingEdge(other_model.GetProxy())
+                edges = self.model.GetProxy().IsTouchingEdge(other_ui.model.GetProxy(), mode == "In")
                 if edges:
-                    didBounce = False
-                    ss = self.model.GetProperty("speed")
+                    selfBounceAxes = ""
+                    otherBounceAxes = ""
+                    ss = self.model.GetProxy().speed
+                    os = other_ui.model.GetProxy().speed
                     if mode == "In":
                         # Bounce if hitting an edge of the enclosing object, and only if moving toward the other object's edge
                         if ("Left" in edges or "Right" in edges) and new_dist[0] > last_dist[0]:
-                            if (ss[0] > 0 and oc[0] < sc[0]) or  (ss[0] < 0 and oc[0] > sc[0]):
-                                sf = self.model.GetAbsoluteFrame()
-                                of = other_model.GetAbsoluteFrame()
-                                if ss[0] > 0 and sf.Right > of.Right:
-                                    sc.x -= sf.Right - of.Right
-                                elif ss[0] < 0 and sf.Left < of.Left:
-                                    sc.x -= sf.Left - of.Left
-                                ss.x = -ss.x
-                                didBounce = True
+                            if (ss[0] > 0 and oc[0] < sc[0]) or (ss[0] < 0 and oc[0] > sc[0]):
+                                selfBounceAxes += "H"
+                            if (os[0] > 0 and sc[0] < oc[0]) or (os[0] < 0 and sc[0] > oc[0]):
+                                otherBounceAxes += "H"
                         if ("Top" in edges or "Bottom" in edges) and new_dist[1] > last_dist[1]:
-                            if (ss[1] > 0 and oc[1] < sc[1]) or  (ss[1] < 0 and oc[1] > sc[1]):
-                                sf = self.model.GetAbsoluteFrame()
-                                of = other_model.GetAbsoluteFrame()
-                                if ss[1] > 0 and sf.Bottom > of.Bottom:
-                                    sc.y -= sf.Bottom - of.Bottom
-                                elif ss[1] < 0 and sf.Top < of.Top:
-                                    sc.y -= sf.Top - of.Top
-                                ss.y = -ss.y
-                                didBounce = True
+                            if (ss[1] > 0 and oc[1] < sc[1]) or (ss[1] < 0 and oc[1] > sc[1]):
+                                selfBounceAxes += "V"
+                            if (os[1] > 0 and sc[1] < oc[1]) or (os[1] < 0 and sc[1] > oc[1]):
+                                otherBounceAxes += "V"
                     elif mode == "Out":
                         # Bounce if hitting an edge of the other object, and only if moving toward the other object
                         if ("Left" in edges or "Right" in edges) and new_dist[0] < last_dist[0]:
-                            if (ss[0] > 0 and oc[0] > sc[0]) or  (ss[0] < 0 and oc[0] < sc[0]):
-                                sf = self.model.GetAbsoluteFrame()
-                                of = other_model.GetAbsoluteFrame()
-                                if ss[0] > 0 and sf.Right > of.Left:
-                                    sc.x -= sf.Right - of.Left
-                                elif ss[0] < 0 and sf.Left < of.Right:
-                                    sc.x -= sf.Left - of.Right
-                                ss.x = -ss.x
-                                didBounce = True
+                            if (ss[0] > 0 and oc[0] > sc[0]) or (ss[0] < 0 and oc[0] < sc[0]):
+                                selfBounceAxes += "H"
+                            if (os[0] > 0 and sc[0] > oc[0]) or (os[0] < 0 and sc[0] < oc[0]):
+                                otherBounceAxes += "H"
                         if ("Top" in edges or "Bottom" in edges) and new_dist[1] < last_dist[1]:
-                            if (ss[1] > 0 and oc[1] > sc[1]) or  (ss[1] < 0 and oc[1] < sc[1]):
-                                sf = self.model.GetAbsoluteFrame()
-                                of = other_model.GetAbsoluteFrame()
-                                if ss[1] > 0 and sf.Bottom > of.Top:
-                                    sc.y -= sf.Bottom - of.Top
-                                elif ss[1] < 0 and sf.Top < of.Bottom:
-                                    sc.y -= sf.Top - of.Bottom
-                                ss.y = -ss.y
-                                didBounce = True
+                            if (ss[1] > 0 and oc[1] > sc[1]) or (ss[1] < 0 and oc[1] < sc[1]):
+                                selfBounceAxes += "V"
+                            if (os[1] > 0 and sc[1] > oc[1]) or (os[1] < 0 and sc[1] < oc[1]):
+                                otherBounceAxes += "V"
 
-                    bounce_list[2] = new_dist
+                    if len(selfBounceAxes) or len(otherBounceAxes):
+                        sn = self.model.GetProperty("name")
+                        on = other_ui.model.GetProperty("name")
+                        key = (self, other_ui) if sn < on else (other_ui, self)
+                        if key not in collisions:
+                            # Add this collision to the list, indexed by normalized object pair to avoid duplicates
+                            collisions[key] = (self, other_ui, selfBounceAxes, otherBounceAxes, edges)
 
-                    if didBounce:
-                        # Call the bounce handler.  It's possible to bounce off of 2 edges at once (a corner), in which
-                        # case we call this handler once per edge it bounced off of.
-                        for edge in edges:
-                            if self.stackManager.runner and self.model.GetHandler("OnBounce"):
-                                self.stackManager.runner.RunHandler(self.model, "OnBounce", None, [other_model.GetProxy(), edge])
+                self.model.bounceObjs[k][1] = new_dist
+
+            for k in removeFromBounceObjs:
+                del self.model.bounceObjs[k]
+
+    def PerformBounce(self, info):
+        # Perform this bounce for this object, and the other object
+        (this_ui, other_ui, selfAxes, otherAxes, edges) = info
+        ss = self.model.GetProxy().speed
+        os = other_ui.model.GetProxy().speed
+        sc = self.model.GetProxy().center
+        oc = other_ui.model.GetProxy().center
+
+        # Flags
+        selfBounce = other_ui.model in self.model.bounceObjs
+        selfBounceInside = False if not selfBounce else self.model.bounceObjs[other_ui.model][0] == "In"
+        otherBounce = self.model in other_ui.model.bounceObjs
+
+        # Determine how far these two objects have overlapped, and fix by
+        # moving this object back out, in the shorter direction
+        (dx, dy) = (0, 0)
+        if "H" in selfAxes:
+            sf = self.model.GetAbsoluteFrame()
+            of = other_ui.model.GetAbsoluteFrame()
+            if selfBounceInside:
+                if ss[0] > 0 and sf.Right > of.Right:
+                    dx = sf.Right - of.Right
+                elif ss[0] < 0 and sf.Left < of.Left:
+                    dx = sf.Left - of.Left
+            else:
+                if ss[0] > 0 and sf.Right > of.Left:
+                    dx = sf.Right - of.Left
+                elif ss[0] < 0 and sf.Left < of.Right:
+                    dx = sf.Left - of.Right
+        if "V" in selfAxes:
+            sf = self.model.GetAbsoluteFrame()
+            of = other_ui.model.GetAbsoluteFrame()
+            if selfBounceInside:
+                if ss[1] > 0 and sf.Bottom > of.Bottom:
+                    dy = sf.Bottom - of.Bottom
+                elif ss[1] < 0 and sf.Top < of.Top:
+                    dy = sf.Top - of.Top
+            else:
+                if ss[1] > 0 and sf.Bottom > of.Top:
+                    dy = sf.Bottom - of.Top
+                elif ss[1] < 0 and sf.Top < of.Bottom:
+                    dy = sf.Top - of.Bottom
+        if dx != 0 and dy != 0:
+            if abs(dx) > abs(dy):
+                dx = 0
+            else:
+                dy = 0
+        sc.x -= dx
+        sc.y -= dy
+
+        # Finally perform the actual bounces
+        if selfBounce and "H" in selfAxes:
+            ss.x = -ss.x
+        if otherBounce and "H" in otherAxes:
+            os.x = -os.x
+        if selfBounce and "V" in selfAxes:
+            ss.y = -ss.y
+        if otherBounce and "V" in otherAxes:
+            os.y = -os.y
+
+        # Call the bounce handlers.  It's possible to bounce off of 2 edges at once (a corner), in which
+        # case we call this handler once per edge it bounced off of.
+        if other_ui.model in self.model.bounceObjs:
+            for edge in edges:
+                if self.stackManager.runner and self.model.GetHandler("OnBounce"):
+                    self.stackManager.runner.RunHandler(self.model, "OnBounce", None,
+                                                        [other_ui.model.GetProxy(), edge])
+
+        if self.model in other_ui.model.bounceObjs:
+            # Use this opposites dict to show the right edge names in the other object's OnBounce calls
+            opposites = {"Top": "Bottom", "Bottom": "Top", "Left": "Right", "Right": "Left"}
+            for edge in edges:
+                otherEdge = edge if selfBounceInside else opposites[edge] # Don't flip names for inside bounces
+                if self.stackManager.runner and other_ui.model.GetHandler("OnBounce"):
+                    self.stackManager.runner.RunHandler(other_ui.model, "OnBounce", None,
+                                                        [self.model.GetProxy(), otherEdge])
 
     def OnPeriodic(self, event):
         didRun = False
@@ -406,7 +482,7 @@ class ViewModel(object):
         self.proxy = None
         self.lastOnPeriodicTime = None
         self.animations = {}
-        self.bounceObjs = []
+        self.bounceObjs = {}
         self.proxyClass = ViewProxy
         self.animLock = threading.Lock()
         self.didSetDown = False
@@ -431,7 +507,7 @@ class ViewModel(object):
                 self.proxy._model = None
                 self.proxy = None
             self.animations = {}
-            self.bounceObjs = []
+            self.bounceObjs = {}
             self.stackManager = None
             self.parent = None
 
@@ -746,8 +822,12 @@ class ViewModel(object):
             self.handlers[key] = value
             self.isDirty = True
 
-    def SetBounceObjects(self, models):
-        self.bounceObjs = [[m, None, None] for m in models if isinstance(m, ViewModel)]
+    def SetBounceModels(self, models):
+        objs = {}
+        for m in models:
+            if isinstance(m, ViewModel):
+                objs[m] = [None, None]
+        self.bounceObjs = objs
 
     def AddAnimation(self, key, duration, onUpdate, onStart=None, onFinish=None, onCancel=None):
         # On Runner thread
@@ -1158,7 +1238,7 @@ class ViewProxy(object):
         if not isinstance(objects, (list, tuple)):
             raise TypeError("objects needs to be a list of cardstock objects")
         models = [o._model for o in objects if isinstance(o, ViewProxy)]
-        self._model.SetBounceObjects(models)
+        self._model.SetBounceModels(models)
 
     def IsTouchingPoint(self, point):
         if not isinstance(point, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
@@ -1210,9 +1290,12 @@ class ViewProxy(object):
             return not sreg.IsEmpty()
         return f()
 
-    def IsTouchingEdge(self, obj):
+    def IsTouchingEdge(self, obj, skipIsTouchingCheck=False):
         if not isinstance(obj, ViewProxy):
             raise TypeError("obj must be a CardStock object")
+
+        if not skipIsTouchingCheck and not self.IsTouching(obj):
+            return None
 
         model = self._model
         oModel = obj._model
@@ -1234,9 +1317,9 @@ class ViewProxy(object):
             y_pad = 7 if f.Height > 18 else 0
 
             bottom = wx.Rect(f.Left+x_pad, f.Top, f.Width-2*x_pad, 1)
-            top = wx.Rect(f.Left+x_pad, f.Bottom, f.Width-2*x_pad, 1)
+            top = wx.Rect(f.Left+x_pad, f.Bottom-1, f.Width-2*x_pad, 1)
             left = wx.Rect(f.Left, f.Top+y_pad, 1, f.Height-2*y_pad)
-            right = wx.Rect(f.Right, f.Top+y_pad, 1, f.Height-2*y_pad)
+            right = wx.Rect(f.Right-1, f.Top+y_pad, 1, f.Height-2*y_pad)
             def intersectTest(r, edge):
                 testReg = wx.Region(r)
                 testReg.Intersect(edge)

@@ -198,15 +198,25 @@ class StackManager(object):
             elapsedTime = now - self.lastOnPeriodicTime
 
             # Run animations at 60 Hz / FPS
+            allUi = self.uiCard.GetAllUiViews()
             onFinishedCalls = []
             self.uiCard.RunAnimations(onFinishedCalls, elapsedTime)
-            for ui in self.uiCard.GetAllUiViews():
+            for ui in allUi:
                 ui.RunAnimations(onFinishedCalls, elapsedTime)
             # Let all animations process, before running their onFinished handlers,
             # which could start new animations.
             for c in onFinishedCalls:
                 c()
             self.lastOnPeriodicTime = now
+
+            # Check for all collisions
+            collisions = {}
+            for ui in allUi:
+                ui.FindCollisions(collisions)
+
+            # Perform any bounces
+            for (k,v) in collisions.items():
+                v[0].PerformBounce(v)
 
             # Run OnPeriodic at 30 Hz
             didRun = False
