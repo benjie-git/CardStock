@@ -967,7 +967,11 @@ class DesignerFrame(wx.Frame):
 
     def WriteConfig(self):
         config = configparser.ConfigParser()
-        self.configInfo = {"last_open_file": self.filename if self.filename else "",
+        last_file = self.filename if self.filename else ""
+        if os.path.samefile(os.path.dirname(last_file), self.GetExamplesDir()):
+            if self.configInfo and "last_open_file" in self.configInfo:
+                last_file = self.configInfo["last_open_file"]
+        self.configInfo = {"last_open_file": last_file,
                           "show_context_help": str(self.cPanel.IsContextHelpShown()),
                           "cardstock_app_version": version.VERSION}
         config['User'] = self.configInfo
