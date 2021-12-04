@@ -79,7 +79,7 @@ class Runner():
 
         self.stackStartTime = time()
 
-        self.clientVars = {
+        self.initialClientVars = {
             "Wait": self.Wait,
             "RunAfterDelay": self.RunAfterDelay,
             "Time": self.Time,
@@ -103,6 +103,8 @@ class Runner():
             "GetStackSetupValue": self.GetStackSetupValue,
             "MakeColor": self.MakeColor,
         }
+
+        self.clientVars = self.initialClientVars.copy()
 
         self.keyCodeStringMap = {
             wx.WXK_RETURN: "Return",
@@ -257,6 +259,13 @@ class Runner():
         if not kwargs: kwargs = {}
         self.handlerQueue.put([func, args, kwargs])
 
+    def EnqueueCode(self, code, *args, **kwargs):
+        """
+        Add a code string to be run on the runner queue.
+        This is used to run code from the Console window in the viewer app.
+        """
+        self.handlerQueue.put([code, None, None, None])
+
     def StartRunLoop(self):
         """
         This is the runnerThread's run loop.  Start waiting for queued handlers, and process them until
@@ -285,7 +294,10 @@ class Runner():
                     self.stopHandlingMouseEvent = False
                 elif len(args) == 3:
                     # Run the given function with optional args, kwargs
-                    self.RunWithExceptionHandling(args[0], *args[1], **args[2])
+                    self.RunWithExceptionHandling(func=args[0], *args[1], **args[2])
+                elif len(args) == 4:
+                    # Run the given code
+                    self.RunWithExceptionHandling(code=args[0])
                 elif len(args) == 6:
                     # Run this handler
                     self.lastCard = args[0].GetCard()
@@ -541,7 +553,7 @@ class Runner():
             # No return used, so keep the handler as-is
             return handlerStr
 
-    def RunWithExceptionHandling(self, func, *args, **kwargs):
+    def RunWithExceptionHandling(self, code=None, func=None, *args, **kwargs):
         """ Run a function with exception handling.  This always runs on the runnerThread. """
         error = None
         error_class = None
@@ -554,30 +566,41 @@ class Runner():
         uiModel = None
         oldCard = None
         oldSelf = None
-        funcName = func.__name__
-        if funcName in self.funcDefs:
-            uiModel = self.funcDefs[funcName][0]
-            if self.lastCard != uiModel.GetCard():
-                self.oldCard = self.lastCard
-                self.SetupForCard(uiModel.GetCard())
-            if "self" in self.clientVars:
-                oldSelf = self.clientVars["self"]
-            self.clientVars["self"] = uiModel.GetProxy()
+        funcName = None
+        if func:
+            funcName = func.__name__
+            if funcName in self.funcDefs:
+                uiModel = self.funcDefs[funcName][0]
+                if self.lastCard != uiModel.GetCard():
+                    self.oldCard = self.lastCard
+                    self.SetupForCard(uiModel.GetCard())
+                if "self" in self.clientVars:
+                    oldSelf = self.clientVars["self"]
+                self.clientVars["self"] = uiModel.GetProxy()
 
         try:
-            func(*args, **kwargs)
+            if func:
+                func(*args, **kwargs)
+            elif code:
+                try:
+                    print(eval(code, self.clientVars))
+                except SyntaxError:
+                    exec(code, self.clientVars)
         except Exception as err:
             error_class = err.__class__.__name__
             detail = err.args[0]
             cl, exc, tb = sys.exc_info()
             trace = traceback.extract_tb(tb)
-            for i in range(len(trace)):
-                if trace[i].filename == "<string>" and trace[i].name != "<module>":
-                    if trace[i].name in self.funcDefs:
-                        errModel = self.funcDefs[trace[i].name][0]
-                        errHandlerName = self.funcDefs[trace[i].name][1]
-                        line_number = trace[i].lineno
-                    in_func.append((trace[i].name, trace[i].lineno))
+            if func:
+                for i in range(len(trace)):
+                    if trace[i].filename == "<string>" and trace[i].name != "<module>":
+                        if trace[i].name in self.funcDefs:
+                            errModel = self.funcDefs[trace[i].name][0]
+                            errHandlerName = self.funcDefs[trace[i].name][1]
+                            line_number = trace[i].lineno
+                        in_func.append((trace[i].name, trace[i].lineno))
+            elif code:
+                print(f"{error_class}: {detail}", file=sys.stderr)
 
         if error_class and errModel and self.errors is not None:
             msg = f"{error_class} in {self.HandlerPath(errModel, errHandlerName)}, line {line_number}: {detail}"

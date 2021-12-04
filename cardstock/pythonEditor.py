@@ -33,13 +33,14 @@ else:
 
 
 class PythonEditor(stc.StyledTextCtrl):
-    def __init__(self, parent, cPanel, stackManager, **kwargs):
+    def __init__(self, parent, cPanel, stackManager, skipLexer=False, **kwargs):
         super().__init__(parent=parent, **kwargs)
 
         self.stackManager = stackManager
         self.currentModel = None
         self.currentHandler = None
         self.cPanel = cPanel
+        self.returnHandler = None
 
         self.analyzer = self.stackManager.analyzer
         if cPanel:
@@ -62,28 +63,30 @@ class PythonEditor(stc.StyledTextCtrl):
         self.CmdKeyClear(ord("Z"), stc.STC_SCMOD_CTRL|stc.STC_SCMOD_SHIFT)
         self.CmdKeyClear(ord("Y"), stc.STC_SCMOD_CTRL)
 
-        self.StyleSetSpec(stc.STC_STYLE_DEFAULT,    'face:%(mono)s,fore:#000000,size:%(size)d' % faces)
-        self.StyleSetSpec(stc.STC_STYLE_LINENUMBER, 'face:%(mono)s,fore:#999999,back:#EEEEEE' % faces)
-        self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT, 'face:%(mono)s,fore:#000000,back:#DDDDFF,bold' % faces)
-        self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,   'face:%(mono)s,fore:#000000,back:#FFCCCC,bold' % faces)
-        self.StyleSetSpec(stc.STC_P_DEFAULT,        'face:%(mono)s,fore:#000000,size:%(size)d' % faces)
-        self.StyleSetSpec(stc.STC_P_NUMBER,         'face:%(mono)s,fore:#007F7F' % faces)
-        self.StyleSetSpec(stc.STC_P_CHARACTER,      'face:%(mono)s,fore:#007F7F,bold' % faces)
-        self.StyleSetSpec(stc.STC_P_WORD,           'face:%(mono)s,fore:#1111EE' % faces)
-        self.StyleSetSpec(stc.STC_P_CLASSNAME,      'face:%(mono)s,fore:#2222FF' % faces)
-        self.StyleSetSpec(stc.STC_P_DEFNAME,        'face:%(mono)s,fore:#2222FF' % faces)
-        self.StyleSetSpec(stc.STC_P_DECORATOR,      'face:%(mono)s,fore:#2222FF' % faces)
-        self.StyleSetSpec(stc.STC_P_OPERATOR,       'face:%(mono)s,fore:#000044,bold' % faces)
-        self.StyleSetSpec(stc.STC_P_IDENTIFIER,     'face:%(mono)s,fore:#000000' % faces)
-        self.StyleSetSpec(stc.STC_P_STRING,         'face:%(mono)s,fore:#007F7F,bold' % faces)
-        self.StyleSetSpec(stc.STC_P_STRINGEOL,      'face:%(mono)s,fore:#000000,back:#E0C0E0,eol' % faces)
-        self.StyleSetSpec(stc.STC_P_COMMENTLINE,    'face:%(mono)s,fore:#888888' % faces)
-        self.StyleSetSpec(stc.STC_P_COMMENTBLOCK,   'face:%(mono)s,fore:#999999' % faces)
-        self.StyleSetSpec(stc.STC_P_TRIPLE,         'face:%(mono)s,fore:#007F7F,bold' % faces)
-        self.StyleSetSpec(stc.STC_P_TRIPLEDOUBLE,   'face:%(mono)s,fore:#007F7F,bold' % faces)
+        self.StyleSetSpec(stc.STC_STYLE_DEFAULT, 'face:%(mono)s,fore:#000000,size:%(size)d' % faces)
 
-        self.SetLexer(stc.STC_LEX_PYTHON)
-        self.SetKeyWords(0, " ".join(keyword.kwlist))
+        if not skipLexer:
+            self.StyleSetSpec(stc.STC_STYLE_LINENUMBER, 'face:%(mono)s,fore:#999999,back:#EEEEEE' % faces)
+            self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT, 'face:%(mono)s,fore:#000000,back:#DDDDFF,bold' % faces)
+            self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,   'face:%(mono)s,fore:#000000,back:#FFCCCC,bold' % faces)
+            self.StyleSetSpec(stc.STC_P_DEFAULT,        'face:%(mono)s,fore:#000000,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_P_NUMBER,         'face:%(mono)s,fore:#007F7F' % faces)
+            self.StyleSetSpec(stc.STC_P_CHARACTER,      'face:%(mono)s,fore:#007F7F,bold' % faces)
+            self.StyleSetSpec(stc.STC_P_WORD,           'face:%(mono)s,fore:#1111EE' % faces)
+            self.StyleSetSpec(stc.STC_P_CLASSNAME,      'face:%(mono)s,fore:#2222FF' % faces)
+            self.StyleSetSpec(stc.STC_P_DEFNAME,        'face:%(mono)s,fore:#2222FF' % faces)
+            self.StyleSetSpec(stc.STC_P_DECORATOR,      'face:%(mono)s,fore:#2222FF' % faces)
+            self.StyleSetSpec(stc.STC_P_OPERATOR,       'face:%(mono)s,fore:#000044,bold' % faces)
+            self.StyleSetSpec(stc.STC_P_IDENTIFIER,     'face:%(mono)s,fore:#000000' % faces)
+            self.StyleSetSpec(stc.STC_P_STRING,         'face:%(mono)s,fore:#007F7F,bold' % faces)
+            self.StyleSetSpec(stc.STC_P_STRINGEOL,      'face:%(mono)s,fore:#000000,back:#E0C0E0,eol' % faces)
+            self.StyleSetSpec(stc.STC_P_COMMENTLINE,    'face:%(mono)s,fore:#888888' % faces)
+            self.StyleSetSpec(stc.STC_P_COMMENTBLOCK,   'face:%(mono)s,fore:#999999' % faces)
+            self.StyleSetSpec(stc.STC_P_TRIPLE,         'face:%(mono)s,fore:#007F7F,bold' % faces)
+            self.StyleSetSpec(stc.STC_P_TRIPLEDOUBLE,   'face:%(mono)s,fore:#007F7F,bold' % faces)
+
+            self.SetLexer(stc.STC_LEX_PYTHON)
+            self.SetKeyWords(0, " ".join(keyword.kwlist))
 
         self.IndicatorSetStyle(2, stc.STC_INDIC_SQUIGGLE)
         self.IndicatorSetForeground(2, wx.RED)
@@ -130,6 +133,9 @@ class PythonEditor(stc.StyledTextCtrl):
                 self.AddText("\n" + " "*numSpaces)
                 self.ScrollRange(self.GetCurrentPos(), self.GetCurrentPos())
                 self.SetXOffset(0)
+                if self.returnHandler and (numSpaces==0 or len(self.GetLine(self.GetCurrentLine()-1).strip())==0):
+                    # Call the return handler at the end of a single-line input, or after a blank line for multi-line input
+                    self.returnHandler()
                 return
         event.Skip()
 
@@ -225,6 +231,9 @@ class PythonEditor(stc.StyledTextCtrl):
                 self.MarkSyntaxError(startPos, min(2, remaining))
 
     def UpdateAC(self):
+        if not self.IsEditable():
+            return
+
         if self.IsInCommentOrString():
             # Don't autocomplete inside a comment or string
             if self.AutoCompActive():
@@ -262,7 +271,8 @@ class PythonEditor(stc.StyledTextCtrl):
             self.AutoCompCancel()
 
     def OnACCancelled(self, event):
-        self.cPanel.UpdateHelpText("")
+        if self.cPanel:
+            self.cPanel.UpdateHelpText("")
 
     def OnACSelectionChange(self, event):
         if not self.cPanel:

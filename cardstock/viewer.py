@@ -104,7 +104,7 @@ class ViewerFrame(wx.Frame):
                 # print(e)
                 wx.MessageDialog(None, str("Couldn't save file"), "", wx.OK).ShowModal()
 
-    def MakeMenuBar(self):
+    def MakeMenuBar(self, frame):
         # create the file menu
         fileMenu = wx.Menu()
         if not self.isStandalone and not self.designer:
@@ -133,8 +133,8 @@ class ViewerFrame(wx.Frame):
         # and the help menu
         helpMenu = wx.Menu()
         helpMenu.Append(wx.ID_ABOUT, "&About\tCtrl-H", "About CardStock")
-        helpMenu.Append(ID_SHOW_CONSOLE, "&Show/Hide Output Window\tCtrl-Alt-O", "Toggle Output Window")
-        helpMenu.Append(ID_CLEAR_CONSOLE, "&Clear Output Window\tCtrl-Alt-C", "Clear Output Window")
+        helpMenu.Append(ID_SHOW_CONSOLE, "&Show/Hide Console\tCtrl-Alt-O", "Toggle Console")
+        helpMenu.Append(ID_CLEAR_CONSOLE, "&Clear Console\tCtrl-Alt-C", "Clear Console")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
@@ -142,7 +142,7 @@ class ViewerFrame(wx.Frame):
             menuBar.Append(fileMenu, "&File")
         menuBar.Append(editMenu, "&Edit")
         menuBar.Append(helpMenu, "&Help")
-        self.SetMenuBar(menuBar)
+        frame.SetMenuBar(menuBar)
 
         self.Bind(wx.EVT_MENU,   self.OnMenuOpen, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU,   self.OnMenuSave, id=wx.ID_SAVE)
@@ -316,6 +316,7 @@ class ViewerFrame(wx.Frame):
             self.consoleWindow.Hide()
         else:
             self.consoleWindow.Show()
+            self.consoleWindow.Raise()
 
     def OnMenuClearConsoleWindow(self, event):
         self.consoleWindow.Clear()
@@ -366,6 +367,7 @@ class ViewerFrame(wx.Frame):
             self.rootRunner = runner
 
         self.stackStack.append([runner, stackModel, filename, cardIndex])
+        self.consoleWindow.runner = runner
         self.RunViewer(runner, stackModel, filename, cardIndex, setupValue, False)
 
     def PopStack(self, returnValue, isShuttingDown=False):
@@ -422,7 +424,9 @@ class ViewerFrame(wx.Frame):
         if not isGoingBack:
             runner.stackSetupValue = ioValue
         self.stackManager.runner = runner
-        self.MakeMenuBar()
+        self.MakeMenuBar(self)
+        if self.consoleWindow:
+            self.MakeMenuBar(self.consoleWindow)
         self.SetupViewerSize()
 
         if self.designer:

@@ -3,6 +3,7 @@ import ast
 import helpData
 import threading
 import re
+import types
 
 ANALYSIS_TIMEOUT = 1000  # in ms
 
@@ -118,7 +119,7 @@ class CodeAnalyzer(object):
 
         elif len(parts) > 0:
             p = parts[-1]
-            if p == "self":
+            if p == "self" and handlerObj:
                 return handlerObj.type
             elif p in self.objNames:
                 return self.objNames[p]
@@ -148,12 +149,13 @@ class CodeAnalyzer(object):
             names.extend(self.varNames)
             names.extend([s+"()" for s in self.funcNames])
             names.extend(self.objNames.keys())
-            if "Mouse" in handlerName: names.append("mousePos")
-            if "Key" in handlerName: names.append("keyName")
-            if "Periodic" in handlerName: names.append("elapsedTime")
-            if "KeyHold" in handlerName: names.append("elapsedTime")
-            if "Message" in handlerName: names.append("message")
-            if "Bounce" in handlerName: names.extend(["otherObject", "edge"])
+            if handlerName:
+                if "Mouse" in handlerName: names.append("mousePos")
+                if "Key" in handlerName: names.append("keyName")
+                if "Periodic" in handlerName: names.append("elapsedTime")
+                if "KeyHold" in handlerName: names.append("elapsedTime")
+                if "Message" in handlerName: names.append("message")
+                if "Bounce" in handlerName: names.extend(["otherObject", "edge"])
             names = [n for n in list(set(names)) if prefix.lower() in n.lower()]
             names.sort(key=str.casefold)
             return names
@@ -173,6 +175,17 @@ class CodeAnalyzer(object):
             attributes = [n for n in list(set(attributes)) if prefix.lower() in n.lower()]
             attributes.sort(key=str.casefold)
             return attributes
+
+    def SetRuntimeVarNames(self, varDict):
+        # Used for autocomplete from the Console window
+        self.varNames = set()
+        self.funcNames = set()
+        for k,v in varDict.items():
+            if isinstance(v, (types.FunctionType, types.BuiltinFunctionType, types.MethodType,
+                              types.BuiltinMethodType)):
+                self.funcNames.add(k)
+            else:
+                self.varNames.add(k)
 
     def CollectCode(self, model, path, codeDict):
         if model.type == "card":
@@ -215,7 +228,6 @@ class CodeAnalyzer(object):
             func()
         self.analysisPending = False
         self.analysisRunning = False
-
 
     def ParseWithFallback(self, code, path):
         try:
