@@ -583,7 +583,9 @@ class Runner():
                 func(*args, **kwargs)
             elif code:
                 try:
-                    print(eval(code, self.clientVars))
+                    result = eval(code, self.clientVars)
+                    if result is not None:
+                        print(result)
                 except SyntaxError:
                     exec(code, self.clientVars)
         except Exception as err:

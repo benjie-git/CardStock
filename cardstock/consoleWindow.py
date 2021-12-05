@@ -21,7 +21,8 @@ class ConsoleWindow(wx.Frame):
         self.textBox.returnHandler = self.OnReturn
         self.textBox.SetUseHorizontalScrollBar(False)
         self.textBox.SetWrapMode(stc.STC_WRAP_WORD)
-        self.textBox.SetMarginWidth(1, 0)
+        self.textBox.SetMarginType(1, wx.stc.STC_MARGIN_BACK)
+        self.textBox.SetMarginWidth(1, 3)
         self.textBox.EmptyUndoBuffer()
         #self.textBox.SetCaretStyle(stc.STC_CARETSTYLE_INVISIBLE)
         self.textBox.StyleSetSpec(INPUT_STYLE, "fore:#000000")
@@ -57,6 +58,7 @@ class ConsoleWindow(wx.Frame):
         super().Show(shown)
         self.SetSize((self.GetParent().GetSize().Width, 100))
         self.SetPosition(self.GetParent().GetPosition() + (0, self.GetParent().GetSize().Height))
+        self.UpdateAC()
 
     def Destroy(self):
         self.SetStreamsDown()
@@ -71,6 +73,12 @@ class ConsoleWindow(wx.Frame):
             event.GetEventObject().SetZoom(0)
 
     def OnChar(self, event):
+        if self.lastOutputPos == self.textBox.GetLastPosition():
+            # First char added to the line
+            self.UpdateAC()
+        event.Skip()
+
+    def UpdateAC(self):
         # Update the analyzer for autocomplete
         vars = self.runner.clientVars.copy()
         for v in self.runner.initialClientVars:
@@ -78,7 +86,6 @@ class ConsoleWindow(wx.Frame):
         if '__builtins__' in vars:
             vars.pop('__builtins__')
         self.runner.stackManager.analyzer.SetRuntimeVarNames(vars)
-        event.Skip()
 
     def GetCommandText(self):
         return self.textBox.GetTextRange(self.lastOutputPos, self.textBox.GetLastPosition())

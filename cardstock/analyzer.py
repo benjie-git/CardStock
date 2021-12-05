@@ -178,8 +178,11 @@ class CodeAnalyzer(object):
 
     def SetRuntimeVarNames(self, varDict):
         # Used for autocomplete from the Console window
+        self.objNames = {}
+        self.cardNames = []
         self.varNames = set()
         self.funcNames = set()
+        self.CollectObjs(self.stackManager.stackModel, [])
         for k,v in varDict.items():
             if isinstance(v, (types.FunctionType, types.BuiltinFunctionType, types.MethodType,
                               types.BuiltinMethodType)):
@@ -187,14 +190,22 @@ class CodeAnalyzer(object):
             else:
                 self.varNames.add(k)
 
-    def CollectCode(self, model, path, codeDict):
+    def CollectObjs(self, model, path):
         if model.type == "card":
             self.cardNames.append(model.GetProperty("name"))  # also collect all card names
         else:
             self.objNames[model.GetProperty("name")] = model.type  # and other object names, with their types
-
         if model.type != "stack":
             path.append(model.GetProperty("name"))
+        for child in model.childModels:
+            self.CollectObjs(child, path)
+        if model.type != "stack":
+            path.pop()
+
+    def CollectCode(self, model, path, codeDict):
+        if model.type != "stack":
+            path.append(model.GetProperty("name"))
+
         for k,v in model.handlers.items():
             if len(v):
                 codeDict[".".join(path)+"."+k] = v
@@ -212,6 +223,7 @@ class CodeAnalyzer(object):
         self.objNames = {}
         self.cardNames = []
         codeDict = {}
+        self.CollectObjs(self.stackManager.stackModel, [])
         self.CollectCode(self.stackManager.stackModel, [], codeDict)
 
         self.varNames = set()
