@@ -130,12 +130,15 @@ class PythonEditor(stc.StyledTextCtrl):
                 pos = self.GetCurrentPos()
                 if pos > 1 and self.GetCharAt(pos-1) == ord(":"):
                     numSpaces += TAB_WIDTH
-                self.AddText("\n" + " "*numSpaces)
+                if self.returnHandler and (numSpaces==0 or len(self.GetLine(self.GetCurrentLine()).strip())==0):
+                    # Call the return handler at the end of a single-line input, or after a blank line for multi-line input
+                    self.AddText("\n")
+                    self.returnHandler()
+                else:
+                    # indent the next line
+                    self.AddText("\n" + " "*numSpaces)
                 self.ScrollRange(self.GetCurrentPos(), self.GetCurrentPos())
                 self.SetXOffset(0)
-                if self.returnHandler and (numSpaces==0 or len(self.GetLine(self.GetCurrentLine()-1).strip())==0):
-                    # Call the return handler at the end of a single-line input, or after a blank line for multi-line input
-                    self.returnHandler()
                 return
         event.Skip()
 
