@@ -95,6 +95,7 @@ class ConsoleWindow(wx.Frame):
             text = text[:-1]
         self.textBox.Replace(self.lastOutputPos, self.textBox.GetLastPosition(), text)
         self.textBox.SetSelection(self.textBox.GetLastPosition(), self.textBox.GetLastPosition())
+        self.textBox.ScrollToEnd()
 
     def OnKeyDown(self, event):
         # Handle Up/Down arrow keys
@@ -170,12 +171,12 @@ class ConsoleWindow(wx.Frame):
         # Return key was pressed, and not for autocompletion, nor in the middle of a multiline command entry
         if self.textBox.GetCurrentPos() == self.textBox.GetLastPosition():
             code = self.GetCommandText()
+            self.lastOutputPos = self.textBox.GetLastPosition()
             if len(code.strip()) > 0:
                 history.append(code)
                 self.historyPos = None
-                self.lastOutputPos = self.textBox.GetLastPosition()
                 self.runner.EnqueueCode(code)
-                self.AppendText('> ', INPUT_STYLE, False)
+            self.AppendText('> ', INPUT_STYLE, False)
 
     def AppendText(self, text, style, beforeInput):
         scrollPos = self.textBox.GetScrollPos(wx.VERTICAL) + self.textBox.LinesOnScreen()
