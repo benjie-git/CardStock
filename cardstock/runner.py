@@ -14,12 +14,23 @@ import threading
 from codeRunnerThread import CodeRunnerThread, RunOnMainSync, RunOnMainAsync
 import queue
 import sanitizer
+from enum import Enum
 
 try:
     import simpleaudio
     SIMPLE_AUDIO_AVAILABLE = True
 except ModuleNotFoundError:
     SIMPLE_AUDIO_AVAILABLE = False
+
+
+class TaskType (Enum):
+    """ Types of tasks in the handlerQueue """
+    Wake = 1       # Wake up the handler thread
+    SetupCard = 2  # Set up for the card we just switched to
+    Handler = 3    # Run an event handler
+    Func = 4       # Run an arbitrary function with args and kwargs
+    Code = 5       # Run an arbitrary string as code
+    StopHandlingMouseEvent = 6  # Stop propagating the current mouse event
 
 
 class Runner():
@@ -148,7 +159,7 @@ class Runner():
         if threading.currentThread() == self.runnerThread:
             self.SetupForCardInternal(cardModel)
         else:
-            self.handlerQueue.put((cardModel,))
+            self.handlerQueue.put((TaskType.SetupCard, cardModel))
 
     def SetupForCardInternal(self, cardModel):
         """
@@ -185,7 +196,7 @@ class Runner():
             for card in self.stackManager.stackModel.childModels:
                 self.RunHandler(card, "OnExitStack", None)
             self.stackReturnQueue.put(None)  # Stop waiting for a RunStack() call to return
-            self.handlerQueue.put([]) # Wake up the runner thread get() call so it can see that we're stopping
+            self.handlerQueue.put((TaskType.Wake, )) # Wake up the runner thread get() call so it can see that we're stopping
 
             def waitAndYield(duration):
                 # Wait up to duration seconds for the stack to finish running
@@ -245,7 +256,7 @@ class Runner():
         self.stackSetupValue = None
 
     def EnqueueRefresh(self):
-        self.handlerQueue.put([])
+        self.handlerQueue.put((TaskType.Wake, ))
 
     def EnqueueFunction(self, func, *args, **kwargs):
         """
@@ -257,14 +268,14 @@ class Runner():
         """
         if not args: args = ()
         if not kwargs: kwargs = {}
-        self.handlerQueue.put([func, args, kwargs])
+        self.handlerQueue.put((TaskType.Func, func, args, kwargs))
 
     def EnqueueCode(self, code, *args, **kwargs):
         """
         Add a code string to be run on the runner queue.
         This is used to run code from the Console window in the viewer app.
         """
-        self.handlerQueue.put([code, None, None, None])
+        self.handlerQueue.put((TaskType.Code, code))
 
     def StartRunLoop(self):
         """
@@ -279,32 +290,32 @@ class Runner():
             while True:
                 runningOnExitStack = False
                 args = self.handlerQueue.get()
-                if len(args) == 0:
+                if args[0] == TaskType.Wake:
                     # This is an enqueued task meant to Refresh after running all other tasks,
                     # and also serves to wake up the runner thread for stopping.
                     if not self.stopRunnerThread:
                         self.stackManager.view.RefreshIfNeeded()
                     if self.stopRunnerThread:
                         break
-                elif len(args) == 1:
+                elif args[0] == TaskType.SetupCard:
                     # Run Setup for the given card
-                    self.SetupForCardInternal(*args)
-                elif len(args) == 2:
+                    self.SetupForCardInternal(args[1])
+                elif args[0] == TaskType.StopHandlingMouseEvent:
                     # Reset StopHandlingMouseEvent
                     self.stopHandlingMouseEvent = False
-                elif len(args) == 3:
+                elif args[0] == TaskType.Func:
                     # Run the given function with optional args, kwargs
-                    self.RunWithExceptionHandling(func=args[0], *args[1], **args[2])
-                elif len(args) == 4:
+                    self.RunWithExceptionHandling(func=args[1], *args[2], **args[3])
+                elif args[0] == TaskType.Code:
                     # Run the given code
-                    self.RunWithExceptionHandling(code=args[0])
-                elif len(args) == 6:
+                    self.RunWithExceptionHandling(code=args[1])
+                elif args[0] == TaskType.Handler:
                     # Run this handler
-                    self.lastCard = args[0].GetCard()
-                    self.RunHandlerInternal(*args)
-                    if args[1] == "OnExitStack":
+                    self.lastCard = args[1].GetCard()
+                    self.RunHandlerInternal(*args[1:])
+                    if args[2] == "OnExitStack":
                         runningOnExitStack = True
-                    if args[1] == "OnPeriodic":
+                    if args[2] == "OnPeriodic":
                         self.numOnPeriodicsQueued -= 1
 
                 if self.stopRunnerThread:
@@ -349,7 +360,7 @@ class Runner():
         else:
             if handlerName == "OnPeriodic":
                 self.numOnPeriodicsQueued += 1
-            self.handlerQueue.put((uiModel, handlerName, handlerStr, mousePos, keyName, arg))
+            self.handlerQueue.put((TaskType.Handler, uiModel, handlerName, handlerStr, mousePos, keyName, arg))
         return True
 
     def RunHandlerInternal(self, uiModel, handlerName, handlerStr, mousePos, keyName, arg):
@@ -895,7 +906,7 @@ class Runner():
         self.stackManager.view.TopLevelParent.OnMenuClose(None)
 
     def ResetStopHandlingMouseEvent(self):
-        self.handlerQueue.put(("Command", "ResetStopHandlingMouseEvent"))
+        self.handlerQueue.put((TaskType.StopHandlingMouseEvent, ))
 
     def StopHandlingMouseEvent(self):
         self.stopHandlingMouseEvent = True
