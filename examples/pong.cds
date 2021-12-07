@@ -14,9 +14,9 @@
       "type": "card",
       "handlers": {
         "OnSetup": "from random import randint",
-        "OnKeyDown": "if keyName == \"Space\":\n   # Only start a game if the ball wasn't already moving\n   if ball.speed.x == 0 and ball.speed.y == 0:\n      ball.SendMessage(\"StartGame\")\n",
+        "OnKeyDown": "if keyName == \"Space\":\n   ball.SendMessage(\"StartGame\")\n",
         "OnResize": "# Keep the label at the top, following the window's height\nlabel.position.y = card.size.height - label.size.height - 5",
-        "OnMouseDown": "if ball.speed.x == 0 and ball.speed.y == 0:\n   # Only start a game if the ball wasn't already moving\n   ball.SendMessage(\"StartGame\")\n",
+        "OnMouseDown": "ball.SendMessage(\"StartGame\")\n",
         "OnMouseMove": "# Make the paddle follow the mouse's X position\npaddle.center = [mousePos.x, 40]\n"
       },
       "properties": {
@@ -41,7 +41,8 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 18
+            "fontSize": 18,
+            "autoShrink": true
           }
         },
         {
@@ -79,9 +80,9 @@
         {
           "type": "oval",
           "handlers": {
-            "OnSetup": "self.Hide()",
-            "OnMessage": "if message == \"StartGame\":\n   self.speed.x = randint(200,400)\n   self.speed.y = self.speed.x - 800\n   self.position = [50,card.size.height - 80]\n   self.Show()\n   score = 0\n   label.text = score\n",
-            "OnPeriodic": "if self.IsTouching(paddle) and self.speed.y < 0:\n   # We hit the ball with the paddle!\n   # Switch vertical sign and inrease the score\n   self.speed.y = -self.speed.y\n   score += 1\n   label.text = score\n   \n   # Speed up or slow down horizontally\n   # based on which side of the paddle\n   # we hit\n   if ball.center.x < paddle.center.x:\n      self.speed.x -= randint(50,100)\n   elif ball.center.x > paddle.center.x:\n      self.speed.x += randint(50,100)\n   # keep the ball from getting too fast\n   self.speed.x = min(self.speed.x, 500)\n   self.speed.x = max(self.speed.x, -500)\n\n# Bounce if we hit a top or side\nif self.position.y +self.size.height >= card.size.height and self.speed.y > 0:\n   self.speed.y = -self.speed.y\nelif self.position.x <= 0 and self.speed.x < 0:\n   self.speed.x = -self.speed.x\nelif self.position.x + self.size.width >= card.size.width\\\n   and self.speed.x > 0:\n      self.speed.x = -self.speed.x\n\n# Lose if we hit the bottom of the card\nelif self.position.y <= 0 and self.speed.y < 0:\n      self.speed.x = 0\n      self.speed.y = 0\n      self.Hide()\n      label.text = \"Oh no!\"\n"
+            "OnSetup": "# Bounce off of the paddle, and the card's edges\nself.SetBounceObjects([paddle, card])\n\nself.Hide()\n",
+            "OnBounce": "if otherObject == paddle:\n   score += 1\n   label.text = score\n   \n   # Speed up or slow down horizontally\n   # based on which side of the paddle\n   # we hit\n   if ball.center.x < paddle.center.x:\n      self.speed.x -= randint(50,100)\n   elif ball.center.x > paddle.center.x:\n      self.speed.x += randint(50,100)\n   # keep the ball from getting too fast\n   self.speed.x = min(self.speed.x, 500)\n   self.speed.x = max(self.speed.x, -500)\n\nelif otherObject == card and edge == \"Bottom\":\n   # Lose if we hit the bottom of the card\n   self.speed = (0, 0)\n   self.Hide()\n   label.text = \"Oh no!\"\n",
+            "OnMessage": "if message == \"StartGame\":\n   # Only start a game if the ball wasn't already moving\n   if ball.speed.x == 0 and ball.speed.y == 0:\n      self.position = (100, card.size.height-100)\n      self.speed.x = randint(200,400)\n      self.speed.y = self.speed.x - 800\n      self.Show()\n      score = 0\n      label.text = score\n"
           },
           "properties": {
             "name": "ball",
@@ -116,5 +117,5 @@
     }
   ],
   "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9"
+  "CardStock_stack_version": "0.9.7"
 }
