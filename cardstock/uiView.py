@@ -216,6 +216,9 @@ class UiView(object):
                     continue
 
                 edges = self.model.GetProxy().IsTouchingEdge(other_ui.model.GetProxy(), mode == "In")
+                if mode == "In" and not edges:
+                    if not other_ui.model.GetProxy().IsTouchingPoint(self.model.GetCenter()):
+                        edges=["Top","Bottom","Right","Left"]  # Enqueue collision and pull back inside
                 if edges:
                     selfBounceAxes = ""
                     otherBounceAxes = ""
@@ -301,7 +304,7 @@ class UiView(object):
                     dy = sf.Bottom - of.Top
                 elif ss[1] < 0 and sf.Top < of.Bottom:
                     dy = sf.Top - of.Bottom
-        if dx != 0 and dy != 0:
+        if not selfBounceInside and dx != 0 and dy != 0:
             if abs(dx) > abs(dy):
                 dx = 0
             else:
@@ -1294,9 +1297,6 @@ class ViewProxy(object):
         if not isinstance(obj, ViewProxy):
             raise TypeError("obj must be a CardStock object")
 
-        if not skipIsTouchingCheck and not self.IsTouching(obj):
-            return None
-
         model = self._model
         oModel = obj._model
         if not model or not oModel: return None
@@ -1305,6 +1305,9 @@ class ViewProxy(object):
         @RunOnMainSync
         def f():
             if model.didSetDown or oModel.didSetDown: return None
+
+            if not skipIsTouchingCheck and not self.IsTouching(obj):
+                return None
 
             sf = model.GetAbsoluteFrame()  # self frame in card coords
             f = oModel.GetAbsoluteFrame() # other frame in card coords
