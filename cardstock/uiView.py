@@ -218,7 +218,13 @@ class UiView(object):
                 edges = self.model.GetProxy().IsTouchingEdge(other_ui.model.GetProxy(), mode == "In")
                 if mode == "In" and not edges:
                     if not other_ui.model.GetProxy().IsTouchingPoint(self.model.GetCenter()):
-                        edges=["Top","Bottom","Right","Left"]  # Enqueue collision and pull back inside
+                        edges = []
+                        sc = self.model.GetCenter()
+                        oc = other_ui.model.GetCenter()
+                        if sc[0] < oc[0]: edges.append("Left")
+                        if sc[0] > oc[0]: edges.append("Right")
+                        if sc[1] < oc[1]: edges.append("Bottom")
+                        if sc[1] > oc[1]: edges.append("Top")
                 if edges:
                     selfBounceAxes = ""
                     otherBounceAxes = ""
