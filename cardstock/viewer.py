@@ -172,6 +172,9 @@ class ViewerFrame(wx.Frame):
         fileMenu.Append(ID_SHOW_CONSOLE, "&Close\tCtrl-W", "Close Console")
 
         editMenu = wx.Menu()
+        editMenu.Append(wx.ID_UNDO, "&Undo\tCtrl-Z", "Undo Action")
+        editMenu.Append(wx.ID_REDO, "&Redo\tCtrl-Shift-Z", "Redo Action")
+        editMenu.AppendSeparator()
         editMenu.Append(wx.ID_CUT,  "C&ut\tCtrl-X", "Cut Selection")
         editMenu.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
         editMenu.Append(wx.ID_PASTE,"&Paste\tCtrl-V", "Paste Selection")
@@ -190,8 +193,8 @@ class ViewerFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU,   self.OnMenuClose, id=wx.ID_CLOSE)
 
-        self.Bind(wx.EVT_MENU,  self.OnUndo, id=wx.ID_UNDO)
-        self.Bind(wx.EVT_MENU,  self.OnRedo, id=wx.ID_REDO)
+        self.Bind(wx.EVT_MENU,  self.consoleWindow.DoUndo, id=wx.ID_UNDO)
+        self.Bind(wx.EVT_MENU,  self.consoleWindow.DoRedo, id=wx.ID_REDO)
         self.Bind(wx.EVT_MENU,  self.OnCut, id=wx.ID_CUT)
         self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)

@@ -2,13 +2,14 @@ import wx
 import wx.stc as stc
 from io import StringIO
 import pythonEditor
+from wx.lib.docview import CommandProcessor, Command
 import sys
 
 INPUT_STYLE = stc.STC_STYLE_DEFAULT
 OUTPUT_STYLE = 28
 ERR_STYLE = 29
 
-history = []
+cmdHistory = []
 
 
 class ConsoleWindow(wx.Frame):
@@ -23,18 +24,11 @@ class ConsoleWindow(wx.Frame):
         self.textBox.SetWrapMode(stc.STC_WRAP_WORD)
         self.textBox.SetMarginType(1, wx.stc.STC_MARGIN_BACK)
         self.textBox.SetMarginWidth(1, 3)
-        self.textBox.EmptyUndoBuffer()
         #self.textBox.SetCaretStyle(stc.STC_CARETSTYLE_INVISIBLE)
         self.textBox.StyleSetSpec(INPUT_STYLE, "fore:#000000")
         self.textBox.StyleSetSpec(ERR_STYLE, "fore:#aa0000")
         self.textBox.StyleSetSpec(OUTPUT_STYLE, "fore:#555555")
-        self.textBox.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
-        self.textBox.Bind(stc.EVT_STC_CHARADDED, self.OnChar)
-        self.textBox.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        self.textBox.Bind(stc.EVT_STC_UPDATEUI, self.UpdateEditable)
 
-        self.Bind(wx.EVT_SIZE, self.OnResize)
-        self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.timer = None
         self.stdoutIO = None
         self.stderrIO = None
@@ -45,14 +39,26 @@ class ConsoleWindow(wx.Frame):
         self.hasShown = False
         self.textBox.ChangeValue("> ")
         self.lastOutputPos = 2
+        self.oldCmdText = ""
+        self.oldCmdSelection = (0,0)
         self.textBox.SetSelection(2, 2)
         self.needsNewPrompt = False
         self.historyPos = None  # None means we're on live input, not history
+        self.command_processor = CommandProcessor()
+        self.skipChanges = False
         self.workingCommand = None
         self.Hide()
         self.SetStreamsUp()
         self.SetMenuBar(parent.GetMenuBar())
         self.runner = None
+
+        self.textBox.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
+        self.textBox.Bind(stc.EVT_STC_CHARADDED, self.OnChar)
+        self.textBox.Bind(stc.EVT_STC_CHANGE, self.OnTextChange)
+        self.textBox.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.textBox.Bind(stc.EVT_STC_UPDATEUI, self.UpdateEditable)
+        self.Bind(wx.EVT_SIZE, self.OnResize)
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
 
     def Show(self, shown=True):
         super().Show(shown)
@@ -72,9 +78,40 @@ class ConsoleWindow(wx.Frame):
         if z != 0:
             event.GetEventObject().SetZoom(0)
 
+    def DoUndo(self, event=None):
+        if self.command_processor.CanUndo():
+            self.skipChanges = True
+            self.command_processor.Undo()
+            self.oldCmdText = self.GetCommandText()
+            self.skipChanges = False
+
+    def DoRedo(self, event=None):
+        if self.command_processor.CanRedo():
+            self.skipChanges = True
+            self.command_processor.Redo()
+            self.oldCmdText = self.GetCommandText()
+            self.skipChanges = False
+
+    def ClearUndoHistory(self):
+        self.command_processor.ClearCommands()
+        self.oldCmdText = self.GetCommandText()
+        self.oldCmdSelection = (0,0)
+
+    def OnTextChange(self, event):
+        if not self.skipChanges:
+            newText = self.GetCommandText()
+            if newText != self.oldCmdText:
+                newSel = self.oldCmdSelection[0] + len(newText) - len(self.oldCmdText)
+                newSel = (newSel, newSel)
+                command = TextEditCommand(True, "Change Text", self, self.oldCmdText, newText, self.oldCmdSelection, newSel)
+                self.command_processor.Submit(command)
+                self.oldCmdText = newText
+                self.oldCmdSelection = newSel
+        event.Skip()
+
     def OnChar(self, event):
         if self.lastOutputPos == self.textBox.GetLastPosition():
-            # First char added to the line
+            # On first char added to the line, update AutoComplete data
             self.UpdateAC()
         event.Skip()
 
@@ -96,6 +133,8 @@ class ConsoleWindow(wx.Frame):
         self.textBox.Replace(self.lastOutputPos, self.textBox.GetLastPosition(), text)
         self.textBox.SetSelection(self.textBox.GetLastPosition(), self.textBox.GetLastPosition())
         self.textBox.ScrollToEnd()
+        if not self.skipChanges:
+            self.ClearUndoHistory()
 
     def OnKeyDown(self, event):
         # Handle Up/Down arrow keys
@@ -103,20 +142,20 @@ class ConsoleWindow(wx.Frame):
             key = event.GetKeyCode()
             if key in [wx.WXK_UP, wx.WXK_NUMPAD_UP]:
                 if self.historyPos is None:
-                    if len(history):
+                    if len(cmdHistory):
                         self.workingCommand = self.GetCommandText()
-                        self.historyPos = len(history)-1
-                        self.SetCommandText(history[self.historyPos])
+                        self.historyPos = len(cmdHistory) - 1
+                        self.SetCommandText(cmdHistory[self.historyPos])
                 elif self.historyPos > 0:
                     self.historyPos -= 1
-                    self.SetCommandText(history[self.historyPos])
+                    self.SetCommandText(cmdHistory[self.historyPos])
                 return
-            elif key in [wx.WXK_DOWN, wx.WXK_NUMPAD_DOWN] and len(history):
-                if self.historyPos is not None and self.historyPos < len(history)-1:
+            elif key in [wx.WXK_DOWN, wx.WXK_NUMPAD_DOWN] and len(cmdHistory):
+                if self.historyPos is not None and self.historyPos < len(cmdHistory)-1:
                     self.historyPos += 1
-                    self.SetCommandText(history[self.historyPos])
+                    self.SetCommandText(cmdHistory[self.historyPos])
                     return
-                elif self.historyPos == len(history)-1:
+                elif self.historyPos == len(cmdHistory)-1:
                     self.historyPos = None
                     self.SetCommandText(self.workingCommand)
                     return
@@ -173,10 +212,11 @@ class ConsoleWindow(wx.Frame):
             code = self.GetCommandText()
             self.lastOutputPos = self.textBox.GetLastPosition()
             if len(code.strip()) > 0:
-                history.append(code)
+                cmdHistory.append(code)
                 self.historyPos = None
                 self.runner.EnqueueCode(code)
             self.AppendText('> ', INPUT_STYLE, False)
+            self.ClearUndoHistory()
 
     def AppendText(self, text, style, beforeInput):
         scrollPos = self.textBox.GetScrollPos(wx.VERTICAL) + self.textBox.LinesOnScreen()
@@ -185,6 +225,7 @@ class ConsoleWindow(wx.Frame):
 
         self.textBox.SetEditable(True)
 
+        self.skipChanges = True
         start = self.textBox.GetLastPosition()
         insertPos = (self.lastOutputPos-2) if beforeInput else start
         self.textBox.InsertText(insertPos, text)
@@ -196,6 +237,7 @@ class ConsoleWindow(wx.Frame):
         self.lastOutputPos += insertedLen
         self.textBox.SetSelection(selPos[0]+insertedLen, selPos[1]+insertedLen)
         self.UpdateEditable()
+        self.skipChanges = False
 
         if scrollPos > scrollRange - 4:
             self.textBox.ScrollToEnd()
@@ -219,4 +261,29 @@ class ConsoleWindow(wx.Frame):
             # The user backspaced into non-editable text!
             self.lastOutputPos -= 1
             self.AppendText(' ', INPUT_STYLE, False)
+
+
+class TextEditCommand(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.console = args[2]
+        self.oldText = args[3]
+        self.newText = args[4]
+        self.oldSel = args[5]
+        self.newSel = args[6]
+        self.didRun = False
+
+    def Do(self):
+        if self.didRun:
+            self.console.SetCommandText(self.newText)
+            s = [max(0,n+self.console.lastOutputPos) for n in self.newSel]
+            self.console.textBox.SetSelection(*s)
+        self.didRun = True
+        return True
+
+    def Undo(self):
+        self.console.SetCommandText(self.oldText)
+        s = [max(0,n+self.console.lastOutputPos) for n in self.oldSel]
+        self.console.textBox.SetSelection(*s)
+        return True
 
