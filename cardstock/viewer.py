@@ -104,7 +104,7 @@ class ViewerFrame(wx.Frame):
                 # print(e)
                 wx.MessageDialog(None, str("Couldn't save file"), "", wx.OK).ShowModal()
 
-    def MakeMenuBar(self, frame):
+    def MakeMenuBar(self):
         # create the file menu
         fileMenu = wx.Menu()
         if not self.isStandalone and not self.designer:
@@ -142,7 +142,7 @@ class ViewerFrame(wx.Frame):
             menuBar.Append(fileMenu, "&File")
         menuBar.Append(editMenu, "&Edit")
         menuBar.Append(helpMenu, "&Help")
-        frame.SetMenuBar(menuBar)
+        self.SetMenuBar(menuBar)
 
         self.Bind(wx.EVT_MENU,   self.OnMenuOpen, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU,   self.OnMenuSave, id=wx.ID_SAVE)
@@ -162,6 +162,39 @@ class ViewerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuFindNext, id=ID_MENU_FIND_NEXT)
         self.Bind(wx.EVT_MENU, self.OnMenuFindPrevious, id=ID_MENU_FIND_PREV)
         self.Bind(wx.EVT_MENU, self.OnMenuReplace, id=ID_MENU_REPLACE)
+
+        self.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
+        self.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
+
+    def MakeConsoleMenuBar(self):
+        # create the file menu
+        fileMenu = wx.Menu()
+        fileMenu.Append(ID_SHOW_CONSOLE, "&Close\tCtrl-W", "Close Console")
+
+        editMenu = wx.Menu()
+        editMenu.Append(wx.ID_CUT,  "C&ut\tCtrl-X", "Cut Selection")
+        editMenu.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
+        editMenu.Append(wx.ID_PASTE,"&Paste\tCtrl-V", "Paste Selection")
+
+        # and the help menu
+        helpMenu = wx.Menu()
+        helpMenu.Append(ID_SHOW_CONSOLE, "&Hide Console\tCtrl-Alt-O", "Toggle Console")
+        helpMenu.Append(ID_CLEAR_CONSOLE, "&Clear Console\tCtrl-Alt-C", "Clear Console")
+
+        # and add them to a menubar
+        menuBar = wx.MenuBar()
+        menuBar.Append(fileMenu, "&File")
+        menuBar.Append(editMenu, "&Edit")
+        menuBar.Append(helpMenu, "&Help")
+        self.consoleWindow.SetMenuBar(menuBar)
+
+        self.Bind(wx.EVT_MENU,   self.OnMenuClose, id=wx.ID_CLOSE)
+
+        self.Bind(wx.EVT_MENU,  self.OnUndo, id=wx.ID_UNDO)
+        self.Bind(wx.EVT_MENU,  self.OnRedo, id=wx.ID_REDO)
+        self.Bind(wx.EVT_MENU,  self.OnCut, id=wx.ID_CUT)
+        self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
+        self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
 
         self.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
         self.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
@@ -424,9 +457,9 @@ class ViewerFrame(wx.Frame):
         if not isGoingBack:
             runner.stackSetupValue = ioValue
         self.stackManager.runner = runner
-        self.MakeMenuBar(self)
+        self.MakeMenuBar()
         if self.consoleWindow:
-            self.MakeMenuBar(self.consoleWindow)
+            self.MakeConsoleMenuBar()
         self.SetupViewerSize()
 
         if self.designer:
