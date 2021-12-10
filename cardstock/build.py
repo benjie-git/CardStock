@@ -18,10 +18,6 @@ try:
 except ModuleNotFoundError:
     pass
 
-if wx.Platform != "__WXMAC__":
-    import simpleaudio
-    EXTRA_MODULES.append("simpleaudio")
-
 """PyInstaller commands for building the standalone Designer and Viewer apps on Mac and Windows"""
 
 

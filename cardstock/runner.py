@@ -15,12 +15,7 @@ from codeRunnerThread import CodeRunnerThread, RunOnMainSync, RunOnMainAsync
 import queue
 import sanitizer
 from enum import Enum
-
-try:
-    import simpleaudio
-    SIMPLE_AUDIO_AVAILABLE = True
-except ModuleNotFoundError:
-    SIMPLE_AUDIO_AVAILABLE = False
+import simpleaudio
 
 
 class TaskType (Enum):
@@ -834,28 +829,17 @@ class Runner():
         if filepath in self.soundCache:
             s = self.soundCache[filepath]
         else:
-            if SIMPLE_AUDIO_AVAILABLE:
-                s = simpleaudio.WaveObject.from_wave_file(filepath)
-            else:
-                s = Sound(filepath)
-                if not s.IsOk():
-                    s = None
+            s = simpleaudio.WaveObject.from_wave_file(filepath)
             if s:
                 self.soundCache[filepath] = s
             else:
                 raise ValueError("No readable audio file at '" + filepath + "'")
 
         if s:
-            if SIMPLE_AUDIO_AVAILABLE:
-                s.play()
-            else:
-                s.Play()
+            s.play()
 
     def StopSound(self):
-        if SIMPLE_AUDIO_AVAILABLE:
-            simpleaudio.stop_all()
-        else:
-            Sound.Stop()
+        simpleaudio.stop_all()
 
     @RunOnMainSync
     def Paste(self):

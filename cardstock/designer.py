@@ -968,7 +968,7 @@ class DesignerFrame(wx.Frame):
     def WriteConfig(self):
         config = configparser.ConfigParser()
         last_file = self.filename if self.filename else ""
-        if os.path.samefile(os.path.dirname(last_file), self.GetExamplesDir()):
+        if last_file and os.path.samefile(os.path.dirname(last_file), self.GetExamplesDir()):
             if self.configInfo and "last_open_file" in self.configInfo:
                 last_file = self.configInfo["last_open_file"]
         self.configInfo = {"last_open_file": last_file,
