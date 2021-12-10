@@ -13,7 +13,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "import random\n\nlabels = [label_1, label_2, label_3, label_4, label_5,\n   label_6, label_7, label_8, label_9]\n\ndef reset():\n   digits = \"123456789\"\n\n   digitList = list(digits)\n   random.shuffle(digitList)\n   numberStr = ''.join(digitList)\n\n   for i in range(9):\n      labels[i].text = numberStr[i]\n\ndef swap(num):\n   str = [label.text for label in labels[:num]]\n   for i in range(num):\n      labels[i].text = str[num-i-1]\n   \n   if ''.join([label.text for label in labels]) == \"123456789\":\n      SoundPlay(\"yay.wav\")\n      Wait(2)\n      reset()\n\nreset()"
+        "OnSetup": "import random\n\nlabels = [label_1, label_2, label_3, label_4, label_5,\n   label_6, label_7, label_8, label_9]\n\ndef reset():\n   digits = \"123456789\"\n\n   digitList = list(digits)\n   random.shuffle(digitList)\n   numberStr = ''.join(digitList)\n\n   for i in range(9):\n      labels[i].text = numberStr[i]\n\ndef swap(num):\n   str = [label.text for label in labels[:num]]\n   for i in range(num):\n      labels[i].text = str[num-i-1]\n   \n   if ''.join([label.text for label in labels]) == \"123456789\":\n      PlaySound(\"yay.wav\")\n      Wait(2)\n      reset()\n\nreset()"
       },
       "properties": {
         "name": "card_1",

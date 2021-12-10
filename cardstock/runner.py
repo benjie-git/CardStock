@@ -103,8 +103,8 @@ class Runner():
             "GotoNextCard": self.GotoNextCard,
             "GotoPreviousCard": self.GotoPreviousCard,
             "RunStack": self.RunStack,
-            "SoundPlay": self.SoundPlay,
-            "SoundStop": self.SoundStop,
+            "PlaySound": self.PlaySound,
+            "StopSound": self.StopSound,
             "BroadcastMessage": self.BroadcastMessage,
             "IsKeyPressed": self.IsKeyPressed,
             "IsMouseDown": self.IsMouseDown,
@@ -238,7 +238,7 @@ class Runner():
         self.StopTimers()
         self.lastHandlerStack = None
         self.lastCard = None
-        self.SoundStop()
+        self.StopSound()
         self.soundCache = None
         self.cardVarKeys = None
         self.clientVars = None
@@ -819,7 +819,7 @@ class Runner():
 
         return func()
 
-    def SoundPlay(self, filepath):
+    def PlaySound(self, filepath):
         if not isinstance(filepath, str):
             raise TypeError("filepath must be a string")
 
@@ -851,7 +851,7 @@ class Runner():
             else:
                 s.Play()
 
-    def SoundStop(self):
+    def StopSound(self):
         if SIMPLE_AUDIO_AVAILABLE:
             simpleaudio.stop_all()
         else:

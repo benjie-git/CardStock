@@ -22,7 +22,7 @@
           "type": "roundrect",
           "handlers": {
             "OnMouseMove": "self.center = mousePos\n",
-            "OnMessage": "if message == \"reset\":\n   SoundPlay(\"click.wav\")\n   self.position = (10, 10)\nelif message == \"win\":\n   SoundPlay(\"yay.wav\")\n   self.position = (10, 10)\n"
+            "OnMessage": "if message == \"reset\":\n   PlaySound(\"click.wav\")\n   self.position = (10, 10)\nelif message == \"win\":\n   PlaySound(\"yay.wav\")\n   self.position = (10, 10)\n"
           },
           "properties": {
             "name": "ball",

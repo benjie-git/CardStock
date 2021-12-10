@@ -372,11 +372,11 @@ class HelpDataGlobals():
                                         "you can call this <b>GetStackSetupValue()</b> function "
                                         "to get the setupValue that was passed in from the calling stack.  Otherwise this "
                                         "will return None."},
-        "SoundPlay": {"args": {"file": {"type": "string",
+        "PlaySound": {"args": {"file": {"type": "string",
                                         "info": "This is the filename of the .wav format audio file to play, relative to where the stack file lives."}},
                       "return": None,
                       "info": "Starts playing the .wav formatted sound file at location <b>file</b>."},
-        "SoundStop": {"args": {},
+        "StopSound": {"args": {},
                       "return": None,
                       "info": "Stops all currently playing sounds."},
         "BroadcastMessage": {"args": {"message": {"type": "string",

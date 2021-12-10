@@ -681,7 +681,7 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "SoundPlay(\"yay.wav\")\nWait(2)\nGotoCard(lastCardName)\n"
+        "OnShowCard": "PlaySound(\"yay.wav\")\nWait(2)\nGotoCard(lastCardName)\n"
       },
       "properties": {
         "name": "correct",
