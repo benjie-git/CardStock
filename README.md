@@ -26,17 +26,22 @@ The guiding principles behind my vision for CardStock are the following, in orde
 
 ### More Advanced
 * You can animate most properties of objects, to bring your creations to life.
-* You can **import** other python packages into your code, and use them make web requests and display the results, control robots, or run machine learning code, all from within your CardStock stack.
+* Objects can have speed, and can be set up to automatically bounce off of other objects.
+* You can **import** other python modules into your code, and use them make web requests and display the results, control robots, or run machine learning code, all from within your CardStock stack.
 * Basic IDE features, like syntax highlighting, underlining syntax errors while editing, and autocomplete for objects, variables, functions, methods, properties.
+* Run python commands in an interactive Console window while your stack runs, to check or set variable values, call functions, or any other python you want to run.
 * View all code used in a whole stack in one place, and click a line to jump to that line in that object's code for that event.
 * View recent error messages, and click one to jump to the offending line of code in the Designer.
 * You can export a stack into a standalone application that you can share and distribute.
 
 ### Future Plans
-* Allow exporting a stack as a web page, to allow running it on any web-capable platform
-* Allow filling shapes with color gradients
-* Add python async support?
-* Add app icons for the CardStock Designer and Viewer
+* Allow exporting a stack as a web page, to allow running it on any web-capable platform.
+* Add a rotation property (like on Images) to all shapes and text labels too.
+* Add a WebView object type, to allow viewing web content within a stack.
+* Update the code editor UI to show all code for an object in one place.
+* Allow filling shapes with color gradients.
+* Add app icons for the CardStock Designer and Viewer.
+
 ________
 ## Known Issues
 * Buttons and text fields always remain in front of shapes and images, which get drawn directly on the card view.
@@ -46,21 +51,26 @@ ________
 ## Requirements
 The prebuilt applications for Mac and Windows have no external dependencies.
 
-Running CardStock from source requires Python 3.7 or newer (3.9+ recommended), and wxPython 4.1 or newer.
-For more responsive Sound playing on Windows, and for any sound playing on Linux, you can optionally install the 
-python module simpleaudio.  To export standalone applications, install the python module pyinstaller.
+Running CardStock from source requires Python 3.7 or newer (3.9.x recommended), and wxPython 4.1 or newer.
+CardStock also requires installing the modules simpleaudio, PyInstaller, and requests.
 
 ## Installation
-You can either, run it from source:
+You can either:
+
+### 1. Run it from source:
 1. install python3
 2. Linux-only: apt install libasound2-dev libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
-3. Linux and Windows: pip install simpleaudio
-4. pip install wxpython PyInstaller requests  # note that wxpython can take a long time to build
-5. download or clone this repository
-6. run designer.py and viewer.py as desired
-7. or run build.py to create your own standalone applications for the Designer and Viewer applications.
+3. pip install wxpython PyInstaller simpleaudio requests  # note that wxpython can take a long time to build
+4. download or clone this repository
+5. run designer.py and viewer.py as desired
+6. optionally run build.py to create your own standalone applications for the Designer and Viewer applications.
 
-Or download the latest, pre-built CardStock application for Mac or Windows here:
+### 2. Install using pip/pypi:
+1. Linux-only: apt install libasound2-dev libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
+2. pip install cardstock  # note that the dependency wxpython can take a very long time to build
+3. run using the newly installed commands cardstock and cardstock_viewer
+
+### 3. Or download the latest, pre-built CardStock application for Mac or Windows here:
 https://github.com/benjie-git/CardStock/releases/latest
 
 ## Reference
