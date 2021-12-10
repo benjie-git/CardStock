@@ -325,11 +325,17 @@ class HelpDataGlobals():
         "Paste": {"args": {}, "return": "list",
                   "info": "Pastes any CardStock objects in the clipboard from a previous Copy or Cut command onto the "
                           "current card, and returns a list of these pasted objects."},
-        "Alert": {"args": {"message": {"type": "string", "info": "Text to show in the Alert dialog."}}, "return": None,
+        "Alert": {"args": {"message": {"type": "any", "info": "Text to show in the Alert dialog."}}, "return": None,
                   "info": "Shows an alert dialog to the user, with the <b>message</b> you provide, and offers an OK button."},
-        "Ask": {"args": {"message": {"type": "string", "info": "Text to show in the Ask dialog."}}, "return": "bool",
+        "AskYesNo": {"args": {"message": {"type": "any", "info": "Text to show in the dialog."}}, "return": "bool",
                 "info": "Shows an alert dialog to the user, with the <b>message</b> you provide, and offers Yes and No "
                         "buttons.  Returns True if Yes is clicked, and False if No is clicked."},
+        "AskText": {"args": {"message": {"type": "any", "info": "Alert text to show in the dialog."},
+                             "defaultResponse": {"type": "any", "info": "An optional default value to pre-fill the result field."}},
+                    "return": "string",
+                "info": "Shows an alert dialog to the user, with the <b>message</b> you provide, and a text field "
+                        "to enter a response, along with Ok and Cancel buttons.  Returns the user-entered text in the "
+                        "response field if the Ok button is clicked, or None if Cancel is clicked."},
         "GotoCard": {"args": {"card": {"type": "(object, string, or int)", "info": "A card object, a card name, or the number of a card to go to."}}, "return": None,
                      "info": "Goes to the card passed in as <b>card</b>, the card with the name passed in as <b>card</b>, "
                              "or the card number passed in as <b>card</b>.  This sends the OnHideCard event "
@@ -1036,7 +1042,7 @@ class HelpDataCard():
                                 "from the File Close menu item, the Quit() function, the ReturnFromStack() function,"
                                 "or closing the stack viewer window.  You can use this to clean up any external "
                                 "resources -- for example, closing files.  This event needs to run quickly, so it's "
-                                "not able to call functions like Alert(), Ask(), RunStack(), etc."},
+                                "not able to call functions like Alert(), AskText(), AskYesNo(), RunStack(), etc."},
         "OnResize": {"args": {},
                      "info": "The <b>OnResize</b> event is run on the currently visible card when the stack window is "
                              "resized."},

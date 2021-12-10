@@ -97,7 +97,8 @@ class Runner():
             "Distance": self.Distance,
             "Paste": self.Paste,
             "Alert": self.Alert,
-            "Ask": self.Ask,
+            "AskYesNo": self.AskYesNo,
+            "AskText": self.AskText,
             "GotoCard": self.GotoCard,
             "GotoNextCard": self.GotoNextCard,
             "GotoPreviousCard": self.GotoPreviousCard,
@@ -785,9 +786,6 @@ class Runner():
         return math.sqrt((pointB[0] - pointA[0]) ** 2 + (pointB[1] - pointA[1]) ** 2)
 
     def Alert(self, message):
-        if not isinstance(message, str):
-            raise TypeError("message must be a string")
-
         if self.stopRunnerThread:
             return
 
@@ -796,18 +794,30 @@ class Runner():
             wx.MessageDialog(None, str(message), "", wx.OK).ShowModal()
         func()
 
-    def Ask(self, message):
-        if not isinstance(message, str):
-            raise TypeError("message must be a string")
-
+    def AskYesNo(self, message):
         if self.stopRunnerThread:
             return None
 
         @RunOnMainSync
         def func():
-            return wx.MessageDialog(None, str(message), "", wx.YES_NO).ShowModal()
+            return wx.MessageDialog(None, str(message), "", wx.YES_NO).ShowModal() == wx.ID_YES
 
-        return (func() == wx.ID_YES)
+        return func()
+
+    def AskText(self, message, defaultResponse=None):
+        if self.stopRunnerThread:
+            return None
+
+        @RunOnMainSync
+        def func():
+            dlg = wx.TextEntryDialog(None, str(message), '')
+            if defaultResponse is not None:
+                dlg.SetValue(str(defaultResponse))
+            if dlg.ShowModal() == wx.ID_OK:
+                return dlg.GetValue()
+            return None
+
+        return func()
 
     def SoundPlay(self, filepath):
         if not isinstance(filepath, str):
