@@ -36,6 +36,7 @@ event-driven python code.  It is inspired by the simplicity and power of Apple's
         html = wx.html.HtmlWindow(self, -1)
         html.SetPage(self.GetHTML())
         button = wx.Button(self, wx.ID_OK, "Okay")
+        html.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
         # Set up the layout with a Sizer
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -46,6 +47,12 @@ event-driven python code.  It is inspired by the simplicity and power of Apple's
 
         self.CentreOnParent(wx.BOTH)
         wx.CallAfter(button.SetFocus)
+
+    def OnKeyDown(self, event):
+        code = event.GetKeyCode()
+        if code == wx.WXK_ESCAPE or (code == ord("W") and event.ControlDown()):
+            self.Close()
+        event.Skip()
 
 
 class CardStockManual(wx.Frame):
@@ -284,6 +291,7 @@ sound files that your stack uses, and will include any external python modules t
         htmlStr = self.GetHTML()
         # print(htmlStr)
         html.SetPage(htmlStr)
+        html.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
         # Set up the layout with a Sizer
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -293,6 +301,11 @@ sound files that your stack uses, and will include any external python modules t
 
         self.CentreOnParent(wx.BOTH)
 
+    def OnKeyDown(self, event):
+        code = event.GetKeyCode()
+        if code == wx.WXK_ESCAPE or (code == ord("W") and event.ControlDown()):
+            self.Close()
+        event.Skip()
 
 class CardStockReference(wx.Frame):
     """ A help window that uses an HTML view.  This is the Reference Guide, which lists and explains the details of
@@ -421,6 +434,7 @@ information on how to use CardStock, see the CardStock Manual in the Help menu.<
         htmlStr = self.GetHTML()
         # print(htmlStr)
         self.html.SetPage(htmlStr)
+        self.html.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
         toc = wx.html.HtmlWindow(self.splitter)
         toc.SetPage(HelpData.TOCPage())
@@ -437,3 +451,9 @@ information on how to use CardStock, see the CardStock Manual in the Help menu.<
     def TOCLinkClicked(self, event):
         self.html.ScrollToAnchor(event.GetLinkInfo().Href)
         return True
+
+    def OnKeyDown(self, event):
+        code = event.GetKeyCode()
+        if code == wx.WXK_ESCAPE or (code == ord("W") and event.ControlDown()):
+            self.Close()
+        event.Skip()
