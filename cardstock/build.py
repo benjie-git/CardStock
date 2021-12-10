@@ -55,7 +55,7 @@ if wx.Platform == "__WXMAC__":
     os.mkdir(package_dir)
     shutil.move("dist/CardStock_Designer.app", package_dir)
     shutil.move("dist/CardStock_Viewer.app", package_dir)
-    shutil.copytree("../examples", package_dir + "CardStock_Designer.app/Contents/MacOS/examples")
+    shutil.copytree("../examples", package_dir + "/CardStock_Designer.app/Contents/MacOS/examples")
     shutil.copy("../README.md", package_dir)
     shutil.copy("../LICENSE", package_dir)
 
