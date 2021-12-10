@@ -439,6 +439,7 @@ information on how to use CardStock, see the CardStock Manual in the Help menu.<
         toc = wx.html.HtmlWindow(self.splitter)
         toc.SetPage(HelpData.TOCPage())
         toc.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.TOCLinkClicked)
+        toc.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
         self.splitter.SplitVertically(toc, self.html)
         self.splitter.SetMinimumPaneSize(120)
