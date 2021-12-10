@@ -222,11 +222,33 @@ in the File menu.  Then just close your running stack window to return to the De
 
 <br/><br/>
 
+<h2>Moving Objects</h2>
+
+<p>There are a few ways to get objects on a card to move.  You can set an object's position or center to instantly move 
+the object to that position, for example: object.center = [100,200].  Or you can animate an object's position or 
+center to move it smoothly from its current position to the new one, for example: object.AnimateCenter(1.5, [100,200]) 
+to smoothly move the object over 1.5 seconds.</p>
+
+<p>Another way to make an object move is to give it a non-zero speed value.  Speed in CardStock is given in pixels per 
+second for both x and y axes.  To make an object start moving diagonally up and right, you can set
+object.speed=[100,100].  It will then keep moving in that direction (including past the edge of the card) until you 
+change its speed again.  Setting the speed to [0,0] will make it stop moving.  If you want an object to automatically 
+bounce off of the edge of the card, or off of other objects, you can call SetBounceObjects() with a list of the objects
+you would like it to bounce off of, for example object.SetBounceObjects([card, button_1]).  This is used in the pong 
+example stack to make the ball bounce off of the card edges, and the paddle.</p>
+
+<p>An easy way to make an object's movement look like it is being affected by gravity is to give the object a speed, and
+then add a line like self.speed.y -= 30 into the object's OnPeriodic() event.</p>
+
+<br/><br/>
+
 <h2>Other Features</h2>
 
 <p>If your stack makes any print() calls, or otherwise causes any text to get written out to the console (to stdout or 
-stderr), this will appear in the Viewer application's Output window, which will appear on the first non-error text 
-written out.<p>
+stderr), this will appear in the Viewer application's Console window, which will automatically appear on the first 
+non-error text written out.  You can also open the Console manually using the "Show/Hide Console" menu item.  The 
+Console window also allows you to enter commands while your stack is running.  You can interactively check variable 
+values, and call functions to help debug your code.<p>
 
 <p>If any errors come up while running your stack, you will see them in the status bar at the bottom the running stack's
 window.  Any errors will also appear after your return to the Designer, in the red-colored Error List window that will
