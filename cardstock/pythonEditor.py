@@ -132,7 +132,6 @@ class PythonEditor(stc.StyledTextCtrl):
                     numSpaces += TAB_WIDTH
                 if self.returnHandler and (numSpaces==0 or len(self.GetLine(self.GetCurrentLine()).strip())==0):
                     # Call the return handler at the end of a single-line input, or after a blank line for multi-line input
-                    self.AddText("\n")
                     self.returnHandler()
                 else:
                     # indent the next line

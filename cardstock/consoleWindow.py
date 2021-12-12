@@ -208,15 +208,16 @@ class ConsoleWindow(wx.Frame):
 
     def OnReturn(self):
         # Return key was pressed, and not for autocompletion, nor in the middle of a multiline command entry
-        if self.textBox.GetCurrentPos() == self.textBox.GetLastPosition():
-            code = self.GetCommandText()
-            self.lastOutputPos = self.textBox.GetLastPosition()
-            if len(code.strip()) > 0:
-                cmdHistory.append(code)
-                self.historyPos = None
-                self.runner.EnqueueCode(code)
-            self.AppendText('> ', INPUT_STYLE, False)
-            self.ClearUndoHistory()
+        code = self.GetCommandText()
+        self.textBox.AppendText('\n')
+        self.lastOutputPos = self.textBox.GetLastPosition()
+        self.textBox.SetSelection(self.lastOutputPos, self.lastOutputPos)
+        if len(code.strip()) > 0:
+            cmdHistory.append(code)
+            self.historyPos = None
+            self.runner.EnqueueCode(code)
+        self.AppendText('> ', INPUT_STYLE, False)
+        self.ClearUndoHistory()
 
     def AppendText(self, text, style, beforeInput):
         scrollPos = self.textBox.GetScrollPos(wx.VERTICAL) + self.textBox.LinesOnScreen()
