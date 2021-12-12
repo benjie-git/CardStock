@@ -85,6 +85,7 @@ You can either:
 
 ## Reference
 * [CardStock Wiki](https://github.com/benjie-git/CardStock/wiki)
+* [CardStock on Reddit](https://www.reddit.com/r/CardStockPython/)
 * [CardStock Manual](https://github.com/benjie-git/CardStock/wiki/Manual)
 * [CardStock Tutorial](https://github.com/benjie-git/CardStock/wiki/Tutorial)
 * [CardStock Reference Guide](https://github.com/benjie-git/CardStock/wiki/Reference)
