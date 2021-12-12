@@ -70,8 +70,18 @@ You can either:
 2. pip install cardstock  # note that the dependency wxpython can take a very long time to build
 3. run using the newly installed commands cardstock and cardstock_viewer
 
-### 3. Or download the latest, pre-built CardStock application for Mac or Windows here:
-https://github.com/benjie-git/CardStock/releases/latest
+### 3. Or download the latest, pre-built CardStock application for Mac or Windows
+1. Download CardStock for Mac or Windows here: https://github.com/benjie-git/CardStock/releases/latest
+2. Note that these pre-built apps are not code-signed, so MacOS and Windows will complain.  To open CardStock anyway, follow the instructions below.
+#### MacOS
+1. In the Finder on your Mac, find the CardStock_Designer app. (Don’t use Launchpad to do this. Launchpad doesn’t allow you to access the shortcut menu.)
+2. Control-click (or right-click) the app icon, then choose "Open" from the shortcut menu.
+3. Click "Open" in the alert window that appears.  The app is saved as an exception to your security settings, and you can open it in the future by double-clicking it just as you can any registered app.
+
+#### Windows 10
+1. Double-click CardStock_Designer to open the app.
+2. If a window appears saying "Windows protected your PC", click the More Info link at the end of the warning paragraph, and then the "Run Anyway" button that appears at the bottom of the window.
+
 
 ## Reference
 * [CardStock Wiki](https://github.com/benjie-git/CardStock/wiki)
