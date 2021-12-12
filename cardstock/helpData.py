@@ -392,6 +392,11 @@ class HelpDataGlobals():
                          "return": "bool",
                          "info": "Returns <b>True</b> if the left mouse button is currently pressed down, otherwise "
                                  "returns <b>False</b>."},
+        "GetMousePos": {"args": {},
+                         "return": "point",
+                         "info": "Returns the current position of the mouse, whether or not it is inside of the stack "
+                                 "window.  This point's x and y values can be negative, if the mouse is to the left "
+                                 "or below the bottom left corner of the stack window."},
         "StopHandlingMouseEvent": {"args": {},
                                    "return": None,
                                    "info": "If you call this function from your event code for any OnMouseDown(), OnMouseMove(), "

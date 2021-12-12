@@ -17,7 +17,7 @@
         "OnKeyDown": "if keyName == \"Space\":\n   ball.SendMessage(\"StartGame\")\n",
         "OnResize": "# Keep the label at the top, following the window's height\nlabel.position.y = card.size.height - label.size.height - 5",
         "OnMouseDown": "ball.SendMessage(\"StartGame\")\n",
-        "OnMouseMove": "# Make the paddle follow the mouse's X position\npaddle.center = [mousePos.x, 40]\n"
+        "OnPeriodic": "# Make the paddle follow the mouse's X position\n# but keep it on-screen.\nx = min(max(GetMousePos().x, 0), card.size.width)\npaddle.center = [x, 40]\n"
       },
       "properties": {
         "name": "card_1",
