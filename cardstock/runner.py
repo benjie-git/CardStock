@@ -861,9 +861,7 @@ class Runner():
 
     @RunOnMainSync
     def GetMousePos(self):
-        pos = self.stackManager.view.ScreenToClient(*wx.GetMousePosition())
-        flippedPos = wx.Point(pos.x, self.stackManager.view.GetSize().height-pos.y)
-        return pos
+        return self.stackManager.view.ScreenToClient(*wx.GetMousePosition())
 
     def MakeColor(self, r, g, b):
         if not isinstance(r, (float, int)) or not 0 <= r <= 1:

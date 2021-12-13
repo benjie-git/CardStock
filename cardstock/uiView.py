@@ -1170,25 +1170,25 @@ class ViewProxy(object):
         if not model: return
         model.PerformFlips(False, True)
 
-    @RunOnMainAsync
+    @RunOnMainSync
     def OrderToFront(self):
         model = self._model
         if not model: return
         model.OrderMoveTo(-1)
 
-    @RunOnMainAsync
+    @RunOnMainSync
     def OrderForward(self):
         model = self._model
         if not model: return
         model.OrderMoveBy(1)
 
-    @RunOnMainAsync
+    @RunOnMainSync
     def OrderBackward(self):
         model = self._model
         if not model: return
         model.OrderMoveBy(-1)
 
-    @RunOnMainAsync
+    @RunOnMainSync
     def OrderToBack(self):
         model = self._model
         if not model: return
