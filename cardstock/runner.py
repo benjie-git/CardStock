@@ -109,7 +109,7 @@ class Runner():
             "StopHandlingMouseEvent": self.StopHandlingMouseEvent,
             "ReturnFromStack": self.ReturnFromStack,
             "GetStackSetupValue": self.GetStackSetupValue,
-            "MakeColor": self.MakeColor,
+            "MakeColor": self.MakeColor
         }
 
         self.clientVars = self.initialClientVars.copy()
@@ -678,6 +678,15 @@ class Runner():
     def ClearPressedKeys(self):
         self.pressedKeys = []
         self.keyTimings = {}
+
+    def GetClientVars(self):
+        # Update the analyzer for autocomplete
+        vars = self.clientVars.copy()
+        for v in self.initialClientVars:
+            vars.pop(v)
+        if '__builtins__' in vars:
+            vars.pop('__builtins__')
+        return vars
 
     @RunOnMainAsync
     def SetFocus(self, obj):

@@ -117,11 +117,7 @@ class ConsoleWindow(wx.Frame):
 
     def UpdateAC(self):
         # Update the analyzer for autocomplete
-        vars = self.runner.clientVars.copy()
-        for v in self.runner.initialClientVars:
-            vars.pop(v)
-        if '__builtins__' in vars:
-            vars.pop('__builtins__')
+        vars = self.runner.GetClientVars()
         self.runner.stackManager.analyzer.SetRuntimeVarNames(vars)
 
     def GetCommandText(self):
