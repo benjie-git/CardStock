@@ -703,7 +703,7 @@ class Runner():
 
     def BroadcastMessage(self, message):
         if not isinstance(message, str):
-            raise TypeError("message must be a string")
+            raise TypeError("BroadcastMessage(): message must be a string")
 
         self.RunHandler(self.stackManager.uiCard.model, "OnMessage", None, message)
         for ui in self.stackManager.uiCard.GetAllUiViews():
@@ -718,7 +718,7 @@ class Runner():
         elif isinstance(card, int):
             index = card-1
         else:
-            raise TypeError("card must be card object, a string, or an int")
+            raise TypeError("GotoCard(): card must be card object, a string, or an int")
 
         if index is None:
             for m in self.stackManager.stackModel.childModels:
@@ -727,10 +727,10 @@ class Runner():
         if index is not None:
             if index < 0 or index >= len(self.stackManager.stackModel.childModels):
                 # Modify index back to 1 based for user visible error message
-                raise ValueError(f'card number {index + 1} does not exist')
+                raise ValueError(f'GotoCard(): card number {index + 1} does not exist')
             self.stackManager.LoadCardAtIndex(index)
         else:
-            raise ValueError("cardName '" + cardName + "' does not exist")
+            raise ValueError("GotoCard(): cardName '" + cardName + "' does not exist")
 
     def GotoNextCard(self):
         cardIndex = self.stackManager.cardIndex + 1
@@ -753,7 +753,7 @@ class Runner():
             else:
                 raise RuntimeError("Return")
         else:
-            raise RuntimeError(f"Couldn't find stack '{filename}'.")
+            raise RuntimeError(f"RunStack(): Couldn't find stack '{filename}'.")
 
     def ReturnFromStack(self, result=None):
         stackReturnValue = sanitizer.SanitizeValue(result, [])
@@ -767,7 +767,7 @@ class Runner():
         try:
             delay = float(delay)
         except ValueError:
-            raise TypeError("delay must be a number")
+            raise TypeError("Wait(): delay must be a number")
 
         endTime = time() + delay
         while time() < endTime:
@@ -783,11 +783,11 @@ class Runner():
         try:
             pointA = wx.RealPoint(pointA[0], pointA[1])
         except:
-            raise ValueError("pointA must be a point or a list of two numbers")
+            raise ValueError("Distance(): pointA must be a point or a list of two numbers")
         try:
             pointB = wx.RealPoint(pointB[0], pointB[1])
         except:
-            raise ValueError("pointB must be a point or a list of two numbers")
+            raise ValueError("Distance(): pointB must be a point or a list of two numbers")
         return math.sqrt((pointB[0] - pointA[0]) ** 2 + (pointB[1] - pointA[1]) ** 2)
 
     def Alert(self, message):
@@ -826,7 +826,7 @@ class Runner():
 
     def PlaySound(self, filepath):
         if not isinstance(filepath, str):
-            raise TypeError("filepath must be a string")
+            raise TypeError("PlaySound(): filepath must be a string")
 
         if self.stopRunnerThread:
             return
@@ -834,7 +834,7 @@ class Runner():
         filepath = self.stackManager.resPathMan.GetAbsPath(filepath)
 
         if not os.path.exists(filepath):
-            raise ValueError("No readable audio file at '" + filepath + "'")
+            raise ValueError("PlaySound(): No file at '" + filepath + "'")
 
         if filepath in self.soundCache:
             s = self.soundCache[filepath]
@@ -843,7 +843,7 @@ class Runner():
             if s:
                 self.soundCache[filepath] = s
             else:
-                raise ValueError("No readable audio file at '" + filepath + "'")
+                raise ValueError("PlaySound(): Couldn't read audio file at '" + filepath + "'")
 
         if s:
             s.play()
@@ -860,7 +860,7 @@ class Runner():
 
     def IsKeyPressed(self, name):
         if not isinstance(name, str):
-            raise TypeError("name must be a string")
+            raise TypeError("IsKeyPressed(): name must be a string")
 
         return name in self.pressedKeys
 
@@ -874,11 +874,11 @@ class Runner():
 
     def MakeColor(self, r, g, b):
         if not isinstance(r, (float, int)) or not 0 <= r <= 1:
-            raise TypeError("r must be a number between 0 and 1")
+            raise TypeError("MakeColor(): r must be a number between 0 and 1")
         if not isinstance(g, (float, int)) or not 0 <= g <= 1:
-            raise TypeError("g must be a number between 0 and 1")
+            raise TypeError("MakeColor(): g must be a number between 0 and 1")
         if not isinstance(b, (float, int)) or not 0 <= b <= 1:
-            raise TypeError("b must be a number between 0 and 1")
+            raise TypeError("MakeColor(): b must be a number between 0 and 1")
         r, g, b = (int(r * 255), int(g * 255), int(b * 255))
         return f"#{r:02X}{g:02X}{b:02X}"
 
@@ -886,7 +886,7 @@ class Runner():
         try:
             duration = float(duration)
         except ValueError:
-            raise TypeError("duration must be a number")
+            raise TypeError("RunAfterDelay(): duration must be a number")
 
         startTime = time()
 

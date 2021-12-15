@@ -309,9 +309,9 @@ class Card(ViewProxy):
 
     def AnimateBgColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("duration must be a number")
+            raise TypeError("AnimateBgColor(): duration must be a number")
         if not isinstance(endVal, str):
-            raise TypeError("endColor must be a string")
+            raise TypeError("AnimateBgColor(): endColor must be a string")
 
         model = self._model
         if not model: return
@@ -377,18 +377,18 @@ class Card(ViewProxy):
 
     def AddLine(self, points, name="line", **kwargs):
         if not isinstance(points, (list, tuple)):
-            raise TypeError("points should be a list of points")
+            raise TypeError("AddLine(): points should be a list of points")
         if len(points) < 2:
-            raise TypeError("points should be a list of at least 2 points")
+            raise TypeError("AddLine(): points should be a list of at least 2 points")
         for p in points:
             if not isinstance(p, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
-                raise TypeError("points items each need to be a point or a list of two numbers")
+                raise TypeError("AddLine(): points items each need to be a point or a list of two numbers")
             if len(p) != 2:
-                raise TypeError("points items each need to be a point or a list of two numbers")
+                raise TypeError("AddLine(): points items each need to be a point or a list of two numbers")
             try:
                 int(p[0]), int(p[1])
             except:
-                raise ValueError("points items each need to be a point or a list of two numbers")
+                raise ValueError("AddLine(): points items each need to be a point or a list of two numbers")
 
         model = self._model
         if not model: return None
@@ -398,18 +398,18 @@ class Card(ViewProxy):
 
     def AddPolygon(self, points, name="polygon", **kwargs):
         if not isinstance(points, (list, tuple)):
-            raise TypeError("points should be a list of points")
+            raise TypeError("AddPolygon(): points should be a list of points")
         if len(points) < 2:
-            raise TypeError("points should be a list of at least 2 points")
+            raise TypeError("AddPolygon(): points should be a list of at least 2 points")
         for p in points:
             if not isinstance(p, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
-                raise TypeError("points items each need to be a point or a list of two numbers")
+                raise TypeError("AddPolygon(): points items each need to be a point or a list of two numbers")
             if len(p) != 2:
-                raise TypeError("points items each need to be a point or a list of two numbers")
+                raise TypeError("AddPolygon(): points items each need to be a point or a list of two numbers")
             try:
                 int(p[0]), int(p[1])
             except:
-                raise ValueError("points items each need to be a point or a list of two numbers")
+                raise ValueError("AddPolygon(): points items each need to be a point or a list of two numbers")
 
         model = self._model
         if not model: return None
@@ -421,7 +421,7 @@ class Card(ViewProxy):
         models = []
         for o in objects:
             if not isinstance(o, ViewProxy):
-                raise TypeError("objects must be a list of objects")
+                raise TypeError("AddGroup(): objects must be a list of objects")
             if o._model.type not in ["card", "stack"] and o._model.GetCard() == self._model:
                 models.append(o._model)
 

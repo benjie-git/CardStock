@@ -954,7 +954,7 @@ class ViewProxy(object):
 
     def SendMessage(self, message):
         if not isinstance(message, str):
-            raise TypeError("message must be a string")
+            raise TypeError("SendMessage(): message must be a string")
 
         model = self._model
         if not model: return
@@ -994,7 +994,7 @@ class ViewProxy(object):
                 if hasattr(newModel.GetProxy(), k):
                     setattr(newModel.GetProxy(), k, v)
                 else:
-                    raise TypeError(f"unable to set property {k}")
+                    raise TypeError(f"Clone(): unable to set property {k}")
 
             model.GetCard().AddChild(newModel)
             newModel.RunSetup(model.stackManager.runner)
@@ -1023,7 +1023,7 @@ class ViewProxy(object):
                     if hasattr(newModel.GetProxy(), k):
                         setattr(newModel.GetProxy(), k, v)
                     else:
-                        raise TypeError(f"unable to set property {k}")
+                        raise TypeError(f"Clone(): unable to set property {k}")
 
                 return newModel
             newModel = func()
@@ -1202,13 +1202,13 @@ class ViewProxy(object):
 
     def OrderToIndex(self, i):
         if not isinstance(i, int):
-            raise TypeError("index must be a number")
+            raise TypeError("OrderToIndex(): index must be a number")
 
         model = self._model
         if not model: return
 
         if i < 0 or i >= len(model.parent.childModels):
-            raise TypeError("index is out of bounds")
+            raise TypeError("OrderToIndex(): index is out of bounds")
 
         @RunOnMainSync
         def f():
@@ -1241,29 +1241,29 @@ class ViewProxy(object):
         model = self._model
         if not model: return
         if not isinstance(eventName, str):
-            raise TypeError("eventName must be a string")
+            raise TypeError("SetEventHandler(): eventName must be a string")
         if not isinstance(code, str):
-            raise TypeError("code must be a string")
+            raise TypeError("SetEventHandler(): code must be a string")
         if eventName not in model.handlers:
-            raise TypeError(f"this object has no event handler called '{eventName}'")
+            raise TypeError(f"SetEventHandler(): this object has no event handler called '{eventName}'")
 
         model.handlers[eventName] = code
 
     def SetBounceObjects(self, objects):
         if not isinstance(objects, (list, tuple)):
-            raise TypeError("objects needs to be a list of cardstock objects")
+            raise TypeError("SetBounceObjects(): objects needs to be a list of cardstock objects")
         models = [o._model for o in objects if isinstance(o, ViewProxy)]
         self._model.SetBounceModels(models)
 
     def IsTouchingPoint(self, point):
         if not isinstance(point, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
-            raise TypeError("point needs to be a point or a list of two numbers")
+            raise TypeError("IsTouchingPoint(): point needs to be a point or a list of two numbers")
         if len(point) != 2:
-            raise TypeError("point needs to be a point or a list of two numbers")
+            raise TypeError("IsTouchingPoint(): point needs to be a point or a list of two numbers")
         try:
             int(point[0]), int(point[1])
         except:
-            raise ValueError("point needs to be a point or a list of two numbers")
+            raise ValueError("IsTouchingPoint(): point needs to be a point or a list of two numbers")
 
         model = self._model
         if not model: return False
@@ -1282,7 +1282,7 @@ class ViewProxy(object):
 
     def IsTouching(self, obj):
         if not isinstance(obj, ViewProxy):
-            raise TypeError("obj must be a CardStock object")
+            raise TypeError("IsTouching(): obj must be a CardStock object")
 
         model = self._model
         oModel = obj._model
@@ -1307,7 +1307,7 @@ class ViewProxy(object):
 
     def IsTouchingEdge(self, obj, skipIsTouchingCheck=False):
         if not isinstance(obj, ViewProxy):
-            raise TypeError("obj must be a CardStock object")
+            raise TypeError("IsTouchingEdge(): obj must be a CardStock object")
 
         model = self._model
         oModel = obj._model
@@ -1352,11 +1352,11 @@ class ViewProxy(object):
 
     def AnimatePosition(self, duration, endPosition, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("duration must be a number")
+            raise TypeError("AnimatePosition(): duration must be a number")
         try:
             endPosition = wx.RealPoint(endPosition)
         except:
-            raise ValueError("endPosition must be a point or a list of two numbers")
+            raise ValueError("AnimatePosition(): endPosition must be a point or a list of two numbers")
 
         model = self._model
         if not model: return
@@ -1383,11 +1383,11 @@ class ViewProxy(object):
 
     def AnimateCenter(self, duration, endCenter, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("duration must be a number")
+            raise TypeError("AnimateCenter(): duration must be a number")
         try:
             endCenter = wx.RealPoint(endCenter)
         except:
-            raise ValueError("endCenter must be a point or a list of two numbers")
+            raise ValueError("AnimateCenter(): endCenter must be a point or a list of two numbers")
 
         model = self._model
         if not model: return
@@ -1414,11 +1414,11 @@ class ViewProxy(object):
 
     def AnimateSize(self, duration, endSize, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("duration must be a number")
+            raise TypeError("AnimateSize(): duration must be a number")
         try:
             endSize = wx.Size(endSize)
         except:
-            raise ValueError("endSize must be a size or a list of two numbers")
+            raise ValueError("AnimateSize(): endSize must be a size or a list of two numbers")
 
         model = self._model
         if not model: return

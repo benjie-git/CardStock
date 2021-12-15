@@ -229,9 +229,9 @@ class TextBaseProxy(ViewProxy):
 
     def AnimateTextColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("duration must be a number")
+            raise TypeError("AnimateTextColor(): duration must be a number")
         if not isinstance(endVal, str):
-            raise TypeError("endColor must be a string")
+            raise TypeError("AnimateTextColor(): endColor must be a string")
 
         model = self._model
         if not model: return

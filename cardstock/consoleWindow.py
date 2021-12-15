@@ -60,11 +60,13 @@ class ConsoleWindow(wx.Frame):
         self.Bind(wx.EVT_SIZE, self.OnResize)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
-    def Show(self, shown=True):
-        super().Show(shown)
-        self.SetSize((self.GetParent().GetSize().Width, 100))
-        self.SetPosition(self.GetParent().GetPosition() + (0, self.GetParent().GetSize().Height))
-        self.UpdateAC()
+    def Show(self, doShow=True):
+        super().Show(doShow)
+        if doShow and not self.hasShown:
+            self.SetSize((self.GetParent().GetSize().Width, 100))
+            self.SetPosition(self.GetParent().GetPosition() + (0, self.GetParent().GetSize().Height))
+            self.UpdateAC()
+            self.hasShown = True
 
     def Destroy(self):
         self.SetStreamsDown()
@@ -249,7 +251,6 @@ class ConsoleWindow(wx.Frame):
 
                 if not self.hasShown:
                     self.Show()
-                    self.hasShown = True
             return pos + len(s)
 
         self.stdoutPos = readStream(self.stdoutIO, self.stdoutPos, self.old_stdout)

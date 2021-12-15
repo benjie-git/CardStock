@@ -294,11 +294,11 @@ class Image(ViewProxy):
 
     def AnimateRotation(self, duration, endRotation, onFinished=None, forceDirection=0, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("duration must be a number")
+            raise TypeError("AnimateRotation(): duration must be a number")
         if not isinstance(endRotation, (int, float)):
-            raise TypeError("endRotation must be a number")
+            raise TypeError("AnimateRotation(): endRotation must be a number")
         if not isinstance(forceDirection, (int, float)):
-            raise TypeError("forceDirection must be a number")
+            raise TypeError("AnimateRotation(): forceDirection must be a number")
 
         model = self._model
         if not model: return

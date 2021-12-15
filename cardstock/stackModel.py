@@ -146,17 +146,17 @@ class Stack(ViewProxy):
         model = self._model
         if model.didSetDown: return None
         if not isinstance(number, int):
-            raise TypeError("number is not an int")
+            raise TypeError("CardWithNumber(): number is not an int")
         if number < 1 or number > len(model.childModels):
-            raise ValueError("number is out of bounds")
+            raise ValueError("CardWithNumber(): number is out of bounds")
         return model.childModels[number-1].GetProxy()
 
     def AddCard(self, name="card", atNumber=0):
         if not isinstance(name, str):
-            raise TypeError("name is not a string")
+            raise TypeError("AddCard(): name is not a string")
         atNumber = int(atNumber)
         if atNumber < 0 or atNumber > len(self._model.childModels)+1:
-            raise ValueError("atNumber is out of bounds")
+            raise ValueError("AddCard(): atNumber is out of bounds")
 
         @RunOnMainSync
         def func():

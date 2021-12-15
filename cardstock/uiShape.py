@@ -378,9 +378,9 @@ class Line(ViewProxy):
 
     def AnimatePenThickness(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("duration must be a number")
+            raise TypeError("AnimatePenThickness(): duration must be a number")
         if not isinstance(endVal, (int, float)):
-            raise TypeError("endThickness must be a number")
+            raise TypeError("AnimatePenThickness(): endThickness must be a number")
 
         model = self._model
         if not model: return
@@ -400,9 +400,9 @@ class Line(ViewProxy):
 
     def AnimatePenColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("duration must be a number")
+            raise TypeError("AnimatePenColor(): duration must be a number")
         if not isinstance(endVal, str):
-            raise TypeError("endColor must be a string")
+            raise TypeError("AnimatePenColor(): endColor must be a string")
 
         model = self._model
         if not model: return
@@ -487,9 +487,9 @@ class Shape(Line):
 
     def AnimateFillColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("duration must be a number")
+            raise TypeError("AnimateFillColor(): duration must be a number")
         if not isinstance(endVal, str):
-            raise TypeError("endColor must be a string")
+            raise TypeError("AnimateFillColor(): endColor must be a string")
 
         model = self._model
         if not model: return
@@ -553,9 +553,9 @@ class RoundRect(Shape):
 
     def AnimateCornerRadius(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("duration must be a number")
+            raise TypeError("AnimateCornerRadius(): duration must be a number")
         if not isinstance(endVal, (int, float)):
-            raise TypeError("endCornerRadius must be a number")
+            raise TypeError("AnimateCornerRadius(): endCornerRadius must be a number")
 
         model = self._model
         if not model: return
