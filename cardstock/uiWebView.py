@@ -29,6 +29,7 @@ class UiWebView(UiView):
         self.webView.Bind(wx.html2.EVT_WEBVIEW_NAVIGATED, self.OnDidLoad)
         self.webView.Bind(wx.html2.EVT_WEBVIEW_ERROR, self.OnDidError)
         if self.stackManager.isEditing:
+            self.webView.Disable()
             self.cover = wx.Window(parent=container, size=s)
             self.BindEvents(self.cover)
 
