@@ -35,7 +35,7 @@ class ControlPanel(wx.Panel):
         self.fillColor = "white"
         self.penThickness = 4
         self.isContextHelpEnabled = True
-        numCols = 11
+        numCols = 12
         spacing = 6
 
         btnSize = wx.Size(self.BMP_SIZE + 2*self.BMP_BORDER,
