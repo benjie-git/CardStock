@@ -24,6 +24,7 @@ from uiButton import UiButton
 from uiTextField import UiTextField
 from uiTextLabel import UiTextLabel
 from uiImage import UiImage, ImageModel
+from uiWebView import UiWebView
 from uiShape import UiShape
 from uiGroup import UiGroup, GroupModel
 from codeRunnerThread import RunOnMainSync, RunOnMainAsync
@@ -558,6 +559,8 @@ class StackManager(object):
             uiView = UiTextLabel(self.uiCard, self, model)
         elif objType == "image":
             uiView = UiImage(self.uiCard, self, model)
+        elif objType == "webview":
+            uiView = UiWebView(self.uiCard, self, model)
         elif objType == "group":
             uiView = UiGroup(self.uiCard, self, model)
         elif objType in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
@@ -1047,6 +1050,8 @@ class StackManager(object):
                     self.designer.cPanel.SetToolByName("label")
                 elif code == ord('I'):
                     self.designer.cPanel.SetToolByName("image")
+                elif code == ord('W'):
+                    self.designer.cPanel.SetToolByName("webview")
                 elif code == ord('P'):
                     self.designer.cPanel.SetToolByName("pen")
                 elif code == ord('O'):

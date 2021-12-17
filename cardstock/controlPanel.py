@@ -23,9 +23,9 @@ class ControlPanel(wx.Panel):
     BMP_SIZE = 25
     BMP_BORDER = 4
 
-    toolNames = ["hand", "button", "field", "label", "image",
+    toolNames = ["hand", "button", "field", "label", "webview", "image",
                  "pen", "oval", "rect", "roundrect", "poly", "line"]
-    tooltips = ["Hand (Esc)", "Button (B)", "Text Field (F)", "Text Label (T)", "Image (I)",
+    tooltips = ["Hand (Esc)", "Button (B)", "Text Field (F)", "Text Label (T)", "Web View (W)", "Image (I)",
                 "Pen (P)", "Oval (O)", "Rectangle (R)", "Round Rectangle (D)", "Polygon (G)", "Line (L)"]
 
     def __init__(self, parent, ID, stackManager):

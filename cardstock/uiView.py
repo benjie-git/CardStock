@@ -429,6 +429,7 @@ class UiView(object):
         'OnMouseUp':    "OnMouseUp(mousePos):",
         'OnMouseEnter': "OnMouseEnter(mousePos):",
         'OnMouseExit':  "OnMouseExit(mousePos):",
+        'OnDoneLoading':"OnDoneLoading(url, didLoad):",
         'OnBounce':     "OnBounce(otherObject, edge)",
         'OnMessage':    "OnMessage(message):",
         'OnKeyDown':    "OnKeyDown(keyName):",
@@ -544,6 +545,7 @@ class ViewModel(object):
                         "textfield": "TextField",
                         "textlabel": "TextLabel",
                         "image": "Image",
+                        "webview": "WebView",
                         "pen": "Pen",
                         "line": "Line",
                         "rect": "Rectangle",
@@ -827,6 +829,12 @@ class ViewModel(object):
             elif propType == "size":
                 val = ast.literal_eval(valStr)
                 if not isinstance(val, (list, tuple)) or len(val) != 2:
+                    raise Exception()
+            elif propType == "list":
+                if valStr == "":
+                    valStr = "[]"
+                val = ast.literal_eval(valStr)
+                if not isinstance(val, (list, tuple)):
                     raise Exception()
         except:
             return None

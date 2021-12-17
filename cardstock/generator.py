@@ -3,6 +3,7 @@ import uiButton
 import uiTextField
 import uiTextLabel
 import uiImage
+import uiWebView
 import uiShape
 import uiGroup
 import uiCard
@@ -24,6 +25,8 @@ class StackGenerator(object):
             return uiTextLabel.UiTextLabel(parent, stackManager, model)
         elif model.type == "image":
             return uiImage.UiImage(parent, stackManager, model)
+        elif model.type == "webview":
+            return uiWebView.UiWebView(parent, stackManager, model)
         elif model.type == "group":
             return uiGroup.UiGroup(parent, stackManager, model)
         elif model.type in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
@@ -43,6 +46,8 @@ class StackGenerator(object):
             m = uiTextLabel.TextLabelModel(stackManager)
         elif data["type"] == "image":
             m = uiImage.ImageModel(stackManager)
+        elif data["type"] == "webview":
+            m = uiWebView.WebViewModel(stackManager)
         elif data["type"] == "group":
             m = uiGroup.GroupModel(stackManager)
         elif data["type"] in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
@@ -63,6 +68,8 @@ class StackGenerator(object):
             m = uiTextLabel.TextLabelModel(stackManager)
         elif typeStr == "image":
             m = uiImage.ImageModel(stackManager)
+        elif typeStr == "webview":
+            m = uiWebView.WebViewModel(stackManager)
         elif typeStr == "group":
             m = uiGroup.GroupModel(stackManager)
         elif typeStr in ["pen", "line", "oval", "rect", "poly", "roundrect"]:

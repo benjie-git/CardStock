@@ -389,6 +389,18 @@ class Runner():
                 oldVars["message"] = noValue
             self.clientVars["message"] = arg
 
+        if arg and handlerName == "OnDoneLoading":
+            if "url" in self.clientVars:
+                oldVars["url"] = self.clientVars["url"]
+            else:
+                oldVars["url"] = noValue
+            self.clientVars["url"] = arg[0]
+            if "didLoad" in self.clientVars:
+                oldVars["didLoad"] = self.clientVars["didLoad"]
+            else:
+                oldVars["didLoad"] = noValue
+            self.clientVars["didLoad"] = arg[1]
+
         if handlerName == "OnPeriodic":
             if "elapsedTime" in self.clientVars:
                 oldVars["elapsedTime"] = self.clientVars["elapsedTime"]
@@ -593,7 +605,10 @@ class Runner():
                 try:
                     result = eval(code, self.clientVars)
                     if result is not None:
-                        print(result)
+                        if isinstance(result, str):
+                            print(f"'{result}'")
+                        else:
+                            print(result)
                 except SyntaxError:
                     exec(code, self.clientVars)
         except Exception as err:

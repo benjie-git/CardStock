@@ -20,6 +20,7 @@ class HelpData():
         if typeStr == "textfield":              return HelpDataTextField
         if typeStr == "textlabel":              return HelpDataTextLabel
         if typeStr == "image":                  return HelpDataImage
+        if typeStr == "webview":                return HelpDataWebView
         if typeStr == "group":                  return HelpDataGroup
         if typeStr in ["line", "pen"]:          return HelpDataLine
         if typeStr in ["shape", "oval", "rect", "poly"]:return HelpDataShape
@@ -760,6 +761,42 @@ class HelpDataTextLabel():
     handlers = {}
 
 
+class HelpDataWebView():
+    parent = HelpDataObject
+    types = ["webview"]
+
+    properties = {
+        "url": {"type": "string",
+                "info": "This is the current url being shown by the Web View.  Set this property to go to a web page."},
+        "html": {"type": "string",
+                "info": "This is the current HTML content of the webview."},
+        "allowedHosts": {"type": "list",
+                 "info": "If the <b>allowedHosts</b> list is empty, then this WebView will be allowed to load any URL. "
+                         "If this list contains hostnames like 'google.com', then the WebView will only be allowed to "
+                         "load URLs from these web hosts, and attempts to load other URLs, either by setting the "
+                         "<b>url</b> property directly, or by clicking a link, will fail."},
+    }
+
+    methods = {
+        "RunJavaScript": {"args": {"code": {"type": "string", "info": "The JavaScript code to run in this Web View"}},
+                            "return": "string",
+                            "info": "Runs the given JavaScript <b>code</b> and returns any result."},
+        "GoForward": {"args": None,
+                      "return": None,
+                      "info": "Make the WebView go forward through its history list."},
+        "GoBack": {"args": None,
+                   "return": None,
+                   "info": "Make the WebView go back through its history list."},
+    }
+
+    handlers = {
+        "OnDoneLoading": {"args": {"url": {"type": "string", "info": "This is the url of the web page that just loaded."},
+                                   "didLoad": {"type": "bool", "info": "True if the url loaded successfully, otherwise False."}},
+                          "info": "The <b>OnDoneLoading</b> event is run whenever a web page finishes loading.",
+                          },
+    }
+
+
 class HelpDataImage():
     parent = HelpDataObject
     types = ["image"]
@@ -1102,5 +1139,5 @@ class HelpDataStack():
     handlers = {}
 
 
-helpClasses = [HelpDataObject, HelpDataCard, HelpDataStack, HelpDataButton, HelpDataTextLabel,
-               HelpDataTextField, HelpDataImage, HelpDataGroup, HelpDataLine, HelpDataShape, HelpDataRoundRectangle]
+helpClasses = [HelpDataObject, HelpDataCard, HelpDataStack, HelpDataButton, HelpDataTextLabel, HelpDataTextField,
+               HelpDataWebView, HelpDataImage, HelpDataGroup, HelpDataLine, HelpDataShape, HelpDataRoundRectangle]

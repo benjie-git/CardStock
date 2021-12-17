@@ -37,7 +37,7 @@ class BaseTool(object):
     def ToolFromName(cls, name, stackManager):
         if name == "hand":
             return HandTool(stackManager)
-        elif name in ["button", "field", "label", "image"]:
+        elif name in ["button", "field", "label", "image", "webview"]:
             return ViewTool(stackManager, name)
         elif name == "pen":
             return PenTool(stackManager)
