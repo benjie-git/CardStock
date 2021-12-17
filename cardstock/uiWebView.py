@@ -14,29 +14,27 @@ class UiWebView(UiView):
         self.model = None
         self.cover = None
         self.webView = None
-        container = self.CreateWebView(stackManager, model)
+        container = wx.Window(parent=stackManager.view)
         super().__init__(parent, stackManager, model, container)
+        self.CreateWebView(container)
 
     def GetCursor(self):
         return None
 
-    def CreateWebView(self, stackManager, model):
-        s = model.GetProperty("size")
-        container = wx.Window(parent=stackManager.view, size=s)
+    def CreateWebView(self, container):
+        s = self.model.GetProperty("size")
 
         self.webView = wx.html2.WebView.New(container, size=s)
         self.webView.Bind(wx.html2.EVT_WEBVIEW_NAVIGATING, self.OnWillLoad)
         self.webView.Bind(wx.html2.EVT_WEBVIEW_NAVIGATED, self.OnDidLoad)
         self.webView.Bind(wx.html2.EVT_WEBVIEW_ERROR, self.OnDidError)
-        if stackManager.isEditing:
+        if self.stackManager.isEditing:
             self.cover = wx.Window(parent=container, size=s)
             self.BindEvents(self.cover)
 
-        url = model.GetProperty("url")
+        url = self.model.GetProperty("url")
         if url and len(url):
             self.webView.LoadURL(url)
-
-        return container
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
@@ -128,7 +126,7 @@ class WebViewModel(ViewModel):
         self.properties["name"] = "webview_1"
         self.properties["url"] = ""
         self.properties["html"] = ""
-        self.properties["allowedHosts"] = "[]"
+        self.properties["allowedHosts"] = []
         self.propertyTypes["url"] = "string"
         self.propertyTypes["html"] = "string"
         self.propertyTypes["allowedHosts"] = "list"
