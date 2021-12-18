@@ -770,6 +770,10 @@ class HelpDataWebView():
                 "info": "This is the current url being shown by the Web View.  Set this property to go to a web page."},
         "html": {"type": "string",
                 "info": "This is the current HTML content of the webview."},
+        "canGoBack": {"type": "bool",
+                "info": "This is True if the webview has pages in its history to go back to, otherwise it is False."},
+        "canGoForward": {"type": "bool",
+                "info": "This is True if the webview has gone back, and has history pages available to go forward to, otherwise it is False."},
         "allowedHosts": {"type": "list",
                  "info": "If the <b>allowedHosts</b> list is empty, then this WebView will be allowed to load any URL. "
                          "If this list contains hostnames like 'google.com', then the WebView will only be allowed to "

@@ -176,11 +176,21 @@ class WebView(ViewProxy):
         if ui:
             return ui.SetHtml(val, "")
 
-    def RunJavaScript(self, code):
+    @property
+    @RunOnMainSync
+    def canGoBack(self):
         ui = self._model.stackManager.GetUiViewByModel(self._model)
         if ui:
-            return ui.RunJavaScript(code)
-        return None
+            return ui.webView.CanGoBack()
+        return False
+
+    @property
+    @RunOnMainSync
+    def canGoForward(self):
+        ui = self._model.stackManager.GetUiViewByModel(self._model)
+        if ui:
+            return ui.webView.CanGoForward()
+        return False
 
     @RunOnMainSync
     def GoBack(self):
@@ -193,3 +203,9 @@ class WebView(ViewProxy):
         ui = self._model.stackManager.GetUiViewByModel(self._model)
         if ui:
             ui.webView.GoForward()
+
+    def RunJavaScript(self, code):
+        ui = self._model.stackManager.GetUiViewByModel(self._model)
+        if ui:
+            return ui.RunJavaScript(code)
+        return None
