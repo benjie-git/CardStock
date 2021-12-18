@@ -785,10 +785,10 @@ class HelpDataWebView():
         "RunJavaScript": {"args": {"code": {"type": "string", "info": "The JavaScript code to run in this Web View"}},
                             "return": "string",
                             "info": "Runs the given JavaScript <b>code</b> and returns any result."},
-        "GoForward": {"args": None,
+        "GoForward": {"args": {},
                       "return": None,
                       "info": "Make the WebView go forward through its history list."},
-        "GoBack": {"args": None,
+        "GoBack": {"args": {},
                    "return": None,
                    "info": "Make the WebView go back through its history list."},
     }
