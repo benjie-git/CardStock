@@ -25,6 +25,7 @@ class UiWebView(UiView):
         s = self.model.GetProperty("size")
 
         self.webView = wx.html2.WebView.New(container, size=s)
+        self.webView.RegisterHandler(wx.html2.WebViewFSHandler('cardstock'))
         self.webView.Bind(wx.html2.EVT_WEBVIEW_NAVIGATING, self.OnWillLoad)
         self.webView.Bind(wx.html2.EVT_WEBVIEW_NAVIGATED, self.OnDidLoad)
         self.webView.Bind(wx.html2.EVT_WEBVIEW_ERROR, self.OnDidError)

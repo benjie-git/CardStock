@@ -249,6 +249,28 @@ then add a line like self.speed.y -= 30 into the object's OnPeriodic() event.</p
 
 <br/><br/>
 
+<h2>Web Views</h2>
+
+<p>CardStock also allows you to embed web pages into your stacks, using Web View objects.  You can set the url property
+of a Web View, and it will load the web page at that url.  Or you can set the html property of a Web View, and it will 
+display that html.  You can restrict a Web View to only load pages from a set of hostnames, by setting its allowedHosts
+property.  For example, if you only want to allow loading pages from my-fun-game.com, then you can set webview_1.url to
+https://my-fun-game.com/starting-page.html, and set webview_1.allowedHosts to ['my-fun-game.com'].  This way it will 
+not allow users to navigate off of my-fun-game.com.</p>
+
+<p>When a page loads, either because you set the Web View's url, or because the user clicked a link to navigate to 
+another page, your Web View will run the event OnDoneLoading(url, didLoad) with the url as a string, and didLoad as
+True if the page loaded, and False if the page was unable to be loaded.</p>
+
+<p>From within your CardStock code, you can inject and run JavaScript code into a Web View by calling
+webview_1.RunJavaScript(jscode), and if your JavaScript code returns a value, it will be returned by the RunJavaScript() call.
+If you want the web page inside your Web View to be able to affect the rest of your CardStock stack, you can set up 
+your web page to try to load a url using the cardstock: scheme, and this will show up in your Web View's OnDoneLoading()
+event.  For example, if your html includes a link to 'cardstock:test', then when that link is clicked, your Web View's
+OnDoneLoading() will be called with url='cardstock:test' and didLoad=False.</p>
+
+<br/><br/>
+
 <h2>Other Features</h2>
 
 <p>If your stack makes any print() calls, or otherwise causes any text to get written out to the console (to stdout or 
