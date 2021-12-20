@@ -22,7 +22,14 @@ class AllCodeWindow(wx.Frame):
         self.textBox.SetCaretStyle(stc.STC_CARETSTYLE_INVISIBLE)
         self.textBox.Bind(stc.EVT_STC_UPDATEUI, self.OnUpdateUi)
         self.Bind(wx.EVT_SIZE, self.OnResize)
+        self.textBox.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
+
+    def OnKeyDown(self, event):
+        code = event.GetKeyCode()
+        if code == wx.WXK_ESCAPE or (code == ord("W") and event.ControlDown()):
+            self.Close()
+        event.Skip()
 
     def OnDestroy(self, event):
         self.analyzer.RemoveScanCompleteNotification(self.MarkAllSyntaxErrors)

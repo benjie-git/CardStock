@@ -700,10 +700,12 @@ class DesignerFrame(wx.Frame):
                 self.errorListWindow.Hide()
             else:
                 self.errorListWindow.Show()
+                self.errorListWindow.Raise()
         else:
             self.errorListWindow = ErrorListWindow(self)
             self.errorListWindow.SetPosition(self.GetPosition() + (100, 10))
             self.errorListWindow.Show()
+            self.errorListWindow.Raise()
             self.errorListWindow.Bind(wx.EVT_CLOSE, self.OnErrorListClose)
 
         self.errorListWindow.SetErrorList(self.lastRunErrors)
@@ -719,11 +721,13 @@ class DesignerFrame(wx.Frame):
             else:
                 self.allCodeWindow.UpdateCode()
                 self.allCodeWindow.Show()
+                self.allCodeWindow.Raise()
         else:
             self.allCodeWindow = AllCodeWindow(self)
             self.allCodeWindow.SetPosition(self.GetPosition() + (50, 100))
             self.allCodeWindow.UpdateCode()
             self.allCodeWindow.Show()
+            self.allCodeWindow.Raise()
             self.allCodeWindow.Bind(wx.EVT_CLOSE, self.OnAllCodeWindowClose)
 
     def OnAllCodeWindowClose(self, event):

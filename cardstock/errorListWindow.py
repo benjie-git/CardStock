@@ -27,6 +27,13 @@ class ErrorListWindow(wx.Frame):
         self.listBox.Bind(wx.EVT_LISTBOX, self.OnListBox)
         self.listBox.Bind(wx.EVT_SIZE, self.OnListBoxResize)
         self.listBox.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
+        self.listBox.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+
+    def OnKeyDown(self, event):
+        code = event.GetKeyCode()
+        if code == wx.WXK_ESCAPE or (code == ord("W") and event.ControlDown()):
+            self.Close()
+        event.Skip()
 
     def SetErrorList(self, errorList):
         self.errors = errorList
