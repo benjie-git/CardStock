@@ -51,6 +51,7 @@ class ConsoleWindow(wx.Frame):
         self.SetStreamsUp()
         self.SetMenuBar(parent.GetMenuBar())
         self.runner = None
+        self.didSetDown = False
 
         self.textBox.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
         self.textBox.Bind(stc.EVT_STC_CHARADDED, self.OnChar)
@@ -181,8 +182,10 @@ class ConsoleWindow(wx.Frame):
             self.timer = None
 
         # Make sure not to lose any last bytes from the steams
+        self.didSetDown = True
         self.stdoutIO.flush()
         self.stderrIO.flush()
+        self.OnTimer(None)
 
         sys.stdout = self.old_stdout
         sys.stderr = self.old_stderr
@@ -246,19 +249,20 @@ class ConsoleWindow(wx.Frame):
             stream.seek(pos)
             s = stream.read()
             if len(s):
-                self.AppendText(s, ERR_STYLE if stream == self.stderrIO else OUTPUT_STYLE, True)
                 oldStream.write(s)
-
-                if not self.hasShown:
-                    self.Show()
+                if not self.didSetDown:
+                    self.AppendText(s, ERR_STYLE if stream == self.stderrIO else OUTPUT_STYLE, True)
+                    if not self.hasShown:
+                        self.Show()
             return pos + len(s)
 
         self.stdoutPos = readStream(self.stdoutIO, self.stdoutPos, self.old_stdout)
         self.stderrPos = readStream(self.stderrIO, self.stderrPos, self.old_stderr)
-        if self.textBox.GetLastPosition() < self.lastOutputPos:
-            # The user backspaced into non-editable text!
-            self.lastOutputPos -= 1
-            self.AppendText(' ', INPUT_STYLE, False)
+        if not self.didSetDown:
+            if self.textBox.GetLastPosition() < self.lastOutputPos:
+                # The user backspaced into non-editable text!
+                self.lastOutputPos -= 1
+                self.AppendText(' ', INPUT_STYLE, False)
 
 
 class TextEditCommand(Command):
