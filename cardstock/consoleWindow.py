@@ -120,7 +120,8 @@ class ConsoleWindow(wx.Frame):
     def UpdateAC(self):
         # Update the analyzer for autocomplete
         vars = self.runner.GetClientVars()
-        self.runner.stackManager.analyzer.SetRuntimeVarNames(vars)
+        if self.runner.stackManager:
+            self.runner.stackManager.analyzer.SetRuntimeVarNames(vars)
 
     def GetCommandText(self):
         return self.textBox.GetTextRange(self.lastOutputPos, self.textBox.GetLastPosition())

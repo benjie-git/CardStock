@@ -357,22 +357,9 @@ class HelpDataGlobals():
                       "info": "Opens the stack at the path given by the <b>filename</b> argument, and optionally starts on "
                               "the card number specified by the <b>cardNumber</b> argument.  If you include a "
                               "<b>setupValue</b> argument, this will be passed into the new stack, which can access it by "
-                              "calling the <b>GetStackSetupValue()</b> function.  The <b>RunStack()</b> call waits "
-                              "until the new stack exits by calling the <b>ReturnFromStack(returnVal)</b> function, and then "
+                              "calling <b>stack.GetSetupValue()</b>.  The <b>RunStack()</b> call waits "
+                              "until the new stack exits by calling <b>stack.Return(returnVal)</b>, and then "
                               "this <b>RunStack()</b> call returns that returnVal value, or None if no returnValue was given."},
-        "ReturnFromStack": {"args": {"returnValue": {"type": "any", "info": "An optional value to pass back to the previous stack, that we are returning to."}},
-                      "return": None,
-                      "info": "If this stack was started from within another stack, by calling <b>RunStack()</b>, this "
-                              "function will immediately stop the current event without returning, exit this stack, and return to the "
-                              "previous stack. If you include a <b>returnValue</b>, this value will "
-                              "be returned by the calling stack's <b>RunStack()</b> call, which will now finally return. "
-                              "If the current stack was not started by a <b>RunStack()</b> call, this function does "
-                              "nothing, and returns normally."},
-        "GetStackSetupValue": {"args": {}, "return": None,
-                                "info": "If this stack was started by another stack calling RunStack() with a setupValue argument, "
-                                        "you can call this <b>GetStackSetupValue()</b> function "
-                                        "to get the setupValue that was passed in from the calling stack.  Otherwise this "
-                                        "will return None."},
         "PlaySound": {"args": {"file": {"type": "string",
                                         "info": "This is the filename of the .wav format audio file to play, relative to where the stack file lives."}},
                       "return": None,
@@ -398,13 +385,6 @@ class HelpDataGlobals():
                          "info": "Returns the current position of the mouse, whether or not it is inside of the stack "
                                  "window.  This point's x and y values can be negative, if the mouse is to the left "
                                  "or below the bottom left corner of the stack window."},
-        "StopHandlingMouseEvent": {"args": {},
-                                   "return": None,
-                                   "info": "If you call this function from your event code for any OnMouseDown(), OnMouseMove(), "
-                                           "or OnMouseUp() event, CardStock will skip running code for this event "
-                                           "for any overlapping objects underneath this object, which would otherwise "
-                                           "be run immediately after this object's event code finishes.  Calling "
-                                           "this function from any non-mouse event code does nothing."},
         "MakeColor": {"args": {"r": {"type": "float", "info": "The red component of the color as a number from 0 to 1."},
                                "g": {"type": "float", "info": "The green component of the color as a number from 0 to 1."},
                                "b": {"type": "float", "info": "The blue component of the color as a number from 0 to 1."}},
@@ -532,6 +512,13 @@ class HelpDataObject():
                             "return": None,
                             "info": "Sets this object's event handling code for the given <b>eventName</b> to"
                                     "<b>code</b>."},
+        "StopHandlingMouseEvent": {"args": {},
+                                   "return": None,
+                                   "info": "If you call this method from your event code for any OnMouseDown(), OnMouseMove(), "
+                                           "or OnMouseUp() event, CardStock will skip running code for this event "
+                                           "for any overlapping objects underneath this object, which would otherwise "
+                                           "be run immediately after this object's event code finishes.  Calling "
+                                           "this method from any non-mouse event code does nothing.  Should be run as self.StopHandlingMouseEvent()."},
         "IsTouching": {"args": {"other": {"type": "object", "info": "The other object to compare to this one"}},
                        "return": "bool",
                        "info": "Returns <b>True</b> if this object is touching the <b>other</b> object passed into "
@@ -1085,7 +1072,7 @@ class HelpDataCard():
                                "card's OnShowCard event is run, when going to another card."},
         "OnExitStack": {"args": {},
                         "info": "The <b>OnExitStack</b> event is run for all cards when the stack exits, whether "
-                                "from the File Close menu item, the Quit() function, the ReturnFromStack() function,"
+                                "from the File Close menu item, the Quit() function, the stack.Return() method,"
                                 "or closing the stack viewer window.  You can use this to clean up any external "
                                 "resources -- for example, closing files.  This event needs to run quickly, so it's "
                                 "not able to call functions like Alert(), AskText(), AskYesNo(), RunStack(), etc."},
@@ -1138,6 +1125,20 @@ class HelpDataStack():
                                     "info": "the card number of the card to get."}},
                            "return": "card",
                            "info": "Returns the card at card <b>number</b>.  The first card is <b>number</b> 1."},
+        "Return": {"args": {"returnValue": {"type": "any",
+                                            "info": "An optional value to pass back to the previous stack, that we are returning to."}},
+                            "return": None,
+                            "info": "If this stack was started from within another stack, by calling <b>RunStack()</b>, this "
+                                    "function will immediately stop the current event without returning, exit this stack, and return to the "
+                                    "previous stack. If you include a <b>returnValue</b>, this value will "
+                                    "be returned by the calling stack's <b>RunStack()</b> call, which will now finally return. "
+                                    "If the current stack was not started by a <b>RunStack()</b> call, this function does "
+                                    "nothing, and returns normally."},
+        "GetSetupValue": {"args": {}, "return": None,
+                               "info": "If this stack was started by another stack calling RunStack() with a setupValue argument, "
+                                       "you can call this <b>GetSetupValue()</b> method "
+                                       "to get the setupValue that was passed in from the calling stack.  Otherwise this "
+                                       "will return None."},
     }
 
     handlers = {}

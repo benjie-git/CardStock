@@ -106,9 +106,6 @@ class Runner():
             "GetMousePos": self.GetMousePos,
             "Quit":self.Quit,
             "stack": self.stackManager.stackModel.GetProxy(),
-            "StopHandlingMouseEvent": self.StopHandlingMouseEvent,
-            "ReturnFromStack": self.ReturnFromStack,
-            "GetStackSetupValue": self.GetStackSetupValue,
             "MakeColor": self.MakeColor
         }
 
@@ -696,6 +693,8 @@ class Runner():
 
     def GetClientVars(self):
         # Update the analyzer for autocomplete
+        if not self.clientVars:
+            return {}
         vars = self.clientVars.copy()
         for v in self.initialClientVars:
             vars.pop(v)

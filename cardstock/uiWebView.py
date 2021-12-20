@@ -77,6 +77,7 @@ class UiWebView(UiView):
         if not self.stackManager.isEditing:
             url = event.GetURL()
             if url != "file:///":
+                # print(f"WebView: {event.GetString()}", file=sys.stderr)
                 if self.stackManager.runner and self.model and self.model.GetHandler("OnDoneLoading"):
                     wx.CallAfter(self.stackManager.runner.RunHandler, self.model, "OnDoneLoading", event, (url, False))
         event.Skip()
@@ -142,6 +143,9 @@ class WebViewModel(ViewModel):
                 parts = urlparse(value)
                 if not parts.scheme:
                     value = "https://" + value
+        elif key == "allowedHosts":
+            if isinstance(value, (list, tuple)):
+                value = [str(i) for i in value]
         super().SetProperty(key, value, notify)
 
 

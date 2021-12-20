@@ -1263,6 +1263,9 @@ class ViewProxy(object):
         models = [o._model for o in objects if isinstance(o, ViewProxy)]
         self._model.SetBounceModels(models)
 
+    def StopHandlingMouseEvent(self):
+        self._model.stackManager.runner.StopHandlingMouseEvent()
+
     def IsTouchingPoint(self, point):
         if not isinstance(point, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
             raise TypeError("IsTouchingPoint(): point needs to be a point or a list of two numbers")

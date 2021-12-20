@@ -151,6 +151,12 @@ class Stack(ViewProxy):
             raise ValueError("CardWithNumber(): number is out of bounds")
         return model.childModels[number-1].GetProxy()
 
+    def Return(self, result=None):
+        self._model.stackManager.runner.ReturnFromStack(result)
+
+    def GetSetupValue(self):
+        return self._model.stackManager.runner.GetStackSetupValue()
+
     def AddCard(self, name="card", atNumber=0):
         if not isinstance(name, str):
             raise TypeError("AddCard(): name is not a string")
