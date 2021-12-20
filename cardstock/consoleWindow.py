@@ -183,7 +183,6 @@ class ConsoleWindow(wx.Frame):
         # Make sure not to lose any last bytes from the steams
         self.stdoutIO.flush()
         self.stderrIO.flush()
-        self.OnTimer(None)
 
         sys.stdout = self.old_stdout
         sys.stderr = self.old_stderr
