@@ -1,18 +1,7 @@
 import os
 import wx
 import generator
-import math
-from math import pi
 from uiView import *
-
-
-# Utility for rotating image bounding rect
-def rotateRad(origin, point, angle):
-    ox, oy = origin
-    px, py = point
-    qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
-    qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
-    return qx, qy
 
 
 class UiImage(UiView):
@@ -25,7 +14,7 @@ class UiImage(UiView):
 
     def __init__(self, parent, stackManager, model):
         super().__init__(parent, stackManager, model, None)
-        self.rotatedBitmap = None
+        self.scaledBitmap = None
         self.origImage = self.GetImg(model)
 
     @classmethod
@@ -60,14 +49,13 @@ class UiImage(UiView):
                 img = None
         return img
 
-    def MakeScaledAndRotatedBitmap(self):
+    def MakeScaledBitmap(self):
         img = self.origImage
         if not img:
             return None
 
         xFlipped = self.model.GetProperty("xFlipped")
         yFlipped = self.model.GetProperty("yFlipped")
-        rot = self.model.GetProperty("rotation")
         imgSize = img.GetSize()
         viewSize = self.model.GetProperty("size")
         fit = self.model.GetProperty("fit")
@@ -92,11 +80,6 @@ class UiImage(UiView):
             img = img.Scale(imgSize.width * scale, imgSize.height * scale, quality=wx.IMAGE_QUALITY_HIGH)
             imgSize = img.GetSize()
 
-        if rot != 0:
-            val = float(rot * -pi/180)  # make positive value rotate clockwise
-            img = img.Rotate(val, list(img.GetSize()/2))   # use original center
-            imgSize = img.GetSize()
-
         if fit in ["Center", "Fill"]:
             offX = 0 if imgSize.Width <= viewSize.Width else ((imgSize.Width - viewSize.Width) / 2)
             offY = 0 if imgSize.Height <= viewSize.Height else ((imgSize.Height - viewSize.Height) / 2)
@@ -104,28 +87,24 @@ class UiImage(UiView):
             h = imgSize.height if imgSize.Height <= viewSize.Height else viewSize.Height
             img = img.GetSubImage(wx.Rect(offX, offY, w, h))
 
-        self.rotatedBitmap = img.ConvertToBitmap(32)
+        self.scaledBitmap = img.ConvertToBitmap(32)
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
 
-        if key in ["size", "rotation", "fit", "file", "xFlipped", "yFlipped"]:
-            self.rotatedBitmap = None
+        if key in ["size", "fit", "file", "xFlipped", "yFlipped"]:
+            self.scaledBitmap = None
             self.stackManager.view.Refresh()
 
         if key == "file":
             self.origImage = self.GetImg(self.model)
-            self.rotatedBitmap = None
+            self.scaledBitmap = None
             self.stackManager.view.Refresh()
         elif key == "fit":
             self.stackManager.view.Refresh()
-        elif key == "rotation":
-            self.hitRegion = None
-            if model.GetProperty("file") != "":
-                self.stackManager.view.Refresh()
 
     def ClearCachedData(self):
-        self.rotatedBitmap = None
+        self.scaledBitmap = None
         self.origImage = None
         self.stackManager.view.Refresh()
 
@@ -134,77 +113,17 @@ class UiImage(UiView):
             if not self.origImage:
                 self.origImage = self.GetImg(self.model)
             if self.origImage:
-                if not self.rotatedBitmap:
-                    self.MakeScaledAndRotatedBitmap()
-                r = self.model.GetAbsoluteFrame()
+                if not self.scaledBitmap:
+                    self.MakeScaledBitmap()
 
-                imgSize = self.rotatedBitmap.GetSize()
-                viewSize = r.Size
+                imgSize = self.scaledBitmap.GetSize()
+                viewSize = self.model.GetProperty("size")
                 offX = (viewSize.Width - imgSize.Width) / 2
                 offY = (viewSize.Height - imgSize.Height) / 2
-                gc.DrawBitmap(self.rotatedBitmap, r.Left + offX, r.Bottom - offY)
+                gc.DrawBitmap(self.scaledBitmap, offX, offY + imgSize.Height)
 
         if self.stackManager.isEditing:
-            gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
-            rot = self.model.GetProperty("rotation")
-            points = self.RotatedRectPoints(self.model.GetAbsoluteFrame(), rot)
-            points.append(points[0])
-            gc.DrawLines(points)
-
-    def MakeHitRegion(self):
-        s = self.model.GetProperty("size")
-        rot = self.model.GetProperty("rotation")
-        points = self.RotatedRectPoints(wx.Rect(0,0,s.Width+1, s.Height+1), rot)
-        points.append(points[0])
-
-        l2 = list(map(list, zip(*points)))
-        rotSize = (max(l2[0]) - min(l2[0]), max(l2[1]) - min(l2[1]))
-        rotSize = (max(rotSize[0], s[0]), max(rotSize[1], s[1]))
-        offset_x = (rotSize[0] - s[0])/2 + 10
-        offset_y = (rotSize[1] - s[1])/2 + 10
-
-        bmp = wx.Bitmap(width=rotSize[0]+20, height=rotSize[1]+20, depth=1)
-        dc = wx.MemoryDC(bmp)
-        dc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
-        dc.SetPen(wx.TRANSPARENT_PEN)
-        dc.SetBrush(wx.Brush("white", wx.BRUSHSTYLE_SOLID))
-        dc.Clear()
-        dc.DrawPolygon(points, offset_x, offset_y)
-
-        if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
-            for resizerRect in self.GetResizeBoxRects():
-                resizerRect.Offset((offset_x, offset_y))
-                dc.DrawRectangle(resizerRect)
-        reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
-        reg.Offset(-offset_x, -offset_y)
-        self.hitRegion = reg
-
-    def PaintSelectionBox(self, gc):
-        if self.isSelected and self.stackManager.tool.name == "hand":
-            f = self.model.GetAbsoluteFrame()
-
-            gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            gc.SetPen(wx.Pen('Blue', 1, wx.PENSTYLE_DOT))
-            gc.DrawRectangle(self.model.GetAbsoluteFrame())
-
-            gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
-            gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            rot = self.model.GetProperty("rotation")
-            points = self.RotatedRectPoints(f, rot)
-            points.append(points[0])
-            gc.DrawLines(points)
-
-            gc.SetPen(wx.TRANSPARENT_PEN)
-            gc.SetBrush(wx.Brush('blue', wx.BRUSHSTYLE_SOLID))
-            for box in self.GetResizeBoxRects():
-                gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
-
-    def RotatedRectPoints(self, rect, degrees):
-        center = rect.TopLeft + rect.Size/2
-        points = [rect.TopLeft, rect.TopRight+(1,0), rect.BottomRight+(1,1), rect.BottomLeft+(0,1)]
-        points = [wx.Point(rotateRad(center, p, math.radians(-degrees))) for p in points]
-        return points
+            self.PaintBoundingBox(gc)
 
 
 class ImageModel(ViewModel):
@@ -222,24 +141,19 @@ class ImageModel(ViewModel):
         self.properties["name"] = "image_1"
         self.properties["file"] = ""
         self.properties["fit"] = "Contain"
-        self.properties["rotation"] = 0
+        self.properties["rotation"] = 0.0
         self.properties["xFlipped"] = False
         self.properties["yFlipped"] = False
 
         self.propertyTypes["file"] = "file"
         self.propertyTypes["fit"] = "choice"
         self.propertyChoices["fit"] = ["Center", "Stretch", "Contain", "Fill"]
-        self.propertyTypes["rotation"] = "int"
+        self.propertyTypes["rotation"] = "float"
         self.propertyTypes["xFlipped"] = "bool"
         self.propertyTypes["yFlipped"] = "bool"
 
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "file", "fit", "rotation", "position", "size"]
-
-    def SetProperty(self, key, value, notify=True):
-        if key == "rotation":
-            value = value % 360
-        super().SetProperty(key, value, notify)
 
     def PerformFlips(self, fx, fy, notify=True):
         if fx:
@@ -267,19 +181,6 @@ class Image(ViewProxy):
         model.SetProperty("file", val)
 
     @property
-    def rotation(self):
-        model = self._model
-        if not model: return 0
-        return model.GetProperty("rotation")
-    @rotation.setter
-    def rotation(self, val):
-        if not isinstance(val, (int, float)):
-            raise TypeError("rotation must be a number")
-        model = self._model
-        if not model: return
-        model.SetProperty("rotation", val)
-
-    @property
     def fit(self):
         model = self._model
         if not model: return ""
@@ -291,38 +192,3 @@ class Image(ViewProxy):
         model = self._model
         if not model: return
         model.SetProperty("fit", val)
-
-    def AnimateRotation(self, duration, endRotation, onFinished=None, forceDirection=0, *args, **kwargs):
-        if not isinstance(duration, (int, float)):
-            raise TypeError("AnimateRotation(): duration must be a number")
-        if not isinstance(endRotation, (int, float)):
-            raise TypeError("AnimateRotation(): endRotation must be a number")
-        if not isinstance(forceDirection, (int, float)):
-            raise TypeError("AnimateRotation(): forceDirection must be a number")
-
-        model = self._model
-        if not model: return
-
-        endRotation = endRotation % 360
-
-        def onStart(animDict):
-            origVal = self.rotation
-            animDict["origVal"] = origVal
-            offset = endRotation - origVal
-            if forceDirection:
-                if forceDirection > 0:
-                    if offset <= 0: offset += 360
-                elif forceDirection < 0:
-                    if offset >= 0: offset -= 360
-            else:
-                if offset > 180: offset -= 360
-                if offset < -180: offset += 360
-            animDict["offset"] = offset
-
-        def onUpdate(progress, animDict):
-            model.SetProperty("rotation", animDict["origVal"] + animDict["offset"] * progress)
-
-        def internalOnFinished(animDict):
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
-
-        model.AddAnimation("rotation", duration, onUpdate, onStart, internalOnFinished)

@@ -14,7 +14,6 @@ class UiCard(UiView):
     """
 
     def __init__(self, parent, stackManager, model):
-        self.uiViews = []
         super().__init__(parent, stackManager, model, stackManager.view)
 
     def DestroyView(self):
@@ -22,12 +21,6 @@ class UiCard(UiView):
             if self.view.HasCapture():
                 self.view.ReleaseMouse()
             self.view = None
-
-    def SetDown(self):
-        for ui in self.uiViews:
-            ui.SetDown()
-        self.uiViews = None
-        super().SetDown()
 
     def RemoveUiViews(self):
         for ui in self.uiViews.copy():
@@ -55,6 +48,14 @@ class UiCard(UiView):
             self.model.parent.SetProperty("size", self.view.GetSize())
         event.Skip()
 
+    def Paint(self, gc):
+        bg = wx.Colour(self.model.GetProperty("bgColor"))
+        if not bg:
+            bg = wx.Colour('white')
+        gc.SetPen(wx.TRANSPARENT_PEN)
+        gc.SetBrush(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
+        gc.DrawRectangle(self.model.GetFrame().Inflate(1))
+
     def PaintSelectionBox(self, gc):
         if self.isSelected and self.stackManager.tool.name == "hand":
             f = self.model.GetAbsoluteFrame()
@@ -65,14 +66,16 @@ class UiCard(UiView):
 
             gc.SetPen(wx.TRANSPARENT_PEN)
             gc.SetBrush(wx.Brush('blue', wx.BRUSHSTYLE_SOLID))
-            for box in self.GetResizeBoxRects():
-                gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
+            for box in self.GetLocalResizeBoxRects().values():
+                r = wx.Rect(box.TopLeft + f.TopLeft, box.Size)
+                gc.DrawRectangle(r)
 
-    def GetResizeBoxRects(self):
+    def GetLocalResizeBoxPoints(self):
         # the resize box/handle should hang out of the frame, to allow grabbing it from behind
         # native widgets which can obscure the full frame.
+        # Return as a dict, so each point is labelled
         s = self.model.GetProperty("size")
-        return [wx.Rect(s.width-13, 0, 12, 12)]
+        return {"BR":wx.Point(s.width-7,6)}
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)

@@ -10,6 +10,8 @@ from time import time
 from codeRunnerThread import RunOnMainSync, RunOnMainAsync
 from cardstockFrameParts import *
 import sanitizer
+import math
+import flippedGCDC
 
 
 class UiView(object):
@@ -22,6 +24,7 @@ class UiView(object):
         super().__init__()
         self.stackManager = stackManager
         self.parent = parent
+        self.uiViews = []
         self.view = view
         self.model = None
         self.SetModel(model)
@@ -39,9 +42,12 @@ class UiView(object):
         return "<"+str(self.__class__.__name__)+">"
 
     def SetDown(self):
+        for ui in self.uiViews:
+            ui.SetDown()
         self.DestroyView()
         self.stackManager = None
         self.parent = None
+        self.uiViews = None
         self.model = None
         self.hitRegion = None
 
@@ -69,8 +75,7 @@ class UiView(object):
 
             mSize = self.model.GetProperty("size")
             if mSize[0] > 0 and mSize[1] > 0:
-                rect = wx.Rect(wx.Point(self.model.GetAbsolutePosition()), mSize)
-                self.view.SetRect(self.stackManager.ConvRect(rect))
+                self.view.SetRect(self.stackManager.ConvRect(self.model.GetAbsoluteFrame()))
 
             self.BindEvents(view)
             view.Bind(wx.EVT_SIZE, self.OnResize)
@@ -87,19 +92,9 @@ class UiView(object):
             return None
 
     def OnPropertyChanged(self, model, key):
-        if key == "size":
-            s = self.model.GetProperty(key)
+        if key in ["position", "size", "rotation"]:
             if self.view:
-                rect = wx.Rect(wx.Point(self.model.GetAbsolutePosition()), s)
-                self.view.SetRect(self.stackManager.ConvRect(rect))
-                self.view.Refresh()
-            self.ClearHitRegion()
-            self.stackManager.view.Refresh()
-        elif key == "position":
-            pos = wx.Point(self.model.GetAbsolutePosition())
-            if self.view:
-                rect = wx.Rect(pos, self.model.GetProperty("size"))
-                self.view.SetRect(self.stackManager.ConvRect(rect))
+                self.view.SetRect(self.stackManager.ConvRect(self.model.GetAbsoluteFrame()))
                 self.view.Refresh()
             self.ClearHitRegion()
             self.stackManager.view.Refresh()
@@ -359,20 +354,67 @@ class UiView(object):
 
         return didRun
 
+    def DoPaint(self, gc):
+        self.PrePaint(gc)
+        if not self.model.IsHidden():
+            self.Paint(gc)
+        for ui in self.uiViews:
+            ui.DoPaint(gc)
+        self.PostPaint(gc)
+
+    def DoPaintSelectionBoxes(self, gc):
+        self.PrePaint(gc)
+        if self.isSelected:
+            self.PaintSelectionBox(gc)
+        for ui in self.uiViews:
+            ui.DoPaintSelectionBoxes(gc)
+        self.PostPaint(gc)
+
+    def PrePaint(self, gc):
+        # Rotate and Translate the GC, such that we can draw in local coords
+        stackSize = self.stackManager.stackModel.GetProperty("size")
+        pos = self.model.GetProperty("position")
+        cen = self.model.GetProperty("size")/2
+        rot = self.model.GetProperty("rotation")
+        rot = math.radians(rot) if rot else None
+        gc.GetGraphicsContext().PushState()
+
+        gc.GetGraphicsContext().Translate(pos[0]+cen[0], stackSize.height-(pos[1]+cen[1]))
+        if rot:
+            gc.GetGraphicsContext().Rotate(rot)
+        gc.GetGraphicsContext().Translate(-cen[0], cen[1]-stackSize.height)
+
+    def Paint(self, gc):
+        self.PaintBoundingBox(gc)
+
+    def PaintBoundingBox(self, gc, color='Gray'):
+        if self.stackManager.isEditing:
+            gc.SetBrush(wx.TRANSPARENT_BRUSH)
+            gc.SetPen(wx.Pen(color, 1, wx.PENSTYLE_DOT))
+
+            pos = wx.Point(0,0)-list(self.model.GetProperty("position"))
+            f = self.model.GetFrame()
+            f.Offset(pos)
+            gc.DrawRectangle(f)
+
     def PaintSelectionBox(self, gc):
-        if self.isSelected and self.stackManager.tool.name == "hand":
-            f = self.model.GetAbsoluteFrame()
+        if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
+            pos = wx.Point(0,0)-list(self.model.GetProperty("position"))
+            f = self.model.GetFrame()
+            f.Offset(pos)
+
             gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
             gc.DrawRectangle(f.Inflate(2))
 
-            gc.SetPen(wx.TRANSPARENT_PEN)
-            gc.SetBrush(wx.Brush('blue', wx.BRUSHSTYLE_SOLID))
-            for box in self.GetResizeBoxRects():
-                gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
+            if self.model.parent and self.model.parent.type != "group":
+                gc.SetPen(wx.TRANSPARENT_PEN)
+                gc.SetBrush(wx.Brush('Blue', wx.BRUSHSTYLE_SOLID))
+                for box in self.GetLocalResizeBoxRects().values():
+                    gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
 
-    def Paint(self, gc):
-        pass
+    def PostPaint(self, gc):
+        gc.GetGraphicsContext().PopState()
 
     def HitTest(self, pt):
         if not self.hitRegion:
@@ -389,15 +431,27 @@ class UiView(object):
             ui = ui.parent
         return False
 
-    def GetResizeBoxRects(self):
-        # The returned rects are relative to the position of the object
+    def GetLocalResizeBoxPoints(self):
+        # Define the local coords of the centers of the resize boxes.
+        # These are used to generate rotated points, and rects for resize boxes.
         # The resize box/handles should hang out of the frame, to allow grabbing it from behind
         # native widgets which can obscure the full frame.
+        # Return as a dict, so each point is labelled, for use when dragging to resize
         s = self.model.GetProperty("size")
-        return [wx.Rect(-6, -6, 12, 12),
-                wx.Rect(s.width - 2, -6, 12, 12),
-                wx.Rect(-6, s.height - 2, 12, 12),
-                wx.Rect(s.width - 2, s.height - 2, 12, 12)]
+        return {"BL":wx.Point(0,0), "BR": wx.Point(s.width+4,0), "TL": wx.Point(0,s.height+4), "TR": wx.Point(s.width+4, s.height+4)}
+
+    def GetResizeBoxPoints(self):
+        points = self.GetLocalResizeBoxPoints()
+        aff = self.model.GetAffineTransform()
+        return {k:wx.Point(aff.TransformPoint(*p)) for k,p in points.items()}
+
+    def GetResizeBoxRects(self):
+        points = self.GetResizeBoxPoints()
+        return {k:wx.Rect(p.x-6, p.y-6, 12, 12) for k,p in points.items()}
+
+    def GetLocalResizeBoxRects(self):
+        points = self.GetLocalResizeBoxPoints()
+        return {k:wx.Rect(p.x-6, p.y-6, 12, 12) for k,p in points.items()}
 
     def ClearHitRegion(self):
         self.hitRegion = None
@@ -410,11 +464,54 @@ class UiView(object):
         return self.hitRegion
 
     def MakeHitRegion(self):
+        # Make a region in absolute/card coordinates
+        if self.model.IsHidden():
+            self.hitRegion = wx.Region((0,0), (0,0))
+
         s = self.model.GetProperty("size")
-        reg = wx.Region(wx.Rect(0, 0, s.width, s.height))
+        rect = wx.Rect(0, 0, s.Width + 1, s.Height + 1)
+        points = self.model.RotatedRectPoints(rect)
+        points.append(points[0])
+
+        l2 = list(map(list, zip(*points)))
+        rotSize = (max(l2[0]) - min(l2[0]) - 1, max(l2[1]) - min(l2[1]) - 1)
+        rotPos_x, rotPos_y = (min(l2[0]), min(l2[1]))
+
+        # Draw the region offset up/right, to allow space for bottom/left resize boxes,
+        # since they would otherwise be at negative coords, which would be outside the
+        # hitRegion bitmap.  Then set the offset of the hitRegion bitmap down/left to make up for it.
+        regOffset = 10
+
+        height = rotSize[1]+2*regOffset
+        bmp = wx.Bitmap(width=rotSize[0]+2*regOffset, height=height, depth=1)
+        gc = flippedGCDC.FlippedMemoryDC(bmp, self.stackManager, height)
+        gc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
+        gc.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
+        gc.Clear()
+
+        aff = self.model.GetAffineTransform()
+        vals = aff.Get()
+        # Draw into region bmp rotated but not translated
+        vals = (vals[0].m_11, vals[0].m_12, vals[0].m_21, vals[0].m_22, vals[1][0] - (rotPos_x-regOffset), vals[1][1] - (rotPos_y-regOffset))
+        aff = gc.GetGraphicsContext().CreateMatrix(*vals)
+
+        path = gc.GetGraphicsContext().CreatePath()
+        p1 = rect.TopLeft
+        p2 = rect.BottomRight
+        path.AddRectangle(p1[0], min(p1[1], p2[1]), p2[0] - p1[0], abs(p2[1] - p1[1]))
+        path.Transform(aff)
+        gc.GetGraphicsContext().FillPath(path)
+
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
-            for r in self.GetResizeBoxRects():
-                reg.Union(wx.Region(r.Inflate(2)))
+            path = gc.GetGraphicsContext().CreatePath()
+            for resizerRect in self.GetLocalResizeBoxRects().values():
+                path.AddRectangle(resizerRect.Left, resizerRect.Top, resizerRect.Width, resizerRect.Height)
+            path.Transform(aff)
+            gc.GetGraphicsContext().FillPath(path)
+            gc.GetGraphicsContext().Flush()
+
+        reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
+        reg.Offset(rotPos_x-regOffset, rotPos_y-regOffset)
         self.hitRegion = reg
 
     handlerDisplayNames = {
@@ -584,23 +681,63 @@ class ViewModel(object):
         for m in self.childModels:
             m.SetStackManager(stackManager)
 
+    def GetAffineTransform(self):
+        m = self
+        ancestors = []
+        aff = wx.AffineMatrix2D()
+        while m and m.type not in ["card", "stack"]:
+            ancestors.append(m)
+            m = m.parent
+        for m in reversed(ancestors):
+            pos = m.GetProperty("position")
+            size = m.GetProperty("size")
+            rot = m.GetProperty("rotation")
+            aff.Translate(*(pos + (int(size[0]/2), int(size[1]/2))))
+            if rot:
+                aff.Rotate(math.radians(-rot))
+            aff.Translate(-int(size[0]/2), -int(size[1]/2))
+        return aff
+
+    def RotatedPoints(self, points):
+        aff = self.GetAffineTransform()
+        return [wx.Point(aff.TransformPoint(*p)) for p in points]
+
+    def RotatedRectPoints(self, rect):
+        points = [rect.TopLeft, rect.TopRight+(1,0), rect.BottomRight+(1,1), rect.BottomLeft+(0,1)]
+        return self.RotatedPoints(points)
+
+    def RotatedRect(self, rect):
+        points = self.RotatedRectPoints(rect)
+        l2 = list(map(list, zip(*points)))
+        rotSize = (max(l2[0]) - min(l2[0]) - 1, max(l2[1]) - min(l2[1]) - 1)
+        rotPos_x, rotPos_y = (min(l2[0]), min(l2[1]))
+        return wx.Rect(rotPos_x, rotPos_y, rotSize[0], rotSize[1])
+
     def GetAbsolutePosition(self):
-        p = self.GetProperty("position")
-        pos = wx.RealPoint(p[0], p[1])  # Copy so we don't edit the model's position
-        parent = self.parent
-        while parent and parent.type != "card":
-            parentPos = parent.GetProperty("position")
-            pos += parentPos
-            parent = parent.parent
-        return pos
+        aff = self.GetAffineTransform()
+        return wx.RealPoint(aff.TransformPoint(0,0))
 
     def SetAbsolutePosition(self, pos):
         parent = self.parent
-        pos = wx.RealPoint(pos[0], pos[1])
-        while parent and parent.type != "card":
-            parentPos = parent.GetProperty("position")
-            pos -= parentPos
-            parent = parent.parent
+        if parent:
+            iaff = parent.GetAffineTransform()
+            iaff.Invert()
+            pos = iaff.TransformPoint(pos[0], pos[1])
+        self.SetProperty("position", pos)
+
+    def GetAbsoluteCenter(self):
+        s = self.GetProperty("size")
+        aff = self.GetAffineTransform()
+        p = wx.Point(*aff.TransformPoint(int(s[0]/2), int(s[1]/2)))
+        return p
+
+    def SetAbsoluteCenter(self, pos):
+        parent = self.parent
+        if parent:
+            s = self.GetProperty("size")
+            iaff = parent.GetAffineTransform()
+            iaff.Invert()
+            pos = wx.RealPoint(*iaff.TransformPoint(pos[0], pos[1])) - (int(s[0]/2), int(s[1]/2))
         self.SetProperty("position", pos)
 
     def IsHidden(self):
@@ -623,9 +760,7 @@ class ViewModel(object):
         return wx.Rect(p, s)
 
     def GetAbsoluteFrame(self):
-        p = wx.Point(self.GetAbsolutePosition())
-        s = self.GetProperty("size")
-        return wx.Rect(p, s)
+        return self.RotatedRect(wx.Rect(wx.Point(0,0), self.GetProperty("size")))
 
     def SetFrame(self, rect):
         self.SetProperty("position", rect.Position)
@@ -686,6 +821,8 @@ class ViewModel(object):
             keys = self.propertyKeys.copy()
             keys.remove('position')
             keys.remove('size')
+            if 'rotation' in keys:
+                keys.remove('rotation')
             return keys
         return self.propertyKeys
 
@@ -698,10 +835,7 @@ class ViewModel(object):
 
     def GetProperty(self, key):
         if key == "center":
-            p = self.GetAbsolutePosition()
-            s = self.GetProperty("size")
-            center = [p.x + s.width / 2, p.y + s.height / 2]
-            return center
+            return self.GetAbsoluteCenter()
         elif key in self.properties:
             return self.properties[key]
         return None
@@ -800,9 +934,10 @@ class ViewModel(object):
             if value.width < self.minSize.width: value.width = self.minSize.width
             if value.height < self.minSize.height: value.height = self.minSize.height
         elif key == "center":
-            s = self.GetProperty("size")
-            self.SetAbsolutePosition([value.x - s.width / 2, value.y - s.height / 2])
+            self.SetAbsoluteCenter(value)
             return
+        elif key == "rotation":
+            value = value % 360
 
         if self.properties[key] != value:
             self.properties[key] = value
@@ -1240,6 +1375,21 @@ class ViewProxy(object):
         if not model: return
         model.SetProperty("hidden", not bool(val))
 
+    @property
+    def rotation(self):
+        model = self._model
+        if not model: return 0
+        return model.GetProperty("rotation")
+    @rotation.setter
+    def rotation(self, val):
+        if self._model.GetProperty("rotation") == None:
+            raise TypeError("object does not support rotation")
+        if not isinstance(val, (int, float)):
+            raise TypeError("rotation must be a number")
+        model = self._model
+        if not model: return
+        model.SetProperty("rotation", val)
+
     def GetEventHandler(self, eventName):
         model = self._model
         if not model: return ""
@@ -1286,8 +1436,6 @@ class ViewProxy(object):
             if not s:
                 return False
             sreg = s.GetHitRegion()
-            sreg = wx.Region(sreg)
-            sreg.Offset(*model.GetProperty("position"))
             return sreg.Contains(wx.Point(point)) == wx.InRegion
         return f()
 
@@ -1306,12 +1454,8 @@ class ViewProxy(object):
             o = model.stackManager.GetUiViewByModel(oModel)
             if not s or not o:
                 return False
-            sreg = s.GetHitRegion()
+            sreg = wx.Region(s.GetHitRegion())
             oreg = o.GetHitRegion()
-            sreg = wx.Region(sreg)
-            oreg = wx.Region(oreg)
-            sreg.Offset(*model.GetProperty("position"))
-            oreg.Offset(*oModel.GetProperty("position"))
             sreg.Intersect(oreg)
             return not sreg.IsEmpty()
         return f()
@@ -1332,11 +1476,9 @@ class ViewProxy(object):
             if not skipIsTouchingCheck and not self.IsTouching(obj):
                 return None
 
-            sf = model.GetAbsoluteFrame()  # self frame in card coords
             f = oModel.GetAbsoluteFrame() # other frame in card coords
 
-            reg = wx.Region(ui.GetHitRegion())
-            reg.Offset(sf.TopLeft)
+            reg = ui.GetHitRegion()
 
             # Pull edge lines away from the corners, so we don't always hit a corner when 2 objects touch
             x_pad = 7 if f.Width > 18 else 0
@@ -1447,6 +1589,44 @@ class ViewProxy(object):
             if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
         model.AddAnimation("size", duration, onUpdate, onStart, internalOnFinished)
+
+    def AnimateRotation(self, duration, endRotation, onFinished=None, forceDirection=0, *args, **kwargs):
+        if self._model.GetProperty("rotation") == None:
+            raise TypeError("AnimateRotation(): object does not support rotation")
+
+        if not isinstance(duration, (int, float)):
+            raise TypeError("AnimateRotation(): duration must be a number")
+        if not isinstance(endRotation, (int, float)):
+            raise TypeError("AnimateRotation(): endRotation must be a number")
+        if not isinstance(forceDirection, (int, float)):
+            raise TypeError("AnimateRotation(): forceDirection must be a number")
+
+        model = self._model
+        if not model: return
+
+        endRotation = endRotation
+
+        def onStart(animDict):
+            origVal = self.rotation
+            animDict["origVal"] = origVal
+            offset = endRotation - origVal
+            if forceDirection:
+                if forceDirection > 0:
+                    if offset <= 0: offset += 360
+                elif forceDirection < 0:
+                    if offset >= 0: offset -= 360
+            else:
+                if offset > 180: offset -= 360
+                if offset < -180: offset += 360
+            animDict["offset"] = offset
+
+        def onUpdate(progress, animDict):
+            model.SetProperty("rotation", (animDict["origVal"] + animDict["offset"] * progress)%360)
+
+        def internalOnFinished(animDict):
+            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+
+        model.AddAnimation("rotation", duration, onUpdate, onStart, internalOnFinished)
 
     def StopAnimating(self, propertyName=None):
         model = self._model

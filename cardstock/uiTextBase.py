@@ -36,7 +36,7 @@ class UiTextBase(UiView):
                     self.view.SetEditable(wasEditable)
                     self.view.Refresh()
             self.OnResize(None)
-        elif key in ["font", "fontSize", "textColor", "autoShrink"]:
+        elif key in ["font", "fontSize", "textColor", "autoShrink", "rotation"]:
             self.UpdateFont(model, self.view)
             self.OnResize(None)
             if self.view:
@@ -94,6 +94,7 @@ class UiTextBase(UiView):
     def OnKeyDown(self, event):
         if event.GetKeyCode() == wx.WXK_ESCAPE:
             self.StopInlineEditing()
+            return
         elif event.GetKeyCode() == wx.WXK_TAB:
             return
         event.Skip()

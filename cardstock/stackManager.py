@@ -29,7 +29,7 @@ from uiShape import UiShape
 from uiGroup import UiGroup, GroupModel
 from codeRunnerThread import RunOnMainSync, RunOnMainAsync
 import mediaSearchDialogs
-
+import flippedGCDC
 
 # ----------------------------------------------------------------------
 
@@ -889,9 +889,7 @@ class StackManager(object):
             return
 
         if self.tool and self.isEditing:
-            m = uiViews[0].model
             self.tool.OnMouseUp(uiViews[0], event)
-            uiView = self.GetUiViewByModel(m)
             if uiViews and uiViews[0].model and uiViews[0].model.type.startswith("text") and self.isDoubleClick:
                 # Fire it up!
                 uiViews[0].StartInlineEditing()
@@ -934,19 +932,21 @@ class StackManager(object):
             self.view.RefreshIfNeeded()
         event.Skip()
 
-    def ConvPoint(self, pt):
+    def ConvPoint(self, pt, height=None):
         """
         Vertically flip the stack view, so the origin is the bottom-left corner.
         """
-        height = self.stackModel.GetProperty("size").height
+        if not height:
+            height = self.stackModel.GetProperty("size").height
         return wx.Point(pt[0], height - pt[1])
 
-    def ConvRect(self, rect):
+    def ConvRect(self, rect, height=None):
         """
         Vertically flip the stack view, so the origin is the bottom-left corner.
         """
         if rect:
-            height = self.stackModel.GetProperty("size").height
+            if not height:
+                height = self.stackModel.GetProperty("size").height
             bl = rect.BottomLeft
             return wx.Rect((bl[0], height - bl[1]), rect.Size)
         return None
@@ -969,22 +969,12 @@ class StackManager(object):
                 self.UpdateBuffer()
             dc = wx.MemoryDC(self.buffer)
 
-        gc = FlippedGCDC(dc, self)
-        bg = wx.Colour(self.uiCard.model.GetProperty("bgColor"))
-        if not bg:
-            bg = wx.Colour('white')
-        gc.SetPen(wx.TRANSPARENT_PEN)
-        gc.SetBrush(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
-        gc.DrawRectangle(self.view.GetRect().Inflate(1))
+        gc = flippedGCDC.FlippedGCDC(dc, self)
 
-        paintUiViews = [ui for ui in self.uiCard.GetAllUiViews() if not ui.model.IsHidden()]
-        if len(paintUiViews):
-            for uiView in paintUiViews:
-                uiView.Paint(gc)
-            if self.isEditing:
-                for uiView in paintUiViews:
-                    uiView.PaintSelectionBox(gc)
-        self.uiCard.PaintSelectionBox(gc)
+        self.uiCard.DoPaint(gc)
+        if self.isEditing:
+            self.uiCard.DoPaintSelectionBoxes(gc)
+
         if self.tool:
             self.tool.Paint(gc)
 
@@ -999,19 +989,19 @@ class StackManager(object):
         if selectedFirst:
             for uiView in self.selectedViews:
                 if uiView.model.type != "card":
-                    hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
+                    hit = uiView.HitTest(pt)
                     if hit and (hit == uiView or hit.HasGroupAncestor(uiView)):
                         return hit
         # Native views first
         for uiView in reversed(self.uiCard.uiViews):
             if not uiView.model.IsHidden() and uiView.view:
-                hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
+                hit = uiView.HitTest(pt)
                 if hit:
                     return hit
         # Then virtual views
         for uiView in reversed(self.uiCard.uiViews):
             if not uiView.model.IsHidden() and not uiView.view:
-                hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
+                hit = uiView.HitTest(pt)
                 if hit:
                     return hit
         return self.uiCard
@@ -1022,13 +1012,13 @@ class StackManager(object):
         allViews = list(reversed(self.uiCard.GetAllUiViews()))
         for uiView in allViews:
             if not uiView.model.IsHidden() and uiView.view:
-                hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
+                hit = uiView.HitTest(pt)
                 if hit:
                     views.append(uiView)
         # Then virtual views
         for uiView in allViews:
             if not uiView.model.IsHidden() and not uiView.view:
-                hit = uiView.HitTest(pt - wx.Point(uiView.model.GetAbsolutePosition()))
+                hit = uiView.HitTest(pt)
                 if hit:
                     views.append(uiView)
         views.append(self.uiCard)
@@ -1173,40 +1163,3 @@ class StackManager(object):
             if uiView and uiView.view:
                 uiView.view.SetFocus()
                 uiView.view.SetSelection(selectStart, selectEnd)
-
-
-class FlippedGCDC(wx.GCDC):
-    """
-    Vertically flip the output to the stack view, so the origin is the bottom-left corner.
-    """
-    def __init__(self, dc, stackManager):
-        super().__init__(dc)
-        self.stackManager = stackManager
-
-    def DrawRectangle(self, rect):
-        super().DrawRectangle(self.stackManager.ConvRect(rect))
-
-    def DrawEllipse(self, rect):
-        super().DrawEllipse(self.stackManager.ConvRect(rect))
-
-    def DrawRoundedRectangle(self, rect, radius):
-        super().DrawRoundedRectangle(self.stackManager.ConvRect(rect), radius)
-
-    def DrawLine(self, pointA, pointB):
-        super().DrawLine(self.stackManager.ConvPoint(pointA), self.stackManager.ConvPoint(pointB))
-
-    def DrawLines(self, points, xoffset=0, yoffset=0):
-        points = [self.stackManager.ConvPoint((p[0]+xoffset, p[1]+yoffset)) for p in points]
-        super().DrawLines(points)
-
-    def DrawPolygon(self, points, xoffset=0, yoffset=0, fill_style=wx.ODDEVEN_RULE):
-        points = [self.stackManager.ConvPoint((p[0]+xoffset, p[1]+yoffset)) for p in points]
-        super().DrawPolygon(points, fill_style=fill_style)
-
-    def DrawBitmap(self, bitmap, x, y, useMask=False):
-        pt = self.stackManager.ConvPoint((x, y))
-        super().DrawBitmap(bitmap, pt.x, pt.y, useMask)
-
-    def DrawText(self, text, pt):
-        pt = self.stackManager.ConvPoint(pt)
-        super().DrawText(text, pt)

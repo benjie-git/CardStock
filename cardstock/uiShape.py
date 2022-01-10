@@ -1,7 +1,7 @@
 import wx
 import generator
 from uiView import *
-
+import flippedGCDC
 
 class UiShape(UiView):
     """
@@ -13,148 +13,167 @@ class UiShape(UiView):
     def __init__(self, parent, stackManager, model):
         super().__init__(parent, stackManager, model, None)
 
-    def DrawShape(self, dc, thickness, penColor, fillColor, offset, points):
-        penColor = wx.Colour(penColor)
-        if not penColor:
-            penColor = wx.Colour('black')
-
-        fillColor = wx.Colour(fillColor)
-        if not fillColor:
-            fillColor = wx.Colour('white')
-
-        pen = wx.Pen(penColor, thickness, wx.PENSTYLE_SOLID)
-        dc.SetPen(pen)
-
-        if self.model.type in ["pen", "line"]:
+    def MakeShapePath(self, gc, inflate=0):
+        # Create a path, un-rotated, in this object's local coords (object.position at 0,0)
+        points = self.model.GetScaledPoints()
+        shapeType = self.model.type
+        path = gc.GetGraphicsContext().CreatePath()
+        if shapeType in ["pen", "line"]:
             if len(points) > 1:
-                dc.DrawLines(points, offset.x, offset.y)
-        elif self.model.type in ["oval", "rect", "roundrect"] and len(points) == 2:
+                path.MoveToPoint(points[0])
+                for p in points[1:]:
+                    path.AddLineToPoint(*p)
+        elif shapeType in ["oval", "rect", "roundrect"] and len(points) == 2:
             rect = self.model.RectFromPoints(points)
-            p1 = rect.TopLeft + offset
-            p2 = rect.BottomRight + offset
-            if thickness == 0:
-                pen = wx.TRANSPARENT_PEN
-                dc.SetPen(pen)
-            dc.SetBrush(wx.Brush(fillColor, wx.BRUSHSTYLE_SOLID))
+            if inflate:
+                rect.Inflate(inflate)
+            p1 = rect.TopLeft
+            p2 = rect.BottomRight
+            s = p2-p1
+            # p1 = self.stackManager.ConvPoint(p1, height=height)
+            # p2 = self.stackManager.ConvPoint(p2, height=height)
             if self.model.type == "rect":
-                pen.SetJoin(wx.JOIN_MITER)
-                dc.SetPen(pen)
-                dc.DrawRectangle(wx.Rect(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1]))
+                path.AddRectangle(p1[0], min(p1[1], p2[1]), p2[0] - p1[0], abs(p2[1] - p1[1]))
             elif self.model.type == "roundrect":
                 radius = self.model.GetProperty("cornerRadius")
                 radius = min(radius, abs(p1[0]-p2[0])/2)
                 radius = min(radius, abs(p1[1]-p2[1])/2)
-                dc.DrawRoundedRectangle(wx.Rect(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1]), radius)
+                path.AddRoundedRectangle(p1[0], min(p1[1], p2[1]), p2[0] - p1[0], abs(p2[1] - p1[1]), radius)
             elif self.model.type == "oval":
-                dc.DrawEllipse(wx.Rect(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1]))
+                path.AddEllipse(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
         elif self.model.type == "poly" and len(points) >= 2:
-            if thickness == 0:
-                pen = wx.TRANSPARENT_PEN
-                dc.SetPen(pen)
-            dc.SetBrush(wx.Brush(fillColor, wx.BRUSHSTYLE_SOLID))
-            pen.SetJoin(wx.JOIN_MITER)
-            dc.SetPen(pen)
-            dc.DrawPolygon(points, offset.x, offset.y)
+            path.MoveToPoint(*points[0])
+            for p in points[1:]:
+                path.AddLineToPoint(*p)
+            path.AddLineToPoint(*points[0])
+        return path
+
+    def FlipPath(self, gc, path):
+        flipAff = gc.GetGraphicsContext().CreateMatrix()
+        flipAff.Translate(0, self.stackManager.view.Size.Height)
+        flipAff.Scale(1, -1)
+        path.Transform(flipAff)
 
     def Paint(self, gc):
-        thickness = None
-        fillColor = None
-        penColor = None
-        offset = None
-        points = None
         with self.model.animLock:
             thickness = self.model.GetProperty("penThickness")
             fillColor = self.model.GetProperty("fillColor")
             penColor = self.model.GetProperty("penColor")
-            offset = wx.Point(self.model.GetAbsolutePosition())
-            points = self.model.GetScaledPoints()
 
-        self.DrawShape(gc, thickness, penColor, fillColor, offset, points)
-        super().Paint(gc)
+        penColor = wx.Colour(penColor)
+        if not penColor:
+            penColor = wx.Colour('black')
+        if thickness == 0:
+            pen = wx.TRANSPARENT_PEN
+        else:
+            pen = wx.Pen(penColor, thickness, wx.PENSTYLE_SOLID)
+        gc.SetPen(pen)
+
+        if self.model.type not in ["line", "pen"]:
+            pen.SetJoin(wx.JOIN_MITER)
+            fillColor = wx.Colour(fillColor)
+            if not fillColor:
+                fillColor = wx.Colour('white')
+            gc.SetBrush(wx.Brush(fillColor, wx.BRUSHSTYLE_SOLID))
+
+        path = self.MakeShapePath(gc)
+        self.FlipPath(gc, path)
+
+        # We're already affine-transformed, so just draw
+        gc.GetGraphicsContext().FillPath(path)
+        gc.GetGraphicsContext().StrokePath(path)
 
     def PaintSelectionBox(self, gc):
         if self.isSelected and self.stackManager.tool.name == "hand":
-            f = None
-            thickness = None
-            points = None
-            radius = None
             with self.model.animLock:
-                f = self.model.GetAbsoluteFrame()
                 thickness = self.model.GetProperty("penThickness")
-                points = self.model.GetScaledPoints()
-                if self.model.type == "roundrect":
-                    radius = self.model.GetProperty("cornerRadius")
+                # s = self.model.GetProperty("size")
 
-            f = wx.Rect(f.TopLeft, f.Size - (1,1))
-            if wx.Platform != "__WXMAC":
-                thickness -=1
-            gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
-            gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            if self.model.type in ["line", "pen", "poly"]:
-                gc.SetPen(wx.Pen('Blue', 3 + thickness, wx.PENSTYLE_SHORT_DASH))
-                if self.model.type == "poly":
-                    points.append(points[0])
-                if len(points) > 1:
-                    gc.DrawLines(points, f.Left, f.Top)
-            elif self.model.type == "rect":
-                gc.DrawRectangle(wx.Rect(f).Inflate(2 + thickness/2))
-            elif self.model.type == "oval":
-                gc.DrawEllipse(wx.Rect(f).Inflate(2 + thickness/2))
-            elif self.model.type == "roundrect":
-                p1 = f.TopLeft
-                p2 = f.BottomRight
-                radius = min(radius, abs(p1[0]-p2[0])/2)
-                radius = min(radius, abs(p1[1]-p2[1])/2)
-                gc.DrawRoundedRectangle(wx.Rect(f).Inflate(2 + thickness/2), radius)
+            if wx.Platform != "__WXMAC__":
+                thickness -= 1
 
-            gc.SetPen(wx.TRANSPARENT_PEN)
-            gc.SetBrush(wx.Brush('blue', wx.BRUSHSTYLE_SOLID))
-            for box in self.GetResizeBoxRects():
-                gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
+            selThickness = 3
+            if (self.model.type in ["pen", "line", "poly"]):
+                # Make lines extra thick for easier clicking
+                selThickness += 6
+            gc.SetPen(wx.Pen('Blue', selThickness, wx.PENSTYLE_SHORT_DASH))
+            gc.SetBrush(wx.Brush('Blue', wx.BRUSHSTYLE_SOLID))
+
+            # We're already affine-transformed, so just flip vertically and draw
+            path = self.MakeShapePath(gc, inflate=(2 + thickness/2))
+            self.FlipPath(gc, path)
+            gc.GetGraphicsContext().StrokePath(path)
+
+            if self.model.parent and self.model.parent.type != "group":
+                path = gc.GetGraphicsContext().CreatePath()
+                if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
+                    for resizerRect in self.GetLocalResizeBoxRects().values():
+                        path.AddRectangle(resizerRect.Left, resizerRect.Top, resizerRect.Width, resizerRect.Height)
+                self.FlipPath(gc, path)
+                gc.GetGraphicsContext().FillPath(path)
 
     def MakeHitRegion(self):
+        # Make a region in absolute/card coordinates
         if self.model.IsHidden():
             self.hitRegion = wx.Region((0,0), (0,0))
 
         with self.model.animLock:
             thickness = self.model.GetProperty("penThickness")
             s = self.model.GetProperty("size")
-            points = self.model.GetScaledPoints()
+            origPoints = self.model.GetScaledPoints()
+            rotRect = self.model.RotatedRect(self.model.RectFromPoints(origPoints))
 
-        extraThick = 6 if (self.model.type in ["pen", "line"]) else 0
-        thickness = thickness + extraThick
+        if self.model.type in ["pen", "line", "poly"]:
+            # Make lines extra thick for easier clicking
+            thickness += 6
 
         # Draw the region offset up/right, to allow space for bottom/left resize boxes,
         # since they would otherwise be at negative coords, which would be outside the
         # hitRegion bitmap.  Then set the offset of the hitRegion bitmap down/left to make up for it.
         regOffset = (thickness+20)/2
 
-        bmp = wx.Bitmap(width=s.width+2*regOffset, height=s.height+2*regOffset, depth=1)
-        dc = wx.MemoryDC(bmp)
-        dc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
-        dc.Clear()
-        penColor = 'white'
-        fillColor = 'white'
-        self.DrawShape(dc, thickness, penColor, fillColor, wx.Point(regOffset, regOffset), points)
+        height = rotRect.Size[1]+2*regOffset
+        bmp = wx.Bitmap(width=rotRect.Size[0]+2*regOffset, height=height, depth=1)
+        gc = flippedGCDC.FlippedMemoryDC(bmp, self.stackManager, height)
+        gc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
+        gc.SetPen(wx.Pen('white', thickness, wx.PENSTYLE_SOLID))
+        gc.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
+        gc.Clear()
+
+        aff = self.model.GetAffineTransform()
+        vals = aff.Get()
+        # Draw into region bmp rotated but not translated
+        vals = (vals[0].m_11, vals[0].m_12, vals[0].m_21, vals[0].m_22, vals[1][0] - (rotRect.Position.x-regOffset), vals[1][1] - (rotRect.Position.y-regOffset))
+        aff = gc.GetGraphicsContext().CreateMatrix(*vals)
+
+        path = self.MakeShapePath(gc, inflate=(2 + thickness / 2))
+        path.Transform(aff)
+        gc.GetGraphicsContext().FillPath(path)
+        gc.GetGraphicsContext().StrokePath(path)
+
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
-            for resizerRect in self.GetResizeBoxRects():
-                resizerRect.Offset((regOffset, regOffset))
-                dc.DrawRectangle(resizerRect)
+            path = gc.GetGraphicsContext().CreatePath()
+            for resizerRect in self.GetLocalResizeBoxRects().values():
+                path.AddRectangle(resizerRect.Left, resizerRect.Top, resizerRect.Width, resizerRect.Height)
+            path.Transform(aff)
+            gc.GetGraphicsContext().FillPath(path)
+            gc.GetGraphicsContext().Flush()
+
         reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
-        reg.Offset(-regOffset, -regOffset)
+        reg.Offset(rotRect.Position.x-regOffset, rotRect.Position.y-regOffset)
         self.hitRegion = reg
 
-    def GetResizeBoxRects(self):
+    def GetLocalResizeBoxPoints(self):
         thicknessOffset = self.model.GetProperty("penThickness")/2
-        resizerRects = super().GetResizeBoxRects()
-        for r in resizerRects:
-                r.Offset((thicknessOffset-3 if r.Left >= 0 else -thicknessOffset-2,
-                            thicknessOffset-2 if r.Top >= 0 else -thicknessOffset-2))
-        return resizerRects
+        resizerPoints = super().GetLocalResizeBoxPoints()
+        for k,p in resizerPoints.items():
+                p += (thicknessOffset-2 if p.x > 0 else -thicknessOffset-2,
+                      thicknessOffset-2 if p.y > 0 else -thicknessOffset-2)
+        return resizerPoints
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key in ["size", "shape", "penColor", "penThickness", "fillColor", "cornerRadius"]:
+        if key in ["size", "shape", "penColor", "penThickness", "fillColor", "cornerRadius", "rotation"]:
             self.ClearHitRegion()
             self.stackManager.view.Refresh()
 
@@ -192,13 +211,15 @@ class LineModel(ViewModel):
         self.properties["originalSize"] = None
         self.properties["penColor"] = "black"
         self.properties["penThickness"] = 2
+        self.properties["rotation"] = 0.0
 
         self.propertyTypes["originalSize"] = "size"
         self.propertyTypes["penColor"] = "color"
         self.propertyTypes["penThickness"] = "uint"
+        self.propertyTypes["rotation"] = "float"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "penColor", "penThickness", "position", "size"]
+        self.propertyKeys = ["name", "penColor", "penThickness", "rotation", "position", "size"]
 
     def GetData(self):
         data = super().GetData()
@@ -438,7 +459,7 @@ class ShapeModel(LineModel):
         self.propertyTypes["fillColor"] = "color"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "penColor", "penThickness", "fillColor", "position", "size"]
+        self.propertyKeys = ["name", "penColor", "penThickness", "fillColor", "rotation", "position", "size"]
 
     def SetShape(self, shape):
         self.properties["fillColor"] = shape["fillColor"]
@@ -525,7 +546,7 @@ class RoundRectModel(ShapeModel):
         self.propertyTypes["cornerRadius"] = "uint"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "penColor", "penThickness", "fillColor", "cornerRadius", "position", "size"]
+        self.propertyKeys = ["name", "penColor", "penThickness", "fillColor", "cornerRadius", "rotation", "position", "size"]
 
     def SetShape(self, shape):
         self.properties["cornerRadius"] = shape["cornerRadius"] if "cornerRadius" in shape else 8

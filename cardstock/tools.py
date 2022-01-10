@@ -179,10 +179,9 @@ class HandTool(BaseTool):
             if self.mode == "click":
                 if dist(list(pos), list(self.absOrigin)) > MOVE_THRESHOLD:
                     objRect = self.targetUi.model.GetAbsoluteFrame()
-                    objCenter = wx.Point(objRect.Width/2, objRect.Height/2)
-                    for r in self.targetUi.GetResizeBoxRects():
-                        if r.Inflate(2).Contains(self.relOrigin):
-                            self.resizeCorner = (self.relOrigin.x < objCenter.x, self.relOrigin.y < objCenter.y)
+                    for k,r in self.targetUi.GetResizeBoxRects().items():
+                        if r.Inflate(2).Contains(self.absOrigin):
+                            self.resizeCorner = ("L" in k, "B" in k)
                             self.resizeAnchorPoint = wx.Point(objRect.Right if self.resizeCorner[0] else objRect.Left,
                                                               objRect.Bottom if self.resizeCorner[1] else objRect.Top)
                             self.resizeCardLastSize = objRect.Size
@@ -319,7 +318,7 @@ class HandTool(BaseTool):
             self.lastBoxList = None
             self.stackManager.view.Refresh()
         elif self.mode == "move":
-            pos = self.targetUi.model.GetAbsolutePosition()
+            pos = self.targetUi.model.GetProperty("position")
             viewOrigin = self.oldFrames[self.targetUi.model.GetProperty("name")].Position
             offset = (pos[0] - viewOrigin.x, pos[1] - viewOrigin.y)
             if offset != (0, 0):

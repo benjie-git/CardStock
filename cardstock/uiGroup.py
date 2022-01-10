@@ -12,14 +12,7 @@ class UiGroup(UiView):
     """
 
     def __init__(self, parent, stackManager, model):
-        self.uiViews = []
         super().__init__(parent, stackManager, model, None)
-
-    def SetDown(self):
-        for ui in self.uiViews:
-            ui.SetDown()
-        self.uiViews = None
-        super().SetDown()
 
     def SetModel(self, model):
         super().SetModel(model)
@@ -37,13 +30,14 @@ class UiGroup(UiView):
         if self.hitRegion.Contains(pt):
             for ui in reversed(self.uiViews):
                 if not ui.model.IsHidden():
-                    hit = ui.HitTest(pt-wx.Point(ui.model.GetProperty("position")))
+                    hit = ui.HitTest(pt)
                     if hit:
                         return hit
             return self
         return None
 
     def MakeHitRegion(self):
+        # Make a region in abs/card coordinates
         if self.stackManager.isEditing:
             # The group's whole rect is a click target while editing
             super().MakeHitRegion()
@@ -55,19 +49,12 @@ class UiGroup(UiView):
             reg = wx.Region()
             for ui in self.uiViews:
                 uiReg = wx.Region(ui.GetHitRegion())
-                uiReg.Offset(wx.Point(ui.model.GetProperty("position")))
                 reg.Union(uiReg)
             self.hitRegion = reg
 
-    def Paint(self, gc):
-        if self.stackManager.isEditing:
-            gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
-            gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            gc.DrawRectangle(self.model.GetAbsoluteFrame())
-
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key == "position":
+        if key in ["position", "rotation"]:
             for ui in self.uiViews:
                 ui.OnPropertyChanged(ui.model, key)
         elif key == "size":
@@ -116,6 +103,11 @@ class GroupModel(ViewModel):
         self.origFrame = None
         self.proxyClass = Group
         self.properties["name"] = "group_1"
+        self.properties["rotation"] = 0.0
+        self.propertyTypes["rotation"] = "float"
+
+        # Custom property order and mask for the inspector
+        self.propertyKeys = ["name", "rotation", "position", "size"]
 
     def GetAllChildModels(self):
         allModels = []
@@ -180,11 +172,9 @@ class GroupModel(ViewModel):
     def UpdateFrame(self):
         if len(self.childModels):
             oldRect = self.GetFrame()
-            newRect = self.childModels[0].GetFrame()
+            newRect = self.childModels[0].GetAbsoluteFrame()
             for m in self.childModels[1:]:
-                newRect = newRect.Union(m.GetFrame())
-            newRect = wx.Rect(wx.Point(oldRect.Position.x + newRect.Position.x,
-                                              oldRect.Position.y + newRect.Position.y), newRect.Size)
+                newRect = newRect.Union(m.GetAbsoluteFrame())
             self.SetFrame(newRect)
             offset = (newRect.Left - oldRect.Left, newRect.Top - oldRect.Top)
             for m in self.childModels:

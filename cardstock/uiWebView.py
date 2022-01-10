@@ -101,13 +101,6 @@ class UiWebView(UiView):
             return self.webView.SetPage(html, baseUrl)
 
 
-    def Paint(self, gc):
-        if self.stackManager.isEditing:
-            gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
-            gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            gc.DrawRectangle(self.model.GetAbsoluteFrame())
-
-
 class WebViewModel(ViewModel):
     """
     This is the model for a WebView object.

@@ -278,6 +278,12 @@ class ControlPanel(wx.Panel):
                     l = list(uiView.model.GetProperty(k))
                     l = [int(i) if math.modf(i)[0] == 0 else i for i in l]
                     self.inspector.SetCellValue(r, 1, str(l))
+                elif uiView.model.GetPropertyType(k) == "float":
+                    v = uiView.model.GetProperty(k)
+                    if v % 1 == 0:
+                        self.inspector.SetCellValue(r, 1, str(int(v)))
+                    else:
+                        self.inspector.SetCellValue(r, 1, str(v))
                 else:
                     self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
                 r += 1
@@ -315,6 +321,12 @@ class ControlPanel(wx.Panel):
                     l = list(uiView.model.GetProperty(k))
                     l = [int(i) if math.modf(i)[0] == 0 else i for i in l]
                     self.inspector.SetCellValue(r, 1, str(l))
+                elif uiView.model.GetPropertyType(k) == "float":
+                    v = uiView.model.GetProperty(k)
+                    if v % 1 == 0:
+                        self.inspector.SetCellValue(r, 1, str(int(v)))
+                    else:
+                        self.inspector.SetCellValue(r, 1, str(v))
                 else:
                     self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
 
@@ -362,6 +374,11 @@ class ControlPanel(wx.Panel):
                         l = list(val)
                         l = [int(i) if math.modf(i)[0] == 0 else i for i in l]
                         self.inspector.SetCellValue(r, 1, str(l))
+                    elif uiViews[0].model.GetPropertyType(k) == "float":
+                        if val % 1 == 0:
+                            self.inspector.SetCellValue(r, 1, str(int(val)))
+                        else:
+                            self.inspector.SetCellValue(r, 1, str(val))
                     else:
                         self.inspector.SetCellValue(r, 1, str(val))
                 else:

@@ -99,7 +99,6 @@ class UiTextLabel(UiTextBase):
 
     def Paint(self, gc):
         align = self.model.GetProperty("alignment")
-        (startX, startY) = self.model.GetAbsoluteFrame().BottomLeft
         (width, height) = self.model.GetProperty("size")
 
         font = wx.Font(self.font)
@@ -112,7 +111,7 @@ class UiTextLabel(UiTextBase):
         gc.SetTextForeground(wx.Colour(self.textColor))
         lines = wordwrap(self.model.GetProperty("text"), width, gc)
 
-        offsetY = 0
+        offsetY = height
         extraLineSpacing = 1.25 if wx.Platform == "__WXMSW__" else 1.1
         lineHeight = int(font.GetPixelSize().height * extraLineSpacing)
 
@@ -121,23 +120,19 @@ class UiTextLabel(UiTextBase):
             if align in ["Center", "Right"]:
                 textWidth = gc.GetTextExtent(line).Width
                 if align == "Center":
-                    xPos = startX + (width - textWidth)/2
+                    xPos = (width - textWidth)/2
                 else:
-                    xPos = startX + width - textWidth
+                    xPos = width - textWidth
             else:
-                xPos = startX
-            gc.DrawText(line, wx.Point(xPos, startY-offsetY))
+                xPos = 0
+
+            gc.DrawText(line, wx.Point(xPos, offsetY))
             offsetY += lineHeight
             if offsetY + lineHeight > height:
                 break
 
         if self.stackManager.isEditing:
-            if didShrink:
-                gc.SetPen(wx.Pen('red', 2, wx.PENSTYLE_DOT))
-            else:
-                gc.SetPen(wx.Pen('gray', 1, wx.PENSTYLE_DOT))
-            gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            gc.DrawRectangle(self.model.GetAbsoluteFrame())
+            self.PaintBoundingBox(gc, 'red' if didShrink else 'gray')
 
 
 class TextLabelModel(TextBaseModel):
@@ -151,11 +146,13 @@ class TextLabelModel(TextBaseModel):
         self.proxyClass = TextLabel
         self.properties["name"] = "label_1"
         self.properties["autoShrink"] = True
+        self.properties["rotation"] = 0.0
 
         self.propertyTypes["autoShrink"] = "bool"
+        self.propertyTypes["rotation"] = "float"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "autoShrink", "position", "size"]
+        self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "rotation", "autoShrink", "position", "size"]
 
 
 class TextLabel(TextBaseProxy):

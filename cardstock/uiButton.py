@@ -96,7 +96,7 @@ class UiButton(UiView):
                 (width, height) = self.model.GetProperty("size")
                 font = wx.Font(wx.FontInfo(wx.Size(0, 15)).Family(wx.FONTFAMILY_DEFAULT))
                 lineHeight = font.GetPixelSize().height
-                (startX, startY) = self.model.GetAbsoluteFrame().BottomLeft - (0, (height-lineHeight)/2)
+                (startX, startY) = (0, (height+lineHeight)/2)
 
                 lines = wordwrap(title, width, gc)
                 line = lines.split("\n")[0]
@@ -107,10 +107,7 @@ class UiButton(UiView):
                 xPos = startX + (width - textWidth) / 2
                 gc.DrawText(line, wx.Point(xPos, startY))
 
-        if self.stackManager.isEditing:
-            gc.SetPen(wx.Pen('Gray', 1, wx.PENSTYLE_DOT))
-            gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            gc.DrawRectangle(self.model.GetAbsoluteFrame())
+        super().Paint(gc)
 
 
 class ButtonModel(ViewModel):

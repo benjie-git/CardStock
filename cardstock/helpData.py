@@ -423,6 +423,10 @@ class HelpDataObject():
                            "object's center point is.  The first number, <b>x</b>, is how many pixels the object's center "
                            "is from the left edge of the card.  The second number, <b>y</b>, is how far up from the bottom.  "
                            "This value is not stored, but computed based on position and size."},
+        "rotation": {"type": "float",
+                     "info": "This is the angle in degrees clockwise to rotate this object.  0 is upright.  Note that "
+                             "not all objects can be rotated.  Card and stack objects can not rotate, and text fields, "
+                             "web views, and bordered buttons can't rotate either."},
         "speed": {"type": "point",
                   "info": "This is a point value corresponding to the current speed of the object, in pixels/second "
                           "in both the <b>x</b> and <b>y</b> directions."},
@@ -569,6 +573,17 @@ class HelpDataObject():
                         "info": "Visually animates the <b>size</b> of this object from its current size to <b>endSize</b>, "
                                 "over <b>duration</b> seconds.  When the animation completes, runs the "
                                 "<b>onFinished</b> function, if one was passed in."},
+        "AnimateRotation": {"args": {"duration": {"type": "float", "info": "time in seconds to run the animation"},
+                                     "endRotation": {"type": "int",
+                                                             "info": "the final rotation angle in degrees clockwise at "
+                                                                     "the end of the animation"},
+                                     "onFinished": {"type": "function",
+                                                    "info": "an optional function to run when the animation finishes."},
+                                     "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>onFinished</b>."}},
+                            "return": None,
+                            "info": "Visually animates changing this object's <b>rotation</b> angle to <b>endRotation</b>, "
+                                    "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                    "<b>onFinished</b> function, if one was passed in."},
         "StopAnimating": {"args": {"propertyName": {"type": "string",
                                                     "info": "optional name of the property to stop animating, for "
                                                             "example: \"size\" or \"position\".  If left blank, stops "
@@ -802,23 +817,9 @@ class HelpDataImage():
                         "image to fit inside the image object, while keeping the original image aspect ratio. Fill "
                         "sizes the image to just barely fill the entire image object, while keeping the original image "
                         "aspect ratio."},
-        "rotation": {"type": "float",
-                     "info": "This is the angle in degrees clockwise to rotate this image.  0 is upright."},
     }
 
-    methods = {
-        "AnimateRotation": {"args": {"duration": {"type": "float", "info": "time in seconds to run the animation"},
-                                     "endRotation": {"type": "int",
-                                                             "info": "the final rotation angle in degrees clockwise at "
-                                                                     "the end of the animation"},
-                                     "onFinished": {"type": "function",
-                                                    "info": "an optional function to run when the animation finishes."},
-                                     "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>onFinished</b>."}},
-                            "return": None,
-                            "info": "Visually animates changing this image's <b>rotation</b> angle to <b>endRotation</b>, "
-                                    "over <b>duration</b> seconds.  When the animation completes, runs the "
-                                    "<b>onFinished</b> function, if one was passed in."},
-    }
+    methods = {}
 
     handlers = {}
 
