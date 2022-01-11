@@ -127,7 +127,7 @@ class UiTextLabel(UiTextBase):
                 xPos = 0
 
             gc.DrawText(line, wx.Point(xPos, offsetY))
-            offsetY += lineHeight
+            offsetY -= lineHeight
             if offsetY + lineHeight > height:
                 break
 
