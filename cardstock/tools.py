@@ -235,6 +235,8 @@ class HandTool(BaseTool):
                         rot = -180 + rot
                     elif vector.x >= 0 and vector.y < 0:  # bottom right
                         rot = 180 + rot
+                if event.ShiftDown():
+                    rot = int((rot%360) / 5) * 5
                 self.targetUi.model.SetProperty("rotation", rot)
 
             elif self.mode == "resize":
