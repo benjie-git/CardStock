@@ -127,6 +127,7 @@ class HandTool(BaseTool):
         self.resizeCardLastSize = None
         self.resizeAff = None
         self.resizeAffInverted = None
+        self.origRotation = None
 
     def Activate(self):
         if len(self.stackManager.GetSelectedUiViews()) == 0:
@@ -193,7 +194,14 @@ class HandTool(BaseTool):
                             self.resizeAnchorPointAbs = self.resizeAff.TransformPoint(*self.resizeAnchorPointLocal)
                             self.resizeAff.Invert()
                             self.StartResize()
-                            break
+                            return
+                    rotPt = self.targetUi.GetRotationHandlePoint()
+                    if rotPt:
+                        r = wx.Rect(wx.Point(rotPt)-(6,6), (12,12))
+                        if r.Contains(self.absOrigin):
+                            self.origRotation = self.targetUi.model.GetProperty("rotation")
+                            self.StartRotate()
+                            return
                     if self.resizeCorner is None:
                         if self.targetUi.model.type == "card":
                             self.StartBoxSelect()
@@ -216,6 +224,20 @@ class HandTool(BaseTool):
                     offset = (pos.x - self.absOrigin.x, pos.y - self.absOrigin.y)
                     origPos = self.oldFrames[ui.model.GetProperty("name")].Position
                     ui.model.SetProperty("position", [origPos.x + offset[0], origPos.y + offset[1]])
+            elif self.mode == "rotate":
+                center = self.targetUi.model.GetCenter()
+                vector = pos - center
+                if vector.y == 0:
+                    rot = 90 if vector.x > 0 else -90
+                else:
+                    rot = round(math.degrees(math.atan(vector.x/vector.y)), 1)
+                    if vector.x < 0 and vector.y < 0: # bottom left
+                        rot = -180 + rot
+                    elif vector.x >= 0 and vector.y < 0:  # bottom right
+                        rot = 180 + rot
+                print(rot)
+                self.targetUi.model.SetProperty("rotation", rot)
+
             elif self.mode == "resize":
                 if self.targetUi.model.type == "card":
                     pos = self.ConstrainDragPointAspect(self.resizeAnchorPointLocal, origSize, pos, event.ShiftDown())
@@ -308,6 +330,9 @@ class HandTool(BaseTool):
         self.xFlipped = False
         self.yFlipped = False
 
+    def StartRotate(self):
+        self.mode = "rotate"
+
     def OnMouseUp(self, uiView, event):
         if self.stackManager.view.HasCapture():
             self.stackManager.view.ReleaseMouse()
@@ -341,6 +366,15 @@ class HandTool(BaseTool):
                     viewOrigin = self.oldFrames[m.GetProperty("name")].Position
                     m.SetProperty("position", viewOrigin, notify=False)
                 self.stackManager.command_processor.Submit(command)
+        elif self.mode == "rotate":
+            newRot = self.targetUi.model.GetProperty("rotation")
+            self.stackManager.view.Freeze()
+            self.targetUi.model.SetProperty("rotation", self.origRotation)
+            command = SetPropertyCommand(True, "Set Rotation", self.stackManager.designer.cPanel,
+                                         self.stackManager.cardIndex, self.targetUi.model,
+                                         "rotation", newRot)
+            self.stackManager.command_processor.Submit(command)
+            self.stackManager.view.Thaw()
         elif self.mode == "resize":
             pos = self.targetUi.model.GetProperty("position")
             viewOrigin = self.oldFrames[self.targetUi.model.GetProperty("name")].Position
@@ -381,6 +415,7 @@ class HandTool(BaseTool):
         self.resizeCardLastSize = None
         self.resizeAff = None
         self.resizeAffInverted = None
+        self.origRotation = None
         event.Skip()
 
     def UpdateBoxSelection(self):

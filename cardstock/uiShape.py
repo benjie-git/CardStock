@@ -106,12 +106,16 @@ class UiShape(UiView):
             gc.GetGraphicsContext().StrokePath(path)
 
             if self.model.parent and self.model.parent.type != "group":
-                path = gc.GetGraphicsContext().CreatePath()
                 if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
                     for resizerRect in self.GetLocalResizeBoxRects().values():
+                        path = gc.GetGraphicsContext().CreatePath()
                         path.AddRectangle(resizerRect.Left, resizerRect.Top, resizerRect.Width, resizerRect.Height)
-                self.FlipPath(gc, path)
-                gc.GetGraphicsContext().FillPath(path)
+                        self.FlipPath(gc, path)
+                        gc.GetGraphicsContext().FillPath(path)
+                    path = gc.GetGraphicsContext().CreatePath()
+                    path.AddCircle(*self.GetLocalRotationHandlePoint(), 6)
+                    self.FlipPath(gc, path)
+                    gc.GetGraphicsContext().FillPath(path)
 
     def MakeHitRegion(self):
         # Make a region in absolute/card coordinates
@@ -133,7 +137,7 @@ class UiShape(UiView):
         # hitRegion bitmap.  Then set the offset of the hitRegion bitmap down/left to make up for it.
         regOffset = (thickness+20)/2
 
-        height = rotRect.Size[1]+2*regOffset
+        height = rotRect.Size[1]+2*regOffset +12
         bmp = wx.Bitmap(width=rotRect.Size[0]+2*regOffset, height=height, depth=1)
         gc = flippedGCDC.FlippedMemoryDC(bmp, self.stackManager, height)
         gc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
@@ -157,6 +161,7 @@ class UiShape(UiView):
             path = gc.GetGraphicsContext().CreatePath()
             for resizerRect in self.GetLocalResizeBoxRects().values():
                 path.AddRectangle(resizerRect.Left, resizerRect.Top, resizerRect.Width, resizerRect.Height)
+            path.AddCircle(*self.GetLocalRotationHandlePoint(), 6)
             path.Transform(aff)
             gc.GetGraphicsContext().FillPath(path)
             gc.GetGraphicsContext().Flush()
@@ -172,6 +177,11 @@ class UiShape(UiView):
                 p += (thicknessOffset-2 if p.x > 0 else -thicknessOffset-2,
                       thicknessOffset-2 if p.y > 0 else -thicknessOffset-2)
         return resizerPoints
+
+    def GetLocalRotationHandlePoint(self):
+        points = self.GetLocalResizeBoxPoints()
+        thicknessOffset = self.model.GetProperty("penThickness")/2
+        return ((points["TR"] + points["TL"])/2 + (0, 12+thicknessOffset))
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)

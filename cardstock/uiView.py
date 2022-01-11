@@ -412,6 +412,7 @@ class UiView(object):
                 gc.SetBrush(wx.Brush('Blue', wx.BRUSHSTYLE_SOLID))
                 for box in self.GetLocalResizeBoxRects().values():
                     gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
+                gc.DrawCircle(self.GetLocalRotationHandlePoint(), 6)
 
     def PostPaint(self, gc):
         gc.GetGraphicsContext().PopState()
@@ -453,6 +454,19 @@ class UiView(object):
         points = self.GetLocalResizeBoxPoints()
         return {k:wx.Rect(p.x-6, p.y-6, 12, 12) for k,p in points.items()}
 
+    def GetLocalRotationHandlePoint(self):
+        points = self.GetLocalResizeBoxPoints()
+        if "TR" in points and "TL" in points:
+            return ((points["TR"] + points["TL"])/2 + (0, 10))
+        return None
+
+    def GetRotationHandlePoint(self):
+        aff = self.model.GetAffineTransform()
+        pt = self.GetLocalRotationHandlePoint()
+        if pt:
+            return aff.TransformPoint(*pt)
+        return None
+
     def ClearHitRegion(self):
         self.hitRegion = None
         if self.parent and self.parent.model.type == "group":
@@ -482,7 +496,7 @@ class UiView(object):
         # hitRegion bitmap.  Then set the offset of the hitRegion bitmap down/left to make up for it.
         regOffset = 10
 
-        height = rotSize[1]+2*regOffset
+        height = rotSize[1]+2*regOffset +12
         bmp = wx.Bitmap(width=rotSize[0]+2*regOffset, height=height, depth=1)
         gc = flippedGCDC.FlippedMemoryDC(bmp, self.stackManager, height)
         gc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
@@ -503,9 +517,13 @@ class UiView(object):
         gc.GetGraphicsContext().FillPath(path)
 
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
-            path = gc.GetGraphicsContext().CreatePath()
             for resizerRect in self.GetLocalResizeBoxRects().values():
+                path = gc.GetGraphicsContext().CreatePath()
                 path.AddRectangle(resizerRect.Left, resizerRect.Top, resizerRect.Width, resizerRect.Height)
+                path.Transform(aff)
+                gc.GetGraphicsContext().FillPath(path)
+            path = gc.GetGraphicsContext().CreatePath()
+            path.AddCircle(*self.GetLocalRotationHandlePoint(), 6)
             path.Transform(aff)
             gc.GetGraphicsContext().FillPath(path)
             gc.GetGraphicsContext().Flush()
@@ -667,6 +685,9 @@ class ViewModel(object):
             if card.GetDirty():
                 return True
         return False
+
+    def CanRotate(self):
+        return ("rotation" in self.properties)
 
     def GetPath(self):
         parts = []

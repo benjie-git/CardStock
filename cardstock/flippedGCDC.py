@@ -11,6 +11,9 @@ class FlippedGCDC(wx.GCDC):
     def DrawRectangle(self, rect):
         super().DrawRectangle(self.stackManager.ConvRect(rect))
 
+    def DrawCircle(self, pt, radius):
+        super().DrawCircle(self.stackManager.ConvPoint(pt), radius)
+
     def DrawEllipse(self, rect):
         super().DrawEllipse(self.stackManager.ConvRect(rect))
 
@@ -48,6 +51,9 @@ class FlippedMemoryDC(wx.MemoryDC):
 
     def DrawRectangle(self, rect):
         super().DrawRectangle(self.stackManager.ConvRect(rect, height=self.height))
+
+    def DrawCircle(self, pt, radius):
+        super().DrawCircle(self.stackManager.ConvRect(pt, height=self.height), radius)
 
     def DrawEllipse(self, rect):
         super().DrawEllipse(self.stackManager.ConvRect(rect, height=self.height))
