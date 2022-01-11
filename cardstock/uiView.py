@@ -412,7 +412,9 @@ class UiView(object):
                 gc.SetBrush(wx.Brush('Blue', wx.BRUSHSTYLE_SOLID))
                 for box in self.GetLocalResizeBoxRects().values():
                     gc.DrawRectangle(wx.Rect(box.TopLeft + f.TopLeft, box.Size))
-                gc.DrawCircle(self.GetLocalRotationHandlePoint(), 6)
+                rotPt = self.GetLocalRotationHandlePoint()
+                if rotPt:
+                    gc.DrawCircle(rotPt, 6)
 
     def PostPaint(self, gc):
         gc.GetGraphicsContext().PopState()
@@ -456,7 +458,7 @@ class UiView(object):
 
     def GetLocalRotationHandlePoint(self):
         points = self.GetLocalResizeBoxPoints()
-        if "TR" in points and "TL" in points:
+        if "rotation" in self.model.properties and "TR" in points and "TL" in points:
             return ((points["TR"] + points["TL"])/2 + (0, 10))
         return None
 
@@ -523,10 +525,12 @@ class UiView(object):
                 path.Transform(aff)
                 gc.GetGraphicsContext().FillPath(path)
             path = gc.GetGraphicsContext().CreatePath()
-            path.AddCircle(*self.GetLocalRotationHandlePoint(), 6)
-            path.Transform(aff)
-            gc.GetGraphicsContext().FillPath(path)
-            gc.GetGraphicsContext().Flush()
+            rotPt = self.GetLocalRotationHandlePoint()
+            if rotPt:
+                path.AddCircle(*rotPt, 6)
+                path.Transform(aff)
+                gc.GetGraphicsContext().FillPath(path)
+                gc.GetGraphicsContext().Flush()
 
         reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
         reg.Offset(rotPos_x-regOffset, rotPos_y-regOffset)
