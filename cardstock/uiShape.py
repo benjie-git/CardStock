@@ -80,7 +80,8 @@ class UiShape(UiView):
         self.FlipPath(gc, path)
 
         # We're already affine-transformed, so just draw
-        gc.GetGraphicsContext().FillPath(path)
+        if self.model.type not in ["line", "pen"]:
+            gc.GetGraphicsContext().FillPath(path)
         gc.GetGraphicsContext().StrokePath(path)
 
     def PaintSelectionBox(self, gc):
@@ -148,7 +149,8 @@ class UiShape(UiView):
 
         path = self.MakeShapePath(gc, inflate=(2 + thickness / 2))
         path.Transform(aff)
-        gc.GetGraphicsContext().FillPath(path)
+        if self.model.type not in ["line", "pen"]:
+            gc.GetGraphicsContext().FillPath(path)
         gc.GetGraphicsContext().StrokePath(path)
 
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":

@@ -713,6 +713,21 @@ class ViewModel(object):
         rotPos_x, rotPos_y = (min(l2[0]), min(l2[1]))
         return wx.Rect(rotPos_x, rotPos_y, rotSize[0], rotSize[1])
 
+    def UnrotatedRectFromAbsPoints(self, ptA, ptB):
+        rot = self.GetProperty("rotation")
+        center = (ptA + ptB)/2
+        aff = wx.AffineMatrix2D()
+        aff.Translate(*center)
+        if rot:
+            aff.Rotate(math.radians(rot))
+        aff.Translate(*(wx.Point(0,0)-center))
+
+        ptA = aff.TransformPoint(*ptA)
+        ptB = aff.TransformPoint(*ptB)
+        bl = wx.Point(min(ptA[0], ptB[0]), min(ptA[1], ptB[1]))
+        tr = wx.Point(max(ptA[0], ptB[0]), max(ptA[1], ptB[1]))
+        return wx.Rect(bl, tr)
+
     def GetAbsolutePosition(self):
         parent = self.parent
         pos = self.GetProperty("position")
