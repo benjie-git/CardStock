@@ -714,8 +714,12 @@ class ViewModel(object):
         return wx.Rect(rotPos_x, rotPos_y, rotSize[0], rotSize[1])
 
     def GetAbsolutePosition(self):
-        aff = self.GetAffineTransform()
-        return wx.RealPoint(aff.TransformPoint(0,0))
+        parent = self.parent
+        pos = self.GetProperty("position")
+        if parent:
+            aff = parent.GetAffineTransform()
+            pos = aff.TransformPoint(*pos)
+        return wx.RealPoint(pos)
 
     def SetAbsolutePosition(self, pos):
         parent = self.parent

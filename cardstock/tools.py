@@ -122,8 +122,9 @@ class HandTool(BaseTool):
         self.xFlipped = False
         self.yFlipped = False
         self.resizeCorner = None
-        self.resizeAnchorPoint = None
+        self.resizeAnchorPointLocal = None
         self.resizeCardLastSize = None
+        self.resizeAff = None
 
     def Activate(self):
         if len(self.stackManager.GetSelectedUiViews()) == 0:
@@ -182,9 +183,12 @@ class HandTool(BaseTool):
                     for k,r in self.targetUi.GetResizeBoxRects().items():
                         if r.Inflate(2).Contains(self.absOrigin):
                             self.resizeCorner = ("L" in k, "B" in k)
-                            self.resizeAnchorPoint = wx.Point(objRect.Right if self.resizeCorner[0] else objRect.Left,
-                                                              objRect.Bottom if self.resizeCorner[1] else objRect.Top)
+                            self.resizeAnchorPointLocal = wx.Point(0 if "R" in k else origSize.width,
+                                                                   0 if "T" in k else origSize.height)
                             self.resizeCardLastSize = objRect.Size
+                            aff = self.targetUi.model.GetAffineTransform()
+                            aff.Invert()
+                            self.resizeAff = aff
                             self.StartResize()
                             break
                     if self.resizeCorner is None:
@@ -211,37 +215,46 @@ class HandTool(BaseTool):
                     ui.model.SetProperty("position", [origPos.x + offset[0], origPos.y + offset[1]])
             elif self.mode == "resize":
                 if self.targetUi.model.type == "card":
-                    pos = self.ConstrainDragPointAspect(self.resizeAnchorPoint, origSize, event)
+                    pos = self.ConstrainDragPointAspect(self.resizeAnchorPointLocal, origSize, pos, event.ShiftDown())
                     newSize = (pos[0], self.resizeCardLastSize[1] - pos[1])
                     self.targetUi.model.SetProperty("size", newSize)
-                    self.resizeAnchorPoint = wx.Point(0, newSize[1])
+                    self.resizeAnchorPointLocal = wx.Point(0, newSize[1])
                     self.resizeCardLastSize = newSize
                 else:
-                    pos = self.ConstrainDragPointAspect(self.resizeAnchorPoint, origSize, event)
-                    newRect = wx.Rect(wx.Point(min(self.resizeAnchorPoint[0], pos[0]),
-                                               min(self.resizeAnchorPoint[1], pos[1])),
-                                      wx.Point(max(self.resizeAnchorPoint[0], pos[0]),
-                                               max(self.resizeAnchorPoint[1], pos[1])))
+                    localPos = self.resizeAff.TransformPoint(*pos)
+                    localPos = self.ConstrainDragPointAspect(self.resizeAnchorPointLocal, origSize, localPos, event.ShiftDown())
+                    newRect = wx.Rect(wx.Point(min(self.resizeAnchorPointLocal[0], localPos[0]),
+                                               min(self.resizeAnchorPointLocal[1], localPos[1])),
+                                      wx.Point(max(self.resizeAnchorPointLocal[0], localPos[0]),
+                                               max(self.resizeAnchorPointLocal[1], localPos[1])))
+                    origPos = self.oldFrames[self.targetUi.model.GetProperty("name")].Position
 
                     thickness = 0
                     if isinstance(self.targetUi, UiShape):
                         # Account for thickness of shapes while resizing
                         thickness = self.targetUi.model.GetProperty("penThickness")
-                        if pos[0] == newRect.Left:
+                        if localPos[0] == newRect.Left:
                             newRect.Left += min(thickness/2, newRect.Width)
                             newRect.Width -= min(thickness/2, newRect.Width)
                         else:
                             newRect.Right -= thickness / 2
+                        if localPos[1] == newRect.Top:
+                            newRect.Top += min(thickness/2, newRect.Height)
+                            newRect.Height -= min(thickness/2, newRect.Height)
+                        else:
+                            newRect.Bottom -= thickness / 2
 
                     if self.resizeCorner[0]:
-                        xFlipped = (pos[0] > self.resizeAnchorPoint[0] + thickness / 2)
+                        xFlipped = (localPos[0] > self.resizeAnchorPointLocal[0] + thickness / 2)
                     else:
-                        xFlipped = (pos[0] < self.resizeAnchorPoint[0] + thickness / 2)
+                        xFlipped = (localPos[0] < self.resizeAnchorPointLocal[0] + thickness / 2)
 
                     if self.resizeCorner[1]:
-                        yFlipped = (pos[1] > self.resizeAnchorPoint[1] + thickness / 2)
+                        yFlipped = (localPos[1] > self.resizeAnchorPointLocal[1] + thickness / 2)
                     else:
-                        yFlipped = (pos[1] < self.resizeAnchorPoint[1] + thickness / 2)
+                        yFlipped = (localPos[1] < self.resizeAnchorPointLocal[1] + thickness / 2)
+
+                    newRect.Offset(origPos)
 
                     flipX = (xFlipped != self.xFlipped)
                     flipY = (yFlipped != self.yFlipped)
@@ -249,19 +262,12 @@ class HandTool(BaseTool):
                     self.yFlipped = yFlipped
                     self.targetUi.model.PerformFlips(flipX, flipY)
 
-                    if pos[1] == newRect.Top:
-                        newRect.Top += min(thickness/2, newRect.Height)
-                        newRect.Height -= min(thickness/2, newRect.Height)
-                    else:
-                        newRect.Bottom -= thickness / 2
-
                     self.targetUi.model.SetProperty("position", newRect.TopLeft, notify=False)
                     self.targetUi.model.SetProperty("size", newRect.Size)
         event.Skip()
 
-    def ConstrainDragPointAspect(self, startPoint, startSize, event):
-        pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        if event.ShiftDown():
+    def ConstrainDragPointAspect(self, startPoint, startSize, pos, shiftDown):
+        if shiftDown:
             dx = pos[0] - startPoint[0]
             dy = pos[1] - startPoint[1]
             scaleX = abs(dx/startSize.width)
@@ -333,7 +339,7 @@ class HandTool(BaseTool):
                     m.SetProperty("position", viewOrigin, notify=False)
                 self.stackManager.command_processor.Submit(command)
         elif self.mode == "resize":
-            pos = self.targetUi.model.GetAbsolutePosition()
+            pos = self.targetUi.model.GetProperty("position")
             viewOrigin = self.oldFrames[self.targetUi.model.GetProperty("name")].Position
             moveOffset = (pos[0] - viewOrigin.x, pos[1] - viewOrigin.y)
 
@@ -369,6 +375,7 @@ class HandTool(BaseTool):
         self.resizeCorner = None
         self.resizeAnchorPoint = None
         self.resizeCardLastSize = None
+        self.resizeAff = None
         event.Skip()
 
     def UpdateBoxSelection(self):
