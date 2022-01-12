@@ -169,6 +169,7 @@ class UiShape(UiView):
         reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
         reg.Offset(rotRect.Position.x-regOffset, rotRect.Position.y-regOffset)
         self.hitRegion = reg
+        self.hitRegionOffset = self.model.GetAbsolutePosition()
 
     def GetLocalResizeBoxPoints(self):
         thicknessOffset = self.model.GetProperty("penThickness")/2

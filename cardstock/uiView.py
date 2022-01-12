@@ -96,7 +96,10 @@ class UiView(object):
             if self.view:
                 self.view.SetRect(self.stackManager.ConvRect(self.model.GetAbsoluteFrame()))
                 self.view.Refresh()
-            self.ClearHitRegion()
+            if key == "position":
+                self.MoveHitRegion()
+            else:
+                self.ClearHitRegion()
             self.stackManager.view.Refresh()
         elif key == "hidden":
             if self.view:
@@ -479,6 +482,15 @@ class UiView(object):
             self.MakeHitRegion()
         return self.hitRegion
 
+    def MoveHitRegion(self):
+        if self.hitRegion:
+            oldPos = self.hitRegionOffset
+            newPos = self.model.GetAbsolutePosition()
+            self.hitRegion.Offset(wx.Point(newPos-oldPos))
+            self.hitRegionOffset = newPos
+            if self.parent and self.parent.model.type == "group":
+                self.parent.ClearHitRegion()
+
     def MakeHitRegion(self):
         # Make a region in absolute/card coordinates
         if self.model.IsHidden():
@@ -535,6 +547,7 @@ class UiView(object):
         reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
         reg.Offset(rotPos_x-regOffset, rotPos_y-regOffset)
         self.hitRegion = reg
+        self.hitRegionOffset = self.model.GetAbsolutePosition()
 
     handlerDisplayNames = {
         'OnSetup':      "OnSetup():",
