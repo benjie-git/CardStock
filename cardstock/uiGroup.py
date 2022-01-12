@@ -51,6 +51,7 @@ class UiGroup(UiView):
                 uiReg = wx.Region(ui.GetHitRegion())
                 reg.Union(uiReg)
             self.hitRegion = reg
+            self.hitRegionOffset = self.model.GetAbsolutePosition()
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
