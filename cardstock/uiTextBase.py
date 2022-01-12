@@ -95,6 +95,9 @@ class UiTextBase(UiView):
         if event.GetKeyCode() == wx.WXK_ESCAPE:
             self.StopInlineEditing()
             return
+        elif event.GetKeyCode() in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER] and event.ShiftDown():
+            self.StopInlineEditing()
+            return
         elif event.GetKeyCode() == wx.WXK_TAB:
             return
         event.Skip()

@@ -67,14 +67,14 @@ class UiShape(UiView):
             pen = wx.TRANSPARENT_PEN
         else:
             pen = wx.Pen(penColor, thickness, wx.PENSTYLE_SOLID)
-        gc.SetPen(pen)
+        gc.cachedGC.SetPen(pen)
 
         if self.model.type not in ["line", "pen"]:
             pen.SetJoin(wx.JOIN_MITER)
             fillColor = wx.Colour(fillColor)
             if not fillColor:
                 fillColor = wx.Colour('white')
-            gc.SetBrush(wx.Brush(fillColor, wx.BRUSHSTYLE_SOLID))
+            gc.cachedGC.SetBrush(wx.Brush(fillColor, wx.BRUSHSTYLE_SOLID))
 
         path = self.MakeShapePath(gc)
         self.FlipPath(gc, path)
@@ -97,8 +97,8 @@ class UiShape(UiView):
             if (self.model.type in ["pen", "line", "poly"]):
                 # Make lines extra thick for easier clicking
                 selThickness += 6
-            gc.SetPen(wx.Pen('Blue', selThickness, wx.PENSTYLE_SHORT_DASH))
-            gc.SetBrush(wx.Brush('Blue', wx.BRUSHSTYLE_SOLID))
+            gc.cachedGC.SetPen(wx.Pen('Blue', selThickness, wx.PENSTYLE_SHORT_DASH))
+            gc.cachedGC.SetBrush(wx.Brush('Blue', wx.BRUSHSTYLE_SOLID))
 
             # We're already affine-transformed, so just flip vertically and draw
             path = self.MakeShapePath(gc, inflate=(2 + thickness/2))
@@ -136,8 +136,9 @@ class UiShape(UiView):
         # since they would otherwise be at negative coords, which would be outside the
         # hitRegion bitmap.  Then set the offset of the hitRegion bitmap down/left to make up for it.
         regOffset = (thickness+20)/2
+        rotationKnobSpace = 12
 
-        height = rotRect.Size[1]+2*regOffset +12
+        height = rotRect.Size[1]+2*regOffset + rotationKnobSpace
         bmp = wx.Bitmap(width=rotRect.Size[0]+2*regOffset, height=height, depth=1)
         gc = flippedGCDC.FlippedMemoryDC(bmp, self.stackManager, height)
         gc.cachedGC = wx.GraphicsRenderer.GetDefaultRenderer().CreateContextFromUnknownDC(gc)

@@ -83,6 +83,7 @@ class UiTextField(UiTextBase):
             self.inlineStartText = self.model.GetProperty("text")
             self.view.SetEditable(True)
             self.view.SetFocus()
+            self.view.SelectAll()
             self.isInlineEditing = True
             self.stackManager.inlineEditingView = self
 

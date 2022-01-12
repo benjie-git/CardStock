@@ -99,6 +99,7 @@ class UiView(object):
                 self.view.SetPosition(self.stackManager.ConvPoint(self.model.GetCenter())-self.model.GetProperty("size")/2)
                 self.view.Refresh()
             if key == "position":
+                # If we're just moving the object, we don't need to rebuild the hit region, just offset it
                 self.MoveHitRegion()
             else:
                 self.ClearHitRegion()
@@ -360,14 +361,16 @@ class UiView(object):
         return didRun
 
     def DoPaint(self, gc):
+        # Recursively paint this object and all children
         self.PrePaint(gc)
         if not self.model.IsHidden():
             self.Paint(gc)
-        for ui in self.uiViews:
-            ui.DoPaint(gc)
+            for ui in self.uiViews:
+                ui.DoPaint(gc)
         self.PostPaint(gc)
 
     def DoPaintSelectionBoxes(self, gc):
+        # Recursively paint selection boxes for this object and all children, if selected
         self.PrePaint(gc)
         if self.isSelected:
             self.PaintSelectionBox(gc)
@@ -376,7 +379,7 @@ class UiView(object):
         self.PostPaint(gc)
 
     def PrePaint(self, gc):
-        # Rotate and Translate the GC, such that we can draw in local coords
+        # Rotate and Translate the GC, such that we can draw this object in local coords
         stackSize = self.stackManager.stackModel.GetProperty("size")
         pos = self.model.GetProperty("position")
         cen = self.model.GetProperty("size")/2
@@ -422,6 +425,7 @@ class UiView(object):
                     gc.DrawCircle(rotPt, 6)
 
     def PostPaint(self, gc):
+        # Un-transform the coordinate system after drawing this object
         gc.cachedGC.PopState()
 
     def HitTest(self, pt):
@@ -511,8 +515,9 @@ class UiView(object):
         # since they would otherwise be at negative coords, which would be outside the
         # hitRegion bitmap.  Then set the offset of the hitRegion bitmap down/left to make up for it.
         regOffset = 10
+        rotationKnobSpace = 12
 
-        height = rotSize[1]+2*regOffset +12
+        height = rotSize[1]+2*regOffset + rotationKnobSpace
         bmp = wx.Bitmap(width=rotSize[0]+2*regOffset, height=height, depth=1)
         gc = flippedGCDC.FlippedMemoryDC(bmp, self.stackManager, height)
         gc.cachedGC = wx.GraphicsRenderer.GetDefaultRenderer().CreateContextFromUnknownDC(gc)

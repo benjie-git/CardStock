@@ -975,9 +975,8 @@ class StackManager(object):
         self.uiCard.DoPaint(gc)
         if self.isEditing:
             self.uiCard.DoPaintSelectionBoxes(gc)
-
-        if self.tool:
-            self.tool.Paint(gc)
+            if self.tool:
+                self.tool.Paint(gc)
 
         if wx.Platform != '__WXMAC__':
             wx.BufferedPaintDC(self.view, self.buffer)
@@ -1056,6 +1055,12 @@ class StackManager(object):
                     self.designer.cPanel.SetToolByName("roundrect")
                 elif code == ord('L'):
                     self.designer.cPanel.SetToolByName("line")
+                elif code in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER] and event.ShiftDown():
+                    selected = self.GetSelectedUiViews()
+                    if len(selected) == 1 and selected[0].model.type.startswith("text"):
+                        selected[0].StartInlineEditing()
+                    else:
+                        event.Skip()
                 else:
                     event.Skip()
             else:

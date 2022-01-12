@@ -182,9 +182,13 @@ class HandTool(BaseTool):
 
             if self.mode == "click":
                 if dist(list(pos), list(self.absOrigin)) > MOVE_THRESHOLD:
+                    # If we've dragged a few pixels since mouse-down, start a dragging action
+                    # This can be dragging a selection box, moving an object, resizing, or rotating,
+                    # depending on where the click started.
                     objRect = self.targetUi.model.GetAbsoluteFrame()
                     for k,r in self.targetUi.GetResizeBoxRects().items():
                         if r.Inflate(2).Contains(self.absOrigin):
+                            # Drag started in a resize box
                             self.resizeCorner = ("L" in k, "B" in k)
                             self.resizeAnchorPointLocal = wx.Point(0 if "R" in k else origSize.width,
                                                                    0 if "T" in k else origSize.height)
@@ -199,24 +203,29 @@ class HandTool(BaseTool):
                     if rotPt:
                         r = wx.Rect(wx.Point(rotPt)-(6,6), (12,12))
                         if r.Contains(self.absOrigin):
+                            # Drag started in a rotate knob
                             self.origRotation = self.targetUi.model.GetProperty("rotation")
                             self.StartRotate()
                             return
                     if self.resizeCorner is None:
                         if self.targetUi.model.type == "card":
+                            # Drag started on the card
                             self.StartBoxSelect()
                         else:
+                            # Drag started on any other object
                             self.StartMove()
                 else:
                     return
 
             if self.mode == "box":
+                # We're already dragging out a selection box
                 self.selectionRect = ShapeModel.RectFromPoints([self.absOrigin, pos])
                 self.stackManager.view.Refresh()
                 self.UpdateBoxSelection()
                 return
 
             if self.mode == "move":
+                # We're dragging/moving an object
                 selectedViews = self.stackManager.GetSelectedUiViews()
                 if len(selectedViews) == 1 and selectedViews[0].parent.model.type == "group":
                     selectedViews = [self.targetUi]
@@ -225,6 +234,7 @@ class HandTool(BaseTool):
                     origPos = self.oldFrames[ui.model.GetProperty("name")].Position
                     ui.model.SetProperty("position", [origPos.x + offset[0], origPos.y + offset[1]])
             elif self.mode == "rotate":
+                # We're rotating an object
                 center = self.targetUi.model.GetCenter()
                 vector = pos - center
                 if vector.y == 0:
@@ -236,10 +246,13 @@ class HandTool(BaseTool):
                     elif vector.x >= 0 and vector.y < 0:  # bottom right
                         rot = 180 + rot
                 if event.ShiftDown():
-                    rot = int((rot%360) / 5) * 5
+                    rot = int(((rot+2)%360) / 5) * 5
+                if event.AltDown():
+                    rot = int(((rot+22)%360) / 45) * 45
                 self.targetUi.model.SetProperty("rotation", rot)
 
             elif self.mode == "resize":
+                # We're resizing an object
                 if self.targetUi.model.type == "card":
                     pos = self.ConstrainDragPointAspect(self.resizeAnchorPointLocal, origSize, pos, event.ShiftDown())
                     newSize = (pos[0], self.resizeCardLastSize[1] - pos[1])

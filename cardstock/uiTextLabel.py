@@ -46,6 +46,7 @@ class UiTextLabel(UiTextBase):
         field.ChangeValue(text)
         field.EmptyUndoBuffer()
         field.SetFocus()
+        field.SelectAll()
         self.inlineEditor = field
         self.isInlineEditing = True
         self.stackManager.inlineEditingView = self
