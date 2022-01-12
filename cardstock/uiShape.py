@@ -140,10 +140,10 @@ class UiShape(UiView):
         height = rotRect.Size[1]+2*regOffset +12
         bmp = wx.Bitmap(width=rotRect.Size[0]+2*regOffset, height=height, depth=1)
         gc = flippedGCDC.FlippedMemoryDC(bmp, self.stackManager, height)
-        gc.cachedGC = gc.GetGraphicsContext()
+        gc.cachedGC = wx.GraphicsRenderer.GetDefaultRenderer().CreateContextFromUnknownDC(gc)
         gc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
-        gc.SetPen(wx.Pen('white', thickness, wx.PENSTYLE_SOLID))
-        gc.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
+        gc.cachedGC.SetPen(wx.Pen('white', thickness, wx.PENSTYLE_SOLID))
+        gc.cachedGC.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
         gc.Clear()
 
         aff = self.model.GetAffineTransform()
@@ -165,7 +165,7 @@ class UiShape(UiView):
             path.AddCircle(*self.GetLocalRotationHandlePoint(), 6)
             path.Transform(aff)
             gc.cachedGC.FillPath(path)
-            gc.cachedGC.Flush()
+        gc.cachedGC.Flush()
 
         reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
         reg.Offset(rotRect.Position.x-regOffset, rotRect.Position.y-regOffset)

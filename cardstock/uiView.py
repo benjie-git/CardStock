@@ -75,7 +75,8 @@ class UiView(object):
 
             mSize = self.model.GetProperty("size")
             if mSize[0] > 0 and mSize[1] > 0:
-                self.view.SetRect(self.stackManager.ConvRect(self.model.GetAbsoluteFrame()))
+                self.view.SetSize(self.model.GetProperty("size"))
+                self.view.SetPosition(self.stackManager.ConvPoint(self.model.GetCenter())-self.model.GetProperty("size")/2)
 
             self.BindEvents(view)
             view.Bind(wx.EVT_SIZE, self.OnResize)
@@ -94,7 +95,8 @@ class UiView(object):
     def OnPropertyChanged(self, model, key):
         if key in ["position", "size", "rotation"]:
             if self.view:
-                self.view.SetRect(self.stackManager.ConvRect(self.model.GetAbsoluteFrame()))
+                self.view.SetSize(self.model.GetProperty("size"))
+                self.view.SetPosition(self.stackManager.ConvPoint(self.model.GetCenter())-self.model.GetProperty("size")/2)
                 self.view.Refresh()
             if key == "position":
                 self.MoveHitRegion()
@@ -513,9 +515,9 @@ class UiView(object):
         height = rotSize[1]+2*regOffset +12
         bmp = wx.Bitmap(width=rotSize[0]+2*regOffset, height=height, depth=1)
         gc = flippedGCDC.FlippedMemoryDC(bmp, self.stackManager, height)
-        gc.cachedGC = gc.GetGraphicsContext()
+        gc.cachedGC = wx.GraphicsRenderer.GetDefaultRenderer().CreateContextFromUnknownDC(gc)
         gc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
-        gc.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
+        gc.cachedGC.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
         gc.Clear()
 
         aff = self.model.GetAffineTransform()
@@ -543,7 +545,7 @@ class UiView(object):
                 path.AddCircle(*rotPt, 6)
                 path.Transform(aff)
                 gc.cachedGC.FillPath(path)
-                gc.cachedGC.Flush()
+        gc.cachedGC.Flush()
 
         reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
         reg.Offset(rotPos_x-regOffset, rotPos_y-regOffset)
