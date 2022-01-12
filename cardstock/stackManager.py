@@ -970,6 +970,7 @@ class StackManager(object):
             dc = wx.MemoryDC(self.buffer)
 
         gc = flippedGCDC.FlippedGCDC(dc, self)
+        gc.cachedGC = gc.GetGraphicsContext()
 
         self.uiCard.DoPaint(gc)
         if self.isEditing:
@@ -980,6 +981,7 @@ class StackManager(object):
 
         if wx.Platform != '__WXMAC__':
             wx.BufferedPaintDC(self.view, self.buffer)
+        del gc.cachedGC
 
     def HitTest(self, pt, selectedFirst=True):
         # First find selected objects, so you can move a selected object from under another

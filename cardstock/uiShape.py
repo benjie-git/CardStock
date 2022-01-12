@@ -17,7 +17,7 @@ class UiShape(UiView):
         # Create a path, un-rotated, in this object's local coords (object.position at 0,0)
         points = self.model.GetScaledPoints()
         shapeType = self.model.type
-        path = gc.GetGraphicsContext().CreatePath()
+        path = gc.cachedGC.CreatePath()
         if shapeType in ["pen", "line"]:
             if len(points) > 1:
                 path.MoveToPoint(points[0])
@@ -49,7 +49,7 @@ class UiShape(UiView):
         return path
 
     def FlipPath(self, gc, path):
-        flipAff = gc.GetGraphicsContext().CreateMatrix()
+        flipAff = gc.cachedGC.CreateMatrix()
         flipAff.Translate(0, self.stackManager.view.Size.Height)
         flipAff.Scale(1, -1)
         path.Transform(flipAff)
@@ -81,8 +81,8 @@ class UiShape(UiView):
 
         # We're already affine-transformed, so just draw
         if self.model.type not in ["line", "pen"]:
-            gc.GetGraphicsContext().FillPath(path)
-        gc.GetGraphicsContext().StrokePath(path)
+            gc.cachedGC.FillPath(path)
+        gc.cachedGC.StrokePath(path)
 
     def PaintSelectionBox(self, gc):
         if self.isSelected and self.stackManager.tool.name == "hand":
@@ -103,19 +103,19 @@ class UiShape(UiView):
             # We're already affine-transformed, so just flip vertically and draw
             path = self.MakeShapePath(gc, inflate=(2 + thickness/2))
             self.FlipPath(gc, path)
-            gc.GetGraphicsContext().StrokePath(path)
+            gc.cachedGC.StrokePath(path)
 
             if self.model.parent and self.model.parent.type != "group":
                 if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
                     for resizerRect in self.GetLocalResizeBoxRects().values():
-                        path = gc.GetGraphicsContext().CreatePath()
+                        path = gc.cachedGC.CreatePath()
                         path.AddRectangle(resizerRect.Left, resizerRect.Top, resizerRect.Width, resizerRect.Height)
                         self.FlipPath(gc, path)
-                        gc.GetGraphicsContext().FillPath(path)
-                    path = gc.GetGraphicsContext().CreatePath()
+                        gc.cachedGC.FillPath(path)
+                    path = gc.cachedGC.CreatePath()
                     path.AddCircle(*self.GetLocalRotationHandlePoint(), 6)
                     self.FlipPath(gc, path)
-                    gc.GetGraphicsContext().FillPath(path)
+                    gc.cachedGC.FillPath(path)
 
     def MakeHitRegion(self):
         # Make a region in absolute/card coordinates
@@ -140,6 +140,7 @@ class UiShape(UiView):
         height = rotRect.Size[1]+2*regOffset +12
         bmp = wx.Bitmap(width=rotRect.Size[0]+2*regOffset, height=height, depth=1)
         gc = flippedGCDC.FlippedMemoryDC(bmp, self.stackManager, height)
+        gc.cachedGC = gc.GetGraphicsContext()
         gc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
         gc.SetPen(wx.Pen('white', thickness, wx.PENSTYLE_SOLID))
         gc.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
@@ -149,22 +150,22 @@ class UiShape(UiView):
         vals = aff.Get()
         # Draw into region bmp rotated but not translated
         vals = (vals[0].m_11, vals[0].m_12, vals[0].m_21, vals[0].m_22, vals[1][0] - (rotRect.Position.x-regOffset), vals[1][1] - (rotRect.Position.y-regOffset))
-        aff = gc.GetGraphicsContext().CreateMatrix(*vals)
+        aff = gc.cachedGC.CreateMatrix(*vals)
 
         path = self.MakeShapePath(gc, inflate=(2 + thickness / 2))
         path.Transform(aff)
         if self.model.type not in ["line", "pen"]:
-            gc.GetGraphicsContext().FillPath(path)
-        gc.GetGraphicsContext().StrokePath(path)
+            gc.cachedGC.FillPath(path)
+        gc.cachedGC.StrokePath(path)
 
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
-            path = gc.GetGraphicsContext().CreatePath()
+            path = gc.cachedGC.CreatePath()
             for resizerRect in self.GetLocalResizeBoxRects().values():
                 path.AddRectangle(resizerRect.Left, resizerRect.Top, resizerRect.Width, resizerRect.Height)
             path.AddCircle(*self.GetLocalRotationHandlePoint(), 6)
             path.Transform(aff)
-            gc.GetGraphicsContext().FillPath(path)
-            gc.GetGraphicsContext().Flush()
+            gc.cachedGC.FillPath(path)
+            gc.cachedGC.Flush()
 
         reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
         reg.Offset(rotRect.Position.x-regOffset, rotRect.Position.y-regOffset)

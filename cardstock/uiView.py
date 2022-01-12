@@ -380,12 +380,12 @@ class UiView(object):
         cen = self.model.GetProperty("size")/2
         rot = self.model.GetProperty("rotation")
         rot = math.radians(rot) if rot else None
-        gc.GetGraphicsContext().PushState()
+        gc.cachedGC.PushState()
 
-        gc.GetGraphicsContext().Translate(pos[0]+cen[0], stackSize.height-(pos[1]+cen[1]))
+        gc.cachedGC.Translate(pos[0]+cen[0], stackSize.height-(pos[1]+cen[1]))
         if rot:
-            gc.GetGraphicsContext().Rotate(rot)
-        gc.GetGraphicsContext().Translate(-cen[0], cen[1]-stackSize.height)
+            gc.cachedGC.Rotate(rot)
+        gc.cachedGC.Translate(-cen[0], cen[1]-stackSize.height)
 
     def Paint(self, gc):
         self.PaintBoundingBox(gc)
@@ -420,7 +420,7 @@ class UiView(object):
                     gc.DrawCircle(rotPt, 6)
 
     def PostPaint(self, gc):
-        gc.GetGraphicsContext().PopState()
+        gc.cachedGC.PopState()
 
     def HitTest(self, pt):
         if not self.hitRegion:
@@ -513,6 +513,7 @@ class UiView(object):
         height = rotSize[1]+2*regOffset +12
         bmp = wx.Bitmap(width=rotSize[0]+2*regOffset, height=height, depth=1)
         gc = flippedGCDC.FlippedMemoryDC(bmp, self.stackManager, height)
+        gc.cachedGC = gc.GetGraphicsContext()
         gc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
         gc.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
         gc.Clear()
@@ -521,28 +522,28 @@ class UiView(object):
         vals = aff.Get()
         # Draw into region bmp rotated but not translated
         vals = (vals[0].m_11, vals[0].m_12, vals[0].m_21, vals[0].m_22, vals[1][0] - (rotPos_x-regOffset), vals[1][1] - (rotPos_y-regOffset))
-        aff = gc.GetGraphicsContext().CreateMatrix(*vals)
+        aff = gc.cachedGC.CreateMatrix(*vals)
 
-        path = gc.GetGraphicsContext().CreatePath()
+        path = gc.cachedGC.CreatePath()
         p1 = rect.TopLeft
         p2 = rect.BottomRight
         path.AddRectangle(p1[0], min(p1[1], p2[1]), p2[0] - p1[0], abs(p2[1] - p1[1]))
         path.Transform(aff)
-        gc.GetGraphicsContext().FillPath(path)
+        gc.cachedGC.FillPath(path)
 
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
             for resizerRect in self.GetLocalResizeBoxRects().values():
-                path = gc.GetGraphicsContext().CreatePath()
+                path = gc.cachedGC.CreatePath()
                 path.AddRectangle(resizerRect.Left, resizerRect.Top, resizerRect.Width, resizerRect.Height)
                 path.Transform(aff)
-                gc.GetGraphicsContext().FillPath(path)
-            path = gc.GetGraphicsContext().CreatePath()
+                gc.cachedGC.FillPath(path)
+            path = gc.cachedGC.CreatePath()
             rotPt = self.GetLocalRotationHandlePoint()
             if rotPt:
                 path.AddCircle(*rotPt, 6)
                 path.Transform(aff)
-                gc.GetGraphicsContext().FillPath(path)
-                gc.GetGraphicsContext().Flush()
+                gc.cachedGC.FillPath(path)
+                gc.cachedGC.Flush()
 
         reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
         reg.Offset(rotPos_x-regOffset, rotPos_y-regOffset)
