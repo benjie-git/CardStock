@@ -12,12 +12,17 @@ class UiShape(UiView):
 
     def __init__(self, parent, stackManager, model):
         super().__init__(parent, stackManager, model, None)
+        self.cachedPaths = {}
 
-    def MakeShapePath(self, gc, inflate=0):
+    def SetDown(self):
+        self.cachedPaths = None
+        super().SetDown()
+
+    def MakeShapePath(self, context, inflate=0):
         # Create a path, un-rotated, in this object's local coords (object.position at 0,0)
         points = self.model.GetScaledPoints()
         shapeType = self.model.type
-        path = gc.cachedGC.CreatePath()
+        path = context.CreatePath()
         if shapeType in ["pen", "line"]:
             if len(points) > 1:
                 path.MoveToPoint(points[0])
@@ -29,16 +34,13 @@ class UiShape(UiView):
                 rect.Inflate(inflate)
             p1 = rect.TopLeft
             p2 = rect.BottomRight
-            s = p2-p1
-            # p1 = self.stackManager.ConvPoint(p1, height=height)
-            # p2 = self.stackManager.ConvPoint(p2, height=height)
             if self.model.type == "rect":
-                path.AddRectangle(p1[0], min(p1[1], p2[1]), p2[0] - p1[0], abs(p2[1] - p1[1]))
+                path.AddRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
             elif self.model.type == "roundrect":
                 radius = self.model.GetProperty("cornerRadius")
                 radius = min(radius, abs(p1[0]-p2[0])/2)
                 radius = min(radius, abs(p1[1]-p2[1])/2)
-                path.AddRoundedRectangle(p1[0], min(p1[1], p2[1]), p2[0] - p1[0], abs(p2[1] - p1[1]), radius)
+                path.AddRoundedRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1], radius)
             elif self.model.type == "oval":
                 path.AddEllipse(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
         elif self.model.type == "poly" and len(points) >= 2:
@@ -76,8 +78,12 @@ class UiShape(UiView):
                 fillColor = wx.Colour('white')
             gc.cachedGC.SetBrush(wx.Brush(fillColor, wx.BRUSHSTYLE_SOLID))
 
-        path = self.MakeShapePath(gc)
-        self.FlipPath(gc, path)
+        if "paint" in self.cachedPaths:
+            path = self.cachedPaths["paint"]
+        else:
+            path = self.MakeShapePath(gc.cachedGC)
+            self.FlipPath(gc, path)
+            self.cachedPaths["paint"] = path
 
         # We're already affine-transformed, so just draw
         if self.model.type not in ["line", "pen"]:
@@ -101,8 +107,12 @@ class UiShape(UiView):
             gc.cachedGC.SetBrush(wx.Brush('Blue', wx.BRUSHSTYLE_SOLID))
 
             # We're already affine-transformed, so just flip vertically and draw
-            path = self.MakeShapePath(gc, inflate=(2 + thickness/2))
-            self.FlipPath(gc, path)
+            if "paintSel" in self.cachedPaths:
+                path = self.cachedPaths["paintSel"]
+            else:
+                path = self.MakeShapePath(gc.cachedGC, inflate=(2 + thickness / 2))
+                self.FlipPath(gc, path)
+                self.cachedPaths["paintSel"] = path
             gc.cachedGC.StrokePath(path)
 
             if self.model.parent and self.model.parent.type != "group":
@@ -135,40 +145,44 @@ class UiShape(UiView):
         # Draw the region offset up/right, to allow space for bottom/left resize boxes,
         # since they would otherwise be at negative coords, which would be outside the
         # hitRegion bitmap.  Then set the offset of the hitRegion bitmap down/left to make up for it.
-        regOffset = (thickness+20)/2
-        rotationKnobSpace = 12
+        regOffset = (thickness+48)/2
 
-        height = rotRect.Size[1]+2*regOffset + rotationKnobSpace
-        bmp = wx.Bitmap(width=rotRect.Size[0]+2*regOffset, height=height, depth=1)
-        gc = flippedGCDC.FlippedMemoryDC(bmp, self.stackManager, height)
-        gc.cachedGC = wx.GraphicsRenderer.GetDefaultRenderer().CreateContextFromUnknownDC(gc)
-        gc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
-        gc.cachedGC.SetPen(wx.Pen('white', thickness, wx.PENSTYLE_SOLID))
-        gc.cachedGC.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
-        gc.Clear()
+        height = rotRect.Size[1]+2*regOffset
+        img = wx.Image(width=rotRect.Size[0]+2*regOffset, height=height, clear=True)
+        context = wx.GraphicsRenderer.GetDefaultRenderer().CreateContextFromImage(img)
+        context.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
+        context.SetPen(wx.Pen('white', thickness, wx.PENSTYLE_SOLID))
 
         aff = self.model.GetAffineTransform()
         vals = aff.Get()
         # Draw into region bmp rotated but not translated
         vals = (vals[0].m_11, vals[0].m_12, vals[0].m_21, vals[0].m_22, vals[1][0] - (rotRect.Position.x-regOffset), vals[1][1] - (rotRect.Position.y-regOffset))
-        aff = gc.cachedGC.CreateMatrix(*vals)
+        aff = context.CreateMatrix(*vals)
 
-        path = self.MakeShapePath(gc, inflate=(2 + thickness / 2))
-        path.Transform(aff)
+        if "hitReg" in self.cachedPaths:
+            path = self.cachedPaths["hitReg"]
+        else:
+            path = self.MakeShapePath(context, inflate=(2 + thickness / 2))
+            path.Transform(aff)
+            self.cachedPaths["hitReg"] = path
+
         if self.model.type not in ["line", "pen"]:
-            gc.cachedGC.FillPath(path)
-        gc.cachedGC.StrokePath(path)
+            context.FillPath(path)
+        context.StrokePath(path)
 
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
-            path = gc.cachedGC.CreatePath()
             for resizerRect in self.GetLocalResizeBoxRects().values():
+                path = context.CreatePath()
                 path.AddRectangle(resizerRect.Left, resizerRect.Top, resizerRect.Width, resizerRect.Height)
+                path.Transform(aff)
+                context.FillPath(path)
+            path = context.CreatePath()
             path.AddCircle(*self.GetLocalRotationHandlePoint(), 6)
             path.Transform(aff)
-            gc.cachedGC.FillPath(path)
-        gc.cachedGC.Flush()
+            context.FillPath(path)
+        context.Flush()
 
-        reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
+        reg = img.ConvertToRegion(0,0,0)
         reg.Offset(rotRect.Position.x-regOffset, rotRect.Position.y-regOffset)
         self.hitRegion = reg
         self.hitRegionOffset = self.model.GetAbsolutePosition()
@@ -191,6 +205,8 @@ class UiShape(UiView):
         if key in ["size", "shape", "penColor", "penThickness", "fillColor", "cornerRadius", "rotation"]:
             self.ClearHitRegion()
             self.stackManager.view.Refresh()
+        if key in ["size", "shape", "penThickness", "cornerRadius", "rotation"]:
+            self.cachedPaths = {}
 
     @staticmethod
     def CreateModelForType(stackManager, name):

@@ -514,45 +514,41 @@ class UiView(object):
         # Draw the region offset up/right, to allow space for bottom/left resize boxes,
         # since they would otherwise be at negative coords, which would be outside the
         # hitRegion bitmap.  Then set the offset of the hitRegion bitmap down/left to make up for it.
-        regOffset = 10
-        rotationKnobSpace = 12
+        regOffset = 20
 
-        height = rotSize[1]+2*regOffset + rotationKnobSpace
-        bmp = wx.Bitmap(width=rotSize[0]+2*regOffset, height=height, depth=1)
-        gc = flippedGCDC.FlippedMemoryDC(bmp, self.stackManager, height)
-        gc.cachedGC = wx.GraphicsRenderer.GetDefaultRenderer().CreateContextFromUnknownDC(gc)
-        gc.SetBackground(wx.Brush('black', wx.BRUSHSTYLE_SOLID))
-        gc.cachedGC.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
-        gc.Clear()
+        height = rotSize[1]+2*regOffset
+        img = wx.Image(width=rotSize[0]+2*regOffset, height=height, clear=True)
+        context = wx.GraphicsRenderer.GetDefaultRenderer().CreateContextFromImage(img)
+        context.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
 
         aff = self.model.GetAffineTransform()
         vals = aff.Get()
         # Draw into region bmp rotated but not translated
         vals = (vals[0].m_11, vals[0].m_12, vals[0].m_21, vals[0].m_22, vals[1][0] - (rotPos_x-regOffset), vals[1][1] - (rotPos_y-regOffset))
-        aff = gc.cachedGC.CreateMatrix(*vals)
+        aff = context.CreateMatrix(*vals)
 
-        path = gc.cachedGC.CreatePath()
+        path = context.CreatePath()
         p1 = rect.TopLeft
         p2 = rect.BottomRight
-        path.AddRectangle(p1[0], min(p1[1], p2[1]), p2[0] - p1[0], abs(p2[1] - p1[1]))
+        path.AddRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
         path.Transform(aff)
-        gc.cachedGC.FillPath(path)
+        context.FillPath(path)
 
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
             for resizerRect in self.GetLocalResizeBoxRects().values():
-                path = gc.cachedGC.CreatePath()
+                path = context.CreatePath()
                 path.AddRectangle(resizerRect.Left, resizerRect.Top, resizerRect.Width, resizerRect.Height)
                 path.Transform(aff)
-                gc.cachedGC.FillPath(path)
-            path = gc.cachedGC.CreatePath()
+                context.FillPath(path)
             rotPt = self.GetLocalRotationHandlePoint()
             if rotPt:
+                path = context.CreatePath()
                 path.AddCircle(*rotPt, 6)
                 path.Transform(aff)
-                gc.cachedGC.FillPath(path)
-        gc.cachedGC.Flush()
+                context.FillPath(path)
+        context.Flush()
 
-        reg = bmp.ConvertToImage().ConvertToRegion(0,0,0)
+        reg = img.ConvertToRegion(0,0,0)
         reg.Offset(rotPos_x-regOffset, rotPos_y-regOffset)
         self.hitRegion = reg
         self.hitRegionOffset = self.model.GetAbsolutePosition()
