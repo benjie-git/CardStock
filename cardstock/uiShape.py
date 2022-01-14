@@ -25,7 +25,7 @@ class UiShape(UiView):
         path = context.CreatePath()
         if shapeType in ["pen", "line"]:
             if len(points) > 1:
-                path.MoveToPoint(points[0])
+                path.MoveToPoint(*points[0])
                 for p in points[1:]:
                     path.AddLineToPoint(*p)
         elif shapeType in ["oval", "rect", "roundrect"] and len(points) == 2:
