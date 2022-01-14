@@ -55,7 +55,7 @@ class UiGroup(UiView):
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key in ["position", "rotation"]:
+        if key in ["position", "rotation", "size"]:
             for ui in self.uiViews:
                 ui.OnPropertyChanged(ui.model, key)
         elif key == "size":

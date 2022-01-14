@@ -52,9 +52,8 @@ class UiCard(UiView):
         bg = wx.Colour(self.model.GetProperty("bgColor"))
         if not bg:
             bg = wx.Colour('white')
-        gc.SetPen(wx.TRANSPARENT_PEN)
-        gc.SetBrush(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
-        gc.DrawRectangle(self.model.GetFrame().Inflate(1))
+        gc.SetBackground(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
+        gc.Clear()
 
     def PaintSelectionBox(self, gc):
         if self.isSelected and self.stackManager.tool.name == "hand":
@@ -83,6 +82,9 @@ class UiCard(UiView):
             self.stackManager.designer.UpdateCardList()
         elif key == "bgColor":
             self.view.Refresh()
+        elif key in ["size"]:
+            for ui in self.uiViews:
+                ui.OnPropertyChanged(ui.model, key)
 
     def OnKeyDown(self, event):
         if self.stackManager.runner and self.model.GetHandler("OnKeyDown"):

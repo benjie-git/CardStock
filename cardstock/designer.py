@@ -27,6 +27,7 @@ from findEngineDesigner import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
 from stackExporter import StackExporter
 import mediaSearchDialogs
+from imageFactory import ImageFactory
 # import gc
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -668,6 +669,7 @@ class DesignerFrame(wx.Frame):
     def OnRunnerFinished(self, runner):
         self.lastRunErrors = runner.errors
         self.viewer = None
+        ImageFactory.shared().ClearCache()
         self.Show()
         self.Refresh()
         self.Update()

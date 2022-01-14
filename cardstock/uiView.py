@@ -11,7 +11,7 @@ from codeRunnerThread import RunOnMainSync, RunOnMainAsync
 from cardstockFrameParts import *
 import sanitizer
 import math
-import flippedGCDC
+from imageFactory import ImageFactory
 
 
 class UiView(object):
@@ -262,62 +262,29 @@ class UiView(object):
                         key = (self, other_ui) if sn < on else (other_ui, self)
                         if key not in collisions:
                             # Add this collision to the list, indexed by normalized object pair to avoid duplicates
-                            collisions[key] = (self, other_ui, selfBounceAxes, otherBounceAxes, edges)
+                            edgeList = []
+                            for eStr in ("Top", "Bottom", "Left", "Right"):
+                                if eStr in edges: edgeList.append(eStr)
+                            collisions[key] = (self, other_ui, selfBounceAxes, otherBounceAxes, tuple(edgeList), mode)
 
                 self.model.bounceObjs[k][1] = new_dist
 
             for k in removeFromBounceObjs:
                 del self.model.bounceObjs[k]
 
-    def PerformBounce(self, info):
+    def PerformBounce(self, info, elapsedTime):
         # Perform this bounce for this object, and the other object
-        (this_ui, other_ui, selfAxes, otherAxes, edges) = info
+        (this_ui, other_ui, selfAxes, otherAxes, edges, mode) = info
         ss = self.model.GetProxy().speed
         os = other_ui.model.GetProxy().speed
-        sc = self.model.GetProxy().center
-        oc = other_ui.model.GetProxy().center
 
         # Flags
         selfBounce = other_ui.model in self.model.bounceObjs
         selfBounceInside = False if not selfBounce else self.model.bounceObjs[other_ui.model][0] == "In"
         otherBounce = self.model in other_ui.model.bounceObjs
 
-        # Determine how far these two objects have overlapped, and fix by
-        # moving this object back out, in the shorter direction
-        (dx, dy) = (0, 0)
-        if "H" in selfAxes:
-            sf = self.model.GetAbsoluteFrame()
-            of = other_ui.model.GetAbsoluteFrame()
-            if selfBounceInside:
-                if ss[0] > 0 and sf.Right > of.Right:
-                    dx = sf.Right - of.Right
-                elif ss[0] < 0 and sf.Left < of.Left:
-                    dx = sf.Left - of.Left
-            else:
-                if ss[0] > 0 and sf.Right > of.Left:
-                    dx = sf.Right - of.Left
-                elif ss[0] < 0 and sf.Left < of.Right:
-                    dx = sf.Left - of.Right
-        if "V" in selfAxes:
-            sf = self.model.GetAbsoluteFrame()
-            of = other_ui.model.GetAbsoluteFrame()
-            if selfBounceInside:
-                if ss[1] > 0 and sf.Bottom > of.Bottom:
-                    dy = sf.Bottom - of.Bottom
-                elif ss[1] < 0 and sf.Top < of.Top:
-                    dy = sf.Top - of.Top
-            else:
-                if ss[1] > 0 and sf.Bottom > of.Top:
-                    dy = sf.Bottom - of.Top
-                elif ss[1] < 0 and sf.Top < of.Bottom:
-                    dy = sf.Top - of.Bottom
-        if not selfBounceInside and dx != 0 and dy != 0:
-            if abs(dx) > abs(dy):
-                dx = 0
-            else:
-                dy = 0
-        sc.x -= dx
-        sc.y -= dy
+        # Back up to avoid overlap
+        self.model.SetProperty("position", self.model.GetProperty("position") - tuple(ss*(elapsedTime/2)))
 
         # Finally perform the actual bounces
         if selfBounce and "H" in selfAxes:
@@ -517,7 +484,7 @@ class UiView(object):
         regOffset = 20
 
         height = rotSize[1]+2*regOffset
-        img = wx.Image(width=rotSize[0]+2*regOffset, height=height, clear=True)
+        img = ImageFactory.shared().GetImage(rotSize[0]+2*regOffset, height)
         context = wx.GraphicsRenderer.GetDefaultRenderer().CreateContextFromImage(img)
         context.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
 
@@ -549,9 +516,42 @@ class UiView(object):
         context.Flush()
 
         reg = img.ConvertToRegion(0,0,0)
+        ImageFactory.shared().RecycleImage(img)
         reg.Offset(rotPos_x-regOffset, rotPos_y-regOffset)
         self.hitRegion = reg
         self.hitRegionOffset = self.model.GetAbsolutePosition()
+
+    def MakeRegionFromLocalRect(self, rect):
+        # Make a region in absolute/card coordinates
+        points = self.model.RotatedRectPoints(rect)
+        points.append(points[0])
+
+        l2 = list(map(list, zip(*points)))
+        rotSize = (max(l2[0]) - min(l2[0]), max(l2[1]) - min(l2[1]))
+        rotPos_x, rotPos_y = (min(l2[0]), min(l2[1]))
+
+        img = ImageFactory.shared().GetImage(*rotSize)
+        context = wx.GraphicsRenderer.GetDefaultRenderer().CreateContextFromImage(img)
+        context.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
+
+        aff = self.model.GetAffineTransform()
+        vals = aff.Get()
+        # Draw into region bmp rotated but not translated
+        vals = (vals[0].m_11, vals[0].m_12, vals[0].m_21, vals[0].m_22, vals[1][0] - (rotPos_x), vals[1][1] - (rotPos_y))
+        aff = context.CreateMatrix(*vals)
+
+        path = context.CreatePath()
+        p1 = rect.TopLeft
+        p2 = rect.BottomRight
+        path.AddRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
+        path.Transform(aff)
+        context.FillPath(path)
+        context.Flush()
+
+        reg = img.ConvertToRegion(0,0,0)
+        ImageFactory.shared().RecycleImage(img)
+        reg.Offset(rotPos_x, rotPos_y)
+        return reg
 
     handlerDisplayNames = {
         'OnSetup':      "OnSetup():",
@@ -1529,6 +1529,7 @@ class ViewProxy(object):
         oModel = obj._model
         if not model or not oModel: return None
         ui = model.stackManager.GetUiViewByModel(model)
+        oUi = model.stackManager.GetUiViewByModel(oModel)
 
         @RunOnMainSync
         def f():
@@ -1537,28 +1538,54 @@ class ViewProxy(object):
             if not skipIsTouchingCheck and not self.IsTouching(obj):
                 return None
 
-            f = oModel.GetAbsoluteFrame() # other frame in card coords
-
-            reg = ui.GetHitRegion()
-
-            # Pull edge lines away from the corners, so we don't always hit a corner when 2 objects touch
-            x_pad = 7 if f.Width > 18 else 0
-            y_pad = 7 if f.Height > 18 else 0
-
-            bottom = wx.Rect(f.Left+x_pad, f.Top, f.Width-2*x_pad, 1)
-            top = wx.Rect(f.Left+x_pad, f.Bottom-1, f.Width-2*x_pad, 1)
-            left = wx.Rect(f.Left, f.Top+y_pad, 1, f.Height-2*y_pad)
-            right = wx.Rect(f.Right-1, f.Top+y_pad, 1, f.Height-2*y_pad)
             def intersectTest(r, edge):
                 testReg = wx.Region(r)
                 testReg.Intersect(edge)
                 return not testReg.IsEmpty()
 
-            edges = []
-            if intersectTest(reg, top): edges.append("Top")
-            if intersectTest(reg, bottom): edges.append("Bottom")
-            if intersectTest(reg, left): edges.append("Left")
-            if intersectTest(reg, right): edges.append("Right")
+            reg = ui.GetHitRegion()
+            oRot = oModel.GetProperty("rotation")
+            if oRot is None: oRot = 0
+
+            rect = oModel.GetFrame() # other frame in card coords
+            cornerSetback = 4
+            # Pull edge lines away from the corners, so we don't always hit a corner when 2 objects touch
+            rects = [wx.Rect(rect.TopLeft+(cornerSetback,0), rect.TopRight+(-cornerSetback,1)),
+                      wx.Rect(rect.TopRight+(-1,cornerSetback), rect.BottomRight+(0,-cornerSetback)),
+                      wx.Rect(rect.BottomLeft+(cornerSetback,-1), rect.BottomRight+(-cornerSetback,0)),
+                      wx.Rect(rect.TopLeft+(0,cornerSetback), rect.BottomLeft+(1,-cornerSetback))]
+
+            if oRot == 0:
+                bottom = rects[0]
+                right = rects[1]
+                top = rects[2]
+                left = rects[3]
+            else:
+                for r in rects:
+                    r.Offset(wx.Point(0,0)-rect.TopLeft)
+                bottom = oUi.MakeRegionFromLocalRect(rects[0])
+                right = oUi.MakeRegionFromLocalRect(rects[1])
+                top = oUi.MakeRegionFromLocalRect(rects[2])
+                left = oUi.MakeRegionFromLocalRect(rects[3])
+
+            def RotEdge(rot):
+                # Rotate reported edge hits according to other object's rotation
+                edgesMap = [["Top"], ["Top", "Right"], ["Right"], ["Bottom", "Right"],
+                            ["Bottom"], ["Bottom", "Left"], ["Left"], ["Top", "Left"]]
+                i = int(((rot+22.5)%360)/45)
+                return edgesMap[i]
+
+            edges = set()
+            if intersectTest(reg, top): [edges.add(e) for e in RotEdge(oRot)]
+            if intersectTest(reg, bottom): [edges.add(e) for e in RotEdge(oRot+180)]
+            if intersectTest(reg, left): [edges.add(e) for e in RotEdge(oRot+270)]
+            if intersectTest(reg, right): [edges.add(e) for e in RotEdge(oRot+90)]
+            if len(edges) == 3 and "Top" in edges and "Bottom" in edges:
+                edges.remove("Top")
+                edges.remove("Bottom")
+            if len(edges) == 3 and "Left" in edges and "Right" in edges:
+                edges.remove("Left")
+                edges.remove("Right")
             if len(edges) == 0:
                 edges = None
             return edges

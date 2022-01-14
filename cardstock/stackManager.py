@@ -217,7 +217,7 @@ class StackManager(object):
 
             # Perform any bounces
             for (k,v) in collisions.items():
-                v[0].PerformBounce(v)
+                v[0].PerformBounce(v, elapsedTime)
 
             # Run OnPeriodic at 30 Hz
             didRun = False

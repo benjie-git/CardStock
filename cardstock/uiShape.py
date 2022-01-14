@@ -1,7 +1,7 @@
 import wx
-import generator
 from uiView import *
-import flippedGCDC
+from imageFactory import ImageFactory
+
 
 class UiShape(UiView):
     """
@@ -145,10 +145,10 @@ class UiShape(UiView):
         # Draw the region offset up/right, to allow space for bottom/left resize boxes,
         # since they would otherwise be at negative coords, which would be outside the
         # hitRegion bitmap.  Then set the offset of the hitRegion bitmap down/left to make up for it.
-        regOffset = (thickness+48)/2
+        regOffset = (thickness+20)/2 + 24
 
         height = rotRect.Size[1]+2*regOffset
-        img = wx.Image(width=rotRect.Size[0]+2*regOffset, height=height, clear=True)
+        img = ImageFactory.shared().GetImage(rotRect.Size[0]+2*regOffset, height)
         context = wx.GraphicsRenderer.GetDefaultRenderer().CreateContextFromImage(img)
         context.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
         context.SetPen(wx.Pen('white', thickness, wx.PENSTYLE_SOLID))
@@ -162,7 +162,7 @@ class UiShape(UiView):
         if "hitReg" in self.cachedPaths:
             path = self.cachedPaths["hitReg"]
         else:
-            path = self.MakeShapePath(context, inflate=(2 + thickness / 2))
+            path = self.MakeShapePath(context)
             path.Transform(aff)
             self.cachedPaths["hitReg"] = path
 
@@ -183,6 +183,7 @@ class UiShape(UiView):
         context.Flush()
 
         reg = img.ConvertToRegion(0,0,0)
+        ImageFactory.shared().RecycleImage(img)
         reg.Offset(rotRect.Position.x-regOffset, rotRect.Position.y-regOffset)
         self.hitRegion = reg
         self.hitRegionOffset = self.model.GetAbsolutePosition()
@@ -194,11 +195,6 @@ class UiShape(UiView):
                 p += (thicknessOffset-2 if p.x > 0 else -thicknessOffset-2,
                       thicknessOffset-2 if p.y > 0 else -thicknessOffset-2)
         return resizerPoints
-
-    def GetLocalRotationHandlePoint(self):
-        points = self.GetLocalResizeBoxPoints()
-        thicknessOffset = self.model.GetProperty("penThickness")/2
-        return ((points["TR"] + points["TL"])/2 + (0, 12+thicknessOffset))
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
