@@ -1604,14 +1604,14 @@ class ViewProxy(object):
 
         def onStart(animDict):
             origPosition = model.GetAbsolutePosition()
-            offsetPt = endPosition - origPosition
+            offsetPt = endPosition - tuple(origPosition)
             offset = wx.RealPoint(offsetPt[0], offsetPt[1])
             animDict["origPosition"] = origPosition
             animDict["offset"] = offset
             model.SetProperty("speed", offset*(1.0/duration))
 
         def onUpdate(progress, animDict):
-            model.SetAbsolutePosition(animDict["origPosition"] + animDict["offset"] * progress)
+            model.SetAbsolutePosition(animDict["origPosition"] + tuple(animDict["offset"] * progress))
 
         def internalOnFinished(animDict):
             model.SetProperty("speed", (0,0), notify=False)
@@ -1635,14 +1635,14 @@ class ViewProxy(object):
 
         def onStart(animDict):
             origCenter = model.GetCenter()
-            offsetPt = endCenter - origCenter
+            offsetPt = endCenter - tuple(origCenter)
             offset = wx.RealPoint(offsetPt[0], offsetPt[1])
             animDict["origCenter"] = origCenter
             animDict["offset"] = offset
             self._model.SetProperty("speed", offset*(1.0/duration))
 
         def onUpdate(progress, animDict):
-            model.SetCenter(animDict["origCenter"] + animDict["offset"] * progress)
+            model.SetCenter(animDict["origCenter"] + tuple(animDict["offset"] * progress))
 
         def internalOnFinished(animDict):
             model.SetProperty("speed", (0,0), notify=False)
@@ -1666,12 +1666,12 @@ class ViewProxy(object):
 
         def onStart(animDict):
             origSize = model.GetProperty("size")
-            offset = wx.Size(endSize-origSize)
+            offset = wx.Size(endSize-tuple(origSize))
             animDict["origSize"] = origSize
             animDict["offset"] = offset
 
         def onUpdate(progress, animDict):
-            model.SetProperty("size", animDict["origSize"] + animDict["offset"] * progress)
+            model.SetProperty("size", animDict["origSize"] + tuple(animDict["offset"] * progress))
 
         def internalOnFinished(animDict):
             if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
