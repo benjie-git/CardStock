@@ -158,9 +158,6 @@ class TextBaseModel(ViewModel):
         self.propertyChoices["alignment"] = ["Left", "Center", "Right"]
         self.propertyChoices["font"] = ["Default", "Serif", "Sans-Serif", "Mono"]
 
-        # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "position", "size"]
-
 
 class TextBaseProxy(ViewProxy):
     """

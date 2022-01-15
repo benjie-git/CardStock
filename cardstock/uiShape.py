@@ -246,7 +246,7 @@ class LineModel(ViewModel):
         self.propertyTypes["rotation"] = "float"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "penColor", "penThickness", "rotation", "position", "size"]
+        self.propertyKeys = ["name", "penColor", "penThickness", "position", "size", "rotation"]
 
     def GetData(self):
         data = super().GetData()
@@ -486,7 +486,7 @@ class ShapeModel(LineModel):
         self.propertyTypes["fillColor"] = "color"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "penColor", "penThickness", "fillColor", "rotation", "position", "size"]
+        self.propertyKeys = ["name", "penColor", "penThickness", "fillColor", "position", "size", "rotation"]
 
     def SetShape(self, shape):
         self.properties["fillColor"] = shape["fillColor"]
@@ -573,7 +573,7 @@ class RoundRectModel(ShapeModel):
         self.propertyTypes["cornerRadius"] = "uint"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "penColor", "penThickness", "fillColor", "cornerRadius", "rotation", "position", "size"]
+        self.propertyKeys = ["name", "penColor", "penThickness", "fillColor", "cornerRadius", "position", "size", "rotation"]
 
     def SetShape(self, shape):
         self.properties["cornerRadius"] = shape["cornerRadius"] if "cornerRadius" in shape else 8

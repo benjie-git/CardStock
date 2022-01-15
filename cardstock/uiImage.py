@@ -153,7 +153,7 @@ class ImageModel(ViewModel):
         self.propertyTypes["yFlipped"] = "bool"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "file", "fit", "rotation", "position", "size"]
+        self.propertyKeys = ["name", "file", "fit", "position", "size", "rotation"]
 
     def PerformFlips(self, fx, fy, notify=True):
         if fx:

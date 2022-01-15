@@ -108,7 +108,7 @@ class GroupModel(ViewModel):
         self.propertyTypes["rotation"] = "float"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "rotation", "position", "size"]
+        self.propertyKeys = ["name", "position", "size", "rotation"]
 
     def GetAllChildModels(self):
         allModels = []
