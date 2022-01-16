@@ -396,10 +396,11 @@ class UiView(object):
         gc.cachedGC.PopState()
 
     def HitTest(self, pt):
-        if not self.hitRegion:
-            self.MakeHitRegion()
-        if self.hitRegion.Contains(pt):
-            return self
+        if self.model.GetAbsoluteFrame().Contains(pt):
+            if not self.hitRegion:
+                self.MakeHitRegion()
+            if self.hitRegion.Contains(pt):
+                return self
         return None
 
     def HasGroupAncestor(self, uiView):
@@ -821,6 +822,8 @@ class ViewModel(object):
         return wx.Rect(p, s)
 
     def GetAbsoluteFrame(self):
+        if self.parent and self.parent.type == "card" and not self.GetProperty("rotation"):
+            return self.GetFrame()
         return self.RotatedRect(wx.Rect(wx.Point(0,0), self.GetProperty("size")))
 
     def SetFrame(self, rect):

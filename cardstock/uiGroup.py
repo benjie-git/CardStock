@@ -25,15 +25,16 @@ class UiGroup(UiView):
                 uiView.GetAllUiViews(allUiViews)
 
     def HitTest(self, pt):
-        if not self.hitRegion:
-            self.MakeHitRegion()
-        if self.hitRegion.Contains(pt):
-            for ui in reversed(self.uiViews):
-                if not ui.model.IsHidden():
-                    hit = ui.HitTest(pt)
-                    if hit:
-                        return hit
-            return self
+        if self.model.GetAbsoluteFrame().Contains(pt):
+            if not self.hitRegion:
+                self.MakeHitRegion()
+            if self.hitRegion.Contains(pt):
+                for ui in reversed(self.uiViews):
+                    if not ui.model.IsHidden():
+                        hit = ui.HitTest(pt)
+                        if hit:
+                            return hit
+                return self
         return None
 
     def MakeHitRegion(self):
