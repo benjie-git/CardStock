@@ -811,7 +811,7 @@ class ViewModel(object):
         """ Returns True iff this object or any of its ancestors has its hidden property set to True """
         if self.properties["hidden"]:
             return True
-        if self.parent:
+        if self.parent and self.parent.type not in ["card", "stack"]:
             return self.parent.IsHidden()
         return False
 
@@ -822,9 +822,9 @@ class ViewModel(object):
         self.SetProperty("center", center)
 
     def GetFrame(self):
-        p = wx.Point(self.GetProperty("position"))
+        p = self.GetProperty("position")
         s = self.GetProperty("size")
-        return wx.Rect(p, s)
+        return wx.Rect(*p, *s)
 
     def GetAbsoluteFrame(self):
         if self.parent and self.parent.type == "card" and not self.GetProperty("rotation"):
