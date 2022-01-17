@@ -774,14 +774,14 @@ class ViewModel(object):
     def GetAbsolutePosition(self):
         parent = self.parent
         pos = self.GetProperty("position")
-        if parent:
+        if self.parent and (self.parent.type != "card" or self.GetProperty("rotation")):
             aff = parent.GetAffineTransform()
             pos = aff.TransformPoint(*pos)
         return wx.RealPoint(pos)
 
     def SetAbsolutePosition(self, pos):
         parent = self.parent
-        if parent:
+        if self.parent and (self.parent.type != "card" or self.GetProperty("rotation")):
             iaff = parent.GetAffineTransform()
             iaff.Invert()
             pos = iaff.TransformPoint(pos[0], pos[1])
@@ -789,18 +789,23 @@ class ViewModel(object):
 
     def GetAbsoluteCenter(self):
         s = self.GetProperty("size")
+        if self.parent and self.parent.type == "card" and not self.GetProperty("rotation"):
+            pos = self.GetProperty("position")
+            return pos + tuple(s/2)
         aff = self.GetAffineTransform()
         p = wx.Point(*aff.TransformPoint(int(s[0]/2), int(s[1]/2)))
         return p
 
     def SetAbsoluteCenter(self, pos):
         parent = self.parent
-        if parent:
-            s = self.GetProperty("size")
+        s = self.GetProperty("size")
+        if self.parent and self.parent.type == "card" and not self.GetProperty("rotation"):
+            self.SetProperty("position", pos - tuple(s/2))
+        else:
             iaff = parent.GetAffineTransform()
             iaff.Invert()
             pos = wx.RealPoint(*iaff.TransformPoint(pos[0], pos[1])) - (int(s[0]/2), int(s[1]/2))
-        self.SetProperty("position", pos)
+            self.SetProperty("position", pos)
 
     def IsHidden(self):
         """ Returns True iff this object or any of its ancestors has its hidden property set to True """
