@@ -128,6 +128,8 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_FIND_REPLACE_ALL, self.OnReplaceAllEvent)
 
         self.splitter = wx.SplitterWindow(self, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
+        self.splitter.Bind(wx.EVT_SPLITTER_DCLICK, self.OnSplitterDoubleClick)
+        self.splitter.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGING, self.OnSplitterChanging)
 
         self.stackContainer = wx.Window(self.splitter)
         self.stackContainer.SetBackgroundColour("#E0E0E0")
@@ -140,8 +142,10 @@ class DesignerFrame(wx.Frame):
         self.stackContainer.Bind(wx.EVT_LEFT_DCLICK, self.FwdOnMouseDown)
         self.stackContainer.Bind(wx.EVT_MOVE, self.FwdOnMouseMove)
         self.stackContainer.Bind(wx.EVT_LEFT_UP, self.FwdOnMouseDown)
+        self.stackManager.view.Bind(wx.EVT_SIZE, self.OnStackResize)
         self.Bind(wx.EVT_KEY_DOWN, self.FwdOnKeyDown)
         self.Bind(wx.EVT_KEY_UP, self.FwdOnKeyUp)
+        self.Bind(wx.EVT_SIZE, self.OnFrameResize)
 
         self.cPanel = ControlPanel(self.splitter, -1, self.stackManager)
         self.cPanel.Bind(wx.EVT_KEY_DOWN, self.FwdOnKeyDown)
@@ -264,6 +268,27 @@ class DesignerFrame(wx.Frame):
         self.splitter.SetSize(clientSize)
         self.SetClientSize(clientSize)
         self.splitter.SetSashPosition(size.Width)
+
+    def OnSplitterDoubleClick(self, event):
+        self.splitter.SetSashPosition(self.stackManager.view.GetSize().Width)
+        event.Skip()
+
+    def OnSplitterChanging(self, event):
+        if event.GetSashPosition() > self.stackManager.view.GetSize().Width:
+            event.SetSashPosition(self.stackManager.view.GetSize().Width)
+        event.Skip()
+
+    def OnStackResize(self, event):
+        self.splitter.SetSashPosition(self.stackManager.view.GetSize().Width)
+        event.Skip()
+
+    def OnFrameResize(self, event):
+        if self.splitter.GetSashPosition() < self.stackManager.view.GetSize().Width:
+            self.splitter.SetSashGravity(1.0)
+        else:
+            self.splitter.SetSashGravity(0.0)
+            self.splitter.SetSashPosition(self.stackManager.view.GetSize().Width)
+        event.Skip()
 
     def SetSelectedUiViews(self, views):
         self.cPanel.UpdateForUiViews(views)
