@@ -105,21 +105,20 @@ class DesignerFrame(wx.Frame):
         self.configInfo = None
         # self.lastStats = {}
 
-        toolbar = self.CreateToolBar(style=wx.TB_TEXT)
-        toolbar.AddTool(ID_RUN, 'Run Stack', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
-        toolbar.AddTool(ID_RUN_FROM, 'Run This Card', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
+        self.toolbar = self.CreateToolBar(style=wx.TB_TEXT)
+        self.toolbar.AddTool(ID_RUN, 'Run Stack', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
 
-        toolbar.AddStretchableSpace()
+        self.toolbar.AddStretchableSpace()
 
-        self.cardPicker = wx.Choice(parent=toolbar, size=(200,20))
+        self.cardPicker = wx.Choice(parent=self.toolbar, size=(200,20))
         self.cardPicker.Bind(wx.EVT_CHOICE, self.OnPickCard)
-        toolbar.AddControl(self.cardPicker)
+        self.toolbar.AddControl(self.cardPicker)
 
-        toolbar.AddTool(ID_PREV_CARD, 'Previous Card', wx.ArtProvider.GetBitmap(wx.ART_GO_BACK), wx.NullBitmap)
-        toolbar.AddTool(ID_ADD_CARD, 'Add Card', wx.ArtProvider.GetBitmap(wx.ART_PLUS), wx.NullBitmap)
-        toolbar.AddTool(ID_NEXT_CARD, 'Next Card', wx.ArtProvider.GetBitmap(wx.ART_GO_FORWARD), wx.NullBitmap)
+        self.toolbar.AddTool(ID_PREV_CARD, 'Previous Card', wx.ArtProvider.GetBitmap(wx.ART_GO_BACK), wx.NullBitmap)
+        self.toolbar.AddTool(ID_ADD_CARD, 'Add Card', wx.ArtProvider.GetBitmap(wx.ART_PLUS), wx.NullBitmap)
+        self.toolbar.AddTool(ID_NEXT_CARD, 'Next Card', wx.ArtProvider.GetBitmap(wx.ART_GO_FORWARD), wx.NullBitmap)
 
-        toolbar.Realize()
+        self.toolbar.Realize()
 
         self.Bind(wx.EVT_TOOL, self.OnMenuRun, id=ID_RUN)
         self.Bind(wx.EVT_FIND, self.OnFindEvent)
@@ -154,7 +153,7 @@ class DesignerFrame(wx.Frame):
         self.splitter.SplitVertically(self.stackContainer, self.cPanel)
         self.splitter.SetMinimumPaneSize(120)
         self.splitter.SetSashPosition(self.splitter.GetSize()[0]-600)
-        self.splitter.SetSashGravity(0.0)
+        self.splitter.SetSashGravity(1.0)
 
         self.cPanel.SetSize([600,600])
         self.cPanel.Layout()
@@ -860,6 +859,15 @@ class DesignerFrame(wx.Frame):
             i += 1
         self.cardPicker.SetItems(choices)
         self.cardPicker.SetSelection(self.stackManager.cardIndex)
+
+        # Update toolbar to show 'Run This Card' only when on card 2+
+        isShowingTool = self.toolbar.FindById(ID_RUN_FROM)
+        if not isShowingTool and self.stackManager.cardIndex > 0:
+            self.toolbar.InsertTool(1, ID_RUN_FROM, 'Run This Card', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
+            self.toolbar.Realize()
+        elif isShowingTool and self.stackManager.cardIndex == 0:
+            self.toolbar.RemoveTool(ID_RUN_FROM)
+            self.toolbar.Realize()
 
     def OnStackContainerFocus(self, event):
         self.stackManager.view.SetFocus()
