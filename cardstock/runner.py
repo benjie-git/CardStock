@@ -67,10 +67,6 @@ class Runner():
         self.lastCard = None
         self.stopHandlingMouseEvent = False
 
-        self.lastVarUpdateTime = 0
-        self.varUpdateTimer = wx.Timer()
-        self.varUpdateTimer.Bind(wx.EVT_TIMER, self.OnUpdateVarsTimer)
-
         self.stackSetupValue = None
         self.stackReturnQueue = queue.Queue()
 
@@ -109,7 +105,6 @@ class Runner():
             "IsMouseDown": self.IsMouseDown,
             "GetMousePos": self.GetMousePos,
             "Quit":self.Quit,
-            "stack": self.stackManager.stackModel.GetProxy(),
             "MakeColor": self.MakeColor
         }
 
@@ -165,6 +160,7 @@ class Runner():
         This always runs on the runnerThread.
         """
         self.clientVars["card"] = cardModel.GetProxy()
+        self.clientVars["stack"] = cardModel.parent.GetProxy()
         for k in self.cardVarKeys.copy():
             if k in self.clientVars:
                 self.clientVars.pop(k)
@@ -181,7 +177,6 @@ class Runner():
     def StopTimers(self):
         for t in self.timers:
             t.Stop()
-        self.varUpdateTimer.Stop()
         self.timers = []
 
     def DoReturnFromStack(self, stackReturnVal):
@@ -535,25 +530,7 @@ class Runner():
             sys.stderr.write(msg + os.linesep)
 
         self.runnerDepth -= 1
-        self.UpdateVars()
-
-    def UpdateVars(self):
-        now = time()
-        if now > self.lastVarUpdateTime + 1.0:
-            self.OnUpdateVarsTimer()
-        else:
-            @RunOnMainAsync
-            def f(ms):
-                if ms<10: ms = 10
-                if self.varUpdateTimer:
-                    self.varUpdateTimer.StartOnce(ms)
-            f((self.lastVarUpdateTime+1.0 - now)*1000)
-
-    @RunOnMainAsync
-    def OnUpdateVarsTimer(self, event=None):
-        if self.stackManager:
-            self.stackManager.UpdateVars()
-            self.lastVarUpdateTime = time()
+        self.stackManager.UpdateVars()
 
     def RewriteHandler(self, handlerStr):
         # rewrite handlers that use return outside of a function, and replace with an exception that we catch, to
@@ -674,7 +651,7 @@ class Runner():
         else:
             if "self" in self.clientVars:
                 self.clientVars.pop("self")
-        self.UpdateVars()
+        self.stackManager.UpdateVars()
 
     def ScrapeNewFuncDefs(self, oldVars, newVars, model, handlerName):
         # Keep track of where each user function has been defined, so we can send you to the right handler's code in
@@ -726,6 +703,8 @@ class Runner():
             vars.pop(v)
         if '__builtins__' in vars:
             vars.pop('__builtins__')
+        if '__warningregistry__' in vars:
+            vars.pop('__warningregistry__')
         return vars
 
     @RunOnMainAsync

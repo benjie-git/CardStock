@@ -32,6 +32,7 @@ class VariablesWindow(wx.Frame):
 
         self.grid.Bind(wx.EVT_SIZE, self.OnResize)
         self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridDClick)
+        self.grid.Bind(wx.grid.EVT_GRID_CMD_COL_SIZE, self.OnResize)
         # self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnInspectorValueChanged)
         # self.grid.Bind(wx.EVT_KEY_DOWN, self.OnGridEnter)
         # self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnGridCellSelected)
@@ -89,7 +90,19 @@ class VariablesWindow(wx.Frame):
                 obj = obj._model
             if isinstance(obj, uiView.ViewModel):
                 props = obj.properties.copy()
-                if obj.type in ("card", "stack", "group"):
+                if obj.type == "stack":
+                    props["children"] = obj.childModels.copy()
+                    del props["position"]
+                    del props["size"]
+                    del props["speed"]
+                    del props["visible"]
+                if obj.type == "card":
+                    props["children"] = obj.childModels.copy()
+                    props["size"] = obj.parent.properties["size"]
+                    del props["position"]
+                    del props["speed"]
+                    del props["visible"]
+                if obj.type == "group":
                     props["children"] = obj.childModels.copy()
                 if obj.type in ("pen", "line", "poly"):
                     props["points"] = obj.points
@@ -99,8 +112,12 @@ class VariablesWindow(wx.Frame):
 
         self.vars = obj
 
-        dispPath = [f".{p}" if isinstance(p, str) else f"[{p}]" for p in self.path]
-        self.pathLabel.SetLabelText("All" + ''.join(dispPath))
+        if len(self.path):
+            dispParts = [f".{p}" if isinstance(p, str) else f"[{p}]" for p in self.path]
+            dispPath = ''.join(dispParts)[1:]
+            self.pathLabel.SetLabelText("[Back] " + dispPath)
+        else:
+            self.pathLabel.SetLabelText("All")
 
         if isinstance(self.vars, (tuple, list)):
             self.keys = range(len(self.vars))

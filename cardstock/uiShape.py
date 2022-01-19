@@ -129,7 +129,7 @@ class UiShape(UiView):
 
     def MakeHitRegion(self):
         # Make a region in absolute/card coordinates
-        if self.model.IsHidden():
+        if not self.model.IsVisible():
             self.hitRegion = wx.Region((0,0), (0,0))
 
         with self.model.animLock:

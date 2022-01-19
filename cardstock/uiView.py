@@ -80,7 +80,7 @@ class UiView(object):
 
             self.BindEvents(view)
             view.Bind(wx.EVT_SIZE, self.OnResize)
-            self.view.Show(not self.model.IsHidden())
+            self.view.Show(self.model.IsVisible())
 
     def SetModel(self, model):
         self.model = model
@@ -104,9 +104,9 @@ class UiView(object):
             else:
                 self.ClearHitRegion()
             self.stackManager.view.Refresh()
-        elif key == "hidden":
+        elif key == "visible":
             if self.view:
-                self.view.Show(not self.model.IsHidden())
+                self.view.Show(self.model.IsVisible())
             self.stackManager.view.Refresh()
 
     def OnResize(self, event):
@@ -162,12 +162,14 @@ class UiView(object):
         # Move the object by speed.x and speed.y pixels per second
         updateList = []
         finishList = []
+        didRun = False
         with self.model.animLock:
             if self.model.type not in ["stack", "card"]:
                 speed = self.model.GetProperty("speed")
                 if speed != (0,0) and "position" not in self.model.animations:
                     pos = self.model.GetProperty("position")
                     self.model.SetProperty("position", [pos.x + speed.x*elapsedTime, pos.y + speed.y*elapsedTime])
+                    didRun = True
 
             # Run any in-progress animations
             now = time()
@@ -184,21 +186,23 @@ class UiView(object):
                         finishList.append(key)
         for (d,p) in updateList:
             d["onUpdate"](p, d)
+            didRun = True
         for key in finishList:
             def deferFinish():
                 self.model.FinishAnimation(key)
             onFinishedCalls.append(deferFinish)
+        return didRun
 
     def FindCollisions(self, collisions):
         # Find collisions between this object and others in its bounceObjs list
         # and add them to the collisions list, to be handled after all are found.
         removeFromBounceObjs = []
-        if not self.model.didSetDown and not self.model.GetProperty("hidden") and tuple(self.model.GetProperty("speed")) != (0, 0):
+        if not self.model.didSetDown and self.model.GetProperty("visible") and tuple(self.model.GetProperty("speed")) != (0, 0):
             for k,v in self.model.bounceObjs.items():
                 other_ui = self.stackManager.GetUiViewByModel(k)
                 (mode, last_dist) = v
 
-                if other_ui.model.GetProperty("hidden"):
+                if not other_ui.model.GetProperty("visible"):
                     continue
 
                 if other_ui.model.didSetDown:
@@ -330,7 +334,7 @@ class UiView(object):
     def DoPaint(self, gc):
         # Recursively paint this object and all children
         self.PrePaint(gc)
-        if not self.model.IsHidden():
+        if self.model.IsVisible():
             self.Paint(gc)
             for ui in self.uiViews:
                 ui.DoPaint(gc)
@@ -461,13 +465,13 @@ class UiView(object):
             oldPos = self.hitRegionOffset
             newPos = self.model.GetAbsolutePosition()
             self.hitRegion.Offset(wx.Point(newPos-oldPos))
-            self.hitRegionOffset = newPos
+            self.hitRegionOffset += tuple(wx.Point(newPos-oldPos))
             if self.parent and self.parent.model.type == "group":
                 self.parent.ClearHitRegion()
 
     def MakeHitRegion(self):
         # Make a region in absolute/card coordinates
-        if self.model.IsHidden():
+        if not self.model.IsVisible():
             self.hitRegion = wx.Region((0,0), (0,0))
 
         s = self.model.GetProperty("size")
@@ -609,7 +613,7 @@ class ViewModel(object):
                            "size": wx.Size(0,0),
                            "position": wx.RealPoint(0,0),
                            "speed": wx.Point(0,0),
-                           "hidden": False,
+                           "visible": True,
                            "data": {}
                            }
         self.propertyKeys = ["name", "position", "size"]
@@ -618,7 +622,7 @@ class ViewModel(object):
                               "center": "floatpoint",
                               "size": "size",
                               "speed": "point",
-                              "hidden": "bool",
+                              "visible": "bool",
                               "data": "dict"
                               }
         self.propertyChoices = {}
@@ -689,7 +693,8 @@ class ViewModel(object):
                         "oval": "Oval",
                         "poly": "Polygon",
                         "roundrect": "Round Rectangle",
-                        "group": "Group"}
+                        "group": "Group",
+                        "stack": "Stack"}
         return displayTypes[self.type]
 
     def SetDirty(self, isDirty):
@@ -799,7 +804,7 @@ class ViewModel(object):
     def SetAbsoluteCenter(self, pos):
         parent = self.parent
         s = self.GetProperty("size")
-        if self.parent and self.parent.type == "card" and not self.GetProperty("rotation"):
+        if not self.parent or self.parent.type == "card":
             self.SetProperty("position", pos - tuple(s/2))
         else:
             iaff = parent.GetAffineTransform()
@@ -807,13 +812,13 @@ class ViewModel(object):
             pos = wx.RealPoint(*iaff.TransformPoint(pos[0], pos[1])) - (int(s[0]/2), int(s[1]/2))
             self.SetProperty("position", pos)
 
-    def IsHidden(self):
+    def IsVisible(self):
         """ Returns True iff this object or any of its ancestors has its hidden property set to True """
-        if self.properties["hidden"]:
-            return True
+        if not self.properties["visible"]:
+            return False
         if self.parent and self.parent.type not in ["card", "stack"]:
-            return self.parent.IsHidden()
-        return False
+            return self.parent.IsVisible()
+        return True
 
     def GetCenter(self):
         return self.GetProperty("center")
@@ -842,7 +847,7 @@ class ViewModel(object):
                 handlers[k] = v
 
         props = self.properties.copy()
-        props.pop("hidden")
+        props.pop("visible")
         props.pop("speed")
         for k,v in self.propertyTypes.items():
             if v in ["point", "floatpoint", "size"] and k in props:
@@ -1201,7 +1206,7 @@ class ViewProxy(object):
             newModel.SetProperty("speed", model.GetProperty("speed"), notify=False)
             newModel.lastOnPeriodicTime = time()
             if not self.visible:
-                newModel.SetProperty("hidden", True, notify=False)
+                newModel.SetProperty("visible", False, notify=False)
             for k,v in kwargs.items():
                 if hasattr(newModel.GetProxy(), k):
                     setattr(newModel.GetProxy(), k, v)
@@ -1437,12 +1442,12 @@ class ViewProxy(object):
     def visible(self):
         model = self._model
         if not model: return False
-        return not model.IsHidden()
+        return model.IsVisible()
     @visible.setter
     def visible(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("hidden", not bool(val))
+        model.SetProperty("visible", bool(val))
 
     @property
     def rotation(self):

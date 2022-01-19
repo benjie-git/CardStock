@@ -30,7 +30,7 @@ class UiGroup(UiView):
                 self.MakeHitRegion()
             if self.hitRegion.Contains(pt):
                 for ui in reversed(self.uiViews):
-                    if not ui.model.IsHidden():
+                    if ui.model.IsVisible():
                         hit = ui.HitTest(pt)
                         if hit:
                             return hit
@@ -43,7 +43,7 @@ class UiGroup(UiView):
             # The group's whole rect is a click target while editing
             super().MakeHitRegion()
         else:
-            if self.model.IsHidden():
+            if not self.model.IsVisible():
                 self.hitRegion = wx.Region((0, 0), (0, 0))
 
             # Only the sub-objects are click targets while running
@@ -144,9 +144,9 @@ class GroupModel(ViewModel):
     def SetProperty(self, key, value, notify=True):
         if self.didSetDown: return
         super().SetProperty(key, value, notify)
-        if key == "hidden":
+        if key == "visible":
             for m in self.GetAllChildModels():
-                m.Notify("hidden")
+                m.Notify("visible")
 
     def AddChildModels(self, models):
         selfPos = self.GetProperty("position")

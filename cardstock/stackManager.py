@@ -106,6 +106,10 @@ class StackManager(object):
         self.stackModel = StackModel(self)
         self.stackModel.AppendCardModel(CardModel(self))
 
+        self.lastVarUpdateTime = 0
+        self.varUpdateTimer = wx.Timer()
+        self.varUpdateTimer.Bind(wx.EVT_TIMER, self.OnUpdateVarsTimer)
+
         self.selectedViews = []
         self.modelToViewMap = {}
         self.cardIndex = None
@@ -161,6 +165,7 @@ class StackManager(object):
         self.runner = None
         self.resPathMan = None
         self.lastOnPeriodicTime = None
+        self.varUpdateTimer.Stop()
         self.analyzer.SetDown()
         self.analyzer = None
         self.selectedViews = None
@@ -191,6 +196,7 @@ class StackManager(object):
 
     def OnPeriodicTimer(self, event):
         if not self.runner.stopRunnerThread:
+            didRun = False
             self.timerCount += 1
             # Determine elapsed time since last round of OnPeriodic calls
             now = time()
@@ -201,9 +207,11 @@ class StackManager(object):
             # Run animations at 60 Hz / FPS
             allUi = self.uiCard.GetAllUiViews()
             onFinishedCalls = []
-            self.uiCard.RunAnimations(onFinishedCalls, elapsedTime)
+            if self.uiCard.RunAnimations(onFinishedCalls, elapsedTime):
+                didRun = True
             for ui in allUi:
-                ui.RunAnimations(onFinishedCalls, elapsedTime)
+                if ui.RunAnimations(onFinishedCalls, elapsedTime):
+                    didRun = True
             # Let all animations process, before running their onFinished handlers,
             # which could start new animations.
             for c in onFinishedCalls:
@@ -218,14 +226,15 @@ class StackManager(object):
             # Perform any bounces
             for (k,v) in collisions.items():
                 v[0].PerformBounce(v, elapsedTime)
+                didRun = True
 
             # Run OnPeriodic at 30 Hz
-            didRun = False
             if self.timerCount % 2 == 0 and self.runner.numOnPeriodicsQueued == 0:
                 didRun = self.uiCard.OnPeriodic(event)
 
             if didRun:
                 self.runner.EnqueueRefresh()
+                self.UpdateVars()
             else:
                 self.view.RefreshIfNeeded()
 
@@ -995,13 +1004,13 @@ class StackManager(object):
                         return hit
         # Native views first
         for uiView in reversed(self.uiCard.uiViews):
-            if not uiView.model.IsHidden() and uiView.view:
+            if uiView.model.IsVisible() and uiView.view:
                 hit = uiView.HitTest(pt)
                 if hit:
                     return hit
         # Then virtual views
         for uiView in reversed(self.uiCard.uiViews):
-            if not uiView.model.IsHidden() and not uiView.view:
+            if uiView.model.IsVisible() and not uiView.view:
                 hit = uiView.HitTest(pt)
                 if hit:
                     return hit
@@ -1012,13 +1021,13 @@ class StackManager(object):
         views = []
         allViews = list(reversed(self.uiCard.GetAllUiViews()))
         for uiView in allViews:
-            if not uiView.model.IsHidden() and uiView.view:
+            if uiView.model.IsVisible() and uiView.view:
                 hit = uiView.HitTest(pt)
                 if hit:
                     views.append(uiView)
         # Then virtual views
         for uiView in allViews:
-            if not uiView.model.IsHidden() and not uiView.view:
+            if uiView.model.IsVisible() and not uiView.view:
                 hit = uiView.HitTest(pt)
                 if hit:
                     views.append(uiView)
@@ -1103,9 +1112,21 @@ class StackManager(object):
         self.command_processor.Redo()
         self.view.Refresh()
 
+    @RunOnMainAsync
     def UpdateVars(self):
+        now = time()
+        if now > self.lastVarUpdateTime + 1.0:
+            self.OnUpdateVarsTimer()
+        else:
+            ms = (self.lastVarUpdateTime+1.0 - now)*1000
+            if ms<10: ms = 10
+            if self.varUpdateTimer:
+                self.varUpdateTimer.StartOnce(ms)
+
+    def OnUpdateVarsTimer(self, event=None):
         if self.runner:
             self.runner.viewer.UpdateVars()
+        self.lastVarUpdateTime = time()
 
     def GetDesignerFindPath(self):
         cPanel = self.designer.cPanel
