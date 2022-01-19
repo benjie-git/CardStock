@@ -635,7 +635,7 @@ class ViewModel(object):
         self.didSetDown = False
 
     def __repr__(self):
-        return "<"+str(self.__class__.__name__) + ":" + self.type + ":'" + self.GetProperty("name")+"'>"
+        return f"<{self.GetDisplayType()}:'{self.GetProperty('name')}'>"
 
     def SetBackUp(self, stackManager):
         if self.didSetDown:

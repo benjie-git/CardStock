@@ -24,6 +24,7 @@ import helpDialogs
 from findEngineViewer import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
 from consoleWindow import ConsoleWindow
+from variablesWindow import VariablesWindow
 from codeRunnerThread import RunOnMainSync, RunOnMainAsync
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -33,6 +34,7 @@ ID_MENU_FIND_SEL = wx.NewIdRef()
 ID_MENU_FIND_NEXT = wx.NewIdRef()
 ID_MENU_FIND_PREV = wx.NewIdRef()
 ID_MENU_REPLACE = wx.NewIdRef()
+ID_SHOW_VARIABLES = wx.NewIdRef()
 ID_SHOW_CONSOLE = wx.NewIdRef()
 ID_CLEAR_CONSOLE = wx.NewIdRef()
 
@@ -71,6 +73,7 @@ class ViewerFrame(wx.Frame):
         self.findEngine = FindEngine(self.stackManager)
 
         self.consoleWindow = ConsoleWindow(self)
+        self.variablesWindow = VariablesWindow(self, self.stackManager)
 
     def Destroy(self):
         if self.consoleWindow:
@@ -133,6 +136,7 @@ class ViewerFrame(wx.Frame):
         # and the help menu
         helpMenu = wx.Menu()
         helpMenu.Append(wx.ID_ABOUT, "&About\tCtrl-H", "About CardStock")
+        helpMenu.Append(ID_SHOW_VARIABLES, "&Show/Hide Variables\tCtrl-Alt-V", "Toggle Variables")
         helpMenu.Append(ID_SHOW_CONSOLE, "&Show/Hide Console\tCtrl-Alt-O", "Toggle Console")
         helpMenu.Append(ID_CLEAR_CONSOLE, "&Clear Console\tCtrl-Alt-C", "Clear Console")
 
@@ -163,6 +167,7 @@ class ViewerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuFindPrevious, id=ID_MENU_FIND_PREV)
         self.Bind(wx.EVT_MENU, self.OnMenuReplace, id=ID_MENU_REPLACE)
 
+        self.Bind(wx.EVT_MENU, self.OnMenuShowVariablesWindow, id=ID_SHOW_VARIABLES)
         self.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
         self.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
 
@@ -199,6 +204,45 @@ class ViewerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
 
+        self.Bind(wx.EVT_MENU, self.OnMenuShowVariablesWindow, id=ID_SHOW_VARIABLES)
+        self.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
+        self.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
+
+    def MakeVariablesMenuBar(self):
+        # create the file menu
+        fileMenu = wx.Menu()
+        fileMenu.Append(ID_SHOW_VARIABLES, "&Close\tCtrl-W", "Close Variables")
+
+        editMenu = wx.Menu()
+        editMenu.Append(wx.ID_UNDO, "&Undo\tCtrl-Z", "Undo Action")
+        editMenu.Append(wx.ID_REDO, "&Redo\tCtrl-Shift-Z", "Redo Action")
+        editMenu.AppendSeparator()
+        editMenu.Append(wx.ID_CUT,  "C&ut\tCtrl-X", "Cut Selection")
+        editMenu.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
+        editMenu.Append(wx.ID_PASTE,"&Paste\tCtrl-V", "Paste Selection")
+
+        # and the help menu
+        helpMenu = wx.Menu()
+        helpMenu.Append(ID_SHOW_VARIABLES, "&Hide Variables\tCtrl-Alt-V", "Toggle Variables")
+        helpMenu.Append(ID_SHOW_CONSOLE, "&Show/Hide Console\tCtrl-Alt-O", "Toggle Console")
+        helpMenu.Append(ID_CLEAR_CONSOLE, "&Clear Console\tCtrl-Alt-C", "Clear Console")
+
+        # and add them to a menubar
+        menuBar = wx.MenuBar()
+        menuBar.Append(fileMenu, "&File")
+        menuBar.Append(editMenu, "&Edit")
+        menuBar.Append(helpMenu, "&Help")
+        self.variablesWindow.SetMenuBar(menuBar)
+
+        self.Bind(wx.EVT_MENU,   self.OnMenuClose, id=wx.ID_CLOSE)
+
+        self.Bind(wx.EVT_MENU,  self.consoleWindow.DoUndo, id=wx.ID_UNDO)
+        self.Bind(wx.EVT_MENU,  self.consoleWindow.DoRedo, id=wx.ID_REDO)
+        self.Bind(wx.EVT_MENU,  self.OnCut, id=wx.ID_CUT)
+        self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
+        self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
+
+        self.Bind(wx.EVT_MENU, self.OnMenuShowVariablesWindow, id=ID_SHOW_VARIABLES)
         self.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
         self.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
 
@@ -347,6 +391,17 @@ class ViewerFrame(wx.Frame):
         dlg.ShowModal()
         dlg.Destroy()
 
+    def OnMenuShowVariablesWindow(self, event):
+        if self.variablesWindow.IsShown():
+            self.variablesWindow.Hide()
+        else:
+            self.variablesWindow.Show()
+            self.variablesWindow.Raise()
+
+    def UpdateVars(self):
+        if self.variablesWindow.IsShown():
+            self.variablesWindow.UpdateVars()
+
     def OnMenuShowConsoleWindow(self, event):
         if self.consoleWindow.IsShown():
             self.consoleWindow.Hide()
@@ -463,6 +518,8 @@ class ViewerFrame(wx.Frame):
         self.MakeMenuBar()
         if self.consoleWindow:
             self.MakeConsoleMenuBar()
+        if self.variablesWindow:
+            self.MakeVariablesMenuBar()
         self.SetupViewerSize()
 
         if self.designer:

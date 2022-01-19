@@ -107,7 +107,7 @@ class ControlPanel(wx.Panel):
         self.inspector.SetColSize(0, 100)
         self.inspector.SetColLabelSize(20)
         self.inspector.SetColLabelValue(0, "")
-        self.inspector.SetColLabelValue(1, "Value")
+        self.inspector.SetColLabelValue(1, "")
         self.inspector.SetRowLabelSize(1)
         self.inspector.DisableDragRowSize()
         self.inspector.DisableDragColSize()
@@ -297,6 +297,7 @@ class ControlPanel(wx.Panel):
             self.InspectorValueChanged(self.inspector.GetGridCursorRow(), val)
             self.inspector.HideCellEditControl()
 
+        noUpdates = wx.grid.GridUpdateLocker(self.inspector)
         if self.inspector.GetNumberRows() > 0:
             self.inspector.DeleteRows(0, self.inspector.GetNumberRows())
 

@@ -67,6 +67,10 @@ class Runner():
         self.lastCard = None
         self.stopHandlingMouseEvent = False
 
+        self.lastVarUpdateTime = 0
+        self.varUpdateTimer = wx.Timer()
+        self.varUpdateTimer.Bind(wx.EVT_TIMER, self.OnUpdateVarsTimer)
+
         self.stackSetupValue = None
         self.stackReturnQueue = queue.Queue()
 
@@ -177,6 +181,7 @@ class Runner():
     def StopTimers(self):
         for t in self.timers:
             t.Stop()
+        self.varUpdateTimer.Stop()
         self.timers = []
 
     def DoReturnFromStack(self, stackReturnVal):
@@ -236,6 +241,7 @@ class Runner():
         self.cardVarKeys = None
         self.clientVars = None
         self.timers = None
+        self.varUpdateTimer = None
         self.rewrittenHandlerMap = None
         self.funcDefs = None
         self.handlerQueue = None
@@ -529,6 +535,25 @@ class Runner():
             sys.stderr.write(msg + os.linesep)
 
         self.runnerDepth -= 1
+        self.UpdateVars()
+
+    def UpdateVars(self):
+        now = time()
+        if now > self.lastVarUpdateTime + 1.0:
+            self.OnUpdateVarsTimer()
+        else:
+            @RunOnMainAsync
+            def f(ms):
+                if ms<10: ms = 10
+                if self.varUpdateTimer:
+                    self.varUpdateTimer.StartOnce(ms)
+            f((self.lastVarUpdateTime+1.0 - now)*1000)
+
+    @RunOnMainAsync
+    def OnUpdateVarsTimer(self, event=None):
+        if self.stackManager:
+            self.stackManager.UpdateVars()
+            self.lastVarUpdateTime = time()
 
     def RewriteHandler(self, handlerStr):
         # rewrite handlers that use return outside of a function, and replace with an exception that we catch, to
@@ -649,6 +674,7 @@ class Runner():
         else:
             if "self" in self.clientVars:
                 self.clientVars.pop("self")
+        self.UpdateVars()
 
     def ScrapeNewFuncDefs(self, oldVars, newVars, model, handlerName):
         # Keep track of where each user function has been defined, so we can send you to the right handler's code in

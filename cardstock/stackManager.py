@@ -1103,6 +1103,10 @@ class StackManager(object):
         self.command_processor.Redo()
         self.view.Refresh()
 
+    def UpdateVars(self):
+        if self.runner:
+            self.runner.viewer.UpdateVars()
+
     def GetDesignerFindPath(self):
         cPanel = self.designer.cPanel
         cardModel = self.uiCard.model
