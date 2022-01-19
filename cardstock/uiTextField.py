@@ -6,6 +6,15 @@ import wx.stc as stc
 from wx.lib.docview import CommandProcessor, Command
 
 
+class CDSSTC(stc.StyledTextCtrl):
+    def SetPosition(self, pt):
+        # Fix positioning bug in STC at coords (x,-1) and (-1,y)
+        if pt[0] == -1:
+            pt[0] = 0
+        if pt[1] == -1:
+            pt[1] = 0
+        super().SetPosition(pt)
+
 class UiTextField(UiTextBase):
     """
     This class is a controller that coordinates management of a TextField view, based on data from a TextFieldModel.
@@ -27,9 +36,9 @@ class UiTextField(UiTextBase):
         elif model.GetProperty("alignment") == "Center":
             alignment = wx.TE_CENTER
 
+        pos = self.stackManager.ConvRect(model.GetAbsoluteFrame()).TopLeft
         if model.GetProperty("multiline"):
-            field = stc.StyledTextCtrl(parent=stackManager.view, size=model.GetProperty("size"),
-                                       pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft,
+            field = CDSSTC(parent=stackManager.view, size=model.GetProperty("size"), pos=pos,
                                        style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
             field.SetUseHorizontalScrollBar(False)
             field.SetTabWidth(3)
@@ -41,8 +50,7 @@ class UiTextField(UiTextBase):
             field.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
             field.EmptyUndoBuffer()
         else:
-            field = CDSTextCtrl(parent=stackManager.view, size=model.GetProperty("size"),
-                                pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft,
+            field = CDSTextCtrl(parent=stackManager.view, size=model.GetProperty("size"), pos=pos,
                                 style=wx.TE_PROCESS_ENTER | alignment)
             field.ChangeValue(text)
             field.Bind(wx.EVT_TEXT, self.OnTextChanged)

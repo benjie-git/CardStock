@@ -236,7 +236,7 @@ class HandTool(BaseTool):
             elif self.mode == "rotate":
                 # We're rotating an object
                 center = self.targetUi.model.GetCenter()
-                vector = pos - center
+                vector = pos - tuple(center)
                 if vector.y == 0:
                     rot = 90 if vector.x > 0 else -90
                 else:
@@ -435,7 +435,7 @@ class HandTool(BaseTool):
     def UpdateBoxSelection(self):
         uiList = []
         for ui in self.stackManager.uiCard.uiViews:
-            if self.selectionRect.Contains(ui.model.GetCenter()):
+            if self.selectionRect.Contains(tuple(ui.model.GetCenter())):
                 uiList.append(ui)
         if uiList != self.lastBoxList:
             self.stackManager.SelectUiView(None)

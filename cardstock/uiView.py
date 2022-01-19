@@ -96,7 +96,8 @@ class UiView(object):
         if key in ["position", "size", "rotation"]:
             if self.view:
                 self.view.SetSize(self.model.GetProperty("size"))
-                self.view.SetPosition(self.stackManager.ConvPoint(self.model.GetCenter())-self.model.GetProperty("size")/2)
+                pos = self.stackManager.ConvPoint(self.model.GetCenter())-self.model.GetProperty("size")/2
+                self.view.SetPosition(pos)
                 self.view.Refresh()
             if key == "position":
                 # If we're just moving the object, we don't need to rebuild the hit region, just offset it
@@ -400,7 +401,12 @@ class UiView(object):
         gc.cachedGC.PopState()
 
     def HitTest(self, pt):
-        if self.model.GetAbsoluteFrame().Contains(pt):
+        f = self.model.GetAbsoluteFrame()
+        inflate = 20
+        if "penThickness" in self.model.properties:
+            inflate += self.model.properties["penThickness"]
+        f.Inflate(inflate)
+        if f.Contains(pt):
             if not self.hitRegion:
                 self.MakeHitRegion()
             if self.hitRegion.Contains(pt):

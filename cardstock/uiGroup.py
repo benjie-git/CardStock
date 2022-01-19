@@ -25,7 +25,9 @@ class UiGroup(UiView):
                 uiView.GetAllUiViews(allUiViews)
 
     def HitTest(self, pt):
-        if self.model.GetAbsoluteFrame().Contains(pt):
+        f = self.model.GetAbsoluteFrame()
+        f.Inflate(20)
+        if f.Contains(pt):
             if not self.hitRegion:
                 self.MakeHitRegion()
             if self.hitRegion.Contains(pt):
@@ -56,7 +58,7 @@ class UiGroup(UiView):
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key in ["position", "rotation", "size"]:
+        if key in ["position", "rotation"]:
             for ui in self.uiViews:
                 ui.OnPropertyChanged(ui.model, key)
         elif key == "size":
