@@ -15,6 +15,7 @@ class CDSSTC(stc.StyledTextCtrl):
             pt[1] = 0
         super().SetPosition(pt)
 
+
 class UiTextField(UiTextBase):
     """
     This class is a controller that coordinates management of a TextField view, based on data from a TextFieldModel.
@@ -46,8 +47,9 @@ class UiTextField(UiTextBase):
             field.SetWrapMode(stc.STC_WRAP_WORD)
             field.SetMarginWidth(1, 0)
             field.ChangeValue(text)
-            field.Bind(stc.EVT_STC_CHANGE, self.OnTextChanged)
+            field.Bind(stc.EVT_STC_MODIFIED, self.OnSTCTextChanged)
             field.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
+            field.Bind(wx.EVT_KEY_DOWN, self.OnSTCKeyDown)
             field.EmptyUndoBuffer()
         else:
             field = CDSTextCtrl(parent=stackManager.view, size=model.GetProperty("size"), pos=pos,
@@ -85,6 +87,11 @@ class UiTextField(UiTextBase):
         z = event.GetEventObject().GetZoom()
         if z != 0:
             event.GetEventObject().SetZoom(0)
+
+    def OnSTCKeyDown(self, event):
+        if event.GetKeyCode() == wx.WXK_RETURN:
+            self.OnTextEnter(event)
+        event.Skip()
 
     def StartInlineEditing(self):
         if self.stackManager.isEditing and not self.isInlineEditing:
@@ -141,6 +148,15 @@ class UiTextField(UiTextBase):
                 self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
             if self.stackManager.runner and self.model.GetHandler("OnTextChanged"):
                 self.stackManager.runner.RunHandler(self.model, "OnTextChanged", event)
+        event.Skip()
+
+    def OnSTCTextChanged(self, event):
+        if not self.stackManager.isEditing:
+            if event.GetModificationType()%2 == 1:
+                if not self.settingValueInternally:
+                    self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
+                if self.stackManager.runner and self.model.GetHandler("OnTextChanged"):
+                    self.stackManager.runner.RunHandler(self.model, "OnTextChanged", event)
         event.Skip()
 
 
