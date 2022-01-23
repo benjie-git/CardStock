@@ -3,6 +3,7 @@ import wx.grid
 import wx.html
 import os
 import mediaSearchDialogs
+import inspector
 from tools import *
 from commands import *
 from wx.lib import buttons # for generic button classes
@@ -97,27 +98,13 @@ class ControlPanel(wx.Panel):
         # with the stackManager view so it will be notified when the settings
         # change
         self.ci = ColorIndicator(self)
-        self.ci.UpdateLine(wx.Colour(self.penColor), self.penThickness)
+        self.ci.UpdateShape(wx.Colour(self.penColor), wx.Colour(self.fillColor), self.penThickness)
 
         # ----------
 
-        self.inspector = wx.grid.Grid(self, -1)
-        self.inspector.CreateGrid(1, 2)
-        self.inspector.SetRowSize(0, 24)
-        self.inspector.SetColSize(0, 100)
-        self.inspector.SetColLabelSize(20)
-        self.inspector.SetColLabelValue(0, "")
-        self.inspector.SetColLabelValue(1, "")
-        self.inspector.SetRowLabelSize(1)
-        self.inspector.DisableDragRowSize()
-        self.inspector.DisableDragColSize()
-        self.inspector.SetSelectionMode(wx.grid.Grid.GridSelectNone)
-
-        self.inspector.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnInspectorValueChanged)
-        self.inspector.Bind(wx.EVT_KEY_DOWN, self.OnGridEnter)
-        self.inspector.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnGridClick)
+        self.inspector = inspector.Inspector(self, self.stackManager)
+        self.inspector.valueChangedFunc = self.InspectorValueChanged
         self.inspector.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnGridCellSelected)
-        self.inspector.Bind(wx.EVT_SIZE, self.OnGridResized)
 
         self.panelHelp = wx.html.HtmlWindow(self, size=(200, 50), style=wx.BORDER_SUNKEN)
 
@@ -190,10 +177,6 @@ class ControlPanel(wx.Panel):
         else:
             self.panelHelp.SetPage("<body bgColor='#EEEEEE'></body>")
 
-    def OnGridClick(self, event):
-        self.inspector.SetGridCursor(event.Row, event.Col)
-        event.Skip()
-
     def SelectInInspectorForPropertyName(self, key, selectStart, selectEnd):
         if len(self.lastSelectedUiViews) == 1:
             lastUi = self.lastSelectedUiViews[0]
@@ -224,17 +207,6 @@ class ControlPanel(wx.Panel):
                 helpText = HelpData.GetPropertyHelp(uiView, key)
                 self.UpdateHelpText(helpText)
         event.Skip()
-
-    def OnGridEnter(self, event):
-        if not self.inspector.IsCellEditControlShown() and \
-                (event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER):
-            if self.inspector.GetGridCursorCol() == 0:
-                self.inspector.SetGridCursor(self.inspector.GetGridCursorRow(), 1)
-            self.inspector.EnableCellEditControl(True)
-        else:
-            event.Skip()
-            if event.GetKeyCode() != wx.WXK_TAB:
-                event.StopPropagation()
 
     def OnHandlerChoice(self, event):
         displayName = self.handlerPicker.GetItems()[self.handlerPicker.GetSelection()]
@@ -270,201 +242,82 @@ class ControlPanel(wx.Panel):
             self.lastSelectedUiViews = []
 
     def UpdatedProperty(self, uiView, key):
-        if len(self.lastSelectedUiViews) == 1 and uiView == self.lastSelectedUiViews[0]:
-            keys = uiView.model.PropertyKeys()
-            r = 0
-            for k in keys:
-                if uiView.model.GetPropertyType(k) in ["point", "floatpoint", "size"]:
-                    l = list(uiView.model.GetProperty(k))
-                    l = [int(i) if math.modf(i)[0] == 0 else i for i in l]
-                    self.inspector.SetCellValue(r, 1, str(l))
-                elif uiView.model.GetPropertyType(k) == "float":
-                    v = uiView.model.GetProperty(k)
-                    if v % 1 == 0:
-                        self.inspector.SetCellValue(r, 1, str(int(v)))
-                    else:
-                        self.inspector.SetCellValue(r, 1, str(v))
-                else:
-                    self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
-                r += 1
-            self.inspector.Refresh()
+        if uiView in self.lastSelectedUiViews:
+            self.inspector.SetValue(key, uiView.model.GetProperty(key))
+            self.inspector.SetValueForKey(key, uiView.model.GetPropertyType(key))
 
     def UpdateInspectorForUiViews(self, uiViews):
-        # Catch a still-open editor and handle it before we move on to a newly selected uiView
-        if self.inspector.IsCellEditControlShown():
-            ed = self.inspector.GetCellEditor(self.inspector.GetGridCursorRow(), self.inspector.GetGridCursorCol())
-            val = ed.GetValue()
-            self.InspectorValueChanged(self.inspector.GetGridCursorRow(), val)
-            self.inspector.HideCellEditControl()
-
-        noUpdates = wx.grid.GridUpdateLocker(self.inspector)
-        if self.inspector.GetNumberRows() > 0:
-            self.inspector.DeleteRows(0, self.inspector.GetNumberRows())
-
-        if len(uiViews) == 0:
-            self.inspector.Enable(False)
-            self.inspector.SetColLabelValue(0, "None")
-            self.inspector.InsertRows(0, 3)
-            self.Layout()
-            return
+        props = {}
+        propTypes = {}
+        title = "None"
 
         if len(uiViews) == 1:
-            self.inspector.Enable(True)
             uiView = uiViews[0]
-            self.inspector.SetColLabelValue(0, uiView.model.GetDisplayType())
             keys = uiView.model.PropertyKeys()
-            self.inspector.InsertRows(0,len(keys))
-            r = 0
+            title = uiView.model.GetDisplayType()
             for k in keys:
-                self.inspector.SetCellValue(r, 0, k)
-                self.inspector.SetReadOnly(r, 0)
-                if uiView.model.GetPropertyType(k) in ["point", "floatpoint", "size"]:
-                    l = list(uiView.model.GetProperty(k))
-                    l = [int(i) if math.modf(i)[0] == 0 else i for i in l]
-                    self.inspector.SetCellValue(r, 1, str(l))
-                elif uiView.model.GetPropertyType(k) == "float":
-                    v = uiView.model.GetProperty(k)
-                    if v % 1 == 0:
-                        self.inspector.SetCellValue(r, 1, str(int(v)))
-                    else:
-                        self.inspector.SetCellValue(r, 1, str(v))
-                else:
-                    self.inspector.SetCellValue(r, 1, str(uiView.model.GetProperty(k)))
+                props[k] = uiView.model.GetProperty(k)
+                propTypes[k] = uiView.model.GetPropertyType(k)
 
-                renderer = None
-                editor = None
-                if uiView.model.GetPropertyType(k) == "bool":
-                    editor = wx.grid.GridCellChoiceEditor(["True", "False"])
-                elif uiView.model.GetPropertyType(k) == "choice":
-                    editor = wx.grid.GridCellChoiceEditor(uiView.model.GetPropertyChoices(k))
-                elif uiView.model.GetPropertyType(k) == "color":
-                    editor = GridCellColorEditor(self)
-                    renderer = GridCellColorRenderer()
-                elif uiView.model.GetPropertyType(k) == "file":
-                    editor = GridCellImageFileEditor(self)
-                    renderer = GridCellImageFileRenderer()
-
-                if renderer:
-                    self.inspector.SetCellRenderer(r, 1, renderer)
-                if editor:
-                    self.inspector.SetCellEditor(r, 1, editor)
-                r+=1
-
-        if len(uiViews) > 1:
-            self.inspector.Enable(True)
-            self.inspector.SetColLabelValue(0, "Objects")
+        elif len(uiViews) > 1:
+            title = "Objects"
             keys = uiViews[0].model.PropertyKeys().copy()
             keys.remove("name")
             # Only show properties that exist for all selected objects
             for uiView in uiViews[1:]:
                 oKeys = uiView.model.PropertyKeys()
                 keys = [k for k in keys if k in oKeys]
-            self.inspector.InsertRows(0, len(keys))
-            r = 0
             for k in keys:
-                self.inspector.SetCellValue(r, 0, k)
-                self.inspector.SetReadOnly(r, 0)
                 val = uiViews[0].model.GetProperty(k)
+                propTypes[k] = uiViews[0].model.GetPropertyType(k)
                 # Only show values for properties that are the same for all selected objects
                 for ui in uiViews[1:]:
                     if val != ui.model.GetProperty(k):
                         val = None
                         break
                 if val is not None:
-                    if uiViews[0].model.GetPropertyType(k) in ["point", "floatpoint", "size"]:
-                        l = list(val)
-                        l = [int(i) if math.modf(i)[0] == 0 else i for i in l]
-                        self.inspector.SetCellValue(r, 1, str(l))
-                    elif uiViews[0].model.GetPropertyType(k) == "float":
-                        if val % 1 == 0:
-                            self.inspector.SetCellValue(r, 1, str(int(val)))
-                        else:
-                            self.inspector.SetCellValue(r, 1, str(val))
-                    else:
-                        self.inspector.SetCellValue(r, 1, str(val))
+                    props[k] = val
                 else:
-                    self.inspector.SetCellValue(r, 1, "")
+                    props[k] = ""
 
-                renderer = None
-                editor = None
-                if uiViews[0].model.GetPropertyType(k) == "bool":
-                    editor = wx.grid.GridCellChoiceEditor(["True", "False"])
-                elif uiViews[0].model.GetPropertyType(k) == "choice":
-                    editor = wx.grid.GridCellChoiceEditor(uiViews[0].model.GetPropertyChoices(k))
-                elif uiViews[0].model.GetPropertyType(k) == "color":
-                    editor = GridCellColorEditor(self)
-                    renderer = GridCellColorRenderer()
-                elif uiViews[0].model.GetPropertyType(k) == "file":
-                    editor = GridCellImageFileEditor(self)
-                    renderer = GridCellImageFileRenderer()
-
-                if renderer:
-                    self.inspector.SetCellRenderer(r, 1, renderer)
-                if editor:
-                    self.inspector.SetCellEditor(r, 1, editor)
-                r += 1
-
+        self.inspector.SetData(title, props, propTypes)
         self.Layout()
 
-    def OnInspectorValueChanged(self, event):
-        self.InspectorValueChanged(event.GetRow(),
-                                   self.inspector.GetCellValue(event.GetRow(), 1))
+    def InspectorValueChanged(self, key, val):
+        uiView = self.lastSelectedUiViews[0]
 
-    def InspectorValueChanged(self, row, valStr):
-        key = self.inspector.GetCellValue(row, 0)
-        if len(self.lastSelectedUiViews) == 1:
-            uiView = self.lastSelectedUiViews[0]
-            oldVal = uiView.model.GetProperty(key)
-            val = uiView.model.InterpretPropertyFromString(key, valStr)
+        needsUpdate = False
+        if val is not None:
+            if key == "name":
+                origVal = val
+                if uiView.model.type == "card":
+                    existingNames = [m.GetProperty("name") for m in self.stackManager.stackModel.childModels]
+                    existingNames.remove(uiView.model.GetProperty("name"))
+                    val = uiView.model.DeduplicateName(val, existingNames)
+                else:
+                    val = self.stackManager.uiCard.model.DeduplicateNameInCard(val, [uiView.model.GetProperty("name")])
+                if val != origVal:
+                    needsUpdate = True
+            elif key == "text":
+                val = val.replace('\r', '\n')
+            commands = []
+            for uiView in self.lastSelectedUiViews:
+                if key == "file":
+                    uiView.ClearCachedData()
 
-            if key == "file":
-                uiView.ClearCachedData()
-
-            if val is not None and val != oldVal:
-                needsUpdate = False
-                if key == "name":
-                    origVal = val
-                    if uiView.model.type == "card":
-                        existingNames = [m.GetProperty("name") for m in self.stackManager.stackModel.childModels]
-                        existingNames.remove(uiView.model.GetProperty("name"))
-                        val = uiView.model.DeduplicateName(val, existingNames)
-                    else:
-                        val = self.stackManager.uiCard.model.DeduplicateNameInCard(val, [uiView.model.GetProperty("name")])
-                    if val != origVal:
-                        needsUpdate = True
-
-                if key == "text":
-                    val = val.replace('\r', '\n')
-                command = SetPropertyCommand(True, "Set Property", self, self.stackManager.cardIndex, uiView.model, key, val)
+                oldVal = uiView.model.GetProperty(key)
+                if val != oldVal:
+                    commands.append(SetPropertyCommand(True, "Set Property", self, self.stackManager.cardIndex,
+                                                       uiView.model, key, val))
+            if len(commands):
+                if len(commands) == 1:
+                    command = commands[0]
+                else:
+                    command = CommandGroup(True, "Set Property", self.stackManager,
+                                           commands, [ui.model for ui in self.lastSelectedUiViews])
                 self.stackManager.command_processor.Submit(command)
-                if needsUpdate:
-                    self.UpdatedProperty(uiView, "")
-            else:
-                self.UpdatedProperty(uiView, "")
-        else: # Multiple views selected
-            val = self.lastSelectedUiViews[0].model.InterpretPropertyFromString(key, valStr)
-            if val is not None:
-                if key == "text":
-                    val = val.replace('\r', '\n')
-                commands = []
-                for uiView in self.lastSelectedUiViews:
-                    if key == "file":
-                        uiView.ClearCachedData()
-
-                    oldVal = uiView.model.GetProperty(key)
-                    if val != oldVal:
-                        commands.append(SetPropertyCommand(True, "Set Property", self, self.stackManager.cardIndex,
-                                                           uiView.model, key, val))
-                if len(commands):
-                    self.stackManager.command_processor.Submit(CommandGroup(True, "Set Property", self.stackManager,
-                                                                            commands, [ui.model for ui in self.lastSelectedUiViews]))
-
-    def OnGridResized(self, event):
-        width, height = self.inspector.GetSize()
-        width = width - self.inspector.GetColSize(0) - 1
-        if width < 0: width = 0
-        self.inspector.SetColSize(1, width)
-        event.Skip()
+        if needsUpdate:
+            self.inspector.SetValue(key, val)
 
     def UpdateHandlerForUiViews(self, uiViews, handlerName):
         if len(uiViews) != 1:
@@ -632,7 +485,7 @@ class ControlPanel(wx.Panel):
             if colorStr == "#000000": colorStr = "black"
             elif colorStr == "#FFFFFF": colorStr = "white"
             self.penColor = colorStr
-        self.ci.UpdateLine(self.penColor, self.penThickness)
+        self.ci.UpdateShape(self.penColor, self.fillColor, self.penThickness)
         self.stackManager.tool.SetPenColor(self.penColor)
 
     def OnSetFillColor(self, event):
@@ -645,6 +498,7 @@ class ControlPanel(wx.Panel):
             if colorStr == "#000000": colorStr = "black"
             elif colorStr == "#FFFFFF": colorStr = "white"
             self.fillColor = colorStr
+        self.ci.UpdateShape(self.penColor, self.fillColor, self.penThickness)
         self.stackManager.tool.SetFillColor(self.fillColor)
 
     def OnSetThickness(self, event):
@@ -656,7 +510,7 @@ class ControlPanel(wx.Panel):
         self.thknsBtns[self.penThickness].SetToggle(newThickness == self.penThickness)
         # set the new color
         self.penThickness = newThickness
-        self.ci.UpdateLine(wx.Colour(self.penColor), self.penThickness)
+        self.ci.UpdateShape(wx.Colour(self.penColor), wx.Colour(self.fillColor), self.penThickness)
         self.stackManager.tool.SetThickness(self.penThickness)
 
 
@@ -670,16 +524,17 @@ class ColorIndicator(wx.Window):
     def __init__(self, parent):
         wx.Window.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
         self.SetBackgroundColour(wx.WHITE)
-        self.SetMinSize( (45, 45) )
-        self.color = self.thickness = None
+        self.SetMinSize( (60, 60) )
+        self.penColor = self.fillColor = self.thickness = None
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-    def UpdateLine(self, color, thickness):
+    def UpdateShape(self, penColor, fillColor, thickness):
         """
         The stackManager view calls this method any time the color
         or line thickness changes.
         """
-        self.color = color
+        self.penColor = penColor
+        self.fillColor = fillColor
         self.thickness = thickness
         self.Refresh()  # generate a paint event
 
@@ -689,226 +544,8 @@ class ColorIndicator(wx.Window):
         redrawn.
         """
         dc = wx.PaintDC(self)
-        if self.color:
+        if self.penColor and self.fillColor and self.thickness:
             sz = self.GetClientSize()
-            pen = wx.Pen(self.color, self.thickness)
-            dc.SetPen(pen)
-            dc.DrawLine(10, int(sz.height/2), int(sz.width-10), int(sz.height/2))
-
-
-COLOR_PATCH_WIDTH = 70
-BUTTON_WIDTH = 50
-
-class GridCellColorRenderer(wx.grid.GridCellStringRenderer):
-    def Draw(self, grid, attr, dc, rect, row, col, isSelected):
-        text = grid.GetCellValue(row, col)
-        color = wx.Colour(text)
-        if not color.IsOk(): color = wx.Colour('white')
-
-        if isSelected:
-            bg = grid.GetSelectionBackground()
-            fg = grid.GetSelectionForeground()
-        else:
-            bg = attr.GetBackgroundColour()
-            fg = attr.GetTextColour()
-        dc.SetTextBackground(bg)
-        dc.SetTextForeground(fg)
-        dc.SetPen(wx.TRANSPARENT_PEN)
-        dc.SetBrush(wx.Brush(bg, wx.SOLID))
-        dc.DrawRectangle(rect)
-        dc.SetPen(wx.Pen('black', 1, wx.PENSTYLE_SOLID))
-        dc.SetBrush(wx.Brush(color, wx.SOLID))
-        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH, rect.Top+1, COLOR_PATCH_WIDTH, rect.Height-1))
-
-        hAlign, vAlign = attr.GetAlignment()
-        dc.SetFont(attr.GetFont())
-        grid.DrawTextRectangle(dc, text, rect, hAlign, vAlign)
-
-
-class GridCellColorEditor(wx.grid.GridCellTextEditor):
-    def __init__(self, cPanel):
-        super().__init__()
-        self.cPanel = cPanel
-        self.grid = cPanel.inspector
-
-    def StartingClick(self):
-        self.row = self.grid.GetGridCursorRow()
-        self.col = self.grid.GetGridCursorCol()
-        text = self.grid.GetCellValue(self.row, self.col)
-        x,y = self.grid.ScreenToClient(wx.GetMousePosition())
-        if x > self.grid.GetSize().Width - COLOR_PATCH_WIDTH:
-            data = wx.ColourData()
-            data.SetColour(text)
-            data.SetChooseAlpha(True)
-            dlg = wx.ColourDialog(self.grid, data)
-            if dlg.ShowModal() == wx.ID_OK:
-                color = dlg.GetColourData().GetColour().GetAsString(flags=wx.C2S_HTML_SYNTAX)
-                self.UpdateColor(color)
-
-    def UpdateColor(self, color):
-        self.grid.SetCellValue(self.row, self.col, color)
-        self.cPanel.InspectorValueChanged(self.row, color)
-
-
-# class GridCellFileRenderer(wx.grid.GridCellStringRenderer):
-#     fileBmp = None
-#
-#     def Draw(self, grid, attr, dc, rect, row, col, isSelected):
-#         text = grid.GetCellValue(row, col)
-#
-#         if isSelected:
-#             bg = grid.GetSelectionBackground()
-#             fg = grid.GetSelectionForeground()
-#         else:
-#             bg = attr.GetBackgroundColour()
-#             fg = attr.GetTextColour()
-#         dc.SetTextBackground(bg)
-#         dc.SetTextForeground(fg)
-#         dc.SetPen(wx.TRANSPARENT_PEN)
-#         dc.SetBrush(wx.Brush(bg, wx.SOLID))
-#         dc.DrawRectangle(rect)
-#         dc.SetPen(wx.Pen('black', 1, wx.PENSTYLE_SOLID))
-#         dc.SetBrush(wx.Brush('white', wx.SOLID))
-#         dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
-#         if not self.fileBmp:
-#             self.fileBmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, size=wx.Size(rect.Height, rect.Height))
-#         dc.DrawBitmap(self.fileBmp, wx.Point(rect.Left + rect.Width-((BUTTON_WIDTH+self.fileBmp.Width)/2), rect.Top))
-#
-#         hAlign, vAlign = attr.GetAlignment()
-#         dc.SetFont(attr.GetFont())
-#         grid.DrawTextRectangle(dc, text, rect, hAlign, vAlign)
-#
-#
-# class GridCellFileEditor(wx.grid.GridCellTextEditor):
-#     def __init__(self, cPanel):
-#         super().__init__()
-#         self.cPanel = cPanel
-#         self.grid = cPanel.inspector
-#
-#     wildcard = "Image Files (*.jpeg,*.jpg,*.png,*.gif,*.bmp)|*.jpeg;*.jpg;*.png;*.gif;*.bmp"
-#
-#     def StartingClick(self):
-#         self.row = self.grid.GetGridCursorRow()
-#         self.col = self.grid.GetGridCursorCol()
-#         text = self.grid.GetCellValue(self.row, self.col)
-#         x,y = self.grid.ScreenToClient(wx.GetMousePosition())
-#         if x > self.grid.GetSize().Width - BUTTON_WIDTH:
-#             startDir = ""
-#             if self.cPanel.stackManager.filename:
-#                 startDir = os.path.dirname(self.cPanel.stackManager.filename)
-#             startFile = ""
-#             if text:
-#                 if self.cPanel.stackManager.filename:
-#                     cdsFileDir = os.path.dirname(self.cPanel.stackManager.filename)
-#                     path = os.path.join(cdsFileDir, text)
-#                     startDir = os.path.dirname(path)
-#                     startFile = os.path.basename(path)
-#             dlg = wx.FileDialog(self.cPanel, "Choose Image file...", defaultDir=startDir,
-#                                 defaultFile=startFile, style=wx.FD_OPEN, wildcard=self.wildcard)
-#             if dlg.ShowModal() == wx.ID_OK:
-#                 filename = dlg.GetPath()
-#                 if self.cPanel.stackManager.filename:
-#                     cdsFileDir = os.path.dirname(self.cPanel.stackManager.filename)
-#                     try:
-#                         filename = os.path.relpath(filename, cdsFileDir)
-#                     except:
-#                         pass
-#                 self.UpdateFile(filename)
-#             dlg.Destroy()
-#
-#     def UpdateFile(self, filename):
-#         self.grid.SetCellValue(self.row, self.col, filename)
-#         self.cPanel.InspectorValueChanged(self.row, filename)
-
-
-class GridCellImageFileRenderer(wx.grid.GridCellStringRenderer):
-    fileBmp = None
-    clipArtBmp = None
-
-    def Draw(self, grid, attr, dc, rect, row, col, isSelected):
-        text = grid.GetCellValue(row, col)
-
-        if isSelected:
-            bg = grid.GetSelectionBackground()
-            fg = grid.GetSelectionForeground()
-        else:
-            bg = attr.GetBackgroundColour()
-            fg = attr.GetTextColour()
-        dc.SetTextBackground(bg)
-        dc.SetTextForeground(fg)
-        dc.SetPen(wx.TRANSPARENT_PEN)
-        dc.SetBrush(wx.Brush(bg, wx.SOLID))
-        dc.DrawRectangle(rect)
-        dc.SetPen(wx.Pen('black', 1, wx.PENSTYLE_SOLID))
-        dc.SetBrush(wx.Brush('white', wx.SOLID))
-
-        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH*2, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
-        if not self.clipArtBmp:
-            self.clipArtBmp = wx.ArtProvider.GetBitmap(wx.ART_CUT, size=wx.Size(rect.Height, rect.Height))
-        dc.DrawBitmap(self.clipArtBmp, wx.Point(rect.Left + rect.Width-BUTTON_WIDTH-((BUTTON_WIDTH+self.clipArtBmp.Width)/2), rect.Top))
-
-        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
-        if not self.fileBmp:
-            self.fileBmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, size=wx.Size(rect.Height, rect.Height))
-        dc.DrawBitmap(self.fileBmp, wx.Point(rect.Left + rect.Width-((BUTTON_WIDTH+self.fileBmp.Width)/2), rect.Top))
-
-        hAlign, vAlign = attr.GetAlignment()
-        dc.SetFont(attr.GetFont())
-        grid.DrawTextRectangle(dc, text, rect, hAlign, vAlign)
-
-
-class GridCellImageFileEditor(wx.grid.GridCellTextEditor):
-    def __init__(self, cPanel):
-        super().__init__()
-        self.cPanel = cPanel
-        self.grid = cPanel.inspector
-
-    wildcard = "Image Files (*.jpeg,*.jpg,*.png,*.gif,*.bmp)|*.jpeg;*.jpg;*.png;*.gif;*.bmp"
-
-    def StartingClick(self):
-        self.row = self.grid.GetGridCursorRow()
-        self.col = self.grid.GetGridCursorCol()
-        text = self.grid.GetCellValue(self.row, self.col)
-        x,y = self.grid.ScreenToClient(wx.GetMousePosition())
-        if x > self.grid.GetSize().Width - BUTTON_WIDTH:
-            startDir = ""
-            if self.cPanel.stackManager.filename:
-                startDir = os.path.dirname(self.cPanel.stackManager.filename)
-            startFile = ""
-            if text:
-                if self.cPanel.stackManager.filename:
-                    cdsFileDir = os.path.dirname(self.cPanel.stackManager.filename)
-                    path = os.path.join(cdsFileDir, text)
-                    startDir = os.path.dirname(path)
-                    startFile = os.path.basename(path)
-            dlg = wx.FileDialog(self.cPanel, "Choose Image file...", defaultDir=startDir,
-                                defaultFile=startFile, style=wx.FD_OPEN, wildcard=self.wildcard)
-            if dlg.ShowModal() == wx.ID_OK:
-                filename = dlg.GetPath()
-                if self.cPanel.stackManager.filename:
-                    cdsFileDir = os.path.dirname(self.cPanel.stackManager.filename)
-                    try:
-                        filename = os.path.relpath(filename, cdsFileDir)
-                    except:
-                        pass
-                self.UpdateFile(filename)
-            dlg.Destroy()
-        elif x > self.grid.GetSize().Width - BUTTON_WIDTH*2:
-            if not self.cPanel.stackManager.filename:
-                wx.MessageDialog(self.cPanel.stackManager.designer,
-                                 "Please save your stack before pasting an Image.",
-                                 "Unsaved Stack", wx.OK).ShowModal()
-                return
-
-            def onImageLoaded(path):
-                self.UpdateFile(path)
-
-            dlg = mediaSearchDialogs.ImageSearchDialog(self.cPanel.stackManager.designer,
-                                                       self.cPanel.stackManager.designer.GetCurDir(),
-                                                       onImageLoaded)
-            dlg.RunModal()
-
-
-    def UpdateFile(self, filename):
-        self.grid.SetCellValue(self.row, self.col, filename)
-        self.cPanel.InspectorValueChanged(self.row, filename)
+            dc.SetPen(wx.Pen(self.penColor, self.thickness))
+            dc.SetBrush(wx.Brush(self.fillColor))
+            dc.DrawRoundedRectangle(10, 10, int(sz.width-20), int(sz.height-20), 10)

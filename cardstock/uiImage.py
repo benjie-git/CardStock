@@ -147,7 +147,6 @@ class ImageModel(ViewModel):
 
         self.propertyTypes["file"] = "file"
         self.propertyTypes["fit"] = "choice"
-        self.propertyChoices["fit"] = ["Center", "Stretch", "Contain", "Fill"]
         self.propertyTypes["rotation"] = "float"
         self.propertyTypes["xFlipped"] = "bool"
         self.propertyTypes["yFlipped"] = "bool"

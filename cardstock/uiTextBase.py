@@ -156,8 +156,6 @@ class TextBaseModel(ViewModel):
         self.propertyTypes["textColor"] = "color"
         self.propertyTypes["font"] = "choice"
         self.propertyTypes["fontSize"] = "uint"
-        self.propertyChoices["alignment"] = ["Left", "Center", "Right"]
-        self.propertyChoices["font"] = ["Default", "Serif", "Sans-Serif", "Mono"]
 
 
 class TextBaseProxy(ViewProxy):

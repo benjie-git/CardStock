@@ -186,6 +186,7 @@ class ViewerFrame(wx.Frame):
 
         # and the help menu
         helpMenu = wx.Menu()
+        helpMenu.Append(ID_SHOW_VARIABLES, "&Show/Hide Variables\tCtrl-Alt-V", "Toggle Variables")
         helpMenu.Append(ID_SHOW_CONSOLE, "&Hide Console\tCtrl-Alt-O", "Toggle Console")
         helpMenu.Append(ID_CLEAR_CONSOLE, "&Clear Console\tCtrl-Alt-C", "Clear Console")
 

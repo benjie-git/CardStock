@@ -631,7 +631,6 @@ class ViewModel(object):
                               "visible": "bool",
                               "data": "dict"
                               }
-        self.propertyChoices = {}
 
         self.childModels = []
         self.stackManager = stackManager
@@ -908,10 +907,17 @@ class ViewModel(object):
 
     # Options currently are string, bool, int, float, point, floatpoint, size, choice, color, file
     def GetPropertyType(self, key):
-        return self.propertyTypes[key]
+        return self.propertyTypes.get(key)
 
-    def GetPropertyChoices(self, key):
-        return self.propertyChoices[key]
+    @staticmethod
+    def GetPropertyChoices(key):
+        if key == "alignment":
+            return ["Left", "Center", "Right"]
+        elif key == "font":
+            return ["Default", "Serif", "Sans-Serif", "Mono"]
+        elif key == "fit":
+            return ["Center", "Stretch", "Contain", "Fill"]
+        return []
 
     def GetProperty(self, key):
         if key == "center":
@@ -997,7 +1003,7 @@ class ViewModel(object):
             value = wx.RealPoint(value[0], value[1])
         elif key in self.propertyTypes and self.propertyTypes[key] == "size" and not isinstance(value, wx.Point):
             value = wx.Size(value)
-        elif key in self.propertyTypes and self.propertyTypes[key] == "choice" and value not in self.propertyChoices[key]:
+        elif key in self.propertyTypes and self.propertyTypes[key] == "choice" and value not in self.GetPropertyChoices(key):
             return
         elif key in self.propertyTypes and self.propertyTypes[key] == "color" and isinstance(value, wx.Colour):
             value = value.GetAsString(flags=wx.C2S_HTML_SYNTAX)
@@ -1025,34 +1031,35 @@ class ViewModel(object):
                 self.Notify(key)
             self.isDirty = True
 
-    def InterpretPropertyFromString(self, key, valStr):
-        propType = self.propertyTypes[key]
+    @staticmethod
+    def InterpretPropertyFromString(key, valStr, propType):
         val = valStr
-        try:
-            if propType == "bool":
-                val = valStr == "True"
-            elif propType in ["int", "uint"]:
-                val = int(valStr)
-                if propType == "uint" and val < 0:
-                    val = 0
-            elif propType == "float":
-                val = float(valStr)
-            elif propType in ["point", "floatpoint"]:
-                val = ast.literal_eval(valStr)
-                if not isinstance(val, (list, tuple)) or len(val) != 2:
-                    raise Exception()
-            elif propType == "size":
-                val = ast.literal_eval(valStr)
-                if not isinstance(val, (list, tuple)) or len(val) != 2:
-                    raise Exception()
-            elif propType == "list":
-                if valStr == "":
-                    valStr = "[]"
-                val = ast.literal_eval(valStr)
-                if not isinstance(val, (list, tuple)):
-                    raise Exception()
-        except:
-            return None
+        if propType:
+            try:
+                if propType == "bool":
+                    val = valStr == "True"
+                elif propType in ["int", "uint"]:
+                    val = int(valStr)
+                    if propType == "uint" and val < 0:
+                        val = 0
+                elif propType == "float":
+                    val = float(valStr)
+                elif propType in ["point", "floatpoint"]:
+                    val = ast.literal_eval(valStr)
+                    if not isinstance(val, (list, tuple)) or len(val) != 2:
+                        raise Exception()
+                elif propType == "size":
+                    val = ast.literal_eval(valStr)
+                    if not isinstance(val, (list, tuple)) or len(val) != 2:
+                        raise Exception()
+                elif propType == "list":
+                    if valStr == "":
+                        valStr = "[]"
+                    val = ast.literal_eval(valStr)
+                    if not isinstance(val, (list, tuple)):
+                        raise Exception()
+            except:
+                return None
         return val
 
     def SetHandler(self, key, value):
@@ -1166,6 +1173,9 @@ class ViewProxy(object):
     def __init__(self, model):
         super().__init__()
         self._model = model
+
+    def __repr__(self):
+        return f"<{self._model.GetDisplayType()}:'{self._model.GetProperty('name')}'>"
 
     def __getattr__(self, item):
         model = self._model

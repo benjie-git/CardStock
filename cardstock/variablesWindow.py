@@ -1,5 +1,6 @@
 import wx
 import wx.grid
+import inspector
 import uiView
 
 
@@ -18,24 +19,10 @@ class VariablesWindow(wx.Frame):
         self.pathLabel = wx.StaticText(self)
         self.pathLabel.Bind(wx.EVT_LEFT_DOWN, self.OnPathClick)
 
-        self.grid = wx.grid.Grid(self, -1)
-        self.grid.CreateGrid(2, 2)
-        self.grid.SetRowSize(0, 25)
-        self.grid.SetColSize(0, 100)
-        self.grid.SetColLabelSize(20)
-        self.grid.SetRowLabelSize(0)
-        self.grid.SetColLabelValue(0, "Name")
-        self.grid.SetColLabelValue(1, "Value")
-        self.grid.DisableDragRowSize()
-        # self.grid.DisableDragColSize()
-        self.grid.SetSelectionMode(wx.grid.Grid.GridSelectNone)
-
-        self.grid.Bind(wx.EVT_SIZE, self.OnResize)
+        self.grid = inspector.Inspector(self, self.stackManager)
+        self.grid.valueChangedFunc = self.InspectorValChanged
         self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridDClick)
-        self.grid.Bind(wx.grid.EVT_GRID_CMD_COL_SIZE, self.OnResize)
-        # self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnInspectorValueChanged)
-        # self.grid.Bind(wx.EVT_KEY_DOWN, self.OnGridEnter)
-        # self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnGridCellSelected)
+        self.grid.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.pathLabel, 0, wx.EXPAND|wx.ALL, 3)
@@ -63,66 +50,145 @@ class VariablesWindow(wx.Frame):
         event.Veto()
         self.Hide()
 
-    def OnResize(self, event):
-        (width, height) = self.grid.GetClientSize()
-        width = width - self.grid.GetColSize(0) - 1
-        if width < 0: width = 0
-        self.grid.SetColSize(1, width)
+    def OnPathClick(self, event):
+        if not self.grid.IsCellEditControlShown():
+            self.ZoomOut()
+
+    def OnGridKeyDown(self, event):
+        if not self.grid.IsCellEditControlShown() and event.GetKeyCode() in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
+            if self.grid.IsReadOnly(self.grid.GetGridCursorRow(), self.grid.GetGridCursorCol()):
+                key = self.keys[self.grid.GetGridCursorRow()]
+                self.ZoomInto(key)
+        elif event.GetKeyCode() in (wx.WXK_ESCAPE, wx.WXK_BACK, wx.WXK_DELETE):
+            self.ZoomOut()
         event.Skip()
+
+    def OnGridDClick(self, event):
+        (r,c) = (event.Row, event.Col)
+        k = self.keys[r]
+        self.ZoomInto(k)
+
+    def ZoomInto(self, key):
+        if self.grid.GetTypeForKey(key) in ("list", "dict", "obj"):
+            v = self.vars[key]
+            obj = self.ObjFromPath()
+            if isinstance(obj, (dict, list, tuple)):
+                self.path.append(('sub', key))
+                self.UpdateVars()
+            elif isinstance(obj, (uiView.ViewProxy, uiView.ViewModel)):
+                self.path.append(('attr', key))
+                self.UpdateVars()
+
+    def ZoomOut(self):
+        if len(self.path):
+            self.path.pop()
+            self.UpdateVars()
+
+    def ObjFromPath(self):
+        clientVars = self.stackManager.runner.GetClientVars()
+        obj = clientVars
+        for (t, p) in self.path:
+            if isinstance(obj, uiView.ViewProxy):
+                obj = obj._model
+            if isinstance(obj, (tuple, list)) and isinstance(p, int):
+                if 0 <= p < len(obj):
+                    obj = obj[p]
+                else:
+                    return None
+            elif isinstance(obj, uiView.ViewModel):
+                if p == "children":
+                    obj = obj.childModels
+                elif p == "points":
+                    obj = obj.points
+                else:
+                    obj = obj.properties[p]
+            elif p in obj:
+                obj = obj[p]
+            else:
+                return None
+        return obj
+
+    def GetVars(self):
+        vars = self.stackManager.runner.GetClientVars()
+        obj = None
+        for (t, p) in self.path:
+            obj = None
+            if t == 'sub':
+                if isinstance(p, int):
+                    if 0 <= p < len(vars):
+                        vars = vars[p]
+                elif p in vars:
+                    vars = vars[p]
+                else:
+                    self.path.pop()
+                    return self.GetVars()
+            elif t == "attr" and p in vars:
+                vars = vars[p]
+            else:
+                self.path.pop()
+                return self.GetVars()
+
+            if isinstance(vars, uiView.ViewProxy):
+                vars = vars._model
+            if isinstance(vars, uiView.ViewModel):
+                obj = vars
+                props = vars.properties.copy()
+                if vars.type == "stack":
+                    props["children"] = vars.childModels.copy()
+                    del props["position"]
+                    del props["size"]
+                    del props["speed"]
+                    del props["visible"]
+                elif vars.type == "card":
+                    props["children"] = vars.childModels.copy()
+                    props["size"] = vars.parent.properties["size"]
+                    del props["position"]
+                    del props["speed"]
+                    del props["visible"]
+                elif vars.type == "group":
+                    props["children"] = vars.childModels.copy()
+                elif vars.type in ("pen", "line", "poly"):
+                    props["points"] = vars.points
+
+                if "originalSize" in props:
+                    del props["originalSize"]
+                vars = props
+        return (obj, vars)
+
+    def UpdatePath(self):
+        if len(self.path):
+            dispPath = str(self.path[0][1])
+            if len(self.path)>1:
+                dispParts = [f".{p}" if t == "attr" else f"[{p}]" for (t, p) in self.path[1:]]
+                dispPath += ''.join(dispParts)
+            self.pathLabel.SetLabelText("[Back] " + dispPath)
+        else:
+            self.pathLabel.SetLabelText("All")
 
     def UpdateVars(self):
         if not self.IsShown() or self.grid.IsCellEditControlShown():
             return
 
-        clientVars = self.stackManager.runner.GetClientVars()
-        obj = clientVars
-        for p in self.path:
-            if isinstance(p, int) and isinstance(obj, (tuple, list)):
-                if p >= 0 and p < len(obj):
-                    obj = obj[p]
-            elif p in obj:
-                obj = obj[p]
-            else:
-                self.path.pop()
-                self.UpdateVars()
-                return
-            if isinstance(obj, uiView.ViewProxy):
-                obj = obj._model
-            if isinstance(obj, uiView.ViewModel):
-                props = obj.properties.copy()
-                if obj.type == "stack":
-                    props["children"] = obj.childModels.copy()
-                    del props["position"]
-                    del props["size"]
-                    del props["speed"]
-                    del props["visible"]
-                if obj.type == "card":
-                    props["children"] = obj.childModels.copy()
-                    props["size"] = obj.parent.properties["size"]
-                    del props["position"]
-                    del props["speed"]
-                    del props["visible"]
-                if obj.type == "group":
-                    props["children"] = obj.childModels.copy()
-                if obj.type in ("pen", "line", "poly"):
-                    props["points"] = obj.points
-                if "originalSize" in props:
-                    del props["originalSize"]
-                obj = props
-
-        self.vars = obj
-
-        if len(self.path):
-            dispParts = [f".{p}" if isinstance(p, str) else f"[{p}]" for p in self.path]
-            dispPath = ''.join(dispParts)[1:]
-            self.pathLabel.SetLabelText("[Back] " + dispPath)
-        else:
-            self.pathLabel.SetLabelText("All")
+        (obj, self.vars) = self.GetVars()
+        self.UpdatePath()
 
         if isinstance(self.vars, (tuple, list)):
             self.keys = range(len(self.vars))
         else:
             self.keys = sorted(self.vars.keys(), key=str.casefold)
+        d = {}
+        types = {}
+        for k in self.keys:
+            d[k] = self.vars[k]
+            if isinstance(obj, uiView.ViewModel):
+                if k == "name":
+                    types[k] = "static"
+                else:
+                    types[k] = obj.GetPropertyType(k)
+            elif isinstance(self.vars, tuple):
+                types[k] = "static"
+
+        self.vars = d
 
         oldNum = self.grid.GetNumberRows()
         newNum = len(self.keys)
@@ -133,29 +199,41 @@ class VariablesWindow(wx.Frame):
         elif newNum > oldNum:
             self.grid.InsertRows(0, newNum - oldNum)
 
-        row = 0
-        for k in self.keys:
-            val = self.vars[k]
-            if isinstance(val, uiView.ViewProxy):
-                val = val._model
-            val = str(val)
+        self.grid.SetData("Variables", self.vars, types)
 
-            self.grid.SetCellValue(row, 0, str(k))
-            self.grid.SetReadOnly(row, 0)
-            self.grid.SetCellValue(row, 1, val)
-            self.grid.SetReadOnly(row, 1)
-            row += 1
-        self.grid.Refresh(True)
+    def InspectorValChanged(self, key, val):
+        clientVars = self.stackManager.runner.GetClientVars()
+        obj = clientVars
+        changedPoints = None
+        for (t, p) in self.path:
+            if isinstance(obj, uiView.ViewProxy):
+                obj = obj._model
+            if isinstance(obj, (tuple, list)) and isinstance(p, int):
+                if 0 <= p < len(obj):
+                    obj = obj[p]
+                else:
+                    return
+            elif isinstance(obj, uiView.ViewModel):
+                if p == "children":
+                    obj = obj.childModels
+                elif p == "points":
+                    changedPoints = obj
+                    obj = obj.points
+                else:
+                    obj = obj.properties[p]
+            elif p in obj:
+                obj = obj[p]
+            else:
+                return
 
-    def OnPathClick(self, event):
-        if len(self.path):
-            self.path.pop()
-            self.UpdateVars()
+        if isinstance(obj, uiView.ViewProxy):
+            obj = obj._model
+        if isinstance(obj, (dict, tuple, list)):
+            obj[key] = val
+        elif isinstance(obj, uiView.ViewModel):
+            obj.SetProperty(key, val)
+        else:
+            return
 
-    def OnGridDClick(self, event):
-        (r,c) = (event.Row, event.Col)
-        k = self.keys[r]
-        v = self.vars[k]
-        if isinstance(v, (dict, list, tuple, uiView.ViewProxy, uiView.ViewModel)):
-            self.path.append(k)
-            self.UpdateVars()
+        if changedPoints:
+            changedPoints.DidUpdateShape()
