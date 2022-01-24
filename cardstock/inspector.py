@@ -131,8 +131,8 @@ class Inspector(wx.grid.Grid):
                 editor = GridCellColorEditor(self)
                 renderer = GridCellColorRenderer()
             elif valType == "file":
-                editor = GridCellImageFileEditor(self)
-                renderer = GridCellImageFileRenderer()
+                editor = GridCellImageFileEditor(self, self.stackManager.runner is None)
+                renderer = GridCellImageFileRenderer(self.stackManager.runner is None)
 
             if renderer:
                 self.SetCellRenderer(r, 1, renderer)
@@ -236,6 +236,10 @@ class GridCellImageFileRenderer(wx.grid.GridCellStringRenderer):
     fileBmp = None
     clipArtBmp = None
 
+    def __init__(self, showClipArtButton):
+        super().__init__()
+        self.showClipArtButton = showClipArtButton
+
     def Draw(self, grid, attr, dc, rect, row, col, isSelected):
         text = grid.GetCellValue(row, col)
 
@@ -253,10 +257,11 @@ class GridCellImageFileRenderer(wx.grid.GridCellStringRenderer):
         dc.SetPen(wx.Pen('black', 1, wx.PENSTYLE_SOLID))
         dc.SetBrush(wx.Brush('white', wx.SOLID))
 
-        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH*2, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
-        if not self.clipArtBmp:
-            self.clipArtBmp = wx.ArtProvider.GetBitmap(wx.ART_CUT, size=wx.Size(rect.Height, rect.Height))
-        dc.DrawBitmap(self.clipArtBmp, wx.Point(rect.Left + rect.Width-BUTTON_WIDTH-((BUTTON_WIDTH+self.clipArtBmp.Width)/2), rect.Top))
+        if self.showClipArtButton:
+            dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH*2, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
+            if not self.clipArtBmp:
+                self.clipArtBmp = wx.ArtProvider.GetBitmap(wx.ART_CUT, size=wx.Size(rect.Height, rect.Height))
+            dc.DrawBitmap(self.clipArtBmp, wx.Point(rect.Left + rect.Width-BUTTON_WIDTH-((BUTTON_WIDTH+self.clipArtBmp.Width)/2), rect.Top))
 
         dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
         if not self.fileBmp:
@@ -269,9 +274,10 @@ class GridCellImageFileRenderer(wx.grid.GridCellStringRenderer):
 
 
 class GridCellImageFileEditor(wx.grid.GridCellTextEditor):
-    def __init__(self, inspector):
+    def __init__(self, inspector, showClipArtButton):
         super().__init__()
         self.inspector = inspector
+        self.showClipArtButton = showClipArtButton
 
     wildcard = "Image Files (*.jpeg,*.jpg,*.png,*.gif,*.bmp)|*.jpeg;*.jpg;*.png;*.gif;*.bmp"
 
@@ -303,10 +309,10 @@ class GridCellImageFileEditor(wx.grid.GridCellTextEditor):
                         pass
                 self.UpdateFile(filename)
             dlg.Destroy()
-        elif x > self.inspector.GetSize().Width - BUTTON_WIDTH*2:
+        elif self.showClipArtButton and x > self.inspector.GetSize().Width - BUTTON_WIDTH*2:
             if not self.inspector.stackManager.filename:
                 wx.MessageDialog(self.inspector.stackManager.designer,
-                                 "Please save your stack before pasting an Image.",
+                                 "Please save your stack before downloading an Image.",
                                  "Unsaved Stack", wx.OK).ShowModal()
                 return
 

@@ -537,6 +537,8 @@ class DesignerFrame(wx.Frame):
     wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
 
     def OnMenuNew(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         if self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before starting a New file?", wx.YES_NO | wx.CANCEL).ShowModal()
@@ -559,6 +561,8 @@ class DesignerFrame(wx.Frame):
         self.ReadFile(filename)
 
     def DoMenuOpen(self, initialDir):
+        if wx.GetMouseState().LeftIsDown():
+            return
         if self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before Opening a file?", wx.YES_NO | wx.CANCEL).ShowModal()
@@ -577,6 +581,8 @@ class DesignerFrame(wx.Frame):
         wx.CallLater(50, self.stackContainer.Enable, True) # Needed to avoid a MSWindows FileDlg bug
 
     def OnMenuOpen(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         initialDir = os.getcwd()
         if self.configInfo and "last_open_file" in self.configInfo:
             d = os.path.dirname(self.configInfo["last_open_file"])
@@ -585,15 +591,21 @@ class DesignerFrame(wx.Frame):
         self.DoMenuOpen(initialDir)
 
     def OnMenuOpenExample(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         self.DoMenuOpen(self.GetExamplesDir())
 
     def OnMenuSave(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         if not self.filename:
             self.OnMenuSaveAs(event)
         else:
             self.SaveFile()
 
     def OnMenuSaveAs(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         initialDir = os.getcwd()
         if self.configInfo and "last_open_file" in self.configInfo:
             initialDir = os.path.dirname(self.configInfo["last_open_file"])
@@ -615,6 +627,8 @@ class DesignerFrame(wx.Frame):
         wx.CallLater(50, self.stackContainer.Enable, True) # Needed to avoid a MSWindows FileDlg bug
 
     def OnMenuExport(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         def doSave():
             self.OnMenuSave(None)
         exporter = StackExporter(self.stackManager)
@@ -657,12 +671,18 @@ class DesignerFrame(wx.Frame):
         self.isStartingViewer = False
 
     def OnMenuRun(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         self.RunFromCard(0)
 
     def OnMenuRunFrom(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         self.RunFromCard(self.stackManager.cardIndex)
 
     def OnMenuSearchImage(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         if not self.stackManager.filename:
             r = wx.MessageDialog(self.stackManager.designer,
                                  "You need to save this stack before inserting Clip Art.",
@@ -764,6 +784,8 @@ class DesignerFrame(wx.Frame):
         self.Close()
 
     def OnClose(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         if self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before Quitting?", wx.YES_NO | wx.CANCEL).ShowModal()
@@ -777,9 +799,13 @@ class DesignerFrame(wx.Frame):
         event.Skip()
 
     def OnMenuGroup(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         self.stackManager.GroupSelectedViews()
 
     def OnMenuUngroup(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         self.stackManager.UngroupSelectedViews()
 
     def OnMenuAlign(self, event):
@@ -807,12 +833,18 @@ class DesignerFrame(wx.Frame):
         self.stackManager.AlignOrDistributeSelectedViews(False, dir)
 
     def OnMenuFlipHorizontal(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         self.stackManager.FlipSelection(True)
 
     def OnMenuFlipVertical(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         self.stackManager.FlipSelection(False)
 
     def OnMenuMoveView(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         if event.GetId() == ID_MOVE_VIEW_FRONT:
             self.stackManager.ReorderSelectedViews("front")
         elif event.GetId() == ID_MOVE_VIEW_FWD:
@@ -823,28 +855,40 @@ class DesignerFrame(wx.Frame):
             self.stackManager.ReorderSelectedViews("end")
 
     def OnMenuMoveCard(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         if event.GetId() == ID_MOVE_CARD_FWD:
             self.stackManager.ReorderCurrentCard("fwd")
         elif event.GetId() == ID_MOVE_CARD_BACK:
             self.stackManager.ReorderCurrentCard("back")
 
     def OnMenuNextCard(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         index = self.stackManager.cardIndex+1
         if index < len(self.stackManager.stackModel.childModels):
             self.stackManager.LoadCardAtIndex(index)
 
     def OnMenuPrevCard(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         index = self.stackManager.cardIndex-1
         if index >= 0:
             self.stackManager.LoadCardAtIndex(index)
 
     def OnMenuAddCard(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         self.stackManager.AddCard()
 
     def OnMenuDuplicateCard(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         self.stackManager.DuplicateCard()
 
     def OnMenuRemoveCard(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         self.stackManager.RemoveCard()
 
     def OnPickCard(self, event):
@@ -882,16 +926,22 @@ class DesignerFrame(wx.Frame):
         return f
 
     def OnSelectAll(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         f = self.GetDesiredFocus(True)
         if f and hasattr(f, "SelectAll"):
             f.SelectAll()
 
     def OnCut(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         f = self.GetDesiredFocus(True)
         if f and hasattr(f, "Cut"):
             f.Cut()
 
     def OnDelete(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         f = self.GetDesiredFocus(True)
         if f and hasattr(f, "Delete"):
             f.Delete()
@@ -902,11 +952,15 @@ class DesignerFrame(wx.Frame):
             f.Copy()
 
     def OnPaste(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         f = self.GetDesiredFocus(True)
         if f and hasattr(f, "Paste"):
             f.Paste()
 
     def OnUndo(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         f = self.GetDesiredFocus(False)
         if f and hasattr(f, "Undo"):
             if not hasattr(f, "CanUndo") or f.CanUndo():
@@ -915,6 +969,8 @@ class DesignerFrame(wx.Frame):
         event.Skip()
 
     def OnRedo(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         f = self.GetDesiredFocus(False)
         if f and hasattr(f, "Redo"):
             if not hasattr(f, "CanRedo") or f.CanRedo():
@@ -949,12 +1005,16 @@ class DesignerFrame(wx.Frame):
         self.findEngine.UpdateFindTextFromSelection()
 
     def OnMenuFindNext(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         flags = self.findEngine.findData.GetFlags()
         self.findEngine.findData.SetFlags(flags | 1)
         self.findEngine.Find()
         self.findEngine.findData.SetFlags(flags)
 
     def OnMenuFindPrevious(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         flags = self.findEngine.findData.GetFlags()
         self.findEngine.findData.SetFlags(flags & ~1)
         self.findEngine.Find()
@@ -967,6 +1027,8 @@ class DesignerFrame(wx.Frame):
         self.findEngine.Replace()
 
     def OnReplaceAllEvent(self, event):
+        if wx.GetMouseState().LeftIsDown():
+            return
         self.findEngine.ReplaceAll()
 
     def OnMenuAbout(self, event):

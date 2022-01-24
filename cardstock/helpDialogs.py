@@ -93,15 +93,16 @@ window is split into two main parts.  On the left is your stack, that shows the 
 On the right
 is the control panel.  The top of the control panel lets you choose an editing tool.</p>
 <p>The first is the hand tool, which
-lets you select, move, and resize objects, and edit their properties and code.  Select an object by clicking it, and add 
+lets you select, move, rotate, and resize objects, and edit their properties and code.  Select an object by clicking it, and add 
 or remove objects from the selection by Shift-clicking them.  You can also drag out a selection rectangle to select all objects
 whose centers it contains.  You can also cycle forwards and backwards through objects on the current card using Tab and
 Shift-Tab.  While objects are selected, you can use the Object menu items to group them, flip them, or re-order them to adjust which
-objects are in front of, or behind which others.  But note that buttons and text fields always stay in 
-front of shapes, images, and text labels.  When an object is selected, you can resize it by dragging the blue resize knob in the 
-bottom right corner of the selected object.  Holding down the Shift key while resizing will keep the object's aspect
+objects are in front of, or behind which others.  But note that buttons, text fields, and web views always stay in 
+front of shapes, images, and text labels.  When an object is selected, you can resize it by dragging the rectangular, blue resize knobs in the 
+corners of the selected object.  Holding down the Shift key while resizing will keep the object's aspect
 ratio stable.  You can drag selected objects to move them, or use the arrow keys to move selected objects by 1 pixel at
-a time, or by 5 or 20 pixels at a time by holding down Shift or Alt/Option, respectively.</p>
+a time, or by 5 or 20 pixels at a time by holding down Shift or Alt/Option, respectively.  You can also rotate an object 
+by dragging the round, blue rotation knob at the top of the selected object.</p>
 <p>The next four tools are the button, text field, text label, and image tools.  These each 
 let you create that type of object, by drawing out the new object's shape on the card on the left.  You can double-click
 a text field or text label to edit its text in-place on the card.</p>
@@ -118,11 +119,13 @@ is over that tool's button in the control panel.  They are:<br/>
 <li>B for <b>B</b>utton
 <li>F for Text <b>F</b>ield
 <li>T for <b>T</b>ext Label
+<li>W for <b>W</b>eb View
 <li>I for <b>I</b>mage
 <li>P for <b>P</b>en
 <li>O for <b>O</b>val
 <li>R for <b>R</b>ectangle
 <li>D for Roun<b>D</b> Rectangle
+<li>G for Poly<b>G</b>on Rectangle
 <li>L for <b>L</b>ine
 </ul>
 </p>

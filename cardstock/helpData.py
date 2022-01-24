@@ -426,7 +426,7 @@ class HelpDataObject():
         "rotation": {"type": "float",
                      "info": "This is the angle in degrees clockwise to rotate this object.  0 is upright.  Note that "
                              "not all objects can be rotated.  Card and stack objects can not rotate, and text fields, "
-                             "web views, and bordered buttons can't rotate either."},
+                             "web views, and buttons can't rotate either."},
         "speed": {"type": "point",
                   "info": "This is a point value corresponding to the current speed of the object, in pixels/second "
                           "in both the <b>x</b> and <b>y</b> directions."},

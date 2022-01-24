@@ -343,9 +343,11 @@ class HandTool(BaseTool):
         self.mode = "resize"
         self.xFlipped = False
         self.yFlipped = False
+        self.stackManager.SelectUiView(self.targetUi)
 
     def StartRotate(self):
         self.mode = "rotate"
+        self.stackManager.SelectUiView(self.targetUi)
 
     def OnMouseUp(self, uiView, event):
         if self.stackManager.view.HasCapture():

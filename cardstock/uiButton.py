@@ -20,10 +20,6 @@ class UiButton(UiView):
     def GetCursor(self):
         return wx.CURSOR_HAND
 
-    def BindEvents(self, view):
-        if view == self.view:
-            super().BindEvents(self.button)
-
     def HackEvent(self, event):
         if wx.Platform == '__WXMAC__' and self.model.GetProperty("border"):
             event.SetPosition(event.GetPosition() - MAC_BUTTON_OFFSET_HACK)
