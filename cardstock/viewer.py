@@ -18,7 +18,6 @@ import wx
 import wx.html
 from stackManager import StackManager
 from stackModel import StackModel
-from uiCard import CardModel
 from runner import Runner
 import helpDialogs
 from findEngineViewer import FindEngine
@@ -72,8 +71,9 @@ class ViewerFrame(wx.Frame):
         self.findDlg = None
         self.findEngine = FindEngine(self.stackManager)
 
-        self.consoleWindow = ConsoleWindow(self)
-        self.variablesWindow = VariablesWindow(self, self.stackManager)
+        self.consoleWindow = ConsoleWindow(self, not self.isStandalone)
+        if not self.isStandalone:
+            self.variablesWindow = VariablesWindow(self, self.stackManager)
 
     def Destroy(self):
         if self.consoleWindow:
@@ -136,7 +136,8 @@ class ViewerFrame(wx.Frame):
         # and the help menu
         helpMenu = wx.Menu()
         helpMenu.Append(wx.ID_ABOUT, "&About\tCtrl-H", "About CardStock")
-        helpMenu.Append(ID_SHOW_VARIABLES, "&Show/Hide Variables\tCtrl-Alt-V", "Toggle Variables")
+        if not self.isStandalone:
+            helpMenu.Append(ID_SHOW_VARIABLES, "&Show/Hide Variables\tCtrl-Alt-V", "Toggle Variables")
         helpMenu.Append(ID_SHOW_CONSOLE, "&Show/Hide Console\tCtrl-Alt-O", "Toggle Console")
         helpMenu.Append(ID_CLEAR_CONSOLE, "&Clear Console\tCtrl-Alt-C", "Clear Console")
 
@@ -167,7 +168,8 @@ class ViewerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuFindPrevious, id=ID_MENU_FIND_PREV)
         self.Bind(wx.EVT_MENU, self.OnMenuReplace, id=ID_MENU_REPLACE)
 
-        self.Bind(wx.EVT_MENU, self.OnMenuShowVariablesWindow, id=ID_SHOW_VARIABLES)
+        if not self.isStandalone:
+            self.Bind(wx.EVT_MENU, self.OnMenuShowVariablesWindow, id=ID_SHOW_VARIABLES)
         self.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
         self.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
 
@@ -186,7 +188,8 @@ class ViewerFrame(wx.Frame):
 
         # and the help menu
         helpMenu = wx.Menu()
-        helpMenu.Append(ID_SHOW_VARIABLES, "&Show/Hide Variables\tCtrl-Alt-V", "Toggle Variables")
+        if not self.isStandalone:
+            helpMenu.Append(ID_SHOW_VARIABLES, "&Show/Hide Variables\tCtrl-Alt-V", "Toggle Variables")
         helpMenu.Append(ID_SHOW_CONSOLE, "&Hide Console\tCtrl-Alt-O", "Toggle Console")
         helpMenu.Append(ID_CLEAR_CONSOLE, "&Clear Console\tCtrl-Alt-C", "Clear Console")
 
@@ -205,7 +208,8 @@ class ViewerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
 
-        self.Bind(wx.EVT_MENU, self.OnMenuShowVariablesWindow, id=ID_SHOW_VARIABLES)
+        if not self.isStandalone:
+            self.Bind(wx.EVT_MENU, self.OnMenuShowVariablesWindow, id=ID_SHOW_VARIABLES)
         self.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
         self.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
 
@@ -400,8 +404,8 @@ class ViewerFrame(wx.Frame):
             self.variablesWindow.Raise()
 
     def UpdateVars(self):
-        if self.variablesWindow.IsShown():
-            self.variablesWindow.UpdateVars()
+        if not self.isStandalone and self.variablesWindow.IsShown():
+                self.variablesWindow.UpdateVars()
 
     def OnMenuShowConsoleWindow(self, event):
         if self.consoleWindow.IsShown():

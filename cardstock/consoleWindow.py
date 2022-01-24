@@ -13,7 +13,7 @@ cmdHistory = []
 
 
 class ConsoleWindow(wx.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, allowInput):
         super().__init__(parent, title="Console", style=wx.DEFAULT_FRAME_STYLE|wx.FRAME_TOOL_WINDOW)
         self.SetMinClientSize(wx.Size(300,100))
         self.SetClientSize(wx.Size(500,200))
@@ -29,6 +29,7 @@ class ConsoleWindow(wx.Frame):
         self.textBox.StyleSetSpec(ERR_STYLE, "fore:#aa0000")
         self.textBox.StyleSetSpec(OUTPUT_STYLE, "fore:#555555")
 
+        self.allowInput = allowInput
         self.timer = None
         self.stdoutIO = None
         self.stderrIO = None
@@ -37,11 +38,15 @@ class ConsoleWindow(wx.Frame):
         self.old_stdout = None
         self.old_stderr = None
         self.hasShown = False
-        self.textBox.ChangeValue("> ")
-        self.lastOutputPos = 2
+        if self.allowInput:
+            self.textBox.ChangeValue("> ")
+            self.lastOutputPos = 2
+        else:
+            self.textBox.ChangeValue("")
+            self.lastOutputPos = 0
+            self.textBox.SetEditable(False)
         self.oldCmdText = ""
         self.oldCmdSelection = (0,0)
-        self.textBox.SetSelection(2, 2)
         self.needsNewPrompt = False
         self.historyPos = None  # None means we're on live input, not history
         self.command_processor = CommandProcessor()
@@ -66,6 +71,7 @@ class ConsoleWindow(wx.Frame):
         if doShow and not self.hasShown:
             self.SetSize((self.GetParent().GetSize().Width, 100))
             self.SetPosition(self.GetParent().GetPosition() + (0, self.GetParent().GetSize().Height))
+            self.textBox.SetSelection(self.lastOutputPos, self.lastOutputPos)
             self.UpdateAC()
             self.hasShown = True
 
@@ -196,29 +202,36 @@ class ConsoleWindow(wx.Frame):
 
     def UpdateEditable(self, event=None):
         # Only make the text editable when the cursor is in the current command
-        start = self.textBox.GetSelectionStart()
-        end = self.textBox.GetSelectionEnd()
-        editable = (start >= self.lastOutputPos and end >= self.lastOutputPos)
-        self.textBox.SetEditable(editable)
+        if self.allowInput:
+            start = self.textBox.GetSelectionStart()
+            end = self.textBox.GetSelectionEnd()
+            editable = (start >= self.lastOutputPos and end >= self.lastOutputPos)
+            self.textBox.SetEditable(editable)
+        else:
+            self.textBox.SetEditable(False)
 
     def Clear(self):
-        self.textBox.SetEditable(True)
-        self.textBox.ChangeValue("> ")
-        self.lastOutputPos = 2
-        self.UpdateEditable()
+        if self.allowInput:
+            self.textBox.SetEditable(True)
+            self.textBox.ChangeValue("> ")
+            self.lastOutputPos = 2
+            self.UpdateEditable()
+        else:
+            self.textBox.ChangeValue("  ")
 
     def OnReturn(self):
         # Return key was pressed, and not for autocompletion, nor in the middle of a multiline command entry
-        code = self.GetCommandText()
-        self.textBox.AppendText('\n')
-        self.lastOutputPos = self.textBox.GetLastPosition()
-        self.textBox.SetSelection(self.lastOutputPos, self.lastOutputPos)
-        if len(code.strip()) > 0:
-            cmdHistory.append(code)
-            self.historyPos = None
-            self.runner.EnqueueCode(code)
-        self.AppendText('> ', INPUT_STYLE, False)
-        self.ClearUndoHistory()
+        if self.allowInput:
+            code = self.GetCommandText()
+            self.textBox.AppendText('\n')
+            self.lastOutputPos = self.textBox.GetLastPosition()
+            self.textBox.SetSelection(self.lastOutputPos, self.lastOutputPos)
+            if len(code.strip()) > 0:
+                cmdHistory.append(code)
+                self.historyPos = None
+                self.runner.EnqueueCode(code)
+            self.AppendText('> ', INPUT_STYLE, False)
+            self.ClearUndoHistory()
 
     def AppendText(self, text, style, beforeInput):
         scrollPos = self.textBox.GetScrollPos(wx.VERTICAL) + self.textBox.LinesOnScreen()
@@ -229,7 +242,10 @@ class ConsoleWindow(wx.Frame):
 
         self.skipChanges = True
         start = self.textBox.GetLastPosition()
-        insertPos = (self.lastOutputPos-2) if beforeInput else start
+        if self.allowInput:
+            insertPos = (self.lastOutputPos-2) if beforeInput else start
+        else:
+            insertPos = self.lastOutputPos
         self.textBox.InsertText(insertPos, text)
         end = self.textBox.GetLastPosition()
         insertedLen = end-start

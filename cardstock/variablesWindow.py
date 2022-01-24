@@ -16,16 +16,21 @@ class VariablesWindow(wx.Frame):
         self.vars = None
         self.hasShown = False
 
+        self.backButton = wx.Button(self, label="Back")
+        self.backButton.Bind(wx.EVT_LEFT_DOWN, self.OnBackClick)
         self.pathLabel = wx.StaticText(self)
-        self.pathLabel.Bind(wx.EVT_LEFT_DOWN, self.OnPathClick)
 
         self.grid = inspector.Inspector(self, self.stackManager)
         self.grid.valueChangedFunc = self.InspectorValChanged
-        self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridDClick)
+        self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnGridClick)
         self.grid.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
 
+        headSizer = wx.BoxSizer(wx.HORIZONTAL)
+        headSizer.Add(self.backButton, 0, wx.EXPAND|wx.ALL, 3)
+        headSizer.Add(self.pathLabel, 1, wx.EXPAND|wx.ALL, 3)
+
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.pathLabel, 0, wx.EXPAND|wx.ALL, 3)
+        sizer.Add(headSizer, 0, wx.EXPAND|wx.ALL, 3)
         sizer.Add(self.grid, 1, wx.EXPAND|wx.ALL, 3)
         self.SetSizerAndFit(sizer)
         sizer.Layout()
@@ -50,8 +55,8 @@ class VariablesWindow(wx.Frame):
         event.Veto()
         self.Hide()
 
-    def OnPathClick(self, event):
-        if not self.grid.IsCellEditControlShown():
+    def OnBackClick(self, event):
+        if not (self.grid.IsEnabled() and self.grid.IsCellEditControlShown()):
             self.ZoomOut()
 
     def OnGridKeyDown(self, event):
@@ -63,10 +68,13 @@ class VariablesWindow(wx.Frame):
             self.ZoomOut()
         event.Skip()
 
-    def OnGridDClick(self, event):
-        (r,c) = (event.Row, event.Col)
-        k = self.keys[r]
-        self.ZoomInto(k)
+    def OnGridClick(self, event):
+        if event.Col == 1:
+            key = self.keys[event.Row]
+            if not self.ZoomInto(key):
+                event.Skip()
+        else:
+            event.Skip()
 
     def ZoomInto(self, key):
         if self.grid.GetTypeForKey(key) in ("list", "dict", "obj"):
@@ -78,11 +86,15 @@ class VariablesWindow(wx.Frame):
             elif isinstance(obj, (uiView.ViewProxy, uiView.ViewModel)):
                 self.path.append(('attr', key))
                 self.UpdateVars()
+            return True
+        return False
 
     def ZoomOut(self):
         if len(self.path):
             self.path.pop()
             self.UpdateVars()
+            return True
+        return False
 
     def ObjFromPath(self):
         clientVars = self.stackManager.runner.GetClientVars()
@@ -161,9 +173,11 @@ class VariablesWindow(wx.Frame):
             if len(self.path)>1:
                 dispParts = [f".{p}" if t == "attr" else f"[{p}]" for (t, p) in self.path[1:]]
                 dispPath += ''.join(dispParts)
-            self.pathLabel.SetLabelText("[Back] " + dispPath)
+            self.pathLabel.SetLabelText(dispPath)
+            self.backButton.Enable()
         else:
             self.pathLabel.SetLabelText("All")
+            self.backButton.Disable()
 
     def UpdateVars(self):
         if not self.IsShown() or self.grid.IsCellEditControlShown():
