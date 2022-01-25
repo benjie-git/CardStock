@@ -175,6 +175,19 @@ class WebView(ViewProxy):
             return ui.SetHtml(val, "")
 
     @property
+    def allowedHosts(self):
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("allowedHosts")
+    @allowedHosts.setter
+    def allowedHosts(self, val):
+        if not isinstance(val, (list, tuple)):
+            raise TypeError("allowedHosts must be set to a list value")
+        model = self._model
+        if not model: return
+        model.SetProperty("allowedHosts", val)
+
+    @property
     @RunOnMainSync
     def canGoBack(self):
         ui = self._model.stackManager.GetUiViewByModel(self._model)

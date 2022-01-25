@@ -1057,7 +1057,7 @@ class ViewModel(object):
                         valStr = "[]"
                     val = ast.literal_eval(valStr)
                     if not isinstance(val, (list, tuple)):
-                        raise Exception()
+                        val = [val]
             except:
                 return None
         return val

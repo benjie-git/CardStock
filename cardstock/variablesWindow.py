@@ -69,7 +69,7 @@ class VariablesWindow(wx.Frame):
         event.Skip()
 
     def OnGridClick(self, event):
-        if event.Col == 1:
+        if event.Col == 1 and len(self.keys):
             key = self.keys[event.Row]
             if not self.ZoomInto(key):
                 event.Skip()

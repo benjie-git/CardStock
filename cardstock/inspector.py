@@ -101,13 +101,13 @@ class Inspector(wx.grid.Grid):
             self.DeleteRows(0, self.GetNumberRows())
 
         if len(self.data) == 0:
-            self.Enable(False)
             self.SetColLabelValue(0, "None")
-            self.InsertRows(0, 3)
+            self.InsertRows(0, 1)
+            self.SetReadOnly(0, 0)
+            self.SetReadOnly(0, 1)
             self.Layout()
             return
 
-        self.Enable(True)
         self.SetColLabelValue(0, self.title)
         keys = self.data.keys()
         self.InsertRows(0,len(keys))
@@ -118,7 +118,7 @@ class Inspector(wx.grid.Grid):
             valType = self.GetTypeForKey(k)
             self.SetValueForKey(k, valType)
 
-            if valType in ("list", "dict", "obj") or valType == "static":
+            if valType in ("obj", "static"):
                 self.SetReadOnly(r, 1)
 
             renderer = None
