@@ -151,7 +151,7 @@ space back, or it otherwise offends your sensibilities.</p>
 <h2>Property Editor</h2>
 <p>Each object in your stack, including each card, button, text field, shape, group, etc., has properties that
 you can change in the property editor when that object is selected. You can change things like the object's
-position and size. And many types of objects also have their own specific properties.  For example, a button has a title,
+position and size. And each type of object also has its own specific properties.  For example, a button has a title,
 and a card has a background color.  Each object also has a name, which is how you control it from your python code. 
 CardStock makes sure that these names are unique within each card. See the CardStock Reference for a description of each
 property, for each kind of object.</p>
@@ -176,12 +176,12 @@ card object.)  There is also a variable for each object's name.  So if your butt
 yes_button.SetTitle("Done") to change your button's title to Done.  See the CardStock Reference for a list of all 
 variables that are automatically provided to your code.  You can of course also create your own variables as well.  It 
 is suggested that when you do, you set up the starting value of each variable in one of your
-objects' OnSetup events, to make sure that it will always have a value, from the very start of your program running.</p>
+objects' OnSetup events, to make sure that it will always have a value, from the very start of your stack running.</p>
 
 <p>When a stack first starts running, all of the cards and all objects on all of the cards will run their OnSetup() 
 events.  OnSetup() will also run for any new objects you create using any of the card.AddObject() methods.  
 Then the first card's OnShowCard() event will run.  Any time you Goto another card, the current card's OnHideCard() 
-event will run, immediately followed by the next card's OnShowCard() event.  After your stack is done starting up, all 
+event will run, immediately followed by the new card's OnShowCard() event.  After your stack is done starting up, all 
 of the current card's objects (including the card itself) will start running their OnPeriodic() events, approximately every 
 1/30th of a second.  This is a 
 great place to run any periodic checks that need to keep happening often.  The OnResize() event runs on a card object 
@@ -230,14 +230,17 @@ whenever your code is not structurally correct, the spot where python gets confu
 in red, to help you spot problems before even running your code.</p>
 
 <p>When you want to try running your stack from within the Designer app, and see how it works, you can use the Run Stack menu item
-in the File menu.  Then just close your running stack window to return to the Designer to continue building and editing!</p>
+in the File menu, or from the button in the Toolbar.  Or if you want to test directly from the current card, instead
+of starting from the first card, use Run From This Card from the menu or toolbar.  Then when you wan to return to the 
+Designer to continue building and editing, just close your running stack window.</p>
 
 <br/><br/>
 
 <h2>Moving Objects</h2>
 
-<p>There are a few ways to get objects on a card to move.  You can set an object's position or center to instantly move 
-the object to that position, for example: object.center = [100,200].  Or you can animate an object's position or 
+<p>There are a few ways to get objects on a card to move.  You can set an object's position (the ocation of its bottom 
+left corner) or center to instantly move the object to that position, for example: object.center = [100,200].  
+Or you can animate an object's position or 
 center to move it smoothly from its current position to the new one, for example: object.AnimateCenter(1.5, [100,200]) 
 to smoothly move the object over 1.5 seconds.</p>
 
@@ -247,7 +250,10 @@ object.speed=[100,100].  It will then keep moving in that direction (including p
 change its speed again.  Setting the speed to [0,0] will make it stop moving.  If you want an object to automatically 
 bounce off of the edge of the card, or off of other objects, you can call SetBounceObjects() with a list of the objects
 you would like it to bounce off of, for example object.SetBounceObjects([card, button_1]).  This is used in the pong 
-example stack to make the ball bounce off of the card edges, and the paddle.</p>
+example stack to make the ball bounce off of the card edges, and the paddle.  When an object bounces, its OnBounce(otherObject, edge)
+event will run, which additionally tells your code which object it ran into, and which edge of that object it hit.  For
+example, if a ball object bounces off of the top edge of the card, the ball object's OnBounce event will run, with
+otherObject set to card, and edge set to "Top".</p>
 
 <p>An easy way to make an object's movement look like it is being affected by gravity is to give the object a speed, and
 then add a line like self.speed.y -= 30 into the object's OnPeriodic() event.</p>
@@ -258,14 +264,14 @@ then add a line like self.speed.y -= 30 into the object's OnPeriodic() event.</p
 
 <p>CardStock also allows you to embed web pages into your stacks, using Web View objects.  You can set the url property
 of a Web View, and it will load the web page at that url.  Or you can set the html property of a Web View, and it will 
-display that html.  You can restrict a Web View to only load pages from a set of hostnames, by setting its allowedHosts
+display that html.  You can restrict a Web View to only allow loading pages from a specific set of hosts, by setting its allowedHosts
 property.  For example, if you only want to allow loading pages from my-fun-game.com, then you can set webview_1.url to
 https://my-fun-game.com/starting-page.html, and set webview_1.allowedHosts to ['my-fun-game.com'].  This way it will 
-not allow users to navigate off of my-fun-game.com.</p>
+not allow users to navigate off of the my-fun-game.com site.</p>
 
 <p>When a page loads, either because you set the Web View's url, or because the user clicked a link to navigate to 
 another page, your Web View will run the event OnDoneLoading(url, didLoad) with the url as a string, and didLoad as
-True if the page loaded, and False if the page was unable to be loaded.</p>
+True if the page loaded successfully, and False if the page was unable to load.</p>
 
 <p>From within your CardStock code, you can inject and run JavaScript code into a Web View by calling
 webview_1.RunJavaScript(jscode), and if your JavaScript code returns a value, it will be returned by the RunJavaScript() call.
@@ -280,30 +286,34 @@ OnDoneLoading() will be called with url='cardstock:test' and didLoad=False.</p>
 
 <p>If your stack makes any print() calls, or otherwise causes any text to get written out to the console (to stdout or 
 stderr), this will appear in the Viewer application's Console window, which will automatically appear on the first 
-non-error text written out.  You can also open the Console manually using the "Show/Hide Console" menu item.  The 
-Console window also allows you to enter commands while your stack is running.  You can interactively check variable 
+text written out.  You can also open the Console manually using the "Show/Hide Console" menu item.  The 
+Console window also allows you to enter python commands while your stack is running.  You can interactively check variable 
 values, and call functions to help debug your code.<p>
 
-<p>If any errors come up while running your stack, you will see them in the status bar at the bottom the running stack's
-window.  Any errors will also appear after your return to the Designer, in the red-colored Error List window that will
-appear.  You can also open it from the Help menu.  Clicking on an error will take you to the offending line in the code
-editor.</p>
+<p>If any errors occur while running your stack, error messages will be written to the console window, and then after 
+you return to the Designer, they will be listed in the red-colored Error List window that will
+appear.  You can also open this window from the Help menu.  Clicking on an error in this list will take you to the 
+offending line in the code editor for that event.</p>
 
 <p>If you want to look at all of your code at once, instead of only at one object's code for one event at a time,
-you can open the All Code window from the Help menu.  Clicking a line in the All Code editor will also take you to that
+you can open the All Code window from the Help menu.  Clicking a line in the All Code editor will take you to that
 line of that object's event code in the code editor.</p>
 
 <p>Note that CardStock has a full Find and Replace system, that lets you find, and optionally replace, strings in your
 code and properties throughout your whole stack.  It allows finding using python style regular expression syntax, if you
 want to use that to search for more complex expressions.</p>
- 
+
+<br/><br/>
+
+<h2>Digging In</h2>
+
 <p>There are lots of example stacks that come with CardStock.  Try playing with some of them, and then dig in deeper
 to figure out how they work, and make some changes to see if you can make things work the way you want them to.</p>
 
 <p>Later, once you've built a stack that you want to let other people try, you can run it in the CardStock Viewer 
 program (instead of in the Designer). which lets a user run the stack, but not edit it.  You can also run the Export
-Stack command from the File menu to export your stack as a stand-alone application, that you can send to other people,
-who can run it from their computers without installing CardStock.  This will try to find and include any image and 
+Stack command from the Designer's File menu to export your stack as a stand-alone application, that you can send to other people,
+who can run it from their computers without installing CardStock.  The export process will try to find and include any image and 
 sound files that your stack uses, and will include any external python modules that you've imported from your stack.</p>
 
 </body>

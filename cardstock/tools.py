@@ -300,8 +300,8 @@ class HandTool(BaseTool):
                     self.targetUi.model.PerformFlips(flipX, flipY)
 
                     unrotRect = self.targetUi.model.UnrotatedRectFromAbsPoints(wx.Point(self.resizeAnchorPointAbs), pos)
-                    self.targetUi.model.SetProperty("size", unrotRect.Size)
                     self.targetUi.model.SetProperty("position", unrotRect.TopLeft, notify=False)
+                    self.targetUi.model.SetProperty("size", unrotRect.Size)
 
         event.Skip()
 
@@ -402,13 +402,13 @@ class HandTool(BaseTool):
 
             if moveOffset != (0, 0) or sizeOffset != (0, 0):
                 commands = []
+                commands.append(ResizeUiViewCommand(True, 'Resize-Resize', self.stackManager,
+                                                    self.stackManager.cardIndex,
+                                                    self.targetUi.model, sizeOffset))
                 if self.targetUi.model.type != "card":
                     commands.append(MoveUiViewsCommand(True, 'Resize-Move', self.stackManager,
                                                        self.stackManager.cardIndex,
                                                        [self.targetUi.model], moveOffset))
-                commands.append(ResizeUiViewCommand(True, 'Resize-Resize', self.stackManager,
-                                                    self.stackManager.cardIndex,
-                                                    self.targetUi.model, sizeOffset))
                 if self.xFlipped or self.yFlipped:
                     self.targetUi.model.PerformFlips(self.xFlipped, self.yFlipped, notify=False)  # First unflip
                     commands.append(FlipShapeCommand(True, 'Resize-Flip', self.stackManager,
