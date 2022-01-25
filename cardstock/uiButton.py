@@ -25,9 +25,16 @@ class UiButton(UiView):
             event.SetPosition(event.GetPosition() - MAC_BUTTON_OFFSET_HACK)
         return event
 
-    def FwdOnMouseDown( self, event): self.stackManager.OnMouseDown( self, self.HackEvent(event))
-    def FwdOnMouseMove( self, event): self.stackManager.OnMouseMove( self, self.HackEvent(event))
-    def FwdOnMouseUp(   self, event): self.stackManager.OnMouseUp(   self, self.HackEvent(event))
+    def FwdOnMouseDown(self, event):
+        self.stackManager.OnMouseDown( self, self.HackEvent(event))
+
+    def FwdOnMouseMove(self, event):
+        self.stackManager.OnMouseMove( self, self.HackEvent(event))
+
+    def FwdOnMouseUp(self, event):
+        self.stackManager.OnMouseUp(   self, self.HackEvent(event))
+        if wx.Platform == "__WXMAC__":
+            event.Skip(False)  # Fix double MouseUp events on Mac
 
     def CreateButton(self, stackManager, model):
         if not model.GetProperty("border"):

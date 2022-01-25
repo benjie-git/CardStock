@@ -97,25 +97,27 @@ lets you select, move, rotate, and resize objects, and edit their properties and
 or remove objects from the selection by Shift-clicking them.  You can also drag out a selection rectangle to select all objects
 whose centers it contains.  You can also cycle forwards and backwards through objects on the current card using Tab and
 Shift-Tab.  While objects are selected, you can use the Object menu items to group them, flip them, or re-order them to adjust which
-objects are in front of, or behind which others.  But note that buttons, text fields, and web views always stay in 
+objects are in front of, or behind, which others.  But note that buttons, text fields, and web views always stay in 
 front of shapes, images, and text labels.  When an object is selected, you can resize it by dragging the rectangular, blue resize knobs in the 
 corners of the selected object.  Holding down the Shift key while resizing will keep the object's aspect
 ratio stable.  You can drag selected objects to move them, or use the arrow keys to move selected objects by 1 pixel at
 a time, or by 5 or 20 pixels at a time by holding down Shift or Alt/Option, respectively.  You can also rotate an object 
-by dragging the round, blue rotation knob at the top of the selected object.</p>
-<p>The next four tools are the button, text field, text label, and image tools.  These each 
+by dragging the round, blue rotation knob at the top of the selected object, and can constrain rotation to multiples of
+5 degrees by holding down the Shift key.</p>
+<p>The next five tools are the button, text field, text label, web view, and image tools.  These each 
 let you create that type of object, by drawing out the new object's shape on the card on the left.  You can double-click
 a text field or text label to edit its text in-place on the card.</p>
 <p>The next six tools
 are the drawing tools, which let you draw with a pen, drag out an oval, a rectangle, a rounded rectangle, a polygon, 
-and a line.
+or a line.
 While creating a shape, you can hold down the Shift key to constrain ovals and rectangles to being circles and squares, 
-and to make new lines stay perfectly horizontal, vertical, or 45° diagonal.  After creating an object, CardStock will 
-switch back to the Hand tool.  Pressing Escape in the Designer will also always return you to the Hand tool.  
-Additionally there are keyboard shortcuts for selecting all of the tools.  Those shortcuts are shown when the mouse 
+and to make new lines stay perfectly horizontal, vertical, or 45° diagonal. After creating an object, CardStock will 
+switch back to the Hand tool.  Pressing Escape in the Designer will also always return you to the Hand tool.</p>
+ 
+<p>Additionally there are keyboard shortcuts for selecting all of the tools.  Those shortcuts are shown when the mouse 
 is over that tool's button in the control panel.  They are:<br/>
 <ul>
-<li>H or Escape for <b>H</b>and
+<li>H (or Escape) for <b>H</b>and
 <li>B for <b>B</b>utton
 <li>F for Text <b>F</b>ield
 <li>T for <b>T</b>ext Label
@@ -125,7 +127,7 @@ is over that tool's button in the control panel.  They are:<br/>
 <li>O for <b>O</b>val
 <li>R for <b>R</b>ectangle
 <li>D for Roun<b>D</b> Rectangle
-<li>G for Poly<b>G</b>on Rectangle
+<li>G for Poly<b>G</b>on
 <li>L for <b>L</b>ine
 </ul>
 </p>
@@ -134,7 +136,7 @@ selected in the card.  When a drawing tool is selected, the control panel offers
 pen thickness, and fill color for the shapes you draw next.  Then click and drag out the shape you want to add to the 
 card.</p>
 <p>When you select a single object 
-in your card, the control panel will show the two main object editing areas.  The property editor shows, and lets you edit, a
+in your card, the control panel will show the two main object editing areas:  The property editor shows, and lets you edit, a
 list of the selected object's properties, like name, size, position on the card, colors, etc.  Below the property editor is 
 the code editor.  The code editor lets you choose an event for the selected object that you want to edit, and 
 gives you space to write your code that runs when that event is triggered.  For example, if you select a button object,
