@@ -13,8 +13,8 @@
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "from random import randint\n\nindicators = [oval_1, oval_2, oval_3, oval_4, oval_5]\nfields = [field_1, field_2, field_3, field_4, field_5]\nnums = [0, 0, 0, 0, 0]\nnum_guesses = 0\n\ndef reset():\n   global num_guesses\n   \n   for i in range(5):\n      nums[i] = randint(0, 9)\n      indicators[i].fillColor = \"white\"\n      fields[i].text = 0\n   num_guesses = 0\n   num_guesses_label.text = \"Num Guesses: \" + str(num_guesses)\n   fields[0].Focus()\n   fields[0].SelectAll()\n\n\ndef check():\n   global num_guesses\n   \n   num_greens = 0\n   num_guesses += 1\n   num_guesses_label.text = \"Num Guesses: \" + str(num_guesses)\n   \n   for i in range(5):\n      n = nums[i]\n      f = int(fields[i].text)\n      if f == n:\n         indicators[i].fillColor = \"green\"\n         num_greens += 1\n      elif f in nums:\n         indicators[i].fillColor = \"blue\"\n      else:\n         indicators[i].fillColor = \"red\"\n      if num_greens == 5:\n         Alert(f\"You Won in {num_guesses} guesses!\")\n         reset()\n\nreset()\n",
-        "OnKeyDown": "if keyName == \"Tab\":\n   for f in fields:\n      if f.hasFocus:\n         f.SelectAll()"
+        "OnSetup": "from random import randint\n\nindicators = [oval_1, oval_2, oval_3, oval_4, oval_5]\nfields = [field_1, field_2, field_3, field_4, field_5]\nnums = [0, 0, 0, 0, 0]\nnum_guesses = 0\n\nfor i in range(len(fields)):\n   fields[i].next = fields[(i+1)%5] if i<4 else None\n   fields[i].prev = fields[(i-1)%5] if i>0 else None\n\ndef reset():\n   global num_guesses\n   \n   for i in range(5):\n      nums[i] = randint(0, 9)\n      indicators[i].fillColor = \"white\"\n      fields[i].text = 0\n   num_guesses = 0\n   num_guesses_label.text = \"Num Guesses: \" + str(num_guesses)\n   fields[0].Focus()\n   fields[0].SelectAll()\n\n\ndef check():\n   global num_guesses\n   \n   num_greens = 0\n   num_guesses += 1\n   num_guesses_label.text = \"Num Guesses: \" + str(num_guesses)\n   \n   for i in range(5):\n      n = nums[i]\n      f = int(fields[i].text)\n      if f == n:\n         indicators[i].fillColor = \"green\"\n         num_greens += 1\n      elif f in nums:\n         indicators[i].fillColor = \"blue\"\n      else:\n         indicators[i].fillColor = \"red\"\n      if num_greens == 5:\n         Alert(f\"You Won in {num_guesses} guesses!\")\n         reset()\n\nreset()\n",
+        "OnKeyDown": "if keyName == \"Tab\":\n   for f in fields:\n      if f.hasFocus:\n         f.SelectAll()\n\nelif keyName in [\"Backspace\", \"Left\"]:\n   for f in fields:\n      if f.hasFocus:\n         if f.prev:\n            f.prev.Focus()\n            f.prev.SelectAll()\n         else:\n            f.SelectAll()\n         break\n\nelif keyName == \"Right\":\n   for f in fields:\n      if f.hasFocus:\n         if f.next:\n            f.next.Focus()\n            f.next.SelectAll()\n         else:\n            f.SelectAll()\n         break\n         \n"
       },
       "properties": {
         "name": "card_1",
@@ -40,6 +40,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#E0E0E0"
           },
           "points": [
@@ -57,6 +58,7 @@
           "type": "textfield",
           "handlers": {
             "OnTextEnter": "guess.Click()",
+            "OnTextChanged": "if len(self.text) == 1:\n   field_2.Focus()\n   field_2.SelectAll()",
             "OnMouseUp": "self.SelectAll()"
           },
           "properties": {
@@ -97,6 +99,7 @@
             ],
             "penColor": "black",
             "penThickness": 4,
+            "rotation": 0.0,
             "fillColor": "white"
           },
           "points": [
@@ -114,6 +117,7 @@
           "type": "textfield",
           "handlers": {
             "OnTextEnter": "guess.Click()",
+            "OnTextChanged": "if len(self.text) == 1:\n   field_3.Focus()\n   field_3.SelectAll()",
             "OnMouseUp": "self.SelectAll()"
           },
           "properties": {
@@ -154,6 +158,7 @@
             ],
             "penColor": "black",
             "penThickness": 4,
+            "rotation": 0.0,
             "fillColor": "white"
           },
           "points": [
@@ -171,6 +176,7 @@
           "type": "textfield",
           "handlers": {
             "OnTextEnter": "guess.Click()",
+            "OnTextChanged": "if len(self.text) == 1:\n   field_4.Focus()\n   field_4.SelectAll()",
             "OnMouseUp": "self.SelectAll()"
           },
           "properties": {
@@ -211,6 +217,7 @@
             ],
             "penColor": "black",
             "penThickness": 4,
+            "rotation": 0.0,
             "fillColor": "white"
           },
           "points": [
@@ -228,6 +235,7 @@
           "type": "textfield",
           "handlers": {
             "OnTextEnter": "guess.Click()",
+            "OnTextChanged": "if len(self.text) == 1:\n   field_5.Focus()\n   field_5.SelectAll()",
             "OnMouseUp": "self.SelectAll()"
           },
           "properties": {
@@ -268,6 +276,7 @@
             ],
             "penColor": "black",
             "penThickness": 4,
+            "rotation": 0.0,
             "fillColor": "white"
           },
           "points": [
@@ -285,6 +294,7 @@
           "type": "textfield",
           "handlers": {
             "OnTextEnter": "guess.Click()",
+            "OnTextChanged": "if len(self.text) == 1:\n   field_1.Focus()\n   field_1.SelectAll()",
             "OnMouseUp": "self.SelectAll()"
           },
           "properties": {
@@ -325,6 +335,7 @@
             ],
             "penColor": "black",
             "penThickness": 4,
+            "rotation": 0.0,
             "fillColor": "white"
           },
           "points": [
@@ -376,6 +387,7 @@
             ],
             "penColor": "black",
             "penThickness": 4,
+            "rotation": 0.0,
             "fillColor": "green"
           },
           "points": [
@@ -407,7 +419,8 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 18,
-            "autoShrink": true
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -429,6 +442,7 @@
             ],
             "penColor": "black",
             "penThickness": 4,
+            "rotation": 0.0,
             "fillColor": "blue"
           },
           "points": [
@@ -460,7 +474,8 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 18,
-            "autoShrink": true
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -482,6 +497,7 @@
             ],
             "penColor": "black",
             "penThickness": 4,
+            "rotation": 0.0,
             "fillColor": "red"
           },
           "points": [
@@ -513,7 +529,8 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 18,
-            "autoShrink": true
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -534,7 +551,8 @@
             "textColor": "#666666",
             "font": "Default",
             "fontSize": 14,
-            "autoShrink": true
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -560,5 +578,5 @@
     }
   ],
   "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9.6"
+  "CardStock_stack_version": "0.9.8"
 }

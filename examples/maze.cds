@@ -12,7 +12,10 @@
   "cards": [
     {
       "type": "card",
-      "handlers": {},
+      "handlers": {
+        "OnSetup": "gotBall = False",
+        "OnMouseMove": "if gotBall:\n   ball.center = mousePos\n"
+      },
       "properties": {
         "name": "card_1",
         "bgColor": "#FFFFFF"
@@ -21,8 +24,8 @@
         {
           "type": "roundrect",
           "handlers": {
-            "OnMouseMove": "self.center = mousePos\n",
-            "OnMessage": "if message == \"reset\":\n   PlaySound(\"click.wav\")\n   self.position = (10, 10)\nelif message == \"win\":\n   PlaySound(\"yay.wav\")\n   self.position = (10, 10)\n"
+            "OnMouseEnter": "gotBall = True",
+            "OnMessage": "if message == \"reset\":\n   PlaySound(\"click.wav\")\n   self.position = (10, 10)\n   gotBall = False\nelif message == \"win\":\n   PlaySound(\"yay.wav\")\n   self.position = (10, 10)\n   gotBall = False"
           },
           "properties": {
             "name": "ball",
