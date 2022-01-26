@@ -66,6 +66,7 @@ class Runner():
         self.funcDefs = {}
         self.lastCard = None
         self.stopHandlingMouseEvent = False
+        self.shouldUpdateVars = False
 
         self.stackSetupValue = None
         self.stackReturnQueue = queue.Queue()
@@ -173,6 +174,9 @@ class Runner():
 
     def IsRunningHandler(self):
         return len(self.lastHandlerStack) > 0
+
+    def EnableUpdateVars(self, enable):
+        self.shouldUpdateVars = enable
 
     def StopTimers(self):
         for t in self.timers:
@@ -530,7 +534,9 @@ class Runner():
             sys.stderr.write(msg + os.linesep)
 
         self.runnerDepth -= 1
-        self.stackManager.UpdateVars()
+
+        if self.shouldUpdateVars:
+            self.stackManager.UpdateVars()
 
     def RewriteHandler(self, handlerStr):
         # rewrite handlers that use return outside of a function, and replace with an exception that we catch, to
@@ -651,7 +657,9 @@ class Runner():
         else:
             if "self" in self.clientVars:
                 self.clientVars.pop("self")
-        self.stackManager.UpdateVars()
+
+        if self.shouldUpdateVars:
+            self.stackManager.UpdateVars()
 
     def ScrapeNewFuncDefs(self, oldVars, newVars, model, handlerName):
         # Keep track of where each user function has been defined, so we can send you to the right handler's code in

@@ -45,6 +45,12 @@ class UiWebView(UiView):
                 url = str(self.model.GetProperty(key))
                 if len(url):
                     self.webView.LoadURL(url)
+                else:
+                    self.webView.SetPage("", "")
+        elif key == "html":
+            if self.webView:
+                html = str(self.model.GetProperty(key))
+                self.webView.SetPage(html, "")
         elif key == "size":
             s = self.view.GetSize()
             if self.webView:
@@ -162,17 +168,17 @@ class WebView(ViewProxy):
 
     @property
     def html(self):
-        ui = self._model.stackManager.GetUiViewByModel(self._model)
-        if ui:
-            return ui.GetHtml()
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("html")
     @html.setter
     def html(self, val):
         if not isinstance(val, str):
             raise TypeError("html must be set to a string value")
-        self.url = ""
-        ui = self._model.stackManager.GetUiViewByModel(self._model)
-        if ui:
-            return ui.SetHtml(val, "")
+        model = self._model
+        if not model: return
+        model.SetProperty("url", "")
+        model.SetProperty("html", str(val))
 
     @property
     def allowedHosts(self):

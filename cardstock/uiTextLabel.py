@@ -31,12 +31,11 @@ class UiTextLabel(UiTextBase):
         elif self.model.GetProperty("alignment") == "Center":
             alignment = wx.TE_CENTER
 
-        field = CDSTextCtrl(parent=self.stackManager.view, size=self.model.GetProperty("size"),
-                            pos=self.stackManager.ConvRect(self.model.GetAbsoluteFrame()).BottomLeft,
-                            style=wx.TE_MULTILINE | alignment)
+        field = CDSTextCtrl(parent=self.stackManager.view, style=wx.TE_MULTILINE | alignment)
         rect = self.model.GetAbsoluteFrame().Inflate(2)
         rect.width += 20
-        field.SetRect(self.stackManager.ConvRect(rect))
+        rect = self.stackManager.ConvRect(rect)
+        field.SetRect(rect)
         field.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         field.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
         field.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)

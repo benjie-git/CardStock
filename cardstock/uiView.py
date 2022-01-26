@@ -1058,6 +1058,12 @@ class ViewModel(object):
                     val = ast.literal_eval(valStr)
                     if not isinstance(val, (list, tuple)):
                         val = [val]
+                elif propType == "dict":
+                    if valStr == "":
+                        valStr = "{}"
+                    val = ast.literal_eval(valStr)
+                    if not isinstance(val, dict):
+                        val = None
             except:
                 return None
         return val

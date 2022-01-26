@@ -95,6 +95,7 @@ class Inspector(wx.grid.Grid):
 
     def UpdateInspector(self):
         self.SaveIfNeeded()
+        (oldRow, oldCol) = self.GetGridCursorCoords()
 
         noUpdates = wx.grid.GridUpdateLocker(self)
         if self.GetNumberRows() > 0:
@@ -123,10 +124,12 @@ class Inspector(wx.grid.Grid):
 
             renderer = None
             editor = None
+            ChoiceEditorClass = GridCellCustomChoiceEditor if wx.Platform != "__WXGTK__" else wx.grid.GridCellChoiceEditor
+
             if valType == "bool":
-                editor = wx.grid.GridCellChoiceEditor(["True", "False"])
+                editor = ChoiceEditorClass(["True", "False"])
             elif valType == "choice":
-                editor = wx.grid.GridCellChoiceEditor(ViewModel.GetPropertyChoices(k))
+                editor = ChoiceEditorClass(ViewModel.GetPropertyChoices(k))
             elif valType == "color":
                 editor = GridCellColorEditor(self)
                 renderer = GridCellColorRenderer()
@@ -140,6 +143,8 @@ class Inspector(wx.grid.Grid):
                 self.SetCellEditor(r, 1, editor)
             r += 1
 
+        if len(keys) >= oldRow:
+            self.SetGridCursor(oldRow, oldCol)
         self.Layout()
 
     def SetValueForKey(self, key, valType):
@@ -173,10 +178,13 @@ class Inspector(wx.grid.Grid):
         key = list(self.data.keys())[row]
         valType = self.GetTypeForKey(key)
         val = ViewModel.InterpretPropertyFromString(key, valStr, valType)
-        self.data[key] = val
-        if self.valueChangedFunc:
-            self.valueChangedFunc(key, val)
-        self.SetValueForKey(key, valType)
+        if val != None:
+            self.data[key] = val
+            if self.valueChangedFunc:
+                self.valueChangedFunc(key, val)
+            self.SetValueForKey(key, valType)
+        else:
+            self.UpdateValues()
 
 
 COLOR_PATCH_WIDTH = 70
@@ -328,3 +336,54 @@ class GridCellImageFileEditor(wx.grid.GridCellTextEditor):
     def UpdateFile(self, filename):
         self.inspector.SetCellValue(self.row, self.col, filename)
         self.inspector.InspectorValueChanged(self.row, filename)
+
+
+class GridCellCustomChoiceEditor(wx.grid.GridCellEditor):
+    def __init__(self, choices):
+        super().__init__()
+        self.choices = choices
+        self._listBox = None
+
+    def Create(self, parent, id, evtHandler):
+        self._listBox = wx.ListBox(parent, id, choices=self.choices, style=wx.LB_SINGLE|wx.LB_NO_SB)
+        self.SetControl(self._listBox)
+        if evtHandler:
+            self._listBox.PushEventHandler(evtHandler)
+            self._listBox.Bind(wx.EVT_LEFT_UP, self.OnMouseSelect)
+
+    def SetSize(self, rect):
+        self._listBox.SetPosition((rect.x, rect.y))
+        self._listBox.SetSize(rect.width + 2, 4+len(self.choices)*20)
+
+    def BeginEdit(self, row, col, grid):
+        startValue = grid.GetTable().GetValue(row, col)
+        self._listBox.SetStringSelection(startValue)
+        self._listBox.SetFocus()
+
+    def EndEdit(self, row, col, grid, oldVal):
+        changed = False
+        val = self._listBox.GetString(self._listBox.GetSelection())
+        if val != oldVal:
+            changed = True
+        grid.GetTable().SetValue(row, col, val)  # update the table
+        return changed
+
+    def ApplyEdit(self, row, col, grid):
+        val = self._listBox.GetString(self._listBox.GetSelection())
+        grid.GetTable().SetValue(row, col, val)  # update the table
+
+    def Reset(self):
+        pass
+
+    def Clone(self):
+        return GridCellCustomChoiceEditor(self.choices)
+
+    def StartingKey(self, event):
+        for c in self.choices:
+            if ord(c[0].lower()) == event.GetKeyCode():
+                self._listBox.SetStringSelection(c)
+                break
+
+    def OnMouseSelect(self, event):
+        self.Show(False)
+        event.Skip()

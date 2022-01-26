@@ -23,6 +23,8 @@ class VariablesWindow(wx.Frame):
         self.grid = inspector.Inspector(self, self.stackManager)
         self.grid.valueChangedFunc = self.InspectorValChanged
         self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnGridClick)
+        self.grid.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.OnGridEditorShow)
+        self.grid.Bind(wx.grid.EVT_GRID_EDITOR_HIDDEN, self.OnGridEditorHide)
         self.grid.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
 
         headSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -42,6 +44,7 @@ class VariablesWindow(wx.Frame):
 
     def Show(self, doShow=True):
         super().Show(doShow)
+        self.stackManager.runner.EnableUpdateVars(True)
         if doShow and not self.hasShown:
             self.SetSize((300, self.GetParent().GetSize().Height))
             self.SetPosition(self.GetParent().GetPosition() + (self.GetParent().GetSize().Width, 0))
@@ -50,14 +53,24 @@ class VariablesWindow(wx.Frame):
         self.UpdateVars()
 
     def OnClose(self, event):
+        self.stackManager.runner.EnableUpdateVars(False)
         self.keys = None
         self.vars = None
         event.Veto()
         self.Hide()
 
+    def OnGridEditorShow(self, event):
+        self.stackManager.runner.EnableUpdateVars(False)
+        event.Skip()
+
+    def OnGridEditorHide(self, event):
+        self.stackManager.runner.EnableUpdateVars(True)
+        event.Skip()
+
     def OnBackClick(self, event):
-        if not (self.grid.IsEnabled() and self.grid.IsCellEditControlShown()):
+        if not self.grid.IsEnabled() or not self.grid.IsCellEditControlShown():
             self.ZoomOut()
+        event.Skip()
 
     def OnGridKeyDown(self, event):
         if not self.grid.IsCellEditControlShown() and event.GetKeyCode() in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):

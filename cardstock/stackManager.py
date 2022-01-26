@@ -234,7 +234,8 @@ class StackManager(object):
 
             if didRun:
                 self.runner.EnqueueRefresh()
-                self.UpdateVars()
+                if self.runner.shouldUpdateVars:
+                    self.UpdateVars()
             else:
                 self.view.RefreshIfNeeded()
 
@@ -1119,7 +1120,7 @@ class StackManager(object):
             self.OnUpdateVarsTimer()
         else:
             ms = (self.lastVarUpdateTime+1.0 - now)*1000
-            if ms<10: ms = 10
+            if ms < 10: ms = 10
             if self.varUpdateTimer:
                 self.varUpdateTimer.StartOnce(ms)
 
@@ -1143,7 +1144,7 @@ class StackManager(object):
             return (str(cardIndex) + "." + model.GetProperty("name") + ".property." + propName, (start, end, text))
 
         start, end, text = self.designer.cPanel.codeInspector.GetCodeEditorSelection()
-        handlerName = cPanel.codeInspector.currentHandler
+        handlerName = cPanel.codeInspector.GetCurrentHandler()
         if model and handlerName:
             return (str(cardIndex) + "." + model.GetProperty("name") + ".handler." + handlerName, (start, end, text))
 

@@ -404,8 +404,7 @@ class ViewerFrame(wx.Frame):
             self.variablesWindow.Raise()
 
     def UpdateVars(self):
-        if not self.isStandalone and self.variablesWindow.IsShown():
-                self.variablesWindow.UpdateVars()
+        self.variablesWindow.UpdateVars()
 
     def OnMenuShowConsoleWindow(self, event):
         if self.consoleWindow.IsShown():

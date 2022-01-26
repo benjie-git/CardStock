@@ -37,6 +37,9 @@ class CodeInspector(wx.Window):
     def GetAnalyzer(self):
         return self.codeEditor.analyzer
 
+    def GetCurrentHandler(self):
+        return self.currentHandler
+
     def SelectAndScrollTo(self, handlerName, selStart, selEnd):
         if self.currentHandler == handlerName:
             self.codeEditor.SetSelection(selStart, selEnd)
@@ -51,27 +54,6 @@ class CodeInspector(wx.Window):
             self.codeEditor.SetSelectionStart(lineEnd-lineLen)
             self.codeEditor.SetSelectionEnd(lineEnd)
             self.codeEditor.SetFocus()
-
-    def OnHandlerChoice(self, event):
-        displayName = self.handlerPicker.GetItems()[self.handlerPicker.GetSelection()]
-        displayName = displayName.strip().replace("def ", "")
-        keys = list(UiView.handlerDisplayNames.keys())
-        vals = list(UiView.handlerDisplayNames.values())
-        self.SaveCurrentHandler()
-        self.UpdateHandlerForUiView(self.stackManager.GetSelectedUiViews()[0], keys[vals.index(displayName)])
-        self.codeEditor.SetFocus()
-        self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, self.currentHandler))
-
-    def CodeEditorFocused(self, event):
-        helpText = None
-        if self.currentUiView:
-            self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, self.currentHandler))
-        event.Skip()
-
-    def CodeEditorOnIdle(self, event):
-        if self.currentHandler:
-            self.SaveCurrentHandler()
-        event.Skip()
 
     def UpdateHandlerForUiView(self, uiView, handlerName, selection=None):
         if not uiView:
@@ -127,6 +109,42 @@ class CodeInspector(wx.Window):
         self.stackManager.analyzer.RunAnalysis()
         uiView.lastEditedHandler = self.currentHandler
 
+    def SelectInCodeForHandlerName(self, key, selectStart, selectEnd):
+        self.SaveCurrentHandler()
+        self.UpdateHandlerForUiView(self.stackManager.GetSelectedUiViews()[0], key)
+        self.codeEditor.SetSelection(selectStart, selectEnd)
+        self.codeEditor.ScrollRange(selectStart, selectEnd)
+        self.codeEditor.SetFocus()
+
+    def GetCodeEditorSelection(self):
+        start, end = self.codeEditor.GetSelection()
+        text = self.codeEditor.GetSelectedText()
+        return (start, end, text)
+
+    def OnHandlerChoice(self, event):
+        displayName = self.handlerPicker.GetItems()[self.handlerPicker.GetSelection()]
+        displayName = displayName.strip().replace("def ", "")
+        keys = list(UiView.handlerDisplayNames.keys())
+        vals = list(UiView.handlerDisplayNames.values())
+        self.SaveCurrentHandler()
+        self.UpdateHandlerForUiView(self.stackManager.GetSelectedUiViews()[0], keys[vals.index(displayName)])
+        self.codeEditor.SetFocus()
+        self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, self.currentHandler))
+
+
+    # Internal
+
+    def CodeEditorFocused(self, event):
+        helpText = None
+        if self.currentUiView:
+            self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, self.currentHandler))
+        event.Skip()
+
+    def CodeEditorOnIdle(self, event):
+        if self.currentHandler:
+            self.SaveCurrentHandler()
+        event.Skip()
+
     def SaveCurrentHandler(self):
         if self.codeEditor.HasFocus():
             uiView = self.stackManager.GetSelectedUiViews()[0]
@@ -140,15 +158,3 @@ class CodeInspector(wx.Window):
                                                 self.currentHandler, newVal, self.lastCursorSel, newCursorSel)
                     self.stackManager.command_processor.Submit(command)
                 self.lastCursorSel = newCursorSel
-
-    def SelectInCodeForHandlerName(self, key, selectStart, selectEnd):
-        self.SaveCurrentHandler()
-        self.UpdateHandlerForUiView(self.stackManager.GetSelectedUiViews()[0], key)
-        self.codeEditor.SetSelection(selectStart, selectEnd)
-        self.codeEditor.ScrollRange(selectStart, selectEnd)
-        self.codeEditor.SetFocus()
-
-    def GetCodeEditorSelection(self):
-        start, end = self.codeEditor.GetSelection()
-        text = self.codeEditor.GetSelectedText()
-        return (start, end, text)
