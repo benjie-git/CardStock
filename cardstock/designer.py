@@ -28,6 +28,7 @@ from wx.lib.mixins.inspection import InspectionMixin
 from stackExporter import StackExporter
 import mediaSearchDialogs
 from imageFactory import ImageFactory
+from pythonEditor import PythonEditor
 # import gc
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -918,11 +919,14 @@ class DesignerFrame(wx.Frame):
 
     def GetDesiredFocus(self, allowEditors):
         f = self.FindFocus()
-        views = [self, self.stackContainer, self.stackManager.view, self.cPanel, self.splitter, self.cPanel.inspector, self.cPanel.codeEditor]
         if allowEditors:
             views = [self, self.stackContainer, self.stackManager.view, self.splitter, self.cPanel]
-        if not f or f in views or isinstance(f, wx.lib.buttons.GenBitmapToggleButton):
-            f = self.stackManager
+            if not f or f in views:
+                f = self.stackManager
+        else:
+            views = [self, self.stackContainer, self.stackManager.view, self.cPanel, self.splitter, self.cPanel.inspector]
+            if not f or f in views or isinstance(f, (PythonEditor, wx.lib.buttons.GenBitmapToggleButton)):
+                f = self.stackManager
         return f
 
     def OnSelectAll(self, event):

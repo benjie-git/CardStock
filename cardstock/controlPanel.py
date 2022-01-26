@@ -4,6 +4,7 @@ import wx.html
 import os
 import mediaSearchDialogs
 import inspector
+import codeInspector
 from tools import *
 from commands import *
 from wx.lib import buttons # for generic button classes
@@ -113,14 +114,8 @@ class ControlPanel(wx.Panel):
         self.helpResizer.SetManagedChild(self.panelHelp)
         self.panelHelp.Show()
 
-        self.handlerPicker = wx.Choice(parent=self)
-        self.handlerPicker.Enable(False)
-        self.handlerPicker.Bind(wx.EVT_CHOICE, self.OnHandlerChoice)
-        self.currentHandler = None
-
-        self.codeEditor = PythonEditor(self, self, self.stackManager, style=wx.BORDER_SUNKEN)
-        self.codeEditor.Bind(wx.EVT_IDLE, self.CodeEditorOnIdle)
-        self.codeEditor.Bind(wx.EVT_SET_FOCUS, self.CodeEditorFocused)
+        self.codeInspector = codeInspector.CodeInspector(self, self.stackManager)
+        self.codeInspector.updateHelpTextFunc = self.UpdateHelpText
 
         self.lastSelectedUiViews = []
         self.UpdateInspectorForUiViews([])
@@ -138,8 +133,7 @@ class ControlPanel(wx.Panel):
         self.editBox.AddSpacer(4)
         self.editBox.Add(self.helpResizer, 0, wx.EXPAND|wx.ALL, spacing)
         self.editBox.AddSpacer(4)
-        self.editBox.Add(self.handlerPicker, 0, wx.EXPAND|wx.ALL, spacing)
-        self.editBox.Add(self.codeEditor, 1, wx.EXPAND|wx.ALL, spacing)
+        self.editBox.Add(self.codeInspector, 1, wx.EXPAND|wx.ALL, 0)
         self.editBox.SetSizeHints(self)
 
         self.box = wx.BoxSizer(wx.VERTICAL)
@@ -207,27 +201,6 @@ class ControlPanel(wx.Panel):
                 helpText = HelpData.GetPropertyHelp(uiView, key)
                 self.UpdateHelpText(helpText)
         event.Skip()
-
-    def OnHandlerChoice(self, event):
-        displayName = self.handlerPicker.GetItems()[self.handlerPicker.GetSelection()]
-        displayName = displayName.strip().replace("def ", "")
-        keys = list(UiView.handlerDisplayNames.keys())
-        vals = list(UiView.handlerDisplayNames.values())
-        self.SaveCurrentHandler()
-        self.UpdateHandlerForUiViews(self.stackManager.GetSelectedUiViews(), keys[vals.index(displayName)])
-        self.codeEditor.SetFocus()
-
-    def SelectInCodeForHandlerName(self, key, selectStart, selectEnd):
-        self.SaveCurrentHandler()
-        self.UpdateHandlerForUiViews(self.stackManager.GetSelectedUiViews(), key)
-        self.codeEditor.SetSelection(selectStart, selectEnd)
-        self.codeEditor.ScrollRange(selectStart, selectEnd)
-        self.codeEditor.SetFocus()
-
-    def GetCodeEditorSelection(self):
-        start, end = self.codeEditor.GetSelection()
-        text = self.codeEditor.GetSelectedText()
-        return (start, end, text)
 
     def UpdateForUiViews(self, uiViews):
         if len(uiViews) > 0:
@@ -319,79 +292,11 @@ class ControlPanel(wx.Panel):
         if needsUpdate:
             self.inspector.SetValue(key, val)
 
-    def UpdateHandlerForUiViews(self, uiViews, handlerName):
-        if len(uiViews) != 1:
-            self.codeEditor.SetupWithText("")
-            self.codeEditor.Enable(False)
-            self.handlerPicker.Enable(False)
-            self.codeEditor.currentModel = None
-            self.codeEditor.currentHandler = None
-            return
-
-        if len(self.lastSelectedUiViews) == 0 or uiViews[0] != self.lastSelectedUiViews[0]:
-            return
-
-        self.codeEditor.Enable(True)
-        self.handlerPicker.Enable(True)
-        uiView = uiViews[0]
-
-        helpText = HelpData.GetHandlerHelp(uiView, handlerName)
-        self.UpdateHelpText(helpText)
-
-        if handlerName == None:
-            handlerName = uiView.lastEditedHandler
-        if not handlerName:
-            for k in uiView.model.GetHandlers().keys():
-                if uiView.model.GetHandler(k):
-                    handlerName = k
-                    break
-            else:
-                handlerName = uiView.model.initialEditHandler
-        if handlerName:
-            self.currentHandler = handlerName
-
-        displayNames = []
-        for k in uiView.model.GetHandlers().keys():
-            decorator = "def " if uiView.model.GetHandler(k) else "       "
-            displayNames.append(decorator + UiView.handlerDisplayNames[k])
-        self.handlerPicker.SetItems(displayNames)
-
-        self.handlerPicker.SetSelection(list(uiView.model.GetHandlers().keys()).index(self.currentHandler))
-        self.codeEditor.SetupWithText(uiView.model.GetHandler(self.currentHandler))
-        self.lastCursorSel = self.codeEditor.GetSelection()
-        self.codeEditor.EmptyUndoBuffer()
-        self.handlerPicker.Enable(True)
-        self.codeEditor.Enable(True)
-        self.codeEditor.currentModel = uiView.model
-        self.codeEditor.currentHandler = self.currentHandler
-        self.stackManager.analyzer.RunAnalysis()
-        uiView.lastEditedHandler = self.currentHandler
-
-    def SaveCurrentHandler(self):
-        if self.codeEditor.HasFocus():
-            uiView = self.stackManager.GetSelectedUiViews()[0]
-            if uiView:
-                oldVal = uiView.model.GetHandler(self.currentHandler)
-                newVal = self.codeEditor.GetText()
-                newCursorSel = self.codeEditor.GetSelection()
-
-                if newVal != oldVal:
-                    command = SetHandlerCommand(True, "Set Handler", self, self.stackManager.cardIndex, uiView.model,
-                                                self.currentHandler, newVal, self.lastCursorSel, newCursorSel)
-                    self.stackManager.command_processor.Submit(command)
-                self.lastCursorSel = newCursorSel
-
-    def CodeEditorFocused(self, event):
-        helpText = None
-        if len(self.lastSelectedUiViews) == 1:
-            helpText = HelpData.GetHandlerHelp(self.lastSelectedUiViews[0], self.currentHandler)
-        self.UpdateHelpText(helpText)
-        event.Skip()
-
-    def CodeEditorOnIdle(self, event):
-        if self.currentHandler:
-            self.SaveCurrentHandler()
-        event.Skip()
+    def UpdateHandlerForUiViews(self, uiViews, handlerName, selection=None):
+        if len(uiViews) == 1:
+            self.codeInspector.UpdateHandlerForUiView(uiViews[0], handlerName, selection)
+        else:
+            self.codeInspector.UpdateHandlerForUiView(None, None, None)
 
     def MakeBitmap(self, color):
         """

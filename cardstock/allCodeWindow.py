@@ -145,7 +145,4 @@ class AllCodeWindow(wx.Frame):
         uiView = self.designer.stackManager.GetUiViewByModel(obj)
         self.designer.stackManager.SelectUiView(uiView)
         self.designer.cPanel.UpdateHandlerForUiViews([uiView], handlerName)
-        ed = self.designer.cPanel.codeEditor
-        ed.GotoLine(lineNum-1)
-        ed.SetSelectionStart(ed.GetLineEndPosition(lineNum-1) - ed.GetLineLength(lineNum-1))
-        ed.SetSelectionEnd(ed.GetLineEndPosition(lineNum-1))
+        self.designer.cPanel.codeInspector.SelectAndScrollToLine(handlerName, lineNum-1)

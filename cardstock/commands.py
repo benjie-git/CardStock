@@ -309,18 +309,8 @@ class SetHandlerCommand(Command):
         self.model.SetHandler(self.key, self.newVal)
 
         if self.hasRun and uiView:
-            firstLine = 0
-            currentUiView = None
-            if len(self.cPanel.lastSelectedUiViews) == 1:
-                currentUiView = self.cPanel.lastSelectedUiViews[0]
-            if currentUiView == uiView and self.cPanel.currentHandler == self.key:
-                firstLine = self.cPanel.codeEditor.GetFirstVisibleLine()
-                self.cPanel.codeEditor.AutoCompCancel()
-            self.cPanel.UpdateHandlerForUiViews([uiView], self.key)
-            if self.interactive and self.newSel:
-                self.cPanel.codeEditor.SetSelection(*self.newSel)
-                self.cPanel.codeEditor.ScrollToLine(firstLine)
-                self.cPanel.codeEditor.ScrollRange(*self.newSel)
+            sel = self.newSel if self.interactive else None
+            self.cPanel.UpdateHandlerForUiViews([uiView], self.key, sel)
 
         allCodeWin = self.cPanel.stackManager.designer.allCodeWindow
         if allCodeWin and allCodeWin.IsShown():
@@ -338,18 +328,8 @@ class SetHandlerCommand(Command):
         self.model.SetHandler(self.key, self.oldVal)
 
         if uiView:
-            firstLine = 0
-            currentUiView = None
-            if len(self.cPanel.lastSelectedUiViews) == 1:
-                currentUiView = self.cPanel.lastSelectedUiViews[0]
-            if currentUiView == uiView and self.cPanel.currentHandler == self.key:
-                firstLine = self.cPanel.codeEditor.GetFirstVisibleLine()
-                self.cPanel.codeEditor.AutoCompCancel()
-            self.cPanel.UpdateHandlerForUiViews([uiView], self.key)
-            if self.interactive and self.oldSel:
-                self.cPanel.codeEditor.SetSelection(*self.oldSel)
-                self.cPanel.codeEditor.ScrollToLine(firstLine)
-                self.cPanel.codeEditor.ScrollRange(*self.oldSel)
+            sel = self.oldSel if self.interactive else None
+            self.cPanel.UpdateHandlerForUiViews([uiView], self.key, sel)
 
         allCodeWin = self.cPanel.stackManager.designer.allCodeWindow
         if allCodeWin and allCodeWin.IsShown():

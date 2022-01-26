@@ -1142,8 +1142,8 @@ class StackManager(object):
             propName = uiView.model.PropertyKeys()[cPanel.inspector.GetGridCursorRow()]
             return (str(cardIndex) + "." + model.GetProperty("name") + ".property." + propName, (start, end, text))
 
-        start, end, text = self.designer.cPanel.GetCodeEditorSelection()
-        handlerName = cPanel.currentHandler
+        start, end, text = self.designer.cPanel.codeInspector.GetCodeEditorSelection()
+        handlerName = cPanel.codeInspector.currentHandler
         if model and handlerName:
             return (str(cardIndex) + "." + model.GetProperty("name") + ".handler." + handlerName, (start, end, text))
 
@@ -1161,7 +1161,7 @@ class StackManager(object):
             if parts[2] == "property":
                 wx.CallAfter(self.designer.cPanel.SelectInInspectorForPropertyName, parts[3], selectStart, selectEnd)
             elif parts[2] == "handler":
-                wx.CallAfter(self.designer.cPanel.SelectInCodeForHandlerName, parts[3], selectStart, selectEnd)
+                wx.CallAfter(self.designer.cPanel.codeInspector.SelectInCodeForHandlerName, parts[3], selectStart, selectEnd)
 
     def GetViewerFindPath(self):
         cardModel = self.uiCard.model

@@ -81,8 +81,7 @@ class FindEngine(object):
                     uiViews = [self.stackManager.designer.cPanel.lastSelectedUiViews[0]]
                 self.stackManager.designer.cPanel.UpdateHandlerForUiViews(uiViews, key)
                 pos = textSel[0] + len(replaceStr)
-                self.stackManager.designer.cPanel.codeEditor.SetSelection(pos, pos)
-                self.stackManager.designer.cPanel.codeEditor.ScrollRange(pos, pos)
+                self.stackManager.designer.cPanel.codeInspector.SelectAndScrollTo(key, pos, pos)
             self.didReplace = True
 
     def DoFindNext(self, searchDict, startPath, textSel):
@@ -182,9 +181,10 @@ class FindEngine(object):
                 p = re.compile(r'{searchStr}'.format(searchStr=findStr), flags)
 
             matches = [m for m in p.finditer(text)]
-            matchInfo = [(match.start(), match.end()) for match in matches]
-            command = self.DoReplaceAtPath(path, matchInfo, replaceStr)
-            commands.append(command)
+            if len(matches):
+                matchInfo = [(match.start(), match.end()) for match in matches]
+                command = self.DoReplaceAtPath(path, matchInfo, replaceStr)
+                commands.append(command)
 
         if len(commands):
             command = CommandGroup(True, "Replace All", self.stackManager, commands)

@@ -528,7 +528,7 @@ class ViewerFrame(wx.Frame):
         self.SetupViewerSize()
 
         if self.designer:
-            runner.AddSyntaxErrors(self.designer.cPanel.codeEditor.analyzer.syntaxErrors)
+            runner.AddSyntaxErrors(self.designer.cPanel.codeInspector.GetAnalyzer().syntaxErrors)
         if not isGoingBack:
             self.stackManager.stackModel.RunSetup(runner)
         self.stackManager.LoadCardAtIndex(None)
