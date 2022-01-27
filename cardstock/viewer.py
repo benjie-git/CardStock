@@ -200,18 +200,15 @@ class ViewerFrame(wx.Frame):
         menuBar.Append(helpMenu, "&Help")
         self.consoleWindow.SetMenuBar(menuBar)
 
-        self.Bind(wx.EVT_MENU,   self.OnMenuClose, id=wx.ID_CLOSE)
+        self.consoleWindow.Bind(wx.EVT_MENU,   self.OnMenuClose, id=wx.ID_CLOSE)
 
-        self.Bind(wx.EVT_MENU,  self.consoleWindow.DoUndo, id=wx.ID_UNDO)
-        self.Bind(wx.EVT_MENU,  self.consoleWindow.DoRedo, id=wx.ID_REDO)
-        self.Bind(wx.EVT_MENU,  self.OnCut, id=wx.ID_CUT)
-        self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
-        self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
+        self.consoleWindow.Bind(wx.EVT_MENU,  self.consoleWindow.DoUndo, id=wx.ID_UNDO)
+        self.consoleWindow.Bind(wx.EVT_MENU,  self.consoleWindow.DoRedo, id=wx.ID_REDO)
 
         if not self.isStandalone:
-            self.Bind(wx.EVT_MENU, self.OnMenuShowVariablesWindow, id=ID_SHOW_VARIABLES)
-        self.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
-        self.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
+            self.consoleWindow.Bind(wx.EVT_MENU, self.OnMenuShowVariablesWindow, id=ID_SHOW_VARIABLES)
+        self.consoleWindow.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
+        self.consoleWindow.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
 
     def MakeVariablesMenuBar(self):
         # create the file menu
@@ -239,17 +236,11 @@ class ViewerFrame(wx.Frame):
         menuBar.Append(helpMenu, "&Help")
         self.variablesWindow.SetMenuBar(menuBar)
 
-        self.Bind(wx.EVT_MENU,   self.OnMenuClose, id=wx.ID_CLOSE)
+        self.variablesWindow.Bind(wx.EVT_MENU,   self.OnMenuClose, id=wx.ID_CLOSE)
 
-        self.Bind(wx.EVT_MENU,  self.consoleWindow.DoUndo, id=wx.ID_UNDO)
-        self.Bind(wx.EVT_MENU,  self.consoleWindow.DoRedo, id=wx.ID_REDO)
-        self.Bind(wx.EVT_MENU,  self.OnCut, id=wx.ID_CUT)
-        self.Bind(wx.EVT_MENU,  self.OnCopy, id=wx.ID_COPY)
-        self.Bind(wx.EVT_MENU,  self.OnPaste, id=wx.ID_PASTE)
-
-        self.Bind(wx.EVT_MENU, self.OnMenuShowVariablesWindow, id=ID_SHOW_VARIABLES)
-        self.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
-        self.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
+        self.variablesWindow.Bind(wx.EVT_MENU, self.OnMenuShowVariablesWindow, id=ID_SHOW_VARIABLES)
+        self.variablesWindow.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
+        self.variablesWindow.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
 
     wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
 
