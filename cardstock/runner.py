@@ -702,6 +702,10 @@ class Runner():
         self.pressedKeys = []
         self.keyTimings = {}
 
+    def UpdateClientVar(self, k, v):
+        if k in self.clientVars:
+            self.clientVars[k] = v
+
     def GetClientVars(self):
         # Update the analyzer for autocomplete
         if not self.clientVars:

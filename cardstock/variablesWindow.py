@@ -265,12 +265,12 @@ class VariablesWindow(wx.Frame):
 
         if isinstance(obj, uiView.ViewProxy):
             obj = obj._model
-        if isinstance(obj, (dict, tuple, list)):
+        if obj == clientVars:
+            self.stackManager.runner.UpdateClientVar(key, val)
+        elif isinstance(obj, (dict, tuple, list)):
             obj[key] = val
         elif isinstance(obj, uiView.ViewModel):
             obj.SetProperty(key, val)
-        else:
-            return
 
         if changedPoints:
             changedPoints.DidUpdateShape()
