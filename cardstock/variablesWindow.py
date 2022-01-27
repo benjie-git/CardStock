@@ -22,7 +22,7 @@ class VariablesWindow(wx.Frame):
 
         self.grid = inspector.Inspector(self, self.stackManager)
         self.grid.valueChangedFunc = self.InspectorValChanged
-        self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnGridClick)
+        self.grid.objClickedFunc = self.InspectorObjClicked
         self.grid.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.OnGridEditorShow)
         self.grid.Bind(wx.grid.EVT_GRID_EDITOR_HIDDEN, self.OnGridEditorHide)
         self.grid.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
@@ -48,6 +48,7 @@ class VariablesWindow(wx.Frame):
         if doShow and not self.hasShown:
             self.SetSize((300, self.GetParent().GetSize().Height))
             self.SetPosition(self.GetParent().GetPosition() + (self.GetParent().GetSize().Width, 0))
+            self.grid.SetGridCursor(0, 1)
             self.hasShown = True
         self.path = []
         self.UpdateVars()
@@ -74,30 +75,30 @@ class VariablesWindow(wx.Frame):
 
     def OnGridKeyDown(self, event):
         if not self.grid.IsCellEditControlShown() and event.GetKeyCode() in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
-            if self.grid.IsReadOnly(self.grid.GetGridCursorRow(), self.grid.GetGridCursorCol()):
+            if self.grid.GetGridCursorCol() == 1:
                 key = self.keys[self.grid.GetGridCursorRow()]
-                self.ZoomInto(key)
-        elif event.GetKeyCode() in (wx.WXK_ESCAPE, wx.WXK_BACK, wx.WXK_DELETE):
+                if self.grid.GetTypeForKey(key) in ("obj", "static_list"):
+                    self.ZoomInto(key)
+                    return
+        elif not self.grid.IsCellEditControlShown() and event.GetKeyCode() in (wx.WXK_ESCAPE, wx.WXK_BACK, wx.WXK_DELETE):
             self.ZoomOut()
         event.Skip()
 
-    def OnGridClick(self, event):
-        if event.Col == 1 and len(self.keys):
-            key = self.keys[event.Row]
-            if not self.ZoomInto(key):
-                event.Skip()
-        else:
-            event.Skip()
+    def InspectorObjClicked(self, row):
+        key = self.keys[row]
+        self.ZoomInto(key)
 
     def ZoomInto(self, key):
-        if self.grid.GetTypeForKey(key) in ("list", "dict", "obj"):
+        if self.grid.GetTypeForKey(key) in ("obj", "list", "static_list", "dict", "set"):
             v = self.vars[key]
             obj = self.ObjFromPath()
             if isinstance(obj, (dict, list, tuple)):
                 self.path.append(('sub', key))
+                self.grid.SetGridCursor(0, 1)
                 self.UpdateVars()
             elif isinstance(obj, (uiView.ViewProxy, uiView.ViewModel)):
                 self.path.append(('attr', key))
+                self.grid.SetGridCursor(0, 1)
                 self.UpdateVars()
             return True
         return False
@@ -105,6 +106,7 @@ class VariablesWindow(wx.Frame):
     def ZoomOut(self):
         if len(self.path):
             self.path.pop()
+            self.grid.SetGridCursor(0, 1)
             self.UpdateVars()
             return True
         return False
@@ -146,11 +148,13 @@ class VariablesWindow(wx.Frame):
                     vars = vars[p]
                 else:
                     self.path.pop()
+                    self.grid.SetGridCursor(0,1)
                     return self.GetVars()
             elif t == "attr" and p in vars:
                 vars = vars[p]
             else:
                 self.path.pop()
+                self.grid.SetGridCursor(0, 1)
                 return self.GetVars()
 
             if isinstance(vars, uiView.ViewProxy):
@@ -199,10 +203,14 @@ class VariablesWindow(wx.Frame):
         (obj, self.vars) = self.GetVars()
         self.UpdatePath()
 
+        if isinstance(self.vars, set):
+            self.vars = list(self.vars)
+
         if isinstance(self.vars, (tuple, list)):
             self.keys = range(len(self.vars))
         else:
-            self.keys = sorted(self.vars.keys(), key=str.casefold)
+
+            self.keys = sorted(self.vars.keys(), key=lambda x: str.casefold(x) if isinstance(x, str) else x)
         d = {}
         types = {}
         for k in self.keys:
@@ -210,6 +218,8 @@ class VariablesWindow(wx.Frame):
             if isinstance(obj, uiView.ViewModel):
                 if k == "name":
                     types[k] = "static"
+                elif k == "children":
+                    types[k] = "static_list"
                 else:
                     types[k] = obj.GetPropertyType(k)
             elif isinstance(self.vars, tuple):

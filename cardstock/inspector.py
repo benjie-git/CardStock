@@ -16,6 +16,7 @@ class Inspector(wx.grid.Grid):
 
         self.stackManager = stackManager
         self.valueChangedFunc = None
+        self.objClickedFunc = None
 
         self.CreateGrid(1, 2)
         self.SetRowSize(0, 24)
@@ -29,8 +30,9 @@ class Inspector(wx.grid.Grid):
         self.SetSelectionMode(wx.grid.Grid.GridSelectNone)
 
         self.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnInspectorValueChanged)
-        self.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
         self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnGridClick)
+        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnGridSelect)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
         self.Bind(wx.EVT_SIZE, self.OnGridResized)
 
     def SetData(self, title, data, types=None):
@@ -45,8 +47,12 @@ class Inspector(wx.grid.Grid):
         self.SetGridCursor(event.Row, event.Col)
         event.Skip()
 
+    def OnGridSelect(self, event):
+        self.Refresh(True)
+        event.Skip()
+
     def OnGridResized(self, event):
-        width, height = self.GetSize()
+        width, height = self.GetClientSize()
         width = width - self.GetColSize(0) - 1
         if width < 0:
             width = 0
@@ -80,8 +86,10 @@ class Inspector(wx.grid.Grid):
             elif isinstance(oldVal, (wx.Point, wx.RealPoint)): valType = 'point'
             elif isinstance(oldVal, wx.Size): valType = 'size'
             elif isinstance(oldVal, (list, tuple)): valType = 'list'
+            elif isinstance(oldVal, set): valType = 'set'
             elif isinstance(oldVal, dict): valType = 'dict'
             elif isinstance(oldVal, (ViewModel, ViewProxy)): valType = 'obj'
+            elif callable(oldVal): valType = 'func'
 
         return valType
 
@@ -119,7 +127,7 @@ class Inspector(wx.grid.Grid):
             valType = self.GetTypeForKey(k)
             self.SetValueForKey(k, valType)
 
-            if valType in ("obj", "static"):
+            if valType in ("static", "func"):
                 self.SetReadOnly(r, 1)
 
             renderer = None
@@ -136,7 +144,10 @@ class Inspector(wx.grid.Grid):
             elif valType == "file":
                 editor = GridCellImageFileEditor(self, self.stackManager.runner is None)
                 renderer = GridCellImageFileRenderer(self.stackManager.runner is None)
-
+            elif valType in ("obj", "list", "static_list", "dict", "set"):
+                editable = (valType not in ("obj", "static_list"))
+                editor = GridCellObjectEditor(self, editable)
+                renderer = GridCellObjectRenderer()
             if renderer:
                 self.SetCellRenderer(r, 1, renderer)
             if editor:
@@ -160,7 +171,10 @@ class Inspector(wx.grid.Grid):
                 else:
                     self.SetCellValue(row, 1, str(val))
             else:
-                self.SetCellValue(row, 1, str(val))
+                val = str(val)
+                if len(val) > 256:
+                    val = val[:253] + "..."
+                self.SetCellValue(row, 1, val)
 
     def SetValue(self, key, val):
         self.data[key] = val
@@ -207,13 +221,14 @@ class GridCellColorRenderer(wx.grid.GridCellStringRenderer):
         dc.SetPen(wx.TRANSPARENT_PEN)
         dc.SetBrush(wx.Brush(bg, wx.SOLID))
         dc.DrawRectangle(rect)
-        dc.SetPen(wx.Pen('black', 1, wx.PENSTYLE_SOLID))
-        dc.SetBrush(wx.Brush(color, wx.SOLID))
-        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH, rect.Top+1, COLOR_PATCH_WIDTH, rect.Height-1))
 
         hAlign, vAlign = attr.GetAlignment()
         dc.SetFont(attr.GetFont())
         grid.DrawTextRectangle(dc, text, rect, hAlign, vAlign)
+
+        dc.SetPen(wx.Pen('black', 1, wx.PENSTYLE_SOLID))
+        dc.SetBrush(wx.Brush(color, wx.SOLID))
+        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH, rect.Top+1, COLOR_PATCH_WIDTH, rect.Height-1))
 
 
 class GridCellColorEditor(wx.grid.GridCellTextEditor):
@@ -265,6 +280,10 @@ class GridCellImageFileRenderer(wx.grid.GridCellStringRenderer):
         dc.SetPen(wx.Pen('black', 1, wx.PENSTYLE_SOLID))
         dc.SetBrush(wx.Brush('white', wx.SOLID))
 
+        hAlign, vAlign = attr.GetAlignment()
+        dc.SetFont(attr.GetFont())
+        grid.DrawTextRectangle(dc, text, rect, hAlign, vAlign)
+
         if self.showClipArtButton:
             dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH*2, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
             if not self.clipArtBmp:
@@ -275,10 +294,6 @@ class GridCellImageFileRenderer(wx.grid.GridCellStringRenderer):
         if not self.fileBmp:
             self.fileBmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, size=wx.Size(rect.Height, rect.Height))
         dc.DrawBitmap(self.fileBmp, wx.Point(rect.Left + rect.Width-((BUTTON_WIDTH+self.fileBmp.Width)/2), rect.Top))
-
-        hAlign, vAlign = attr.GetAlignment()
-        dc.SetFont(attr.GetFont())
-        grid.DrawTextRectangle(dc, text, rect, hAlign, vAlign)
 
 
 class GridCellImageFileEditor(wx.grid.GridCellTextEditor):
@@ -345,15 +360,17 @@ class GridCellCustomChoiceEditor(wx.grid.GridCellEditor):
         self._listBox = None
 
     def Create(self, parent, id, evtHandler):
-        self._listBox = wx.ListBox(parent, id, choices=self.choices, style=wx.LB_SINGLE|wx.LB_NO_SB)
+        self._listBox = wx.ListBox(parent, id, choices=self.choices, style=wx.LB_SINGLE|wx.WANTS_CHARS)
         self.SetControl(self._listBox)
         if evtHandler:
             self._listBox.PushEventHandler(evtHandler)
             self._listBox.Bind(wx.EVT_LEFT_UP, self.OnMouseSelect)
+            self._listBox.Bind(wx.EVT_LISTBOX, self.OnSelect)
 
     def SetSize(self, rect):
         self._listBox.SetPosition((rect.x, rect.y))
-        self._listBox.SetSize(rect.width + 2, 4+len(self.choices)*20)
+        height = (4+len(self.choices)*20) if wx.Platform == "__WXMAC__" else (4+len(self.choices)*18)
+        self._listBox.SetSize(rect.width + 2, height)
 
     def BeginEdit(self, row, col, grid):
         startValue = grid.GetTable().GetValue(row, col)
@@ -387,3 +404,62 @@ class GridCellCustomChoiceEditor(wx.grid.GridCellEditor):
     def OnMouseSelect(self, event):
         self.Show(False)
         event.Skip()
+
+    def OnSelect(self, event):
+        self._listBox.SetSelection(event.GetSelection())
+        event.Skip()
+
+class GridCellObjectEditor(wx.grid.GridCellTextEditor):
+    def __init__(self, inspector, editable):
+        super().__init__()
+        self.inspector = inspector
+        self.editable = editable
+
+    def StartingClick(self):
+        self.row = self.inspector.GetGridCursorRow()
+        self.col = self.inspector.GetGridCursorCol()
+        x,y = self.inspector.ScreenToClient(wx.GetMousePosition())
+        if x > self.inspector.GetSize().Width - COLOR_PATCH_WIDTH:
+            self.inspector.HideCellEditControl()
+            self.inspector.objClickedFunc(self.row)
+        else:
+            super().StartingClick()
+
+    def BeginEdit(self, row, col, grid):
+        if not self.editable:
+            self.inspector.HideCellEditControl()
+        else:
+            super().BeginEdit(row, col, grid)
+
+
+class GridCellObjectRenderer(wx.grid.GridCellStringRenderer):
+    objBmp = None
+
+    def __init__(self):
+        super().__init__()
+
+    def Draw(self, grid, attr, dc, rect, row, col, isSelected):
+        text = grid.GetCellValue(row, col)
+
+        if isSelected:
+            bg = grid.GetSelectionBackground()
+            fg = grid.GetSelectionForeground()
+        else:
+            bg = attr.GetBackgroundColour()
+            fg = attr.GetTextColour()
+        dc.SetTextBackground(bg)
+        dc.SetTextForeground(fg)
+        dc.SetPen(wx.TRANSPARENT_PEN)
+        dc.SetBrush(wx.Brush(bg, wx.SOLID))
+        dc.DrawRectangle(rect)
+        dc.SetPen(wx.Pen('black', 1, wx.PENSTYLE_SOLID))
+        dc.SetBrush(wx.Brush('white', wx.SOLID))
+
+        hAlign, vAlign = attr.GetAlignment()
+        dc.SetFont(attr.GetFont())
+        grid.DrawTextRectangle(dc, text, rect, hAlign, vAlign)
+
+        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
+        if not self.objBmp:
+            self.objBmp = wx.ArtProvider.GetBitmap(wx.ART_GO_FORWARD, size=wx.Size(rect.Height, rect.Height))
+        dc.DrawBitmap(self.objBmp, wx.Point(rect.Left + rect.Width-((BUTTON_WIDTH+self.objBmp.Width)/2), rect.Top))
