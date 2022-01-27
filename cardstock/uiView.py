@@ -1046,11 +1046,13 @@ class ViewModel(object):
                     val = float(valStr)
                 elif propType in ["point", "floatpoint"]:
                     val = ast.literal_eval(valStr)
-                    if not isinstance(val, (list, tuple)) or len(val) != 2:
+                    if not isinstance(val, (list, tuple)) or len(val) != 2 or \
+                            not isinstance(val[0], (int, float)) or not isinstance(val[1], (int, float)):
                         raise Exception()
                 elif propType == "size":
                     val = ast.literal_eval(valStr)
-                    if not isinstance(val, (list, tuple)) or len(val) != 2:
+                    if not isinstance(val, (list, tuple)) or len(val) != 2 or \
+                            not isinstance(val[0], (int, float)) or not isinstance(val[1], (int, float)):
                         raise Exception()
                 elif propType == "list":
                     if valStr == "":
