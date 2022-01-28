@@ -2,7 +2,7 @@ import wx
 import pythonEditor
 import wx.stc
 import helpData
-import commands
+import appCommands
 from uiView import UiView
 
 
@@ -109,14 +109,14 @@ class CodeInspector(wx.Window):
         self.stackManager.analyzer.RunAnalysis()
         uiView.lastEditedHandler = self.currentHandler
 
-    def SelectInCodeForHandlerName(self, key, selectStart, selectEnd):
+    def SelectInCodeForHandlerName(self, handlerName, selectStart, selectEnd):
         self.SaveCurrentHandler()
-        self.UpdateHandlerForUiView(self.stackManager.GetSelectedUiViews()[0], key)
+        self.UpdateHandlerForUiView(self.stackManager.GetSelectedUiViews()[0], handlerName)
         self.codeEditor.SetSelection(selectStart, selectEnd)
         self.codeEditor.ScrollRange(selectStart, selectEnd)
         self.codeEditor.SetFocus()
 
-    def GetCodeEditorSelection(self):
+    def GetCodeEditorSelection(self, handlerName):
         start, end = self.codeEditor.GetSelection()
         text = self.codeEditor.GetSelectedText()
         return (start, end, text)
@@ -154,7 +154,7 @@ class CodeInspector(wx.Window):
                 newCursorSel = self.codeEditor.GetSelection()
 
                 if newVal != oldVal:
-                    command = commands.SetHandlerCommand(True, "Set Handler", self.parent, self.stackManager.cardIndex, uiView.model,
+                    command = appCommands.SetHandlerCommand(True, "Set Handler", self.parent, self.stackManager.cardIndex, uiView.model,
                                                 self.currentHandler, newVal, self.lastCursorSel, newCursorSel)
                     self.stackManager.command_processor.Submit(command)
                 self.lastCursorSel = newCursorSel

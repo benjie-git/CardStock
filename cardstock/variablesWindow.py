@@ -1,6 +1,6 @@
 import wx
 import wx.grid
-import inspector
+import propertyInspector
 import uiView
 
 
@@ -20,7 +20,7 @@ class VariablesWindow(wx.Frame):
         self.backButton.Bind(wx.EVT_LEFT_DOWN, self.OnBackClick)
         self.pathLabel = wx.StaticText(self)
 
-        self.grid = inspector.Inspector(self, self.stackManager)
+        self.grid = propertyInspector.PropertyInspector(self, self.stackManager)
         self.grid.valueChangedFunc = self.InspectorValChanged
         self.grid.objClickedFunc = self.InspectorObjClicked
         self.grid.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.OnGridEditorShow)

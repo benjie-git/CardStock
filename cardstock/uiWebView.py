@@ -58,6 +58,17 @@ class UiWebView(UiView):
             if self.cover:
                 self.cover.SetSize(s)
 
+    def PaintBoundingBox(self, gc, color='Gray'):
+        if self.stackManager.isEditing:
+            gc.SetBrush(wx.TRANSPARENT_BRUSH)
+            gc.SetPen(wx.Pen(color, 1, wx.PENSTYLE_DOT))
+
+            pos = wx.Point(0,0)-list(self.model.GetProperty("position"))
+            f = self.model.GetFrame()
+            f.Inflate(2)
+            f.Offset(pos)
+            gc.DrawRectangle(f)
+
     def OnWillLoad(self, event):
         allowedHosts = self.model.GetProperty("allowedHosts")
         if len(allowedHosts):

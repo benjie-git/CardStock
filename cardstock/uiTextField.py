@@ -1,6 +1,6 @@
 import wx
 from uiView import *
-from commands import SetPropertyCommand
+from appCommands import SetPropertyCommand
 from uiTextBase import *
 import wx.stc as stc
 from wx.lib.docview import CommandProcessor, Command

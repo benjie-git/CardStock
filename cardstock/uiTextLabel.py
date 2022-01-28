@@ -1,5 +1,5 @@
 import wx
-from commands import SetPropertyCommand
+from appCommands import SetPropertyCommand
 from uiView import *
 from uiTextBase import *
 from uiTextField import CDSTextCtrl

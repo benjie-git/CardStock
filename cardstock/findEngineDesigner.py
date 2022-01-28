@@ -1,7 +1,7 @@
 import wx
 import stackManager
 from uiView import ViewModel
-from commands import SetPropertyCommand, SetHandlerCommand, CommandGroup
+from appCommands import SetPropertyCommand, SetHandlerCommand, CommandGroup
 import re
 
 SEARCHABLE_PROPERTIES = ["name", "text", "title", "file", "bgColor", "textColor", "penColor", "fillColor"]

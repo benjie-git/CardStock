@@ -1,7 +1,7 @@
 import wx
 import stackManager
 from uiView import ViewModel
-from commands import SetPropertyCommand, CommandGroup
+from appCommands import SetPropertyCommand, CommandGroup
 import re
 
 """

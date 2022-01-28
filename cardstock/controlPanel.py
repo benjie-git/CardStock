@@ -3,10 +3,10 @@ import wx.grid
 import wx.html
 import os
 import mediaSearchDialogs
-import inspector
-import codeInspector
+import propertyInspector
+from codeInspectorMulti import CodeInspector
 from tools import *
-from commands import *
+from appCommands import *
 from wx.lib import buttons # for generic button classes
 from wx.lib.resizewidget import ResizeWidget, EVT_RW_LAYOUT_NEEDED
 from pythonEditor import PythonEditor
@@ -103,7 +103,7 @@ class ControlPanel(wx.Panel):
 
         # ----------
 
-        self.inspector = inspector.Inspector(self, self.stackManager)
+        self.inspector = propertyInspector.PropertyInspector(self, self.stackManager)
         self.inspector.valueChangedFunc = self.InspectorValueChanged
         self.inspector.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnGridCellSelected)
 
@@ -114,7 +114,7 @@ class ControlPanel(wx.Panel):
         self.helpResizer.SetManagedChild(self.panelHelp)
         self.panelHelp.Show()
 
-        self.codeInspector = codeInspector.CodeInspector(self, self.stackManager)
+        self.codeInspector = CodeInspector(self, self.stackManager)
         self.codeInspector.updateHelpTextFunc = self.UpdateHelpText
 
         self.lastSelectedUiViews = []
@@ -133,13 +133,13 @@ class ControlPanel(wx.Panel):
         self.editBox.AddSpacer(4)
         self.editBox.Add(self.helpResizer, 0, wx.EXPAND|wx.ALL, spacing)
         self.editBox.AddSpacer(4)
-        self.editBox.Add(self.codeInspector, 1, wx.EXPAND|wx.ALL, 0)
+        self.editBox.Add(self.codeInspector, 1, wx.EXPAND|wx.ALL, spacing)
         self.editBox.SetSizeHints(self)
 
         self.box = wx.BoxSizer(wx.VERTICAL)
         self.box.Add(self.toolGrid, 0, wx.LEFT, spacing)
-        self.box.Add(self.drawBox, 0, wx.EXPAND|wx.ALL, spacing)
-        self.box.Add(self.editBox, 1, wx.EXPAND|wx.ALL, spacing)
+        self.box.Add(self.drawBox, 0, wx.EXPAND|wx.ALL, 0)
+        self.box.Add(self.editBox, 1, wx.EXPAND|wx.ALL, 0)
         self.box.SetSizeHints(self)
 
         self.helpResizer.Bind(EVT_RW_LAYOUT_NEEDED, self.OnRwLayoutNeeded)

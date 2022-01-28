@@ -1,7 +1,7 @@
 import wx
 
 import generator
-from commands import *
+from appCommands import *
 from uiShape import UiShape, ShapeModel
 import math
 

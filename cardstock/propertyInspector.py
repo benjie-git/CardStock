@@ -6,7 +6,7 @@ import os
 import math
 
 
-class Inspector(wx.grid.Grid):
+class PropertyInspector(wx.grid.Grid):
     def __init__(self, parent, stackManager):
         super().__init__(parent)
 

@@ -13,7 +13,7 @@ from wx.lib.docview import CommandProcessor
 from time import time
 import json
 from tools import *
-from commands import *
+from appCommands import *
 import generator
 import findEngineDesigner
 import resourcePathManager
@@ -1143,8 +1143,8 @@ class StackManager(object):
             propName = uiView.model.PropertyKeys()[cPanel.inspector.GetGridCursorRow()]
             return (str(cardIndex) + "." + model.GetProperty("name") + ".property." + propName, (start, end, text))
 
-        start, end, text = self.designer.cPanel.codeInspector.GetCodeEditorSelection()
         handlerName = cPanel.codeInspector.GetCurrentHandler()
+        start, end, text = self.designer.cPanel.codeInspector.GetCodeEditorSelection(handlerName)
         if model and handlerName:
             return (str(cardIndex) + "." + model.GetProperty("name") + ".handler." + handlerName, (start, end, text))
 
