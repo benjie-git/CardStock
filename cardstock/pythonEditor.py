@@ -46,8 +46,6 @@ class PythonEditor(stc.StyledTextCtrl):
         if cPanel:
             self.analyzer.AddScanCompleteNotification(self.ScanFinished)
 
-        self.SetAutoLayout(True)
-
         self.SetTabWidth(TAB_WIDTH)
         self.SetUseTabs(0)
         self.SetTabIndents(True)

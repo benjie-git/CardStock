@@ -146,7 +146,6 @@ class ControlPanel(wx.Panel):
 
         self.UpdateHelpText("")
         self.SetSizer(self.box)
-        self.SetAutoLayout(True)
 
         self.toolTip = None
 

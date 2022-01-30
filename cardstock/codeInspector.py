@@ -32,7 +32,6 @@ class CodeInspector(wx.Window):
         self.editBox.Add(self.codeEditor, 1, wx.EXPAND|wx.ALL, spacing)
         self.editBox.SetSizeHints(self)
         self.SetSizer(self.editBox)
-        self.SetAutoLayout(True)
 
     def GetAnalyzer(self):
         return self.codeEditor.analyzer

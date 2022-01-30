@@ -614,6 +614,7 @@ class ViewModel(object):
                          "OnPeriodic": ""
                          }
         self.initialEditHandler = "OnMouseDown"
+        self.additionalVisibleHandlers = []
 
         self.properties = {"name": "",
                            "size": wx.Size(0,0),

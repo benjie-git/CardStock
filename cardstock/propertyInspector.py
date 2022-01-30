@@ -364,8 +364,8 @@ class GridCellCustomChoiceEditor(wx.grid.GridCellEditor):
         self.SetControl(self._listBox)
         if evtHandler:
             self._listBox.PushEventHandler(evtHandler)
-            self._listBox.Bind(wx.EVT_LEFT_UP, self.OnMouseSelect)
-            self._listBox.Bind(wx.EVT_LISTBOX, self.OnSelect)
+        self._listBox.Bind(wx.EVT_LEFT_UP, self.OnMouseSelect)
+        self._listBox.Bind(wx.EVT_LISTBOX, self.OnSelect)
 
     def SetSize(self, rect):
         self._listBox.SetPosition((rect.x, rect.y))
