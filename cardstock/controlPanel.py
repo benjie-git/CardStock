@@ -4,7 +4,7 @@ import wx.html
 import os
 import mediaSearchDialogs
 import propertyInspector
-from codeInspectorMulti import CodeInspector
+from codeInspectorMulti import CodeInspectorContainer
 from tools import *
 from appCommands import *
 from wx.lib import buttons # for generic button classes
@@ -114,7 +114,8 @@ class ControlPanel(wx.Panel):
         self.helpResizer.SetManagedChild(self.panelHelp)
         self.panelHelp.Show()
 
-        self.codeInspector = CodeInspector(self, self.stackManager)
+        codeInspectorContainer = CodeInspectorContainer(self, self.stackManager)
+        self.codeInspector = codeInspectorContainer.codeInspector
         self.codeInspector.updateHelpTextFunc = self.UpdateHelpText
 
         self.lastSelectedUiViews = []
@@ -133,7 +134,7 @@ class ControlPanel(wx.Panel):
         self.editBox.AddSpacer(4)
         self.editBox.Add(self.helpResizer, 0, wx.EXPAND|wx.ALL, spacing)
         self.editBox.AddSpacer(4)
-        self.editBox.Add(self.codeInspector, 1, wx.EXPAND|wx.ALL, spacing)
+        self.editBox.Add(codeInspectorContainer, 1, wx.EXPAND|wx.ALL, spacing)
         self.editBox.SetSizeHints(self)
 
         self.box = wx.BoxSizer(wx.VERTICAL)

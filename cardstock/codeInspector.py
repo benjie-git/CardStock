@@ -6,11 +6,22 @@ import appCommands
 from uiView import UiView
 
 
+class CodeInspectorContainer(wx.Window):
+    def __init__(self, cPanel, stackManager):
+        super().__init__(cPanel)
+        self.codeInspector = CodeInspector(self, cPanel, stackManager)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.codeInspector, 1, wx.EXPAND | wx.ALL, 0)
+        self.SetSizer(sizer)
+
+
+
 class CodeInspector(wx.Window):
-    def __init__(self, parent, stackManager):
+    def __init__(self, parent, cPanel, stackManager):
         super().__init__(parent)
 
         self.parent = parent
+        self.cPanel = cPanel
         self.stackManager = stackManager
         self.updateHelpTextFunc = None
 
@@ -22,7 +33,7 @@ class CodeInspector(wx.Window):
         self.handlerPicker.Enable(False)
         self.handlerPicker.Bind(wx.EVT_CHOICE, self.OnHandlerChoice)
 
-        self.codeEditor = pythonEditor.PythonEditor(self, parent, self.stackManager, style=wx.BORDER_SUNKEN)
+        self.codeEditor = pythonEditor.PythonEditor(self, cPanel, self.stackManager, style=wx.BORDER_SUNKEN)
         self.codeEditor.Bind(wx.EVT_IDLE, self.CodeEditorOnIdle)
         self.codeEditor.Bind(wx.EVT_SET_FOCUS, self.CodeEditorFocused)
 
@@ -153,7 +164,7 @@ class CodeInspector(wx.Window):
                 newCursorSel = self.codeEditor.GetSelection()
 
                 if newVal != oldVal:
-                    command = appCommands.SetHandlerCommand(True, "Set Handler", self.parent, self.stackManager.cardIndex, uiView.model,
+                    command = appCommands.SetHandlerCommand(True, "Set Handler", self.cPanel, self.stackManager.cardIndex, uiView.model,
                                                 self.currentHandler, newVal, self.lastCursorSel, newCursorSel)
                     self.stackManager.command_processor.Submit(command)
                 self.lastCursorSel = newCursorSel

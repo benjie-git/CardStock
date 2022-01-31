@@ -6,9 +6,29 @@ import appCommands
 from uiView import UiView
 
 
-class CodeInspector(wx.ScrolledWindow):
+class CodeInspectorContainer(wx.Window):
     def __init__(self, cPanel, stackManager):
-        super().__init__(cPanel, style=wx.BORDER_SUNKEN)
+        super().__init__(cPanel)
+        self.codeInspector = CodeInspector(self, cPanel, stackManager)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.codeInspector, 1, wx.EXPAND | wx.ALL, 0)
+        self.SetSizer(sizer)
+        self.Bind(wx.EVT_SIZE, self.OnResize)
+
+        self.addButton = wx.Button(self, label="Add Event")
+        self.addButton.SetBitmap(wx.ArtProvider.GetBitmap(wx.ART_PLUS, size=wx.Size(19,19)))
+        self.addButton.Bind(wx.EVT_LEFT_DOWN, self.codeInspector.OnPlusClicked)
+        self.addButton.Bind(wx.EVT_LEFT_DCLICK, self.codeInspector.OnPlusClicked)
+        self.addButton.Fit()
+
+    def OnResize(self, event):
+        self.addButton.SetPosition((self.codeInspector.ClientSize.Width - self.addButton.Size.Width-18, 2))
+        event.Skip()
+
+
+class CodeInspector(wx.ScrolledWindow):
+    def __init__(self, parent, cPanel, stackManager):
+        super().__init__(parent, style=wx.BORDER_SUNKEN)
         self.SetBackgroundColour('white')  #'"#EEEEEE")
         self.AlwaysShowScrollbars(False, True)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
@@ -18,12 +38,15 @@ class CodeInspector(wx.ScrolledWindow):
 
         self.handlerPicker = None
 
+        self.container = parent
         self.cPanel = cPanel
         self.stackManager = stackManager
         self.updateHelpTextFunc = None
 
         self.currentUiView = None
         self.blocks = {}
+        self.visibleBlocks = []
+
         self.blockCache = []
 
         self.SetScrollbars(1, 1, 1, 1)
@@ -31,6 +54,9 @@ class CodeInspector(wx.ScrolledWindow):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetupEditorsForUiView(None)
         self.SetSizer(self.sizer)
+
+    def ShouldScrollToChildOnFocus(self, child):
+        return False
 
     def ClearViews(self):
         self.sizer.Clear()
@@ -78,7 +104,6 @@ class CodeInspector(wx.ScrolledWindow):
             if handlerName in self.currentUiView.model.visibleHandlers:
                 if not firstBlock:
                     firstBlock = editorBlock
-                editorBlock.ShowAddButton(False)
                 editorBlock.SetCanShowCloseButton(True)
                 editorBlock.line.Show()
                 lastBlock = editorBlock
@@ -95,14 +120,14 @@ class CodeInspector(wx.ScrolledWindow):
             lastBlock.Show()
             numShown += 1
 
-        disableAddButton = (numShown == len(self.currentUiView.model.handlers))
-        firstBlock.ShowAddButton(True, disableAddButton)
         if numShown == 1:
             lastBlock.SetCanShowCloseButton(False)
         lastBlock.line.Hide()  # Hide last botom-line
 
+        self.visibleBlocks = []
         for handlerName, block in self.blocks.items():
             if block.IsShown():
+                self.visibleBlocks.append(block)
                 block.UpdateLabelState(handlerName)
                 block.UpdateEditorSize()
         self.Relayout()
@@ -210,6 +235,7 @@ class CodeInspector(wx.ScrolledWindow):
             event.Skip()
 
     def OnPlusClicked(self, event):
+        self.container.addButton.Hide()
         displayNames = []
         for k in self.currentUiView.model.GetHandlers().keys():
             displayNames.append(UiView.handlerDisplayNames[k])
@@ -255,12 +281,14 @@ class CodeInspector(wx.ScrolledWindow):
         elif event.GetKeyCode() in (wx.WXK_ESCAPE, wx.WXK_BACK, wx.WXK_DELETE):
             self.handlerPicker.DestroyLater()
             self.handlerPicker = None
+            self.container.addButton.Show()
         else:
             event.Skip()
 
     def OnPickerLostFocus(self, event):
         self.handlerPicker.DestroyLater()
         self.handlerPicker = None
+        self.container.addButton.Show()
         event.Skip()
 
     def GetPickerSelectedHandler(self):
@@ -281,6 +309,7 @@ class CodeInspector(wx.ScrolledWindow):
         self.UpdateEditorVisibility()
         self.handlerPicker.DestroyLater()
         self.handlerPicker = None
+        self.container.addButton.Show()
         self.blocks[handlerName].codeEditor.SetFocus()
 
     def OnMouseDown(self, event):
@@ -320,12 +349,12 @@ class CodeInspector(wx.ScrolledWindow):
         if self.currentUiView:
             codeEditor = event.GetEventObject()
             handlerName = codeEditor.currentHandler
+            self.blocks[handlerName].ScrollParentIfNeeded()
             self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, handlerName))
         event.Skip()
 
 
 class EditorBlock(wx.Window):
-    plusBmp = None
     closeBmp = None
 
     def __init__(self, parent, stackManager, cPanel):
@@ -337,16 +366,10 @@ class EditorBlock(wx.Window):
         self.uiView = None
         self.canShowClose = False
 
-        if not EditorBlock.plusBmp:
-            EditorBlock.plusBmp = wx.ArtProvider.GetBitmap(wx.ART_PLUS, size=wx.Size(20,20))
         if not EditorBlock.closeBmp:
             EditorBlock.closeBmp = wx.ArtProvider.GetBitmap(wx.ART_CLOSE, size=wx.Size(12,12))
 
         self.label = wx.StaticText(self)
-        self.addButton = wx.Button(self, label="Add Event")
-        self.addButton.SetBitmap(EditorBlock.plusBmp)
-        self.addButton.Bind(wx.EVT_LEFT_DOWN, self.parent.OnPlusClicked)
-        self.addButton.Bind(wx.EVT_LEFT_DCLICK, self.parent.OnPlusClicked)
         self.closeButton = wx.StaticBitmap(self, bitmap=EditorBlock.closeBmp)
         self.closeButton.SetToolTip("Close")
         self.closeButton.Bind(wx.EVT_LEFT_DOWN, self.OnBlockClose)
@@ -354,7 +377,6 @@ class EditorBlock(wx.Window):
 
         self.headerSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.headerSizer.Add(self.label, 1, wx.EXPAND | wx.ALL, 4)
-        self.headerSizer.Add(self.addButton, 0, wx.EXPAND | wx.ALL, 1)
         self.headerSizer.AddSpacer(8)
         self.headerSizer.Add(self.closeButton, 0, wx.EXPAND | wx.ALL, 1)
         self.headerSizer.AddSpacer(4)
@@ -364,6 +386,7 @@ class EditorBlock(wx.Window):
         self.codeEditor.SetUseHorizontalScrollBar(True)
         # self.codeEditor.SetCaretLineVisibleAlways(False)
         self.codeEditor.Bind(wx.EVT_IDLE, self.CodeEditorOnIdle)
+        self.codeEditor.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.codeEditor.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
         self.codeEditor.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUi)
         self.codeEditor.Bind(wx.EVT_SET_FOCUS, parent.CodeEditorFocused)
@@ -391,13 +414,8 @@ class EditorBlock(wx.Window):
         self.codeEditor.EmptyUndoBuffer()
         self.codeEditor.Fit()
         self.line.Show()
-        self.addButton.Hide()
         self.UpdateLabelState(handlerName)
         self.UpdateEditorSize()
-
-    def ShowAddButton(self, show, disable=False):
-        self.addButton.Show(show)
-        self.addButton.Enable(not disable)
 
     def SetCanShowCloseButton(self, show):
         self.canShowClose = show
@@ -418,7 +436,6 @@ class EditorBlock(wx.Window):
         isPopulated = len(code.strip()) > 0
         self.closeButton.Show(self.canShowClose and not isPopulated)
 
-        self.addButton.SetBitmap(EditorBlock.plusBmp)
         self.headerSizer.Layout()
 
     def UpdateEditorSize(self):
@@ -451,6 +468,22 @@ class EditorBlock(wx.Window):
             self.ScrollParentIfNeeded()
         event.Skip()
 
+    def OnKeyDown(self, event):
+        line = self.codeEditor.GetCurrentLine()
+        if event.GetKeyCode() in (wx.WXK_UP, wx.WXK_NUMPAD_UP) and line == 0:
+            index = self.parent.visibleBlocks.index(self)
+            if index > 0:
+                ed = self.parent.visibleBlocks[index-1].codeEditor
+                ed.SetSelection(ed.GetLastPosition(), ed.GetLastPosition())
+                ed.SetFocus()
+        elif event.GetKeyCode() in (wx.WXK_DOWN, wx.WXK_NUMPAD_DOWN) and line == self.codeEditor.GetNumberOfLines()-1:
+            index = self.parent.visibleBlocks.index(self)
+            if index < len(self.parent.visibleBlocks)-1:
+                ed = self.parent.visibleBlocks[index+1].codeEditor
+                ed.SetSelection(0,0)
+                ed.SetFocus()
+        event.Skip()
+
     def OnKeyUp(self, event):
         self.ScrollParentIfNeeded()
         event.Skip()
@@ -465,9 +498,9 @@ class EditorBlock(wx.Window):
         y += usp
         vs = self.parent.GetViewStart()[1]
         s = self.parent.GetSize()[1]
-        if y-20 < vs:
+        if y < vs:
             wx.CallAfter(self.parent.Scroll, 0, y-20)
-        elif y+40 > vs + s:
+        elif y+20 > vs + s:
             wx.CallAfter(self.parent.Scroll, 0, y-s+40)
 
     def OnEditorLostFocus(self, event):
