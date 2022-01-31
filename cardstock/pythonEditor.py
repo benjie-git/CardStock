@@ -104,6 +104,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.Bind(stc.EVT_STC_CHANGE, self.PyEditorOnChange)
         self.Bind(wx.EVT_SET_FOCUS, self.PyEditorOnFocus)
         self.Bind(wx.EVT_KILL_FOCUS, self.PyEditorOnLoseFocus)
+        self.Bind(stc.EVT_STC_CLIPBOARD_PASTE, self.OnPaste)
         self.Bind(wx.EVT_KEY_DOWN, self.PyEditorOnKeyPress)
         self.Bind(wx.EVT_CHAR, self.PyEditorOnChar)
         self.Bind(stc.EVT_STC_ZOOM, self.PyEditorOnZoom)
@@ -137,6 +138,10 @@ class PythonEditor(stc.StyledTextCtrl):
                 self.ScrollRange(self.GetCurrentPos(), self.GetCurrentPos())
                 self.SetXOffset(0)
                 return
+        event.Skip()
+
+    def OnPaste(self, event):
+        self.AutoCompCancel()
         event.Skip()
 
     def PyEditorOnChar(self, event):
