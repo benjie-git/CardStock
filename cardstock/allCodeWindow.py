@@ -144,5 +144,5 @@ class AllCodeWindow(wx.Frame):
         self.designer.stackManager.LoadCardAtIndex(card.parent.childModels.index(card))
         uiView = self.designer.stackManager.GetUiViewByModel(obj)
         self.designer.stackManager.SelectUiView(uiView)
-        self.designer.cPanel.UpdateHandlerForUiViews([uiView], handlerName)
+        self.designer.cPanel.UpdateHandlerForUiViews([uiView], None)
         self.designer.cPanel.codeInspector.SelectAndScrollToLine(handlerName, lineNum-1)

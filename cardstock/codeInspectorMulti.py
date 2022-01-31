@@ -92,7 +92,6 @@ class CodeInspector(wx.ScrolledWindow):
             for (handlerName, code) in uiView.model.handlers.items():
                 if len(code.strip()):
                     editorBlock = self.blocks[handlerName]
-                    editorBlock.codeEditor.SetFocus()
                     break
 
     def UpdateEditorVisibility(self):
@@ -171,14 +170,12 @@ class CodeInspector(wx.ScrolledWindow):
 
         if uiView and handlerName:
             editorBlock = self.blocks[handlerName]
-            editorBlock.codeEditor.SetFocus()
             if selection and uiView:
                 firstLine = editorBlock.codeEditor.GetFirstVisibleLine()
                 editorBlock.codeEditor.AutoCompCancel()
 
             editorBlock.lastCursorSel = editorBlock.codeEditor.GetSelection()
             editorBlock.SetupForHandler(uiView, handlerName)
-            editorBlock.codeEditor.SetFocus()
 
             if selection:
                 editorBlock.codeEditor.SetSelection(*selection)
@@ -353,9 +350,10 @@ class CodeInspector(wx.ScrolledWindow):
         if self.currentUiView:
             codeEditor = event.GetEventObject()
             handlerName = codeEditor.currentHandler
-            self.blocks[handlerName].ScrollParentIfNeeded()
-            self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, handlerName))
-            self.lastFocusedHandler = handlerName
+            if handlerName in self.blocks and self.blocks[handlerName].IsShown():
+                self.blocks[handlerName].ScrollParentIfNeeded()
+                self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, handlerName))
+                self.lastFocusedHandler = handlerName
         event.Skip()
 
 
@@ -418,10 +416,6 @@ class EditorBlock(wx.Window):
         self.codeEditor.currentHandler = handlerName
         self.codeEditor.SetupWithText(code)
         self.codeEditor.EmptyUndoBuffer()
-        self.codeEditor.Fit()
-        self.line.Show()
-        self.UpdateLabelState(handlerName)
-        self.UpdateEditorSize()
 
     def SetCanShowCloseButton(self, show):
         """ Can't show close button if this is the only visible block. """

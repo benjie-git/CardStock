@@ -79,7 +79,7 @@ class FindEngine(object):
                 uiViews = []
                 if len(self.stackManager.designer.cPanel.lastSelectedUiViews) == 1:
                     uiViews = [self.stackManager.designer.cPanel.lastSelectedUiViews[0]]
-                self.stackManager.designer.cPanel.UpdateHandlerForUiViews(uiViews, key)
+                self.stackManager.designer.cPanel.UpdateHandlerForUiViews(uiViews, None)
                 pos = textSel[0] + len(replaceStr)
                 self.stackManager.designer.cPanel.codeInspector.SelectAndScrollTo(key, pos, pos)
             self.didReplace = True

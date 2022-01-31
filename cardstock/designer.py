@@ -111,7 +111,7 @@ class DesignerFrame(wx.Frame):
 
         self.toolbar.AddStretchableSpace()
 
-        self.cardPicker = wx.Choice(parent=self.toolbar, size=(200,20))
+        self.cardPicker = wx.Choice(parent=self.toolbar)
         self.cardPicker.Bind(wx.EVT_CHOICE, self.OnPickCard)
         self.cardPickerToolId = self.toolbar.AddControl(self.cardPicker).GetId()
 
@@ -906,7 +906,7 @@ class DesignerFrame(wx.Frame):
         self.cardPicker.SetSelection(self.stackManager.cardIndex)
 
         self.toolbar.RemoveTool(self.cardPickerToolId)
-        self.cardPicker.SetSize((200,20))
+        self.cardPicker.Fit()
 
         # Update toolbar to show 'Run This Card' only when on card 2+
         isShowingTool = self.toolbar.FindById(ID_RUN_FROM)
