@@ -10,9 +10,6 @@ class CodeInspectorContainer(wx.Window):
     def __init__(self, cPanel, stackManager):
         super().__init__(cPanel)
         self.codeInspector = CodeInspector(self, cPanel, stackManager)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.codeInspector, 1, wx.EXPAND | wx.ALL, 0)
-        self.SetSizer(sizer)
         self.Bind(wx.EVT_SIZE, self.OnResize)
 
         self.addButton = wx.Button(self, label="Add Event")
@@ -22,6 +19,7 @@ class CodeInspectorContainer(wx.Window):
         self.addButton.Fit()
 
     def OnResize(self, event):
+        self.codeInspector.SetRect(wx.Rect((0,0), event.GetSize()))
         self.addButton.SetPosition((self.codeInspector.ClientSize.Width - self.addButton.Size.Width-18, 2))
         event.Skip()
 
@@ -29,7 +27,7 @@ class CodeInspectorContainer(wx.Window):
 class CodeInspector(wx.ScrolledWindow):
     def __init__(self, parent, cPanel, stackManager):
         super().__init__(parent, style=wx.BORDER_SUNKEN)
-        self.SetBackgroundColour('white')  #'"#EEEEEE")
+        self.SetBackgroundColour('white')
         self.AlwaysShowScrollbars(False, True)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
@@ -228,9 +226,9 @@ class CodeInspector(wx.ScrolledWindow):
         if event.GetWheelAxis() == wx.MOUSE_WHEEL_VERTICAL:
             pos = self.GetViewStart()
             dy = event.GetWheelRotation()
-            if event.IsWheelInverted():
-                dy = -dy
-            self.Scroll(pos[0], pos[1]+dy)
+            # if event.IsWheelInverted():
+            #     dy = -dy
+            self.Scroll(pos[0], pos[1]-dy)
         else:
             event.Skip()
 
@@ -360,6 +358,7 @@ class EditorBlock(wx.Window):
     def __init__(self, parent, stackManager, cPanel):
         super().__init__(parent)
         self.Bind(wx.EVT_LEFT_DOWN, parent.OnBlockClick)
+        self.SetBackgroundColour('white')
         self.stackManager = stackManager
         self.parent = parent
         self.cPanel = cPanel
@@ -370,6 +369,7 @@ class EditorBlock(wx.Window):
             EditorBlock.closeBmp = wx.ArtProvider.GetBitmap(wx.ART_CLOSE, size=wx.Size(12,12))
 
         self.label = wx.StaticText(self)
+        self.label.SetBackgroundColour('white')
         self.closeButton = wx.StaticBitmap(self, bitmap=EditorBlock.closeBmp)
         self.closeButton.SetToolTip("Close")
         self.closeButton.Bind(wx.EVT_LEFT_DOWN, self.OnBlockClose)
@@ -384,7 +384,6 @@ class EditorBlock(wx.Window):
         self.codeEditor = pythonEditor.PythonEditor(self, cPanel, self.stackManager, style=wx.BORDER_NONE)
         self.codeEditor.SetUseVerticalScrollBar(False)
         self.codeEditor.SetUseHorizontalScrollBar(True)
-        # self.codeEditor.SetCaretLineVisibleAlways(False)
         self.codeEditor.Bind(wx.EVT_IDLE, self.CodeEditorOnIdle)
         self.codeEditor.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.codeEditor.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
