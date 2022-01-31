@@ -37,6 +37,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#ADCEA2"
           },
           "points": [
@@ -88,7 +89,9 @@
             "alignment": "Right",
             "textColor": "#A0A0A0",
             "font": "Default",
-            "fontSize": 11
+            "fontSize": 11,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -108,7 +111,9 @@
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 25
+            "fontSize": 25,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -128,7 +133,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -148,7 +155,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -170,7 +179,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         }
       ]
@@ -202,6 +213,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#ADCEA2"
           },
           "points": [
@@ -251,7 +263,9 @@
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 25
+            "fontSize": 25,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -271,7 +285,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -292,7 +308,8 @@
               88
             ],
             "penColor": "#000000",
-            "penThickness": 4
+            "penThickness": 4,
+            "rotation": 0.0
           },
           "points": [
             [
@@ -323,7 +340,8 @@
               21
             ],
             "penColor": "#000000",
-            "penThickness": 4
+            "penThickness": 4,
+            "rotation": 0.0
           },
           "points": [
             [
@@ -420,7 +438,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         }
       ]
@@ -452,6 +472,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#ADCEA2"
           },
           "points": [
@@ -501,7 +522,9 @@
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 25
+            "fontSize": 25,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -564,7 +587,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         }
       ]
@@ -596,6 +621,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#ADCEA2"
           },
           "points": [
@@ -645,7 +671,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -665,7 +693,9 @@
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 25
+            "fontSize": 25,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -735,6 +765,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#ADCEA2"
           },
           "points": [
@@ -784,7 +815,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -802,7 +835,7 @@
             ],
             "file": "ship-on.png",
             "fit": "Center",
-            "rotation": 0,
+            "rotation": 0.0,
             "xFlipped": false,
             "yFlipped": false
           }
@@ -826,6 +859,7 @@
             ],
             "penColor": "#000000",
             "penThickness": 4,
+            "rotation": 0.0,
             "fillColor": "white",
             "cornerRadius": 12
           },
@@ -858,7 +892,8 @@
               190
             ],
             "penColor": "#000000",
-            "penThickness": 4
+            "penThickness": 4,
+            "rotation": 0.0
           },
           "points": [
             [
@@ -1332,7 +1367,9 @@
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 25
+            "fontSize": 25,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -1373,6 +1410,7 @@
             ],
             "penColor": "black",
             "penThickness": 4,
+            "rotation": 0.0,
             "fillColor": "white"
           },
           "points": [
@@ -1415,6 +1453,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#ADCEA2"
           },
           "points": [
@@ -1464,7 +1503,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -1508,6 +1549,7 @@
             ],
             "penColor": "#000000",
             "penThickness": 4,
+            "rotation": 0.0,
             "fillColor": "#FF9BB4",
             "cornerRadius": 12
           },
@@ -1540,7 +1582,8 @@
               190
             ],
             "penColor": "red",
-            "penThickness": 12
+            "penThickness": 12,
+            "rotation": 0.0
           },
           "points": [
             [
@@ -2016,6 +2059,7 @@
             ],
             "penColor": "black",
             "penThickness": 4,
+            "rotation": 0.0,
             "fillColor": "#85DF6E"
           },
           "points": [
@@ -2046,7 +2090,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -2066,7 +2112,9 @@
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 25
+            "fontSize": 25,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -2100,7 +2148,8 @@
             "position": [
               391.0,
               393.0
-            ]
+            ],
+            "rotation": 0.0
           },
           "childModels": [
             {
@@ -2121,7 +2170,8 @@
                   2
                 ],
                 "penColor": "black",
-                "penThickness": 4
+                "penThickness": 4,
+                "rotation": 0.0
               },
               "points": [
                 [
@@ -2152,7 +2202,8 @@
                   21
                 ],
                 "penColor": "black",
-                "penThickness": 4
+                "penThickness": 4,
+                "rotation": 0.0
               },
               "points": [
                 [
@@ -2183,7 +2234,8 @@
                   9
                 ],
                 "penColor": "black",
-                "penThickness": 4
+                "penThickness": 4,
+                "rotation": 0.0
               },
               "points": [
                 [
@@ -2214,7 +2266,8 @@
                   15
                 ],
                 "penColor": "black",
-                "penThickness": 4
+                "penThickness": 4,
+                "rotation": 0.0
               },
               "points": [
                 [
@@ -2258,6 +2311,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#ADCEA2"
           },
           "points": [
@@ -2307,7 +2361,9 @@
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 25
+            "fontSize": 25,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -2329,6 +2385,7 @@
             ],
             "penColor": "#FB0207",
             "penThickness": 4,
+            "rotation": 0.0,
             "fillColor": "#E6E7EA"
           },
           "points": [
@@ -2450,7 +2507,9 @@
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         }
       ]
@@ -2482,6 +2541,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#ADCEA2"
           },
           "points": [
@@ -2512,7 +2572,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -2571,7 +2633,8 @@
               142
             ],
             "penColor": "#000000",
-            "penThickness": 4
+            "penThickness": 4,
+            "rotation": 0.0
           },
           "points": [
             [
@@ -2602,7 +2665,8 @@
               30
             ],
             "penColor": "#000000",
-            "penThickness": 4
+            "penThickness": 4,
+            "rotation": 0.0
           },
           "points": [
             [
@@ -2684,11 +2748,13 @@
               23.0,
               59.0
             ],
-            "text": "This code is run when the currently chosen event happens.  The above button has code in its OnClick() event, which will run whenever this button is clicked.  Each type of object can respond to a different set of events.  For any selected object, you can choose which event's code to view and edit using the event picker just above the Code Editor.",
+            "text": "This code is run when the currently chosen event happens.  The above button has code in its OnClick() event, which will run whenever this button is clicked.  Each type of object can respond to a different set of events.  For any selected object, you can see all of the events that already have code in them, and you can add more events to by clicking the \"+ Add Events\" button.",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -2708,7 +2774,9 @@
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 25
+            "fontSize": 25,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -2747,7 +2815,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         }
       ]
@@ -2779,6 +2849,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#ADCEA2"
           },
           "points": [
@@ -2847,7 +2918,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -2867,7 +2940,9 @@
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 25
+            "fontSize": 25,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -2940,6 +3015,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#ADCEA2"
           },
           "points": [
@@ -3008,7 +3084,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -3028,7 +3106,9 @@
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 25
+            "fontSize": 25,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -3069,6 +3149,7 @@
             ],
             "penColor": "black",
             "penThickness": 1,
+            "rotation": 0.0,
             "fillColor": "#E62332"
           },
           "points": [
@@ -3111,6 +3192,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#ADCEA2"
           },
           "points": [
@@ -3130,18 +3212,20 @@
           "properties": {
             "name": "label_1",
             "size": [
-              327,
-              38
+              343,
+              43
             ],
             "position": [
               84.0,
-              446.0
+              442.0
             ],
             "text": "Run Your Stack!",
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 25
+            "fontSize": 25,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -3161,7 +3245,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -3182,7 +3268,8 @@
               84
             ],
             "penColor": "#000000",
-            "penThickness": 4
+            "penThickness": 4,
+            "rotation": 0.0
           },
           "points": [
             [
@@ -3213,7 +3300,8 @@
               30
             ],
             "penColor": "#000000",
-            "penThickness": 4
+            "penThickness": 4,
+            "rotation": 0.0
           },
           "points": [
             [
@@ -3307,7 +3395,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -3327,7 +3417,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -3347,7 +3439,9 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -3386,12 +3480,14 @@
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 12
+            "fontSize": 12,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         }
       ]
     }
   ],
   "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9"
+  "CardStock_stack_version": "0.9.8"
 }

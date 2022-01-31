@@ -113,7 +113,7 @@ class DesignerFrame(wx.Frame):
 
         self.cardPicker = wx.Choice(parent=self.toolbar, size=(200,20))
         self.cardPicker.Bind(wx.EVT_CHOICE, self.OnPickCard)
-        self.toolbar.AddControl(self.cardPicker)
+        self.cardPickerToolId = self.toolbar.AddControl(self.cardPicker).GetId()
 
         self.toolbar.AddTool(ID_PREV_CARD, 'Previous Card', wx.ArtProvider.GetBitmap(wx.ART_GO_BACK), wx.NullBitmap)
         self.toolbar.AddTool(ID_ADD_CARD, 'Add Card', wx.ArtProvider.GetBitmap(wx.ART_PLUS), wx.NullBitmap)
@@ -905,6 +905,9 @@ class DesignerFrame(wx.Frame):
         self.cardPicker.SetItems(choices)
         self.cardPicker.SetSelection(self.stackManager.cardIndex)
 
+        self.toolbar.RemoveTool(self.cardPickerToolId)
+        self.cardPicker.SetSize((200,20))
+
         # Update toolbar to show 'Run This Card' only when on card 2+
         isShowingTool = self.toolbar.FindById(ID_RUN_FROM)
         if not isShowingTool and self.stackManager.cardIndex > 0:
@@ -912,7 +915,9 @@ class DesignerFrame(wx.Frame):
             self.toolbar.Realize()
         elif isShowingTool and self.stackManager.cardIndex == 0:
             self.toolbar.RemoveTool(ID_RUN_FROM)
-            self.toolbar.Realize()
+
+        self.cardPickerToolId = self.toolbar.InsertControl(2 if (self.stackManager.cardIndex == 0) else 3, self.cardPicker).GetId()
+        self.toolbar.Realize()
 
     def OnStackContainerFocus(self, event):
         self.stackManager.view.SetFocus()
