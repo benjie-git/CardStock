@@ -1162,7 +1162,7 @@ class StackManager(object):
             if parts[2] == "property":
                 wx.CallAfter(self.designer.cPanel.SelectInInspectorForPropertyName, parts[3], selectStart, selectEnd)
             elif parts[2] == "handler":
-                wx.CallAfter(self.designer.cPanel.codeInspector.SelectInCodeForHandlerName, parts[3], selectStart, selectEnd)
+                wx.CallAfter(self.designer.cPanel.codeInspector.SelectAndScrollTo, parts[3], selectStart, selectEnd)
 
     def GetViewerFindPath(self):
         cardModel = self.uiCard.model

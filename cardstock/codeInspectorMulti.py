@@ -7,6 +7,7 @@ from uiView import UiView
 
 
 class CodeInspectorContainer(wx.Window):
+    """ Contains the codeInspector, and the fixed-position 'Add Event' button """
     def __init__(self, cPanel, stackManager):
         super().__init__(cPanel)
         self.codeInspector = CodeInspector(self, cPanel, stackManager)
@@ -25,6 +26,10 @@ class CodeInspectorContainer(wx.Window):
 
 
 class CodeInspector(wx.ScrolledWindow):
+    """
+    Contains a block for each available handler for the selected object.
+    Manages their visibility and scrolling.
+    """
     def __init__(self, parent, cPanel, stackManager):
         super().__init__(parent, style=wx.BORDER_SUNKEN)
         self.SetBackgroundColour('white')
@@ -44,6 +49,7 @@ class CodeInspector(wx.ScrolledWindow):
         self.currentUiView = None
         self.blocks = {}
         self.visibleBlocks = []
+        self.lastFocusedHandler = None
 
         self.blockCache = []
 
@@ -57,12 +63,14 @@ class CodeInspector(wx.ScrolledWindow):
         return False
 
     def ClearViews(self):
+        """ Remove all blocks in preparation for setting up or a new view. """
         self.sizer.Clear()
 
         for editorBlock in self.blocks.values():
             self.blockCache.append(editorBlock)
             editorBlock.Hide()
         self.blocks = {}
+        self.lastFocusedHandler = None
 
     def SetupEditorsForUiView(self, uiView):
         if uiView == self.currentUiView:
@@ -91,17 +99,14 @@ class CodeInspector(wx.ScrolledWindow):
         if not self.currentUiView:
             return
 
-        firstBlock = None
         lastBlock = None
         numShown = 0
         for (handlerName, code) in self.currentUiView.model.handlers.items():
             editorBlock = self.blocks[handlerName]
             isPopulated = len(code.strip()) > 0
             if isPopulated:
-                self.currentUiView.model.visibleHandlers.append(handlerName)
+                self.currentUiView.model.visibleHandlers.add(handlerName)
             if handlerName in self.currentUiView.model.visibleHandlers:
-                if not firstBlock:
-                    firstBlock = editorBlock
                 editorBlock.SetCanShowCloseButton(True)
                 editorBlock.line.Show()
                 lastBlock = editorBlock
@@ -112,15 +117,15 @@ class CodeInspector(wx.ScrolledWindow):
 
         if numShown == 0:
             initial = self.currentUiView.model.initialEditHandler
-            self.currentUiView.model.visibleHandlers.append(initial)
-            firstBlock = lastBlock = self.blocks[initial]
+            self.currentUiView.model.visibleHandlers.add(initial)
+            lastBlock = self.blocks[initial]
             lastBlock.SetCanShowCloseButton(False)
             lastBlock.Show()
             numShown += 1
 
         if numShown == 1:
             lastBlock.SetCanShowCloseButton(False)
-        lastBlock.line.Hide()  # Hide last botom-line
+        lastBlock.line.Hide()  # Hide last block's bottom-line
 
         self.visibleBlocks = []
         for handlerName, block in self.blocks.items():
@@ -130,10 +135,8 @@ class CodeInspector(wx.ScrolledWindow):
                 block.UpdateEditorSize()
         self.Relayout()
 
-    def GetAnalyzer(self):
-        return self.stackManager.analyzer
-
     def GetEditorBlock(self):
+        """ Get an editor block from the cache, or create a new one if we've run out. """
         if len(self.blockCache):
             editorBlock = self.blockCache.pop()
             editorBlock.Show()
@@ -143,23 +146,14 @@ class CodeInspector(wx.ScrolledWindow):
             return editorBlock
 
     def Relayout(self):
+        """ Layout the blocks, e.g. after changing block visibility. """
         self.sizer.FitInside(self)
 
-    def ShowEditorBlock(self, handlerName, show):
-        editorBlock = self.blocks[handlerName]
-        if not show:
-            if editorBlock.codeEditor.HasFocus():
-                self.stackManager.view.SetFocus()
-            editorBlock.Hide()
-        else:
-            editorBlock.Show()
-            editorBlock.codeEditor.SetFocus()
-        editorBlock.UpdateLabelState(handlerName)
-        editorBlock.UpdateEditorSize()
-        self.Relayout()
-
     def GetCurrentHandler(self):
+        """ Determine the handler currently being edited.  """
         if self.currentUiView:
+            if self.lastFocusedHandler:
+                return self.lastFocusedHandler
             for (handlerName, editorBlock) in self.blocks.items():
                 if editorBlock.codeEditor.HasFocus():
                     return handlerName
@@ -169,52 +163,45 @@ class CodeInspector(wx.ScrolledWindow):
             return self.currentUiView.model.handlers[0]
         return None
 
-    def UpdateHandlerForUiView(self, uiView, handlerName, selection=None):
+    def UpdateHandlerForUiView(self, uiView, handlerName=None, selection=None):
+        """
+        Set up the codeInspector for the specified view, focus any given handler, and select any given selection.
+        """
         self.SetupEditorsForUiView(uiView)
 
-        if uiView:
-            if handlerName:
-                editorBlock = self.blocks[handlerName]
+        if uiView and handlerName:
+            editorBlock = self.blocks[handlerName]
+            editorBlock.codeEditor.SetFocus()
+            if selection and uiView:
+                firstLine = editorBlock.codeEditor.GetFirstVisibleLine()
+                editorBlock.codeEditor.AutoCompCancel()
+
+            editorBlock.lastCursorSel = editorBlock.codeEditor.GetSelection()
+            editorBlock.SetupForHandler(uiView, handlerName)
+            editorBlock.codeEditor.SetFocus()
+
+            if selection:
+                editorBlock.codeEditor.SetSelection(*selection)
+                editorBlock.codeEditor.ScrollToLine(firstLine)
+                editorBlock.codeEditor.ScrollRange(*selection)
                 editorBlock.codeEditor.SetFocus()
-                if selection and uiView:
-                    firstLine = editorBlock.codeEditor.GetFirstVisibleLine()
-                    editorBlock.codeEditor.AutoCompCancel()
 
-                editorBlock.lastCursorSel = editorBlock.codeEditor.GetSelection()
-                editorBlock.SetupForHandler(uiView, handlerName)
-                self.ShowEditorBlock(handlerName, True)
-
-                if selection:
-                    editorBlock.codeEditor.SetSelection(*selection)
-                    editorBlock.codeEditor.ScrollToLine(firstLine)
-                    editorBlock.codeEditor.ScrollRange(*selection)
-                    editorBlock.codeEditor.SetFocus()
-
-                self.stackManager.analyzer.RunAnalysis()
+            self.stackManager.analyzer.RunAnalysis()
 
     def SelectAndScrollTo(self, handlerName, selStart, selEnd):
         editorBlock = self.blocks[handlerName]
-        self.ShowEditorBlock(handlerName, True)
+        editorBlock.codeEditor.SetFocus()
         editorBlock.codeEditor.SetSelection(selStart, selEnd)
         editorBlock.codeEditor.ScrollRange(selStart, selEnd)
-        editorBlock.codeEditor.SetFocus()
 
     def SelectAndScrollToLine(self, handlerName, selLine):
         editorBlock = self.blocks[handlerName]
-        self.ShowEditorBlock(handlerName, True)
         editorBlock.codeEditor.GotoLine(selLine)
         lineEnd = editorBlock.codeEditor.GetLineEndPosition(selLine)
         lineLen = editorBlock.codeEditor.GetLineLength(selLine)
+        editorBlock.codeEditor.SetFocus()
         editorBlock.codeEditor.SetSelectionStart(lineEnd-lineLen)
         editorBlock.codeEditor.SetSelectionEnd(lineEnd)
-        editorBlock.codeEditor.SetFocus()
-
-    def SelectInCodeForHandlerName(self, handlerName, selectStart, selectEnd):
-        editorBlock = self.blocks[handlerName]
-        self.ShowEditorBlock(handlerName, True)
-        editorBlock.codeEditor.SetSelection(selectStart, selectEnd)
-        editorBlock.codeEditor.ScrollRange(selectStart, selectEnd)
-        editorBlock.codeEditor.SetFocus()
 
     def GetCodeEditorSelection(self, handlerName):
         editorBlock = self.blocks[handlerName]
@@ -223,6 +210,9 @@ class CodeInspector(wx.ScrolledWindow):
         return (start, end, text)
 
     def OnMouseWheel(self, event):
+        """
+        Make sure vertical scrolling works smoothly across all blocks, labels, etc.
+        """
         if event.GetWheelAxis() == wx.MOUSE_WHEEL_VERTICAL:
             pos = self.GetViewStart()
             dy = event.GetWheelRotation()
@@ -233,6 +223,9 @@ class CodeInspector(wx.ScrolledWindow):
             event.Skip()
 
     def OnPlusClicked(self, event):
+        """
+        Create and open the Add Event handlerPicker.
+        """
         self.container.addButton.Hide()
         displayNames = []
         for k in self.currentUiView.model.GetHandlers().keys():
@@ -240,19 +233,19 @@ class CodeInspector(wx.ScrolledWindow):
 
         self.handlerPicker = wx.ListBox(self, choices=displayNames, style=wx.LB_SINGLE | wx.WANTS_CHARS)
         self.handlerPicker.Bind(wx.EVT_LEFT_UP, self.OnPickerMouseSelect)
-        self.handlerPicker.Bind(wx.EVT_LISTBOX, self.OnPickerSelect)
+        self.handlerPicker.Bind(wx.EVT_LISTBOX, self.OnPickerSelectionChanged)
         self.handlerPicker.Bind(wx.EVT_KEY_DOWN, self.OnPickerKey)
         self.handlerPicker.Bind(wx.EVT_MOTION, self.OnPickerMouseMove)
         self.handlerPicker.Bind(wx.EVT_NAVIGATION_KEY, self.OnPickerKey)
         self.handlerPicker.Bind(wx.EVT_KILL_FOCUS, self.OnPickerLostFocus)
-        self.SetHandlerRect()
+        self.SetHandlerPickerRect()
 
     def OnResize(self, event):
         if self.handlerPicker:
-            self.SetHandlerRect()
+            self.SetHandlerPickerRect()
         event.Skip()
 
-    def SetHandlerRect(self):
+    def SetHandlerPickerRect(self):
         handlers = self.currentUiView.model.GetHandlers().keys()
         cs = self.GetClientSize()
         width = 300
@@ -263,6 +256,7 @@ class CodeInspector(wx.ScrolledWindow):
         self.handlerPicker.SetFocus()
 
     def OnPickerMouseMove(self, event):
+        """ Make the selection in the handlerPicker follow the mouse. """
         index = self.handlerPicker.HitTest(event.GetPosition())
         if index != wx.NOT_FOUND:
             self.handlerPicker.SetSelection(index)
@@ -276,7 +270,7 @@ class CodeInspector(wx.ScrolledWindow):
     def OnPickerKey(self, event):
         if event.GetKeyCode() in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
             self.AddHandler()
-        elif event.GetKeyCode() in (wx.WXK_ESCAPE, wx.WXK_BACK, wx.WXK_DELETE):
+        elif event.GetKeyCode() == wx.WXK_ESCAPE:
             self.handlerPicker.DestroyLater()
             self.handlerPicker = None
             self.container.addButton.Show()
@@ -296,14 +290,15 @@ class CodeInspector(wx.ScrolledWindow):
         vals = list(UiView.handlerDisplayNames.values())
         return keys[vals.index(displayName)]
 
-    def OnPickerSelect(self, event):
+    def OnPickerSelectionChanged(self, event):
         handlerName = self.GetPickerSelectedHandler()
         self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, handlerName))
         event.Skip()
 
     def AddHandler(self):
+        """ Picker chose an event to add.  Add it! """
         handlerName = self.GetPickerSelectedHandler()
-        self.currentUiView.model.visibleHandlers.append(handlerName)
+        self.currentUiView.model.visibleHandlers.add(handlerName)
         self.UpdateEditorVisibility()
         self.handlerPicker.DestroyLater()
         self.handlerPicker = None
@@ -311,6 +306,10 @@ class CodeInspector(wx.ScrolledWindow):
         self.blocks[handlerName].codeEditor.SetFocus()
 
     def OnMouseDown(self, event):
+        """
+        Clicked in the codeInspector, outside of any block, so focus the last block's editor and select the
+        last position if the user clicked below the editor blocks.
+        """
         lastBlock = None
         for block in self.blocks.values():
             if block.codeEditor.currentHandler in self.currentUiView.model.visibleHandlers:
@@ -324,6 +323,10 @@ class CodeInspector(wx.ScrolledWindow):
         event.Skip()
 
     def OnBlockClick(self, event):
+        """
+        Clicked in a block, outside of the editor, so focus this block's editor and select the
+        first or last position depending on whether the user clicked above or below the editor.
+        """
         mousePos = event.GetPosition()
         editorBlock = event.GetEventObject()
         editorBlock.codeEditor.SetFocus()
@@ -336,23 +339,28 @@ class CodeInspector(wx.ScrolledWindow):
         editorBlock.codeEditor.SetFocus()
 
     def CloseBlock(self, handlerName):
+        """ User clicked a block's Close button. """
         if handlerName in self.currentUiView.model.visibleHandlers:
             self.currentUiView.model.visibleHandlers.remove(handlerName)
         self.UpdateEditorVisibility()
 
     def OnSetFocus(self, event):
+        """ When focusing the codeInspector (not a codeEditor) give up focus to the stack manager.  """
         self.stackManager.view.SetFocus()
 
     def CodeEditorFocused(self, event):
+        """ When focusing a codeEditor, scroll it into view. """
         if self.currentUiView:
             codeEditor = event.GetEventObject()
             handlerName = codeEditor.currentHandler
             self.blocks[handlerName].ScrollParentIfNeeded()
             self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, handlerName))
+            self.lastFocusedHandler = handlerName
         event.Skip()
 
 
 class EditorBlock(wx.Window):
+    """ One block of handlerName label and code editor. """
     closeBmp = None
 
     def __init__(self, parent, stackManager, cPanel):
@@ -386,7 +394,6 @@ class EditorBlock(wx.Window):
         self.codeEditor.SetUseHorizontalScrollBar(True)
         self.codeEditor.Bind(wx.EVT_IDLE, self.CodeEditorOnIdle)
         self.codeEditor.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        self.codeEditor.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
         self.codeEditor.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUi)
         self.codeEditor.Bind(wx.EVT_SET_FOCUS, parent.CodeEditorFocused)
         self.codeEditor.Bind(wx.EVT_KILL_FOCUS, self.OnEditorLostFocus)
@@ -417,12 +424,14 @@ class EditorBlock(wx.Window):
         self.UpdateEditorSize()
 
     def SetCanShowCloseButton(self, show):
+        """ Can't show close button if this is the only visible block. """
         self.canShowClose = show
 
     def OnBlockClose(self, event):
         self.parent.CloseBlock(self.codeEditor.currentHandler)
 
     def UpdateLabelState(self, handlerName):
+        """ Set up label color, text, close button visibility. """
         color = "black"
         code = self.uiView.model.handlers[handlerName]
         if len(code.strip()) == 0:
@@ -438,6 +447,7 @@ class EditorBlock(wx.Window):
         self.headerSizer.Layout()
 
     def UpdateEditorSize(self):
+        """ Keep the editor sized vertically to fit it's content. """
         height = (self.codeEditor.GetLineCount()+1) * self.codeEditor.TextHeight(0)+1
         self.codeEditor.SetMinClientSize((100, height))
         self.codeEditor.SetMaxClientSize((100000, height))
@@ -445,6 +455,7 @@ class EditorBlock(wx.Window):
         self.parent.Relayout()
 
     def SaveHandler(self, handlerName):
+        """ Save the event handler code after the user makes changes. """
         if self.uiView:
             if self.codeEditor.HasFocus():
                 oldVal = self.uiView.model.GetHandler(handlerName)
@@ -481,13 +492,13 @@ class EditorBlock(wx.Window):
                 ed = self.parent.visibleBlocks[index+1].codeEditor
                 ed.SetSelection(0,0)
                 ed.SetFocus()
-        event.Skip()
-
-    def OnKeyUp(self, event):
-        self.ScrollParentIfNeeded()
+        else:
+            if event.GetKeyCode() not in (wx.WXK_SHIFT, wx.WXK_ALT, wx.WXK_CONTROL, wx.WXK_COMMAND):
+                self.ScrollParentIfNeeded()
         event.Skip()
 
     def ScrollParentIfNeeded(self):
+        """ Scroll the codeInspector to make the current line visible, if it wasn't. """
         line = self.codeEditor.GetCurrentLine()
         if line == 0: line = -1
         y = line * self.codeEditor.TextHeight(0)
@@ -503,11 +514,13 @@ class EditorBlock(wx.Window):
             wx.CallAfter(self.parent.Scroll, 0, y-s+40)
 
     def OnEditorLostFocus(self, event):
+        """ Remove selection, so non-focused editors don't show selections.  This was too confusing. """
         (_from, _to) = self.codeEditor.GetSelection()
         self.codeEditor.SetSelection(_to, _to)
         event.Skip()
 
     def CodeEditorOnIdle(self, event):
+        """ Save on Idle, so we're not necessarily saving after every single keystroke. """
         codeEditor = event.GetEventObject()
         handlerName = codeEditor.currentHandler
         self.SaveHandler(handlerName)

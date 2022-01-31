@@ -119,13 +119,6 @@ class CodeInspector(wx.Window):
         self.stackManager.analyzer.RunAnalysis()
         uiView.lastEditedHandler = self.currentHandler
 
-    def SelectInCodeForHandlerName(self, handlerName, selectStart, selectEnd):
-        self.SaveCurrentHandler()
-        self.UpdateHandlerForUiView(self.stackManager.GetSelectedUiViews()[0], handlerName)
-        self.codeEditor.SetSelection(selectStart, selectEnd)
-        self.codeEditor.ScrollRange(selectStart, selectEnd)
-        self.codeEditor.SetFocus()
-
     def GetCodeEditorSelection(self, handlerName):
         start, end = self.codeEditor.GetSelection()
         text = self.codeEditor.GetSelectedText()

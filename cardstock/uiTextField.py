@@ -247,7 +247,7 @@ class TextFieldModel(TextBaseModel):
         self.proxyClass = TextField
 
         # Add custom handlers to the top of the list
-        handlers = {"OnSetup": "", "OnTextEnter": "", "OnTextChanged": ""}
+        handlers = {"OnSetup": "", "OnTextChanged": "", "OnTextEnter": ""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
