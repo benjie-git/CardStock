@@ -138,8 +138,8 @@ card.</p>
 <p>When you select a single object 
 in your card, the control panel will show the two main object editing areas:  The property editor shows, and lets you edit, a
 list of the selected object's properties, like name, size, position on the card, colors, etc.  Below the property editor is 
-the code editor.  The code editor lets you choose an event for the selected object that you want to edit, and 
-gives you space to write your code that runs when that event is triggered.  For example, if you select a button object,
+the code editor.  The code editor lets you view and edit the code that runs when events are triggered for this object.
+For example, if you select a button object,
 you could edit the code for its OnClicked event, which runs when that button is clicked.  In between the two editors is 
 the Context Help box.  This shows information about the most recently selected property or event, or the last 
 autocompleted term in the code editor.  You can resize the Context Help box by dragging the bottom-right, blue corner,
@@ -160,23 +160,23 @@ property, for each kind of object.</p>
 
 <h2>Code Editor</h2>
 <p>The real fun begins when you start adding python code into your objects!  Your CardStock program works by running
-certain parts of your program when different types of events happen.  For example, you can add some code to a
-button object's OnClicked event, that gets run when that button is clicked.  Just choose the OnClicked() event in the 
-event picker at the top of the code editor, and then add your code into the button's OnClicked event in the code editor,
-and whenever that button is clicked, your code will run.  The event picker shows all of the events that apply to the
-selected object, and includes the prefix "def " if you already have any code defined for that event.  This helps you
-scan the list of events and see which ones have code in them, and also matches the python syntax for defining a
-function.  See the CardStock Reference for a description of each type of event, and when they each get run.</p>
+certain parts of your program's code when different types of events happen.  For example, you can add some code to a
+button object's OnClicked event, and it will be run when that button is clicked.  Just select the button, and if you don't 
+already see a "def OnClicked():" title, then click the "+ Add Event" button at the top of the code editor, and choose 
+"OnClicked()".  Then add your code into the button's OnClicked event in the code editor, and now when you run your 
+stack, whenever that button is clicked, this code will run.  The "+ Add Event" popup shows all of the events that apply to the
+selected object.  For example, only buttons have an OnClicked() event, and only cards have an OnShowCard() event.
+See the CardStock Reference for a description of each type of event, and when they each get run.</p>
 
-<p>In your python event-handling code, you have access to all of the objects in the current card, including their
+<p>In your python event-handling code, you have access to all of the objects in your stack, including their
 properties and methods, and some global variables and functions that are always available.
 You can always access a special variable called self, which refers to the object who's event is being run.
-(So in a button's OnClick code, self refers to that button object.  In a card's OnShowCard code, self is that
-card object.)  There is also a variable for each object's name.  So if your button is called yes_button, you could write
+(So in a button's OnClick() code, self refers to that button object.  In a card's OnShowCard() code, self will refer to that
+card object.)  There is also a variable for each object's name, and each card's name.  So if your button is called yes_button, you could write
 yes_button.SetTitle("Done") to change your button's title to Done.  See the CardStock Reference for a list of all 
 variables that are automatically provided to your code.  You can of course also create your own variables as well.  It 
 is suggested that when you do, you set up the starting value of each variable in one of your
-objects' OnSetup events, to make sure that it will always have a value, from the very start of your stack running.</p>
+objects' OnSetup events, to make sure that it will always have a value, from the very beginning of your stack running.</p>
 
 <p>When a stack first starts running, all of the cards and all objects on all of the cards will run their OnSetup() 
 events.  OnSetup() will also run for any new objects you create using any of the card.AddObject() methods.  
