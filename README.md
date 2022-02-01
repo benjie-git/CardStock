@@ -16,7 +16,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 
 ### The Basics
 * CardStock works on MacOS, Windows, and GNU/Linux.
-* You can build programs using objects including text and graphics, images, buttons, and text entry fields.
+* You can build programs using objects including text and graphics, images, buttons, text entry fields, and web views.
 * You can use your own python code to manipulate the objects and respond to mouse and keyboard events.
 * You can play sound files from your code.
 * You can search and use clip art in your stacks, thanks to integration with openclipart.com.
@@ -30,29 +30,29 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * You can **import** other python modules into your code, and use them make web requests and display the results, control robots, or run machine learning code, all from within your CardStock stack.
 * Basic IDE features, like syntax highlighting, underlining syntax errors while editing, and autocomplete for objects, variables, functions, methods, properties.
 * Run python commands in an interactive Console window while your stack runs, to check or set variable values, call functions, or any other python you want to run.
+* Browse your running stack's variables and objects, and modify them live in the Variables window.
 * View all code used in a whole stack in one place, and click a line to jump to that line in that object's code for that event.
 * View recent error messages, and click one to jump to the offending line of code in the Designer.
 * You can export a stack into a standalone application that you can share and distribute.
 
 ### Future Plans
 * Allow exporting a stack as a web page, to allow running it on any web-capable platform.
-* Add a rotation property (like on Images) to all shapes and text labels too.
-* Add a WebView object type, to allow viewing web content within a stack.
-* Update the code editor UI to show all code for an object in one place.
+* Update the code editor UI to allow scrolling through the code for all events for an object.
+* Allow editing contents of a group without ungrouping.
 * Allow filling shapes with color gradients.
 * Add app icons for the CardStock Designer and Viewer.
 
 ________
 ## Known Issues
-* Buttons and text fields always remain in front of shapes and images, which get drawn directly on the card view.
-* Visual selection indicators (the blue dotted outlines) are drawn behind native views, and so can hide behind overlapping buttons and text fields.
+* Buttons, text fields, and web views always remain in front of shapes and images, which get drawn directly on the card view.
+* Visual selection indicators (the blue dotted outlines) are drawn behind native views, and so can hide behind overlapping buttons, text fields, and web views.
 * Stacks can only import additional modules, and export stacks that include them, when running from source.  Not when running from the prebuilt applications. (The prebuilt applications are built with a few additional libraries: requests, pyserial, and more could be added by request.)
 
 ## Requirements
 The prebuilt applications for Mac and Windows have no external dependencies.
 
 Running CardStock from source requires Python 3.7 or newer (3.9.x recommended), and wxPython 4.1 or newer.
-CardStock also requires installing the modules simpleaudio, PyInstaller, and requests.
+CardStock also requires installing the python modules simpleaudio, PyInstaller, and requests.
 
 ## Installation
 You can either:

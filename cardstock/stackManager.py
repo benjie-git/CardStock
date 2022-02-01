@@ -339,6 +339,7 @@ class StackManager(object):
         if len(models) == 1 and models[0].type == "card":
             self.RemoveCard()
         elif len(models) > 0:
+            models = [ui.model for ui in self.uiCard.GetAllUiViews() if ui.model in models]
             deleteModels = [m for m in models if m.parent.type != "group"]
             command = RemoveUiViewsCommand(True, "Cut", self, self.cardIndex, deleteModels)
             self.command_processor.Submit(command, storeIt=canUndo)

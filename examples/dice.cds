@@ -13,7 +13,8 @@
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "from random import randint\n"
+        "OnSetup": "from random import randint\n",
+        "OnKeyDown": "if keyName == \"Space\":\n   roll.Click()"
       },
       "properties": {
         "name": "card_1",
@@ -37,7 +38,9 @@
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 14
+            "fontSize": 14,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -59,6 +62,7 @@
             ],
             "penColor": "black",
             "penThickness": 4,
+            "rotation": 0.0,
             "fillColor": "white",
             "cornerRadius": 8
           },
@@ -90,7 +94,9 @@
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 30
+            "fontSize": 30,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -112,6 +118,7 @@
             ],
             "penColor": "black",
             "penThickness": 4,
+            "rotation": 0.0,
             "fillColor": "white",
             "cornerRadius": 8
           },
@@ -143,7 +150,9 @@
             "alignment": "Center",
             "textColor": "black",
             "font": "Default",
-            "fontSize": 30
+            "fontSize": 30,
+            "autoShrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -169,5 +178,5 @@
     }
   ],
   "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9"
+  "CardStock_stack_version": "0.9.8"
 }

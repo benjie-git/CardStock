@@ -194,12 +194,15 @@ class ControlPanel(wx.Panel):
         return (None, None, None)
 
     def OnGridCellSelected(self, event):
-        if len(self.lastSelectedUiViews) > 0:
-            uiView = self.lastSelectedUiViews[0]
-            if uiView:
-                key = self.inspector.GetCellValue(event.GetRow(), 0)
-                helpText = HelpData.GetPropertyHelp(uiView, key)
-                self.UpdateHelpText(helpText)
+        if not self.inspector.isSettingUp:
+            if len(self.lastSelectedUiViews) > 0:
+                uiView = self.lastSelectedUiViews[0]
+                if uiView:
+                    key = self.inspector.GetCellValue(event.GetRow(), 0)
+                    helpText = HelpData.GetPropertyHelp(uiView, key)
+                    self.UpdateHelpText(helpText)
+        else:
+            self.UpdateHelpText("")
         event.Skip()
 
     def UpdateForUiViews(self, uiViews):

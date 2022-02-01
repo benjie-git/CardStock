@@ -17,6 +17,7 @@ class PropertyInspector(wx.grid.Grid):
         self.stackManager = stackManager
         self.valueChangedFunc = None
         self.objClickedFunc = None
+        self.isSettingUp = True
 
         self.CreateGrid(1, 2)
         self.SetRowSize(0, 24)
@@ -106,6 +107,7 @@ class PropertyInspector(wx.grid.Grid):
         (oldRow, oldCol) = self.GetGridCursorCoords()
 
         noUpdates = wx.grid.GridUpdateLocker(self)
+        self.isSettingUp = True
         if self.GetNumberRows() > 0:
             self.DeleteRows(0, self.GetNumberRows())
 
@@ -115,6 +117,7 @@ class PropertyInspector(wx.grid.Grid):
             self.SetReadOnly(0, 0)
             self.SetReadOnly(0, 1)
             self.Layout()
+            self.isSettingUp = False
             return
 
         self.SetColLabelValue(0, self.title)
@@ -157,6 +160,7 @@ class PropertyInspector(wx.grid.Grid):
         if len(keys) >= oldRow:
             self.SetGridCursor(oldRow, oldCol)
         self.Layout()
+        self.isSettingUp = False
 
     def SetValueForKey(self, key, valType):
         if key in self.data.keys():

@@ -79,6 +79,8 @@ class CodeInspector(wx.ScrolledWindow):
         self.ClearViews()
         self.currentUiView = uiView
 
+        self.container.addButton.Show(uiView is not None)
+
         if uiView:
             self.sizer.AddSpacer(5)
             for (handlerName, code) in uiView.model.handlers.items():
@@ -170,12 +172,17 @@ class CodeInspector(wx.ScrolledWindow):
 
         if uiView and handlerName:
             editorBlock = self.blocks[handlerName]
+            if not editorBlock.IsShown():
+                self.currentUiView.model.visibleHandlers.add(handlerName)
+                self.UpdateEditorVisibility()
+
             if selection and uiView:
                 firstLine = editorBlock.codeEditor.GetFirstVisibleLine()
                 editorBlock.codeEditor.AutoCompCancel()
 
             editorBlock.lastCursorSel = editorBlock.codeEditor.GetSelection()
             editorBlock.SetupForHandler(uiView, handlerName)
+            editorBlock.UpdateLabelState(handlerName)
 
             if selection:
                 editorBlock.codeEditor.SetSelection(*selection)
@@ -187,12 +194,18 @@ class CodeInspector(wx.ScrolledWindow):
 
     def SelectAndScrollTo(self, handlerName, selStart, selEnd):
         editorBlock = self.blocks[handlerName]
+        if not editorBlock.IsShown():
+            self.currentUiView.model.visibleHandlers.add(handlerName)
+            self.UpdateEditorVisibility()
         editorBlock.codeEditor.SetFocus()
         editorBlock.codeEditor.SetSelection(selStart, selEnd)
         editorBlock.codeEditor.ScrollRange(selStart, selEnd)
 
     def SelectAndScrollToLine(self, handlerName, selLine):
         editorBlock = self.blocks[handlerName]
+        if not editorBlock.IsShown():
+            self.currentUiView.model.visibleHandlers.add(handlerName)
+            self.UpdateEditorVisibility()
         editorBlock.codeEditor.GotoLine(selLine)
         lineEnd = editorBlock.codeEditor.GetLineEndPosition(selLine)
         lineLen = editorBlock.codeEditor.GetLineLength(selLine)
@@ -304,16 +317,20 @@ class CodeInspector(wx.ScrolledWindow):
 
     def OnMouseDown(self, event):
         """
-        Clicked in the codeInspector, outside of any block, so focus the last block's editor and select the
-        last position if the user clicked below the editor blocks.
+        Clicked in the codeInspector, outside of any block, so focus the first or last block's editor and select the
+        first or last position, if the user clicked either above or below the editor blocks.
         """
-        lastBlock = None
+        firstBlock = lastBlock = None
         for block in self.blocks.values():
             if block.codeEditor.currentHandler in self.currentUiView.model.visibleHandlers:
+                if not firstBlock: firstBlock = block
                 lastBlock = block
-        if lastBlock:
+        if firstBlock:
             mousePos = event.GetPosition()
-            if mousePos.y > lastBlock.GetPosition().y:
+            if mousePos.y <= firstBlock.codeEditor.GetPosition().y:
+                firstBlock.codeEditor.SetFocus()
+                firstBlock.codeEditor.SetSelection(0, 0)
+            elif mousePos.y > lastBlock.GetPosition().y:
                 lastBlock.codeEditor.SetFocus()
                 end = lastBlock.codeEditor.GetLastPosition()
                 lastBlock.codeEditor.SetSelection(end, end)
@@ -364,6 +381,7 @@ class EditorBlock(wx.Window):
     def __init__(self, parent, stackManager, cPanel):
         super().__init__(parent)
         self.Bind(wx.EVT_LEFT_DOWN, parent.OnBlockClick)
+        self.Bind(wx.EVT_SET_FOCUS, parent.OnSetFocus)
         self.SetBackgroundColour('white')
         self.stackManager = stackManager
         self.parent = parent
@@ -474,21 +492,22 @@ class EditorBlock(wx.Window):
 
     def OnKeyDown(self, event):
         line = self.codeEditor.GetCurrentLine()
-        if event.GetKeyCode() in (wx.WXK_UP, wx.WXK_NUMPAD_UP) and line == 0:
-            index = self.parent.visibleBlocks.index(self)
-            if index > 0:
-                ed = self.parent.visibleBlocks[index-1].codeEditor
-                ed.SetSelection(ed.GetLastPosition(), ed.GetLastPosition())
-                ed.SetFocus()
-        elif event.GetKeyCode() in (wx.WXK_DOWN, wx.WXK_NUMPAD_DOWN) and line == self.codeEditor.GetNumberOfLines()-1:
-            index = self.parent.visibleBlocks.index(self)
-            if index < len(self.parent.visibleBlocks)-1:
-                ed = self.parent.visibleBlocks[index+1].codeEditor
-                ed.SetSelection(0,0)
-                ed.SetFocus()
-        else:
-            if event.GetKeyCode() not in (wx.WXK_SHIFT, wx.WXK_ALT, wx.WXK_CONTROL, wx.WXK_COMMAND):
-                self.ScrollParentIfNeeded()
+        if not self.codeEditor.AutoCompActive():
+            if event.GetKeyCode() in (wx.WXK_UP, wx.WXK_NUMPAD_UP) and line == 0:
+                index = self.parent.visibleBlocks.index(self)
+                if index > 0:
+                    ed = self.parent.visibleBlocks[index-1].codeEditor
+                    ed.SetSelection(ed.GetLastPosition(), ed.GetLastPosition())
+                    ed.SetFocus()
+            elif event.GetKeyCode() in (wx.WXK_DOWN, wx.WXK_NUMPAD_DOWN) and line == self.codeEditor.GetNumberOfLines()-1:
+                index = self.parent.visibleBlocks.index(self)
+                if index < len(self.parent.visibleBlocks)-1:
+                    ed = self.parent.visibleBlocks[index+1].codeEditor
+                    ed.SetSelection(0,0)
+                    ed.SetFocus()
+            else:
+                if event.GetKeyCode() not in (wx.WXK_SHIFT, wx.WXK_ALT, wx.WXK_CONTROL, wx.WXK_COMMAND):
+                    self.ScrollParentIfNeeded()
         event.Skip()
 
     def ScrollParentIfNeeded(self):
