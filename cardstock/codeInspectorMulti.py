@@ -314,6 +314,7 @@ class CodeInspector(wx.ScrolledWindow):
         self.handlerPicker = None
         self.container.addButton.Show()
         self.blocks[handlerName].codeEditor.SetFocus()
+        self.Scroll(self.blocks[handlerName].GetPosition())
 
     def OnMouseDown(self, event):
         """
@@ -368,7 +369,7 @@ class CodeInspector(wx.ScrolledWindow):
             codeEditor = event.GetEventObject()
             handlerName = codeEditor.currentHandler
             if handlerName in self.blocks and self.blocks[handlerName].IsShown():
-                self.blocks[handlerName].ScrollParentIfNeeded()
+                wx.CallAfter(self.blocks[handlerName].ScrollParentIfNeeded)
                 self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, handlerName))
                 self.lastFocusedHandler = handlerName
         event.Skip()
@@ -487,7 +488,7 @@ class EditorBlock(wx.Window):
 
     def OnUpdateUi(self, event):
         if event.GetUpdated() == wx.stc.STC_UPDATE_SELECTION:
-            self.ScrollParentIfNeeded()
+            wx.CallAfter(self.ScrollParentIfNeeded)
         event.Skip()
 
     def OnKeyDown(self, event):
@@ -507,7 +508,7 @@ class EditorBlock(wx.Window):
                     ed.SetFocus()
             else:
                 if event.GetKeyCode() not in (wx.WXK_SHIFT, wx.WXK_ALT, wx.WXK_CONTROL, wx.WXK_COMMAND):
-                    self.ScrollParentIfNeeded()
+                    wx.CallAfter(self.ScrollParentIfNeeded)
         event.Skip()
 
     def ScrollParentIfNeeded(self):
@@ -522,9 +523,9 @@ class EditorBlock(wx.Window):
         vs = self.parent.GetViewStart()[1]
         s = self.parent.GetSize()[1]
         if y < vs:
-            wx.CallAfter(self.parent.Scroll, 0, y-20)
+            wx.CallAfter(self.parent.Scroll, 0, y)
         elif y+20 > vs + s:
-            wx.CallAfter(self.parent.Scroll, 0, y-s+40)
+            wx.CallAfter(self.parent.Scroll, 0, y-s+20)
 
     def OnEditorLostFocus(self, event):
         """ Remove selection, so non-focused editors don't show selections.  This was too confusing. """

@@ -37,7 +37,6 @@ The guiding principles behind my vision for CardStock are the following, in orde
 
 ### Future Plans
 * Allow exporting a stack as a web page, to allow running it on any web-capable platform.
-* Update the code editor UI to allow scrolling through the code for all events for an object.
 * Allow editing contents of a group without ungrouping.
 * Allow filling shapes with color gradients.
 * Add app icons for the CardStock Designer and Viewer.
