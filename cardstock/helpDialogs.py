@@ -294,7 +294,7 @@ you return to the Designer, they will be listed in the red-colored Error List wi
 appear.  You can also open this window from the Help menu.  Clicking on an error in this list will take you to the 
 offending line in the code editor for that event.</p>
 
-<p>If you want to look at all of your code at once, instead of only at one object's code for one event at a time,
+<p>If you want to look at all of your code at once, instead of only at one object's code at a time,
 you can open the All Code window from the Help menu.  Clicking a line in the All Code editor will take you to that
 line of that object's event code in the code editor.</p>
 
