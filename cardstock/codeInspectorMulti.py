@@ -249,7 +249,7 @@ class CodeInspector(wx.ScrolledWindow):
         for k in self.currentUiView.model.GetHandlers().keys():
             displayNames.append(UiView.handlerDisplayNames[k])
 
-        self.handlerPicker = SimpleListBox(self.container.cPanel)
+        self.handlerPicker = SimpleListBox(self.cPanel)
         self.handlerPicker.SetupWithItems(displayNames, 2, 0)
         self.handlerPicker.doneFunc = self.OnHandlerPickerDone
         self.handlerPicker.selectFunc = self.OnHandlerPickerSelectionChanged
@@ -259,9 +259,13 @@ class CodeInspector(wx.ScrolledWindow):
 
     def SetHandlerPickerPos(self):
         cs = self.GetClientSize()
-        width = self.handlerPicker.GetSize().Width
-        pos = self.container.GetPosition()
-        self.handlerPicker.SetPosition(pos + (cs[0]-width, -80))
+        hpSize = self.handlerPicker.GetSize()
+        cPanelHeight = self.cPanel.GetSize().Height
+        cPos = self.container.GetPosition()
+        offset = -15
+        if (cPos.y+hpSize.Height > cPanelHeight+15):
+            offset = cPanelHeight - hpSize.Height - cPos.y
+        self.handlerPicker.SetPosition(cPos + (cs[0]-hpSize.Width, offset))
 
     def OnResize(self, event):
         if self.handlerPicker:
