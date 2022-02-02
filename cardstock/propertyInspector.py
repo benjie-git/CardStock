@@ -1,6 +1,7 @@
 import wx
 import wx.grid
 from uiView import ViewModel, ViewProxy
+from simpleListBox import SimpleListBox
 import mediaSearchDialogs
 import os
 import math
@@ -8,7 +9,7 @@ import math
 
 class PropertyInspector(wx.grid.Grid):
     def __init__(self, parent, stackManager):
-        super().__init__(parent)
+        super().__init__(parent, style=wx.WANTS_CHARS)
 
         self.data = {}
         self.title = ""
@@ -61,16 +62,23 @@ class PropertyInspector(wx.grid.Grid):
         event.Skip()
 
     def OnGridKeyDown(self, event):
-        if not self.IsCellEditControlShown() and \
-                (event.GetKeyCode() == wx.WXK_RETURN or event.GetKeyCode() == wx.WXK_NUMPAD_ENTER):
-            if not self.IsReadOnly(self.GetGridCursorRow(), self.GetGridCursorCol()):
-                if self.GetGridCursorCol() == 0:
-                    self.SetGridCursor(self.GetGridCursorRow(), 1)
-                self.EnableCellEditControl(True)
-        else:
-            event.Skip()
-            if event.GetKeyCode() != wx.WXK_TAB:
+        if event.GetKeyCode() in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER, wx.WXK_SPACE):
+            if not self.IsCellEditControlShown():
+                if not self.IsReadOnly(self.GetGridCursorRow(), 1):
+                    if self.GetGridCursorCol() == 0:
+                        self.SetGridCursor(self.GetGridCursorRow(), 1)
+                    self.EnableCellEditControl(True)
+            else:
+                self.DisableCellEditControl()
                 event.StopPropagation()
+                return
+        elif event.GetKeyCode() in (wx.WXK_UP, wx.WXK_DOWN) and self.IsCellEditControlShown():
+            event.StopPropagation()
+        else:
+            if event.GetKeyCode() == wx.WXK_TAB:
+                event.StopPropagation()
+            else:
+                event.Skip()
 
     def OnInspectorValueChanged(self, event):
         r = event.GetRow()
@@ -135,12 +143,11 @@ class PropertyInspector(wx.grid.Grid):
 
             renderer = None
             editor = None
-            ChoiceEditorClass = GridCellCustomChoiceEditor if wx.Platform != "__WXGTK__" else wx.grid.GridCellChoiceEditor
 
             if valType == "bool":
-                editor = ChoiceEditorClass(["True", "False"])
+                editor = GridCellCustomChoiceEditor(["True", "False"])
             elif valType == "choice":
-                editor = ChoiceEditorClass(ViewModel.GetPropertyChoices(k))
+                editor = GridCellCustomChoiceEditor(ViewModel.GetPropertyChoices(k))
             elif valType == "color":
                 editor = GridCellColorEditor(self)
                 renderer = GridCellColorRenderer()
@@ -364,34 +371,34 @@ class GridCellCustomChoiceEditor(wx.grid.GridCellEditor):
         self._listBox = None
 
     def Create(self, parent, id, evtHandler):
-        self._listBox = wx.ListBox(parent, id, choices=self.choices, style=wx.LB_SINGLE|wx.WANTS_CHARS)
+        self._listBox = SimpleListBox(parent, id=id)
+        self._listBox.SetupWithItems(self.choices, 0, 0)
         self.SetControl(self._listBox)
         if evtHandler:
             self._listBox.PushEventHandler(evtHandler)
-        self._listBox.Bind(wx.EVT_LEFT_UP, self.OnMouseSelect)
-        self._listBox.Bind(wx.EVT_LISTBOX, self.OnSelect)
 
     def SetSize(self, rect):
         self._listBox.SetPosition((rect.x, rect.y))
-        height = (4+len(self.choices)*20) if wx.Platform == "__WXMAC__" else (4+len(self.choices)*18)
-        self._listBox.SetSize(rect.width + 2, height)
 
     def BeginEdit(self, row, col, grid):
         startValue = grid.GetTable().GetValue(row, col)
+        self._listBox.doneFunc = self.OnHandlerPickerDone
         self._listBox.SetStringSelection(startValue)
         self._listBox.SetFocus()
 
     def EndEdit(self, row, col, grid, oldVal):
         changed = False
-        val = self._listBox.GetString(self._listBox.GetSelection())
-        if val != oldVal:
-            changed = True
-        grid.GetTable().SetValue(row, col, val)  # update the table
+        if self._listBox.selection is not None:
+            val = self._listBox.items[self._listBox.selection]
+            if val != oldVal:
+                changed = True
+            grid.GetTable().SetValue(row, col, val)  # update the table
         return changed
 
     def ApplyEdit(self, row, col, grid):
-        val = self._listBox.GetString(self._listBox.GetSelection())
-        grid.GetTable().SetValue(row, col, val)  # update the table
+        if self._listBox.selection is not None:
+            val = self._listBox.items[self._listBox.selection]
+            grid.GetTable().SetValue(row, col, val)  # update the table
 
     def Reset(self):
         pass
@@ -405,13 +412,9 @@ class GridCellCustomChoiceEditor(wx.grid.GridCellEditor):
                 self._listBox.SetStringSelection(c)
                 break
 
-    def OnMouseSelect(self, event):
-        self.Show(False)
-        event.Skip()
-
-    def OnSelect(self, event):
-        self._listBox.SetSelection(event.GetSelection())
-        event.Skip()
+    def OnHandlerPickerDone(self, index, text):
+        if text:
+            self._listBox.SetSelection(index)
 
 class GridCellObjectEditor(wx.grid.GridCellTextEditor):
     def __init__(self, inspector, editable):

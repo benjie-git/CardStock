@@ -4,24 +4,29 @@ import wx.stc
 import helpData
 import appCommands
 from uiView import UiView
+from simpleListBox import SimpleListBox
 
 
 class CodeInspectorContainer(wx.Window):
     """ Contains the codeInspector, and the fixed-position 'Add Event' button """
     def __init__(self, cPanel, stackManager):
         super().__init__(cPanel)
+        self.cPanel = cPanel
         self.codeInspector = CodeInspector(self, cPanel, stackManager)
         self.Bind(wx.EVT_SIZE, self.OnResize)
 
         self.addButton = wx.Button(self, label="Add Event")
         self.addButton.SetBitmap(wx.ArtProvider.GetBitmap(wx.ART_PLUS, size=wx.Size(19,19)))
-        self.addButton.Bind(wx.EVT_LEFT_DOWN, self.codeInspector.OnPlusClicked)
-        self.addButton.Bind(wx.EVT_LEFT_DCLICK, self.codeInspector.OnPlusClicked)
+        self.addButton.Bind(wx.EVT_BUTTON, self.codeInspector.OnPlusClicked)
         self.addButton.Fit()
 
     def OnResize(self, event):
-        self.codeInspector.SetRect(wx.Rect((0,0), event.GetSize()))
-        self.addButton.SetPosition((self.codeInspector.ClientSize.Width - self.addButton.Size.Width-18, 2))
+        if wx.Platform == "__WXMSW__":
+            self.codeInspector.SetRect(wx.Rect((0,24), event.GetSize()-(0,24)))
+            self.addButton.SetPosition((self.codeInspector.Size.Width - self.addButton.Size.Width, 0))
+        else:
+            self.codeInspector.SetRect(wx.Rect((0, 0), event.GetSize()))
+            self.addButton.SetPosition((self.codeInspector.ClientSize.Width - self.addButton.Size.Width - 20, 2))
         event.Skip()
 
 
@@ -237,84 +242,63 @@ class CodeInspector(wx.ScrolledWindow):
         Create and open the Add Event handlerPicker.
         """
         self.container.addButton.Hide()
+        if wx.Platform == "__WXMSW__":
+            self.container.Disable()
+            self.cPanel.inspector.Disable()
         displayNames = []
         for k in self.currentUiView.model.GetHandlers().keys():
             displayNames.append(UiView.handlerDisplayNames[k])
 
-        self.handlerPicker = wx.ListBox(self, choices=displayNames, style=wx.LB_SINGLE | wx.WANTS_CHARS)
-        self.handlerPicker.Bind(wx.EVT_LEFT_UP, self.OnPickerMouseSelect)
-        self.handlerPicker.Bind(wx.EVT_LISTBOX, self.OnPickerSelectionChanged)
-        self.handlerPicker.Bind(wx.EVT_KEY_DOWN, self.OnPickerKey)
-        self.handlerPicker.Bind(wx.EVT_MOTION, self.OnPickerMouseMove)
-        self.handlerPicker.Bind(wx.EVT_NAVIGATION_KEY, self.OnPickerKey)
-        self.handlerPicker.Bind(wx.EVT_KILL_FOCUS, self.OnPickerLostFocus)
-        self.SetHandlerPickerRect()
+        self.handlerPicker = SimpleListBox(self.container.cPanel)
+        self.handlerPicker.SetupWithItems(displayNames, 2, 0)
+        self.handlerPicker.doneFunc = self.OnHandlerPickerDone
+        self.handlerPicker.selectFunc = self.OnHandlerPickerSelectionChanged
+        self.SetHandlerPickerPos()
+        self.handlerPicker.SetFocus()
+        event.Skip()
+
+    def SetHandlerPickerPos(self):
+        cs = self.GetClientSize()
+        width = self.handlerPicker.GetSize().Width
+        pos = self.container.GetPosition()
+        self.handlerPicker.SetPosition(pos + (cs[0]-width, -80))
 
     def OnResize(self, event):
         if self.handlerPicker:
-            self.SetHandlerPickerRect()
+            self.SetHandlerPickerPos()
         event.Skip()
 
-    def SetHandlerPickerRect(self):
-        handlers = self.currentUiView.model.GetHandlers().keys()
-        cs = self.GetClientSize()
-        width = 300
-        height = (4+len(handlers)*20) if wx.Platform == "__WXMAC__" else (4+len(handlers)*18)
-        height = min (height, cs[1])
-        self.handlerPicker.SetPosition((cs[0]-width,0))
-        self.handlerPicker.SetSize(width, height)
-        self.handlerPicker.SetFocus()
-
-    def OnPickerMouseMove(self, event):
-        """ Make the selection in the handlerPicker follow the mouse. """
-        index = self.handlerPicker.HitTest(event.GetPosition())
-        if index != wx.NOT_FOUND:
-            self.handlerPicker.SetSelection(index)
-        handlerName = self.GetPickerSelectedHandler()
-        self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, handlerName))
-
-    def OnPickerMouseSelect(self, event):
-        self.AddHandler()
-        event.Skip()
-
-    def OnPickerKey(self, event):
-        if event.GetKeyCode() in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
-            self.AddHandler()
-        elif event.GetKeyCode() == wx.WXK_ESCAPE:
-            self.handlerPicker.DestroyLater()
-            self.handlerPicker = None
-            self.container.addButton.Show()
-        else:
-            event.Skip()
-
-    def OnPickerLostFocus(self, event):
-        self.handlerPicker.DestroyLater()
-        self.handlerPicker = None
-        self.container.addButton.Show()
-        event.Skip()
-
-    def GetPickerSelectedHandler(self):
-        displayName = self.handlerPicker.GetString(self.handlerPicker.GetSelection())
+    def DisplayNameToRawName(self, displayName):
         displayName = displayName.strip().replace("def ", "")
         keys = list(UiView.handlerDisplayNames.keys())
         vals = list(UiView.handlerDisplayNames.values())
         return keys[vals.index(displayName)]
 
-    def OnPickerSelectionChanged(self, event):
-        handlerName = self.GetPickerSelectedHandler()
-        self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, handlerName))
-        event.Skip()
+    def OnHandlerPickerDone(self, index, text):
+        if self.handlerPicker:
+            hp = self.handlerPicker
+            self.handlerPicker = None
+            if text:
+                handlerName = self.DisplayNameToRawName(text)
+                if handlerName not in self.currentUiView.model.visibleHandlers:
+                    self.currentUiView.model.visibleHandlers.add(handlerName)
+                    self.UpdateEditorVisibility()
+                self.blocks[handlerName].UpdateEditorSize()
+                self.stackManager.view.SetFocus()
+                def f():
+                    self.blocks[handlerName].codeEditor.SetFocus()
+                    pos = self.blocks[handlerName].GetPosition()
+                    self.Scroll(pos)
+                wx.CallAfter(f)
 
-    def AddHandler(self):
-        """ Picker chose an event to add.  Add it! """
-        handlerName = self.GetPickerSelectedHandler()
-        self.currentUiView.model.visibleHandlers.add(handlerName)
-        self.UpdateEditorVisibility()
-        self.handlerPicker.DestroyLater()
-        self.handlerPicker = None
-        self.container.addButton.Show()
-        self.blocks[handlerName].codeEditor.SetFocus()
-        self.Scroll(self.blocks[handlerName].GetPosition())
+            self.container.addButton.Show()
+            self.container.Enable()
+            self.cPanel.inspector.Enable()
+            hp.DestroyLater()
+
+    def OnHandlerPickerSelectionChanged(self, index, text):
+        handlerName = self.DisplayNameToRawName(text)
+        self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, handlerName))
 
     def OnMouseDown(self, event):
         """
@@ -391,12 +375,17 @@ class EditorBlock(wx.Window):
         self.canShowClose = False
 
         if not EditorBlock.closeBmp:
-            EditorBlock.closeBmp = wx.ArtProvider.GetBitmap(wx.ART_CLOSE, size=wx.Size(12,12))
+            s = 16 if (wx.Platform == "__WXGTK__") else 12
+            EditorBlock.closeBmp = wx.ArtProvider.GetBitmap(wx.ART_MINUS, size=wx.Size(s,s))
 
         self.label = wx.StaticText(self)
+        fsize = 17 if wx.Platform == "__WXGTK__" else 14
+        self.label.SetFont(wx.Font(wx.FontInfo(wx.Size(0, fsize)).Family(wx.FONTFAMILY_MODERN)))
         self.label.SetBackgroundColour('white')
-        self.closeButton = wx.StaticBitmap(self, bitmap=EditorBlock.closeBmp)
-        self.closeButton.SetToolTip("Close")
+
+        self.closeButton = wx.StaticBitmap(self, wx.ID_ANY, bitmap=EditorBlock.closeBmp)
+        self.closeButton.SetBackgroundColour("white")
+        self.closeButton.SetToolTip("Hide Event")
         self.closeButton.Bind(wx.EVT_LEFT_DOWN, self.OnBlockClose)
         self.closeButton.Bind(wx.EVT_LEFT_DCLICK, self.OnBlockClose)
 
@@ -434,6 +423,7 @@ class EditorBlock(wx.Window):
         self.codeEditor.currentModel = self.uiView.model
         self.codeEditor.currentHandler = handlerName
         self.codeEditor.SetupWithText(code)
+        self.UpdateEditorSize()
         self.codeEditor.EmptyUndoBuffer()
 
     def SetCanShowCloseButton(self, show):
@@ -449,8 +439,6 @@ class EditorBlock(wx.Window):
         code = self.uiView.model.handlers[handlerName]
         if len(code.strip()) == 0:
             color = "#555555"
-        font = wx.Font(wx.FontInfo(wx.Size(0, 14)).Family(wx.FONTFAMILY_TELETYPE))
-        self.label.SetFont(font)
         self.label.SetForegroundColour(wx.Colour(color))
         self.label.SetLabel("def " + UiView.handlerDisplayNames[handlerName])
 
@@ -514,7 +502,6 @@ class EditorBlock(wx.Window):
     def ScrollParentIfNeeded(self):
         """ Scroll the codeInspector to make the current line visible, if it wasn't. """
         line = self.codeEditor.GetCurrentLine()
-        if line == 0: line = -1
         y = line * self.codeEditor.TextHeight(0)
         y += self.codeEditor.GetPosition().y
         pos = self.GetPosition()
@@ -523,6 +510,7 @@ class EditorBlock(wx.Window):
         vs = self.parent.GetViewStart()[1]
         s = self.parent.GetSize()[1]
         if y < vs:
+            if line==0: y -= 20
             wx.CallAfter(self.parent.Scroll, 0, y)
         elif y+20 > vs + s:
             wx.CallAfter(self.parent.Scroll, 0, y-s+20)

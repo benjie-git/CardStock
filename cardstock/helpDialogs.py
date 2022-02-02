@@ -30,8 +30,7 @@ event-driven python code.  It is inspired by the simplicity and power of Apple's
 '''
 
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, 'About CardStock',
-                          size=(500, 200) )
+        super().__init__(parent, -1, 'About CardStock', size=(500, 200) )
 
         html = wx.html.HtmlWindow(self, -1)
         html.SetPage(self.GetHTML())

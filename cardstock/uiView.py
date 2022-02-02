@@ -577,7 +577,7 @@ class UiView(object):
         'OnMouseEnter': "OnMouseEnter(mousePos):",
         'OnMouseExit':  "OnMouseExit(mousePos):",
         'OnDoneLoading':"OnDoneLoading(url, didLoad):",
-        'OnBounce':     "OnBounce(otherObject, edge)",
+        'OnBounce':     "OnBounce(otherObject, edge):",
         'OnMessage':    "OnMessage(message):",
         'OnKeyDown':    "OnKeyDown(keyName):",
         'OnKeyHold':    "OnKeyHold(keyName, elapsedTime):",

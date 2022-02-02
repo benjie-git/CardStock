@@ -31,7 +31,7 @@ class ControlPanel(wx.Panel):
                 "Pen (P)", "Oval (O)", "Rectangle (R)", "Round Rectangle (D)", "Polygon (G)", "Line (L)"]
 
     def __init__(self, parent, ID, stackManager):
-        wx.Panel.__init__(self, parent, ID, style=wx.RAISED_BORDER)
+        super().__init__(parent, ID, style=wx.RAISED_BORDER)
         self.stackManager = stackManager
         self.penColor = "black"
         self.fillColor = "white"
@@ -133,7 +133,8 @@ class ControlPanel(wx.Panel):
         self.editBox.Add(self.inspector, 0, wx.EXPAND|wx.ALL, spacing)
         self.editBox.AddSpacer(4)
         self.editBox.Add(self.helpResizer, 0, wx.EXPAND|wx.ALL, spacing)
-        self.editBox.AddSpacer(4)
+        if wx.Platform != "__WXMSW__":
+            self.editBox.AddSpacer(4)
         self.editBox.Add(codeInspectorContainer, 1, wx.EXPAND|wx.ALL, spacing)
         self.editBox.SetSizeHints(self)
 
@@ -430,7 +431,7 @@ class ColorIndicator(wx.Window):
     a sample of what the current stackManager line will look like.
     """
     def __init__(self, parent):
-        wx.Window.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
+        super().__init__(parent, -1, style=wx.SUNKEN_BORDER)
         self.SetBackgroundColour(wx.WHITE)
         self.SetMinSize( (60, 60) )
         self.penColor = self.fillColor = self.thickness = None
