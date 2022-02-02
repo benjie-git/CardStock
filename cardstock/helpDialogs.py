@@ -325,7 +325,9 @@ sound files that your stack uses, and will include any external python modules t
 
         html = wx.html.HtmlWindow(self, -1)
         htmlStr = self.GetHTML()
-        # print(htmlStr)
+        # f = open("manual.html","w")
+        # f.write(htmlStr)
+        # f.close()
         html.SetPage(htmlStr)
         html.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
@@ -468,7 +470,9 @@ information on how to use CardStock, see the CardStock Manual in the Help menu.<
 
         self.html = wx.html.HtmlWindow(self.splitter, -1)
         htmlStr = self.GetHTML()
-        # print(htmlStr)
+        # f = open("reference.html","w")
+        # f.write(htmlStr)
+        # f.close()
         self.html.SetPage(htmlStr)
         self.html.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
