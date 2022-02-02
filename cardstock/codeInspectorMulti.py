@@ -24,6 +24,9 @@ class CodeInspectorContainer(wx.Window):
         if wx.Platform == "__WXMSW__":
             self.codeInspector.SetRect(wx.Rect((0,24), event.GetSize()-(0,24)))
             self.addButton.SetPosition((self.codeInspector.Size.Width - self.addButton.Size.Width, 0))
+        elif wx.Platform == "__WXGTK__":
+            self.codeInspector.SetRect(wx.Rect((0, 12), event.GetSize()-(0,12)))
+            self.addButton.SetPosition((self.codeInspector.Size.Width - self.addButton.Size.Width - 26, 0))
         else:
             self.codeInspector.SetRect(wx.Rect((0, 0), event.GetSize()))
             self.addButton.SetPosition((self.codeInspector.ClientSize.Width - self.addButton.Size.Width - 20, 2))

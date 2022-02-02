@@ -133,7 +133,7 @@ class ControlPanel(wx.Panel):
         self.editBox.Add(self.inspector, 0, wx.EXPAND|wx.ALL, spacing)
         self.editBox.AddSpacer(4)
         self.editBox.Add(self.helpResizer, 0, wx.EXPAND|wx.ALL, spacing)
-        if wx.Platform != "__WXMSW__":
+        if wx.Platform == "__WXMAC__":
             self.editBox.AddSpacer(4)
         self.editBox.Add(codeInspectorContainer, 1, wx.EXPAND|wx.ALL, spacing)
         self.editBox.SetSizeHints(self)
