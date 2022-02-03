@@ -231,7 +231,8 @@ class HelpData():
     @classmethod
     def TOCPage(cls):
         types = [["All Objects", "object"], ["Stack", "stack"], ["Card", "card"], ["Button", "button"],
-                 ["Text Field", "textfield"], ["Text Label", "textlabel"], ["Image", "image"], ["Line & Pen", "line"],
+                 ["Text Field", "textfield"], ["Text Label", "textlabel"], ["Web View", "webview"],
+                 ["Image", "image"], ["Line & Pen", "line"],
                  ["Oval & Rectangle", "shape"], ["Round Rectangle", "roundrect"], ["Group", "group"]]
         text = """
 <html>
@@ -288,7 +289,8 @@ HelpDataTypes = [["Type", "Description"],
                                  "size of an object in the card.  For a size variable s, you can access the width "
                                  "value as s[0] or s.width, and the height value as either s[1] or s.height"],
                  ["<i>object</i>", "An object value can hold any CardStock object, like a button, card, or oval."],
-                 ["<i>button, textfield, textlabel, image, oval, rect, roundrect, poly, line</i>", "A value of any of these types holds a CardStock object of that specific type."],
+                 ["<i>button, textfield, textlabel, webview, image, oval, rect, roundrect, poly, line</i>",
+                  "A value of any of these types holds a CardStock object of that specific type."],
                  ]
 
 

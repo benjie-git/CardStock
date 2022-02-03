@@ -379,7 +379,8 @@ information on how to use CardStock, see the CardStock Manual in the Help menu.<
 <hr/>
 <a name="#globalVars"/>
 <h2>Global Variables</h2>
-<p>These global variables are available in all of your event code.</p>
+<p>These global variables are available in all of your event code.  There are also variables for each object on
+the current card, and each card in the stack.  You can access objects on other cards as, for example, card_3.button_1.</p>
 {HelpData.GlobalVariablesTable()}
 <br/><br/>
 <hr/>
@@ -420,6 +421,12 @@ information on how to use CardStock, see the CardStock Manual in the Help menu.<
 {HelpData.ObjectSection("textlabel", "Text Label", "Text labels are objects that show text on the card, but are not "
                                                     "editable by users. The below properties, methods, and events, in "
                                                     "addition to those in the All Objects section, apply to text label "
+                                                    "objects.  Access an object's properties or methods as, for "
+                                                    "example, objectName.size or objectName.Focus()")}
+<hr/>
+{HelpData.ObjectSection("webview", "Web View", "Web views are objects that let you load web pages into your stacks. "
+                                               "The below properties, methods, and events, in "
+                                                    "addition to those in the All Objects section, apply to web view "
                                                     "objects.  Access an object's properties or methods as, for "
                                                     "example, objectName.size or objectName.Focus()")}
 <hr/>
