@@ -785,7 +785,7 @@ class HelpDataWebView():
                  "info": "If the <b>allowedHosts</b> list is empty, then this WebView will be allowed to load any URL. "
                          "If this list contains hostnames like 'google.com', then the WebView will only be allowed to "
                          "load URLs from these web hosts, and attempts to load other URLs, either by setting the "
-                         "<b>url</b> property directly, or by clicking a link, will fail."},
+                         "<b>URL</b> property directly, or by clicking a link, will fail."},
     }
 
     methods = {
@@ -801,10 +801,16 @@ class HelpDataWebView():
     }
 
     handlers = {
-        "OnDoneLoading": {"args": {"url": {"type": "string", "info": "This is the url of the web page that just loaded."},
-                                   "didLoad": {"type": "bool", "info": "True if the url loaded successfully, otherwise False."}},
+        "OnDoneLoading": {"args": {"URL": {"type": "string", "info": "This is the URL of the web page that just loaded."},
+                                   "didLoad": {"type": "bool", "info": "True if the URL loaded successfully, otherwise False."}},
                           "info": "The <b>OnDoneLoading</b> event is run whenever a web page finishes loading.",
                           },
+        "OnCardStockLink": {
+            "args": {"message": {"type": "string", "info": "This is the message part of a 'cardstock:message' URL."}},
+            "info": "The <b>OnCardStockLink</b> event is run whenever a web page tries to load a URL of the form "
+                    "cardstock:message.  You can add code in this event to respond to actions in a web page that call "
+                    "a cardstock: URL.",
+            },
     }
 
 

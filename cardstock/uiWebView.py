@@ -94,8 +94,12 @@ class UiWebView(UiView):
         if not self.stackManager.isEditing:
             url = event.GetURL()
             if url != "file:///":
-                # print(f"WebView: {event.GetString()}", file=sys.stderr)
-                if self.stackManager.runner and self.model and self.model.GetHandler("OnDoneLoading"):
+                parts = urlparse(url)
+                if parts.scheme == "cardstock":
+                    if self.stackManager.runner and self.model and self.model.GetHandler("OnCardStockLink"):
+                        wx.CallAfter(self.stackManager.runner.RunHandler, self.model, "OnCardStockLink", event,
+                                     url[10:])
+                elif self.stackManager.runner and self.model and self.model.GetHandler("OnDoneLoading"):
                     wx.CallAfter(self.stackManager.runner.RunHandler, self.model, "OnDoneLoading", event, (url, False))
         event.Skip()
 
@@ -129,7 +133,7 @@ class WebViewModel(ViewModel):
         self.proxyClass = WebView
 
         # Add custom handlers to the top of the list
-        handlers = {"OnSetup": "", "OnDoneLoading": ""}
+        handlers = {"OnSetup": "", "OnDoneLoading": "", "OnCardStockLink": ""}
         for k,v in self.handlers.items():
             if not "Mouse" in k:
                 handlers[k] = v

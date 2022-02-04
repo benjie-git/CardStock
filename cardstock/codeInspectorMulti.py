@@ -488,7 +488,7 @@ class EditorBlock(wx.Window):
 
     def OnKeyDown(self, event):
         line = self.codeEditor.GetCurrentLine()
-        if not self.codeEditor.AutoCompActive():
+        if not self.codeEditor.AutoCompActive() and not event.ShiftDown():
             if event.GetKeyCode() in (wx.WXK_UP, wx.WXK_NUMPAD_UP) and line == 0:
                 index = self.parent.visibleBlocks.index(self)
                 if index > 0:

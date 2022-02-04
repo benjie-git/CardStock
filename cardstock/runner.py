@@ -392,16 +392,23 @@ class Runner():
             self.clientVars["message"] = arg
 
         if arg and handlerName == "OnDoneLoading":
-            if "url" in self.clientVars:
-                oldVars["url"] = self.clientVars["url"]
+            if "URL" in self.clientVars:
+                oldVars["URL"] = self.clientVars["URL"]
             else:
-                oldVars["url"] = noValue
-            self.clientVars["url"] = arg[0]
+                oldVars["URL"] = noValue
+            self.clientVars["URL"] = arg[0]
             if "didLoad" in self.clientVars:
                 oldVars["didLoad"] = self.clientVars["didLoad"]
             else:
                 oldVars["didLoad"] = noValue
             self.clientVars["didLoad"] = arg[1]
+
+        if handlerName == "OnCardStockLink":
+            if "message" in self.clientVars:
+                oldVars["message"] = self.clientVars["message"]
+            else:
+                oldVars["message"] = noValue
+            self.clientVars["message"] = arg
 
         if handlerName == "OnPeriodic":
             if "elapsedTime" in self.clientVars:
