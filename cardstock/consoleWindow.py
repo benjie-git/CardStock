@@ -119,7 +119,7 @@ class ConsoleWindow(wx.Frame):
         event.Skip()
 
     def OnChar(self, event):
-        if self.lastOutputPos == self.textBox.GetLastPosition():
+        if self.textBox.GetLastPosition() - self.lastOutputPos == 1:
             # On first char added to the line, update AutoComplete data
             self.UpdateAC()
         event.Skip()

@@ -71,20 +71,29 @@ class UiWebView(UiView):
 
     def OnWillLoad(self, event):
         allowedHosts = self.model.GetProperty("allowedHosts")
+        url = event.GetURL()
+        parts = urlparse(url)
         if len(allowedHosts):
-            url = event.GetURL()
-            parts = urlparse(url)
             if "http" in parts.scheme:
+                allowed = False
                 for h in allowedHosts:
                     if parts.hostname.endswith(h):
-                        return
-                event.Veto()
-                self.OnDidError(event)
+                        allowed = True
+                        break
+                if not allowed:
+                    event.Veto()
+                    self.OnDidError(event)
+                    return
+        if parts.scheme == "cardstock":
+            event.Veto()
+            if self.stackManager.runner and self.model and self.model.GetHandler("OnCardStockLink"):
+                wx.CallAfter(self.stackManager.runner.RunHandler, self.model, "OnCardStockLink", event,
+                             url[10:])
 
     def OnDidLoad(self, event):
         if not self.stackManager.isEditing:
             url = event.GetURL()
-            if url != "file:///":
+            if url not in ("file:///", "about:blank"):
                 self.model.SetProperty("URL", url, notify=False)
                 if self.stackManager.runner and self.model and self.model.GetHandler("OnDoneLoading"):
                     wx.CallAfter(self.stackManager.runner.RunHandler, self.model, "OnDoneLoading", event, (url, True))
@@ -93,13 +102,8 @@ class UiWebView(UiView):
     def OnDidError(self, event):
         if not self.stackManager.isEditing:
             url = event.GetURL()
-            if url != "file:///":
-                parts = urlparse(url)
-                if parts.scheme == "cardstock":
-                    if self.stackManager.runner and self.model and self.model.GetHandler("OnCardStockLink"):
-                        wx.CallAfter(self.stackManager.runner.RunHandler, self.model, "OnCardStockLink", event,
-                                     url[10:])
-                elif self.stackManager.runner and self.model and self.model.GetHandler("OnDoneLoading"):
+            if url != "file:///" and not url.startswith("cardstock:"):
+                if self.stackManager.runner and self.model and self.model.GetHandler("OnDoneLoading"):
                     wx.CallAfter(self.stackManager.runner.RunHandler, self.model, "OnDoneLoading", event, (url, False))
         event.Skip()
 

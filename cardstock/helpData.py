@@ -606,18 +606,18 @@ class HelpDataObject():
                         "info": "The <b>OnMouseDown</b> event is run when the mouse button gets clicked down inside of this object, "
                                 "and gives you the current mouse position as the point <b>mousePos</b>.  This event will be "
                                 "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
-                                "itself, unless this propagation is stopped by calling StopHandlingMouseEvent() from your code."},
+                                "itself, unless this propagation is stopped by calling self.StopHandlingMouseEvent() from your code."},
         "OnMouseMove": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                         "info": "The <b>OnMouseMove</b> event is run every time the mouse moves, while over this object, whether "
                                 "or not the mouse button is down, and gives you the current mouse position as the point <b>mousePos</b>.  "
                                 "This event will be "
                                 "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
-                                "itself, unless this propagation is stopped by calling StopHandlingMouseEvent() from your code."},
+                                "itself, unless this propagation is stopped by calling self.StopHandlingMouseEvent() from your code."},
         "OnMouseUp": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                       "info": "The <b>OnMouseUp</b> event is run when the mouse button is released over this object, and "
                               "gives you the current mouse position as the point <b>mousePos</b>.  This event will be "
                                 "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
-                                "itself, unless this propagation is stopped by calling StopHandlingMouseEvent() from your code."},
+                                "itself, unless this propagation is stopped by calling self.StopHandlingMouseEvent() from your code."},
         "OnMouseEnter": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                          "info": "The <b>OnMouseEnter</b> event is run when the mouse pointer moves onto this object."},
         "OnMouseExit": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
