@@ -110,17 +110,6 @@ class UiWebView(UiView):
             return result
         return None
 
-    @RunOnMainSync
-    def GetHtml(self):
-        if self.webView:
-            return self.webView.GetPageSource()
-        return ""
-
-    @RunOnMainSync
-    def SetHtml(self, html, baseUrl):
-        if self.webView:
-            return self.webView.SetPage(html, baseUrl)
-
 
 class WebViewModel(ViewModel):
     """
@@ -135,7 +124,7 @@ class WebViewModel(ViewModel):
         # Add custom handlers to the top of the list
         handlers = {"OnSetup": "", "OnDoneLoading": "", "OnCardStockLink": ""}
         for k,v in self.handlers.items():
-            if not "Mouse" in k:
+            if "Mouse" not in k:
                 handlers[k] = v
         self.handlers = handlers
         self.initialEditHandler = "OnDoneLoading"
@@ -179,6 +168,7 @@ class WebView(ViewProxy):
             raise TypeError("URL must be set to a string value")
         model = self._model
         if not model: return
+        model.SetProperty("HTML", "", notify=False)
         model.SetProperty("URL", str(val))
 
     @property
@@ -192,7 +182,7 @@ class WebView(ViewProxy):
             raise TypeError("HTML must be set to a string value")
         model = self._model
         if not model: return
-        model.SetProperty("URL", "")
+        model.SetProperty("URL", "", notify=False)
         model.SetProperty("HTML", str(val))
 
     @property
