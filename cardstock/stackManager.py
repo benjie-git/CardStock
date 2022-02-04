@@ -400,6 +400,8 @@ class StackManager(object):
                                                                                       "image", rawData)
                             if path:
                                 self.AddImageFromPath(path)
+                else:
+                    wx.TheClipboard.Close()
         return models
 
     def GroupSelectedViews(self):
