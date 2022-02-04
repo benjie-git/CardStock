@@ -38,7 +38,7 @@ class UiTextField(UiTextBase):
             alignment = wx.TE_CENTER
 
         pos = self.stackManager.ConvRect(model.GetAbsoluteFrame()).TopLeft
-        if model.GetProperty("multiline"):
+        if model.GetProperty("isMultiline"):
             field = CDSSTC(parent=stackManager.view, size=model.GetProperty("size"), pos=pos,
                                        style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
             field.SetUseHorizontalScrollBar(False)
@@ -69,7 +69,7 @@ class UiTextField(UiTextBase):
         if stackManager.isEditing:
             field.SetEditable(False)
         else:
-            field.SetEditable(model.GetProperty("editable"))
+            field.SetEditable(model.GetProperty("isEditable"))
         return field
 
     def GetCursor(self):
@@ -116,20 +116,20 @@ class UiTextField(UiTextBase):
             self.stackManager.view.SetFocus()
 
     def OnResize(self, event):
-        if self.view and self.model.GetProperty("multiline"):
+        if self.view and self.model.GetProperty("isMultiline"):
             self.view.SetScrollWidth(self.view.GetSize().Width-6)
         if event:
             event.Skip()
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key == "multiline":
+        if key == "isMultiline":
             self.StopInlineEditing(notify=False)
             sm = self.stackManager
             sm.SelectUiView(None)
             sm.LoadCardAtIndex(sm.cardIndex, reload=True)
             sm.SelectUiView(sm.GetUiViewByModel(model))
-        elif key == "editable":
+        elif key == "isEditable":
             if self.stackManager.isEditing:
                 self.view.SetEditable(False)
             else:
@@ -254,15 +254,15 @@ class TextFieldModel(TextBaseModel):
         self.initialEditHandler = "OnTextEnter"
 
         self.properties["name"] = "field_1"
-        self.properties["editable"] = True
-        self.properties["multiline"] = False
+        self.properties["isEditable"] = True
+        self.properties["isMultiline"] = False
         self.properties["fontSize"] = 12
 
-        self.propertyTypes["editable"] = "bool"
-        self.propertyTypes["multiline"] = "bool"
+        self.propertyTypes["isEditable"] = "bool"
+        self.propertyTypes["isMultiline"] = "bool"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "editable", "multiline", "position", "size"]
+        self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "isEditable", "isMultiline", "position", "size"]
 
     @RunOnMainSync
     def GetSelectedText(self):
@@ -276,7 +276,7 @@ class TextFieldModel(TextBaseModel):
     def SetSelectedText(self, text):
         uiView = self.stackManager.GetUiViewByModel(self)
         if uiView and uiView.view:
-            isMultiline = self.GetProperty("multiline")
+            isMultiline = self.GetProperty("isMultiline")
             sel = uiView.view.GetSelection()
             length = len(self.GetProperty("text"))
             s = uiView.view.GetRange(0,sel[0]) + text + uiView.view.GetRange(sel[1], length)
@@ -309,26 +309,26 @@ class TextField(TextBaseProxy):
     """
 
     @property
-    def editable(self):
+    def isEditable(self):
         model = self._model
         if not model: return False
-        return model.GetProperty("editable")
-    @editable.setter
-    def editable(self, val):
+        return model.GetProperty("isEditable")
+    @isEditable.setter
+    def isEditable(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("editable", bool(val))
+        model.SetProperty("isEditable", bool(val))
 
     @property
-    def multiline(self):
+    def isMultiline(self):
         model = self._model
         if not model: return False
-        return model.GetProperty("multiline")
-    @multiline.setter
-    def multiline(self, val):
+        return model.GetProperty("isMultiline")
+    @isMultiline.setter
+    def isMultiline(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("multiline", bool(val))
+        model.SetProperty("isMultiline", bool(val))
 
     @property
     def selection(self):

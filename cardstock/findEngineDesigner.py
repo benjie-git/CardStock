@@ -4,7 +4,7 @@ from uiView import ViewModel
 from appCommands import SetPropertyCommand, SetHandlerCommand, CommandGroup
 import re
 
-SEARCHABLE_PROPERTIES = ["name", "text", "title", "file", "bgColor", "textColor", "penColor", "fillColor"]
+SEARCHABLE_PROPERTIES = ["name", "text", "title", "file", "textColor", "penColor", "fillColor"]
 
 """
 Find and Replace logic.

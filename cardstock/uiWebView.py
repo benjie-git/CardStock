@@ -34,20 +34,20 @@ class UiWebView(UiView):
             self.cover = wx.Window(parent=container, size=s)
             self.BindEvents(self.cover)
 
-        url = self.model.GetProperty("url")
+        url = self.model.GetProperty("URL")
         if url and len(url):
             self.webView.LoadURL(url)
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key == "url":
+        if key == "URL":
             if self.webView:
                 url = str(self.model.GetProperty(key))
                 if len(url):
                     self.webView.LoadURL(url)
                 else:
                     self.webView.SetPage("", "")
-        elif key == "html":
+        elif key == "HTML":
             if self.webView:
                 html = str(self.model.GetProperty(key))
                 self.webView.SetPage(html, "")
@@ -85,7 +85,7 @@ class UiWebView(UiView):
         if not self.stackManager.isEditing:
             url = event.GetURL()
             if url != "file:///":
-                self.model.SetProperty("url", url, notify=False)
+                self.model.SetProperty("URL", url, notify=False)
                 if self.stackManager.runner and self.model and self.model.GetHandler("OnDoneLoading"):
                     wx.CallAfter(self.stackManager.runner.RunHandler, self.model, "OnDoneLoading", event, (url, True))
         event.Skip()
@@ -137,18 +137,18 @@ class WebViewModel(ViewModel):
         self.initialEditHandler = "OnDoneLoading"
 
         self.properties["name"] = "webview_1"
-        self.properties["url"] = ""
-        self.properties["html"] = ""
+        self.properties["URL"] = ""
+        self.properties["HTML"] = ""
         self.properties["allowedHosts"] = []
-        self.propertyTypes["url"] = "string"
-        self.propertyTypes["html"] = "string"
+        self.propertyTypes["URL"] = "string"
+        self.propertyTypes["HTML"] = "string"
         self.propertyTypes["allowedHosts"] = "list"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "url", "allowedHosts", "position", "size"]
+        self.propertyKeys = ["name", "URL", "allowedHosts", "position", "size"]
 
     def SetProperty(self, key, value, notify=True):
-        if key == "url":
+        if key == "URL":
             if len(value):
                 parts = urlparse(value)
                 if not parts.scheme:
@@ -165,31 +165,31 @@ class WebView(ViewProxy):
     """
 
     @property
-    def url(self):
+    def URL(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("url")
-    @url.setter
-    def url(self, val):
+        return model.GetProperty("URL")
+    @URL.setter
+    def URL(self, val):
         if not isinstance(val, str):
-            raise TypeError("url must be set to a string value")
+            raise TypeError("URL must be set to a string value")
         model = self._model
         if not model: return
-        model.SetProperty("url", str(val))
+        model.SetProperty("URL", str(val))
 
     @property
-    def html(self):
+    def HTML(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("html")
-    @html.setter
-    def html(self, val):
+        return model.GetProperty("HTML")
+    @HTML.setter
+    def HTML(self, val):
         if not isinstance(val, str):
-            raise TypeError("html must be set to a string value")
+            raise TypeError("HTML must be set to a string value")
         model = self._model
         if not model: return
-        model.SetProperty("url", "")
-        model.SetProperty("html", str(val))
+        model.SetProperty("URL", "")
+        model.SetProperty("HTML", str(val))
 
     @property
     def allowedHosts(self):

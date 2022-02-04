@@ -49,7 +49,7 @@ class UiCard(UiView):
         event.Skip()
 
     def Paint(self, gc):
-        bg = wx.Colour(self.model.GetProperty("bgColor"))
+        bg = wx.Colour(self.model.GetProperty("fillColor"))
         if not bg:
             bg = wx.Colour('white')
         gc.SetBackground(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
@@ -80,7 +80,7 @@ class UiCard(UiView):
         super().OnPropertyChanged(model, key)
         if key == "name":
             self.stackManager.designer.UpdateCardList()
-        elif key == "bgColor":
+        elif key == "fillColor":
             self.view.Refresh()
         elif key in ["size"]:
             for ui in self.uiViews:
@@ -130,10 +130,10 @@ class CardModel(ViewModel):
 
         # Custom property order and mask for the inspector
         self.properties["name"] = "card_1"
-        self.properties["bgColor"] = "white"
-        self.propertyKeys = ["name", "bgColor", "size", "canSave", "canResize"]
+        self.properties["fillColor"] = "white"
+        self.propertyKeys = ["name", "fillColor", "size", "canSave", "canResize"]
 
-        self.propertyTypes["bgColor"] = "color"
+        self.propertyTypes["fillColor"] = "color"
         self.propertyTypes["canSave"] = 'bool'
         self.propertyTypes["canResize"] = 'bool'
 
@@ -295,17 +295,17 @@ class Card(ViewProxy):
     """
 
     @property
-    def bgColor(self):
+    def fillColor(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("bgColor")
-    @bgColor.setter
-    def bgColor(self, val):
+        return model.GetProperty("fillColor")
+    @fillColor.setter
+    def fillColor(self, val):
         if not isinstance(val, str):
-            raise TypeError("bgColor must be a string")
+            raise TypeError("fillColor must be a string")
         model = self._model
         if not model: return
-        model.SetProperty("bgColor", val)
+        model.SetProperty("fillColor", val)
 
     @property
     def number(self):
@@ -313,11 +313,11 @@ class Card(ViewProxy):
         if not model: return -1
         return model.parent.childModels.index(model)+1
 
-    def AnimateBgColor(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def AnimateFillColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimateBgColor(): duration must be a number")
+            raise TypeError("AnimateFillColor(): duration must be a number")
         if not isinstance(endVal, str):
-            raise TypeError("AnimateBgColor(): endColor must be a string")
+            raise TypeError("AnimateFillColor(): endColor must be a string")
 
         model = self._model
         if not model: return
@@ -325,19 +325,19 @@ class Card(ViewProxy):
         endColor = wx.Colour(endVal)
         if endColor.IsOk():
             def onStart(animDict):
-                origVal = wx.Colour(self.bgColor)
+                origVal = wx.Colour(self.fillColor)
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
                 animDict["origParts"] = origParts
                 endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
                 animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
             def onUpdate(progress, animDict):
-                model.SetProperty("bgColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
+                model.SetProperty("fillColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
             def internalOnFinished(animDict):
                 if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
-            model.AddAnimation("bgColor", duration, onUpdate, onStart, internalOnFinished)
+            model.AddAnimation("fillColor", duration, onUpdate, onStart, internalOnFinished)
 
     def AddButton(self, name="button", **kwargs):
         model = self._model

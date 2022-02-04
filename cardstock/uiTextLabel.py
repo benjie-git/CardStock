@@ -18,7 +18,7 @@ class UiTextLabel(UiTextBase):
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key in ["text", "font", "fontSize", "size", "autoShrink"]:
+        if key in ["text", "font", "fontSize", "size", "canAutoShrink"]:
             self.lastFontSize = None
 
     def StartInlineEditing(self):
@@ -103,7 +103,7 @@ class UiTextLabel(UiTextBase):
 
         font = wx.Font(self.font)
         didShrink = False
-        if self.model.GetProperty("autoShrink"):
+        if self.model.GetProperty("canAutoShrink"):
             (fontSize, didShrink) = self.GetFontSizeFit(gc)
             if didShrink:
                 font.SetPixelSize(wx.Size(0, fontSize))
@@ -145,14 +145,14 @@ class TextLabelModel(TextBaseModel):
         self.type = "textlabel"
         self.proxyClass = TextLabel
         self.properties["name"] = "label_1"
-        self.properties["autoShrink"] = True
+        self.properties["canAutoShrink"] = True
         self.properties["rotation"] = 0.0
 
-        self.propertyTypes["autoShrink"] = "bool"
+        self.propertyTypes["canAutoShrink"] = "bool"
         self.propertyTypes["rotation"] = "float"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "autoShrink", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "canAutoShrink", "position", "size", "rotation"]
 
 
 class TextLabel(TextBaseProxy):
@@ -161,15 +161,15 @@ class TextLabel(TextBaseProxy):
     """
 
     @property
-    def autoShrink(self):
+    def canAutoShrink(self):
         model = self._model
         if not model: return False
-        return model.GetProperty("autoShrink")
-    @autoShrink.setter
-    def autoShrink(self, val):
+        return model.GetProperty("canAutoShrink")
+    @canAutoShrink.setter
+    def canAutoShrink(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("autoShrink", bool(val))
+        model.SetProperty("canAutoShrink", bool(val))
 
 
 def wordwrap(text, width, dc):

@@ -430,7 +430,7 @@ the current card, and each card in the stack.  You can access objects on other c
                                                     "objects.  Access an object's properties or methods as, for "
                                                     "example, objectName.size or objectName.Focus()")}
 <hr/>
-{HelpData.ObjectSection("image", "Image", "Image objects show an image from an image file, and can be rotated.  "
+{HelpData.ObjectSection("image", "Image", "Image objects show an image from an image file.  "
                                            "The below properties, methods, and events, in addition to those in the "
                                            "All Objects section, apply to image objects.  Access an object's "
                                            "properties or methods as, for example, objectName.size or "
@@ -443,7 +443,7 @@ the current card, and each card in the stack.  You can access objects on other c
                                                          "everything in the All Objects section, apply to these shape "
                                                          "objects.")}
 <hr/>
-{HelpData.ObjectSection("shape", "Shape - Oval and Rectangle", "Oval and rectangle shapes have a penColor and "
+{HelpData.ObjectSection("shape", "Shape - Oval, Rectangle, and Polygon", "Oval rectangle, and polygon shapes have a penColor and "
                                                                 "penThickness like Line and Pen objects, but also have "
                                                                 "a fillColor.  The below properties, methods, and "
                                                                 "events, in addition to those in the "
@@ -456,14 +456,15 @@ the current card, and each card in the stack.  You can access objects on other c
                                                                  "these shape objects.")}
 <hr/>
 {HelpData.ObjectSection("group", "Group", "A group object is created when you group other objects together.  It can "
-                                           "then be moved and resized like other objects, and can contain code to "
-                                           "handle the all-objects events, but beware that ungrouping a group destroys "
-                                           "any code in the group object itself.  (But all code in the objects inside "
-                                           "the group remains intact.)  Group objects don't have their own specific "
-                                           "properties, methods, or events, but respond to everything in the "
-                                           "All Objects section.  Access an object's properties or methods as, for "
-                                           "example, objectName.size or objectName.Focus().  You can also access a "
-                                           "child object of this group as groupName.objectName")}
+                                          "then be moved, resized, and rotated like other objects, and can contain code to "
+                                          "handle the all-objects events, but beware that ungrouping a group destroys "
+                                          "any code in the group object itself.  (But all code in the objects inside "
+                                          "the group remains intact.)  Group objects don't have their own specific "
+                                          "properties or events, but respond to the following methods, along with "
+                                          "everything in the "
+                                          "All Objects section.  Access an object's properties or methods as, for "
+                                          "example, objectName.size or objectName.Focus().  You can also access a "
+                                          "child object of this group as groupName.objectName")}
 
 </body>
 </html>

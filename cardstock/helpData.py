@@ -409,7 +409,8 @@ class HelpDataObject():
                          "your code, you can get an object's name, but you can not set it."},
         "type": {"type": "string",
                  "info": "Every object has a <b>type</b> property.  It will be one of 'button', 'textfield', 'textlabel', "
-                         "'image', 'line', 'oval', 'rect, 'roundrect', 'stack', 'card', 'group'."},
+                         "'webview', 'image', 'line', 'oval', 'rect, 'roundrect', 'poly', 'stack', 'card', 'group'.  Your code can get "
+                         "this value, but not set it."},
         "data": {"type": "dictionary",
                  "info": "Every object has a <b>data</b> property.  It is a dictionary that allows you to persistently "
                          "store arbitrary data in any object within a stack that has <b>canSave</b> set to True."},
@@ -648,8 +649,8 @@ class HelpDataButton():
     properties = {
         "title": {"type": "string",
                   "info": "The <b>title</b> property is the visible text on the button."},
-        "border": {"type": "bool",
-                   "info": "By default buttons show a rectangular or rounded <b>border</b>, depending on your "
+        "hasBorder": {"type": "bool",
+                   "info": "By default buttons show a rectangular or rounded border, depending on your "
                            "computer's operating system.  But you can disable this border, so the "
                            "button is clear, just showing its title."},
     }
@@ -694,12 +695,12 @@ class HelpDataTextField():
                          "info": "A text field's <b>selectedText</b> value is the string that is currently selected within "
                                  "the field's text.  For example, if the text is 'Hello', and the 'He' is selected, "
                                  "then the <b>selectedText</b> value would be 'He'."},
-        "editable": {"type": "bool",
+        "isEditable": {"type": "bool",
                      "info": "By default text fields can be edited by the user.  But you can set this to <b>False</b> "
                              "so that the text can not be edited."},
-        "multiline": {"type": "bool",
+        "isMultiline": {"type": "bool",
                       "info": "By default, text fields hold only one line of text.  But you can set the "
-                              "<b>multiline</b> property to <b>True</b> to let them hold multiple lines of text."},
+                              "<b>isMultiline</b> property to <b>True</b> to let them hold multiple lines of text."},
     }
 
     methods = {
@@ -737,8 +738,8 @@ class HelpDataTextLabel():
         "alignment": {"type": "[Left, Center, Right]",
                       "info": "By default text fields start aligned to the left, but you can change this property to make "
                               "your text centered, or aligned to the right."},
-        "autoShrink": {"type": "bool",
-                       "info": "When the <b>autoShrink</b> property is True, the <b>fontSize</b> of the text in this "
+        "canAutoShrink": {"type": "bool",
+                       "info": "When the <b>canAutoShrink</b> property is True, the <b>fontSize</b> of the text in this "
                                "label will shrink if needed, to fit into the label object's current size."},
         "textColor": {"type": "string",
                       "info": "The color used for the text in this label.  This can be a color word like red, or an "
@@ -770,14 +771,16 @@ class HelpDataWebView():
     types = ["webview"]
 
     properties = {
-        "url": {"type": "string",
-                "info": "This is the current url being shown by the Web View.  Set this property to go to a web page."},
-        "html": {"type": "string",
+        "URL": {"type": "string",
+                "info": "This is the current URL being shown by the Web View.  Set this property to go to a web page."},
+        "HTML": {"type": "string",
                 "info": "This is the current HTML content of the webview."},
         "canGoBack": {"type": "bool",
-                "info": "This is True if the webview has pages in its history to go back to, otherwise it is False."},
+                "info": "This is True if the webview has pages in its history to go back to, otherwise it is False. "
+                        "This value can be read but not set."},
         "canGoForward": {"type": "bool",
-                "info": "This is True if the webview has gone back, and has history pages available to go forward to, otherwise it is False."},
+                "info": "This is True if the webview has gone back, and has history pages available to go forward to, "
+                        "otherwise it is False.  This value can be read but not set."},
         "allowedHosts": {"type": "list",
                  "info": "If the <b>allowedHosts</b> list is empty, then this WebView will be allowed to load any URL. "
                          "If this list contains hostnames like 'google.com', then the WebView will only be allowed to "
@@ -949,8 +952,8 @@ class HelpDataCard():
     types = ["card"]
 
     properties = {
-        "bgColor": {"type": "string",
-                    "info": "The color used for the background of this card.  This can be a color word like white, "
+        "fillColor": {"type": "string",
+                    "info": "The fillColor is used to fill in the background of this card.  This can be a color word like white, "
                             "or an HTML color like #EEEEEE for a light grey."},
         "number": {"type": "int",
                   "info": "This is the card number of this card.  The first card is <b>number</b> 1.  You can "
@@ -1046,13 +1049,13 @@ class HelpDataCard():
                              },
                     "return": "group",
                     "info": "Adds a new Group to the card, and returns the new object."},
-        "AnimateBgColor": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
+        "AnimateFillColor": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                       "endColor": {"type": "string",
-                                                   "info": "the final backgroundColor at the end of the animation"},
+                                                   "info": "the final fillColor at the end of the animation"},
                                       "onFinished": {"type": "function",
                                                      "info": "an optional function to run when the animation finishes."}},
                              "return": None,
-                             "info": "Visually animates this card's <b>backgroundColor</b> to <b>endColor</b>, "
+                             "info": "Visually animates this card's <b>fillColor</b> to <b>endColor</b>, "
                                      "over <b>duration</b> seconds.  When the animation completes, runs the <b>onFinished</b> function, "
                                      "if one was passed in."},
         "StopAllAnimating": {"args": {"propertyName": {"type": "string",

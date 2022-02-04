@@ -21,7 +21,7 @@
       },
       "properties": {
         "name": "card_1",
-        "bgColor": "white"
+        "bgColor": "#EEEEEE"
       },
       "childModels": [
         {

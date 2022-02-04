@@ -96,7 +96,27 @@ class StackModel(ViewModel):
             self.MigrateModelFromFormatVersion(formatVer, self)
 
     def MigrateDataFromFormatVersion(self, fromVer, dataDict):
-        pass
+        if fromVer <= 2:
+            """
+            In File Format Version 3, some properties and methods were renamed.
+            """
+            # Update names
+            def replaceNames(dataDict):
+                if "bgColor" in dataDict['properties']:
+                    dataDict['properties']["fillColor"] = dataDict['properties'].pop("bgColor")
+                if "border" in dataDict['properties']:
+                    dataDict['properties']["hasBorder"] = dataDict['properties'].pop("border")
+                if "editable" in dataDict['properties']:
+                    dataDict['properties']["isEditable"] = dataDict['properties'].pop("editable")
+                if "multiline" in dataDict['properties']:
+                    dataDict['properties']["isMultiline"] = dataDict['properties'].pop("multiline")
+                if "autoShrink" in dataDict['properties']:
+                    dataDict['properties']["canAutoShrink"] = dataDict['properties'].pop("autoShrink")
+                if 'childModels' in dataDict:
+                    for child in dataDict['childModels']:
+                        replaceNames(child)
+            for c in dataDict['cards']:
+                replaceNames(c)
 
     def MigrateModelFromFormatVersion(self, fromVer, stackModel):
         if fromVer <= 1:
@@ -122,14 +142,32 @@ class StackModel(ViewModel):
                 if "OnIdle" in obj.handlers:
                     obj.handlers["OnPeriodic"] = obj.handlers.pop("OnIdle")
                 for k,v in obj.handlers.items():
-                    obj.handlers[k] = v.replace(".StopAnimations(", ".StopAnimating(")
-                    obj.handlers[k] = v.replace(".StopAllAnimations(", ".StopAllAnimating(")
+                    val = v
+                    val = val.replace(".StopAnimations(", ".StopAnimating(")
+                    val = val.replace(".StopAllAnimations(", ".StopAllAnimating(")
+                    obj.handlers[k] = val
                 for child in obj.childModels:
                     replaceNames(child)
             replaceNames(stackModel)
-
-
-
+        if fromVer <= 2:
+            """
+            In File Format Version 3, some properties and methods were renamed.
+            """
+            # Update names
+            def replaceNames(obj):
+                for k,v in obj.handlers.items():
+                    if len(v):
+                        val = v
+                        val = val.replace(".bgColor", ".fillColor")
+                        val = val.replace(".AnimateBgColor(", ".AnimateFillColor(")
+                        val = val.replace(".border", ".hasBorder")
+                        val = val.replace(".editable", ".isEditable")
+                        val = val.replace(".multiline", ".isMultiline")
+                        val = val.replace(".autoShrink", ".canAutoShrink")
+                        obj.handlers[k] = val
+                for child in obj.childModels:
+                    replaceNames(child)
+            replaceNames(stackModel)
 
 
 class Stack(ViewProxy):

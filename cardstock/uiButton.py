@@ -21,7 +21,7 @@ class UiButton(UiView):
         return wx.CURSOR_HAND
 
     def HackEvent(self, event):
-        if wx.Platform == '__WXMAC__' and self.model.GetProperty("border"):
+        if wx.Platform == '__WXMAC__' and self.model.GetProperty("hasBorder"):
             event.SetPosition(event.GetPosition() - MAC_BUTTON_OFFSET_HACK)
         return event
 
@@ -37,7 +37,7 @@ class UiButton(UiView):
             event.Skip(False)  # Fix double MouseUp events on Mac
 
     def CreateButton(self, stackManager, model):
-        if not model.GetProperty("border"):
+        if not model.GetProperty("hasBorder"):
             return None
 
         button = wx.Button(parent=stackManager.view, label="Button", size=model.GetProperty("size"),
@@ -56,7 +56,7 @@ class UiButton(UiView):
                 self.button.SetLabel(str(self.model.GetProperty(key)))
             else:
                 self.stackManager.view.Refresh()
-        elif key == "border":
+        elif key == "hasBorder":
             sm = self.stackManager
             sm.SelectUiView(None)
             sm.LoadCardAtIndex(sm.cardIndex, reload=True)
@@ -135,12 +135,12 @@ class ButtonModel(ViewModel):
 
         self.properties["name"] = "button_1"
         self.properties["title"] = "Button"
-        self.properties["border"] = True
+        self.properties["hasBorder"] = True
         self.propertyTypes["title"] = "string"
-        self.propertyTypes["border"] = "bool"
+        self.propertyTypes["hasBorder"] = "bool"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "title", "border", "position", "size"]
+        self.propertyKeys = ["name", "title", "hasBorder", "position", "size"]
 
 
 class Button(ViewProxy):
@@ -161,15 +161,15 @@ class Button(ViewProxy):
         model.SetProperty("title", str(val))
 
     @property
-    def border(self):
+    def hasBorder(self):
         model = self._model
         if not model: return False
-        return model.GetProperty("border")
-    @border.setter
-    def border(self, val):
+        return model.GetProperty("hasBorder")
+    @hasBorder.setter
+    def hasBorder(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("border", bool(val))
+        model.SetProperty("hasBorder", bool(val))
 
     def Click(self):
         model = self._model
