@@ -240,11 +240,7 @@ class HandTool(BaseTool):
                 if vector.y == 0:
                     rot = 90 if vector.x > 0 else -90
                 else:
-                    rot = round(math.degrees(math.atan(vector.x/vector.y)), 1)
-                    if vector.x < 0 and vector.y < 0: # bottom left
-                        rot = -180 + rot
-                    elif vector.x >= 0 and vector.y < 0:  # bottom right
-                        rot = 180 + rot
+                    rot = round(math.degrees(math.atan2(vector.x, vector.y)), 1)
                 if event.ShiftDown():
                     rot = int(((rot+2)%360) / 5) * 5
                 if event.AltDown():

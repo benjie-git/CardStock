@@ -278,6 +278,7 @@ class LineModel(ViewModel):
         self.Notify("shape")
 
     def PerformFlips(self, fx, fy, notify=True):
+        super().PerformFlips(fx, fy, notify)
         if self.type in ["line", "pen", "poly"]:
             if fx or fy:
                 origSize = self.properties["originalSize"]

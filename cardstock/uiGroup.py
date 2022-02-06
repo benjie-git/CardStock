@@ -133,6 +133,7 @@ class GroupModel(ViewModel):
         self.origFrame = self.GetFrame()
         for model in model.childModels:
             model.origGroupSubviewFrame = model.GetFrame()
+            model.origGroupSubviewRotation = model.GetProperty("rotation")
 
     def SetData(self, data):
         super().SetData(data)
@@ -141,6 +142,7 @@ class GroupModel(ViewModel):
             model.parent = self
             self.childModels.append(model)
             model.origGroupSubviewFrame = model.GetFrame()
+            model.origGroupSubviewRotation = model.GetProperty("rotation")
         self.origFrame = self.GetFrame()
 
     def SetProperty(self, key, value, notify=True):
@@ -161,12 +163,14 @@ class GroupModel(ViewModel):
         self.origFrame = self.GetFrame()
         for model in models:
             model.origGroupSubviewFrame = model.GetFrame()
+            model.origGroupSubviewRotation = model.GetProperty("rotation")
         self.Notify("child")
         self.isDirty = True
 
     def RemoveChild(self, model):
         self.childModels.remove(model)
-        model.origGroupSubviewFrame = None
+        del model.origGroupSubviewFrame
+        del model.origGroupSubviewRotation
         pos = model.GetProperty("position")
         selfPos = self.GetProperty("position")
         model.SetProperty("position", [pos[0]+selfPos[0], pos[1]+selfPos[1]], notify=False)
@@ -186,8 +190,11 @@ class GroupModel(ViewModel):
                 m.SetProperty("position", [oldPos[0] - offset[0], oldPos[1] - offset[1]], notify=False)
 
     def PerformFlips(self, fx, fy, notify=True):
+        super().PerformFlips(fx, fy, notify)
         if fx or fy:
             for m in self.childModels:
+                if fx != fy:
+                    m.origGroupSubviewRotation = -m.origGroupSubviewRotation
                 pos = m.origGroupSubviewFrame.Position
                 size = m.origGroupSubviewFrame.Size
                 pos = wx.Point((self.origFrame.Size.width - (pos.x + size.width)) if fx else pos.x,
@@ -209,10 +216,49 @@ class GroupModel(ViewModel):
         for m in self.childModels:
             pos = m.origGroupSubviewFrame.Position
             size = m.origGroupSubviewFrame.Size
+            oldRot = m.origGroupSubviewRotation
+            if oldRot == 0:
+                # If this child is not rotated, just scale it
+                m.SetFrame(wx.Rect((pos.x*scaleX, pos.y*scaleY), (size.Width*scaleX, size.Height*scaleY)))
+            else:
+                # If this child is rotated, we need to scale its size, but also scale the rotation
+                pos = (pos.x*scaleX, pos.y*scaleY)
 
-            pos = wx.Point(pos.x * scaleX, pos.y * scaleY)
-            size = wx.Size(size.Width * scaleX, size.Height * scaleY)
-            m.SetFrame(wx.Rect(pos, size))
+                # Set up the transform to get the rotated corner points
+                aff = wx.AffineMatrix2D()
+                aff.Translate(int(size[0] / 2), int(size[1] / 2))
+                aff.Rotate(math.radians(-oldRot))
+                aff.Translate(-int(size[0] / 2), -int(size[1] / 2))
+
+                # Get rotated corner points
+                rect = wx.Rect((0, 0), size)
+                points = m.RotatedRectPoints(rect, aff)
+                points = [wx.RealPoint(p[0]*scaleX, p[1]*scaleY)+pos for p in points]
+
+                # Get the slopes of both pairs of parallel sides of the parallelogram
+                # And use the slope of the longer sides
+                diff = points[2]-points[1]
+                rotA = math.degrees(math.atan2(diff.x, diff.y))
+                diff = points[0]-points[1]
+                rotB = 90+math.degrees(math.atan2(diff.x, diff.y))
+                if size.Height < size.Width:
+                    rot = rotB
+                else:
+                    rot = rotA
+                m.SetProperty("rotation", rot)
+
+                # Find the center and the size of the new scaled state for this shape
+                center = wx.Point((points[0].x + points[1].x + points[2].x + points[3].x) / 4,
+                                  (points[0].y + points[1].y + points[2].y + points[3].y) / 4)
+                if size.Height > size.Width:
+                    # if the height is longer, scale the width to get thinner as the parallelogram folds up
+                    size = wx.Size(math.cos(math.radians(rotB-rotA)) * math.sqrt((points[0].x - points[1].x)**2 + (points[0].y - points[1].y)**2),
+                                   math.sqrt((points[1].x - points[2].x) ** 2 + (points[1].y - points[2].y) ** 2))
+                else:
+                    # if the width is longer, scale the height to get thinner as the parallelogram folds up
+                    size = wx.Size(math.sqrt((points[0].x - points[1].x) ** 2 + (points[0].y - points[1].y) ** 2),
+                                   math.cos(math.radians(rotB-rotA)) * math.sqrt((points[1].x - points[2].x) ** 2 + (points[1].y - points[2].y) ** 2))
+                m.SetFrame(wx.Rect(center - tuple(size/2), size))
 
 
 class Group(ViewProxy):

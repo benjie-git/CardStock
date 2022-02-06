@@ -155,6 +155,7 @@ class ImageModel(ViewModel):
         self.propertyKeys = ["name", "file", "fit", "position", "size", "rotation"]
 
     def PerformFlips(self, fx, fy, notify=True):
+        super().PerformFlips(fx, fy, notify)
         if fx:
             self.SetProperty("xFlipped", not self.GetProperty("xFlipped"), notify=notify)
         if fy:

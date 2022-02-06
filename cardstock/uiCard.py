@@ -240,6 +240,7 @@ class CardModel(ViewModel):
         return model
 
     def PerformFlips(self, fx, fy, notify=True):
+        super().PerformFlips(fx, fy, notify)
         cardSize = self.GetProperty("size")
         if fx or fy:
             for m in self.childModels:

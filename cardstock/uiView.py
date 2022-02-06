@@ -737,6 +737,7 @@ class ViewModel(object):
             m.SetStackManager(stackManager)
 
     def GetAffineTransform(self):
+        # Get the transform that converts local coords to abs coords
         m = self
         ancestors = []
         aff = wx.AffineMatrix2D()
@@ -753,32 +754,40 @@ class ViewModel(object):
             aff.Translate(-int(size[0]/2), -int(size[1]/2))
         return aff
 
-    def RotatedPoints(self, points):
-        aff = self.GetAffineTransform()
-        return [wx.Point(aff.TransformPoint(*p)) for p in points]
+    def RotatedPoints(self, points, aff=None):
+        # convert points in the local system to abs
+        if aff is None:
+            aff = self.GetAffineTransform()
+        return [wx.RealPoint(aff.TransformPoint(*p)) for p in points]
 
-    def RotatedRectPoints(self, rect):
+    def RotatedRectPoints(self, rect, aff=None):
+        # Convert local rect to absolute corner points
         points = [rect.TopLeft, rect.TopRight+(1,0), rect.BottomRight+(1,1), rect.BottomLeft+(0,1)]
-        return self.RotatedPoints(points)
+        return self.RotatedPoints(points, aff)
 
-    def RotatedRect(self, rect):
-        points = self.RotatedRectPoints(rect)
+    def RotatedRect(self, rect, aff=None):
+        # Convert local rect to an absolute rect than contains the local one
+        points = self.RotatedRectPoints(rect, aff)
         l2 = list(map(list, zip(*points)))
         rotSize = (max(l2[0]) - min(l2[0]) - 1, max(l2[1]) - min(l2[1]) - 1)
         rotPos_x, rotPos_y = (min(l2[0]), min(l2[1]))
         return wx.Rect(rotPos_x, rotPos_y, rotSize[0], rotSize[1])
 
     def UnrotatedRectFromAbsPoints(self, ptA, ptB):
+        # Takes 2 absolute points, and creates a local rect
+        # This is not fully general purpose: it assumes the parent is a card (not inside a group)
+        # This is ok since you can't manually resize a child of a group, and this function is
+        # only used from the resize path in the Select Tool.
         rot = self.GetProperty("rotation")
         center = (ptA + ptB)/2
-        aff = wx.AffineMatrix2D()
-        aff.Translate(*center)
         if rot:
+            aff = wx.AffineMatrix2D()
+            aff.Translate(*center)
             aff.Rotate(math.radians(rot))
-        aff.Translate(*(wx.Point(0,0)-center))
+            aff.Translate(*(wx.RealPoint(0,0)-wx.RealPoint(center)))
+            ptA = aff.TransformPoint(*ptA)
+            ptB = aff.TransformPoint(*ptB)
 
-        ptA = aff.TransformPoint(*ptA)
-        ptB = aff.TransformPoint(*ptB)
         bl = wx.Point(min(ptA[0], ptB[0]), min(ptA[1], ptB[1]))
         tr = wx.Point(max(ptA[0], ptB[0]), max(ptA[1], ptB[1]))
         return wx.Rect(bl, tr)
@@ -962,7 +971,10 @@ class ViewModel(object):
         return self.handlers
 
     def PerformFlips(self, fx, fy, notify=True):
-        pass
+        if fx:
+            self.SetProperty("rotation", -self.GetProperty("rotation"))
+        if fy:
+            self.SetProperty("rotation", -self.GetProperty("rotation"))
 
     def OrderMoveTo(self, index):
         index = index % len(self.parent.childModels) # Convert negative index to positive
