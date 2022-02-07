@@ -942,6 +942,14 @@ class ViewModel(object):
             return self.handlers[key]
         return None
 
+    def IsAncestorOf(self, model):
+        m = self
+        while m.parent:
+            if m == model:
+                return True
+            m = m.parent
+        return False
+
     def GetChildModelByName(self, name):
         if self.properties["name"] == name:
             return self
