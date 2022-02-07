@@ -78,7 +78,7 @@ class CodeInspector(wx.Window):
         self.handlerPicker.Enable(True)
         self.currentUiView = uiView
 
-        if handlerName == None:
+        if handlerName is None:
             handlerName = uiView.lastEditedHandler
         if not handlerName:
             for k in uiView.model.GetHandlers().keys():

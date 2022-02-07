@@ -679,7 +679,7 @@ class Runner():
         if model.type == "card":
             return f"{model.GetProperty('name')}.{handlerName}()"
         else:
-            if card == None:
+            if card is None:
                 card = model.GetCard()
             return f"{model.GetProperty('name')}.{handlerName}() on card '{card.GetProperty('name')}'"
 

@@ -174,7 +174,7 @@ class UiView(object):
 
             # Run any in-progress animations
             now = time()
-            for (key, animList) in self.model.animations.copy().items():
+            for (key, animList) in self.model.animations.items():
                 animDict = animList[0]
                 if "startTime" in animDict:
                     progress = (now - animDict["startTime"]) / animDict["duration"]
@@ -189,9 +189,10 @@ class UiView(object):
             d["onUpdate"](p, d)
             didRun = True
         for key in finishList:
-            def deferFinish():
-                self.model.FinishAnimation(key)
-            onFinishedCalls.append(deferFinish)
+            def deferFinish(key):
+                def f(): self.model.FinishAnimation(key)
+                return f
+            onFinishedCalls.append(deferFinish(key))
         return didRun
 
     def FindCollisions(self, collisions):
@@ -1499,7 +1500,7 @@ class ViewProxy(object):
         return model.GetProperty("rotation")
     @rotation.setter
     def rotation(self, val):
-        if self._model.GetProperty("rotation") == None:
+        if self._model.GetProperty("rotation") is None:
             raise TypeError("object does not support rotation")
         if not isinstance(val, (int, float)):
             raise TypeError("rotation must be a number")
@@ -1734,8 +1735,8 @@ class ViewProxy(object):
 
         model.AddAnimation("size", duration, onUpdate, onStart, internalOnFinished)
 
-    def AnimateRotation(self, duration, endRotation, onFinished=None, forceDirection=0, *args, **kwargs):
-        if self._model.GetProperty("rotation") == None:
+    def AnimateRotation(self, duration, endRotation, forceDirection=0, onFinished=None, *args, **kwargs):
+        if self._model.GetProperty("rotation") is None:
             raise TypeError("AnimateRotation(): object does not support rotation")
 
         if not isinstance(duration, (int, float)):

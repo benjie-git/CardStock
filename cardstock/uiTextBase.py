@@ -73,7 +73,7 @@ class UiTextBase(UiView):
         else:
             colorStr = 'black'
 
-        if view == None:
+        if view is None:
             self.font = font
             self.textColor = colorStr
             self.stackManager.view.Refresh()
