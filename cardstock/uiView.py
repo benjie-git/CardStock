@@ -456,9 +456,9 @@ class UiView(object):
             return aff.TransformPoint(*pt)
         return None
 
-    def ClearHitRegion(self):
+    def ClearHitRegion(self, noParent=False):
         self.hitRegion = None
-        if self.parent and self.parent.model.type == "group":
+        if self.parent and noParent == False and self.parent.model.type == "group":
             self.parent.ClearHitRegion()
 
     def GetHitRegion(self):

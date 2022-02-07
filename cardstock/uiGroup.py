@@ -39,6 +39,11 @@ class UiGroup(UiView):
                 return self
         return None
 
+    def ClearHitRegion(self, noParent=False):
+        super().ClearHitRegion(noParent)
+        for ui in self.uiViews:
+            ui.ClearHitRegion(noParent=True)
+
     def MakeHitRegion(self):
         # Make a region in abs/card coordinates
         if self.stackManager.isEditing:

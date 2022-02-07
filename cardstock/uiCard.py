@@ -84,7 +84,8 @@ class UiCard(UiView):
             self.view.Refresh()
         elif key in ["size"]:
             for ui in self.uiViews:
-                ui.OnPropertyChanged(ui.model, key)
+                ui.ClearHitRegion()
+                ui.OnPropertyChanged(ui.model, "position")
 
     def OnKeyDown(self, event):
         if self.stackManager.runner and self.model.GetHandler("OnKeyDown"):

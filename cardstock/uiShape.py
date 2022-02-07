@@ -18,6 +18,10 @@ class UiShape(UiView):
         self.cachedPaths = None
         super().SetDown()
 
+    def ClearHitRegion(self, noParent=False):
+        super().ClearHitRegion(noParent)
+        self.cachedPaths = {}
+
     def MakeShapePath(self, context, inflate=0):
         # Create a path, un-rotated, in this object's local coords (object.position at 0,0)
         points = self.model.GetScaledPoints()
