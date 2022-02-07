@@ -979,10 +979,7 @@ class ViewModel(object):
         return self.handlers
 
     def PerformFlips(self, fx, fy, notify=True):
-        if fx:
-            self.SetProperty("rotation", -self.GetProperty("rotation"))
-        if fy:
-            self.SetProperty("rotation", -self.GetProperty("rotation"))
+        pass
 
     def OrderMoveTo(self, index):
         index = index % len(self.parent.childModels) # Convert negative index to positive
