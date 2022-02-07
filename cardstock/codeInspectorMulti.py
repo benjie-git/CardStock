@@ -193,10 +193,7 @@ class CodeInspector(wx.ScrolledWindow):
             editorBlock.UpdateLabelState(handlerName)
 
             if selection:
-                editorBlock.codeEditor.SetSelection(*selection)
-                editorBlock.codeEditor.ScrollToLine(firstLine)
-                editorBlock.codeEditor.ScrollRange(*selection)
-                editorBlock.codeEditor.SetFocus()
+                self.SelectAndScrollTo(handlerName, *selection)
 
             self.stackManager.analyzer.RunAnalysis()
 
@@ -207,19 +204,19 @@ class CodeInspector(wx.ScrolledWindow):
             self.UpdateEditorVisibility()
         editorBlock.codeEditor.SetFocus()
         editorBlock.codeEditor.SetSelection(selStart, selEnd)
-        editorBlock.codeEditor.ScrollRange(selStart, selEnd)
+        editorBlock.ScrollParentIfNeeded()
 
     def SelectAndScrollToLine(self, handlerName, selLine):
         editorBlock = self.blocks[handlerName]
         if not editorBlock.IsShown():
             self.currentUiView.model.visibleHandlers.add(handlerName)
             self.UpdateEditorVisibility()
-        editorBlock.codeEditor.GotoLine(selLine)
         lineEnd = editorBlock.codeEditor.GetLineEndPosition(selLine)
         lineLen = editorBlock.codeEditor.GetLineLength(selLine)
         editorBlock.codeEditor.SetFocus()
         editorBlock.codeEditor.SetSelectionStart(lineEnd-lineLen)
         editorBlock.codeEditor.SetSelectionEnd(lineEnd)
+        editorBlock.ScrollParentIfNeeded()
 
     def GetCodeEditorSelection(self, handlerName):
         editorBlock = self.blocks[handlerName]
