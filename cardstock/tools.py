@@ -357,8 +357,6 @@ class HandTool(BaseTool):
                 if topView:
                     if topView.model.parent.type != "group":
                         self.stackManager.SelectUiView(topView)
-                    elif not topView.isSelected:
-                        self.stackManager.SelectUiView(topView.parent)
         elif self.mode == "box":
             self.selectionRect = None
             self.lastBoxList = None
