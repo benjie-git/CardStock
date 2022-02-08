@@ -853,6 +853,7 @@ class StackManager(object):
         if self.isEditing:
             uiView = self.HitTest(pos, not wx.KeyboardState().ShiftDown())
             uiViews = [uiView] if uiView else None
+            self.designer.UpdateStatusBar(uiView, pos)
         else:
             uiViews = self.HitTestAll(pos)
 
@@ -922,6 +923,8 @@ class StackManager(object):
         if self.lastMouseMovedUiView:
             self.lastMouseMovedUiView.OnMouseExit(event)
         self.lastMouseMovedUiView = None
+        if self.isEditing:
+            self.designer.UpdateStatusBar(None, None)
 
     def RepositionViews(self):
         for uiView in self.uiCard.GetAllUiViews():

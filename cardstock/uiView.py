@@ -685,9 +685,6 @@ class ViewModel(object):
                 [m.GetProperty("name") for m in self.stackManager.stackModel.childModels]), notify=False)
         return newModel
 
-    def GetType(self):
-        return self.type
-
     def GetDisplayType(self):
         displayTypes = {"card": "Card",
                         "button": "Button",

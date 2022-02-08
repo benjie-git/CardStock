@@ -98,7 +98,9 @@ class DesignerFrame(wx.Frame):
         super().__init__(parent, -1, self.title, size=(800,600), style=wx.DEFAULT_FRAME_STYLE)
         self.SetMinClientSize(wx.Size(600,500))
         # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.png')))
-        self.CreateStatusBar()
+        sb = self.CreateStatusBar()
+        sb.SetFieldsCount(2, (80,400))
+
         self.editMenu = None
         self.MakeMenuBar()
         self.filename = None
@@ -1062,6 +1064,13 @@ class DesignerFrame(wx.Frame):
 
     def OnHelpClose(self, event):
         event.GetEventObject().Destroy()
+
+    def UpdateStatusBar(self, uiView, pos):
+        sb = self.GetStatusBar()
+        posStr = f"({pos.x}, {pos.y})" if pos else ""
+        objStr = f"{uiView.model.GetDisplayType()}: '{uiView.model.GetProperty('name')}'" if uiView else ""
+        sb.SetStatusText(posStr, 0)
+        sb.SetStatusText(objStr, 1)
 
     def FinishedStarting(self):
         if not self.filename:
