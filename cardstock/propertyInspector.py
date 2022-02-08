@@ -188,7 +188,8 @@ class PropertyInspector(wx.grid.Grid):
                 self.SetCellValue(row, 1, val)
 
     def SetValue(self, key, val):
-        self.data[key] = val
+        if key in self.data:
+            self.data[key] = val
 
     def UpdateValues(self):
         """ Update the values for the existing set of data.  (Assumes keys and types have not changed.) """
