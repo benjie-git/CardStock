@@ -503,12 +503,14 @@ class Runner():
                 for i in range(len(trace)):
                     if trace[i].filename == "<string>" and trace[i].name == "<module>":
                         errModel = uiModel
+                        if errModel.clonedFrom: errModel = errModel.clonedFrom
                         errHandlerName = handlerName
                         line_number = trace[i].lineno
                         in_func.append((handlerName, trace[i].lineno))
                     elif line_number and trace[i].filename == "<string>" and trace[i].name != "<module>":
                         if trace[i].name in self.funcDefs:
                             errModel = self.funcDefs[trace[i].name][0]
+                            if errModel.clonedFrom: errModel = errModel.clonedFrom
                             errHandlerName = self.funcDefs[trace[i].name][1]
                             line_number = trace[i].lineno
                         in_func.append((trace[i].name, trace[i].lineno))
@@ -633,6 +635,7 @@ class Runner():
                     if trace[i].filename == "<string>" and trace[i].name != "<module>":
                         if trace[i].name in self.funcDefs:
                             errModel = self.funcDefs[trace[i].name][0]
+                            if errModel.clonedFrom: errModel = errModel.clonedFrom
                             errHandlerName = self.funcDefs[trace[i].name][1]
                             line_number = trace[i].lineno
                         in_func.append((trace[i].name, trace[i].lineno))

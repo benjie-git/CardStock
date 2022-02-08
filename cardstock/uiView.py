@@ -645,6 +645,7 @@ class ViewModel(object):
         self.proxyClass = ViewProxy
         self.animLock = threading.Lock()
         self.didSetDown = False
+        self.clonedFrom = None
 
     def __repr__(self):
         return f"<{self.GetDisplayType()}:'{self.GetProperty('name')}'>"
@@ -678,6 +679,7 @@ class ViewModel(object):
     def CreateCopy(self):
         data = self.GetData()
         newModel = generator.StackGenerator.ModelFromData(self.stackManager, data)
+        newModel.clonedFrom = self.clonedFrom if self.clonedFrom else self
         if newModel.type != "card":
             self.stackManager.uiCard.model.DeduplicateNamesForModels([newModel])
         else:
