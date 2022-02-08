@@ -175,6 +175,7 @@ class DesignerFrame(wx.Frame):
         self.viewer = None
         self.isStartingViewer = False
         self.NewFile()
+        self.UpdateStatusBar(None, None)
 
     def NewFile(self):
         self.filename = None
