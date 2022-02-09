@@ -1363,6 +1363,14 @@ class ViewProxy(object):
         if not model: return []
         return [m.GetProxy() for m in model.childModels]
 
+    def ChildWithBaseName(self, base):
+        model = self._model
+        if model and model.childModels:
+            for m in model.childModels:
+                if m.properties["name"].startswith(base):
+                    return m.GetProxy()
+        return None
+
     @property
     def size(self):
         model = self._model

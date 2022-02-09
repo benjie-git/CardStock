@@ -482,6 +482,11 @@ class HelpDataObject():
         "Hide": {"args": {},
                  "return": None,
                  "info": "Hides this object if it was visible."},
+        "ChildWithBaseName": {"args": {"baseName": {"type": "string", "info": "The beginning of the name of the child object to find."}},
+                              "return": "obj",
+                              "info": "Returns this object's first child object whose name starts with <b>baseName</b>.  For example, "
+                                      "if you have multiple group objects that each contain one button, named button_1, button_2, etc.,"
+                                      "then you can call each group's group.ChildWithBaseName('button') to get that group's button object."},
         "FlipHorizontal": {"args": {},
                  "return": None,
                  "info": "Flips the object horizontally.  This only visibly changes cards, images, groups, and some shapes."},
