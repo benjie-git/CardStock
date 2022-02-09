@@ -61,10 +61,13 @@ class UiShape(UiView):
         path.Transform(flipAff)
 
     def Paint(self, gc):
+        hasFill = self.model.type not in ["line", "pen"]
+
         with self.model.animLock:
-            thickness = self.model.GetProperty("penThickness")
-            fillColor = self.model.GetProperty("fillColor")
-            penColor = self.model.GetProperty("penColor")
+            thickness = self.model.properties["penThickness"]
+            if hasFill:
+                fillColor = self.model.properties["fillColor"]
+            penColor = self.model.properties["penColor"]
 
         penColor = wx.Colour(penColor)
         if not penColor:
@@ -75,7 +78,7 @@ class UiShape(UiView):
             pen = wx.Pen(penColor, thickness, wx.PENSTYLE_SOLID)
         gc.cachedGC.SetPen(pen)
 
-        if self.model.type not in ["line", "pen"]:
+        if hasFill:
             pen.SetJoin(wx.JOIN_MITER)
             fillColor = wx.Colour(fillColor)
             if not fillColor:
@@ -90,7 +93,7 @@ class UiShape(UiView):
             self.cachedPaths["paint"] = path
 
         # We're already affine-transformed, so just draw
-        if self.model.type not in ["line", "pen"]:
+        if hasFill:
             gc.cachedGC.FillPath(path)
         gc.cachedGC.StrokePath(path)
 

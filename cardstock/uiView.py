@@ -166,9 +166,9 @@ class UiView(object):
         didRun = False
         with self.model.animLock:
             if self.model.type not in ["stack", "card"]:
-                speed = self.model.GetProperty("speed")
+                speed = self.model.properties["speed"]
                 if speed != (0,0) and "position" not in self.model.animations:
-                    pos = self.model.GetProperty("position")
+                    pos = self.model.properties["position"]
                     self.model.SetProperty("position", [pos.x + speed.x*elapsedTime, pos.y + speed.y*elapsedTime])
                     didRun = True
 
@@ -353,9 +353,9 @@ class UiView(object):
 
     def PrePaint(self, gc):
         # Rotate and Translate the GC, such that we can draw this object in local coords
-        stackSize = self.stackManager.stackModel.GetProperty("size")
-        pos = self.model.GetProperty("position")
-        cen = self.model.GetProperty("size")/2
+        stackSize = self.stackManager.stackModel.properties["size"]
+        pos = self.model.properties["position"]
+        cen = self.model.properties["size"]/2
         rot = self.model.GetProperty("rotation")
         rot = math.radians(rot) if rot else None
         gc.cachedGC.PushState()
@@ -843,14 +843,14 @@ class ViewModel(object):
         self.SetProperty("center", center)
 
     def GetFrame(self):
-        p = self.GetProperty("position")
-        s = self.GetProperty("size")
+        p = self.properties["position"]
+        s = self.properties["size"]
         return wx.Rect(*p, *s)
 
     def GetAbsoluteFrame(self):
         if self.parent and self.parent.type == "card" and not self.GetProperty("rotation"):
             return self.GetFrame()
-        return self.RotatedRect(wx.Rect(wx.Point(0,0), self.GetProperty("size")))
+        return self.RotatedRect(wx.Rect(wx.Point(0,0), self.properties["size"]))
 
     def SetFrame(self, rect):
         self.SetProperty("position", rect.Position)

@@ -216,10 +216,11 @@ class GroupModel(ViewModel):
     def ResizeChildModels(self):
         scaleX = 1
         scaleY = 1
+        f = self.GetFrame()
         if self.origFrame.Size.Width != 0:
-            scaleX = self.GetFrame().Size.Width / self.origFrame.Size.Width
+            scaleX = f.Size.Width / self.origFrame.Size.Width
         if self.origFrame.Size.Height != 0:
-            scaleY = self.GetFrame().Size.Height / self.origFrame.Size.Height
+            scaleY = f.Size.Height / self.origFrame.Size.Height
         for m in self.childModels:
             pos = m.origGroupSubviewFrame.Position
             size = m.origGroupSubviewFrame.Size
