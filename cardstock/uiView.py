@@ -1256,7 +1256,7 @@ class ViewProxy(object):
                 else:
                     raise TypeError(f"Clone(): unable to set property {k}")
 
-            model.GetCard().AddChild(newModel)
+            self._model.stackManager.uiCard.model.AddChild(newModel)
             newModel.RunSetup(model.stackManager.runner)
             if newModel.GetCard() != model.stackManager.uiCard.model:
                 model.stackManager.runner.SetupForCard(model.stackManager.uiCard.model)
