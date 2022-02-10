@@ -172,7 +172,7 @@ class CodeAnalyzer(object):
             attributes.extend([s+"()" for s in self.objMethods[t]])
             if t in ["stack", None]:
                 attributes.extend(self.cardNames)
-            if t in ["card", None]:
+            if t in ["card", "group", None]:
                 attributes.extend(self.objNames.keys())
             attributes = [n for n in list(set(attributes)) if prefix.lower() in n.lower()]
             attributes.sort(key=str.casefold)
