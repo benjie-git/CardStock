@@ -766,9 +766,11 @@ class StackManager(object):
         command = AddNewUiViewCommand(True, "Add Card", self, self.cardIndex+1, "card", newCard)
         self.command_processor.Submit(command)
 
-    def DuplicateCard(self):
+    def DuplicateCard(self, card=None):
         newCard = CardModel(self)
-        newCard.SetData(self.stackModel.childModels[self.cardIndex].GetData())
+        if not card:
+            card = self.stackModel.childModels[self.cardIndex]
+        newCard.SetData(card.GetData())
         newCard.SetProperty("name", newCard.DeduplicateName(newCard.GetProperty("name"),
                                                             [m.GetProperty("name") for m in self.stackModel.childModels]))
         command = AddNewUiViewCommand(True, "Duplicate Card", self, self.cardIndex+1, "card", newCard)

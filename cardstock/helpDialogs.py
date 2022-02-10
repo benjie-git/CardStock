@@ -171,7 +171,7 @@ See the CardStock Reference for a description of each type of event, and when th
 properties and methods, and some global variables and functions that are always available.
 You can always access a special variable called self, which refers to the object who's event is being run.
 (So in a button's OnClick() code, self refers to that button object.  In a card's OnShowCard() code, self will refer to that
-card object.)  There is also a variable for each object's name, and each card's name.  So if your button is called yes_button, you could write
+card object.)  There is also a variable for each object's name on the current card.  So if your button is called yes_button, you could write
 yes_button.SetTitle("Done") to change your button's title to Done.  See the CardStock Reference for a list of all 
 variables that are automatically provided to your code.  You can of course also create your own variables as well.  It 
 is suggested that when you do, you set up the starting value of each variable in one of your
@@ -380,7 +380,7 @@ information on how to use CardStock, see the CardStock Manual in the Help menu.<
 <a name="#globalVars"/>
 <h2>Global Variables</h2>
 <p>These global variables are available in all of your event code.  There are also variables for each object on
-the current card, and each card in the stack.  You can access objects on other cards as, for example, card_3.button_1.</p>
+the current card.  And you can access objects on other cards as, for example, stack.card_3.button_1.</p>
 {HelpData.GlobalVariablesTable()}
 <br/><br/>
 <hr/>

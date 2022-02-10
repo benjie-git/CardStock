@@ -676,14 +676,18 @@ class ViewModel(object):
             child.DismantleChildTree()
         self.childModels = None
 
-    def CreateCopy(self):
+    def CreateCopy(self, name=None):
         data = self.GetData()
         newModel = generator.StackGenerator.ModelFromData(self.stackManager, data)
         newModel.clonedFrom = self.clonedFrom if self.clonedFrom else self
         if newModel.type != "card":
+            if name:
+                newModel.properties["name"] = name
             self.stackManager.uiCard.model.DeduplicateNamesForModels([newModel])
         else:
-            newModel.SetProperty("name", newModel.DeduplicateName("card_1",
+            if not name:
+                name = "card_1"
+            newModel.SetProperty("name", newModel.DeduplicateName(name,
                 [m.GetProperty("name") for m in self.stackManager.stackModel.childModels]), notify=False)
         return newModel
 
@@ -1239,13 +1243,13 @@ class ViewProxy(object):
         if uiView and uiView.view:
             return uiView.view.HasFocus()
 
-    def Clone(self, **kwargs):
+    def Clone(self, name=None, **kwargs):
         model = self._model
         if not model: return None
 
         if model.type != "card":
             # update the model immediately on the runner thread
-            newModel = model.CreateCopy()
+            newModel = model.CreateCopy(name)
             newModel.SetProperty("speed", model.GetProperty("speed"), notify=False)
             newModel.lastOnPeriodicTime = time()
             if not self.visible:
@@ -1271,7 +1275,7 @@ class ViewProxy(object):
             @RunOnMainSync
             def func():
                 # When cloning a card, update the model and view together in a rare synchronous call to the main thread
-                newModel = model.stackManager.DuplicateCard()
+                newModel = model.stackManager.DuplicateCard(model)
 
                 if "center" in kwargs and "size" in kwargs:
                     newModel.SetProperty("size", kwargs["size"])
