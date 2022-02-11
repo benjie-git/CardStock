@@ -495,8 +495,7 @@ class UiView(object):
         # hitRegion bitmap.  Then set the offset of the hitRegion bitmap down/left to make up for it.
         regOffset = 20
 
-        height = rotSize[1]+2*regOffset
-        img = ImageFactory.shared().GetImage(rotSize[0]+2*regOffset, height)
+        img = ImageFactory.shared().GetImage(rotSize[0]+2*regOffset, rotSize[1]+2*regOffset)
         context = wx.GraphicsRenderer.GetDefaultRenderer().CreateContextFromImage(img)
         context.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
 
@@ -516,7 +515,7 @@ class UiView(object):
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
             for resizerRect in self.GetLocalResizeBoxRects().values():
                 path = context.CreatePath()
-                path.AddRectangle(resizerRect.Left, resizerRect.Top, resizerRect.Width, resizerRect.Height)
+                path.AddRectangle(resizerRect.Left, resizerRect.Top-2, resizerRect.Width, resizerRect.Height)
                 path.Transform(aff)
                 context.FillPath(path)
             rotPt = self.GetLocalRotationHandlePoint()
