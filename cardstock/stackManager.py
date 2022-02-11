@@ -279,7 +279,7 @@ class StackManager(object):
         self.stackModel = model
         self.cardIndex = None
         if self.isEditing:
-            self.analyzer.RunDeferredAnalysis()
+            wx.CallAfter(self.analyzer.RunAnalysis)
             self.view.SetSize(self.stackModel.GetProperty("size"))
         self.command_processor.ClearCommands()
         self.stackModel.SetDirty(False)
