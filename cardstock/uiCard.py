@@ -344,43 +344,43 @@ class Card(ViewProxy):
     def AddButton(self, name="button", **kwargs):
         model = self._model
         if not model: return None
-        obj = model.AddNewObject("button", name, (100,24), kwargs)
+        obj = model.AddNewObject("button", name, (100,24), kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
     def AddTextField(self, name="field", **kwargs):
         model = self._model
         if not model: return None
-        obj = model.AddNewObject("textfield", name, (100,24), kwargs)
+        obj = model.AddNewObject("textfield", name, (100,24), kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
     def AddTextLabel(self, name="label", **kwargs):
         model = self._model
         if not model: return None
-        obj = model.AddNewObject("textlabel", name, (100,24), kwargs)
+        obj = model.AddNewObject("textlabel", name, (100,24), kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
     def AddImage(self, name="image", **kwargs):
         model = self._model
         if not model: return None
-        obj = model.AddNewObject("image", name, (80,80), kwargs)
+        obj = model.AddNewObject("image", name, (80,80), kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
     def AddOval(self, name="oval", **kwargs):
         model = self._model
         if not model: return None
-        obj = model.AddNewObject("oval", name, None, [(10, 10), (100, 100)], kwargs)
+        obj = model.AddNewObject("oval", name, None, [(10, 10), (100, 100)], kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
     def AddRectangle(self, name="rect", **kwargs):
         model = self._model
         if not model: return None
-        obj = model.AddNewObject("rect", name, None, [(10, 10), (100, 100)], kwargs)
+        obj = model.AddNewObject("rect", name, None, [(10, 10), (100, 100)], kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
     def AddRoundRectangle(self, name="roundrect", **kwargs):
         model = self._model
         if not model: return None
-        obj = model.AddNewObject("roundrect", name, None, [(10, 10), (100, 100)], kwargs)
+        obj = model.AddNewObject("roundrect", name, None, [(10, 10), (100, 100)], kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
     def AddLine(self, points, name="line", **kwargs):
@@ -401,7 +401,7 @@ class Card(ViewProxy):
         model = self._model
         if not model: return None
 
-        line = model.AddNewObject("line", name, None, points, kwargs)
+        line = model.AddNewObject("line", name, None, points, kwargs=kwargs)
         return line.GetProxy() if line else None
 
     def AddPolygon(self, points, name="polygon", **kwargs):
@@ -422,7 +422,7 @@ class Card(ViewProxy):
         model = self._model
         if not model: return None
 
-        poly = model.AddNewObject("poly", name, None, points, kwargs)
+        poly = model.AddNewObject("poly", name, None, points, kwargs=kwargs)
         return poly.GetProxy() if poly else None
 
     def AddGroup(self, objects, name="group"):
