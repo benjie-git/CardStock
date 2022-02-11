@@ -32,7 +32,8 @@ class UiTextLabel(UiTextBase):
             alignment = wx.TE_CENTER
 
         field = CDSTextCtrl(parent=self.stackManager.view, style=wx.TE_MULTILINE | alignment)
-        rect = self.model.GetAbsoluteFrame().Inflate(2)
+        s = self.model.GetProperty("size")
+        rect = wx.Rect(self.model.GetAbsoluteCenter()-s/2, s).Inflate(2)
         rect.width += 20
         rect = self.stackManager.ConvRect(rect)
         field.SetRect(rect)
