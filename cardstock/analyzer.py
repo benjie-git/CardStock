@@ -291,7 +291,7 @@ class CodeAnalyzer(object):
         self.analysisPending = False
         self.analysisRunning = False
 
-    def ParseWithFallback(self, code, path):
+    def ParseWithFallback(self, code, path, doFallback=True):
         try:
             root = ast.parse(code, path)
 
@@ -310,6 +310,7 @@ class CodeAnalyzer(object):
                 elif isinstance(node, ast.ImportFrom):
                     for name in node.names:
                         self.funcNames.add(name.name)
+            return True
 
         except SyntaxError as e:
             lineStr = e.args[1][3]
@@ -319,7 +320,29 @@ class CodeAnalyzer(object):
 
             # Syntax error?  Try again with all code in this handler, up to right before the bad line,
             # to make sure we find any variables we can, that appear before the bad line
-            lines = code.split('\n')
-            firstPart = "\n".join(lines[:lineNum-1])
-            if len(firstPart):
-                self.ParseWithFallback(firstPart, path)
+            if doFallback:
+                lines = code.split('\n')
+                firstPart = "\n".join(lines[:lineNum])
+                lastLine = ""
+                while len(lastLine.strip()) == 0:
+                    lineNum -= 1
+                    lastLine = lines[lineNum]
+                    if lineNum == 0: break
+                indent = self.getIndentation(lastLine)
+                lastLine = lastLine.strip()
+                if len(lastLine) and lastLine[-1] == ":":
+                    firstPart += "\n" + " "*(indent+1)+"pass"
+                    if self.ParseWithFallback(firstPart, path, doFallback=False):
+                        return True
+
+                lines = code.split('\n')
+                firstPart = "\n".join(lines[:lineNum-1])
+                if len(firstPart):
+                    if self.ParseWithFallback(firstPart, path, doFallback=False):
+                        return True
+            return False
+
+    @staticmethod
+    def getIndentation(s, tabsize=3):
+        sx = s.expandtabs(tabsize)
+        return 0 if sx.isspace() else len(sx) - len(sx.lstrip())
