@@ -328,6 +328,8 @@ class StackManager(object):
     def Copy(self):
         # Re-order self.selectedViews to be lowest z-order first, so when pasted, they will end up in the right order
         models = [ui.model for ui in self.uiCard.GetAllUiViews() if ui in self.selectedViews]
+        if len(self.selectedViews) == 1 and self.selectedViews[0].model.type == "card":
+            models = [self.uiCard.model]
         self.CopyModels(models)
 
     def SelectAll(self):
@@ -351,10 +353,14 @@ class StackManager(object):
     def Cut(self, canUndo=True):
         # Re-order self.selectedViews to be lowest z-order first, so when pasted, they will end up in the right order
         models = [ui.model for ui in self.uiCard.GetAllUiViews() if ui in self.selectedViews]
+        if len(self.selectedViews) == 1 and self.selectedViews[0].model.type == "card":
+            models = [self.uiCard.model]
         self.CutModels(models, canUndo)
 
     def Delete(self, canUndo=True):
         models = [ui.model for ui in self.selectedViews]
+        if len(self.selectedViews) == 1 and self.selectedViews[0].model.type == "card":
+            models = [self.uiCard.model]
         if len(models):
             self.DeleteModels(models, canUndo)
 
@@ -367,7 +373,8 @@ class StackManager(object):
                     if wx.TheClipboard.GetData(clipData):
                         rawData = clipData.GetData()
                         wx.TheClipboard.Close()
-                        list = json.loads(rawData.tobytes().decode('utf8'))
+                        s = rawData.tobytes().decode('utf8')
+                        list = json.loads(s)
                         models = [generator.StackGenerator.ModelFromData(self, dict) for dict in list]
                         if len(models) == 1 and models[0].type == "card":
                             models[0].SetProperty("name", models[0].DeduplicateName(models[0].GetProperty("name"),
@@ -376,6 +383,8 @@ class StackManager(object):
                             command = AddNewUiViewCommand(True, "Paste Card", self, self.cardIndex + 1, "card", models[0])
                             self.command_processor.Submit(command, storeIt=canUndo)
                         else:
+                            for m in models:
+                                m.SetProperty("position", m.GetProperty("position") + (20, -20))
                             self.uiCard.model.DeduplicateNamesForModels(models)
                             command = AddUiViewsCommand(True, 'Add Views', self, self.cardIndex, models)
                             self.command_processor.Submit(command, storeIt=canUndo)
