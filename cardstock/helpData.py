@@ -264,7 +264,7 @@ class HelpData():
     @classmethod
     def ReservedNames(cls):
         if not cls.reservedNames:
-            cls.reservedNames = ["keyName", "mousePos", "message"]
+            cls.reservedNames = ["keyName", "mousePos", "message", "URL", "didLoad", "otherObject", "edge", "elapsedTime"]
             cls.reservedNames.extend(HelpDataGlobals.variables.keys())
             cls.reservedNames.extend(HelpDataGlobals.functions.keys())
             cls.reservedNames.extend(HelpDataObject.properties.keys())

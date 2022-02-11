@@ -30,6 +30,7 @@ class CodeAnalyzer(object):
         self.objNames = {}
         self.objProps = {}
         self.objMethods = {}
+        self.handlerVars = {}
         self.syntaxErrors = {}
         self.lastHandlerObj = None
         self.lastHandlerName = None
@@ -195,6 +196,8 @@ class CodeAnalyzer(object):
                 if "Bounce" in handlerName: names.extend(["otherObject", "edge"])
                 if "CardStockLink" in handlerName: names.append("message")
                 if "DoneLoading" in handlerName: names.extend(["URL", "didLoad"])
+                if handlerName in self.handlerVars:
+                    names.extend(list(self.handlerVars[handlerName]))
             names = [n for n in list(set(names)) if prefix.lower() in n.lower()]
             names.sort(key=str.casefold)
             return names
@@ -224,6 +227,7 @@ class CodeAnalyzer(object):
         self.cardNames = []
         self.varNames = set()
         self.funcNames = set()
+        self.handlerVars = {}
         self.CollectObjs(self.stackManager.stackModel, [])
         for k,v in varDict.items():
             if isinstance(v, (types.FunctionType, types.BuiltinFunctionType, types.MethodType,
@@ -270,6 +274,7 @@ class CodeAnalyzer(object):
 
         self.varNames = set()
         self.funcNames = set()
+        self.handlerVars = {}
         self.syntaxErrors = {}
 
         for path,code in codeDict.items():
@@ -293,7 +298,10 @@ class CodeAnalyzer(object):
                 elif isinstance(node, ast.FunctionDef):
                     self.funcNames.add(node.name)
                     for arg in node.args.args:
-                        self.varNames.add(arg.arg)
+                        handlerName = path.split(".")[-1]
+                        if handlerName not in self.handlerVars:
+                            self.handlerVars[handlerName] = set()
+                        self.handlerVars[handlerName].add(arg.arg)
                 elif isinstance(node, ast.Import):
                     for name in node.names:
                         self.varNames.add(name.name)
