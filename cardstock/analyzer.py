@@ -196,8 +196,11 @@ class CodeAnalyzer(object):
                 if "Bounce" in handlerName: names.extend(["otherObject", "edge"])
                 if "CardStockLink" in handlerName: names.append("message")
                 if "DoneLoading" in handlerName: names.extend(["URL", "didLoad"])
-                if handlerName in self.handlerVars:
-                    names.extend(list(self.handlerVars[handlerName]))
+
+                path = handlerObj.GetPath() + "." + handlerName
+                if path in self.handlerVars:
+                    names.extend(list(self.handlerVars[path]))
+
             names = [n for n in list(set(names)) if prefix.lower() in n.lower()]
             names.sort(key=str.casefold)
             return names
@@ -298,10 +301,9 @@ class CodeAnalyzer(object):
                 elif isinstance(node, ast.FunctionDef):
                     self.funcNames.add(node.name)
                     for arg in node.args.args:
-                        handlerName = path.split(".")[-1]
-                        if handlerName not in self.handlerVars:
-                            self.handlerVars[handlerName] = set()
-                        self.handlerVars[handlerName].add(arg.arg)
+                        if path not in self.handlerVars:
+                            self.handlerVars[path] = set()
+                        self.handlerVars[path].add(arg.arg)
                 elif isinstance(node, ast.Import):
                     for name in node.names:
                         self.varNames.add(name.name)
