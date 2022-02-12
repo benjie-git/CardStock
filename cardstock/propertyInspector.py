@@ -69,7 +69,11 @@ class PropertyInspector(wx.grid.Grid):
                         self.SetGridCursor(self.GetGridCursorRow(), 1)
                     self.EnableCellEditControl(True)
             else:
-                self.DisableCellEditControl()
+                ed = self.GetCellEditor(self.GetGridCursorRow(), 1)
+                if isinstance(ed, GridCellCustomChoiceEditor):
+                    ed.GetControl().DoClose(True)
+                else:
+                    self.DisableCellEditControl()
                 event.StopPropagation()
                 return
         elif event.GetKeyCode() in (wx.WXK_UP, wx.WXK_DOWN) and self.IsCellEditControlShown():

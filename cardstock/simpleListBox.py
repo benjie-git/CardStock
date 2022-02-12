@@ -49,7 +49,10 @@ class SimpleListBox(wx.Control):
             self.selection = self.items.index(s)
         self.Refresh(True)
 
-    def DoClose(self):
+    def DoClose(self, success):
+        if not success and self.doneFunc:
+            self.selection = None
+        self.ChooseCurrentItem()
         self.Hide()
 
     def OnMouseMove(self, event):
@@ -61,12 +64,10 @@ class SimpleListBox(wx.Control):
 
     def OnMouseUp(self, event):
         self.OnMouseMove(event)
-        self.DoClose()
+        self.DoClose(True)
         event.Skip()
 
     def ChooseCurrentItem(self):
-        if wx.Platform != "__WXGTK__" and wx.GetKeyState(wx.WXK_ESCAPE):
-                self.selection = None
         if self.doneFunc:
             if self.selection is not None:
                 self.doneFunc(self.selection, self.items[self.selection])
@@ -76,7 +77,7 @@ class SimpleListBox(wx.Control):
 
     def OnKeyDown(self, event):
         if event.GetKeyCode() in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER, wx.WXK_SPACE):
-            self.DoClose()
+            self.DoClose(True)
         elif event.GetKeyCode() == wx.WXK_UP:
             if self.selection > 0:
                 self.UpdateSelection(self.selection-1)
@@ -85,7 +86,7 @@ class SimpleListBox(wx.Control):
                 self.UpdateSelection(self.selection+1)
         elif event.GetKeyCode() == wx.WXK_ESCAPE:
             self.selection = None
-            self.DoClose()
+            self.DoClose(False)
         else:
             c = event.GetKeyCode()
             if ord('A') <= c <= ord('Z') or ord('0') <= c <= ord('9') or c in (ord(c) for c in "-_+=/?., "):
@@ -116,8 +117,7 @@ class SimpleListBox(wx.Control):
             self.selectFunc(self.selection, self.items[self.selection])
 
     def OnLostFocus(self, event):
-        self.ChooseCurrentItem()
-        self.DoClose()
+        self.DoClose(False)
 
     def OnEraseBackground(self, event):
         # No thank you!
