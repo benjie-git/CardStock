@@ -26,6 +26,7 @@ class CodeAnalyzer(object):
         self.funcNames = set()
         self.globalVars = helpData.HelpDataGlobals.variables.keys()
         self.globalFuncs = helpData.HelpDataGlobals.functions.keys()
+        self.builtinFuncs = helpData.HelpDataBuiltins.functions.keys()
         self.cardNames = []
         self.objNames = {}
         self.objProps = {}
@@ -35,6 +36,9 @@ class CodeAnalyzer(object):
         self.lastHandlerObj = None
         self.lastHandlerName = None
         self.notifyList = []
+
+        for t in ["bool", "int", "float", "string", "list", "dictionary", "point", "size", "other"]: self.objProps[t] = []
+        for t in ["bool", "int", "float", "string", "list", "dictionary", "point", "size", "other"]: self.objMethods[t] = []
 
         # Create list of known properties and methods for each object type
         for cls in helpData.helpClasses:
@@ -53,25 +57,9 @@ class CodeAnalyzer(object):
                     self.objMethods[t] += c.methods.keys()
                 c = c.parent
 
-        for t in ["bool", "int", "float", "string", "list", "dictionary", "point", "size"]: self.objProps[t] = []
-        for t in ["bool", "int", "float", "string", "list", "dictionary", "point", "size"]: self.objMethods[t] = []
-
         self.objProps["point"] += ["x", "y"]
         self.objProps["size"] += ["width", "height"]
         self.objProps["any"] += ["x", "y", "width", "height"]
-
-        strMethods = ["capitalize", "casefold", "center", "count", "encode", "endswith", "expandtabs",
-                      "find", "format", "format_map", "index", "isalnum", "isalpha", "isascii",
-                      "isdecimal", "isdigit", "isidentifier", "islower", "isnumeric", "isprintable",
-                      "isspace", "istitle", "isupper", "join", "ljust", "lower", "lstrip", "maketrans",
-                      "partition", "replace", "rfind", "rindex", "rjust", "rpartition", "rsplit",
-                      "rstrip", "split", "splitlines", "startswith", "strip", "swapcase", "title",
-                      "translate", "upper", "zfill"]
-        listMethods = ["append", "clear", "copy", "count", "extend", "index", "insert", "pop", "remove", "reverse", "sort"]
-        self.objMethods["string"] += strMethods
-        self.objMethods["list"] += listMethods
-        self.objMethods["any"] += strMethods
-        self.objMethods["any"] += listMethods
 
         self.objProps = {key:list(set(l)) for (key, l) in self.objProps.items()}  # unique the items
         self.objMethods = {key:list(set(l)) for (key, l) in self.objMethods.items()}  # unique the items
@@ -79,10 +67,6 @@ class CodeAnalyzer(object):
         self.built_in = ["False", "True", "None"]
         self.built_in.extend("else import pass break except in raise finally is return and continue for lambda try "
                              "as def from while del global not with elif if or yield".split(" "))
-        self.built_in.extend(["abs()", "str()", "bool()", "list()", "int()", "float()", "dict()", "tuple()",
-                              "len()", "min()", "max()", "print()", "range()", "sorted()", "filter()", "format()",
-                              "hex()", "oct()", "map()", "ord()", "open()", "pow()", "reversed()", "round()", "sum()",
-                              "zip()"])
 
     def SetDown(self):
         self.syntaxErrors = None
@@ -112,7 +96,7 @@ class CodeAnalyzer(object):
 
     def GetTypeFromLeadingString(self, handlerObj, handlerName, leadingStr):
         cleaned = re.sub(r'\([^)]*\)', '', leadingStr)
-        for c in ' ()[]{}':
+        for c in ' ()[{':
             cleaned = cleaned.split(c)[-1]
         parts = cleaned.split('.')
 
@@ -137,6 +121,8 @@ class CodeAnalyzer(object):
                     retVals = (helpData.HelpDataGlobals.variables[p]["type"], None)
                 elif p in self.globalFuncs:
                     retVals = (helpData.HelpDataGlobals.functions[p]["return"], None)
+                elif p in self.builtinFuncs:
+                    retVals = (helpData.HelpDataBuiltins.functions[p]["return"], None)
                 elif p in self.varNames or p in self.funcNames:
                     # Later, track the actual type of each user variable
                     retVals = ("any", None)
@@ -148,8 +134,8 @@ class CodeAnalyzer(object):
                     retVals = ("string", None)
                 elif len(parts[0]) and parts[0][-1] in ('"', "'"):  # string literal
                     retVals = ("string", None)
-                elif len(parts[0]) and parts[0][-1] == "]":  # list literal
-                    retVals = ("list", None)
+                elif len(parts[0]) and parts[0][-1] == "]":  # list literal or list index
+                    retVals = ("any", None)
                 elif len(parts[0]) and parts[0][-1] == "}":  # dict literal
                     retVals = ("dict", None)
                 elif parts[0] == '':  # nothing
@@ -184,6 +170,7 @@ class CodeAnalyzer(object):
             names.extend(self.built_in)
             names.extend(self.globalVars)
             names.extend([s+"()" for s in self.globalFuncs])
+            names.extend([s+"()" for s in self.builtinFuncs])
             names.extend(self.varNames)
             names.extend([s+"()" for s in self.funcNames])
             names.extend(self.objNames.keys())

@@ -1079,6 +1079,8 @@ class DesignerFrame(wx.Frame):
             self.cPanel.ShowContextHelp(self.configInfo["show_context_help"])
             if self.configInfo["last_open_file"] and os.path.exists(self.configInfo["last_open_file"]):
                 self.ReadFile(self.configInfo["last_open_file"])
+            else:
+                self.NewFile()
 
     def GetCurDir(self):
         cur_dir = None
