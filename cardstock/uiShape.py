@@ -318,7 +318,7 @@ class LineModel(ViewModel):
 
     def GetAbsolutePoints(self):
         pos = self.GetAbsolutePosition()
-        return [p + pos for p in self.points]
+        return [p + pos for p in self.GetScaledPoints()]
 
     @staticmethod
     def RectFromPoints(points):
@@ -374,6 +374,7 @@ class LineModel(ViewModel):
         self.points = points
         self.DidUpdateShape()
 
+    @RunOnMainSync
     def SetPoints(self, points):
         with self.animLock:
             cardSize = self.GetCard().GetProperty("size")
