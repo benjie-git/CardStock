@@ -6,7 +6,7 @@ import re
 import types
 
 ANALYSIS_TIMEOUT = 1000  # in ms
-
+NAME_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"
 
 class CodeAnalyzer(object):
     """
@@ -135,8 +135,12 @@ class CodeAnalyzer(object):
                     retVals = (objType, p, "string", None)
                 elif len(parts[0]) and parts[0][-1] in ('"', "'"):  # string literal
                     retVals = (objType, p, "string", None)
-                elif len(parts[0]) and parts[0][-1] == "]":  # list literal or list index
-                    retVals = (objType, p, "any", None)
+                elif len(parts[0]) and parts[0][-1] == "]":
+                    openPos = leadingStr.rfind('[')
+                    if openPos > 0 and leadingStr[openPos-1] in NAME_CHARS:
+                        retVals = (objType, p, "any", None)  # list index
+                    else:
+                        retVals = (objType, p, "list", None)  # list literal
                 elif len(parts[0]) and parts[0][-1] == "}":  # dict literal
                     retVals = (objType, p, "dict", None)
                 elif parts[0] == '':  # nothing
