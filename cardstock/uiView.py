@@ -817,7 +817,7 @@ class ViewModel(object):
             pos = self.GetProperty("position")
             return pos + tuple(s/2)
         aff = self.GetAffineTransform()
-        p = wx.Point(*aff.TransformPoint(int(s[0]/2), int(s[1]/2)))
+        p = wx.RealPoint(*aff.TransformPoint(int(s[0]/2), int(s[1]/2)))
         return p
 
     def SetAbsoluteCenter(self, pos):
@@ -1392,7 +1392,7 @@ class ViewProxy(object):
     @property
     def position(self):
         model = self._model
-        if not model: return wx.Point(0,0)
+        if not model: return wx.RealPoint(0,0)
         return CDSRealPoint(model.GetAbsolutePosition(), model=model, role="position")
     @position.setter
     def position(self, val):
@@ -1407,8 +1407,8 @@ class ViewProxy(object):
     @property
     def speed(self):
         model = self._model
-        if not model: return wx.Point(0,0)
-        speed = CDSPoint(model.GetProperty("speed"), model=model, role="speed")
+        if not model: return wx.RealPoint(0,0)
+        speed = CDSRealPoint(model.GetProperty("speed"), model=model, role="speed")
         return speed
     @speed.setter
     def speed(self, val):
@@ -1423,7 +1423,7 @@ class ViewProxy(object):
     @property
     def center(self):
         model = self._model
-        if not model: return wx.Point(0,0)
+        if not model: return wx.RealPoint(0,0)
         return CDSRealPoint(model.GetCenter(), model=model, role="center")
     @center.setter
     def center(self, center):

@@ -335,6 +335,8 @@ class CodeInspector(wx.ScrolledWindow):
         editorBlock.codeEditor.SetFocus()
         if mousePos.y < editorBlock.codeEditor.GetPosition().y:
             editorBlock.codeEditor.SetSelection(0, 0)
+            self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView,
+                                                                     editorBlock.codeEditor.currentHandler))
         else:
             end = editorBlock.codeEditor.GetLastPosition()
             editorBlock.codeEditor.SetSelection(end, end)
@@ -481,11 +483,12 @@ class EditorBlock(wx.Window):
     def OnUpdateUi(self, event):
         if event.GetUpdated() == wx.stc.STC_UPDATE_SELECTION:
             wx.CallAfter(self.ScrollParentIfNeeded)
+            self.codeEditor.AutoCompCancel()
         event.Skip()
 
     def OnKeyDown(self, event):
         line = self.codeEditor.GetCurrentLine()
-        if not self.codeEditor.AutoCompActive() and not event.ShiftDown():
+        if not self.codeEditor.AutoCompActive() and not event.ShiftDown() and self in self.parent.visibleBlocks:
             if event.GetKeyCode() in (wx.WXK_UP, wx.WXK_NUMPAD_UP) and line == 0:
                 index = self.parent.visibleBlocks.index(self)
                 if index > 0:

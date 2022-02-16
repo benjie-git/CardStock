@@ -106,7 +106,9 @@ class Runner():
             "IsMouseDown": self.IsMouseDown,
             "GetMousePos": self.GetMousePos,
             "Quit":self.Quit,
-            "MakeColor": self.MakeColor
+            "Color": self.MakeColor,
+            "Point": self.MakePoint,
+            "Size": self.MakeSize,
         }
 
         self.clientVars = self.initialClientVars.copy()
@@ -913,15 +915,32 @@ class Runner():
     def GetMousePos(self):
         return self.stackManager.view.ScreenToClient(*wx.GetMousePosition())
 
-    def MakeColor(self, r, g, b):
+    @staticmethod
+    def MakeColor(r, g, b):
         if not isinstance(r, (float, int)) or not 0 <= r <= 1:
-            raise TypeError("MakeColor(): r must be a number between 0 and 1")
+            raise TypeError("Color(): r must be a number between 0 and 1")
         if not isinstance(g, (float, int)) or not 0 <= g <= 1:
-            raise TypeError("MakeColor(): g must be a number between 0 and 1")
+            raise TypeError("Color(): g must be a number between 0 and 1")
         if not isinstance(b, (float, int)) or not 0 <= b <= 1:
-            raise TypeError("MakeColor(): b must be a number between 0 and 1")
+            raise TypeError("Color(): b must be a number between 0 and 1")
         r, g, b = (int(r * 255), int(g * 255), int(b * 255))
         return f"#{r:02X}{g:02X}{b:02X}"
+
+    @staticmethod
+    def MakePoint(x, y):
+        if not isinstance(x, (float, int)):
+            raise TypeError("Point(): x must be a number")
+        if not isinstance(y, (float, int)):
+            raise TypeError("Point(): y must be a number")
+        return wx.RealPoint(x, y)
+
+    @staticmethod
+    def MakeSize(width, height):
+        if not isinstance(width, (float, int)):
+            raise TypeError("Size(): width must be a number")
+        if not isinstance(height, (float, int)):
+            raise TypeError("Size(): height must be a number")
+        return wx.Size(width, height)
 
     def RunAfterDelay(self, duration, func, *args, **kwargs):
         try:

@@ -94,7 +94,8 @@ class CodeAnalyzer(object):
                 self.analysisPending = True
                 self.ScanCode()
 
-    def GetTypeFromLeadingString(self, handlerObj, handlerName, leadingStr):
+    def GetTypeFromLeadingString(self, handlerObj, leadingStr):
+        """ Return the parent type, parent obj, type, and object of the last token in leadingStr """
         cleaned = re.sub(r'\([^)]*\)', '', leadingStr)
         for c in ' ()[{':
             cleaned = cleaned.split(c)[-1]
@@ -106,56 +107,56 @@ class CodeAnalyzer(object):
 
         def traverseParts(objType, obj, parts_):
             p = parts_[0]
-            retVals = (None, None)
+            retVals = (objType, p, None, None)
             if objType == None:
                 cardChild = thisCard.GetChildModelByName(p)
                 if cardChild:
-                    retVals = (cardChild.type, cardChild)
+                    retVals = (objType, p, cardChild.type, cardChild)
                 elif p == "self" and handlerObj:
-                    retVals = (handlerObj.type, handlerObj)
+                    retVals = (objType, p, handlerObj.type, handlerObj)
                 elif p == "card":
-                    retVals = ("card", thisCard)
+                    retVals = (objType, p, "card", thisCard)
                 elif p == "stack":
-                    retVals = ("stack", self.stackManager.stackModel)
+                    retVals = (objType, p, "stack", self.stackManager.stackModel)
                 elif p in self.globalVars:
-                    retVals = (helpData.HelpDataGlobals.variables[p]["type"], None)
+                    retVals = (objType, p, helpData.HelpDataGlobals.variables[p]["type"], None)
                 elif p in self.globalFuncs:
-                    retVals = (helpData.HelpDataGlobals.functions[p]["return"], None)
+                    retVals = (objType, p, helpData.HelpDataGlobals.functions[p]["return"], None)
                 elif p in self.builtinFuncs:
-                    retVals = (helpData.HelpDataBuiltins.functions[p]["return"], None)
+                    retVals = (objType, p, helpData.HelpDataBuiltins.functions[p]["return"], None)
                 elif p in self.varNames or p in self.funcNames:
                     # Later, track the actual type of each user variable
-                    retVals = ("any", None)
+                    retVals = (objType, p, "any", None)
                 elif p == "mousePos":
-                    retVals = ("point", None)
+                    retVals = (objType, p, "point", None)
                 elif p == "elapsedTime":
-                    retVals = ("float", None)
+                    retVals = (objType, p, "float", None)
                 elif p in ["message", "keyName"]:
-                    retVals = ("string", None)
+                    retVals = (objType, p, "string", None)
                 elif len(parts[0]) and parts[0][-1] in ('"', "'"):  # string literal
-                    retVals = ("string", None)
+                    retVals = (objType, p, "string", None)
                 elif len(parts[0]) and parts[0][-1] == "]":  # list literal or list index
-                    retVals = ("any", None)
+                    retVals = (objType, p, "any", None)
                 elif len(parts[0]) and parts[0][-1] == "}":  # dict literal
-                    retVals = ("dict", None)
+                    retVals = (objType, p, "dict", None)
                 elif parts[0] == '':  # nothing
-                    retVals = (None, None)
+                    retVals = (objType, p, None, None)
                 else:
-                    retVals = ("any", None)
+                    retVals = (objType, p, "any", None)
             else:
                 if p in self.objProps["any"]:
-                    retVals = (helpData.HelpData.GetTypeForProp(p), None)
+                    retVals = (objType, p, helpData.HelpData.GetTypeForProp(p), None)
                 elif p in self.objMethods["any"]:
-                    retVals = (helpData.HelpData.GetTypeForMethod(p), None)
+                    retVals = (objType, p, helpData.HelpData.GetTypeForMethod(p), None)
                 elif p in self.built_in:
-                    retVals = (None, None)
+                    retVals = (objType, p, None, None)
                 if obj:
                     objChild = obj.GetChildModelByName(p)
                     if objChild:
-                        retVals = (objChild.type, objChild)
+                        retVals = (objType, p, objChild.type, objChild)
 
             if retVals is not None and len(parts_) > 1:
-                return traverseParts(*retVals, parts_[1:])
+                return traverseParts(*retVals[2:], parts_[1:])
             else:
                 return retVals
 
@@ -192,7 +193,7 @@ class CodeAnalyzer(object):
             names.sort(key=str.casefold)
             return names
         else:
-            (t, o) = self.GetTypeFromLeadingString(handlerObj, handlerName, leadingStr[:-1])
+            (pt, pn, t, o) = self.GetTypeFromLeadingString(handlerObj, leadingStr[:-1])
             if t is None:
                 return []
             if t == "any" and len(prefix) < 1:

@@ -98,7 +98,6 @@ class PythonEditor(stc.StyledTextCtrl):
         self.AutoCompSetDropRestOfWord(False)
         self.AutoCompSetCaseInsensitiveBehaviour(stc.STC_CASEINSENSITIVEBEHAVIOUR_IGNORECASE)
         self.Bind(stc.EVT_STC_AUTOCOMP_COMPLETED, self.OnACCompleted)
-        self.Bind(stc.EVT_STC_AUTOCOMP_CANCELLED, self.OnACCancelled)
         self.Bind(stc.EVT_STC_AUTOCOMP_SELECTION_CHANGE, self.OnACSelectionChange)
 
         self.Bind(stc.EVT_STC_CHANGE, self.PyEditorOnChange)
@@ -109,6 +108,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.Bind(wx.EVT_CHAR, self.PyEditorOnChar)
         self.Bind(stc.EVT_STC_ZOOM, self.PyEditorOnZoom)
         self.Bind(stc.EVT_STC_UPDATEUI, self.PyEditorOnUpdateUi)
+        self.Bind(wx.EVT_LEFT_DOWN, self.PyEditorOnMouseDown)
 
     def PyEditorOnKeyPress(self, event):
         key = event.GetKeyCode()
@@ -152,6 +152,21 @@ class PythonEditor(stc.StyledTextCtrl):
             wx.CallAfter(self.UpdateAC)
         elif self.AutoCompActive():
             self.AutoCompCancel()
+        event.Skip()
+
+    def PyEditorOnMouseDown(self, event):
+        if self.cPanel:
+            currentPos = self.HitTestPos(event.GetPosition())[1]
+            wordEndPos = self.WordEndPosition(currentPos, True)
+            lineNum = self.LineFromPosition(currentPos)
+            lineStartPos = self.GetLineEndPosition(lineNum) - self.GetLineLength(lineNum)
+            leadingStr = self.GetRange(lineStartPos, wordEndPos)
+            (parentType, name, objType, obj) = self.analyzer.GetTypeFromLeadingString(self.currentModel, leadingStr)
+            if self.GetRange(wordEndPos, wordEndPos+1) == "(":
+                name += "()"
+            helpText = helpData.HelpData.GetHelpForName(name)
+            if helpText:
+                self.cPanel.UpdateHelpText(helpText)
         event.Skip()
 
     def PyEditorOnZoom(self, event):
@@ -274,10 +289,6 @@ class PythonEditor(stc.StyledTextCtrl):
                 self.SetSelection(car-1, car-1)
             wx.CallAfter(moveBackOne)
             self.AutoCompCancel()
-
-    def OnACCancelled(self, event):
-        if self.cPanel:
-            self.cPanel.UpdateHelpText("")
 
     def OnACSelectionChange(self, event):
         if not self.cPanel:
