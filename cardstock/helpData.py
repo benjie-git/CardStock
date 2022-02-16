@@ -59,6 +59,8 @@ class HelpData():
         isFunc = key.endswith("()")
         allClasses = [HelpDataGlobals]
         allClasses.extend(helpClasses)
+        allClasses.remove(HelpDataString)
+        allClasses.remove(HelpDataList)
         if not isFunc:
             for c in allClasses:
                 if key in c.properties:
@@ -387,9 +389,9 @@ class HelpDataGlobals():
                          "info": "Returns the current position of the mouse, whether or not it is inside of the stack "
                                  "window.  This point's x and y values can be negative, if the mouse is to the left "
                                  "or below the bottom left corner of the stack window."},
-        "Color": {"args": {"r": {"type": "float", "info": "The red component of the color as a number from 0 to 1."},
-                               "g": {"type": "float", "info": "The green component of the color as a number from 0 to 1."},
-                               "b": {"type": "float", "info": "The blue component of the color as a number from 0 to 1."}},
+        "Color": {"args": {"r": {"type": "float", "info": "The red component of the color as a number from 0.0 to 1.0."},
+                               "g": {"type": "float", "info": "The green component of the color as a number from 0.0 to 1.0."},
+                               "b": {"type": "float", "info": "The blue component of the color as a number from 0.0 to 1.0."}},
                          "return": "string",
                          "info": "Returns an HTML color string of the form '#rrggbb'.  For example "
                                  "<b>Color(1, 0, 0)</b> returns '#FF0000' which is bright red."},
@@ -397,8 +399,8 @@ class HelpDataGlobals():
                            "y": {"type": "float", "info": "The y (vertical) part of this point."}},
                          "return": "point",
                          "info": "Returns a point object."},
-        "Size": {"args": {"width": {"type": "float", "info": "The width (horizontal) part of this size."},
-                           "height": {"type": "float", "info": "The height (vertical) part of this size."}},
+        "Size": {"args": {"width": {"type": "int", "info": "The width (horizontal) part of this size."},
+                           "height": {"type": "int", "info": "The height (vertical) part of this size."}},
                          "return": "size",
                          "info": "Returns a size object."},
         "Quit": {"args": {},
@@ -1180,9 +1182,6 @@ class HelpDataString():
                     "return": "string",
                     "info": ""},
         "casefold": {"args": {},
-                       "return": "string",
-                       "info": ""},
-        "center": {"args": {},
                        "return": "string",
                        "info": ""},
         "count": {"args": {},

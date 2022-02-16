@@ -332,6 +332,8 @@ class CodeInspector(wx.ScrolledWindow):
         """
         mousePos = event.GetPosition()
         editorBlock = event.GetEventObject()
+        if isinstance(editorBlock, wx.StaticText):
+            editorBlock = editorBlock.GetParent()
         editorBlock.codeEditor.SetFocus()
         if mousePos.y < editorBlock.codeEditor.GetPosition().y:
             editorBlock.codeEditor.SetSelection(0, 0)
@@ -385,6 +387,7 @@ class EditorBlock(wx.Window):
             EditorBlock.closeBmp = wx.ArtProvider.GetBitmap(wx.ART_MINUS, size=wx.Size(s,s))
 
         self.label = wx.StaticText(self)
+        self.label.Bind(wx.EVT_LEFT_DOWN, parent.OnBlockClick)
         fsize = 17 if wx.Platform == "__WXGTK__" else 14
         self.label.SetFont(wx.Font(wx.FontInfo(wx.Size(0, fsize)).Family(wx.FONTFAMILY_MODERN)))
         self.label.SetBackgroundColour('white')
