@@ -479,6 +479,7 @@ class EditorBlock(wx.Window):
                                                             self.lastCursorSel, newCursorSel)
                     self.stackManager.command_processor.Submit(command)
                     self.UpdateEditorSize()
+                    self.ScrollParentIfNeeded()
                 if (len(newVal.strip())==0) != (len(oldVal.strip())==0):
                     self.UpdateLabelState(handlerName)
                 self.lastCursorSel = newCursorSel

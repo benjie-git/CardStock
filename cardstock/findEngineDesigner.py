@@ -29,7 +29,6 @@ class FindEngine(object):
         super().__init__()
         self.stackManager = stackManager
         self.findData = wx.FindReplaceData(1)   # initializes and holds search parameters
-        self.didReplace = False
 
     def AddDictItemsForModel(self, searchDict, i, model):
         for key in model.PropertyKeys():
@@ -63,26 +62,23 @@ class FindEngine(object):
             startPath, textSel = self.stackManager.GetDesignerFindPath()
             path, start, end = self.DoFindNext(searchDict, startPath, textSel)
             if path:
-                self.didReplace = False
                 self.stackManager.ShowDesignerFindPath(path, start, end)
 
     def Replace(self):
-        if not self.didReplace:
-            replaceStr = self.findData.GetReplaceString()
-            findPath, textSel = self.stackManager.GetDesignerFindPath()
-            command = self.DoReplaceAtPath(findPath, [textSel], replaceStr)
-            if command:
-                self.stackManager.command_processor.Submit(command)
-            parts = findPath.split(".")
-            key = parts[3]
-            if parts[2] == "handler":
-                uiViews = []
-                if len(self.stackManager.designer.cPanel.lastSelectedUiViews) == 1:
-                    uiViews = [self.stackManager.designer.cPanel.lastSelectedUiViews[0]]
-                self.stackManager.designer.cPanel.UpdateHandlerForUiViews(uiViews, None)
-                pos = textSel[0] + len(replaceStr)
-                self.stackManager.designer.cPanel.codeInspector.SelectAndScrollTo(key, pos, pos)
-            self.didReplace = True
+        replaceStr = self.findData.GetReplaceString()
+        findPath, textSel = self.stackManager.GetDesignerFindPath()
+        command = self.DoReplaceAtPath(findPath, [textSel], replaceStr, True)
+        if command:
+            self.stackManager.command_processor.Submit(command)
+        parts = findPath.split(".")
+        key = parts[3]
+        if parts[2] == "handler":
+            uiViews = []
+            if len(self.stackManager.designer.cPanel.lastSelectedUiViews) == 1:
+                uiViews = [self.stackManager.designer.cPanel.lastSelectedUiViews[0]]
+            pos = textSel[0] + len(replaceStr)
+            self.stackManager.designer.cPanel.UpdateHandlerForUiViews(uiViews, parts[3], (pos,pos))
+        self.Find()
 
     def DoFindNext(self, searchDict, startPath, textSel):
         flags = self.findData.GetFlags()
@@ -135,7 +131,7 @@ class FindEngine(object):
                 return (key, start+offset, end+offset)
         return (None, None, None)
 
-    def DoReplaceAtPath(self, findPath, textSels, replaceStr):
+    def DoReplaceAtPath(self, findPath, textSels, replaceStr, interactive):
         parts = findPath.split(".")
         # cardIndex, objectName, property|handler, key
         cardIndex = int(parts[0])
@@ -148,13 +144,15 @@ class FindEngine(object):
             for textSel in reversed(textSels):
                 val = val[:textSel[0]] + replaceStr + val[textSel[1]:]
             command = SetPropertyCommand(True, "Set Property", self.stackManager.designer.cPanel,
-                                         cardIndex, model, key, val, False)
+                                         cardIndex, model, key, val, interactive)
         elif parts[2] == "handler":
             val = model.handlers[key]
             for textSel in reversed(textSels):
                 val = val[:textSel[0]] + replaceStr + val[textSel[1]:]
+            oldSel = (textSel[1], textSel[1])
+            newSel = (textSel[1] + len(replaceStr)-len(textSel[2]), textSel[1] + len(replaceStr)-len(textSel[2]))
             command = SetHandlerCommand(True, "Set Handler", self.stackManager.designer.cPanel,
-                                        cardIndex, model, key, val, None, None, False)
+                                        cardIndex, model, key, val, oldSel, newSel, interactive)
         return command
 
     def ReplaceAll(self):
@@ -182,8 +180,8 @@ class FindEngine(object):
 
             matches = [m for m in p.finditer(text)]
             if len(matches):
-                matchInfo = [(match.start(), match.end()) for match in matches]
-                command = self.DoReplaceAtPath(path, matchInfo, replaceStr)
+                matchInfo = [(match.start(), match.end(), findStr) for match in matches]
+                command = self.DoReplaceAtPath(path, matchInfo, replaceStr, False)
                 commands.append(command)
 
         if len(commands):

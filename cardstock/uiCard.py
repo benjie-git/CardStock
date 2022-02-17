@@ -52,8 +52,8 @@ class UiCard(UiView):
         bg = wx.Colour(self.model.GetProperty("fillColor"))
         if not bg:
             bg = wx.Colour('white')
-        gc.SetBackground(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
-        gc.Clear()
+        gc.SetBrush(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
+        gc.DrawRectangle(self.model.GetFrame())
 
     def PaintSelectionBox(self, gc):
         if self.isSelected and self.stackManager.tool.name == "hand":
