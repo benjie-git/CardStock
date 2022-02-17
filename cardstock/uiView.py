@@ -105,7 +105,7 @@ class UiView(object):
             else:
                 self.ClearHitRegion()
             self.stackManager.view.Refresh()
-        elif key == "visible":
+        elif key == "isVisible":
             if self.view:
                 self.view.Show(self.model.IsVisible())
             self.stackManager.view.Refresh()
@@ -199,12 +199,12 @@ class UiView(object):
         # Find collisions between this object and others in its bounceObjs list
         # and add them to the collisions list, to be handled after all are found.
         removeFromBounceObjs = []
-        if not self.model.didSetDown and self.model.GetProperty("visible") and tuple(self.model.GetProperty("speed")) != (0, 0):
+        if not self.model.didSetDown and self.model.GetProperty("isVisible") and tuple(self.model.GetProperty("speed")) != (0, 0):
             for k,v in self.model.bounceObjs.items():
                 other_ui = self.stackManager.GetUiViewByModel(k)
                 (mode, last_dist) = v
 
-                if not other_ui.model.GetProperty("visible"):
+                if not other_ui.model.GetProperty("isVisible"):
                     continue
 
                 if other_ui.model.didSetDown:
@@ -621,7 +621,7 @@ class ViewModel(object):
                            "size": wx.Size(0,0),
                            "position": wx.RealPoint(0,0),
                            "speed": wx.Point(0,0),
-                           "visible": True,
+                           "isVisible": True,
                            "data": {}
                            }
         self.propertyKeys = ["name", "position", "size"]
@@ -630,7 +630,7 @@ class ViewModel(object):
                               "center": "floatpoint",
                               "size": "size",
                               "speed": "point",
-                              "visible": "bool",
+                              "isVisible": "bool",
                               "data": "dict"
                               }
 
@@ -833,7 +833,7 @@ class ViewModel(object):
 
     def IsVisible(self):
         """ Returns True iff this object or any of its ancestors has its hidden property set to True """
-        if not self.properties["visible"]:
+        if not self.properties["isVisible"]:
             return False
         if self.parent and self.parent.type not in ["card", "stack"]:
             return self.parent.IsVisible()
@@ -866,7 +866,7 @@ class ViewModel(object):
                 handlers[k] = v
 
         props = self.properties.copy()
-        props.pop("visible")
+        props.pop("isVisible")
         props.pop("speed")
         for k,v in self.propertyTypes.items():
             if v in ["point", "floatpoint", "size"] and k in props:
@@ -1251,8 +1251,8 @@ class ViewProxy(object):
             newModel = model.CreateCopy(name)
             newModel.SetProperty("speed", model.GetProperty("speed"), notify=False)
             newModel.lastOnPeriodicTime = time()
-            if not self.visible:
-                newModel.SetProperty("visible", False, notify=False)
+            if not self.isVisible:
+                newModel.SetProperty("isVisible", False, notify=False)
             for k,v in kwargs.items():
                 if hasattr(newModel.GetProxy(), k):
                     setattr(newModel.GetProxy(), k, v)
@@ -1488,20 +1488,20 @@ class ViewProxy(object):
         f()
 
     def Show(self):
-        self.visible = True
+        self.isVisible = True
     def Hide(self):
-        self.visible = False
+        self.isVisible = False
 
     @property
-    def visible(self):
+    def isVisible(self):
         model = self._model
         if not model: return False
         return model.IsVisible()
-    @visible.setter
-    def visible(self, val):
+    @isVisible.setter
+    def isVisible(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("visible", bool(val))
+        model.SetProperty("isVisible", bool(val))
 
     @property
     def rotation(self):

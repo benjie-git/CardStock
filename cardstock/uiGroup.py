@@ -153,9 +153,9 @@ class GroupModel(ViewModel):
     def SetProperty(self, key, value, notify=True):
         if self.didSetDown: return
         super().SetProperty(key, value, notify)
-        if key == "visible":
+        if key == "isVisible":
             for m in self.GetAllChildModels():
-                m.Notify("visible")
+                m.Notify("isVisible")
 
     def AddChildModels(self, models):
         selfPos = self.GetProperty("position")

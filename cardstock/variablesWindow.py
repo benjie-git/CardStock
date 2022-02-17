@@ -167,13 +167,13 @@ class VariablesWindow(wx.Frame):
                     del props["position"]
                     del props["size"]
                     del props["speed"]
-                    del props["visible"]
+                    del props["isVisible"]
                 elif vars.type == "card":
                     props["children"] = vars.childModels.copy()
                     props["size"] = vars.parent.properties["size"]
                     del props["position"]
                     del props["speed"]
-                    del props["visible"]
+                    del props["isVisible"]
                 elif vars.type == "group":
                     props["children"] = vars.childModels.copy()
                 elif vars.type in ("pen", "line", "poly"):

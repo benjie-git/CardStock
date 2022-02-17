@@ -164,6 +164,7 @@ class StackModel(ViewModel):
                         val = val.replace(".editable", ".isEditable")
                         val = val.replace(".multiline", ".isMultiline")
                         val = val.replace(".autoShrink", ".canAutoShrink")
+                        val = val.replace(".visible", ".isVisible")
                         obj.handlers[k] = val
                 for child in obj.childModels:
                     replaceNames(child)

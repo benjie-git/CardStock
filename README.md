@@ -37,6 +37,8 @@ The guiding principles behind my vision for CardStock are the following, in orde
 
 ### Future Plans
 * Allow exporting a stack as a web page, to allow running it on any web-capable platform.
+* Then build a web-based designer as well.
+* Add a sound library, and ability to record your own sounds.
 * Allow editing contents of a group without ungrouping.
 * Allow filling shapes with color gradients.
 * Add app icons for the CardStock Designer and Viewer.

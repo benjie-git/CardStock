@@ -443,9 +443,9 @@ class HelpDataObject():
         "speed": {"type": "point",
                   "info": "This is a point value corresponding to the current speed of the object, in pixels/second "
                           "in both the <b>x</b> and <b>y</b> directions."},
-        "visible": {"type": "bool",
-                    "info": "<b>True</b> if this object is <b>visible</b>, or <b>False</b> if it is hidden.  If this "
-                            "object is in a group that has been hidden, this object's <b>visible</b> property will be "
+        "isVisible": {"type": "bool",
+                    "info": "<b>True</b> if this object <b>isVisible</b>, or <b>False</b> if it is hidden.  If this "
+                            "object is in a group that has been hidden, this object's <b>isVisible</b> property will be "
                             "<b>False</b> as well."},
         "hasFocus": {"type": "bool",
                      "info": "<b>True</b> if this object is focused (if it is selected for typing into), otherwise "
