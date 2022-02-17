@@ -72,7 +72,9 @@ class ViewerFrame(wx.Frame):
         self.findEngine = FindEngine(self.stackManager)
 
         self.consoleWindow = ConsoleWindow(self, not self.isStandalone)
-        if not self.isStandalone:
+        if self.isStandalone:
+            self.variablesWindow = None
+        else:
             self.variablesWindow = VariablesWindow(self, self.stackManager)
 
     def Destroy(self):
