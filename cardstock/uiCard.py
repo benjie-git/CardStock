@@ -53,6 +53,7 @@ class UiCard(UiView):
         if not bg:
             bg = wx.Colour('white')
         gc.SetBrush(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
+        gc.SetPen(wx.TRANSPARENT_PEN)
         gc.DrawRectangle(self.model.GetFrame())
 
     def PaintSelectionBox(self, gc):
