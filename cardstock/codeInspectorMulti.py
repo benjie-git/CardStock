@@ -486,8 +486,9 @@ class EditorBlock(wx.Window):
 
     def OnUpdateUi(self, event):
         if event.GetUpdated() == wx.stc.STC_UPDATE_SELECTION:
-            wx.CallAfter(self.ScrollParentIfNeeded)
             self.codeEditor.AutoCompCancel()
+            if self.codeEditor.HasFocus():
+                wx.CallAfter(self.ScrollParentIfNeeded)
         event.Skip()
 
     def OnKeyDown(self, event):
