@@ -167,6 +167,8 @@ class StackModel(ViewModel):
                         val = val.replace(".multiline", ".isMultiline")
                         val = val.replace(".autoShrink", ".canAutoShrink")
                         val = val.replace(".visible", ".isVisible")
+                        val = val.replace(".GetEventHandler(", ".GetEventCode(")
+                        val = val.replace(".SetEventHandler(", ".SetEventCode(")
                         obj.handlers[k] = val
                 for child in obj.childModels:
                     replaceNames(child)

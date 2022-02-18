@@ -1518,20 +1518,20 @@ class ViewProxy(object):
         if not model: return
         model.SetProperty("rotation", val)
 
-    def GetEventHandler(self, eventName):
+    def GetEventCode(self, eventName):
         model = self._model
         if not model: return ""
         return model.handlers[eventName]
 
-    def SetEventHandler(self, eventName, code):
+    def SetEventCode(self, eventName, code):
         model = self._model
         if not model: return
         if not isinstance(eventName, str):
-            raise TypeError("SetEventHandler(): eventName must be a string")
+            raise TypeError("SetEventCode(): eventName must be a string")
         if not isinstance(code, str):
-            raise TypeError("SetEventHandler(): code must be a string")
+            raise TypeError("SetEventCode(): code must be a string")
         if eventName not in model.handlers:
-            raise TypeError(f"SetEventHandler(): this object has no event handler called '{eventName}'")
+            raise TypeError(f"SetEventCode(): this object has no event called '{eventName}'")
 
         model.handlers[eventName] = code
 

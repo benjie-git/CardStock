@@ -537,14 +537,14 @@ class HelpDataObject():
                          "info": "Moves this object to the given index, in the list of "
                                  "its parent's children, with 0 being at the back.  But note that "
                                  "all buttons and text fields will remain in front of all other objects."},
-        "GetEventHandler": {"args": {"eventName": {"type": "string", "info": "The name of the event handler to look up."}},
+        "GetEventCode": {"args": {"eventName": {"type": "string", "info": "The name of the event to look up."}},
                             "return": "string",
-                            "info": "Returns a string containing this object's event handling code for the given "
+                            "info": "Returns a string containing this object's event code for the given "
                                     "<b>eventName</b>"},
-        "SetEventHandler": {"args": {"eventName": {"type": "string", "info": "The name of the event handler to set."},
+        "SetEventCode": {"args": {"eventName": {"type": "string", "info": "The name of the event to set."},
                                      "code": {"type": "string", "info": "The code to run on this event."}},
                             "return": None,
-                            "info": "Sets this object's event handling code for the given <b>eventName</b> to"
+                            "info": "Sets this object's event code for the given <b>eventName</b> to"
                                     "<b>code</b>."},
         "StopHandlingMouseEvent": {"args": {},
                                    "return": None,
