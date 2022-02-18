@@ -16,17 +16,17 @@ class HelpData():
 
     @classmethod
     def ForType(cls, typeStr):
-        if typeStr == "button":                 return HelpDataButton
-        if typeStr == "textfield":              return HelpDataTextField
-        if typeStr == "textlabel":              return HelpDataTextLabel
-        if typeStr == "image":                  return HelpDataImage
-        if typeStr == "webview":                return HelpDataWebView
-        if typeStr == "group":                  return HelpDataGroup
-        if typeStr in ["line", "pen"]:          return HelpDataLine
-        if typeStr in ["shape", "oval", "rect", "poly"]:return HelpDataShape
-        if typeStr == "roundrect":              return HelpDataRoundRectangle
-        if typeStr == "card":                   return HelpDataCard
-        if typeStr == "stack":                  return HelpDataStack
+        if typeStr == "button":                   return HelpDataButton
+        elif typeStr == "textfield":              return HelpDataTextField
+        elif typeStr == "textlabel":              return HelpDataTextLabel
+        elif typeStr == "image":                  return HelpDataImage
+        elif typeStr == "webview":                return HelpDataWebView
+        elif typeStr == "group":                  return HelpDataGroup
+        elif typeStr in ["line", "pen"]:          return HelpDataLine
+        elif typeStr in ["shape", "oval", "rect", "poly"]:return HelpDataShape
+        elif typeStr == "roundrect":              return HelpDataRoundRectangle
+        elif typeStr == "card":                   return HelpDataCard
+        elif typeStr == "stack":                  return HelpDataStack
         return HelpDataObject
 
     @classmethod
@@ -55,12 +55,23 @@ class HelpData():
         return None
 
     @classmethod
-    def GetHelpForName(cls, key):
+    def GetHelpForName(cls, key, objType):
         isFunc = key.endswith("()")
-        allClasses = [HelpDataGlobals]
-        allClasses.extend(helpClasses)
-        allClasses.remove(HelpDataString)
-        allClasses.remove(HelpDataList)
+        if objType is None:
+            return None
+        elif objType == "global":
+            allClasses = [HelpDataGlobals]
+        elif objType != "any":
+            allClasses = []
+            c = cls.ForType(objType)
+            while c:
+                allClasses.append(c)
+                c = c.parent
+        else:
+            allClasses = [HelpDataGlobals]
+            allClasses.extend(helpClasses)
+            allClasses.remove(HelpDataString)
+            allClasses.remove(HelpDataList)
         if not isFunc:
             for c in allClasses:
                 if key in c.properties:
@@ -81,6 +92,7 @@ class HelpData():
                     name = key + "(" + ', '.join(method["args"].keys()) + ")"
                     text = f"<b>{name}</b><br/>{argText}{ret}<br/>{method['info']}"
                     return text
+        return None
 
     @classmethod
     def HtmlTableFromLists(cls, rows):

@@ -164,7 +164,7 @@ class PythonEditor(stc.StyledTextCtrl):
             (parentType, name, objType, obj) = self.analyzer.GetTypeFromLeadingString(self.currentModel, leadingStr)
             if self.GetRange(wordEndPos, wordEndPos+1) == "(":
                 name += "()"
-            helpText = helpData.HelpData.GetHelpForName(name)
+            helpText = helpData.HelpData.GetHelpForName(name, parentType)
             if helpText:
                 self.cPanel.UpdateHelpText(helpText)
         event.Skip()
@@ -296,7 +296,7 @@ class PythonEditor(stc.StyledTextCtrl):
 
         s = event.GetString()
         if s:
-            helpText = helpData.HelpData.GetHelpForName(s)
+            helpText = helpData.HelpData.GetHelpForName(s, "any")
             if helpText:
                 self.cPanel.UpdateHelpText(helpText)
                 return

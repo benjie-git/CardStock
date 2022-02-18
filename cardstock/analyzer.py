@@ -108,7 +108,7 @@ class CodeAnalyzer(object):
         def traverseParts(objType, obj, parts_):
             p = parts_[0]
             retVals = (objType, p, None, None)
-            if objType == None:
+            if objType == "global":
                 cardChild = thisCard.GetChildModelByName(p)
                 if cardChild:
                     retVals = (objType, p, cardChild.type, cardChild)
@@ -164,7 +164,7 @@ class CodeAnalyzer(object):
             else:
                 return retVals
 
-        retVals = traverseParts(None, None, parts)
+        retVals = traverseParts("global", None, parts)
         return retVals
 
     def GetACList(self, handlerObj, handlerName, leadingStr, prefix):
@@ -205,9 +205,9 @@ class CodeAnalyzer(object):
             attributes = []
             attributes.extend(self.objProps[t])
             attributes.extend([s+"()" for s in self.objMethods[t]])
-            if t in ["stack", None]:
+            if t in ["stack", "any"]:
                 attributes.extend(self.cardNames)
-            if t in ["card", "group", None]:
+            if t in ["card", "group", "global", "any"]:
                 if o:
                     attributes.extend([c.GetProperty("name") for c in o.childModels])
                 else:
