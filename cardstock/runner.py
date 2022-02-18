@@ -348,7 +348,7 @@ class Runner():
         mousePos = None
         keyName = None
         if event and handlerName.startswith("OnMouse"):
-            mousePos = self.stackManager.view.ScreenToClient(wx.GetMousePosition())
+            mousePos = wx.RealPoint(self.stackManager.view.ScreenToClient(wx.GetMousePosition()))
         elif arg and handlerName == "OnKeyHold":
             keyName = arg
         elif event and handlerName.startswith("OnKey"):
@@ -913,7 +913,7 @@ class Runner():
 
     @RunOnMainSync
     def GetMousePos(self):
-        return self.stackManager.view.ScreenToClient(*wx.GetMousePosition())
+        return wx.RealPoint(self.stackManager.view.ScreenToClient(*wx.GetMousePosition()))
 
     @staticmethod
     def MakeColor(r, g, b):
