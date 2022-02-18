@@ -97,7 +97,7 @@ class CodeAnalyzer(object):
     def GetTypeFromLeadingString(self, handlerObj, leadingStr):
         """ Return the parent type, parent obj, type, and object of the last token in leadingStr """
         cleaned = re.sub(r'\([^)]*\)', '', leadingStr)
-        for c in ' ()[{/':
+        for c in ' ()[{/+-*%:<>,':
             cleaned = cleaned.split(c)[-1]
         parts = cleaned.split('.')
 
