@@ -751,7 +751,7 @@ rect = PyEmbeddedImage(
     "pZTvyeicYwihWvfTNN1IPnv8HhPSpN7hsDvuM/O8fwAAAABJRU5ErkJggg==")
 
 #----------------------------------------------------------------------
-poly = PyEmbeddedImage(
+polygon = PyEmbeddedImage(
     b'iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAUK3pUWHRSYXcgcHJvZmlsZSB0'
     b'eXBlIGV4aWYAAHja7ZpXliQpmoXfWcUswdCwHOQ5vYNZ/nwXPGRmZFdVz2NHZLowN8fgF1dg'
     b'Ydb//mub/+EnlviYEHNJNaWHn1BDdY0X5bk//TzaJ5zH+6a+PrNfj5v3DxyHPM/+vq3udXxx'
@@ -1170,7 +1170,7 @@ embeddedImages = {
     "webview": webview,
     "oval": oval,
     "rect": rect,
-    "poly": poly,
+    "polygon": polygon,
     "roundrect": roundrect,
     "line": line,
     "pen": pen,

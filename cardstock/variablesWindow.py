@@ -176,7 +176,7 @@ class VariablesWindow(wx.Frame):
                     del props["isVisible"]
                 elif vars.type == "group":
                     props["children"] = vars.childModels.copy()
-                elif vars.type in ("pen", "line", "poly"):
+                elif vars.type in ("pen", "line", "polygon"):
                     props["points"] = vars.points
 
                 if "originalSize" in props:

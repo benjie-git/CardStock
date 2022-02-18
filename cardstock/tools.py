@@ -41,9 +41,9 @@ class BaseTool(object):
             return ViewTool(stackManager, name)
         elif name == "pen":
             return PenTool(stackManager)
-        elif name == "poly":
-            return PolyTool(stackManager)
-        elif name in ["rect", "roundrect", "oval", "poly", "line"]:
+        elif name == "polygon":
+            return PolygonTool(stackManager)
+        elif name in ["rect", "roundrect", "oval", "line"]:
             return ShapeTool(stackManager, name)
         else:
             return HandTool(stackManager)
@@ -713,15 +713,15 @@ class ShapeTool(BaseTool):
         self.stackManager.view.SetFocus()
 
 
-class PolyTool(BaseTool):
+class PolygonTool(BaseTool):
     """
-    The Poly tool allows drawing polygons.
+    The Polygon tool allows drawing polygons.
     """
 
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.cursor = wx.CURSOR_CROSS
-        self.name = "poly"
+        self.name = "polygon"
         self.points = None
         self.thickness = 0
         self.penColor = None

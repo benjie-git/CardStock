@@ -29,7 +29,7 @@ class StackGenerator(object):
             return uiWebView.UiWebView(parent, stackManager, model)
         elif model.type == "group":
             return uiGroup.UiGroup(parent, stackManager, model)
-        elif model.type in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
+        elif model.type in ["pen", "line", "oval", "rect", "polygon", "roundrect"]:
             return uiShape.UiShape(parent, stackManager, model)
         return None
 
@@ -50,7 +50,7 @@ class StackGenerator(object):
             m = uiWebView.WebViewModel(stackManager)
         elif data["type"] == "group":
             m = uiGroup.GroupModel(stackManager)
-        elif data["type"] in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
+        elif data["type"] in ["pen", "line", "oval", "rect", "polygon", "roundrect"]:
             m = uiShape.UiShape.CreateModelForType(stackManager, data["type"])
         m.SetData(data)
         return m
@@ -72,6 +72,6 @@ class StackGenerator(object):
             m = uiWebView.WebViewModel(stackManager)
         elif typeStr == "group":
             m = uiGroup.GroupModel(stackManager)
-        elif typeStr in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
+        elif typeStr in ["pen", "line", "oval", "rect", "polygon", "roundrect"]:
             m = uiShape.UiShape.CreateModelForType(stackManager, typeStr)
         return m

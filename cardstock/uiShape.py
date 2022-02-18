@@ -47,7 +47,7 @@ class UiShape(UiView):
                 path.AddRoundedRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1], radius)
             elif self.model.type == "oval":
                 path.AddEllipse(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
-        elif self.model.type == "poly" and len(points) >= 2:
+        elif self.model.type == "polygon" and len(points) >= 2:
             path.MoveToPoint(*points[0])
             for p in points[1:]:
                 path.AddLineToPoint(*p)
@@ -107,7 +107,7 @@ class UiShape(UiView):
                 thickness -= 1
 
             selThickness = 3
-            if (self.model.type in ["pen", "line", "poly"]):
+            if (self.model.type in ["pen", "line", "polygon"]):
                 # Make lines extra thick for easier clicking
                 selThickness += 6
             gc.cachedGC.SetPen(wx.Pen('Blue', selThickness, wx.PENSTYLE_SHORT_DASH))
@@ -145,7 +145,7 @@ class UiShape(UiView):
             origPoints = self.model.GetScaledPoints()
             rotRect = self.model.RotatedRect(self.model.RectFromPoints(origPoints))
 
-        if self.model.type in ["pen", "line", "poly"]:
+        if self.model.type in ["pen", "line", "polygon"]:
             # Make lines extra thick for easier clicking
             thickness += 6
 
@@ -215,7 +215,7 @@ class UiShape(UiView):
     def CreateModelForType(stackManager, name):
         if name in ["pen", "line"]:
             return LineModel(stackManager, name)
-        if name in ["rect", "oval", "poly"]:
+        if name in ["rect", "oval", "polygon"]:
             return ShapeModel(stackManager, name)
         if name == "roundrect":
             return RoundRectModel(stackManager, name)
@@ -237,7 +237,7 @@ class LineModel(ViewModel):
 
         if shapeType == "pen":
             self.properties["name"] = "line_1"
-        elif shapeType == "poly":
+        elif shapeType == "polygon":
             self.properties["name"] = "polygon_1"
         else:
             self.properties["name"] = f"{shapeType}_1"
@@ -286,7 +286,7 @@ class LineModel(ViewModel):
 
     def PerformFlips(self, fx, fy, notify=True):
         super().PerformFlips(fx, fy, notify)
-        if self.type in ["line", "pen", "poly"]:
+        if self.type in ["line", "pen", "polygon"]:
             if fx or fy:
                 origSize = self.properties["originalSize"]
                 self.points = [((origSize[0] - p[0]) if fx else p[0], (origSize[1] - p[1]) if fy else p[1]) for p in self.points]
@@ -512,7 +512,7 @@ class Shape(Line):
     def points(self):
         model = self._model
         if model and model.parent:
-            if model.type == "poly":
+            if model.type == "polygon":
                 return model.GetAbsolutePoints()
             else:
                 raise TypeError(f"The points property is not available for shapes of type {model.type}.")
@@ -520,7 +520,7 @@ class Shape(Line):
     def points(self, points):
         model = self._model
         if model and model.parent:
-            if model.type == "poly":
+            if model.type == "polygon":
                 try:
                     points = [wx.RealPoint(p[0], p[1]) for p in points]
                 except:

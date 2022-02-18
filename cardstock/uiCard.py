@@ -423,7 +423,7 @@ class Card(ViewProxy):
         model = self._model
         if not model: return None
 
-        poly = model.AddNewObject("poly", name, None, points, kwargs=kwargs)
+        poly = model.AddNewObject("polygon", name, None, points, kwargs=kwargs)
         return poly.GetProxy() if poly else None
 
     def AddGroup(self, objects, name="group"):

@@ -102,6 +102,8 @@ class StackModel(ViewModel):
             """
             # Update names
             def replaceNames(dataDict):
+                if dataDict['type'] == "poly":
+                    dataDict['type'] = "polygon"
                 if "bgColor" in dataDict['properties']:
                     dataDict['properties']["fillColor"] = dataDict['properties'].pop("bgColor")
                 if "border" in dataDict['properties']:

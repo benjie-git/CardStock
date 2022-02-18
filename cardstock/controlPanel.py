@@ -26,7 +26,7 @@ class ControlPanel(wx.Panel):
     BMP_BORDER = 4
 
     toolNames = ["hand", "button", "field", "label", "webview", "image",
-                 "pen", "oval", "rect", "roundrect", "poly", "line"]
+                 "pen", "oval", "rect", "roundrect", "polygon", "line"]
     tooltips = ["Hand (Esc)", "Button (B)", "Text Field (F)", "Text Label (T)", "Web View (W)", "Image (I)",
                 "Pen (P)", "Oval (O)", "Rectangle (R)", "Round Rectangle (D)", "Polygon (G)", "Line (L)"]
 
@@ -366,7 +366,7 @@ class ControlPanel(wx.Panel):
             tool = BaseTool.ToolFromName(toolName, self.stackManager)
             self.stackManager.SetTool(tool)
 
-            if tool.name in ["pen", "oval", "rect", "poly", "line", "roundrect"]:
+            if tool.name in ["pen", "oval", "rect", "polygon", "line", "roundrect"]:
                 self.box.Show(self.drawBox)
                 self.box.Hide(self.editBox)
                 self.stackManager.SelectUiView(None)

@@ -23,7 +23,7 @@ class HelpData():
         elif typeStr == "webview":                return HelpDataWebView
         elif typeStr == "group":                  return HelpDataGroup
         elif typeStr in ["line", "pen"]:          return HelpDataLine
-        elif typeStr in ["shape", "oval", "rect", "poly"]:return HelpDataShape
+        elif typeStr in ["shape", "oval", "rect", "polygon"]:return HelpDataShape
         elif typeStr == "roundrect":              return HelpDataRoundRectangle
         elif typeStr == "card":                   return HelpDataCard
         elif typeStr == "stack":                  return HelpDataStack
@@ -303,7 +303,7 @@ HelpDataTypes = [["Type", "Description"],
                                  "size of an object in the card.  For a size variable s, you can access the width "
                                  "value as s[0] or s.width, and the height value as either s[1] or s.height"],
                  ["<i>object</i>", "An object value can hold any CardStock object, like a button, card, or oval."],
-                 ["<i>button, textfield, textlabel, webview, image, oval, rect, roundrect, poly, line</i>",
+                 ["<i>button, textfield, textlabel, webview, image, oval, rect, roundrect, polygon, line</i>",
                   "A value of any of these types holds a CardStock object of that specific type."],
                  ]
 
@@ -431,7 +431,7 @@ class HelpDataObject():
                          "your code, you can get an object's name, but you can not set it."},
         "type": {"type": "string",
                  "info": "Every object has a <b>type</b> property.  It will be one of 'button', 'textfield', 'textlabel', "
-                         "'webview', 'image', 'line', 'oval', 'rect, 'roundrect', 'poly', 'stack', 'card', 'group'.  Your code can get "
+                         "'webview', 'image', 'line', 'oval', 'rect, 'roundrect', 'polygon', 'stack', 'card', 'group'.  Your code can get "
                          "this value, but not set it."},
         "data": {"type": "dictionary",
                  "info": "Every object has a <b>data</b> property.  It is a dictionary that allows you to persistently "
@@ -935,7 +935,7 @@ class HelpDataLine():
 
 class HelpDataShape():
     parent = HelpDataLine
-    types = ["oval", "rect", "poly"]
+    types = ["oval", "rect", "polygon"]
 
     properties = {
         "fillColor": {"type": "string",
@@ -1076,7 +1076,7 @@ class HelpDataCard():
                                                                 "'shape_{N}'."},
                                 "...": {"info": "optionally set more properties here.  For example, "
                                                                "include position=(10,10)"}},
-                       "return": "poly",
+                       "return": "polygon",
                     "info": "Adds a new Polygon shape to the card, and returns the new object."},
         "AddGroup": {"args": {"objects": {"type": "list", "info": "a list of object, all on the same card, to include "
                                                                   "in the new group object."},

@@ -701,7 +701,7 @@ class ViewModel(object):
                         "line": "Line",
                         "rect": "Rectangle",
                         "oval": "Oval",
-                        "poly": "Polygon",
+                        "polygon": "Polygon",
                         "roundrect": "Round Rectangle",
                         "group": "Group",
                         "stack": "Stack"}

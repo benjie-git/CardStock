@@ -585,7 +585,7 @@ class StackManager(object):
             uiView = UiWebView(self.uiCard, self, model)
         elif objType == "group":
             uiView = UiGroup(self.uiCard, self, model)
-        elif objType in ["pen", "line", "oval", "rect", "poly", "roundrect"]:
+        elif objType in ["pen", "line", "oval", "rect", "polygon", "roundrect"]:
             uiView = UiShape(self.uiCard, self, model)
 
         if not model.GetCard():
@@ -820,7 +820,7 @@ class StackManager(object):
             if uiView and uiView.model.type.startswith("text") and event.LeftDClick():
                 # Flag this is a double-click  On mouseUp, we'll start the inline editor.
                 self.isDoubleClick = True
-            if self.tool.name != "poly" or wx.Platform == "__WXGTK__":
+            if self.tool.name != "polygon" or wx.Platform == "__WXGTK__":
                 return
 
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
@@ -1077,7 +1077,7 @@ class StackManager(object):
                 elif code == ord('R'):
                     self.designer.cPanel.SetToolByName("rect")
                 elif code == ord('G'):
-                    self.designer.cPanel.SetToolByName("poly")
+                    self.designer.cPanel.SetToolByName("polygon")
                 elif code == ord('D'):
                     self.designer.cPanel.SetToolByName("roundrect")
                 elif code == ord('L'):
