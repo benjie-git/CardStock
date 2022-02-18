@@ -139,15 +139,17 @@ class UiTextField(UiTextBase):
 
     def OnTextEnter(self, event):
         if not self.stackManager.isEditing:
-            if self.stackManager.runner and self.model.GetHandler("OnTextEnter"):
-                self.stackManager.runner.RunHandler(self.model, "OnTextEnter", event)
+            def f():
+                if self.stackManager.runner and self.model.GetHandler("OnTextEnter"):
+                    self.stackManager.runner.RunHandler(self.model, "OnTextEnter", event)
+            wx.CallAfter(f)
 
     def OnTextChanged(self, event):
         if not self.stackManager.isEditing:
             if not self.settingValueInternally:
                 self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
-            if self.stackManager.runner and self.model.GetHandler("OnTextChanged"):
-                self.stackManager.runner.RunHandler(self.model, "OnTextChanged", event)
+                if self.stackManager.runner and self.model.GetHandler("OnTextChanged"):
+                    self.stackManager.runner.RunHandler(self.model, "OnTextChanged", event)
         event.Skip()
 
     def OnSTCTextChanged(self, event):
@@ -155,8 +157,8 @@ class UiTextField(UiTextBase):
             if event.GetModificationType()%2 == 1:
                 if not self.settingValueInternally:
                     self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
-                if self.stackManager.runner and self.model.GetHandler("OnTextChanged"):
-                    self.stackManager.runner.RunHandler(self.model, "OnTextChanged", event)
+                    if self.stackManager.runner and self.model.GetHandler("OnTextChanged"):
+                        self.stackManager.runner.RunHandler(self.model, "OnTextChanged", event)
         event.Skip()
 
 
