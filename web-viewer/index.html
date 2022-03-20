@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="utf-8">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>CardStock Web Viewer</title>
+    <script type="text/javascript" src="lib/brython.js"></script>
+    <script type="text/javascript" src="lib/brython_stdlib.js"></script>
+    <script type="text/javascript" src="lib/fabric.min.js"></script>
+    <style> * { margin: 0; padding: 0;} </style>
+</head>
+
+<body id="body" onload="brython(1)">
+
+<noscript>Please enable Javascript to view this page correctly.</noscript>
+
+<canvas id="c" height=500 width=500 class="stack" style="border: 1px solid black;">
+  <i>Sorry, CardStock can't run on your browser right now ; <br>check if Javascript is turned on</i>
+  <br><div class="message"></div>
+</canvas>
+
+<br/>
+<br/>
+(Drag a CardStock(.cds) file above to load it.)
+
+<script type="text/javascript">
+    window.stackJSON =
+{
+  "type": "stack",
+  "handlers": {},
+  "properties": {
+    "size": [500, 500],
+    "canSave": false,
+    "canResize": false
+  },
+  "cards": [
+    {
+      "type": "card",
+      "handlers": {},
+      "properties": {
+        "name": "card_1",
+        "fillColor": "#EEEEEE"
+      },
+      "childModels": []
+    }
+  ],
+  "CardStock_stack_format": 3,
+  "CardStock_stack_version": "0.9.8"
+}
+;
+
+</script>
+
+<script type="text/python">
+    from browser import window, document
+    import cardstock
+
+    body = document["body"]
+    canvas = window.fabric.Canvas.new('c')
+    stackManager = cardstock.StackManager(canvas, window.fabric)
+
+    stackManager.Load(window.stackJSON.to_dict())
+
+    def dragover(ev):
+        ev.preventDefault()
+        ev.stopPropagation()
+    body.bind("dragover", dragover)
+
+    def drop(ev):
+        if len(ev.dataTransfer.files) == 1:
+            f = ev.dataTransfer.files[0]
+            f.text().then(stackManager.LoadFromStr)
+        ev.preventDefault()
+        ev.stopPropagation()
+    body.bind("drop", drop)
+
+</script>
+
+</body>
+</html>
