@@ -2,25 +2,43 @@ class Size(object):
     def __init__(self, *args):
         super().__init__()
         if len(args) == 1 and isinstance(args[0], (list, tuple)):
-            self.width = args[0][0]
-            self.height = args[0][1]
+            self._width = args[0][0]
+            self._height = args[0][1]
         elif len(args) == 1 and isinstance(args[0], Size):
-            self.width = args[0].width
-            self.height = args[0].height
+            self._width = args[0]._width
+            self._height = args[0]._height
         elif len(args) == 2 and isinstance(args[0], (int, float)) and isinstance(args[1], (int, float)):
-            self.width = args[0]
-            self.height = args[1]
+            self._width = args[0]
+            self._height = args[1]
         else:
             raise TypeError("Size() requires 2 numbers or a Size")
 
+    @property
+    def width(self):
+        return self._width
+    @width.setter
+    def width(self, val):
+        if not isinstance(val, (int, float)):
+            raise TypeError("width must be a number")
+        self._width = val
+
+    @property
+    def height(self):
+        return self._height
+    @height.setter
+    def height(self, val):
+        if not isinstance(val, (int, float)):
+            raise TypeError("height must be a number")
+        self._height = val
+
     def __str__(self):
-        return f"({self.width}, {self.height})"
+        return f"({self._width}, {self._height})"
 
     def __getitem__(self, key):
         if key == 0:
-            return self.width
+            return self._width
         elif key == 1:
-            return self.height
+            return self._height
         else:
             raise KeyError("Size has 2 elements")
 
@@ -32,6 +50,17 @@ class Size(object):
         else:
             raise KeyError("Size has 2 elements")
 
+    def __iadd__(self, other):
+        if isinstance(other, (tuple, list)):
+            self._width += other[0]
+            self._height += other[1]
+        elif isinstance(other, Size):
+            self._width += other._width
+            self._height += other._height
+        else:
+            raise TypeError()
+        return self
+
     def __iter__(self):
         return (self.__getitem__(k) for k in (0, 1))
 
@@ -40,35 +69,64 @@ class Point(object):
     def __init__(self, *args):
         super().__init__()
         if len(args) == 1 and isinstance(args[0], (list, tuple)):
-            self.x = args[0][0]
-            self.y = args[0][1]
+            self._x = args[0][0]
+            self._y = args[0][1]
         elif len(args) == 1 and isinstance(args[0], (Point, RealPoint)):
-            self.x = args[0].x
-            self.y = args[0].y
+            self._x = args[0]._x
+            self._y = args[0]._y
         elif len(args) == 2 and isinstance(args[0], (int, float)) and isinstance(args[1], (int, float)):
-            self.x = args[0]
-            self.y = args[1]
+            self._x = args[0]
+            self._y = args[1]
         else:
             raise TypeError("Point() requires 2 numbers or a Point")
 
+    @property
+    def x(self):
+        return self._x
+    @x.setter
+    def x(self, val):
+        if not isinstance(val, (int, float)):
+            raise TypeError("x must be a number")
+        self._x = val
+
+    @property
+    def y(self):
+        return self._y
+    @y.setter
+    def y(self, val):
+        if not isinstance(val, (int, float)):
+            raise TypeError("y must be a number")
+        self._y = val
+
     def __str__(self):
-        return f"({self.x}, {self.y})"
+        return f"({self._x}, {self._y})"
 
     def __getitem__(self, key):
         if key == 0:
-            return self.x
+            return self._x
         elif key == 1:
-            return self.y
+            return self._y
         else:
             raise KeyError("Point has 2 elements")
 
     def __setitem__(self, key, val):
         if key == 0:
-            self.x = val
+            self._x = val
         elif key == 1:
-            self.y = val
+            self._y = val
         else:
             raise KeyError("Point has 2 elements")
+
+    def __iadd__(self, other):
+        if isinstance(other, (tuple, list)):
+            self._x += other[0]
+            self._y += other[1]
+        elif isinstance(other, Point):
+            self._x += other._x
+            self._y += other._y
+        else:
+            raise TypeError()
+        return self
 
     def __iter__(self):
         return (self.__getitem__(k) for k in (0, 1))
@@ -127,22 +185,22 @@ class CDSPoint(Point):
 
     @property
     def x(self):
-        return super().x
+        return self._x
     @x.setter
     def x(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("x must be a number")
-        self += [val-self.x, 0]
+        self._x = val
         self.model.FramePartChanged(self)
 
     @property
     def y(self):
-        return super().y
+        return self._y
     @y.setter
     def y(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("y must be a number")
-        self += [0, val-self.y]
+        self._y = val
         self.model.FramePartChanged(self)
 
 
@@ -161,22 +219,22 @@ class CDSRealPoint(RealPoint):
 
     @property
     def x(self):
-        return super().x
+        return self._x
     @x.setter
     def x(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("x must be a number")
-        self += [val-self.x, 0]
+        self._x = val
         self.model.FramePartChanged(self)
 
     @property
     def y(self):
-        return super().y
+        return self._y
     @y.setter
     def y(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("y must be a number")
-        self += [0, val-self.y]
+        self._y = val
         self.model.FramePartChanged(self)
 
 
@@ -195,20 +253,31 @@ class CDSSize(Size):
 
     @property
     def width(self):
-        return super().width
+        return self._width
     @width.setter
     def width(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("width must be a number")
-        self += [val-self.width, 0]
+        self._width = val
         self.model.FramePartChanged(self)
 
     @property
     def height(self):
-        return super().height
+        return self._height
     @height.setter
     def height(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("height must be a number")
-        self += [0, val-self.height]
+        self._height = val
         self.model.FramePartChanged(self)
+
+
+def RunOnMainSync(func):
+    def wrapper_run_on_main(*args, **kwargs):
+        return func(*args, **kwargs)
+    return wrapper_run_on_main
+
+def RunOnMainAsync(func):
+    def wrapper_run_on_main(*args, **kwargs):
+        func(*args, **kwargs)
+    return wrapper_run_on_main

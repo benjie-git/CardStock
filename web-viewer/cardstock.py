@@ -2,6 +2,7 @@ import browser
 import wx_compat as wx
 from models import *
 from views import *
+import runner
 import json
 
 
@@ -16,7 +17,8 @@ class StackManager(object):
         self.fabric = fabric
         self.stackModel = None
         self.uiCard = UiCard(None, self, None)
-        self.runner = None
+        self.cardIndex = 0
+        self.runner = runner.Runner(self)
 
     def LoadFromStr(self, stackStr):
         stackJSON = json.loads(stackStr)
@@ -29,11 +31,14 @@ class StackManager(object):
         s = self.stackModel.GetProperty("size")
         self.canvas.setWidth(s.width)
         self.canvas.setHeight(s.height)
-        self.LoadCard(0)
+        self.LoadCardAtIndex(0)
 
-    def LoadCard(self, cardIndex):
+    def LoadCardAtIndex(self, cardIndex):
         if len(self.stackModel.childModels) > cardIndex:
-            self.uiCard.Load(self.stackModel.childModels[cardIndex])
+            self.cardIndex = cardIndex
+            card = self.stackModel.childModels[cardIndex]
+            self.runner.SetupForCard(card)
+            self.uiCard.Load(card)
 
     def ConvPoint(self, p):
         cardSize = self.uiCard.model.GetProperty("size")
@@ -43,9 +48,21 @@ class StackManager(object):
         cardSize = self.uiCard.model.GetProperty("size")
         return wx.Rect(r.x, cardSize.height - (r.y+r.height), r.width, r.height)
 
+    def GetViewForModel(self, model):
+        def FindSubView(uiView):
+            if uiView.model == model:
+                return uiView
+            for ui in uiView.uiViews.values():
+                found = FindSubView(ui)
+                if found:
+                    return found
+            return None
+        return FindSubView(self.uiCard)
+
     def OnPropertyChanged(self, model, key):
-        if model in self.uiCard.uiViews:
-            self.uiCard.uiViews[model].OnPropertyChanged(key)
+        ui = self.GetViewForModel(model)
+        if ui:
+            ui.OnPropertyChanged(key)
 
     @classmethod
     def ModelFromData(cls, stackManager, data):
