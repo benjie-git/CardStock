@@ -226,6 +226,8 @@ class UiTextLabel(UiView):
         super().OnPropertyChanged(key)
         if key == "text":
             self.textbox.set({'text': self.model.GetProperty(key)})
+        elif key == "textColor":
+            self.textbox.set({'fill': self.model.GetProperty(key)})
 
 
 class UiTextField(UiView):
@@ -263,6 +265,7 @@ class UiTextField(UiView):
 
         self.textbox.on('selected', self.OnSelected)
         self.textbox.on('selection:cleared', self.OnDeselected)
+        self.stackManager.canvas.on('text:changed', self.OnTextChanged)
 
         self.fabObjs = [self.textBg, self.textbox]
 
@@ -279,10 +282,17 @@ class UiTextField(UiView):
     def OnDeselected(self, options):
         self.textbox.exitEditing()
 
+    def OnTextChanged(self, options):
+        if options.target.id == self.textbox.id:
+            self.model.SetProperty('text', self.textbox.text)
+            self.stackManager.runner.RunHandler(self.model, "OnTextChanged", None)
+
     def OnPropertyChanged(self, key):
         super().OnPropertyChanged(key)
         if key == "text":
             self.textbox.set({'text': self.model.GetProperty(key)})
+        elif key == "textColor":
+            self.textbox.set({'fill': self.model.GetProperty(key)})
 
 
 class UiShape(UiView):
