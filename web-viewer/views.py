@@ -45,6 +45,12 @@ class UiView(object):
             for fab in self.fabObjs:
                 fab.set({'width': s.width, 'height': s.height})
                 fab.setCoords()
+        elif key == "rotation":
+            rot = self.model.GetProperty("rotation")
+            for fab in self.fabObjs:
+                fab.rotate(rot)
+                fab.setCoords()
+
 
 
 class UiCard(UiView):
@@ -200,6 +206,13 @@ class UiButton(UiView):
         super().OnPropertyChanged(key)
         if key == "title":
             self.titleLabel.set({'text':self.model.GetProperty("title")})
+        elif key == "hasBorder":
+            hasBorder = self.model.properties['hasBorder']
+            if hasBorder:
+                self.rrBg.set({'rx': 6, 'ry': 6, 'fill': 'white', 'stroke': 'grey', 'strokeWidth': 1})
+            else:
+                self.rrBg.set({'rx': 0, 'ry': 0, 'fill': None, 'stroke': None, 'strokeWidth': 0})
+            self.rrBg.setCoords()
 
 
 class UiTextLabel(UiView):
@@ -228,6 +241,12 @@ class UiTextLabel(UiView):
             self.textbox.set({'text': self.model.GetProperty(key)})
         elif key == "textColor":
             self.textbox.set({'fill': self.model.GetProperty(key)})
+        elif key == "alignment":
+            self.textbox.set({'textAlign': self.model.properties['alignment']})
+        elif key == "font":
+            self.textbox.set({'fontFamily': FontMap[self.model.properties['font']]})
+        elif key == "fontSize":
+            self.textbox.set({'fontSize': self.model.properties['fontSize'] * 1.2})
 
 
 class UiTextField(UiView):
@@ -257,6 +276,7 @@ class UiTextField(UiView):
                                            'fill': model.properties['textColor'],
                                            'fontFamily': FontMap[model.properties['font']],
                                            'fontSize': model.properties['fontSize']*1.2,
+                                           'editable': model.properties['isEditable'],
                                            'id': UiView.NextId()})
         self.textbox.hasControls = False
         self.textbox.lockMovementX = True
@@ -293,6 +313,14 @@ class UiTextField(UiView):
             self.textbox.set({'text': self.model.GetProperty(key)})
         elif key == "textColor":
             self.textbox.set({'fill': self.model.GetProperty(key)})
+        elif key == "alignment":
+            self.textbox.set({'textAlign': self.model.properties['alignment']})
+        elif key == "font":
+            self.textbox.set({'fontFamily': FontMap[self.model.properties['font']]})
+        elif key == "fontSize":
+            self.textbox.set({'fontSize': self.model.properties['fontSize'] * 1.2})
+        elif key == "isEditable":
+            self.textbox.set({'editable': self.model.properties['isEditable']})
 
 
 class UiShape(UiView):
