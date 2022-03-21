@@ -137,12 +137,21 @@ class RealPoint(Point):
 
 
 class Rect(object):
-    def __init__(self, x, y, w, h):
+    def __init__(self, left, top, width, height):
         super().__init__()
-        self.x = x
-        self.y = y
-        self.width = w
-        self.height = h
+        self.Left = left
+        self.Top = top
+        self.Width = width
+        self.Height = height
+
+    @property
+    def Position(self):
+        return RealPoint(self.Left, self.Top)
+
+    @property
+    def Size(self):
+        return Size(self.Width, self.Height)
+
 
 class Colour(object):
     def __init__(self, r, g, b):

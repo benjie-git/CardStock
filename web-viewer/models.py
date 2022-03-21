@@ -2547,8 +2547,15 @@ class LineModel(ViewModel):
     def RectFromPoints(points):
         rect = wx.Rect(points[0][0], points[0][1], 1, 1)
         for x, y in points[1:]:
-            rect = rect.Union(wx.Rect(x, y, 1, 1))
-        return wx.Rect(rect.Left, rect.Top, rect.Width-1, rect.Height-1)
+            if x < rect.Left:
+                rect.Left = x
+            elif x > rect.Left + rect.Width:
+                rect.Width = x - rect.Left
+            if y < rect.Top:
+                rect.Top = y
+            elif y > rect.Top + rect.Height:
+                rect.Height = x - rect.Top
+        return rect
 
     # Re-fit the bounding box to the shape
     def ReCropShape(self):
@@ -2566,15 +2573,10 @@ class LineModel(ViewModel):
             points[i] = (x + offset[0], y + offset[1])
             i += 1
 
-        rect = None
         if len(points) > 0:
-            # calculate bounding rect
-            if not rect:
-                rect = wx.Rect(points[0][0], points[0][1], 1, 1)
-            for x,y in points:
-                rect = rect.Union(wx.Rect(x, y, 1, 1))
-
-        rect = wx.Rect(rect.Left, rect.Top, rect.Width-1, rect.Height-1)
+            rect = self.RectFromPoints(points)
+        else:
+            return
 
         # adjust view rect
         self.SetProperty("position", rect.Position)

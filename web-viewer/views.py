@@ -38,7 +38,7 @@ class UiView(object):
         if key in ("position", "center"):
             rect = self.stackManager.ConvRect(self.model.GetFrame())
             for fab in self.fabObjs:
-                fab.set({'left': rect.x, 'top': rect.y})
+                fab.set({'left': rect.Left, 'top': rect.Top})
                 fab.setCoords()
         elif key == "size":
             s = self.model.GetProperty("size")
@@ -139,8 +139,8 @@ class UiButton(UiView):
         self.isMouseDown = False
 
         if hasBorder:
-            self.rrBg = fabric.Rect.new({'left': rect.x,
-                                         'top': rect.y,
+            self.rrBg = fabric.Rect.new({'left': rect.Left,
+                                         'top': rect.Top,
                                          'width': model.properties['size'].width,
                                          'height': model.properties['size'].height,
                                          'rx': 6, 'ry': 6,
@@ -148,18 +148,18 @@ class UiButton(UiView):
                                          'stroke': 'grey',
                                          'strokeWidth':1})
         else:
-            self.rrBg = fabric.Rect.new({'left': rect.x,
-                                         'top': rect.y,
+            self.rrBg = fabric.Rect.new({'left': rect.Left,
+                                         'top': rect.Top,
                                          'width': model.properties['size'].width,
                                          'height': model.properties['size'].height,
                                          'fill': None,
                                          'strokeWidth':0})
 
         self.titleLabel = fabric.Textbox.new(model.properties['title'],
-                                             {'left': rect.x,
-                                              'top': rect.y + (rect.height-18)/2,
-                                              'width': rect.width,
-                                              'height': rect.height,
+                                             {'left': rect.Left,
+                                              'top': rect.Top + (rect.Height-18)/2,
+                                              'width': rect.Width,
+                                              'height': rect.Height,
                                               'textAlign': 'center',
                                               'fill': "black",
                                               'fontFamily': 'Arial',
@@ -221,10 +221,10 @@ class UiTextLabel(UiView):
         fabric = stackManager.fabric
         rect = stackManager.ConvRect(model.GetFrame())
         self.textbox = fabric.Textbox.new(model.properties['text'],
-                                          {'left': rect.x,
-                                           'top': rect.y,
-                                           'width': rect.width,
-                                           'height': rect.height,
+                                          {'left': rect.Left,
+                                           'top': rect.Top,
+                                           'width': rect.Width,
+                                           'height': rect.Height,
                                            'textAlign': model.properties['alignment'],
                                            'fill': model.properties['textColor'],
                                            'fontFamily': FontMap[model.properties['font']],
@@ -255,8 +255,8 @@ class UiTextField(UiView):
         fabric = stackManager.fabric
         rect = stackManager.ConvRect(model.GetFrame())
 
-        self.textBg = fabric.Rect.new({'left': rect.x,
-                                       'top': rect.y,
+        self.textBg = fabric.Rect.new({'left': rect.Left,
+                                       'top': rect.Top,
                                        'width': model.properties['size'].width,
                                        'height': model.properties['size'].height,
                                        'rx': 2, 'ry': 2,
@@ -268,10 +268,10 @@ class UiTextField(UiView):
         self.textBg.hoverCursor = "arrow"
 
         self.textbox = fabric.Textbox.new(model.properties['text'],
-                                          {'left': rect.x,
-                                           'top': rect.y,
-                                           'width': rect.width,
-                                           'height': rect.height,
+                                          {'left': rect.Left,
+                                           'top': rect.Top,
+                                           'width': rect.Width,
+                                           'height': rect.Height,
                                            'textAlign': model.properties['alignment'],
                                            'fill': model.properties['textColor'],
                                            'fontFamily': FontMap[model.properties['font']],
@@ -326,11 +326,17 @@ class UiTextField(UiView):
 class UiShape(UiView):
     def __init__(self, parent, stackManager, model):
         super().__init__(parent, stackManager, model)
-        fabric = stackManager.fabric
-        rect = stackManager.ConvRect(model.GetFrame())
+        self.shape = self.CreateShape()
+        self.fabObjs = [self.shape]
+
+    def CreateShape(self):
+        model = self.model
+        fabric = self.stackManager.fabric
+        rect = self.stackManager.ConvRect(model.GetFrame())
+        shape = None
         if model.type == "oval":
-            self.shape = fabric.Ellipse.new({'left': rect.x,
-                                             'top': rect.y,
+            shape = fabric.Ellipse.new({'left': rect.Left,
+                                             'top': rect.Top,
                                              'rx': model.properties['size'].width/2,
                                              'ry': model.properties['size'].height/2,
                                              'fill': model.properties['fillColor'],
@@ -338,8 +344,8 @@ class UiShape(UiView):
                                              'strokeWidth': model.properties['penThickness']
                                             })
         elif model.type == "rect":
-            self.shape = fabric.Rect.new({'left': rect.x,
-                                          'top': rect.y,
+            shape = fabric.Rect.new({'left': rect.Left,
+                                          'top': rect.Top,
                                           'width': model.properties['size'].width,
                                           'height': model.properties['size'].height,
                                           'fill': model.properties['fillColor'],
@@ -347,8 +353,8 @@ class UiShape(UiView):
                                           'strokeWidth': model.properties['penThickness']
                                          })
         elif model.type == "roundrect":
-            self.shape = fabric.Rect.new({'left': rect.x,
-                                          'top': rect.y,
+            shape = fabric.Rect.new({'left': rect.Left,
+                                          'top': rect.Top,
                                           'width': model.properties['size'].width,
                                           'height': model.properties['size'].height,
                                           'rx': model.properties['cornerRadius'],
@@ -358,9 +364,9 @@ class UiShape(UiView):
                                           'strokeWidth': model.properties['penThickness']
                                          })
         elif model.type == "polygon":
-            self.shape = fabric.Polygon.new([{"x":p[0], "y":p[1]} for p in self.model.GetScaledPoints()],
-                                          {'left': rect.x,
-                                           'top': rect.y,
+            shape = fabric.Polygon.new([{"x":p[0], "y":p[1]} for p in self.model.GetScaledPoints()],
+                                          {'left': rect.Left,
+                                           'top': rect.Top,
                                            'fill': model.properties['fillColor'],
                                            'stroke': model.properties['penColor'],
                                            'strokeWidth': model.properties['penThickness'],
@@ -368,9 +374,9 @@ class UiShape(UiView):
                                            'flipY': True
                                            })
         elif model.type in ["line", "pen"]:
-            self.shape = fabric.Polyline.new([{"x":p[0], "y":p[1]} for p in self.model.GetScaledPoints()],
-                                          {'left': rect.x,
-                                           'top': rect.y,
+            shape = fabric.Polyline.new([{"x":p[0], "y":p[1]} for p in self.model.GetScaledPoints()],
+                                          {'left': rect.Left,
+                                           'top': rect.Top,
                                            'fill': None,
                                            'stroke': model.properties['penColor'],
                                            'strokeWidth': model.properties['penThickness'],
@@ -379,11 +385,11 @@ class UiShape(UiView):
                                            'flipY': True
                                          })
 
-        self.shape.rotate(model.properties['rotation'])
-        self.shape.set({'id': UiView.NextId()})
-        self.shape.selectable = False
-        self.shape.hoverCursor = "arrow"
-        self.fabObjs = [self.shape]
+        shape.rotate(model.properties['rotation'])
+        shape.set({'id': UiView.NextId()})
+        shape.selectable = False
+        shape.hoverCursor = "arrow"
+        return shape
 
     def OnPropertyChanged(self, key):
         super().OnPropertyChanged(key)
@@ -397,6 +403,11 @@ class UiShape(UiView):
             s = self.model.GetProperty("size")
             self.shape.set({'rx': s.width/2, 'ry': s.height/2})
             self.shape.setCoords()
+        elif key == "shape":
+            self.stackManager.canvas.remove(self.shape)
+            self.shape = self.CreateShape()
+            self.fabObjs = [self.shape]
+            self.stackManager.canvas.add(self.shape)
 
 
 class UiImage(UiView):
@@ -411,8 +422,8 @@ class UiImage(UiView):
             if not err:
                 self.image = img
                 imgSize = img.getOriginalSize()
-                scale = min(rect.width/imgSize['width'], rect.height/imgSize['height'])
-                self.image.set({'left': rect.x, 'top': rect.y,
+                scale = min(rect.Width/imgSize['width'], rect.Height/imgSize['height'])
+                self.image.set({'left': rect.Left, 'top': rect.Top,
                                 'scaleX': scale, 'scaleY': scale})
                 self.image.rotate(model.properties['rotation'])
                 self.image.set({'id': UiView.NextId()})
@@ -445,7 +456,7 @@ class UiGroup(UiView):
         for model,ui in self.uiViews.items():
             objs.extend(ui.fabObjs)
 
-        self.group = fabric.Group.new(objs, {'left': rect.x, 'top': rect.y,
+        self.group = fabric.Group.new(objs, {'left': rect.Left, 'top': rect.Top,
                                              'subTargetCheck': True,
                                              'id': UiView.NextId()})
         self.group.rotate(self.model.properties['rotation'])

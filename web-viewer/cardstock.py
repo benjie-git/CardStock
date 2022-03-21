@@ -46,7 +46,7 @@ class StackManager(object):
 
     def ConvRect(self, r):
         cardSize = self.uiCard.model.GetProperty("size")
-        return wx.Rect(r.x, cardSize.height - (r.y+r.height), r.width, r.height)
+        return wx.Rect(r.Left, cardSize.height - (r.Top+r.Height), r.Width, r.Height)
 
     def GetViewForModel(self, model):
         def FindSubView(uiView):
