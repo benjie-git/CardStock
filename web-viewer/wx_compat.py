@@ -51,15 +51,57 @@ class Size(object):
             raise KeyError("Size has 2 elements")
 
     def __iadd__(self, other):
-        if isinstance(other, (tuple, list)):
+        if isinstance(other, (tuple, list, Point, Size)):
             self._width += other[0]
             self._height += other[1]
-        elif isinstance(other, Size):
-            self._width += other._width
-            self._height += other._height
         else:
             raise TypeError()
         return self
+
+    def __isub__(self, other):
+        if isinstance(other, (tuple, list, Point, Size)):
+            self._width -= other[0]
+            self._height -= other[1]
+        else:
+            raise TypeError()
+        return self
+
+    def __imul__(self, other):
+        if isinstance(other, (tuple, list, Point, Size)):
+            self._width *= other[0]
+            self._height *= other[1]
+        else:
+            raise TypeError()
+        return self
+
+    def __itruediv__(self, other):
+        if isinstance(other, (tuple, list, Point, Size)):
+            self._width /= other[0]
+            self._height /= other[1]
+        else:
+            raise TypeError()
+        return self
+
+    def __add__(self, other):
+        if isinstance(other, (Point, RealPoint, Size,tuple,list)):
+            return Size(self._width + other[0], self._height + other[1])
+        else:
+            raise TypeError()
+
+    def __sub__(self, other):
+        if isinstance(other, (Point, RealPoint, Size, tuple, list)):
+            return Size(self._width - other[0], self._height - other[1])
+        else:
+            raise TypeError()
+
+    def __mul__(self, other):
+        if isinstance(other, (Point, RealPoint, Size, tuple, list)):
+            return Size(self._width * other[0], self._height * other[1])
+        else:
+            raise TypeError()
+
+    def __truediv__(self, other):
+        return Size(self._width / other, self._height / other)
 
     def __iter__(self):
         return (self.__getitem__(k) for k in (0, 1))
@@ -118,15 +160,57 @@ class Point(object):
             raise KeyError("Point has 2 elements")
 
     def __iadd__(self, other):
-        if isinstance(other, (tuple, list)):
+        if isinstance(other, (tuple, list, Point, Size)):
             self._x += other[0]
             self._y += other[1]
-        elif isinstance(other, Point):
-            self._x += other._x
-            self._y += other._y
         else:
             raise TypeError()
         return self
+
+    def __isub__(self, other):
+        if isinstance(other, (tuple, list, Point, Size)):
+            self._x -= other[0]
+            self._y -= other[1]
+        else:
+            raise TypeError()
+        return self
+
+    def __imul__(self, other):
+        if isinstance(other, (tuple, list, Point, Size)):
+            self._x *= other[0]
+            self._y *= other[1]
+        else:
+            raise TypeError()
+        return self
+
+    def __itruediv__(self, other):
+        if isinstance(other, (tuple, list, Point, Size)):
+            self._x /= other[0]
+            self._y /= other[1]
+        else:
+            raise TypeError()
+        return self
+
+    def __add__(self, other):
+        if isinstance(other, (Point, Size, tuple, list)):
+            return Point(self._x + other[0], self._y + other[1])
+        else:
+            raise TypeError()
+
+    def __sub__(self, other):
+        if isinstance(other, (Point, RealPoint, Size, tuple, list)):
+            return Point(self._x - other[0], self._y - other[1])
+        else:
+            raise TypeError()
+
+    def __mul__(self, other):
+        if isinstance(other, (Point, RealPoint, Size, tuple, list)):
+            return Point(self._x * other[0], self._y * other[1])
+        else:
+            raise TypeError()
+
+    def __truediv__(self, other):
+        return Size(self._x / other, self._y / other)
 
     def __iter__(self):
         return (self.__getitem__(k) for k in (0, 1))
@@ -137,16 +221,51 @@ class RealPoint(Point):
 
 
 class Rect(object):
-    def __init__(self, left, top, width, height):
+    def __init__(self, *args):
         super().__init__()
-        self.Left = left
-        self.Top = top
-        self.Width = width
-        self.Height = height
+        if len(args) == 4:
+            self.Left = args[0]
+            self.Top = args[1]
+            self.Width = args[2]
+            self.Height = args[3]
+        elif len(args) == 2:
+            self.Left = args[0][0]
+            self.Top = args[0][1]
+            self.Width = args[1][0]
+            self.Height = args[1][1]
+        else:
+            raise TypeError
+
+    def __str__(self):
+        return f"(({self.Left}, {self.Top}), ({self.Width}, {self.Height}))"
+
+    @property
+    def Right(self):
+        return self.Left + self.Width
+
+    @property
+    def Bottom(self):
+        return self.Top + self.Height
 
     @property
     def Position(self):
         return RealPoint(self.Left, self.Top)
+
+    @property
+    def TopLeft(self):
+        return RealPoint(self.Left, self.Top)
+
+    @property
+    def TopRight(self):
+        return RealPoint(self.Right, self.Top)
+
+    @property
+    def BottomLeft(self):
+        return RealPoint(self.Left, self.Bottom)
+
+    @property
+    def BottomRight(self):
+        return RealPoint(self.Right, self.Bottom)
 
     @property
     def Size(self):

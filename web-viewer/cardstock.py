@@ -1,4 +1,5 @@
 import browser
+import browser.timer as timer
 import wx_compat as wx
 from models import *
 from views import *
@@ -17,8 +18,20 @@ class StackManager(object):
         self.fabric = fabric
         self.stackModel = None
         self.uiCard = UiCard(None, self, None)
-        self.cardIndex = 0
+        self.cardIndex = None
         self.runner = runner.Runner(self)
+
+        self.lastPeriodic = time()
+        self.periodicTimer = timer.request_animation_frame(self.OnPeriodic)
+
+    def SetDown(self):
+        timer.cancel_animation_frame(self.periodicTimer)
+        # self.runner.CleanupFromRun()
+        self.uiCard.SetDown()
+        self.uiCard = None
+        self.stackModel.SetDown()
+        self.stackModel.DismantleChildTree()
+        self.stackModel = None
 
     def LoadFromStr(self, stackStr):
         stackJSON = json.loads(stackStr)
@@ -31,14 +44,26 @@ class StackManager(object):
         s = self.stackModel.GetProperty("size")
         self.canvas.setWidth(s.width)
         self.canvas.setHeight(s.height)
+        self.cardIndex = None
+        self.stackModel.RunSetup(self.runner)
         self.LoadCardAtIndex(0)
 
-    def LoadCardAtIndex(self, cardIndex):
+    def LoadCardAtIndex(self, cardIndex, reload=False):
         if len(self.stackModel.childModels) > cardIndex:
-            self.cardIndex = cardIndex
-            card = self.stackModel.childModels[cardIndex]
-            self.runner.SetupForCard(card)
-            self.uiCard.Load(card)
+            if reload or cardIndex != self.cardIndex:
+                self.cardIndex = cardIndex
+                card = self.stackModel.childModels[cardIndex]
+                self.runner.SetupForCard(card)
+                self.uiCard.Load(card)
+
+    def OnPeriodic(self, _dummy):
+        self.periodicTimer = timer.request_animation_frame(self.OnPeriodic)
+        now = time()
+        elapsedTime = now - self.lastPeriodic
+        if elapsedTime >= 0.03:
+            self.lastPeriodic = now
+            self.uiCard.OnKeyHold()
+            self.uiCard.OnPeriodic()
 
     def ConvPoint(self, p):
         cardSize = self.uiCard.model.GetProperty("size")
@@ -48,7 +73,7 @@ class StackManager(object):
         cardSize = self.uiCard.model.GetProperty("size")
         return wx.Rect(r.Left, cardSize.height - (r.Top+r.Height), r.Width, r.Height)
 
-    def GetViewForModel(self, model):
+    def GetUiViewByModel(self, model):
         def FindSubView(uiView):
             if uiView.model == model:
                 return uiView
@@ -59,8 +84,103 @@ class StackManager(object):
             return None
         return FindSubView(self.uiCard)
 
+    def AddUiViewInternal(self, model):
+        uiView = None
+        objType = model.type
+
+        if objType == "button":
+            uiView = UiButton(self.uiCard, self, model)
+        elif objType == "textfield" or objType == "field":
+            uiView = UiTextField(self.uiCard, self, model)
+        elif objType == "textlabel" or objType == "label":
+            uiView = UiTextLabel(self.uiCard, self, model)
+        elif objType == "image":
+            uiView = UiImage(self.uiCard, self, model)
+        elif objType == "webview":
+            uiView = UiWebView(self.uiCard, self, model)
+        elif objType == "group":
+            uiView = UiGroup(self.uiCard, self, model)
+        elif objType in ["pen", "line", "oval", "rect", "polygon", "roundrect"]:
+            uiView = UiShape(self.uiCard, self, model)
+
+        if not model.GetCard():
+            uiView.model.SetProperty("name", self.uiCard.model.DeduplicateNameInCard(
+                uiView.model.GetProperty("name"), exclude=[]), notify=False)
+
+        if uiView:
+            self.uiCard.uiViews[model] = uiView
+            if uiView.model not in self.uiCard.model.childModels:
+                self.uiCard.model.AddChild(uiView.model)
+            for o in uiView.fabObjs:
+                self.canvas.add(o)
+            self.canvas.requestRenderAll()
+
+        return uiView
+
+    def AddUiViewsFromModels(self, models):
+        """
+        Adds views for the given models, and adds the models as children of the current card model
+        if they're not already somewhere in the stack's model tree.  To split model changes from view changes,
+        just add the model to the stack before calling this, and then this method will only make changes to the views.
+        """
+        models = [m for m in models if not m.didSetDown]
+        self.uiCard.model.DeduplicateNamesForModels(models)
+        for m in models:
+            self.AddUiViewInternal(m)
+
+    def RemoveUiViewByModel(self, viewModel):
+        """
+        Removes views for the given models, and removes the models from the stack if they're still in the stack tree.
+        To split model changes from view changes, just remove the model from the stack before calling this, and then
+        this method will only make changes to the views.
+        """
+        ui = self.GetUiViewByModel(viewModel)
+        if ui:
+            del self.uiCard.uiViews[viewModel]
+            if ui.model.parent:
+                self.uiCard.model.RemoveChild(ui.model)
+            for fab in ui.fabObjs:
+                self.canvas.remove(fab)
+            self.canvas.requestRenderAll()
+        else:
+            if viewModel.parent:
+                viewModel.parent.RemoveChild(viewModel)
+
+    def AddCard(self):
+        newCard = CardModel(self)
+        newCard.SetProperty("name", newCard.DeduplicateName("card_1",
+                                                            [m.GetProperty("name") for m in self.stackModel.childModels]))
+        self.stackModel.InsertCardModel(self.cardIndex+1, newCard)
+        newCard.RunSetup(self.runner)
+        self.LoadCardAtIndex(self.cardIndex+1)
+
+    def DuplicateCard(self, card=None):
+        newCard = CardModel(self)
+        if not card:
+            card = self.stackModel.childModels[self.cardIndex]
+        newCard.SetData(card.GetData())
+        newCard.SetProperty("name", newCard.DeduplicateName(newCard.GetProperty("name"),
+                                                            [m.GetProperty("name") for m in self.stackModel.childModels]))
+        self.stackModel.InsertCardModel(self.cardIndex+1, newCard)
+        newCard.RunSetup(self.runner)
+        self.LoadCardAtIndex(self.cardIndex+1)
+        return newCard
+
+    def RemoveCard(self):
+        self.RemoveCardRaw(self.stackModel.childModels[self.cardIndex])
+
+    def RemoveCardRaw(self, cardModel):
+        if len(self.stackModel.childModels) > 1:
+            index = self.stackModel.childModels.index(cardModel)
+            self.stackModel.RemoveCardModel(cardModel)
+            if index == self.cardIndex:
+                if index == len(self.stackModel.childModels):
+                    index = len(self.stackModel.childModels) - 1
+                if index >= 0:
+                    self.LoadCardAtIndex(index)
+
     def OnPropertyChanged(self, model, key):
-        ui = self.GetViewForModel(model)
+        ui = self.GetUiViewByModel(model)
         if ui:
             ui.OnPropertyChanged(key)
 

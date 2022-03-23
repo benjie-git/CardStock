@@ -12,12 +12,28 @@ class UiView(object):
         self.fabObjs = []
         self.uiViews = {}
 
+    def SetDown(self):
+        for ui in self.uiViews:
+            ui.SetDown()
+        self.stackManager = None
+        self.parent = None
+        self.uiViews = None
+        self.model = None
+        self.hitRegion = None
+
     _NextId = 1
     @classmethod
     def NextId(cls):
         id = cls._NextId
         cls._NextId += 1
         return id
+
+    def UnloadFabObjs(self):
+        for o in self.fabObjs:
+            self.stackManager.canvas.remove(o)
+        self.fabObjs = []
+        for ui in self.uiViews.values():
+            ui.UnloadFabObjs()
 
     def LoadChildren(self):
         for m in self.model.childModels:
@@ -33,6 +49,11 @@ class UiView(object):
 
     def OnMouseUp(self, e):
         self.stackManager.runner.RunHandler(self.model, "OnMouseUp", e)
+
+    def OnPeriodic(self):
+        self.stackManager.runner.RunHandler(self.model, "OnPeriodic", None)
+        for ui in self.uiViews.values():
+            ui.OnPeriodic()
 
     def OnPropertyChanged(self, key):
         if key in ("position", "center"):
@@ -50,19 +71,43 @@ class UiView(object):
             for fab in self.fabObjs:
                 fab.rotate(rot)
                 fab.setCoords()
-
+        elif key == "isVisible":
+            visible = self.model.GetProperty("isVisible")
+            for fab in self.fabObjs:
+                fab.set({'visible': visible})
 
 
 class UiCard(UiView):
     def __init__(self, parent, stackManager, model):
         self.pendingLoads = 0
         super().__init__(parent, stackManager, model)
+        self.stackManager.canvas.on('mouse:down', self.OnFabricMouseDown)
+        self.stackManager.canvas.on('mouse:move', self.OnFabricMouseMove)
+        self.stackManager.canvas.on('mouse:up', self.OnFabricMouseUp)
+        document.onkeydown = self.OnKeyDown
+        document.onkeyup = self.OnKeyUp
+        self.lastMouseOverObj = None
+        self.fabObjs = [stackManager.canvas]
+
+    def SetDown(self):
+        self.stackManager.canvas.off('mouse:down', self.OnFabricMouseDown)
+        self.stackManager.canvas.off('mouse:move', self.OnFabricMouseMove)
+        self.stackManager.canvas.off('mouse:up', self.OnFabricMouseUp)
+        document.onkeydown = None
+        document.onkeyup = None
+
+    def Load(self, model):
+        self.UnLoad()
+        self.model = model
+        self.stackManager.canvas.setBackgroundColor(self.model.GetProperty("fillColor"))
+        self.LoadChildren()
+        self.AddChildren()
+        self.stackManager.runner.RunHandler(self.model, "OnShowCard", None)
 
     def UnLoad(self):
         if self.model:
-            for model, ui in self.uiViews.items():
-                for o in ui.fabObjs:
-                    self.stackManager.canvas.remove(o)
+            self.stackManager.runner.RunHandler(self.model, "OnHideCard", None)
+            self.UnloadFabObjs()
             self.uiViews = {}
 
     def AddChildren(self):
@@ -83,45 +128,58 @@ class UiCard(UiView):
         target_ui = None
         if options.target:
             target_ui = self.FindTargetUi(options.target)
-        if not target_ui:
-            target_ui = self
-        target_ui.OnMouseDown(options.e)
+        self.stackManager.runner.ResetStopHandlingMouseEvent()
+        if target_ui:
+            target_ui.OnMouseDown(options.e)
+            if self.stackManager.runner.DidStopHandlingMouseEvent():
+                return
+        self.OnMouseDown(options.e)
 
     def OnFabricMouseMove(self, options):
+        self.stackManager.runner.lastMousePos = self.stackManager.ConvPoint(wx.Point(options.e.pageX, options.e.pageY))
         target_ui = None
         if options.target:
             target_ui = self.FindTargetUi(options.target)
-        if not target_ui:
-            target_ui = self
-        target_ui.OnMouseMove(options.e)
+
+        if target_ui != self.lastMouseOverObj:
+            if self.lastMouseOverObj:
+                self.stackManager.runner.RunHandler(self.lastMouseOverObj.model, "OnMouseExit", options.e)
+            self.lastMouseOverObj = target_ui
+            if self.lastMouseOverObj:
+                self.stackManager.runner.RunHandler(self.lastMouseOverObj.model, "OnMouseEnter", options.e)
+
+        self.stackManager.runner.ResetStopHandlingMouseEvent()
+        if target_ui:
+            target_ui.OnMouseMove(options.e)
+            if self.stackManager.runner.DidStopHandlingMouseEvent():
+                return
+        self.OnMouseMove(options.e)
 
     def OnFabricMouseUp(self, options):
         target_ui = None
         if options.target:
             target_ui = self.FindTargetUi(options.target)
-        if not target_ui:
-            target_ui = self
-        target_ui.OnMouseUp(options.e)
+        self.stackManager.runner.ResetStopHandlingMouseEvent()
+        if target_ui:
+            target_ui.OnMouseUp(options.e)
+            if self.stackManager.runner.DidStopHandlingMouseEvent():
+                return
+        self.OnMouseUp(options.e)
 
     def OnKeyDown(self, e):
+        if e.key == "Tab":
+            e.preventDefault()
         if not e.repeat:
+            self.stackManager.runner.OnKeyDown(e)
             self.stackManager.runner.RunHandler(self.model, "OnKeyDown", e)
 
+    def OnKeyHold(self):
+        for keyName in self.stackManager.runner.pressedKeys:
+            self.stackManager.runner.RunHandler(self.model, "OnKeyHold", None, keyName)
+
     def OnKeyUp(self, e):
+        self.stackManager.runner.OnKeyUp(e)
         self.stackManager.runner.RunHandler(self.model, "OnKeyUp", e)
-
-    def Load(self, model):
-        self.UnLoad()
-        self.model = model
-        self.stackManager.canvas.setBackgroundColor(self.model.GetProperty("fillColor"))
-        self.LoadChildren()
-        self.AddChildren()
-
-        self.stackManager.canvas.on('mouse:down', self.OnFabricMouseDown)
-        self.stackManager.canvas.on('mouse:move', self.OnFabricMouseMove)
-        self.stackManager.canvas.on('mouse:up', self.OnFabricMouseUp)
-        document.onkeydown = self.OnKeyDown
-        document.onkeyup = self.OnKeyUp
 
     def OnPropertyChanged(self, key):
         super().OnPropertyChanged(key)
@@ -225,7 +283,7 @@ class UiTextLabel(UiView):
                                            'top': rect.Top,
                                            'width': rect.Width,
                                            'height': rect.Height,
-                                           'textAlign': model.properties['alignment'],
+                                           'textAlign': model.properties['alignment'].lower(),
                                            'fill': model.properties['textColor'],
                                            'fontFamily': FontMap[model.properties['font']],
                                            'fontSize': model.properties['fontSize'] * 1.2,
@@ -242,7 +300,7 @@ class UiTextLabel(UiView):
         elif key == "textColor":
             self.textbox.set({'fill': self.model.GetProperty(key)})
         elif key == "alignment":
-            self.textbox.set({'textAlign': self.model.properties['alignment']})
+            self.textbox.set({'textAlign': self.model.properties['alignment'].lower()})
         elif key == "font":
             self.textbox.set({'fontFamily': FontMap[self.model.properties['font']]})
         elif key == "fontSize":
@@ -268,11 +326,11 @@ class UiTextField(UiView):
         self.textBg.hoverCursor = "arrow"
 
         self.textbox = fabric.Textbox.new(model.properties['text'],
-                                          {'left': rect.Left,
-                                           'top': rect.Top,
-                                           'width': rect.Width,
-                                           'height': rect.Height,
-                                           'textAlign': model.properties['alignment'],
+                                          {'left': rect.Left+2,
+                                           'top': rect.Top+2,
+                                           'width': rect.Width-2,
+                                           'height': rect.Height-2,
+                                           'textAlign': model.properties['alignment'].lower(),
                                            'fill': model.properties['textColor'],
                                            'fontFamily': FontMap[model.properties['font']],
                                            'fontSize': model.properties['fontSize']*1.2,
@@ -286,8 +344,22 @@ class UiTextField(UiView):
         self.textbox.on('selected', self.OnSelected)
         self.textbox.on('selection:cleared', self.OnDeselected)
         self.stackManager.canvas.on('text:changed', self.OnTextChanged)
+        self.oldOnKeyDown = self.textbox.onKeyDown
+        self.textbox.onKeyDown = self.OnKeyDown
 
         self.fabObjs = [self.textBg, self.textbox]
+
+    def OnKeyDown(self, e):
+        self.oldOnKeyDown(e)
+        if "Arrow" in e.key:
+            self.stackManager.uiCard.OnKeyDown(e)
+        if e.key in ("Enter", "Return"):
+            self.OnEnter()
+            if not self.model.GetProperty("isMultiline"):
+                e.preventDefault()
+
+    def OnEnter(self):
+        self.model.stackManager.runner.RunHandler(self.model, "OnTextEnter", None)
 
     def OnMouseDown(self, e):
         super().OnMouseDown(e)
@@ -314,13 +386,15 @@ class UiTextField(UiView):
         elif key == "textColor":
             self.textbox.set({'fill': self.model.GetProperty(key)})
         elif key == "alignment":
-            self.textbox.set({'textAlign': self.model.properties['alignment']})
+            self.textbox.set({'textAlign': self.model.properties['alignment'].lower()})
         elif key == "font":
             self.textbox.set({'fontFamily': FontMap[self.model.properties['font']]})
         elif key == "fontSize":
             self.textbox.set({'fontSize': self.model.properties['fontSize'] * 1.2})
         elif key == "isEditable":
             self.textbox.set({'editable': self.model.properties['isEditable']})
+        elif key == "selectAll":
+            self.textbox.selectAll()
 
 
 class UiShape(UiView):

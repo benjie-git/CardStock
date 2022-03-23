@@ -40,6 +40,7 @@ class Runner():
     def __init__(self, stackManager):
         self.stackManager = stackManager
         self.cardVarKeys = []  # store names of views on the current card, to remove from clientVars before setting up the next card
+        self.lastMousePos = wx.Point(0,0)
         self.pressedKeys = []
         self.keyTimings = {}
         self.timers = []
@@ -144,7 +145,7 @@ class Runner():
         mousePos = None
         keyName = None
         if event and handlerName.startswith("OnMouse"):
-            mousePos = wx.RealPoint(event.pageX, event.pageY)
+            mousePos = self.stackManager.ConvPoint(wx.Point(event.pageX, event.pageY))
         elif arg and handlerName == "OnKeyHold":
             keyName = arg
         elif event and handlerName.startswith("OnKey"):
@@ -266,7 +267,14 @@ class Runner():
         # Use this for noticing user-definitions of new functions
         oldClientVars = self.clientVars.copy()
 
-        exec(handlerStr, self.clientVars)
+        try:
+            exec(handlerStr, self.clientVars)
+            self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
+        except Exception as err:
+            self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
+            error_class = err.__class__.__name__
+            detail = err.args[0]
+            print(f"{error_class}: {detail} in:\n{handlerStr}", file=sys.stderr)
 
         del self.lastHandlerStack[-1]
 
@@ -320,6 +328,53 @@ class Runner():
             # No return used, so keep the handler as-is
             return handlerStr
 
+    def RunWithExceptionHandling(self, func=None, *args, **kwargs):
+        """ Run a function with exception handling.  This always runs on the runnerThread. """
+        uiModel = None
+        oldCard = None
+        oldSelf = None
+        funcName = None
+        if func:
+            funcName = func.__name__
+            if funcName in self.funcDefs:
+                uiModel = self.funcDefs[funcName][0]
+                if self.lastCard != uiModel.GetCard():
+                    self.oldCard = self.lastCard
+                    self.SetupForCard(uiModel.GetCard())
+                if "self" in self.clientVars:
+                    oldSelf = self.clientVars["self"]
+                self.clientVars["self"] = uiModel.GetProxy()
+
+        try:
+            if func:
+                func(*args, **kwargs)
+        except Exception as err:
+            error_class = err.__class__.__name__
+            detail = err.args[0]
+            print(f"{error_class}: {detail} in:\n{handlerStr}", file=sys.stderr)
+
+        if oldCard:
+            self.SetupForCard(oldCard)
+        if oldSelf:
+            self.clientVars["self"] = oldSelf
+        else:
+            if "self" in self.clientVars:
+                self.clientVars.pop("self")
+
+    def ScrapeNewFuncDefs(self, oldVars, newVars, model, handlerName):
+        # Keep track of where each user function has been defined, so we can send you to the right handler's code in
+        # the Designer when the user clicks on an error in the ErrorList.
+        for (k, v) in newVars.items():
+            if isinstance(v, types.FunctionType) and (k not in oldVars or oldVars[k] != v):
+                self.funcDefs[k] = (model, handlerName)
+
+    def GetUserClientVars(self, clientVars):
+        vars = {}
+        for k,v in clientVars.items():
+            if k not in self.initialClientVars:
+                vars[k] = v
+        return vars
+
     def HandlerPath(self, model, handlerName, card=None):
         if model.type == "card":
             return f"{model.GetProperty('name')}.{handlerName}()"
@@ -332,7 +387,7 @@ class Runner():
         code = event.key
         if code in self.keyCodeStringMap:
             return self.keyCodeStringMap[code]
-        else:
+        elif len(code) == 1:
             code = code.upper()
         return code
 
@@ -361,7 +416,7 @@ class Runner():
     def SetFocus(self, obj):
         uiView = self.stackManager.GetUiViewByModel(obj._model)
         if uiView and uiView.model.type == "textfield":
-            uiView.OnSelected(None)
+            self.stackManager.canvas.setActiveObject(uiView.textbox)
 
 
     # --------- User-accessible view functions -----------
@@ -506,9 +561,8 @@ class Runner():
     def IsMouseDown(self):
         return browser.window.MouseEvent.buttons
 
-    @RunOnMainSync
     def GetMousePos(self):
-        return wx.CDSRealPoint(0,0)
+        return self.lastMousePos
 
     @staticmethod
     def MakeColor(r, g, b):

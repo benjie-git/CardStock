@@ -19,6 +19,22 @@ class ViewModel(object):
     """
 
     minSize = wx.Size(20, 20)
+    reservedNames = ['keyName', 'mousePos', 'message', 'URL', 'didLoad', 'otherObject', 'edge', 'elapsedTime', 'self',
+                     'stack', 'card', 'Wait', 'Distance', 'RunAfterDelay', 'Time', 'Paste', 'Alert', 'AskYesNo',
+                     'AskText', 'GotoCard', 'GotoNextCard', 'GotoPreviousCard', 'RunStack', 'PlaySound', 'StopSound',
+                     'BroadcastMessage', 'IsKeyPressed', 'IsMouseDown', 'GetMousePos', 'Color', 'Point', 'Size', 'Quit',
+                     'name', 'type', 'data', 'position', 'size', 'center', 'rotation', 'speed', 'isVisible', 'hasFocus',
+                     'parent', 'children', 'Copy', 'Cut', 'Clone', 'Delete', 'SendMessage', 'Focus', 'Show', 'Hide',
+                     'ChildWithBaseName', 'FlipHorizontal', 'FlipVertical', 'OrderToFront', 'OrderForward',
+                     'OrderBackward', 'OrderToBack', 'OrderToIndex', 'GetEventCode', 'SetEventCode',
+                     'StopHandlingMouseEvent', 'IsTouching', 'SetBounceObjects', 'IsTouchingPoint', 'IsTouchingEdge',
+                     'AnimatePosition', 'AnimateCenter', 'AnimateSize', 'AnimateRotation', 'StopAnimating', 'fillColor',
+                     'number', 'canSave', 'canResize', 'AddButton', 'AddTextField', 'AddTextLabel', 'AddImage', 'AddOval',
+                     'AddRectangle', 'AddRoundRectangle', 'AddLine', 'AddPolygon', 'AddGroup', 'AnimateFillColor',
+                     'StopAllAnimating', 'numCards', 'currentCard', 'False', 'None', 'True', '__peg_parser__', 'and',
+                     'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else',
+                     'except', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal',
+                     'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield']
 
     def __init__(self, stackManager):
         super().__init__()
@@ -62,7 +78,6 @@ class ViewModel(object):
         self.animations = {}
         self.bounceObjs = {}
         self.proxyClass = ViewProxy
-        #self.animLock = threading.Lock()
         self.didSetDown = False
         self.clonedFrom = None
 
@@ -78,17 +93,16 @@ class ViewModel(object):
                 child.parent = self
 
     def SetDown(self):
-        with self.animLock:
-            self.didSetDown = True
-            for child in self.childModels:
-                child.SetDown()
-            if self.proxy:
-                self.proxy._model = None
-                self.proxy = None
-            self.animations = {}
-            self.bounceObjs = {}
-            self.stackManager = None
-            self.parent = None
+        self.didSetDown = True
+        for child in self.childModels:
+            child.SetDown()
+        if self.proxy:
+            self.proxy._model = None
+            self.proxy = None
+        self.animations = {}
+        self.bounceObjs = {}
+        self.stackManager = None
+        self.parent = None
 
     def DismantleChildTree(self):
         for child in self.childModels:
@@ -303,6 +317,7 @@ class ViewModel(object):
 
     def SetData(self, data):
         for k, v in data["handlers"].items():
+            v = v.encode('utf-8').decode('unicode-escape')
             self.handlers[k] = v
         for k, v in data["properties"].items():
             if k in self.propertyTypes:
@@ -312,6 +327,9 @@ class ViewModel(object):
                     self.SetProperty(k, wx.RealPoint(v[0], v[1]), notify=False)
                 elif self.propertyTypes[k] == "size":
                     self.SetProperty(k, wx.Size(v), notify=False)
+                elif self.propertyTypes[k] == "string":
+                    v = v.encode('utf-8').decode('unicode-escape')
+                    self.SetProperty(k, v, notify=False)
                 else:
                     self.SetProperty(k, v, notify=False)
 
@@ -417,7 +435,6 @@ class ViewModel(object):
             else:
                 ui.parent.uiViews.remove(ui)
                 ui.parent.uiViews.insert(index, ui)
-                self.stackManager.view.Refresh()
 
     def OrderMoveBy(self, delta):
         index = self.parent.childModels.index(self) + delta
@@ -473,45 +490,6 @@ class ViewModel(object):
                 self.Notify(key)
             self.isDirty = True
 
-    # @staticmethod
-    # def InterpretPropertyFromString(key, valStr, propType):
-    #     val = valStr
-    #     if propType:
-    #         try:
-    #             if propType == "bool":
-    #                 val = valStr == "True"
-    #             elif propType in ["int", "uint"]:
-    #                 val = int(valStr)
-    #                 if propType == "uint" and val < 0:
-    #                     val = 0
-    #             elif propType == "float":
-    #                 val = float(valStr)
-    #             elif propType in ["point", "floatpoint"]:
-    #                 val = ast.literal_eval(valStr)
-    #                 if not isinstance(val, (list, tuple)) or len(val) != 2 or \
-    #                         not isinstance(val[0], (int, float)) or not isinstance(val[1], (int, float)):
-    #                     raise Exception()
-    #             elif propType == "size":
-    #                 val = ast.literal_eval(valStr)
-    #                 if not isinstance(val, (list, tuple)) or len(val) != 2 or \
-    #                         not isinstance(val[0], (int, float)) or not isinstance(val[1], (int, float)):
-    #                     raise Exception()
-    #             elif propType == "list":
-    #                 if valStr == "":
-    #                     valStr = "[]"
-    #                 val = ast.literal_eval(valStr)
-    #                 if not isinstance(val, (list, tuple)):
-    #                     val = [val]
-    #             elif propType == "dict":
-    #                 if valStr == "":
-    #                     valStr = "{}"
-    #                 val = ast.literal_eval(valStr)
-    #                 if not isinstance(val, dict):
-    #                     val = None
-    #         except:
-    #             return None
-    #     return val
-
     def SetHandler(self, key, value):
         if self.handlers[key] != value:
             self.handlers[key] = value
@@ -533,12 +511,11 @@ class ViewModel(object):
                     "onFinish": onFinish,
                     "onCancel": onCancel
                     }
-        with self.animLock:
-            if key not in self.animations:
-                self.animations[key] = [animDict]
-                self.StartAnimation(key)
-            else:
-                self.animations[key].append(animDict)
+        if key not in self.animations:
+            self.animations[key] = [animDict]
+            self.StartAnimation(key)
+        else:
+            self.animations[key].append(animDict)
 
     def StartAnimation(self, key):
         # On Runner or Main thread
@@ -551,37 +528,34 @@ class ViewModel(object):
 
     def FinishAnimation(self, key):
         # On Main thread
-        with self.animLock:
-            if key in self.animations:
-                animList = self.animations[key]
-                animDict = animList[0]
-                if len(animList) > 1:
-                    del animList[0]
-                    self.StartAnimation(key)
-                else:
-                    del self.animations[key]
-                if "startTime" in animDict and animDict["onFinish"]:
-                    animDict["onFinish"](animDict)
+        if key in self.animations:
+            animList = self.animations[key]
+            animDict = animList[0]
+            if len(animList) > 1:
+                del animList[0]
+                self.StartAnimation(key)
+            else:
+                del self.animations[key]
+            if "startTime" in animDict and animDict["onFinish"]:
+                animDict["onFinish"](animDict)
 
     def StopAnimation(self, key=None):
         # On Runner thread
         if key:
             # Stop animating this one property
-            with self.animLock:
-                if key in self.animations:
-                    animDict = self.animations[key][0]
-                    if "startTime" in animDict and animDict["onCancel"]:
-                        animDict["onCancel"](animDict)
-                    del self.animations[key]
+            if key in self.animations:
+                animDict = self.animations[key][0]
+                if "startTime" in animDict and animDict["onCancel"]:
+                    animDict["onCancel"](animDict)
+                del self.animations[key]
             return
 
         # Stop animating all properties
-        with self.animLock:
-            for (key, animList) in self.animations.items():
-                animDict = animList[0]
-                if "startTime" in animDict and animDict["onCancel"]:
-                    animDict["onCancel"](animDict)
-            self.animations = {}
+        for (key, animList) in self.animations.items():
+            animDict = animList[0]
+            if "startTime" in animDict and animDict["onCancel"]:
+                animDict["onCancel"](animDict)
+        self.animations = {}
 
     def DeduplicateName(self, name, existingNames):
         existingNames.extend(self.reservedNames) # disallow globals
@@ -658,8 +632,8 @@ class ViewProxy(object):
         if not model: return False
 
         uiView = model.stackManager.GetUiViewByModel(model)
-        if uiView and uiView.view:
-            return uiView.view.HasFocus()
+        if uiView and uiView.textbox:
+            return model.stackManager.canvas.getActiveObject().id == uiView.textbox.id
 
     def Clone(self, name=None, **kwargs):
         model = self._model
@@ -685,7 +659,7 @@ class ViewProxy(object):
 
             if not newModel.didSetDown:
                 # add the view on the main thread
-                newModel.stackManager.AddUiViewsFromModels([newModel], False)
+                newModel.stackManager.AddUiViewsFromModels([newModel])
         else:
             # When cloning a card, update the model and view together in a rare synchronous call to the main thread
             newModel = model.stackManager.DuplicateCard(model)
@@ -950,13 +924,13 @@ class ViewProxy(object):
 
         model = self._model
         if not model: return False
-
         if model.didSetDown: return False
-        s = model.stackManager.GetUiViewByModel(model)
-        if not s:
+        ui = model.stackManager.GetUiViewByModel(model)
+        if not ui:
             return False
-        sreg = s.GetHitRegion()
-        return sreg.Contains(wx.Point(point)) == wx.InRegion
+        if len(ui.fabObjs) > 0:
+            return ui.fabObjs[0].containsPoint(point)
+        return False
 
     def IsTouching(self, obj):
         if not isinstance(obj, ViewProxy):
@@ -967,14 +941,11 @@ class ViewProxy(object):
         if not model or not oModel: return False
 
         if model.didSetDown: return False
-        s = model.stackManager.GetUiViewByModel(model)
-        o = model.stackManager.GetUiViewByModel(oModel)
-        if not s or not o:
+        sUi = model.stackManager.GetUiViewByModel(model)
+        oUi = model.stackManager.GetUiViewByModel(oModel)
+        if not sUi or not oUi or len(sUi.fabObjs) == 0 or len(sUi.fabObjs) == 0:
             return False
-        sreg = wx.Region(s.GetHitRegion())
-        oreg = o.GetHitRegion()
-        sreg.Intersect(oreg)
-        return not sreg.IsEmpty()
+        return sUi.fabObjs[0].intersectsWithObject(oUi.fabObjs[0])
 
     def IsTouchingEdge(self, obj, skipIsTouchingCheck=False):
         if not isinstance(obj, ViewProxy):
@@ -984,21 +955,15 @@ class ViewProxy(object):
         oModel = obj._model
         if not model or not oModel: return None
         ui = model.stackManager.GetUiViewByModel(model)
-        oUi = model.stackManager.GetUiViewByModel(oModel)
+        # oUi = model.stackManager.GetUiViewByModel(oModel)
 
         if model.didSetDown or oModel.didSetDown: return None
 
-        if not skipIsTouchingCheck and not self.IsTouching(obj):
-            return None
+        sFab = ui.fabObjs[0]
 
-        def intersectTest(r, edge):
-            testReg = wx.Region(r)
-            testReg.Intersect(edge)
-            return not testReg.IsEmpty()
-
-        reg = ui.GetHitRegion()
-        oRot = oModel.GetProperty("rotation")
-        if oRot is None: oRot = 0
+        # if not skipIsTouchingCheck:
+        #     if not self.IsTouching(obj):
+        #         return None
 
         rect = oModel.GetFrame() # other frame in card coords
         cornerSetback = 4
@@ -1008,18 +973,21 @@ class ViewProxy(object):
                   wx.Rect(rect.BottomLeft+(cornerSetback,-1), rect.BottomRight+(-cornerSetback,0)),
                   wx.Rect(rect.TopLeft+(0,cornerSetback), rect.BottomLeft+(1,-cornerSetback))]
 
-        if oRot == 0:
-            bottom = rects[0]
-            right = rects[1]
-            top = rects[2]
-            left = rects[3]
-        else:
-            for r in rects:
-                r.Offset(wx.Point(0,0)-rect.TopLeft)
-            bottom = oUi.MakeRegionFromLocalRect(rects[0])
-            right = oUi.MakeRegionFromLocalRect(rects[1])
-            top = oUi.MakeRegionFromLocalRect(rects[2])
-            left = oUi.MakeRegionFromLocalRect(rects[3])
+        oRot = oModel.GetProperty("rotation")
+        if oRot is None: oRot = 0
+
+        # if oRot == 0:
+        bottom = rects[0]
+        right = rects[1]
+        top = rects[2]
+        left = rects[3]
+
+        def TestRect(r):
+            fabric = ui.stackManager.fabric
+            r = ui.stackManager.ConvRect(r)
+            tl = fabric.Point.new(r.Left, r.Top)
+            br = fabric.Point.new(r.Right, r.Bottom)
+            return sFab.intersectsWithRect(tl, br)
 
         def RotEdge(rot):
             # Rotate reported edge hits according to other object's rotation
@@ -1029,10 +997,10 @@ class ViewProxy(object):
             return edgesMap[i]
 
         edges = set()
-        if intersectTest(reg, top): [edges.add(e) for e in RotEdge(oRot)]
-        if intersectTest(reg, bottom): [edges.add(e) for e in RotEdge(oRot+180)]
-        if intersectTest(reg, left): [edges.add(e) for e in RotEdge(oRot+270)]
-        if intersectTest(reg, right): [edges.add(e) for e in RotEdge(oRot+90)]
+        if TestRect(top): [edges.add(e) for e in RotEdge(oRot)]
+        if TestRect(bottom): [edges.add(e) for e in RotEdge(oRot+180)]
+        if TestRect(left): [edges.add(e) for e in RotEdge(oRot+270)]
+        if TestRect(right): [edges.add(e) for e in RotEdge(oRot+90)]
         if len(edges) == 3 and "Top" in edges and "Bottom" in edges:
             edges.remove("Top")
             edges.remove("Bottom")
@@ -1479,11 +1447,11 @@ class CardModel(ViewModel):
         self.DeduplicateNamesForModels([model])
         if size:
             model.SetProperty("size", size, notify=False)
-        # if isinstance(model, LineModel):
-        #     model.type = typeStr
-        #     if points:
-        #         model.points = points
-        #         model.ReCropShape()
+        if isinstance(model, LineModel):
+            model.type = typeStr
+            if points:
+                model.points = points
+                model.ReCropShape()
 
         if kwargs:
             if "center" in kwargs and "size" in kwargs:
@@ -1503,8 +1471,7 @@ class CardModel(ViewModel):
         # add the view on the main thread
         if self.didSetDown: return
         if self.stackManager.uiCard.model == self:
-            self.stackManager.AddUiViewsFromModels([model], canUndo=False)
-        self.stackManager.view.Refresh()
+            self.stackManager.AddUiViewsFromModels([model])
 
         return model
 
@@ -1967,38 +1934,27 @@ class TextFieldModel(TextBaseModel):
 
     def GetSelectedText(self):
         uiView = self.stackManager.GetUiViewByModel(self)
-        if uiView and uiView.view:
-            return uiView.view.GetStringSelection()
+        if uiView and uiView.textbox:
+            return uiView.textbox.text[uiView.textbox.selectionStart:uiView.textbox.selectionEnd]
         else:
             return ""
 
     def SetSelectedText(self, text):
         uiView = self.stackManager.GetUiViewByModel(self)
-        if uiView and uiView.view:
-            isMultiline = self.GetProperty("isMultiline")
-            sel = uiView.view.GetSelection()
-            length = len(self.GetProperty("text"))
-            s = uiView.view.GetRange(0,sel[0]) + text + uiView.view.GetRange(sel[1], length)
-            if isMultiline:
-                pos = (uiView.view.GetScrollPos(wx.HORIZONTAL), uiView.view.GetScrollPos(wx.VERTICAL))
-            self.SetProperty("text", s)
-            uiView.view.SetSelection(sel[0], sel[0]+len(text))
-            if isMultiline:
-                uiView.view.ScrollToLine(pos[1])
-                uiView.view.ScrollToColumn(pos[0])
+        if uiView and uiView.textbox:
+            text = uiView.textbox.text
+            uiView.textbox.set({'text': text[:uiView.textbox.selectionStart] + text + text[uiView.textbox.selectionEnd:]})
 
     def GetSelection(self):
-        # uiView = self.stackManager.GetUiViewByModel(self)
-        # if uiView and uiView.view:
-        #     return uiView.view.GetSelection()
-        # else:
-            return (0,0)
+        uiView = self.stackManager.GetUiViewByModel(self)
+        if uiView and uiView.textbox:
+            return (uiView.textbox.selectionStart, uiView.textbox.selectionEnd)
+        return (0,0)
 
     def SetSelection(self, start_index, end_index):
-        # uiView = self.stackManager.GetUiViewByModel(self)
-        # if uiView and uiView.view:
-        #     uiView.view.SetSelection(start_index, end_index)
-        pass
+        uiView = self.stackManager.GetUiViewByModel(self)
+        if uiView and uiView.textbox:
+            uiView.textbox.set({'selectionStart': start_index, 'selectionEnd':end_index})
 
 
 class TextField(TextBaseProxy):
@@ -2066,8 +2022,7 @@ class TextField(TextBaseProxy):
         model = self._model
         if not model: return
         if model.didSetDown: return
-        if model.stackManager.runner and model.GetHandler("OnTextEnter"):
-            model.stackManager.runner.RunHandler(model, "OnTextEnter", None)
+        model.stackManager.runner.RunHandler(model, "OnTextEnter", None)
 
 
 class GroupModel(ViewModel):
@@ -2554,7 +2509,7 @@ class LineModel(ViewModel):
             if y < rect.Top:
                 rect.Top = y
             elif y > rect.Top + rect.Height:
-                rect.Height = x - rect.Top
+                rect.Height = y - rect.Top
         return rect
 
     # Re-fit the bounding box to the shape
