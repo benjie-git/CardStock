@@ -15,7 +15,7 @@
       "handlers": {
         "OnSetup": "from random import randint\n\nscore = 0\nnextMoveTime = Time() + 3\n",
         "OnKeyHold": "if keyName == \"Left\":\n   guy.position.x -= 8\nelif keyName == \"Right\":\n   guy.position.x += 8\nelif keyName == \"Up\":\n   guy.position.y += 8\nelif keyName == \"Down\":\n   guy.position.y -= 8\n",
-        "OnPeriodic": "size = card.size\ndidUpdate = False\n\nif guy.IsTouching(goal):\n   score += 1\n   didUpdate = True\n\nif Time() >= nextMoveTime:\n   score -= 1\n   didUpdate = True\n   \nif didUpdate:\n   label.text = score\n   goal.position = [randint(0,size.x-goal.size.width),\\\n      randint(0,size.y-goal.size.height)]\n   nextMoveTime = Time() + 3\n"
+        "OnPeriodic": "size = card.size\ndidUpdate = False\n\nif guy.IsTouching(goal):\n   score += 1\n   didUpdate = True\n\nif Time() >= nextMoveTime:\n   score -= 1\n   didUpdate = True\n   \nif didUpdate:\n   label.text = score\n   goal.position = [randint(0,size.width-goal.size.width),\\\n      randint(0,size.height-goal.size.height)]\n   nextMoveTime = Time() + 3\n"
       },
       "properties": {
         "name": "main",

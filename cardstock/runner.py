@@ -306,10 +306,10 @@ class Runner():
                     self.stopHandlingMouseEvent = False
                 elif args[0] == TaskType.Func:
                     # Run the given function with optional args, kwargs
-                    self.RunWithExceptionHandling(func=args[1], *args[2], **args[3])
+                    self.RunFuncWithExceptionHandling(args[1], *args[2], **args[3])
                 elif args[0] == TaskType.Code:
                     # Run the given code
-                    self.RunWithExceptionHandling(code=args[1])
+                    self.RunCodeWithExceptionHandling(args[1])
                 elif args[0] == TaskType.Handler:
                     # Run this handler
                     self.lastCard = args[1].GetCard()
@@ -588,6 +588,12 @@ class Runner():
         else:
             # No return used, so keep the handler as-is
             return handlerStr
+
+    def RunCodeWithExceptionHandling(self, code):
+        self.RunWithExceptionHandling(code, None)
+
+    def RunFuncWithExceptionHandling(self, func, *args, **kwargs):
+        self.RunWithExceptionHandling(None, func, *args, **kwargs)
 
     def RunWithExceptionHandling(self, code=None, func=None, *args, **kwargs):
         """ Run a function with exception handling.  This always runs on the runnerThread. """

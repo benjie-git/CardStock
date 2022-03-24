@@ -87,6 +87,20 @@ class CDSSize(wx.Size):
         super().__setitem__(key, val)
 
     @property
+    def x(self):
+        raise TypeError("size has no property 'x'")
+    @x.setter
+    def x(self, val):
+        raise TypeError("size has no property 'x'")
+
+    @property
+    def y(self):
+        raise TypeError("size has no property 'y'")
+    @y.setter
+    def y(self, val):
+        raise TypeError("size has no property 'y'")
+
+    @property
     def width(self):
         return super().width
     @width.setter
