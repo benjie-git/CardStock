@@ -317,7 +317,6 @@ class ViewModel(object):
 
     def SetData(self, data):
         for k, v in data["handlers"].items():
-            v = v.encode('utf-8').decode('unicode-escape')
             self.handlers[k] = v
         for k, v in data["properties"].items():
             if k in self.propertyTypes:
@@ -328,7 +327,6 @@ class ViewModel(object):
                 elif self.propertyTypes[k] == "size":
                     self.SetProperty(k, wx.Size(v), notify=False)
                 elif self.propertyTypes[k] == "string":
-                    v = v.encode('utf-8').decode('unicode-escape')
                     self.SetProperty(k, v, notify=False)
                 else:
                     self.SetProperty(k, v, notify=False)
@@ -457,7 +455,7 @@ class ViewModel(object):
     def SetProperty(self, key, value, notify=True):
         if self.didSetDown: return
         if key in self.propertyTypes and self.propertyTypes[key] == "point" and not isinstance(value, wx.Point):
-            value = wx.Point(value)
+            value = wx.Point(value[0], value[1])
         elif key in self.propertyTypes and self.propertyTypes[key] == "floatpoint" and not isinstance(value, wx.RealPoint):
             value = wx.RealPoint(value[0], value[1])
         elif key in self.propertyTypes and self.propertyTypes[key] == "size" and not isinstance(value, wx.Point):
@@ -465,7 +463,7 @@ class ViewModel(object):
         elif key in self.propertyTypes and self.propertyTypes[key] == "choice" and value not in self.GetPropertyChoices(key):
             return
         elif key in self.propertyTypes and self.propertyTypes[key] == "color" and isinstance(value, wx.Colour):
-            value = value.GetAsString(flags=wx.C2S_HTML_SYNTAX)
+            value = value.ToHex()
         elif key in self.propertyTypes and self.propertyTypes[key] == "uint" and value < 0:
             value = 0
 
@@ -1559,21 +1557,21 @@ class Card(ViewProxy):
         if not model: return
 
         endColor = wx.Colour(endVal)
-        if endColor.IsOk():
-            def onStart(animDict):
-                origVal = wx.Colour(self.fillColor)
-                origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
-                animDict["origParts"] = origParts
-                endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
-                animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
-            def onUpdate(progress, animDict):
-                model.SetProperty("fillColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
+        def onStart(animDict):
+            origVal = wx.Colour(self.fillColor)
+            origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
+            animDict["origParts"] = origParts
+            endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
+            animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
-            def internalOnFinished(animDict):
-                if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+        def onUpdate(progress, animDict):
+            model.SetProperty("fillColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
-            model.AddAnimation("fillColor", duration, onUpdate, onStart, internalOnFinished)
+        def internalOnFinished(animDict):
+            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+
+        model.AddAnimation("fillColor", duration, onUpdate, onStart, internalOnFinished)
 
     def AddButton(self, name="button", **kwargs):
         model = self._model
@@ -1848,21 +1846,21 @@ class TextBaseProxy(ViewProxy):
         if not model: return
 
         endColor = wx.Colour(endVal)
-        if endColor.IsOk():
-            def onStart(animDict):
-                origVal = wx.Colour(self.textColor)
-                origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
-                animDict["origParts"] = origParts
-                endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
-                animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
-            def onUpdate(progress, animDict):
-                model.SetProperty("textColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
+        def onStart(animDict):
+            origVal = wx.Colour(self.textColor)
+            origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
+            animDict["origParts"] = origParts
+            endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
+            animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
-            def internalOnFinished(animDict):
-                if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+        def onUpdate(progress, animDict):
+            model.SetProperty("textColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
-            model.AddAnimation("textColor", duration, onUpdate, onStart, internalOnFinished)
+        def internalOnFinished(animDict):
+            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+
+        model.AddAnimation("textColor", duration, onUpdate, onStart, internalOnFinished)
 
 
 class TextLabelModel(TextBaseModel):
@@ -2643,21 +2641,21 @@ class Line(ViewProxy):
         if not model: return
 
         endColor = wx.Colour(endVal)
-        if endColor.IsOk():
-            def onStart(animDict):
-                origVal = wx.Colour(self.penColor)
-                origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
-                animDict["origParts"] = origParts
-                endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
-                animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
-            def onUpdate(progress, animDict):
-                model.SetProperty("penColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
+        def onStart(animDict):
+            origVal = wx.Colour(self.penColor)
+            origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
+            animDict["origParts"] = origParts
+            endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
+            animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
-            def internalOnFinished(animDict):
-                if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+        def onUpdate(progress, animDict):
+            model.SetProperty("penColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
-            model.AddAnimation("penColor", duration, onUpdate, onStart, internalOnFinished)
+        def internalOnFinished(animDict):
+            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+
+        model.AddAnimation("penColor", duration, onUpdate, onStart, internalOnFinished)
 
 
 class ShapeModel(LineModel):
@@ -2730,21 +2728,21 @@ class Shape(Line):
         if not model: return
 
         endColor = wx.Colour(endVal)
-        if endColor.IsOk():
-            def onStart(animDict):
-                origVal = wx.Colour(self.fillColor)
-                origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
-                animDict["origParts"] = origParts
-                endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
-                animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
-            def onUpdate(progress, animDict):
-                model.SetProperty("fillColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
+        def onStart(animDict):
+            origVal = wx.Colour(self.fillColor)
+            origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
+            animDict["origParts"] = origParts
+            endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
+            animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
-            def internalOnFinished(animDict):
-                if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+        def onUpdate(progress, animDict):
+            model.SetProperty("fillColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
-            model.AddAnimation("fillColor", duration, onUpdate, onStart, internalOnFinished)
+        def internalOnFinished(animDict):
+            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+
+        model.AddAnimation("fillColor", duration, onUpdate, onStart, internalOnFinished)
 
 
 class RoundRectModel(ShapeModel):

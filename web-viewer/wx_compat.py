@@ -1,3 +1,6 @@
+from browser import window
+
+
 class Size(object):
     def __init__(self, *args):
         super().__init__()
@@ -67,17 +70,17 @@ class Size(object):
         return self
 
     def __imul__(self, other):
-        if isinstance(other, (tuple, list, Point, Size)):
-            self._width *= other[0]
-            self._height *= other[1]
+        if isinstance(other, (int, float)):
+            self._width *= other
+            self._height *= other
         else:
             raise TypeError()
         return self
 
     def __itruediv__(self, other):
-        if isinstance(other, (tuple, list, Point, Size)):
-            self._width /= other[0]
-            self._height /= other[1]
+        if isinstance(other, (int, float)):
+            self._width /= other
+            self._height /= other
         else:
             raise TypeError()
         return self
@@ -95,13 +98,16 @@ class Size(object):
             raise TypeError()
 
     def __mul__(self, other):
-        if isinstance(other, (Point, RealPoint, Size, tuple, list)):
-            return Size(self._width * other[0], self._height * other[1])
+        if isinstance(other, (int, float)):
+            return Size(self._width * other, self._height * other)
         else:
             raise TypeError()
 
     def __truediv__(self, other):
-        return Size(self._width / other, self._height / other)
+        if isinstance(other, (int, float)):
+            return Size(self._width / other, self._height / other)
+        else:
+            raise TypeError()
 
     def __iter__(self):
         return (self.__getitem__(k) for k in (0, 1))
@@ -110,12 +116,9 @@ class Size(object):
 class Point(object):
     def __init__(self, *args):
         super().__init__()
-        if len(args) == 1 and isinstance(args[0], (list, tuple)):
+        if len(args) == 1 and isinstance(args[0], (list, tuple, Point, RealPoint)):
             self._x = args[0][0]
             self._y = args[0][1]
-        elif len(args) == 1 and isinstance(args[0], (Point, RealPoint)):
-            self._x = args[0]._x
-            self._y = args[0]._y
         elif len(args) == 2 and isinstance(args[0], (int, float)) and isinstance(args[1], (int, float)):
             self._x = args[0]
             self._y = args[1]
@@ -176,17 +179,17 @@ class Point(object):
         return self
 
     def __imul__(self, other):
-        if isinstance(other, (tuple, list, Point, Size)):
-            self._x *= other[0]
-            self._y *= other[1]
+        if isinstance(other, (int, float)):
+            self._x *= other
+            self._y *= other
         else:
             raise TypeError()
         return self
 
     def __itruediv__(self, other):
-        if isinstance(other, (tuple, list, Point, Size)):
-            self._x /= other[0]
-            self._y /= other[1]
+        if isinstance(other, (int, float)):
+            self._x /= other
+            self._y /= other
         else:
             raise TypeError()
         return self
@@ -204,13 +207,16 @@ class Point(object):
             raise TypeError()
 
     def __mul__(self, other):
-        if isinstance(other, (Point, RealPoint, Size, tuple, list)):
-            return Point(self._x * other[0], self._y * other[1])
+        if isinstance(other, (int, float)):
+            return Point(self._x * other, self._y * other)
         else:
             raise TypeError()
 
     def __truediv__(self, other):
-        return Size(self._x / other, self._y / other)
+        if isinstance(other, (int, float)):
+            return Point(self._x / other, self._y / other)
+        else:
+            raise TypeError()
 
     def __iter__(self):
         return (self.__getitem__(k) for k in (0, 1))
@@ -273,10 +279,44 @@ class Rect(object):
 
 
 class Colour(object):
-    def __init__(self, r, g, b):
-        self.r = r
-        self.g = g
-        self.b = b
+    def __init__(self, *a):
+        if len(a) == 1 and isinstance(a[0], str):
+            self.fabCol = window.fabric.Color.new(a[0])
+        elif len(a) == 1 and isinstance(a[0], (list, tuple)):
+            colorStr = self.PartsToHex(*a[0])
+            self.fabCol = window.fabric.Color.new(colorStr)
+        else:
+            colorStr = self.PartsToHex(*a)
+            self.fabCol = window.fabric.Color.new(colorStr)
+
+    def PartsToHex(self, r, g, b, a=1.0):
+        r = int(r*255)
+        g = int(g*255)
+        b = int(b*255)
+        if a == 1.0:
+            colorStr = '#'+''.join('{:02X}'.format(n) for n in (r, g, b, 255))
+            return colorStr
+        else:
+            a = int(a*255)
+            colorStr = '#'+''.join('{:02X}'.format(n) for n in (r, g, b, a))
+            return colorStr
+
+    def ToHex(self):
+        parts = self.fabCol.getSource()
+        scaledParts = list((p/255.0 for p in (parts)))
+        scaledParts[3] *= 255
+        return self.PartsToHex(*scaledParts)
+
+    def Red(self):   return self.fabCol.getSource()[0]/255.0
+    def Green(self): return self.fabCol.getSource()[1]/255.0
+    def Blue(self):  return self.fabCol.getSource()[2]/255.0
+    def Alpha(self):
+        parts = self.fabCol.getSource()
+        if len(parts) > 3:
+            return parts[3]
+        else:
+            return 1.0
+
 
 class AffineMatrix2D(object):
     def __init__(self, a,b,c,d,e,f):

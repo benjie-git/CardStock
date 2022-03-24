@@ -1,5 +1,6 @@
 from browser import document
 import wx_compat as wx
+from time import time
 
 FontMap = {'Default': 'Arial', 'Mono': 'monospace', 'Serif': 'serif', 'Sans-Serif': 'Arial'}
 
@@ -76,6 +77,41 @@ class UiView(object):
             for fab in self.fabObjs:
                 fab.set({'visible': visible})
 
+    def RunAnimations(self, onFinishedCalls, elapsedTime):
+        # Move the object by speed.x and speed.y pixels per second
+        updateList = []
+        finishList = []
+        didRun = False
+        if self.model.type not in ["stack", "card"]:
+            speed = self.model.properties["speed"]
+            if speed != (0,0) and "position" not in self.model.animations:
+                pos = self.model.properties["position"]
+                self.model.SetProperty("position", [pos.x + speed.x*elapsedTime, pos.y + speed.y*elapsedTime])
+                didRun = True
+
+        # Run any in-progress animations
+        now = time()
+        for (key, animList) in self.model.animations.items():
+            animDict = animList[0]
+            if "startTime" in animDict:
+                progress = (now - animDict["startTime"]) / animDict["duration"]
+                if progress < 1.0:
+                    if animDict["onUpdate"]:
+                        updateList.append([animDict, progress])
+                else:
+                    if animDict["onUpdate"]:
+                        updateList.append([animDict, 1.0])
+                    finishList.append(key)
+        for (d,p) in updateList:
+            d["onUpdate"](p, d)
+            didRun = True
+        for key in finishList:
+            def deferFinish(key):
+                def f(): self.model.FinishAnimation(key)
+                return f
+            onFinishedCalls.append(deferFinish(key))
+        return didRun
+
 
 class UiCard(UiView):
     def __init__(self, parent, stackManager, model):
@@ -123,6 +159,14 @@ class UiCard(UiView):
                 if f.id == fabObj.id:
                     return ui
         return None
+
+    def GetAllUiViews(self):
+        allUiViews = []
+        for uiView in self.uiViews.values():
+            allUiViews.append(uiView)
+            if uiView.model.type == "group":
+                uiView.GetAllUiViews(allUiViews)
+        return allUiViews
 
     def OnFabricMouseDown(self, options):
         target_ui = None
@@ -537,6 +581,12 @@ class UiGroup(UiView):
         self.group.selectable = False
         self.group.hoverCursor = "arrow"
         self.fabObjs = [self.group]
+
+    def GetAllUiViews(self, allUiViews):
+        for uiView in self.uiViews.values():
+            allUiViews.append(uiView)
+            if uiView.model.type == "group":
+                uiView.GetAllUiViews(allUiViews)
 
 
 class UiWebView(UiView):

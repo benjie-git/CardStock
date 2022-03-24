@@ -60,7 +60,23 @@ class StackManager(object):
         self.periodicTimer = timer.request_animation_frame(self.OnPeriodic)
         now = time()
         elapsedTime = now - self.lastPeriodic
+
+        didRun = False
         if elapsedTime >= 0.03:
+            allUi = self.uiCard.GetAllUiViews()
+            onFinishedCalls = []
+            if self.uiCard.RunAnimations(onFinishedCalls, elapsedTime):
+                didRun = True
+            for ui in allUi:
+                if ui.RunAnimations(onFinishedCalls, elapsedTime):
+                    didRun = True
+            # Let all animations process, before running their onFinished handlers,
+            # which could start new animations.
+            for c in onFinishedCalls:
+                c()
+            if didRun:
+                self.canvas.requestRenderAll()
+
             self.lastPeriodic = now
             self.uiCard.OnKeyHold()
             self.uiCard.OnPeriodic()

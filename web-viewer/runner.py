@@ -328,6 +328,9 @@ class Runner():
             # No return used, so keep the handler as-is
             return handlerStr
 
+    def EnqueueFunction(self, func=None, *args, **kwargs):
+        self.RunWithExceptionHandling(func, *args, **kwargs)
+
     def RunWithExceptionHandling(self, func=None, *args, **kwargs):
         """ Run a function with exception handling.  This always runs on the runnerThread. """
         uiModel = None
@@ -491,12 +494,12 @@ class Runner():
         except ValueError:
             raise TypeError("Wait(): delay must be a number")
 
+        self.stackManager.canvas.renderAll()
+
         endTime = time() + delay
         while time() < endTime:
-            remaining = endTime - time()
             if self.stopRunnerThread:
                 break
-            sleep(min(remaining, 0.25))
 
     def Time(self):
         return time()
@@ -605,7 +608,7 @@ class Runner():
 
             adjustedDuration = duration + startTime - time()
             if adjustedDuration > 0.010:
-                def onTimer(event):
+                def onTimer():
                     if self.stopRunnerThread: return
                     func(*args, **kwargs)
                 t = timer.set_timeout(onTimer, int(adjustedDuration*1000))
