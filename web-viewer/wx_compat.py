@@ -16,6 +16,11 @@ class Size(object):
         else:
             raise TypeError("Size() requires 2 numbers or a Size")
 
+    def __eq__(self, other):
+        if isinstance(other, (Size, list, tuple)):
+            return (self[0] == other[0] and self[1] == other[1])
+        return False
+
     @property
     def width(self):
         return self._width
@@ -124,6 +129,11 @@ class Point(object):
             self._y = args[1]
         else:
             raise TypeError("Point() requires 2 numbers or a Point")
+
+    def __eq__(self, other):
+        if isinstance(other, (Point, list, tuple)):
+            return (self[0] == other[0] and self[1] == other[1])
+        return False
 
     @property
     def x(self):
@@ -241,6 +251,12 @@ class Rect(object):
             self.Height = args[1][1]
         else:
             raise TypeError
+
+    def __eq__(self, other):
+        if isinstance(other, Rect):
+            return (self.Left == other.Left and self.Top == other.Top and
+                    self.Right == other.Right and self.Bottom == other.Bottom)
+        return False
 
     def __str__(self):
         return f"(({self.Left}, {self.Top}), ({self.Width}, {self.Height}))"

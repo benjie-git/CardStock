@@ -22,10 +22,10 @@ class StackManager(object):
         self.runner = runner.Runner(self)
 
         self.lastPeriodic = time()
-        self.periodicTimer = timer.request_animation_frame(self.OnPeriodic)
+        self.periodicTimer = timer.set_interval(self.OnPeriodic, 10)
 
     def SetDown(self):
-        timer.cancel_animation_frame(self.periodicTimer)
+        timer.clear_interval(self.periodicTimer)
         # self.runner.CleanupFromRun()
         self.uiCard.SetDown()
         self.uiCard = None
@@ -44,6 +44,7 @@ class StackManager(object):
         s = self.stackModel.GetProperty("size")
         self.canvas.setWidth(s.width)
         self.canvas.setHeight(s.height)
+        self.lastPeriodic = time()
         self.cardIndex = None
         self.stackModel.RunSetup(self.runner)
         self.LoadCardAtIndex(0)
@@ -56,8 +57,7 @@ class StackManager(object):
                 self.runner.SetupForCard(card)
                 self.uiCard.Load(card)
 
-    def OnPeriodic(self, _dummy):
-        self.periodicTimer = timer.request_animation_frame(self.OnPeriodic)
+    def OnPeriodic(self):
         now = time()
         elapsedTime = now - self.lastPeriodic
 
@@ -116,6 +116,7 @@ class StackManager(object):
             uiView = UiWebView(self.uiCard, self, model)
         elif objType == "group":
             uiView = UiGroup(self.uiCard, self, model)
+            uiView.LoadChildren()
         elif objType in ["pen", "line", "oval", "rect", "polygon", "roundrect"]:
             uiView = UiShape(self.uiCard, self, model)
 

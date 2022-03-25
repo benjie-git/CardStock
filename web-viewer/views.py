@@ -12,6 +12,10 @@ class UiView(object):
         self.model = model
         self.fabObjs = []
         self.uiViews = {}
+        self.CreateFabObjs()
+
+    def CreateFabObjs(self):
+        self.OnPropertyChanged('isVisible')
 
     def SetDown(self):
         for ui in self.uiViews:
@@ -57,15 +61,15 @@ class UiView(object):
             ui.OnPeriodic()
 
     def OnPropertyChanged(self, key):
-        if key in ("position", "center"):
-            rect = self.stackManager.ConvRect(self.model.GetFrame())
-            for fab in self.fabObjs:
-                fab.set({'left': rect.Left, 'top': rect.Top})
-                fab.setCoords()
-        elif key == "size":
+        if key == "size":
             s = self.model.GetProperty("size")
             for fab in self.fabObjs:
                 fab.set({'width': s.width, 'height': s.height})
+                fab.setCoords()
+        if key in ("position", "center", "size"):
+            rect = self.stackManager.ConvRect(self.model.GetFrame())
+            for fab in self.fabObjs:
+                fab.set({'left': rect.Left, 'top': rect.Top})
                 fab.setCoords()
         elif key == "rotation":
             rot = self.model.GetProperty("rotation")
@@ -84,7 +88,7 @@ class UiView(object):
         didRun = False
         if self.model.type not in ["stack", "card"]:
             speed = self.model.properties["speed"]
-            if speed != (0,0) and "position" not in self.model.animations:
+            if (speed.x != 0 or speed.y != 0) and "position" not in self.model.animations:
                 pos = self.model.properties["position"]
                 self.model.SetProperty("position", [pos.x + speed.x*elapsedTime, pos.y + speed.y*elapsedTime])
                 didRun = True
@@ -124,6 +128,9 @@ class UiCard(UiView):
         document.onkeyup = self.OnKeyUp
         self.lastMouseOverObj = None
         self.fabObjs = [stackManager.canvas]
+
+    def CreateFabObjs(self):
+        pass
 
     def SetDown(self):
         self.stackManager.canvas.off('mouse:down', self.OnFabricMouseDown)
@@ -233,13 +240,15 @@ class UiCard(UiView):
 
 class UiButton(UiView):
     def __init__(self, parent, stackManager, model):
-        super().__init__(parent, stackManager, model)
-        fabric = stackManager.fabric
-        rect = stackManager.ConvRect(model.GetFrame())
-        hasBorder = model.properties['hasBorder']
         self.isHilighted = False
         self.isMouseDown = False
+        super().__init__(parent, stackManager, model)
 
+    def CreateFabObjs(self):
+        fabric = self.stackManager.fabric
+        model = self.model
+        rect = self.stackManager.ConvRect(model.GetFrame())
+        hasBorder = model.properties['hasBorder']
         if hasBorder:
             self.rrBg = fabric.Rect.new({'left': rect.Left,
                                          'top': rect.Top,
@@ -273,6 +282,7 @@ class UiButton(UiView):
         self.group.lockMovementY = True
         self.group.hoverCursor = "pointer"
         self.fabObjs = [self.group]
+        super().CreateFabObjs()
 
     def Highlight(self, on):
         if on:
@@ -320,8 +330,11 @@ class UiButton(UiView):
 class UiTextLabel(UiView):
     def __init__(self, parent, stackManager, model):
         super().__init__(parent, stackManager, model)
-        fabric = stackManager.fabric
-        rect = stackManager.ConvRect(model.GetFrame())
+
+    def CreateFabObjs(self):
+        fabric = self.stackManager.fabric
+        model = self.model
+        rect = self.stackManager.ConvRect(model.GetFrame())
         self.textbox = fabric.Textbox.new(model.properties['text'],
                                           {'left': rect.Left,
                                            'top': rect.Top,
@@ -336,6 +349,7 @@ class UiTextLabel(UiView):
         self.textbox.selectable = False
         self.textbox.hoverCursor = "arrow"
         self.fabObjs = [self.textbox]
+        super().CreateFabObjs()
 
     def OnPropertyChanged(self, key):
         super().OnPropertyChanged(key)
@@ -354,8 +368,11 @@ class UiTextLabel(UiView):
 class UiTextField(UiView):
     def __init__(self, parent, stackManager, model):
         super().__init__(parent, stackManager, model)
-        fabric = stackManager.fabric
-        rect = stackManager.ConvRect(model.GetFrame())
+
+    def CreateFabObjs(self):
+        fabric = self.stackManager.fabric
+        model = self.model
+        rect = self.stackManager.ConvRect(model.GetFrame())
 
         self.textBg = fabric.Rect.new({'left': rect.Left,
                                        'top': rect.Top,
@@ -392,6 +409,7 @@ class UiTextField(UiView):
         self.textbox.onKeyDown = self.OnKeyDown
 
         self.fabObjs = [self.textBg, self.textbox]
+        super().CreateFabObjs()
 
     def OnKeyDown(self, e):
         self.oldOnKeyDown(e)
@@ -443,14 +461,16 @@ class UiTextField(UiView):
 
 class UiShape(UiView):
     def __init__(self, parent, stackManager, model):
+        self.shape = None
         super().__init__(parent, stackManager, model)
-        self.shape = self.CreateShape()
-        self.fabObjs = [self.shape]
 
-    def CreateShape(self):
+    def CreateFabObjs(self):
         model = self.model
         fabric = self.stackManager.fabric
+        thickness = model.properties['penThickness']
         rect = self.stackManager.ConvRect(model.GetFrame())
+        rect.Left -= thickness/2
+        rect.Top -= thickness/2
         shape = None
         if model.type == "oval":
             shape = fabric.Ellipse.new({'left': rect.Left,
@@ -459,7 +479,7 @@ class UiShape(UiView):
                                              'ry': model.properties['size'].height/2,
                                              'fill': model.properties['fillColor'],
                                              'stroke': model.properties['penColor'],
-                                             'strokeWidth': model.properties['penThickness']
+                                             'strokeWidth': thickness
                                             })
         elif model.type == "rect":
             shape = fabric.Rect.new({'left': rect.Left,
@@ -468,7 +488,7 @@ class UiShape(UiView):
                                           'height': model.properties['size'].height,
                                           'fill': model.properties['fillColor'],
                                           'stroke': model.properties['penColor'],
-                                          'strokeWidth': model.properties['penThickness']
+                                          'strokeWidth': thickness
                                          })
         elif model.type == "roundrect":
             shape = fabric.Rect.new({'left': rect.Left,
@@ -479,7 +499,7 @@ class UiShape(UiView):
                                           'ry': model.properties['cornerRadius'],
                                           'fill': model.properties['fillColor'],
                                           'stroke': model.properties['penColor'],
-                                          'strokeWidth': model.properties['penThickness']
+                                          'strokeWidth': thickness
                                          })
         elif model.type == "polygon":
             shape = fabric.Polygon.new([{"x":p[0], "y":p[1]} for p in self.model.GetScaledPoints()],
@@ -487,7 +507,7 @@ class UiShape(UiView):
                                            'top': rect.Top,
                                            'fill': model.properties['fillColor'],
                                            'stroke': model.properties['penColor'],
-                                           'strokeWidth': model.properties['penThickness'],
+                                           'strokeWidth': thickness,
                                            'strokeLineJoin': 'round',
                                            'flipY': True
                                            })
@@ -497,7 +517,7 @@ class UiShape(UiView):
                                            'top': rect.Top,
                                            'fill': None,
                                            'stroke': model.properties['penColor'],
-                                           'strokeWidth': model.properties['penThickness'],
+                                           'strokeWidth': thickness,
                                            'strokeLineCap': 'round',
                                            'strokeLineJoin': 'round',
                                            'flipY': True
@@ -507,7 +527,9 @@ class UiShape(UiView):
         shape.set({'id': UiView.NextId()})
         shape.selectable = False
         shape.hoverCursor = "arrow"
-        return shape
+        self.shape = shape
+        self.fabObjs = [self.shape]
+        super().CreateFabObjs()
 
     def OnPropertyChanged(self, key):
         super().OnPropertyChanged(key)
@@ -521,43 +543,90 @@ class UiShape(UiView):
             s = self.model.GetProperty("size")
             self.shape.set({'rx': s.width/2, 'ry': s.height/2})
             self.shape.setCoords()
-        elif key == "shape":
+        elif key == "shape" or (key == "size" and self.model.type in ("line", "pen", "polygon")):
+            index = self.stackManager.canvas.getObjects().index(self.shape)
             self.stackManager.canvas.remove(self.shape)
-            self.shape = self.CreateShape()
-            self.fabObjs = [self.shape]
+            self.CreateFabObjs()
             self.stackManager.canvas.add(self.shape)
-
+            self.shape.moveTo(index)
 
 class UiImage(UiView):
     def __init__(self, parent, stackManager, model):
-        super().__init__(parent, stackManager, model)
-        fabric = stackManager.fabric
-        rect = stackManager.ConvRect(model.GetFrame())
+        self.origImage = None
         self.image = None
+        super().__init__(parent, stackManager, model)
+
+    def CreateFabObjs(self):
+        fabric = self.stackManager.fabric
+        model = self.model
         file = "Resources/" + model.properties['file']
+        superCreateFabObjs = super().CreateFabObjs
 
         def imgLoaded(img, err):
             if not err:
-                self.image = img
-                imgSize = img.getOriginalSize()
-                scale = min(rect.Width/imgSize['width'], rect.Height/imgSize['height'])
-                self.image.set({'left': rect.Left, 'top': rect.Top,
-                                'scaleX': scale, 'scaleY': scale})
+                self.origImage = img
+                self.FitImage()
                 self.image.rotate(model.properties['rotation'])
                 self.image.set({'id': UiView.NextId()})
                 self.image.selectable = False
                 self.image.hoverCursor = "arrow"
-                self.fabObjs = [self.image]
+                superCreateFabObjs()
             self.stackManager.uiCard.pendingLoads -= 1
             self.stackManager.uiCard.AddChildren()
 
         self.stackManager.uiCard.pendingLoads += 1
         fabric.Image.fromURL(file, imgLoaded)
 
+    def FitImage(self):
+        rect = self.stackManager.ConvRect(self.model.GetFrame())
+        imgSize = self.origImage.getOriginalSize()
+        fit = self.model.GetProperty('fit')
+
+        def setImg(img):
+            self.image = img
+
+        if fit == "Stretch":
+            self.origImage.cloneAsImage(setImg)
+            scaleX,scaleY = (rect.Width / imgSize['width'], rect.Height / imgSize['height'])
+            self.image.set({'scaleX': scaleX, 'scaleY': scaleY,
+                            'left': rect.Left, 'top': rect.Top})
+        elif fit == "Fill":
+            scale = max(rect.Width / imgSize['width'], rect.Height / imgSize['height'])
+            dx = (imgSize.width*scale - rect.Width) / 2
+            dy = (imgSize.height*scale - rect.Height) / 2
+            self.origImage.cloneAsImage(setImg,
+                                        {'left': max(dx, 0) / scale, 'top': max(dy, 0) / scale,
+                                         'width': rect.Width / scale, 'height': rect.Height / scale})
+            self.image.set({'scaleX': scale, 'scaleY': scale})
+            self.image.set({'left': rect.Left, 'top': rect.Top})
+        elif fit == "Center":
+            dx = (imgSize.width - rect.Width) / 2
+            dy = (imgSize.height - rect.Height) / 2
+            self.origImage.cloneAsImage(setImg,
+                                        {'left': max(dx, 0), 'top': max(dy, 0),
+                                         'width': rect.Width, 'height': rect.Height})
+            self.image.set({'left': rect.Left, 'top': rect.Top})
+        else:  # "Contain"
+            self.origImage.cloneAsImage(setImg)
+            scale = min(rect.Width / imgSize['width'], rect.Height / imgSize['height'])
+            dx = (imgSize.width*scale - rect.Width) / 2
+            dy = (imgSize.height*scale - rect.Height) / 2
+            self.image.set({'scaleX': scale, 'scaleY': scale,
+                            'left': rect.Left - min(dx,0), 'top': rect.Top - min(dy,0)})
+
+        self.image.setCoords()
+        self.fabObjs = [self.image]
+
     def OnPropertyChanged(self, key):
         super().OnPropertyChanged(key)
         if key == "file":
             self.image.setSrc(self.model.GetProperty(key))
+        elif key == "fit":
+            index = self.stackManager.canvas.getObjects().index(self.image)
+            self.stackManager.canvas.remove(self.image)
+            self.FitImage()
+            self.stackManager.canvas.add(self.image)
+            self.image.moveTo(index)
 
 
 class UiGroup(UiView):
@@ -581,6 +650,7 @@ class UiGroup(UiView):
         self.group.selectable = False
         self.group.hoverCursor = "arrow"
         self.fabObjs = [self.group]
+        super().CreateFabObjs()
 
     def GetAllUiViews(self, allUiViews):
         for uiView in self.uiViews.values():

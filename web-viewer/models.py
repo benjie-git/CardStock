@@ -2488,23 +2488,25 @@ class LineModel(ViewModel):
             scaleX = size[0] / origSize[0]
         if origSize[1] != 0:
             scaleY = size[1] / origSize[1]
-        points = [(p[0] * scaleX, p[1] * scaleY) for p in self.points]
+        points = [wx.Point(p[0] * scaleX, p[1] * scaleY) for p in self.points]
         self.scaledPoints = points
         return self.scaledPoints
 
     def GetAbsolutePoints(self):
         pos = self.GetAbsolutePosition()
-        return [p + pos for p in self.GetScaledPoints()]
+        return [pos + p for p in self.GetScaledPoints()]
 
     @staticmethod
     def RectFromPoints(points):
-        rect = wx.Rect(points[0][0], points[0][1], 1, 1)
+        rect = wx.Rect(points[0][0], points[0][1], 0, 0)
         for x, y in points[1:]:
             if x < rect.Left:
+                rect.Width += rect.Left - x
                 rect.Left = x
             elif x > rect.Left + rect.Width:
                 rect.Width = x - rect.Left
             if y < rect.Top:
+                rect.Height += rect.Top - y
                 rect.Top = y
             elif y > rect.Top + rect.Height:
                 rect.Height = y - rect.Top

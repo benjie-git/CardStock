@@ -3,6 +3,7 @@ import sys
 import os
 import browser
 import browser.timer as timer
+import traceback
 import wx_compat as wx
 from wx_compat import RunOnMainSync, RunOnMainAsync
 import cardstock
@@ -271,10 +272,30 @@ class Runner():
             exec(handlerStr, self.clientVars)
             self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
         except Exception as err:
-            self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
-            error_class = err.__class__.__name__
-            detail = err.args[0]
-            print(f"{error_class}: {detail} in:\n{handlerStr}", file=sys.stderr)
+            if err.__class__.__name__ == "RuntimeError" and err.args[0] == "Return":
+                # Catch our exception-based return calls
+                pass
+            else:
+                self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
+                error_class = err.__class__.__name__
+                detail = err.args[0]
+                errHandlerName = ""
+                line_number = None
+                cl, exc, tb = sys.exc_info()
+                trace = traceback.extract_tb(tb)
+                for i in range(len(trace)):
+                    if trace[i].filename == "<string>" and trace[i].name == "<module>":
+                        errModel = uiModel
+                        if errModel.clonedFrom: errModel = errModel.clonedFrom
+                        errHandlerName = handlerName
+                        line_number = trace[i].lineno
+                    elif line_number and trace[i].filename == "<string>" and trace[i].name != "<module>":
+                        if trace[i].name in self.funcDefs:
+                            errModel = self.funcDefs[trace[i].name][0]
+                            if errModel.clonedFrom: errModel = errModel.clonedFrom
+                            errHandlerName = self.funcDefs[trace[i].name][1]
+                            line_number = trace[i].lineno
+                print(f"{error_class}: {detail} in {errModel.properties['name']}:{errHandlerName}:{line_number}\n{handlerStr}", file=sys.stderr)
 
         del self.lastHandlerStack[-1]
 
@@ -352,9 +373,13 @@ class Runner():
             if func:
                 func(*args, **kwargs)
         except Exception as err:
-            error_class = err.__class__.__name__
-            detail = err.args[0]
-            print(f"{error_class}: {detail} in:\n{handlerStr}", file=sys.stderr)
+            if err.__class__.__name__ == "RuntimeError" and err.args[0] == "Return":
+                # Catch our exception-based return calls
+                pass
+            else:
+                error_class = err.__class__.__name__
+                detail = err.args[0]
+                print(f"{error_class}: {detail} in:\n{funcName}", file=sys.stderr)
 
         if oldCard:
             self.SetupForCard(oldCard)
@@ -545,10 +570,20 @@ class Runner():
         return func()
 
     def PlaySound(self, filepath):
-        pass
+        if filepath in self.soundCache:
+            snd = self.soundCache[filepath]
+        else:
+            path = "Resources/" + filepath
+            snd = browser.window.Audio.new(path)
+            snd.load()
+        if snd:
+            self.soundCache[filepath] = snd
+            snd.play()
 
     def StopSound(self):
-        pass
+        for snd in self.soundCache.values():
+            snd.pause()
+            snd.currentTime = 0
 
     @RunOnMainSync
     def Paste(self):
