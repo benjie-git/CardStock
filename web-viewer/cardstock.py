@@ -74,6 +74,8 @@ class StackManager(object):
             # which could start new animations.
             for c in onFinishedCalls:
                 c()
+            if len(onFinishedCalls):
+                didRun = True
             if didRun:
                 self.canvas.requestRenderAll()
 
