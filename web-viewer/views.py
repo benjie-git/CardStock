@@ -521,6 +521,13 @@ class UiTextField(UiView):
     def __init__(self, parent, stackManager, model):
         super().__init__(parent, stackManager, model)
 
+    def SetDown(self):
+        self.textbox.off('selected', self.OnSelected)
+        self.textbox.off('selection:cleared', self.OnDeselected)
+        self.stackManager.canvas.off('text:changed', self.OnTextChanged)
+        self.oldOnKeyDown = None
+        super().SetDown()
+
     def CreateFabObjs(self):
         fabric = self.stackManager.fabric
         model = self.model
