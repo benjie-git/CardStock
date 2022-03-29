@@ -34,11 +34,19 @@ class StackManager(object):
         self.stackModel.DismantleChildTree()
         self.stackModel = None
 
+    def Unload(self):
+        self.uiCard.UnLoad()
+        self.uiCard.SetDown()
+        self.stackModel.SetDown()
+        self.stackModel.DismantleChildTree()
+
     def LoadFromStr(self, stackStr):
         stackJSON = json.loads(stackStr)
         self.Load(stackJSON)
 
     def Load(self, stackJSON):
+        if self.stackModel:
+            self.Unload()
         self.stackModel = StackModel(self)
         stackDict = stackJSON
         self.stackModel.SetData(stackDict)

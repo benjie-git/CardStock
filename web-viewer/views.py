@@ -8,6 +8,7 @@ FontMap = {'Default': 'Arial', 'Mono': 'monospace', 'Serif': 'serif', 'Sans-Seri
 
 class UiView(object):
     def __init__(self, parent, stackManager, model):
+        super().__init__()
         self.parent = parent
         self.stackManager = stackManager
         self.model = model
