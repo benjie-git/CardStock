@@ -19,13 +19,14 @@ class StackManager(object):
         self.stackModel = None
         self.uiCard = UiCard(None, self, None)
         self.cardIndex = None
+        self.didSetup = False
         self.runner = runner.Runner(self)
 
         self.lastPeriodic = time()
-        self.periodicTimer = timer.set_interval(self.OnPeriodic, 10)
+        self.periodicTimer = timer.request_animation_frame(self.OnPeriodic)
 
     def SetDown(self):
-        timer.clear_interval(self.periodicTimer)
+        timer.cancel_animation_frame(self.periodicTimer)
         # self.runner.CleanupFromRun()
         self.uiCard.SetDown()
         self.uiCard = None
@@ -45,9 +46,15 @@ class StackManager(object):
         self.canvas.setWidth(s.width)
         self.canvas.setHeight(s.height)
         self.lastPeriodic = time()
+        self.runner.StartStack()
         self.cardIndex = None
-        self.stackModel.RunSetup(self.runner)
+        self.didSetup = False
         self.LoadCardAtIndex(0)
+
+    def RunSetupIfNeeded(self):
+        if not self.didSetup:
+            self.stackModel.RunSetup(self.runner)
+            self.didSetup = True
 
     def LoadCardAtIndex(self, cardIndex, reload=False):
         if len(self.stackModel.childModels) > cardIndex:
@@ -57,7 +64,9 @@ class StackManager(object):
                 self.runner.SetupForCard(card)
                 self.uiCard.Load(card)
 
-    def OnPeriodic(self):
+    def OnPeriodic(self, _dummy):
+        self.periodicTimer = timer.request_animation_frame(self.OnPeriodic)
+
         now = time()
         elapsedTime = now - self.lastPeriodic
 

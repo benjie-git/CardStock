@@ -106,7 +106,11 @@ class Runner():
             "ArrowRight": "Right",
             "ArrowUp": "Up",
             "ArrowDown": "Down",
+            "Enter": "Return"
         }
+
+    def StartStack(self):
+        self.stackStartTime = time()
 
     def SetupForCard(self, cardModel):
         """
@@ -578,12 +582,12 @@ class Runner():
             snd.load()
         if snd:
             self.soundCache[filepath] = snd
+            snd.currentTime = 0
             snd.play()
 
     def StopSound(self):
         for snd in self.soundCache.values():
             snd.pause()
-            snd.currentTime = 0
 
     @RunOnMainSync
     def Paste(self):

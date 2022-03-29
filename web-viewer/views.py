@@ -1,6 +1,7 @@
 from browser import document
 import wx_compat as wx
 from time import time
+import math
 
 FontMap = {'Default': 'Arial', 'Mono': 'monospace', 'Serif': 'serif', 'Sans-Serif': 'Arial'}
 
@@ -42,7 +43,7 @@ class UiView(object):
 
     def LoadChildren(self):
         for m in self.model.childModels:
-            ui = self.stackManager.UiViewFromModel(self.model, self.stackManager, m)
+            ui = self.stackManager.UiViewFromModel(self, self.stackManager, m)
             self.uiViews[m] = ui
             ui.LoadChildren()
 
@@ -57,7 +58,7 @@ class UiView(object):
 
     def OnPeriodic(self):
         self.stackManager.runner.RunHandler(self.model, "OnPeriodic", None)
-        for ui in self.uiViews.values():
+        for ui in self.uiViews.copy().values():
             ui.OnPeriodic()
 
     def OnPropertyChanged(self, key):
@@ -69,8 +70,7 @@ class UiView(object):
         if key in ("position", "center", "size"):
             rect = self.stackManager.ConvRect(self.model.GetFrame())
             for fab in self.fabObjs:
-                fab.set({'left': rect.Left, 'top': rect.Top})
-                fab.setCoords()
+                self.SetFabObjCoords(fab, (rect.Left, rect.Top))
         elif key == "rotation":
             rot = self.model.GetProperty("rotation")
             for fab in self.fabObjs:
@@ -80,6 +80,28 @@ class UiView(object):
             visible = self.model.GetProperty("isVisible")
             for fab in self.fabObjs:
                 fab.set({'visible': visible})
+
+    def SetFabObjCoords(self, fab, pos):
+        rot = self.model.GetProperty('rotation')
+        thick = 0
+        if self.model.type in ["oval", "rect", "roundrect", "polygon"]:
+            thick = self.model.GetProperty('penThickness')
+            pos = (pos[0] + thick / 2, pos[1] + thick / 2)
+        elif self.model.type in ["line", "pen"]:
+            t = self.model.GetProperty('penThickness')
+            s = self.model.GetProperty('size')
+            pos = [pos[0] - t / 2, pos[1] - t / 2]
+            if s[1] == 2: pos[1] += 2
+        if not rot or not self.model.type in ["image"]:
+            fab.set({'left': pos[0], 'top': pos[1]})
+        else:
+            s = (fab.width+thick, fab.height+thick)
+            aff = wx.AffineMatrix2D()
+            aff.Rotate(math.radians(self.model.GetProperty('rotation')))
+            offset = aff.TransformPoint(s[0]/2, s[1]/2)
+            offset = (s[0]/2 - offset[0], s[1]/2 - offset[1])
+            fab.set({'left': pos[0]+offset[0], 'top': pos[1]+offset[1]})
+        fab.setCoords()
 
     def RunAnimations(self, onFinishedCalls, elapsedTime):
         # Move the object by speed.x and speed.y pixels per second
@@ -145,6 +167,10 @@ class UiCard(UiView):
         self.stackManager.canvas.setBackgroundColor(self.model.GetProperty("fillColor"))
         self.LoadChildren()
         self.AddChildren()
+
+    def FinishedLoad(self):
+        self.stackManager.canvas.requestRenderAll()
+        self.stackManager.RunSetupIfNeeded()
         self.stackManager.runner.RunHandler(self.model, "OnShowCard", None)
 
     def UnLoad(self):
@@ -158,7 +184,7 @@ class UiCard(UiView):
             for model, ui in self.uiViews.items():
                 for o in ui.fabObjs:
                     self.stackManager.canvas.add(o)
-            self.stackManager.canvas.requestRenderAll()
+            self.FinishedLoad()
 
     def FindTargetUi(self, fabObj):
         for ui in self.uiViews.values():
@@ -280,6 +306,7 @@ class UiButton(UiView):
         self.group.hasControls = False
         self.group.lockMovementX = True
         self.group.lockMovementY = True
+        self.group.centeredRotation = True
         self.group.hoverCursor = "pointer"
         self.fabObjs = [self.group]
         super().CreateFabObjs()
@@ -345,6 +372,7 @@ class UiTextLabel(UiView):
                                            'fontFamily': FontMap[model.properties['font']],
                                            'fontSize': model.properties['fontSize'] * 1.2,
                                            'id': UiView.NextId()})
+        self.textbox.centeredRotation = True
         self.textbox.rotate(model.properties['rotation'])
         self.textbox.selectable = False
         self.textbox.hoverCursor = "arrow"
@@ -384,6 +412,7 @@ class UiTextField(UiView):
                                        'strokeWidth': 1,
                                        'id': UiView.NextId()})
         self.textBg.selectable = False
+        self.textBg.centeredRotation = True
         self.textBg.hoverCursor = "arrow"
 
         self.textbox = fabric.Textbox.new(model.properties['text'],
@@ -400,6 +429,7 @@ class UiTextField(UiView):
         self.textbox.hasControls = False
         self.textbox.lockMovementX = True
         self.textbox.lockMovementY = True
+        self.textbox.centeredRotation = True
         self.textbox.hoverCursor = "text"
 
         self.textbox.on('selected', self.OnSelected)
@@ -469,43 +499,33 @@ class UiShape(UiView):
         fabric = self.stackManager.fabric
         thickness = model.properties['penThickness']
         rect = self.stackManager.ConvRect(model.GetFrame())
-        rect.Left -= thickness/2
-        rect.Top -= thickness/2
         shape = None
         if model.type == "oval":
-            shape = fabric.Ellipse.new({'left': rect.Left,
-                                             'top': rect.Top,
-                                             'rx': model.properties['size'].width/2,
-                                             'ry': model.properties['size'].height/2,
-                                             'fill': model.properties['fillColor'],
-                                             'stroke': model.properties['penColor'],
-                                             'strokeWidth': thickness
-                                            })
+            shape = fabric.Ellipse.new({'rx': model.properties['size'].width/2,
+                                        'ry': model.properties['size'].height/2,
+                                        'fill': model.properties['fillColor'],
+                                        'stroke': model.properties['penColor'],
+                                        'strokeWidth': thickness
+                                        })
         elif model.type == "rect":
-            shape = fabric.Rect.new({'left': rect.Left,
-                                          'top': rect.Top,
-                                          'width': model.properties['size'].width,
-                                          'height': model.properties['size'].height,
-                                          'fill': model.properties['fillColor'],
-                                          'stroke': model.properties['penColor'],
-                                          'strokeWidth': thickness
-                                         })
+            shape = fabric.Rect.new({'width': model.properties['size'].width,
+                                     'height': model.properties['size'].height,
+                                     'fill': model.properties['fillColor'],
+                                     'stroke': model.properties['penColor'],
+                                     'strokeWidth': thickness
+                                     })
         elif model.type == "roundrect":
-            shape = fabric.Rect.new({'left': rect.Left,
-                                          'top': rect.Top,
-                                          'width': model.properties['size'].width,
-                                          'height': model.properties['size'].height,
-                                          'rx': model.properties['cornerRadius'],
-                                          'ry': model.properties['cornerRadius'],
-                                          'fill': model.properties['fillColor'],
-                                          'stroke': model.properties['penColor'],
-                                          'strokeWidth': thickness
-                                         })
+            shape = fabric.Rect.new({'width': model.properties['size'].width,
+                                     'height': model.properties['size'].height,
+                                     'rx': model.properties['cornerRadius'],
+                                     'ry': model.properties['cornerRadius'],
+                                     'fill': model.properties['fillColor'],
+                                     'stroke': model.properties['penColor'],
+                                     'strokeWidth': thickness
+                                     })
         elif model.type == "polygon":
             shape = fabric.Polygon.new([{"x":p[0], "y":p[1]} for p in self.model.GetScaledPoints()],
-                                          {'left': rect.Left,
-                                           'top': rect.Top,
-                                           'fill': model.properties['fillColor'],
+                                          {'fill': model.properties['fillColor'],
                                            'stroke': model.properties['penColor'],
                                            'strokeWidth': thickness,
                                            'strokeLineJoin': 'round',
@@ -513,9 +533,7 @@ class UiShape(UiView):
                                            })
         elif model.type in ["line", "pen"]:
             shape = fabric.Polyline.new([{"x":p[0], "y":p[1]} for p in self.model.GetScaledPoints()],
-                                          {'left': rect.Left,
-                                           'top': rect.Top,
-                                           'fill': None,
+                                          {'fill': None,
                                            'stroke': model.properties['penColor'],
                                            'strokeWidth': thickness,
                                            'strokeLineCap': 'round',
@@ -523,10 +541,12 @@ class UiShape(UiView):
                                            'flipY': True
                                          })
 
-        shape.rotate(model.properties['rotation'])
         shape.set({'id': UiView.NextId()})
         shape.selectable = False
+        shape.centeredRotation = True
         shape.hoverCursor = "arrow"
+        self.SetFabObjCoords(shape, rect.Position)
+        shape.rotate(model.properties['rotation'])
         self.shape = shape
         self.fabObjs = [self.shape]
         super().CreateFabObjs()
@@ -554,6 +574,7 @@ class UiImage(UiView):
     def __init__(self, parent, stackManager, model):
         self.origImage = None
         self.image = None
+        self.imgOffset = (0, 0)
         super().__init__(parent, stackManager, model)
 
     def CreateFabObjs(self):
@@ -569,6 +590,7 @@ class UiImage(UiView):
                 self.image.rotate(model.properties['rotation'])
                 self.image.set({'id': UiView.NextId()})
                 self.image.selectable = False
+                self.image.centeredRotation = True
                 self.image.hoverCursor = "arrow"
                 superCreateFabObjs()
             self.stackManager.uiCard.pendingLoads -= 1
@@ -586,41 +608,54 @@ class UiImage(UiView):
             self.image = img
 
         if fit == "Stretch":
-            self.origImage.cloneAsImage(setImg)
+            self.imgOffset = (0, 0)
             scaleX,scaleY = (rect.Width / imgSize['width'], rect.Height / imgSize['height'])
-            self.image.set({'scaleX': scaleX, 'scaleY': scaleY,
-                            'left': rect.Left, 'top': rect.Top})
+            self.origImage.cloneAsImage(setImg)
+            self.image.set({'scaleX': scaleX, 'scaleY': scaleY})
+            self.SetFabObjCoords(self.image, (rect.Left, rect.Top))
         elif fit == "Fill":
             scale = max(rect.Width / imgSize['width'], rect.Height / imgSize['height'])
             dx = (imgSize.width*scale - rect.Width) / 2
             dy = (imgSize.height*scale - rect.Height) / 2
+            self.imgOffset = (-max(dx, 0) / scale, -max(dy, 0) / scale)
             self.origImage.cloneAsImage(setImg,
                                         {'left': max(dx, 0) / scale, 'top': max(dy, 0) / scale,
-                                         'width': rect.Width / scale, 'height': rect.Height / scale})
+                                         'width': rect.Width / scale,
+                                         'height': rect.Height / scale})
             self.image.set({'scaleX': scale, 'scaleY': scale})
-            self.image.set({'left': rect.Left, 'top': rect.Top})
+            self.SetFabObjCoords(self.image, (rect.Left + self.imgOffset[0], rect.Top - self.imgOffset[1]))
         elif fit == "Center":
             dx = (imgSize.width - rect.Width) / 2
             dy = (imgSize.height - rect.Height) / 2
+            self.imgOffset = (-dx, -dy)
             self.origImage.cloneAsImage(setImg,
                                         {'left': max(dx, 0), 'top': max(dy, 0),
-                                         'width': rect.Width, 'height': rect.Height})
-            self.image.set({'left': rect.Left, 'top': rect.Top})
+                                         'width': min(rect.Width, imgSize.width), 'height': min(rect.Height, imgSize.height)})
+            self.SetFabObjCoords(self.image, (rect.Left + self.imgOffset[0], rect.Top - self.imgOffset[1]))
         else:  # "Contain"
-            self.origImage.cloneAsImage(setImg)
             scale = min(rect.Width / imgSize['width'], rect.Height / imgSize['height'])
             dx = (imgSize.width*scale - rect.Width) / 2
             dy = (imgSize.height*scale - rect.Height) / 2
+            self.imgOffset = (-min(dx,0), -min(dy,0))
+            self.origImage.cloneAsImage(setImg)
             self.image.set({'scaleX': scale, 'scaleY': scale,
                             'left': rect.Left - min(dx,0), 'top': rect.Top - min(dy,0)})
-
-        self.image.setCoords()
+            self.SetFabObjCoords(self.image, (rect.Left + self.imgOffset[0], rect.Top - self.imgOffset[1]))
         self.fabObjs = [self.image]
 
     def OnPropertyChanged(self, key):
-        super().OnPropertyChanged(key)
-        if key == "file":
-            self.image.setSrc(self.model.GetProperty(key))
+        if key not in ("size", "position", "center"):
+            super().OnPropertyChanged(key)
+        if key == "size":
+            s = self.model.GetProperty("size")
+            self.image.set({'width': s.width, 'height': s.height})
+            self.image.setCoords()
+        if key in ("position", "center", "size"):
+            rect = self.stackManager.ConvRect(self.model.GetFrame())
+            self.SetFabObjCoords(self.image, (rect.Left + self.imgOffset[0], rect.Top - self.imgOffset[1]))
+        elif key == "file":
+            file = "Resources/" + self.model.properties['file']
+            self.image.setSrc(file)
         elif key == "fit":
             index = self.stackManager.canvas.getObjects().index(self.image)
             self.stackManager.canvas.remove(self.image)
@@ -647,6 +682,7 @@ class UiGroup(UiView):
                                              'subTargetCheck': True,
                                              'id': UiView.NextId()})
         self.group.rotate(self.model.properties['rotation'])
+        self.group.centeredRotation = True
         self.group.selectable = False
         self.group.hoverCursor = "arrow"
         self.fabObjs = [self.group]
@@ -657,7 +693,6 @@ class UiGroup(UiView):
             allUiViews.append(uiView)
             if uiView.model.type == "group":
                 uiView.GetAllUiViews(allUiViews)
-
 
 class UiWebView(UiView):
     pass

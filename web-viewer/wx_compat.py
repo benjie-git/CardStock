@@ -1,3 +1,5 @@
+import math
+
 from browser import window
 
 
@@ -128,7 +130,7 @@ class Point(object):
             self._x = args[0]
             self._y = args[1]
         else:
-            raise TypeError("Point() requires 2 numbers or a Point")
+            raise TypeError(f"Point() requires 2 numbers or a Point {args}")
 
     def __eq__(self, other):
         if isinstance(other, (Point, list, tuple)):
@@ -335,18 +337,41 @@ class Colour(object):
 
 
 class AffineMatrix2D(object):
-    def __init__(self, a,b,c,d,e,f):
+    nextMat = 1
+    def __init__(self, other=None):
         super().__init__()
-        pass
 
-    def Translate(self, a,b,c):
-        pass
+        self.id = AffineMatrix2D.nextMat
+        AffineMatrix2D.nextMat += 1
 
-    def Rotate(self, a,b,c):
-        pass
+        if other:
+            self.matrix = window.fabric.util.composeMatrix(other.matrix)
+        else:
+            d = {'angle': 0,
+                 'scaleX': 1.0, 'scaleY': 1.0,
+                 'flipX': False, 'flipY': False,
+                 'skewX': 0.0, 'skewY': 0.0,
+                 'translateX': 0, 'translateY': 0}
+            self.matrix = window.fabric.util.composeMatrix(d)
+
+    def Translate(self, x, y):
+        newMat = window.fabric.util.composeMatrix({'translateX':x, 'translateY':y})
+        newMat = window.fabric.util.multiplyTransformMatrices(self.matrix, newMat, False)
+        self.matrix = newMat
+
+    def Rotate(self, angle):
+        angle = math.degrees(angle)
+        newMat = window.fabric.util.composeMatrix({'angle': angle})
+        newMat = window.fabric.util.multiplyTransformMatrices(self.matrix, newMat, False)
+        self.matrix = newMat
+
+    def Invert(self):
+        newMat = window.fabric.util.invertTransform(self.matrix)
+        self.matrix = newMat
 
     def TransformPoint(self, x, y):
-        return (x, y)
+        pos = window.fabric.util.transformPoint({'x':x, 'y':y}, self.matrix)
+        return RealPoint(pos.x, pos.y)
 
 
 # CardStock-specific Point, Size, RealPoint subclasses
