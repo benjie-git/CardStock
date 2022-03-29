@@ -926,7 +926,10 @@ class ViewProxy(object):
         ui = model.stackManager.GetUiViewByModel(model)
         if not ui:
             return False
-        if len(ui.fabObjs) > 0:
+        if model.type == "card":
+            s = model.GetProperty('size')
+            return point[0] >= 0 and point[1] >= 0 and point[0] <= s.width and point[1] <= s.height
+        elif len(ui.fabObjs) > 0:
             return ui.fabObjs[0].containsPoint(point)
         return False
 
@@ -963,26 +966,27 @@ class ViewProxy(object):
         #     if not self.IsTouching(obj):
         #         return None
 
-        rect = oModel.GetFrame() # other frame in card coords
-        cornerSetback = 4
+        rect = oModel.GetAbsoluteFrame() # other frame in card coords
+        rect = ui.stackManager.ConvRect(rect)
+
+        cornerSetback = 6
         # Pull edge lines away from the corners, so we don't always hit a corner when 2 objects touch
         rects = [wx.Rect(rect.TopLeft+(cornerSetback,0), rect.TopRight+(-cornerSetback,1)),
-                  wx.Rect(rect.TopRight+(-1,cornerSetback), rect.BottomRight+(0,-cornerSetback)),
-                  wx.Rect(rect.BottomLeft+(cornerSetback,-1), rect.BottomRight+(-cornerSetback,0)),
-                  wx.Rect(rect.TopLeft+(0,cornerSetback), rect.BottomLeft+(1,-cornerSetback))]
+                 wx.Rect(rect.TopRight+(-1,cornerSetback), rect.BottomRight+(0,-cornerSetback)),
+                 wx.Rect(rect.BottomLeft+(cornerSetback,-1), rect.BottomRight+(-cornerSetback,0)),
+                 wx.Rect(rect.TopLeft+(0,cornerSetback), rect.BottomLeft+(1,-cornerSetback))]
 
         oRot = oModel.GetProperty("rotation")
         if oRot is None: oRot = 0
 
         # if oRot == 0:
-        bottom = rects[0]
+        top = rects[0]
         right = rects[1]
-        top = rects[2]
+        bottom = rects[2]
         left = rects[3]
 
         def TestRect(r):
             fabric = ui.stackManager.fabric
-            r = ui.stackManager.ConvRect(r)
             tl = fabric.Point.new(r.Left, r.Top)
             br = fabric.Point.new(r.Right, r.Bottom)
             return sFab.intersectsWithRect(tl, br)

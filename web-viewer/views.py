@@ -139,6 +139,130 @@ class UiView(object):
             onFinishedCalls.append(deferFinish(key))
         return didRun
 
+    def FindCollisions(self, collisions):
+        # Find collisions between this object and others in its bounceObjs list
+        # and add them to the collisions list, to be handled after all are found.
+        removeFromBounceObjs = []
+        if not self.model.didSetDown and self.model.GetProperty("isVisible") and tuple(self.model.GetProperty("speed")) != (0, 0):
+            for k,v in self.model.bounceObjs.items():
+                other_ui = self.stackManager.GetUiViewByModel(k)
+                (mode, last_dist) = v
+
+                if not other_ui.model.GetProperty("isVisible"):
+                    continue
+
+                if other_ui.model.didSetDown:
+                    # remove deleted objects from the bounceObjs list, after this loop is done
+                    removeFromBounceObjs.append(k)
+                    continue
+
+                sc = self.model.GetProxy().center       # sc = self center
+                oc = other_ui.model.GetProxy().center   # oc = other center
+                new_dist = (abs(sc[0]-oc[0]), abs(sc[1]-oc[1]))
+
+                if not mode:
+                    # Determine whether we're inside or outside of this object
+                    self.model.bounceObjs[k][0] = "In" if other_ui.model.GetProxy().IsTouchingPoint(self.model.GetCenter()) else "Out"
+                    self.model.bounceObjs[k][1] = new_dist
+                    continue
+
+                edges = self.model.GetProxy().IsTouchingEdge(other_ui.model.GetProxy(), mode == "In")
+                if mode == "In" and not edges:
+                    if not other_ui.model.GetProxy().IsTouchingPoint(self.model.GetCenter()):
+                        edges = []
+                        sc = self.model.GetCenter()
+                        oc = other_ui.model.GetCenter()
+                        if sc[0] < oc[0]: edges.append("Left")
+                        if sc[0] > oc[0]: edges.append("Right")
+                        if sc[1] < oc[1]: edges.append("Bottom")
+                        if sc[1] > oc[1]: edges.append("Top")
+                if edges:
+                    selfBounceAxes = ""
+                    otherBounceAxes = ""
+                    ss = self.model.GetProxy().speed
+                    os = other_ui.model.GetProxy().speed
+                    if mode == "In":
+                        # Bounce if hitting an edge of the enclosing object, and only if moving toward the other object's edge
+                        if ("Left" in edges or "Right" in edges) and new_dist[0] > last_dist[0]:
+                            if (ss[0] > 0 and oc[0] < sc[0]) or (ss[0] < 0 and oc[0] > sc[0]):
+                                selfBounceAxes += "H"
+                            if (os[0] > 0 and sc[0] < oc[0]) or (os[0] < 0 and sc[0] > oc[0]):
+                                otherBounceAxes += "H"
+                        if ("Top" in edges or "Bottom" in edges) and new_dist[1] > last_dist[1]:
+                            if (ss[1] > 0 and oc[1] < sc[1]) or (ss[1] < 0 and oc[1] > sc[1]):
+                                selfBounceAxes += "V"
+                            if (os[1] > 0 and sc[1] < oc[1]) or (os[1] < 0 and sc[1] > oc[1]):
+                                otherBounceAxes += "V"
+                    elif mode == "Out":
+                        # Bounce if hitting an edge of the other object, and only if moving toward the other object
+                        if ("Left" in edges or "Right" in edges) and new_dist[0] < last_dist[0]:
+                            if (ss[0] > 0 and oc[0] > sc[0]) or (ss[0] < 0 and oc[0] < sc[0]):
+                                selfBounceAxes += "H"
+                            if (os[0] > 0 and sc[0] > oc[0]) or (os[0] < 0 and sc[0] < oc[0]):
+                                otherBounceAxes += "H"
+                        if ("Top" in edges or "Bottom" in edges) and new_dist[1] < last_dist[1]:
+                            if (ss[1] > 0 and oc[1] > sc[1]) or (ss[1] < 0 and oc[1] < sc[1]):
+                                selfBounceAxes += "V"
+                            if (os[1] > 0 and sc[1] > oc[1]) or (os[1] < 0 and sc[1] < oc[1]):
+                                otherBounceAxes += "V"
+
+                    if len(selfBounceAxes) or len(otherBounceAxes):
+                        sn = self.model.GetProperty("name")
+                        on = other_ui.model.GetProperty("name")
+                        key = (self, other_ui) if sn < on else (other_ui, self)
+                        if key not in collisions:
+                            # Add this collision to the list, indexed by normalized object pair to avoid duplicates
+                            edgeList = []
+                            for eStr in ("Top", "Bottom", "Left", "Right"):
+                                if eStr in edges: edgeList.append(eStr)
+                            collisions[key] = (self, other_ui, selfBounceAxes, otherBounceAxes, tuple(edgeList), mode)
+
+                self.model.bounceObjs[k][1] = new_dist
+
+            for k in removeFromBounceObjs:
+                del self.model.bounceObjs[k]
+
+    def PerformBounce(self, info, elapsedTime):
+        # Perform this bounce for this object, and the other object
+        (this_ui, other_ui, selfAxes, otherAxes, edges, mode) = info
+        ss = self.model.GetProxy().speed
+        os = other_ui.model.GetProxy().speed
+
+        # Flags
+        selfBounce = other_ui.model in self.model.bounceObjs
+        selfBounceInside = False if not selfBounce else self.model.bounceObjs[other_ui.model][0] == "In"
+        otherBounce = self.model in other_ui.model.bounceObjs
+
+        # Back up to avoid overlap
+        self.model.SetProperty("position", self.model.GetProperty("position") - tuple(ss*(elapsedTime/2)))
+
+        # Finally perform the actual bounces
+        if selfBounce and "H" in selfAxes:
+            ss.x = -ss.x
+        if otherBounce and "H" in otherAxes:
+            os.x = -os.x
+        if selfBounce and "V" in selfAxes:
+            ss.y = -ss.y
+        if otherBounce and "V" in otherAxes:
+            os.y = -os.y
+
+        # Call the bounce handlers.  It's possible to bounce off of 2 edges at once (a corner), in which
+        # case we call this handler once per edge it bounced off of.
+        if other_ui.model in self.model.bounceObjs:
+            for edge in edges:
+                if self.stackManager.runner and self.model.GetHandler("OnBounce"):
+                    self.stackManager.runner.RunHandler(self.model, "OnBounce", None,
+                                                        [other_ui.model.GetProxy(), edge])
+
+        if self.model in other_ui.model.bounceObjs:
+            # Use this opposites dict to show the right edge names in the other object's OnBounce calls
+            opposites = {"Top": "Bottom", "Bottom": "Top", "Left": "Right", "Right": "Left"}
+            for edge in edges:
+                otherEdge = edge if selfBounceInside else opposites[edge] # Don't flip names for inside bounces
+                if self.stackManager.runner and other_ui.model.GetHandler("OnBounce"):
+                    self.stackManager.runner.RunHandler(other_ui.model, "OnBounce", None,
+                                                        [self.model.GetProxy(), otherEdge])
+
 
 class UiCard(UiView):
     def __init__(self, parent, stackManager, model):
@@ -150,7 +274,7 @@ class UiCard(UiView):
         document.onkeydown = self.OnKeyDown
         document.onkeyup = self.OnKeyUp
         self.lastMouseOverObj = None
-        self.fabObjs = [stackManager.canvas]
+        self.fabObjs = []
 
     def CreateFabObjs(self):
         pass
@@ -178,7 +302,6 @@ class UiCard(UiView):
         if self.model:
             self.stackManager.runner.RunHandler(self.model, "OnHideCard", None)
             self.UnloadFabObjs()
-            self.uiViews = {}
 
     def AddChildren(self):
         if self.pendingLoads == 0:

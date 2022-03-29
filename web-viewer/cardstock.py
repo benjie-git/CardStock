@@ -27,7 +27,6 @@ class StackManager(object):
 
     def SetDown(self):
         timer.cancel_animation_frame(self.periodicTimer)
-        # self.runner.CleanupFromRun()
         self.uiCard.SetDown()
         self.uiCard = None
         self.stackModel.SetDown()
@@ -36,7 +35,10 @@ class StackManager(object):
 
     def Unload(self):
         self.uiCard.UnLoad()
-        self.uiCard.SetDown()
+        for ui in self.uiCard.uiViews.values():
+            ui.SetDown()
+        self.uiCard.uiViews = {}
+
         self.stackModel.SetDown()
         self.stackModel.DismantleChildTree()
 
@@ -80,6 +82,7 @@ class StackManager(object):
 
         didRun = False
         if elapsedTime >= 0.03:
+            self.lastPeriodic = now
             allUi = self.uiCard.GetAllUiViews()
             onFinishedCalls = []
             if self.uiCard.RunAnimations(onFinishedCalls, elapsedTime):
@@ -93,10 +96,20 @@ class StackManager(object):
                 c()
             if len(onFinishedCalls):
                 didRun = True
+
+            # Check for all collisions
+            collisions = {}
+            for ui in allUi:
+                ui.FindCollisions(collisions)
+
+            # Perform any bounces
+            for (k,v) in collisions.items():
+                v[0].PerformBounce(v, elapsedTime)
+                didRun = True
+
             if didRun:
                 self.canvas.requestRenderAll()
 
-            self.lastPeriodic = now
             self.uiCard.OnKeyHold()
             self.uiCard.OnPeriodic()
 

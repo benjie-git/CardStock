@@ -119,6 +119,9 @@ class Size(object):
     def __iter__(self):
         return (self.__getitem__(k) for k in (0, 1))
 
+    def __len__(self):
+        return 2
+
 
 class Point(object):
     def __init__(self, *args):
@@ -233,6 +236,9 @@ class Point(object):
     def __iter__(self):
         return (self.__getitem__(k) for k in (0, 1))
 
+    def __len__(self):
+        return 2
+
 
 class RealPoint(Point):
     pass
@@ -249,8 +255,13 @@ class Rect(object):
         elif len(args) == 2:
             self.Left = args[0][0]
             self.Top = args[0][1]
-            self.Width = args[1][0]
-            self.Height = args[1][1]
+            if isinstance(args[1], Point):
+                self.Width = args[1][0] - args[0][0]
+                self.Height = args[1][1] - args[0][1]
+            else:
+                self.Width = args[1][0]
+                self.Height = args[1][1]
+
         else:
             raise TypeError
 

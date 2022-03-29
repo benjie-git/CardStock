@@ -275,6 +275,14 @@ class Runner():
         try:
             exec(handlerStr, self.clientVars)
             self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
+        except SyntaxError as err:
+            self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
+            detail = err.msg
+            error_class = err.__class__.__name__
+            line_number = err.lineno
+            errModel = uiModel
+            errHandlerName = handlerName
+            print(f"{error_class}: {detail} in {errModel.properties['name']}:{errHandlerName}:{line_number}\n{handlerStr}", file=sys.stderr)
         except Exception as err:
             if err.__class__.__name__ == "RuntimeError" and err.args[0] == "Return":
                 # Catch our exception-based return calls
@@ -285,6 +293,7 @@ class Runner():
                 detail = err.args[0]
                 errHandlerName = ""
                 line_number = None
+                errModel = None
                 cl, exc, tb = sys.exc_info()
                 trace = traceback.extract_tb(tb)
                 for i in range(len(trace)):
@@ -299,7 +308,10 @@ class Runner():
                             if errModel.clonedFrom: errModel = errModel.clonedFrom
                             errHandlerName = self.funcDefs[trace[i].name][1]
                             line_number = trace[i].lineno
-                print(f"{error_class}: {detail} in {errModel.properties['name']}:{errHandlerName}:{line_number}\n{handlerStr}", file=sys.stderr)
+                if errModel:
+                    print(f"{error_class}: {detail} in {errModel.properties['name']}:{errHandlerName}:{line_number}\n{handlerStr}", file=sys.stderr)
+                else:
+                    print(f"{error_class}: {detail}:{errHandlerName}:{line_number}\n{handlerStr}", file=sys.stderr)
 
         del self.lastHandlerStack[-1]
 
