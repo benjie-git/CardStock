@@ -71,7 +71,7 @@ class Runner():
 
         self.soundCache = {}
 
-        self.stackStartTime = time()
+        self.stackStartTime = None
 
         self.initialClientVars = {
             "Wait": self.Wait,
@@ -98,7 +98,7 @@ class Runner():
             "Size": self.MakeSize,
         }
 
-        self.clientVars = self.initialClientVars.copy()
+        self.clientVars = None
 
         self.keyCodeStringMap = {
             " ": "Space",
@@ -111,6 +111,20 @@ class Runner():
 
     def StartStack(self):
         self.stackStartTime = time()
+        self.clientVars = self.initialClientVars.copy()
+        self.cardVarKeys = []
+        self.timers = []
+        self.errors = []
+        self.lastHandlerStack = []
+        self.didSetup = False
+        self.runnerDepth = 0
+        self.numOnPeriodicsQueued = 0
+        self.rewrittenHandlerMap = {}
+        self.onRunFinished = None
+        self.funcDefs = {}
+        self.lastCard = None
+        self.stopHandlingMouseEvent = False
+        self.shouldUpdateVars = False
 
     def SetupForCard(self, cardModel):
         """

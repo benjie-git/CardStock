@@ -229,6 +229,15 @@ class ViewModel(object):
         tr = wx.Point(max(ptA[0], ptB[0]), max(ptA[1], ptB[1]))
         return wx.Rect(bl, tr)
 
+    def GetAbsoluteRotation(self):
+        rot = 0
+        m = self
+        while m and m.type not in ("card", "stack"):
+            r = m.GetProperty('rotation')
+            if r: rot += r
+            m = m.parent
+        return rot
+
     def GetAbsolutePosition(self):
         parent = self.parent
         pos = self.GetProperty("position")

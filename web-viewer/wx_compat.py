@@ -265,6 +265,23 @@ class Rect(object):
         else:
             raise TypeError
 
+    def Union(self, other):
+        if other.Top < self.Top:
+            diff = other.Top - self.Top
+            self.Top -= diff
+            self.Height += diff
+        if other.Left < self.Left:
+            diff = other.Left - self.Left
+            self.Left -= diff
+            self.Width += diff
+        if other.Bottom > self.Bottom:
+            diff = other.Bottom - self.Bottom
+            self.Height += diff
+        if other.Right > self.Right:
+            diff = other.Right - self.Right
+            self.Width += diff
+        return self
+
     def __eq__(self, other):
         if isinstance(other, Rect):
             return (self.Left == other.Left and self.Top == other.Top and

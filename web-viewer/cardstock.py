@@ -160,11 +160,22 @@ class StackManager(object):
             self.uiCard.uiViews[model] = uiView
             if uiView.model not in self.uiCard.model.childModels:
                 self.uiCard.model.AddChild(uiView.model)
-            for o in uiView.fabObjs:
-                self.canvas.add(o)
+            self.AddFabObjs(uiView)
             self.canvas.requestRenderAll()
 
         return uiView
+
+    def AddFabObjs(self, uiView):
+        for fab in uiView.fabObjs:
+            self.canvas.add(fab)
+        for ui in uiView.uiViews.values():
+            self.AddFabObjs(ui)
+
+    def RemoveFabObjs(self, uiView):
+        for fab in uiView.fabObjs:
+            self.canvas.remove(fab)
+        for ui in uiView.uiViews.values():
+            self.RemoveFabObjs(ui)
 
     def AddUiViewsFromModels(self, models):
         """
@@ -188,8 +199,7 @@ class StackManager(object):
             del self.uiCard.uiViews[viewModel]
             if ui.model.parent:
                 self.uiCard.model.RemoveChild(ui.model)
-            for fab in ui.fabObjs:
-                self.canvas.remove(fab)
+            self.RemoveFabObjs(ui)
             self.canvas.requestRenderAll()
         else:
             if viewModel.parent:
@@ -227,6 +237,52 @@ class StackManager(object):
                     index = len(self.stackModel.childModels) - 1
                 if index >= 0:
                     self.LoadCardAtIndex(index)
+
+    def GroupModelsInternal(self, models, group=None, name=None):
+        """ Groups both the models and uiView objects, so while running, call this within a @RunOnMainSync. """
+        if len(models) > 1:
+            card = models[0].GetCard()
+            if not group:
+                group = GroupModel(self)
+                if not name:
+                    name = "group"
+                group.SetProperty("name", card.GetNextAvailableNameInCard(name), notify=False)
+            else:
+                group.SetBackUp(self)
+            validModels = []
+            for m in models:
+                if m.GetCard() == card:
+                    validModels.append(m)
+                    self.RemoveUiViewByModel(m)
+                    m.SetBackUp(self)
+            group.AddChildModels(validModels)
+            if card == self.uiCard.model:
+                self.AddUiViewsFromModels([group])
+            else:
+                card.AddChild(group)
+        return group
+
+    def UngroupModelsInternal(self, groups):
+        """ Ungroups both the models and uiView objects, so while running, call this within a @RunOnMainSync. """
+        modelSets = []
+        if len(groups) > 0:
+            for group in groups:
+                childModels = []
+                modelSets.append(childModels)
+                for child in group.childModels.copy():
+                    childModels.append(child)
+                    group.RemoveChild(child)
+                    child.SetBackUp(self)
+                if group.GetCard() == self.uiCard.model:
+                    self.RemoveUiViewByModel(group)
+                    self.AddUiViewsFromModels(childModels)
+                else:
+                    p = group.parent
+                    p.RemoveChild(group)
+                    for child in childModels:
+                        p.AddChild(child)
+
+        return modelSets
 
     def OnPropertyChanged(self, model, key):
         ui = self.GetUiViewByModel(model)
