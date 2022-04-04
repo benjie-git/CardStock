@@ -165,12 +165,10 @@ class StackManager(object):
     def RemoveFabObjs(self, uiView):
         ids = []
         def remUi(ui):
-            print("removing", ui.fabIds)
             ids.extend(ui.fabIds)
             for u in ui.uiViews.values():
                 remUi(u)
         remUi(uiView)
-        print("remAll", ids)
         worker.stackWorker.SendAsync(("fabDel", *ids))
 
     def AddUiViewsFromModels(self, models):

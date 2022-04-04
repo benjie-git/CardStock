@@ -306,7 +306,7 @@ class Runner():
             line_number = err.lineno
             errModel = uiModel
             errHandlerName = handlerName
-            print(f"{error_class}: {detail} in {errModel.properties['name']}:{errHandlerName}:{line_number}\n{handlerStr}", file=sys.stderr)
+            print(f"{error_class}: {detail} in {errModel.properties['name']}:{errHandlerName}:{line_number}", file=sys.stderr)
         except Exception as err:
             if err.__class__.__name__ == "RuntimeError" and err.args[0] == "Return":
                 # Catch our exception-based return calls
@@ -333,7 +333,7 @@ class Runner():
                             errHandlerName = self.funcDefs[trace[i].name][1]
                             line_number = trace[i].lineno
                 if errModel:
-                    print(f"{error_class}: {detail} in {errModel.properties['name']}:{errHandlerName}:{line_number}\n{handlerStr}", file=sys.stderr)
+                    print(f"{error_class}: {detail} in {errModel.properties['name']}:{errHandlerName}:{line_number}", file=sys.stderr)
                 else:
                     print(f"{error_class}: {detail}:{errHandlerName}:{line_number}\n{handlerStr}", file=sys.stderr)
 

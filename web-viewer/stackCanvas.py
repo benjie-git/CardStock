@@ -72,12 +72,14 @@ class StackCanvas(object):
             elif msg == "fabNew":  # uid, type, options
                 uid = args[0]
                 fabClass = window.fabric[args[1]]
-                fabObj = fabClass.new(*(args[2:]))
-                fabObj.set({'csid': uid,
-                            'isType': args[1],
-                            'centeredRotation': True,
-                            'selectable': False,
-                            'hoverCursor': "arrow"})
+                options = {'csid': uid,
+                           'isType': args[1],
+                           'centeredRotation': True,
+                           'selectable': False,
+                           'hoverCursor': "arrow"}
+                options.update(args[-1].to_dict())
+                fabObj = fabClass.new(*(args[2:-1]), options)
+                fabObj.set()
                 self.fabObjs[uid] = fabObj
                 self.canvas.add(fabObj)
 
@@ -310,7 +312,7 @@ class StackCanvas(object):
 
     def OnTextboxKeyDown(self, e):
         fabObj = self.canvas.getActiveObject()
-        if fabObj and fabObj.isType == 'Textbox':
+        if fabObj and fabObj.isType == 'TextField':
             fabObj.oldOnKeyDown(e)
             if not e.repeat:
                 if "Arrow" in e.key:
