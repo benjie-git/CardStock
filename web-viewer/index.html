@@ -7,21 +7,51 @@
     <script type="text/javascript" src="lib/brython.js"></script>
     <script type="text/javascript" src="lib/brython_stdlib.js"></script>
     <script type="text/javascript" src="lib/fabric.min.js"></script>
-    <style> * { margin: 0; padding: 0;} </style>
+    <style>
+        * { margin: 0; padding: 0; }
+        html { height: 100%; }
+        body { min-height: 100%; display: grid; grid-template-rows: auto 1fr auto; }
+        textarea { border: none; display: none; min-width: calc(100% - 2px); max-width: calc(100% - 2px);
+                   min-height: calc(100% - 26px); max-height: calc(100% - 26px); }
+    </style>
 </head>
 
 <body id="body" onload="brython(1)">
 
-<noscript>Please enable Javascript to view this page correctly.</noscript>
+    <header>
+        <canvas id="c" height=500 width=500 class="stack" style="border: 1px solid black;"></canvas>
+        <noscript>Please enable Javascript to view this page correctly.</noscript>
+        <br/>
+        (Drag a CardStock(.cds) file above to load it.)
+        <br/>
+        <br/>
+    </header>
+    <main>
+        <label for="console" id="consoleLabel" onclick="toggleConsole();"> (+) Show Output</label><textarea readonly id="console"></textarea>
+    </main>
+</body>
 
-<canvas id="c" height=500 width=500 class="stack" style="border: 1px solid black;">
-  <i>Sorry, CardStock can't run on your browser right now ; <br>check if Javascript is turned on</i>
-  <br><div class="message"></div>
-</canvas>
+<script type="text/python" src="stackCanvas.py" id="__main__"></script>
+<script type="text/python" src="stackWorker.py" class="webworker" id="stackWorker"></script>
 
-<br/>
-<br/>
-(Drag a CardStock(.cds) file above to load it.)
+<script type="text/python" id="drop">
+    from browser import window, document
+
+    body = document["body"]
+
+    def dragover(ev):
+        ev.preventDefault()
+        ev.stopPropagation()
+    body.bind("dragover", dragover)
+
+    def drop(ev):
+        if len(ev.dataTransfer.files) == 1:
+            f = ev.dataTransfer.files[0]
+            f.text().then(window.stackCanvas.LoadFromStr)
+        ev.preventDefault()
+        ev.stopPropagation()
+    body.bind("drop", drop)
+</script>
 
 <script type="text/javascript">
     window.stackJSON =
@@ -47,34 +77,5 @@
   "CardStock_stack_format": 3,
   "CardStock_stack_version": "0.9.8"
 }
-;
-
 </script>
-
-<script type="text/python">
-    from browser import window, document
-    import cardstock
-
-    body = document["body"]
-    canvas = window.fabric.Canvas.new('c')
-    stackManager = cardstock.StackManager(canvas, window.fabric)
-
-    stackManager.Load(window.stackJSON.to_dict())
-
-    def dragover(ev):
-        ev.preventDefault()
-        ev.stopPropagation()
-    body.bind("dragover", dragover)
-
-    def drop(ev):
-        if len(ev.dataTransfer.files) == 1:
-            f = ev.dataTransfer.files[0]
-            f.text().then(stackManager.LoadFromStr)
-        ev.preventDefault()
-        ev.stopPropagation()
-    body.bind("drop", drop)
-
-</script>
-
-</body>
 </html>

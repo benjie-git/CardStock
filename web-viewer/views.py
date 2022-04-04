@@ -1,9 +1,11 @@
-from browser import document
+from browser import self as worker
 import wx_compat as wx
-from time import time
 import math
 
 FontMap = {'Default': 'Arial', 'Mono': 'monospace', 'Serif': 'serif', 'Sans-Serif': 'Arial'}
+
+def time():
+    return worker.Date.now() / 1000.0
 
 
 class UiView(object):
@@ -12,13 +14,13 @@ class UiView(object):
         self.parent = parent
         self.stackManager = stackManager
         self.model = model
-        self.fabObjs = []
-        self.offsets = {}
+        self.fabIds = []
+        self.offsets = []
         self.uiViews = {}
         self.CreateFabObjs()
 
     def CreateFabObjs(self):
-        self.OnPropertyChanged('isVisible')
+        pass
 
     def SetDown(self):
         for ui in self.uiViews:
@@ -27,21 +29,6 @@ class UiView(object):
         self.parent = None
         self.uiViews = None
         self.model = None
-        self.hitRegion = None
-
-    _NextId = 1
-    @classmethod
-    def NextId(cls):
-        id = cls._NextId
-        cls._NextId += 1
-        return id
-
-    def UnloadFabObjs(self):
-        for o in self.fabObjs:
-            self.stackManager.canvas.remove(o)
-        self.fabObjs = []
-        for ui in self.uiViews.values():
-            ui.UnloadFabObjs()
 
     def LoadChildren(self):
         for m in self.model.childModels:
@@ -49,14 +36,14 @@ class UiView(object):
             self.uiViews[m] = ui
             ui.LoadChildren()
 
-    def OnMouseDown(self, e):
-        self.stackManager.runner.RunHandler(self.model, "OnMouseDown", e)
+    def OnMouseDown(self, pos):
+        self.stackManager.runner.RunHandler(self.model, "OnMouseDown", pos)
 
-    def OnMouseMove(self, e):
-        self.stackManager.runner.RunHandler(self.model, "OnMouseMove", e)
+    def OnMouseMove(self, pos):
+        self.stackManager.runner.RunHandler(self.model, "OnMouseMove", pos)
 
-    def OnMouseUp(self, e):
-        self.stackManager.runner.RunHandler(self.model, "OnMouseUp", e)
+    def OnMouseUp(self, pos):
+        self.stackManager.runner.RunHandler(self.model, "OnMouseUp", pos)
 
     def OnPeriodic(self):
         self.stackManager.runner.RunHandler(self.model, "OnPeriodic", None)
@@ -66,48 +53,58 @@ class UiView(object):
     def OnPropertyChanged(self, key):
         if key == "size":
             s = self.model.GetProperty("size")
-            for fab in self.fabObjs:
-                fab.set({'width': s.width, 'height': s.height})
-                fab.setCoords()
-        if key in ("position", "center", "size"):
-            for fab in self.fabObjs:
-                self.SetFabObjCoords(fab)
-        elif key == "rotation":
-            rot = self.model.GetAbsoluteRotation()
-            for fab in self.fabObjs:
-                fab.rotate(rot)
-                self.SetFabObjCoords(fab)
+            data = []
+            for i in self.fabIds:
+                data.append(("fabSet", i, {'width': s.width, 'height': s.height}))
+            worker.stackWorker.SendAsync(*data)
+        if key in ("position", "center", "size", "rotation"):
+            self.UpdateFabObjCoords()
         elif key == "isVisible":
             visible = self.model.GetProperty("isVisible")
-            for fab in self.fabObjs:
-                fab.set({'visible': visible})
+            data = []
+            for i in self.fabIds:
+                data.append(("fabSet", i, {'visible': visible}))
+            worker.stackWorker.SendAsync(*data)
 
-    def SetFabObjCoords(self, fab):
+    def GetFabObjCoords(self):
         rect = self.model.GetFrame()
         rot = self.model.GetAbsoluteRotation()
+        num = max(len(self.offsets), 1)
+        results = []
+        for i in range(num):
+            pos = rect.BottomLeft
+            objOffset = (0,0)
+            if i < len(self.offsets):
+                objOffset = self.offsets[i]
+                pos += (objOffset[0], objOffset[1])
 
-        pos = rect.BottomLeft
-        if fab in self.offsets:
-            pos += self.offsets[fab]
+            if self.model.type in ["oval", "rect", "roundrect", "polygon", "line", "pen"]:
+                thick = self.model.GetProperty('penThickness')
+                pos = wx.Point(pos[0] - thick / 2, pos[1] + thick / 2)
+            if rot and self.model.type in ["image", "line"]:
+                s = self.model.GetProperty('size') + (-2*objOffset[0], 2*objOffset[1])
+                aff = wx.AffineMatrix2D()
+                aff.Rotate(math.radians(-rot))
+                offset = aff.TransformPoint(s[0] / 2, -s[1] / 2)
+                pos += (s[0] / 2 - offset[0], -s[1] / 2 - offset[1])
+            if self.model.type in ["line", "pen"]:
+                if rect.Height == 2: pos[1] -= 2
 
-        if self.model.type in ["oval", "rect", "roundrect", "polygon", "line", "pen"]:
-            thick = self.model.GetProperty('penThickness')
-            pos = wx.Point(pos[0] - thick / 2, pos[1] + thick / 2)
-        if rot and self.model.type in ["image", "line"]:
-            s = (fab.width, -fab.height)
-            aff = wx.AffineMatrix2D()
-            aff.Rotate(math.radians(-rot))
-            offset = aff.TransformPoint(s[0] / 2, s[1] / 2)
-            pos += (s[0] / 2 - offset[0], s[1] / 2 - offset[1])
-        if self.model.type in ["line", "pen"]:
-            if rect.Height == 2: pos[1] -= 2
+            aff = self.model.parent.GetAffineTransform()
+            pos = aff.TransformPoint(pos[0], pos[1])
+            pos = self.stackManager.ConvPoint(pos)
+            results.append((pos[0], pos[1], rot))
+        return results
 
-        aff = self.model.parent.GetAffineTransform()
-        pos = aff.TransformPoint(*pos)
-        pos = self.stackManager.ConvPoint(pos)
-        fab.rotate(rot)
-        fab.set({'left': pos[0], 'top': pos[1]})
-        fab.setCoords()
+    def UpdateFabObjCoords(self):
+        results = self.GetFabObjCoords()
+        msgs = []
+        for i in range(min(len(results), len(self.fabIds))):
+            uid = self.fabIds[i]
+            vals = results[i]
+            msgs.append(("fabFunc", uid, "rotate", vals[2]))
+            msgs.append(("fabSet", uid, {'left': vals[0], 'top': vals[1]}))
+        worker.stackWorker.SendAsync(*msgs)
 
     def RunAnimations(self, onFinishedCalls, elapsedTime):
         # Move the object by speed.x and speed.y pixels per second
@@ -271,35 +268,15 @@ class UiView(object):
 
 class UiCard(UiView):
     def __init__(self, parent, stackManager, model):
-        self.pendingLoads = 0
         super().__init__(parent, stackManager, model)
-        self.stackManager.canvas.on('mouse:down', self.OnFabricMouseDown)
-        self.stackManager.canvas.on('mouse:move', self.OnFabricMouseMove)
-        self.stackManager.canvas.on('mouse:up', self.OnFabricMouseUp)
-        document.onkeydown = self.OnKeyDown
-        document.onkeyup = self.OnKeyUp
         self.lastMouseOverObj = None
-        self.fabObjs = []
-
-    def CreateFabObjs(self):
-        pass
-
-    def SetDown(self):
-        self.stackManager.canvas.off('mouse:down', self.OnFabricMouseDown)
-        self.stackManager.canvas.off('mouse:move', self.OnFabricMouseMove)
-        self.stackManager.canvas.off('mouse:up', self.OnFabricMouseUp)
-        document.onkeydown = None
-        document.onkeyup = None
 
     def Load(self, model):
         self.UnLoad()
+        self.lastMouseOverObj = None
         self.model = model
-        self.stackManager.canvas.setBackgroundColor(self.model.GetProperty("fillColor"))
+        worker.stackWorker.SendAsync(("fabFunc", 0, "setBackgroundColor", self.model.GetProperty("fillColor")))
         self.LoadChildren()
-        self.AddChildren()
-
-    def FinishedLoad(self):
-        self.stackManager.canvas.requestRenderAll()
         self.stackManager.RunSetupIfNeeded()
         self.stackManager.runner.SetupForCard(self.model)
         self.stackManager.runner.RunHandler(self.model, "OnShowCard", None)
@@ -307,21 +284,7 @@ class UiCard(UiView):
     def UnLoad(self):
         if self.model:
             self.stackManager.runner.RunHandler(self.model, "OnHideCard", None)
-            self.UnloadFabObjs()
-
-    def AddChildren(self):
-        if self.pendingLoads == 0:
-            for ui in self.GetAllUiViews():
-                for o in ui.fabObjs:
-                    self.stackManager.canvas.add(o)
-            self.FinishedLoad()
-
-    def FindTargetUi(self, fabObj):
-        for ui in self.GetAllUiViews():
-            for f in ui.fabObjs:
-                if f.id == fabObj.id:
-                    return ui
-        return None
+            self.stackManager.RemoveFabObjs(self)
 
     def GetAllUiViews(self):
         allUiViews = []
@@ -331,67 +294,79 @@ class UiCard(UiView):
                 uiView.GetAllUiViews(allUiViews)
         return allUiViews
 
-    def OnFabricMouseDown(self, options):
-        target_ui = None
-        if options.target:
-            target_ui = self.FindTargetUi(options.target)
+    def FindTargetUi(self, uid):
+        if uid == 0:
+            return self
+        for ui in self.GetAllUiViews():
+            if uid in ui.fabIds:
+                return ui
+        return None
+
+    def OnFabricMouseDown(self, uid, pos):
+        target_ui = self.FindTargetUi(uid)
+        pos = wx.Point(pos[0], pos[1])
         self.stackManager.runner.ResetStopHandlingMouseEvent()
         if target_ui:
-            target_ui.OnMouseDown(options.e)
+            target_ui.OnMouseDown(pos)
             if self.stackManager.runner.DidStopHandlingMouseEvent():
                 return
-        self.OnMouseDown(options.e)
+        self.OnMouseDown(pos)
 
-    def OnFabricMouseMove(self, options):
-        self.stackManager.runner.lastMousePos = self.stackManager.ConvPoint(wx.Point(options.e.pageX, options.e.pageY))
-        target_ui = None
-        if options.target:
-            target_ui = self.FindTargetUi(options.target)
+    def OnFabricMouseMove(self, uid, pos):
+        target_ui = self.FindTargetUi(uid)
+        pos = wx.Point(pos[0], pos[1])
+        self.stackManager.runner.lastMousePos = pos
 
         if target_ui != self.lastMouseOverObj:
             if self.lastMouseOverObj:
-                self.stackManager.runner.RunHandler(self.lastMouseOverObj.model, "OnMouseExit", options.e)
+                self.stackManager.runner.RunHandler(self.lastMouseOverObj.model, "OnMouseExit", pos)
             self.lastMouseOverObj = target_ui
             if self.lastMouseOverObj:
-                self.stackManager.runner.RunHandler(self.lastMouseOverObj.model, "OnMouseEnter", options.e)
+                self.stackManager.runner.RunHandler(self.lastMouseOverObj.model, "OnMouseEnter", pos)
 
         self.stackManager.runner.ResetStopHandlingMouseEvent()
         if target_ui:
-            target_ui.OnMouseMove(options.e)
+            target_ui.OnMouseMove(pos)
             if self.stackManager.runner.DidStopHandlingMouseEvent():
                 return
-        self.OnMouseMove(options.e)
+        self.OnMouseMove(pos)
 
-    def OnFabricMouseUp(self, options):
-        target_ui = None
-        if options.target:
-            target_ui = self.FindTargetUi(options.target)
+    def OnFabricMouseUp(self, uid, pos):
+        target_ui = self.FindTargetUi(uid)
+        pos = wx.Point(pos[0], pos[1])
         self.stackManager.runner.ResetStopHandlingMouseEvent()
         if target_ui:
-            target_ui.OnMouseUp(options.e)
+            target_ui.OnMouseUp(pos)
             if self.stackManager.runner.DidStopHandlingMouseEvent():
                 return
-        self.OnMouseUp(options.e)
+        self.OnMouseUp(pos)
 
-    def OnKeyDown(self, e):
-        if e.key == "Tab":
-            e.preventDefault()
-        if not e.repeat:
-            self.stackManager.runner.OnKeyDown(e)
-            self.stackManager.runner.RunHandler(self.model, "OnKeyDown", e)
+    def OnKeyDown(self, code):
+        self.stackManager.runner.OnKeyDown(code)
+        self.stackManager.runner.RunHandler(self.model, "OnKeyDown", code)
 
     def OnKeyHold(self):
         for keyName in self.stackManager.runner.pressedKeys:
             self.stackManager.runner.RunHandler(self.model, "OnKeyHold", None, keyName)
 
-    def OnKeyUp(self, e):
-        self.stackManager.runner.OnKeyUp(e)
-        self.stackManager.runner.RunHandler(self.model, "OnKeyUp", e)
+    def OnKeyUp(self, code):
+        self.stackManager.runner.OnKeyUp(code)
+        self.stackManager.runner.RunHandler(self.model, "OnKeyUp", code)
+
+    def OnTextChanged(self, uid, text):
+        target_ui = self.FindTargetUi(uid)
+        if target_ui:
+            target_ui.OnTextChanged(text)
+
+    def OnTextEnter(self, uid):
+        target_ui = self.FindTargetUi(uid)
+        if target_ui:
+            target_ui.OnEnter()
 
     def OnPropertyChanged(self, key):
         super().OnPropertyChanged(key)
         if key == "fillColor":
-            self.stackManager.canvas.setBackgroundColor(self.model.GetProperty("fillColor"))
+            worker.stackWorker.SendAsync(("fabFunc", 0, "setBackgroundColor", self.model.GetProperty("fillColor")))
 
 
 class UiButton(UiView):
@@ -401,84 +376,95 @@ class UiButton(UiView):
         super().__init__(parent, stackManager, model)
 
     def CreateFabObjs(self):
-        fabric = self.stackManager.fabric
         model = self.model
-        rect = self.model.GetFrame()
         hasBorder = model.properties['hasBorder']
+        rect = self.model.GetFrame()
+        self.offsets = ((0,0), (0, -(rect.Height - 16) / 2))
+        coords = self.GetFabObjCoords()
+
         if hasBorder:
-            self.rrBg = fabric.Rect.new({'width': rect.Width,
-                                         'height': rect.Height,
-                                         'rx': 6, 'ry': 6,
-                                         'fill': 'white',
-                                         'stroke': 'grey',
-                                         'strokeWidth':1})
+            self.rrBg = worker.stackWorker.CreateFab("Rect",
+                                                     {'width': rect.Width,
+                                                      'height': rect.Height,
+                                                      'left': coords[0][0],
+                                                      'top': coords[0][1],
+                                                      'angle': coords[0][2],
+                                                      'rx': 6, 'ry': 6,
+                                                      'fill': 'white',
+                                                      'stroke': 'grey',
+                                                      'strokeWidth': 1,
+                                                      'hoverCursor': "pointer"})
         else:
-            self.rrBg = fabric.Rect.new({'width': rect.Width,
-                                         'height': rect.Height,
-                                         'fill': None,
-                                         'strokeWidth':0})
+            self.rrBg = worker.stackWorker.CreateFab("Rect",
+                                                     {'width': rect.Width,
+                                                      'height': rect.Height,
+                                                      'left': coords[0][0],
+                                                      'top': coords[0][1],
+                                                      'angle': coords[0][2],
+                                                      'fill': None,
+                                                      'strokeWidth':0,
+                                                      'hoverCursor': "pointer"})
 
-        self.titleLabel = fabric.Textbox.new(model.properties['title'],
-                                             {'left': 0,
-                                              'top': (rect.Height-18)/2,
-                                              'width': rect.Width,
-                                              'height': rect.Height,
-                                              'textAlign': 'center',
-                                              'fill': "black",
-                                              'fontFamily': 'Arial',
-                                              'fontSize': 14})
+        self.titleLabel = worker.stackWorker.CreateFab("Textbox", model.GetProperty("title"),
+                                                       {'width': rect.Width,
+                                                        'height': rect.Height,
+                                                        'left': coords[1][0],
+                                                        'top': coords[1][1],
+                                                        'angle': coords[1][2],
+                                                        'textAlign': 'center',
+                                                        'fill': "black",
+                                                        'fontFamily': 'Arial',
+                                                        'fontSize': 14,
+                                                        'hoverCursor': "pointer"})
 
-        self.group = fabric.Group.new([self.rrBg, self.titleLabel], {'id': UiView.NextId()})
-        self.group.hasControls = False
-        self.group.lockMovementX = True
-        self.group.lockMovementY = True
-        self.group.centeredRotation = True
-        self.group.hoverCursor = "pointer"
-        self.SetFabObjCoords(self.group)
-        self.fabObjs = [self.group]
-        super().CreateFabObjs()
+        self.fabIds = [self.rrBg, self.titleLabel]
 
     def Highlight(self, on):
         if on:
-            self.rrBg.set({'fill': "blue"})
-            self.titleLabel.set({'fill': "white"})
+            worker.stackWorker.SendAsync(('fabSet', self.rrBg, {'fill': "blue"}),
+                                         ('fabSet', self.titleLabel, {'fill': "white"}),
+                                         ("render",))
         else:
-            self.rrBg.set({'fill': "white" if self.model.properties['hasBorder'] else None})
-            self.titleLabel.set({'fill': "black"})
+            worker.stackWorker.SendAsync(('fabSet', self.rrBg, {'fill': "white" if self.model.properties['hasBorder'] else None}),
+                                         ('fabSet', self.titleLabel, {'fill': "black"}),
+                                         ("render",))
         self.isHilighted = on
-        self.stackManager.canvas.requestRenderAll()
 
-    def OnMouseDown(self, e):
-        super().OnMouseDown(e)
+    def OnMouseDown(self, pos):
+        super().OnMouseDown(pos)
         self.isMouseDown = True
         self.Highlight(True)
 
-    def OnMouseMove(self, e):
+    def OnMouseMove(self, pos):
         if self.isMouseDown:
-            contains = self.group.containsPoint({'x':e.pageX, 'y':e.pageY})
+            contains = self.group.containsPoint(pos)
             if not self.isHilighted and contains:
                 self.Highlight(True)
             elif self.isHilighted and not contains:
                 self.Highlight(False)
 
-    def OnMouseUp(self, e):
+    def OnMouseUp(self, pos):
         self.isMouseDown = False
         if self.isHilighted:
             self.Highlight(False)
-            self.stackManager.runner.RunHandler(self.model, "OnClick", e)
-        super().OnMouseUp(e)
+            self.stackManager.runner.RunHandler(self.model, "OnClick", pos)
+        super().OnMouseUp(pos)
 
     def OnPropertyChanged(self, key):
-        super().OnPropertyChanged(key)
+        if key == "size":
+            s = self.model.properties['size']
+            self.offsets = ((0,0), (0, -(s.height - 16) / 2))
         if key == "title":
-            self.titleLabel.set({'text':self.model.GetProperty("title")})
+            worker.stackWorker.SendAsync(('fabSet', self.titleLabel, {'text':self.model.GetProperty("title")}))
         elif key == "hasBorder":
             hasBorder = self.model.properties['hasBorder']
             if hasBorder:
-                self.rrBg.set({'rx': 6, 'ry': 6, 'fill': 'white', 'stroke': 'grey', 'strokeWidth': 1})
+                worker.stackWorker.SendAsync(('fabSet', self.rrBg,
+                                              {'rx': 6, 'ry': 6, 'fill': 'white', 'stroke': 'grey', 'strokeWidth': 1}))
             else:
-                self.rrBg.set({'rx': 0, 'ry': 0, 'fill': None, 'stroke': None, 'strokeWidth': 0})
-            self.rrBg.setCoords()
+                worker.stackWorker.SendAsync(('fabSet', self.rrBg,
+                                              {'rx': 0, 'ry': 0, 'fill': None, 'stroke': None, 'strokeWidth': 0}))
+        super().OnPropertyChanged(key)
 
 
 class UiTextLabel(UiView):
@@ -486,138 +472,101 @@ class UiTextLabel(UiView):
         super().__init__(parent, stackManager, model)
 
     def CreateFabObjs(self):
-        fabric = self.stackManager.fabric
         model = self.model
         rect = self.stackManager.ConvRect(model.GetAbsoluteFrame())
-        self.textbox = fabric.Textbox.new(model.properties['text'],
-                                          {'width': rect.Width,
-                                           'height': rect.Height,
-                                           'textAlign': model.properties['alignment'].lower(),
-                                           'fill': model.properties['textColor'],
-                                           'fontFamily': FontMap[model.properties['font']],
-                                           'fontSize': model.properties['fontSize'] * 1.2,
-                                           'id': UiView.NextId()})
-        self.textbox.centeredRotation = True
-        self.textbox.selectable = False
-        self.textbox.hoverCursor = "arrow"
-        self.SetFabObjCoords(self.textbox)
-        self.fabObjs = [self.textbox]
-        super().CreateFabObjs()
+        coords = self.GetFabObjCoords()
+        self.textbox = worker.stackWorker.CreateFab("Textbox",
+                                                    model.properties['text'],
+                                                    {'width': rect.Width,
+                                                     'height': rect.Height,
+                                                     'left': coords[0][0],
+                                                     'top': coords[0][1],
+                                                     'angle': coords[0][2],
+                                                     'textAlign': model.properties['alignment'].lower(),
+                                                     'fill': model.properties['textColor'],
+                                                     'fontFamily': FontMap[model.properties['font']],
+                                                     'fontSize': model.properties['fontSize'] * 1.2,
+                                                     'visible': model.properties['isVisible']})
+        self.fabIds = [self.textbox]
 
     def OnPropertyChanged(self, key):
         super().OnPropertyChanged(key)
         if key == "text":
-            self.textbox.set({'text': self.model.GetProperty(key)})
+            worker.stackWorker.SendAsync(("fabSet", self.textbox, {'text': self.model.GetProperty(key)}))
         elif key == "textColor":
-            self.textbox.set({'fill': self.model.GetProperty(key)})
+            worker.stackWorker.SendAsync(("fabSet", self.textbox, {'fill': self.model.GetProperty(key)}))
         elif key == "alignment":
-            self.textbox.set({'textAlign': self.model.properties['alignment'].lower()})
+            worker.stackWorker.SendAsync(("fabSet", self.textbox, {'textAlign': self.model.properties['alignment'].lower()}))
         elif key == "font":
-            self.textbox.set({'fontFamily': FontMap[self.model.properties['font']]})
+            worker.stackWorker.SendAsync(("fabSet", self.textbox, {'fontFamily': FontMap[self.model.properties['font']]}))
         elif key == "fontSize":
-            self.textbox.set({'fontSize': self.model.properties['fontSize'] * 1.2})
+            worker.stackWorker.SendAsync(("fabSet", self.textbox, {'fontSize': self.model.properties['fontSize'] * 1.2}))
 
 
 class UiTextField(UiView):
     def __init__(self, parent, stackManager, model):
         super().__init__(parent, stackManager, model)
 
-    def SetDown(self):
-        self.textbox.off('selected', self.OnSelected)
-        self.textbox.off('selection:cleared', self.OnDeselected)
-        self.stackManager.canvas.off('text:changed', self.OnTextChanged)
-        self.oldOnKeyDown = None
-        super().SetDown()
-
     def CreateFabObjs(self):
-        fabric = self.stackManager.fabric
         model = self.model
         rect = model.GetAbsoluteFrame()
+        self.offsets = ((0,0), (2, -2))
+        coords = self.GetFabObjCoords()
 
-        self.textBg = fabric.Rect.new({'width': model.properties['size'].width,
-                                       'height': model.properties['size'].height,
-                                       'rx': 2, 'ry': 2,
-                                       'fill': 'white',
-                                       'stroke': 'grey',
-                                       'strokeWidth': 1,
-                                       'id': UiView.NextId()})
-        self.textBg.selectable = False
-        self.textBg.centeredRotation = True
-        self.textBg.hoverCursor = "arrow"
+        self.textBg = worker.stackWorker.CreateFab("Rect",
+                                                   {'width': model.properties['size'].width,
+                                                    'height': model.properties['size'].height,
+                                                    'left': coords[0][0],
+                                                    'top': coords[0][1],
+                                                    'angle': coords[0][2],
+                                                    'rx': 2, 'ry': 2,
+                                                    'fill': 'white',
+                                                    'stroke': 'grey',
+                                                    'strokeWidth': 1,
+                                                    'visible': model.properties['isVisible']})
 
-        self.textbox = fabric.Textbox.new(model.properties['text'],
-                                          {'width': rect.Width-2,
-                                           'height': rect.Height-2,
-                                           'textAlign': model.properties['alignment'].lower(),
-                                           'fill': model.properties['textColor'],
-                                           'fontFamily': FontMap[model.properties['font']],
-                                           'fontSize': model.properties['fontSize']*1.2,
-                                           'editable': model.properties['isEditable'],
-                                           'id': UiView.NextId()})
-        self.offsets = {self.textbox: (2, -2)}
-        self.textbox.hasControls = False
-        self.textbox.lockMovementX = True
-        self.textbox.lockMovementY = True
-        self.textbox.centeredRotation = True
-        self.textbox.hoverCursor = "text"
-        self.SetFabObjCoords(self.textBg)
-        self.SetFabObjCoords(self.textbox)
-
-        self.textbox.on('selected', self.OnSelected)
-        self.textbox.on('selection:cleared', self.OnDeselected)
-        self.stackManager.canvas.on('text:changed', self.OnTextChanged)
-        self.oldOnKeyDown = self.textbox.onKeyDown
-        self.textbox.onKeyDown = self.OnKeyDown
-
-        self.fabObjs = [self.textBg, self.textbox]
-        super().CreateFabObjs()
-
-    def OnKeyDown(self, e):
-        self.oldOnKeyDown(e)
-        if "Arrow" in e.key:
-            self.stackManager.uiCard.OnKeyDown(e)
-        if e.key in ("Enter", "Return"):
-            self.OnEnter()
-            if not self.model.GetProperty("isMultiline"):
-                e.preventDefault()
+        self.textbox = worker.stackWorker.CreateTextbox(model.properties['text'],
+                                                        {'width': rect.Width - 2,
+                                                         'height': rect.Height - 2,
+                                                         'left': coords[0][0],
+                                                         'top': coords[0][1],
+                                                         'angle': coords[0][2],
+                                                         'textAlign': model.properties['alignment'].lower(),
+                                                         'fill': model.properties['textColor'],
+                                                         'fontFamily': FontMap[model.properties['font']],
+                                                         'fontSize': model.properties['fontSize'] * 1.2,
+                                                         'editable': model.properties['isEditable'],
+                                                         'isMultiline': model.properties['isMultiline'],
+                                                         'visible': model.properties['isVisible']})
+        self.fabIds = [self.textBg, self.textbox]
 
     def OnEnter(self):
         self.model.stackManager.runner.RunHandler(self.model, "OnTextEnter", None)
 
-    def OnMouseDown(self, e):
-        super().OnMouseDown(e)
-        self.stackManager.canvas.setActiveObject(self.textbox)
+    def OnTextChanged(self, text):
+        self.model.SetProperty('text', text)
+        self.stackManager.runner.RunHandler(self.model, "OnTextChanged", None)
 
-    def OnSelected(self, options):
-        self.textbox.enterEditing()
-        end = len(self.textbox.text)
-        self.textbox.setSelectionStart(end)
-        self.textbox.setSelectionEnd(end)
-
-    def OnDeselected(self, options):
-        self.textbox.exitEditing()
-
-    def OnTextChanged(self, options):
-        if options.target.id == self.textbox.id:
-            self.model.SetProperty('text', self.textbox.text)
-            self.stackManager.runner.RunHandler(self.model, "OnTextChanged", None)
+    def OnMouseDown(self, pos):
+        super().OnMouseDown(pos)
+        worker.stackWorker.SendAsync(("objectFocus", self.textbox))
 
     def OnPropertyChanged(self, key):
         super().OnPropertyChanged(key)
         if key == "text":
-            self.textbox.set({'text': self.model.GetProperty(key)})
+            worker.stackWorker.SendAsync(("fabSet", self.textbox, {'text': self.model.GetProperty(key)}))
         elif key == "textColor":
-            self.textbox.set({'fill': self.model.GetProperty(key)})
+            worker.stackWorker.SendAsync(("fabSet", self.textbox, {'fill': self.model.GetProperty(key)}))
         elif key == "alignment":
-            self.textbox.set({'textAlign': self.model.properties['alignment'].lower()})
+            worker.stackWorker.SendAsync(("fabSet", self.textbox, {'textAlign': self.model.properties['alignment'].lower()}))
         elif key == "font":
-            self.textbox.set({'fontFamily': FontMap[self.model.properties['font']]})
+            worker.stackWorker.SendAsync(("fabSet", self.textbox, {'fontFamily': FontMap[self.model.properties['font']]}))
         elif key == "fontSize":
-            self.textbox.set({'fontSize': self.model.properties['fontSize'] * 1.2})
+            worker.stackWorker.SendAsync(("fabSet", self.textbox, {'fontSize': self.model.properties['fontSize'] * 1.2}))
         elif key == "isEditable":
-            self.textbox.set({'editable': self.model.properties['isEditable']})
+            worker.stackWorker.SendAsync(("fabSet", self.textbox, {'editable': self.model.properties['isEditable']}))
         elif key == "selectAll":
-            self.textbox.selectAll()
+            worker.stackWorker.SendAsync(("fabFunc", self.textbox, "selectAll"))
 
 
 class UiShape(UiView):
@@ -627,166 +576,159 @@ class UiShape(UiView):
 
     def CreateFabObjs(self):
         model = self.model
-        fabric = self.stackManager.fabric
         thickness = model.properties['penThickness']
         shape = None
+        coords = self.GetFabObjCoords()
         if model.type == "oval":
-            shape = fabric.Ellipse.new({'rx': model.properties['size'].width/2,
-                                        'ry': model.properties['size'].height/2,
-                                        'fill': model.properties['fillColor'],
-                                        'stroke': model.properties['penColor'],
-                                        'strokeWidth': thickness
-                                        })
+            shape = worker.stackWorker.CreateFab("Ellipse",
+                                                 {'rx': model.properties['size'].width / 2,
+                                                  'ry': model.properties['size'].height / 2,
+                                                  'left': coords[0][0],
+                                                  'top': coords[0][1],
+                                                  'angle': coords[0][2],
+                                                  'fill': model.properties['fillColor'],
+                                                  'stroke': model.properties['penColor'],
+                                                  'strokeWidth': thickness,
+                                                  'visible': model.properties['isVisible']}, replace=self.shape)
         elif model.type == "rect":
-            shape = fabric.Rect.new({'width': model.properties['size'].width,
-                                     'height': model.properties['size'].height,
-                                     'fill': model.properties['fillColor'],
-                                     'stroke': model.properties['penColor'],
-                                     'strokeWidth': thickness
-                                     })
+            shape = worker.stackWorker.CreateFab("Rect",
+                                                 {'width': model.properties['size'].width,
+                                                  'height': model.properties['size'].height,
+                                                  'left': coords[0][0],
+                                                  'top': coords[0][1],
+                                                  'angle': coords[0][2],
+                                                  'fill': model.properties['fillColor'],
+                                                  'stroke': model.properties['penColor'],
+                                                  'strokeWidth': thickness,
+                                                  'visible': model.properties['isVisible']}, replace=self.shape)
         elif model.type == "roundrect":
-            shape = fabric.Rect.new({'width': model.properties['size'].width,
-                                     'height': model.properties['size'].height,
-                                     'rx': model.properties['cornerRadius'],
-                                     'ry': model.properties['cornerRadius'],
-                                     'fill': model.properties['fillColor'],
-                                     'stroke': model.properties['penColor'],
-                                     'strokeWidth': thickness
-                                     })
+            shape = worker.stackWorker.CreateFab("Rect",
+                                                 {'width': model.properties['size'].width,
+                                                  'height': model.properties['size'].height,
+                                                  'left': coords[0][0],
+                                                  'top': coords[0][1],
+                                                  'angle': coords[0][2],
+                                                  'rx': model.properties['cornerRadius'],
+                                                  'ry': model.properties['cornerRadius'],
+                                                  'fill': model.properties['fillColor'],
+                                                  'stroke': model.properties['penColor'],
+                                                  'strokeWidth': thickness,
+                                                  'visible': model.properties['isVisible']}, replace=self.shape)
         elif model.type == "polygon":
-            shape = fabric.Polygon.new([{"x":p[0], "y":p[1]} for p in self.model.GetScaledPoints()],
-                                          {'fill': model.properties['fillColor'],
-                                           'stroke': model.properties['penColor'],
-                                           'strokeWidth': thickness,
-                                           'strokeLineJoin': 'round',
-                                           'flipY': True
-                                           })
+            shape = worker.stackWorker.CreateFab("Polygon",
+                                                 [{"x": p[0], "y": p[1]} for p in self.model.GetScaledPoints()],
+                                                 {'left': coords[0][0],
+                                                  'top': coords[0][1],
+                                                  'angle': coords[0][2],
+                                                  'fill': model.properties['fillColor'],
+                                                  'stroke': model.properties['penColor'],
+                                                  'strokeWidth': thickness,
+                                                  'strokeLineJoin': 'round',
+                                                  'flipY': True,
+                                                  'visible': model.properties['isVisible']}, replace=self.shape)
         elif model.type in ["line", "pen"]:
-            shape = fabric.Polyline.new([{"x":p[0], "y":p[1]} for p in self.model.GetScaledPoints()],
-                                          {'fill': None,
-                                           'stroke': model.properties['penColor'],
-                                           'strokeWidth': thickness,
-                                           'strokeLineCap': 'round',
-                                           'strokeLineJoin': 'round',
-                                           'flipY': True
-                                         })
-
-        shape.set({'id': UiView.NextId()})
-        shape.selectable = False
-        shape.centeredRotation = True
-        shape.hoverCursor = "arrow"
-        shape.rotate(model.GetAbsoluteRotation())
-        self.SetFabObjCoords(shape)
+            shape = worker.stackWorker.CreateFab("Polyline",
+                                                 [{"x": p[0], "y": p[1]} for p in self.model.GetScaledPoints()],
+                                                 {'left': coords[0][0],
+                                                  'top': coords[0][1],
+                                                  'angle': coords[0][2],
+                                                  'fill': None,
+                                                  'stroke': model.properties['penColor'],
+                                                  'strokeWidth': thickness,
+                                                  'strokeLineCap': 'round',
+                                                  'strokeLineJoin': 'round',
+                                                  'flipY': True,
+                                                  'visible': model.properties['isVisible']}, replace=self.shape)
         self.shape = shape
-        self.fabObjs = [self.shape]
-        super().CreateFabObjs()
+        self.fabIds = [self.shape]
 
     def OnPropertyChanged(self, key):
-        super().OnPropertyChanged(key)
         if key == "fillColor":
-            self.shape.set({'fill': self.model.GetProperty(key)})
+            worker.stackWorker.SendAsync(("fabSet", self.shape, {'fill': self.model.GetProperty(key)}))
         elif key == "penColor":
-            self.shape.set({'stroke': self.model.GetProperty(key)})
+            worker.stackWorker.SendAsync(("fabSet", self.shape, {'stroke': self.model.GetProperty(key)}))
         elif key == "penThickness":
-            self.shape.set({'strokeWidth': self.model.GetProperty(key)})
+            worker.stackWorker.SendAsync(("fabSet", self.shape, {'strokeWidth': self.model.GetProperty(key)}))
         elif self.model.type == "oval" and key == "size":
             s = self.model.GetProperty("size")
-            self.shape.set({'rx': s.width/2, 'ry': s.height/2})
-            self.shape.setCoords()
+            worker.stackWorker.SendAsync(("fabSet", self.shape, {'rx': s.width/2, 'ry': s.height/2}))
         elif key == "shape" or (key == "size" and self.model.type in ("line", "pen", "polygon")):
-            index = self.stackManager.canvas.getObjects().index(self.shape)
-            self.stackManager.canvas.remove(self.shape)
             self.CreateFabObjs()
-            self.stackManager.canvas.add(self.shape)
-            self.shape.moveTo(index)
+        else:
+            super().OnPropertyChanged(key)
+
 
 class UiImage(UiView):
     def __init__(self, parent, stackManager, model):
-        self.origImage = None
+        self.origImageSize = wx.Size(1, 1)
         self.image = None
         self.imgOffset = (0, 0)
         super().__init__(parent, stackManager, model)
 
+    def SetImageSize(self, w, h):
+        self.origImageSize = wx.Size(w, h)
+        self.FitImage()
+
     def CreateFabObjs(self):
-        fabric = self.stackManager.fabric
         model = self.model
         file = "Resources/" + model.properties['file']
-        superCreateFabObjs = super().CreateFabObjs
-
-        def imgLoaded(img, err):
-            if not err:
-                self.origImage = img
-                self.FitImage()
-                self.image.set({'id': UiView.NextId()})
-                self.image.selectable = False
-                self.image.centeredRotation = True
-                self.image.hoverCursor = "arrow"
-                self.SetFabObjCoords(self.image)
-                superCreateFabObjs()
-            self.stackManager.uiCard.pendingLoads -= 1
-            self.stackManager.uiCard.AddChildren()
-
-        self.stackManager.uiCard.pendingLoads += 1
-        fabric.Image.fromURL(file, imgLoaded)
+        self.image = worker.stackWorker.CreateImage(file)
+        self.fabIds = [self.image]
 
     def FitImage(self):
-        rect = self.model.GetFrame()
-        imgSize = self.origImage.getOriginalSize()
+        s = self.model.GetProperty('size')
+        imgSize = self.origImageSize
         fit = self.model.GetProperty('fit')
 
-        def setImg(img):
-            self.image = img
-
         if fit == "Stretch":
-            scaleX,scaleY = (rect.Width / imgSize['width'], rect.Height / imgSize['height'])
-            self.origImage.cloneAsImage(setImg)
-            self.image.set({'scaleX': scaleX, 'scaleY': scaleY})
-            self.offsets = {}
+            self.offsets = ((0, 0),)
+            results = self.GetFabObjCoords()[0]
+            options = {'fit': "Stretch", 'left': results[0], 'top': results[1],
+                       'clipLeft': 0, 'clipTop': 0, 'clipWidth': imgSize.width, 'clipHeight': imgSize.height,
+                       'scaleX': s.width / imgSize.width, 'scaleY': s.height / imgSize.height, 'angle': results[2],
+                       'visible': self.model.properties['isVisible']}
+
         elif fit == "Fill":
-            scale = max(rect.Width / imgSize['width'], rect.Height / imgSize['height'])
-            dx = (imgSize.width*scale - rect.Width) / 2
-            dy = (imgSize.height*scale - rect.Height) / 2
-            self.origImage.cloneAsImage(setImg,
-                                        {'left': max(dx, 0) / scale, 'top': max(dy, 0) / scale,
-                                         'width': rect.Width / scale,
-                                         'height': rect.Height / scale})
-            self.image.set({'scaleX': scale, 'scaleY': scale})
-            self.offsets = {self.image: (-max(dx,0)/scale, -max(dy,0)/scale)}
+            scale = max(s.width / imgSize.width, s.height / imgSize.height)
+            dx = (imgSize.width*scale - s.width) / 2
+            dy = (imgSize.height*scale - s.height) / 2
+            self.offsets = ((-min(dx,0)/scale, -min(dy,0)/scale),)
+            results = self.GetFabObjCoords()[0]
+            options = {'fit': "Fill", 'left': results[0], 'top': results[1],
+                       'clipLeft': max(dx, 0) / scale, 'clipTop': max(dy, 0) / scale,
+                       'clipWidth': s.width / scale, 'clipHeight': s.height / scale,
+                       'scaleX': scale, 'scaleY': scale, 'angle': results[2], 'visible': self.model.properties['isVisible']}
+
         elif fit == "Center":
-            dx = (imgSize.width - rect.Width) / 2
-            dy = (imgSize.height - rect.Height) / 2
-            self.origImage.cloneAsImage(setImg,
-                                        {'left': max(dx, 0), 'top': max(dy, 0),
-                                         'width': min(rect.Width, imgSize.width), 'height': min(rect.Height, imgSize.height)})
-            self.offsets = {self.image: (-dx, -dy)}
+            dx = (imgSize.width - s.width) / 2
+            dy = (imgSize.height - s.height) / 2
+            self.offsets = ((max(-dx, 0), max(-dy,0)),)
+            results = self.GetFabObjCoords()[0]
+            options = {'fit': "Center", 'left': results[0], 'top': results[1],
+                       'clipLeft': max(dx, 0), 'clipTop': max(dy, 0),
+                       'clipWidth': min(s.width, imgSize.width), 'clipHeight': min(s.height, imgSize.height),
+                       'scaleX': 1, 'scaleY': 1, 'angle': results[2], 'visible': self.model.properties['isVisible']}
+
         else:  # "Contain"
-            scale = min(rect.Width / imgSize['width'], rect.Height / imgSize['height'])
-            dx = (imgSize.width*scale - rect.Width) / 2
-            dy = (imgSize.height*scale - rect.Height) / 2
-            self.origImage.cloneAsImage(setImg)
-            self.image.set({'scaleX': scale, 'scaleY': scale,
-                            'left': rect.Left - min(dx,0), 'top': rect.Top - min(dy,0)})
-            self.offsets = {self.image: (-min(dx,0), -min(dy,0))}
-        self.fabObjs = [self.image]
+            scale = min(s.width / imgSize.width, s.height / imgSize.height)
+            dx = (imgSize.width*scale - s.width) / 2
+            dy = (imgSize.height*scale - s.height) / 2
+            self.offsets = ((-min(dx,0), -min(dy,0)),)
+            results = self.GetFabObjCoords()[0]
+            options = {'fit': "Contain", 'left': results[0], 'top': results[1],
+                       'clipLeft': 0, 'clipTop': 0, 'clipWidth': imgSize.width, 'clipHeight': imgSize.height,
+                       'scaleX': scale, 'scaleY': scale, 'angle': results[2], 'visible': self.model.properties['isVisible']}
+
+        worker.stackWorker.SendAsync(("imgRefit", self.image, options))
 
     def OnPropertyChanged(self, key):
-        if key not in ("size", "position", "center"):
+        if key != "size":
             super().OnPropertyChanged(key)
-        if key == "size":
-            s = self.model.GetProperty("size")
-            self.image.set({'width': s.width, 'height': s.height})
-            self.image.setCoords()
-        if key in ("position", "center", "size"):
-            self.SetFabObjCoords(self.image)
+        if key in ("size", "fit"):
+            self.FitImage()
         elif key == "file":
             file = "Resources/" + self.model.properties['file']
-            self.image.setSrc(file)
-        elif key == "fit":
-            index = self.stackManager.canvas.getObjects().index(self.image)
-            self.stackManager.canvas.remove(self.image)
-            self.FitImage()
-            self.stackManager.canvas.add(self.image)
-            self.image.moveTo(index)
+            #self.image.setSrc(file)
 
 
 class UiGroup(UiView):

@@ -1,5 +1,4 @@
-import browser
-import browser.timer as timer
+from browser import self as worker
 import wx_compat as wx
 from models import *
 from views import *
@@ -8,25 +7,17 @@ import json
 
 
 class StackManager(object):
-    def __init__(self, canvas, fabric):
+    def __init__(self):
         super().__init__(self)
-
-        canvas.preserveObjectStacking = True
-        canvas.selection = False
-        self.canvas = canvas
-
-        self.fabric = fabric
         self.stackModel = None
         self.uiCard = UiCard(None, self, None)
         self.cardIndex = None
         self.didSetup = False
-        self.runner = runner.Runner(self)
-
+        self.runner = None
         self.lastPeriodic = time()
-        self.periodicTimer = timer.request_animation_frame(self.OnPeriodic)
+        self.lastFrame = self.lastPeriodic
 
     def SetDown(self):
-        timer.cancel_animation_frame(self.periodicTimer)
         self.uiCard.SetDown()
         self.uiCard = None
         self.stackModel.SetDown()
@@ -49,12 +40,14 @@ class StackManager(object):
     def Load(self, stackJSON):
         if self.stackModel:
             self.Unload()
+
+        if self.runner:
+            self.runner.SetDown()
+        self.runner = runner.Runner(self)
         self.stackModel = StackModel(self)
-        stackDict = stackJSON
-        self.stackModel.SetData(stackDict)
+        self.stackModel.SetData(stackJSON)
         s = self.stackModel.GetProperty("size")
-        self.canvas.setWidth(s.width)
-        self.canvas.setHeight(s.height)
+        worker.stackWorker.SendAsync(("canvasSetSize", s.width, s.height))
         self.lastPeriodic = time()
         self.runner.StartStack()
         self.cardIndex = None
@@ -69,47 +62,53 @@ class StackManager(object):
     def LoadCardAtIndex(self, cardIndex, reload=False):
         if len(self.stackModel.childModels) > cardIndex:
             if reload or cardIndex != self.cardIndex:
+                worker.stackWorker.SendAsync(("willUnload",))
+                worker.stackWorker.Wait(0.02) # wait for pending frame render before changing cards
                 self.cardIndex = cardIndex
                 card = self.stackModel.childModels[cardIndex]
                 self.runner.SetupForCard(card)
                 self.uiCard.Load(card)
+                worker.stackWorker.SendAsync(("didLoad",))
 
-    def OnPeriodic(self, _dummy):
-        self.periodicTimer = timer.request_animation_frame(self.OnPeriodic)
+    def OnFrame(self):
+        if not self.didSetup:
+            return
 
         now = time()
-        elapsedTime = now - self.lastPeriodic
+        elapsedTime = now - self.lastFrame
+        self.lastFrame = now
 
         didRun = False
+        allUi = self.uiCard.GetAllUiViews()
+        onFinishedCalls = []
+        if self.uiCard.RunAnimations(onFinishedCalls, elapsedTime):
+            didRun = True
+        for ui in allUi:
+            if ui.RunAnimations(onFinishedCalls, elapsedTime):
+                didRun = True
+        # Let all animations process, before running their onFinished handlers,
+        # which could start new animations.
+        for c in onFinishedCalls:
+            c()
+        if len(onFinishedCalls):
+            didRun = True
+
+        # Check for all collisions
+        collisions = {}
+        for ui in allUi:
+            ui.FindCollisions(collisions)
+
+        # Perform any bounces
+        for (k,v) in collisions.items():
+            v[0].PerformBounce(v, elapsedTime)
+            didRun = True
+
+        if didRun:
+            worker.stackWorker.SendAsync(("render",))
+
+        elapsedTime = now - self.lastPeriodic
         if elapsedTime >= 0.03:
             self.lastPeriodic = now
-            allUi = self.uiCard.GetAllUiViews()
-            onFinishedCalls = []
-            if self.uiCard.RunAnimations(onFinishedCalls, elapsedTime):
-                didRun = True
-            for ui in allUi:
-                if ui.RunAnimations(onFinishedCalls, elapsedTime):
-                    didRun = True
-            # Let all animations process, before running their onFinished handlers,
-            # which could start new animations.
-            for c in onFinishedCalls:
-                c()
-            if len(onFinishedCalls):
-                didRun = True
-
-            # Check for all collisions
-            collisions = {}
-            for ui in allUi:
-                ui.FindCollisions(collisions)
-
-            # Perform any bounces
-            for (k,v) in collisions.items():
-                v[0].PerformBounce(v, elapsedTime)
-                didRun = True
-
-            if didRun:
-                self.canvas.requestRenderAll()
-
             self.uiCard.OnKeyHold()
             self.uiCard.OnPeriodic()
 
@@ -160,22 +159,19 @@ class StackManager(object):
             self.uiCard.uiViews[model] = uiView
             if uiView.model not in self.uiCard.model.childModels:
                 self.uiCard.model.AddChild(uiView.model)
-            self.AddFabObjs(uiView)
-            self.canvas.requestRenderAll()
 
         return uiView
 
-    def AddFabObjs(self, uiView):
-        for fab in uiView.fabObjs:
-            self.canvas.add(fab)
-        for ui in uiView.uiViews.values():
-            self.AddFabObjs(ui)
-
     def RemoveFabObjs(self, uiView):
-        for fab in uiView.fabObjs:
-            self.canvas.remove(fab)
-        for ui in uiView.uiViews.values():
-            self.RemoveFabObjs(ui)
+        ids = []
+        def remUi(ui):
+            print("removing", ui.fabIds)
+            ids.extend(ui.fabIds)
+            for u in ui.uiViews.values():
+                remUi(u)
+        remUi(uiView)
+        print("remAll", ids)
+        worker.stackWorker.SendAsync(("fabDel", *ids))
 
     def AddUiViewsFromModels(self, models):
         """
@@ -200,7 +196,7 @@ class StackManager(object):
             if ui.model.parent:
                 self.uiCard.model.RemoveChild(ui.model)
             self.RemoveFabObjs(ui)
-            self.canvas.requestRenderAll()
+            worker.stackWorker.SendAsync(("render",))
         else:
             if viewModel.parent:
                 viewModel.parent.RemoveChild(viewModel)

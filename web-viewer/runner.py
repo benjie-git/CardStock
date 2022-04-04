@@ -1,20 +1,14 @@
 import re
 import sys
-import os
-import browser
-import browser.timer as timer
+from browser import self as worker
 import traceback
 import wx_compat as wx
-from wx_compat import RunOnMainSync, RunOnMainAsync
-import cardstock
 import models
-import views
 import types
-from time import sleep, time
 import math
-import queue
-import sanitizer
-from enum import Enum
+
+def time():
+    return worker.Date.now() / 1000.0
 
 
 class Runner():
@@ -58,14 +52,6 @@ class Runner():
         self.shouldUpdateVars = False
 
         self.stackSetupValue = None
-        self.stackReturnQueue = queue.Queue()
-
-        # queue of tasks to run on the runnerThread
-        # each task is put onto the queue as a list.
-        # single item list means run SetupForCard
-        # 5-item list means run a handler
-        # 0-item list means just wake up to check if the thread is supposed to stop
-        self.handlerQueue = queue.Queue()
 
         self.stopRunnerThread = False
 
@@ -109,6 +95,30 @@ class Runner():
             "Enter": "Return"
         }
 
+    def SetDown(self):
+        self.stackManager = None
+        self.cardVarKeys = None
+        self.lastMousePos = None
+        self.pressedKeys = None
+        self.keyTimings = None
+        self.StopTimers()
+        self.errors = None
+        self.lastHandlerStack = None
+        self.didSetup = False
+        self.runnerDepth = 0
+        self.numOnPeriodicsQueued = 0
+        self.rewrittenHandlerMap = None
+        self.onRunFinished = None
+        self.funcDefs = None
+        self.lastCard = None
+        self.stopHandlingMouseEvent = False
+        self.shouldUpdateVars = False
+        self.stackSetupValue = None
+        self.stopRunnerThread = False
+        self.soundCache = None
+        self.stackStartTime = None
+        self.clientVars = None
+
     def StartStack(self):
         self.stackStartTime = time()
         self.clientVars = self.initialClientVars.copy()
@@ -145,13 +155,14 @@ class Runner():
 
     def StopTimers(self):
         for t in self.timers:
-            timer.clear_timeout(t)
+            worker.clearTimeout(t)
         self.timers = []
 
     def DoReturnFromStack(self, stackReturnVal):
-        self.stackReturnQueue.put(stackReturnVal)
+        pass
+        # self.stackReturnQueue.put(stackReturnVal)
 
-    def RunHandler(self, uiModel, handlerName, event, arg=None):
+    def RunHandler(self, uiModel, handlerName, eventVal, arg=None):
         """
         If we're on the main thread, that means we just got called from a UI event, so enqueue this on the runnerThread.
         If we're already on the runnerThread, that means an object's event code called another event, so run that
@@ -163,17 +174,17 @@ class Runner():
 
         mousePos = None
         keyName = None
-        if event and handlerName.startswith("OnMouse"):
-            mousePos = self.stackManager.ConvPoint(wx.Point(event.pageX, event.pageY))
+        if eventVal and handlerName.startswith("OnMouse"):
+            mousePos = eventVal
         elif arg and handlerName == "OnKeyHold":
             keyName = arg
-        elif event and handlerName.startswith("OnKey"):
-            keyName = self.KeyNameForEvent(event)
+        elif eventVal and handlerName.startswith("OnKey"):
+            keyName = self.KeyNameForCode(eventVal)
             if not keyName:
                 return False
 
         self.RunHandlerInternal(uiModel, handlerName, handlerStr, mousePos, keyName, arg)
-        self.stackManager.canvas.requestRenderAll()
+        worker.stackWorker.SendAsync(("render",))
         return True
 
     def RunHandlerInternal(self, uiModel, handlerName, handlerStr, mousePos, keyName, arg):
@@ -441,24 +452,23 @@ class Runner():
                 card = model.GetCard()
             return f"{model.GetProperty('name')}.{handlerName}() on card '{card.GetProperty('name')}'"
 
-    def KeyNameForEvent(self, event):
-        code = event.key
+    def KeyNameForCode(self, code):
         if code in self.keyCodeStringMap:
             return self.keyCodeStringMap[code]
         elif len(code) == 1:
             code = code.upper()
         return code
 
-    def OnKeyDown(self, event):
-        keyName = self.KeyNameForEvent(event)
+    def OnKeyDown(self, code):
+        keyName = self.KeyNameForCode(code)
         if keyName and keyName not in self.pressedKeys:
             self.pressedKeys.append(keyName)
             self.keyTimings[keyName] = time()
             return True
         return False
 
-    def OnKeyUp(self, event):
-        keyName = self.KeyNameForEvent(event)
+    def OnKeyUp(self, code):
+        keyName = self.KeyNameForCode(code)
         if keyName and keyName in self.pressedKeys:
             self.pressedKeys.remove(keyName)
             del self.keyTimings[keyName]
@@ -474,7 +484,7 @@ class Runner():
     def SetFocus(self, obj):
         uiView = self.stackManager.GetUiViewByModel(obj._model)
         if uiView and uiView.model.type == "textfield":
-            self.stackManager.canvas.setActiveObject(uiView.textbox)
+            worker.stackWorker.SendAsync(("focus", uiView.textbox))
 
 
     # --------- User-accessible view functions -----------
@@ -521,27 +531,14 @@ class Runner():
         self.stackManager.LoadCardAtIndex(cardIndex)
 
     def RunStack(self, filename, cardNumber=1, setupValue=None):
-        pass
-        # if self.stopRunnerThread:
-        #     return None
-        # success = self.viewer.GosubStack(filename, cardNumber-1, sanitizer.SanitizeValue(setupValue, []))
-        # if success:
-        #     result = self.stackReturnQueue.get()
-        #     if not self.stopRunnerThread:
-        #         return result
-        #     else:
-        #         raise RuntimeError("Return")
-        # else:
-        #     raise RuntimeError(f"RunStack(): Couldn't find stack '{filename}'.")
+        print("RunStack(): unsupported on web")
 
     def ReturnFromStack(self, result=None):
-        pass
-        # stackReturnValue = sanitizer.SanitizeValue(result, [])
-        # if self.viewer.GosubStack(None,-1, stackReturnValue):
-        #     raise RuntimeError('Return')
+        print("ReturnFromStack(): unsupported on web")
 
     def GetStackSetupValue(self):
-        return self.stackSetupValue
+        print("GetStackSetupValue(): unsupported on web")
+        return None
 
     def Wait(self, delay):
         try:
@@ -549,12 +546,8 @@ class Runner():
         except ValueError:
             raise TypeError("Wait(): delay must be a number")
 
-        self.stackManager.canvas.renderAll()
-
-        endTime = time() + delay
-        while time() < endTime:
-            if self.stopRunnerThread:
-                break
+        worker.stackWorker.SendAsync(("render",))
+        worker.stackWorker.Wait(delay)
 
     def Time(self):
         return time()
@@ -573,49 +566,24 @@ class Runner():
     def Alert(self, message):
         if self.stopRunnerThread:
             return
-
-        @RunOnMainSync
-        def func():
-            browser.window.alert(str(message))
-        func()
+        worker.stackWorker.SendSync(None, ("alert", message))
 
     def AskYesNo(self, message):
         if self.stopRunnerThread:
             return None
-
-        @RunOnMainSync
-        def func():
-            return browser.window.confirm(str(message))
-
-        return func()
+        return worker.stackWorker.SendSync(bool, ("confirm", message))
 
     def AskText(self, message, defaultResponse=""):
         if self.stopRunnerThread:
             return None
-
-        @RunOnMainSync
-        def func():
-            return browser.window.prompt(str(message), str(defaultResponse))
-
-        return func()
+        return worker.stackWorker.SendSync(str, ("prompt", message, defaultResponse))
 
     def PlaySound(self, filepath):
-        if filepath in self.soundCache:
-            snd = self.soundCache[filepath]
-        else:
-            path = "Resources/" + filepath
-            snd = browser.window.Audio.new(path)
-            snd.load()
-        if snd:
-            self.soundCache[filepath] = snd
-            snd.currentTime = 0
-            snd.play()
+        worker.stackWorker.SendAsync(("playAudio", filepath))
 
     def StopSound(self):
-        for snd in self.soundCache.values():
-            snd.pause()
+        worker.stackWorker.SendAsync(("playAudio",))
 
-    @RunOnMainSync
     def Paste(self):
         return []
 
@@ -625,9 +593,8 @@ class Runner():
 
         return name in self.pressedKeys
 
-    @RunOnMainSync
     def IsMouseDown(self):
-        return browser.window.MouseEvent.buttons
+        return worker.stackWorker.isMouseDown
 
     def GetMousePos(self):
         return self.lastMousePos
@@ -667,23 +634,18 @@ class Runner():
 
         startTime = time()
 
-        @RunOnMainAsync
-        def f():
-            if self.stopRunnerThread: return
+        if self.stopRunnerThread: return
 
-            adjustedDuration = duration + startTime - time()
-            if adjustedDuration > 0.010:
-                def onTimer():
-                    if self.stopRunnerThread: return
-                    func(*args, **kwargs)
-                t = timer.set_timeout(onTimer, int(adjustedDuration*1000))
-                self.timers.append(t)
-            else:
+        adjustedDuration = duration + startTime - time()
+        if adjustedDuration > 0.010:
+            def onTimer():
+                if self.stopRunnerThread: return
                 func(*args, **kwargs)
+            t = worker.setTimeout(onTimer, int(adjustedDuration*1000))
+            self.timers.append(t)
+        else:
+            func(*args, **kwargs)
 
-        f()
-
-    @RunOnMainAsync
     def Quit(self):
         pass
 

@@ -1,13 +1,16 @@
-import browser
+from browser import self as worker
 import wx_compat as wx
 import sanitizer
-from time import time
 from urllib.parse import urlparse
 import math
 import re
 
 VERSION='0.9.8'
 FILE_FORMAT_VERSION=3
+
+def time():
+    return worker.Date.now() / 1000.0
+
 
 
 class ViewModel(object):
@@ -77,6 +80,8 @@ class ViewModel(object):
         self.lastOnPeriodicTime = None
         self.animations = {}
         self.bounceObjs = {}
+        self.polygon = None
+        self.polygonPos = None
         self.proxyClass = ViewProxy
         self.didSetDown = False
         self.clonedFrom = None
@@ -101,6 +106,8 @@ class ViewModel(object):
             self.proxy = None
         self.animations = {}
         self.bounceObjs = {}
+        self.polygon = None
+        self.polygonPos = None
         self.stackManager = None
         self.parent = None
 
@@ -195,11 +202,12 @@ class ViewModel(object):
         # convert points in the local system to abs
         if aff is None:
             aff = self.GetAffineTransform()
-        return [wx.RealPoint(aff.TransformPoint(*p)) for p in points]
+        rotPts = [wx.RealPoint(aff.TransformPoint(*p)) for p in points]
+        return rotPts
 
     def RotatedRectPoints(self, rect, aff=None):
         # Convert local rect to absolute corner points
-        points = [rect.TopLeft, rect.TopRight+(1,0), rect.BottomRight+(1,1), rect.BottomLeft+(0,1)]
+        points = [rect.BottomLeft, rect.BottomRight, rect.TopRight, rect.TopLeft]
         return self.RotatedPoints(points, aff)
 
     def RotatedRect(self, rect, aff=None):
@@ -492,6 +500,10 @@ class ViewModel(object):
             value = value % 360
 
         if self.properties[key] != value:
+            if key in ("rotation", "size"):
+                self.polygon = None
+            if key == "position":
+                self.MovePolygon(value)
             self.properties[key] = value
             if notify:
                 self.Notify(key)
@@ -508,6 +520,21 @@ class ViewModel(object):
             if isinstance(m, ViewModel):
                 objs[m] = [None, None]
         self.bounceObjs = objs
+
+    def GetPolygon(self):
+        if not self.polygon:
+            s = self.GetProperty('size')
+            f = wx.Rect(0, 0, s[0], s[1])
+            points = self.RotatedRectPoints(f)
+            self.polygon = worker.SAT.Polygon.new(worker.SAT.Vector.new(),
+                                                  [worker.SAT.Vector.new(p.x, p.y) for p in points])
+            self.polygonPos = wx.Point(self.properties['position'])
+        return self.polygon
+
+    def MovePolygon(self, newPos):
+        if self.polygon:
+            dx,dy = (newPos[0] - self.polygonPos[0], newPos[1] - self.polygonPos[1])
+            self.polygon.setOffset(worker.SAT.Vector.new(dx, dy))
 
     def AddAnimation(self, key, duration, onUpdate, onStart=None, onFinish=None, onCancel=None):
         # On Runner thread
@@ -601,6 +628,8 @@ class ViewProxy(object):
     They purposefully contain no attributes for users to avoid, except a single _model reference.
     """
 
+    scratchPoly = None      # Reuse this SAT.Polygon object for collision testing
+
     def __init__(self, model):
         super().__init__()
         self._model = model
@@ -637,10 +666,10 @@ class ViewProxy(object):
     def hasFocus(self):
         model = self._model
         if not model: return False
-
         uiView = model.stackManager.GetUiViewByModel(model)
         if uiView and uiView.textbox:
-            return model.stackManager.canvas.getActiveObject().id == uiView.textbox.id
+            return worker.stackWorker.focusedFabId == uiView.textbox
+        return False
 
     def Clone(self, name=None, **kwargs):
         model = self._model
@@ -932,15 +961,12 @@ class ViewProxy(object):
         model = self._model
         if not model: return False
         if model.didSetDown: return False
-        ui = model.stackManager.GetUiViewByModel(model)
-        if not ui:
-            return False
         if model.type == "card":
             s = model.GetProperty('size')
             return point[0] >= 0 and point[1] >= 0 and point[0] <= s.width and point[1] <= s.height
-        elif len(ui.fabObjs) > 0:
-            return ui.fabObjs[0].containsPoint(point)
-        return False
+        else:
+            poly = model.GetPolygon()
+            return worker.SAT.pointInPolygon(worker.SAT.Vector.new(point.x, point.y), poly)
 
     def IsTouching(self, obj):
         if not isinstance(obj, ViewProxy):
@@ -948,14 +974,13 @@ class ViewProxy(object):
 
         model = self._model
         oModel = obj._model
-        if not model or not oModel: return False
-
-        if model.didSetDown: return False
-        sUi = model.stackManager.GetUiViewByModel(model)
-        oUi = model.stackManager.GetUiViewByModel(oModel)
-        if not sUi or not oUi or len(sUi.fabObjs) == 0 or len(sUi.fabObjs) == 0:
+        if not model or not oModel:
             return False
-        return sUi.fabObjs[0].intersectsWithObject(oUi.fabObjs[0])
+
+        poly = model.GetPolygon()
+        oPoly = oModel.GetPolygon()
+        result = worker.SAT.testPolygonPolygon(poly, oPoly)
+        return result
 
     def IsTouchingEdge(self, obj, skipIsTouchingCheck=False):
         if not isinstance(obj, ViewProxy):
@@ -963,42 +988,44 @@ class ViewProxy(object):
 
         model = self._model
         oModel = obj._model
-        if not model or not oModel: return None
-        ui = model.stackManager.GetUiViewByModel(model)
-        # oUi = model.stackManager.GetUiViewByModel(oModel)
+        if not model or not oModel: return []
 
-        if model.didSetDown or oModel.didSetDown: return None
+        if model.didSetDown or oModel.didSetDown: return []
 
-        sFab = ui.fabObjs[0]
-
-        # if not skipIsTouchingCheck:
-        #     if not self.IsTouching(obj):
-        #         return None
+        if not skipIsTouchingCheck:
+            if not self.IsTouching(obj):
+                return []
 
         rect = oModel.GetAbsoluteFrame() # other frame in card coords
-        rect = ui.stackManager.ConvRect(rect)
 
         cornerSetback = 6
         # Pull edge lines away from the corners, so we don't always hit a corner when 2 objects touch
-        rects = [wx.Rect(rect.TopLeft+(cornerSetback,0), rect.TopRight+(-cornerSetback,1)),
-                 wx.Rect(rect.TopRight+(-1,cornerSetback), rect.BottomRight+(0,-cornerSetback)),
-                 wx.Rect(rect.BottomLeft+(cornerSetback,-1), rect.BottomRight+(-cornerSetback,0)),
-                 wx.Rect(rect.TopLeft+(0,cornerSetback), rect.BottomLeft+(1,-cornerSetback))]
+        rects = [wx.Rect(rect.TopLeft+(cornerSetback,0), rect.TopRight+(-cornerSetback,2)),
+                 wx.Rect(rect.TopRight+(-2,cornerSetback), rect.BottomRight+(0,-cornerSetback)),
+                 wx.Rect(rect.BottomLeft+(cornerSetback,-2), rect.BottomRight+(-cornerSetback,0)),
+                 wx.Rect(rect.TopLeft+(0,cornerSetback), rect.BottomLeft+(2,-cornerSetback))]
 
         oRot = oModel.GetProperty("rotation")
         if oRot is None: oRot = 0
 
         # if oRot == 0:
-        top = rects[0]
+        bottom = rects[0]
         right = rects[1]
-        bottom = rects[2]
+        top = rects[2]
         left = rects[3]
 
+        if not ViewProxy.scratchPoly:
+            ViewProxy.scratchPoly = worker.SAT.Polygon.new(worker.SAT.Vector.new(), [])
+
         def TestRect(r):
-            fabric = ui.stackManager.fabric
-            tl = fabric.Point.new(r.Left, r.Top)
-            br = fabric.Point.new(r.Right, r.Bottom)
-            return sFab.intersectsWithRect(tl, br)
+            points = (r.BottomLeft, r.BottomRight, r.TopRight, r.TopLeft)
+            points = [worker.SAT.Vector.new(p.x, p.y) for p in points]
+            scratch = ViewProxy.scratchPoly
+            scratch.setPoints(points)
+            # scratch = worker.SAT.Polygon.new(worker.SAT.Vector.new(), points)
+            poly = model.GetPolygon()
+            result = worker.SAT.testPolygonPolygon(poly, scratch)
+            return result
 
         def RotEdge(rot):
             # Rotate reported edge hits according to other object's rotation
@@ -1018,9 +1045,7 @@ class ViewProxy(object):
         if len(edges) == 3 and "Left" in edges and "Right" in edges:
             edges.remove("Left")
             edges.remove("Right")
-        if len(edges) == 0:
-            edges = None
-        return edges
+        return list(edges)
 
     def AnimatePosition(self, duration, endPosition, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
@@ -1390,6 +1415,8 @@ class CardModel(ViewModel):
 
     def SetProperty(self, key, value, notify=True):
         if key in ["size", "canSave", "canResize"]:
+            if key == "size":
+                self.polygon = None
             self.parent.SetProperty(key, value, notify)
         else:
             super().SetProperty(key, value, notify)

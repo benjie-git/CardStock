@@ -1,6 +1,5 @@
+from browser import self as worker
 import math
-
-from browser import window
 
 
 class Size(object):
@@ -327,13 +326,13 @@ class Rect(object):
 class Colour(object):
     def __init__(self, *a):
         if len(a) == 1 and isinstance(a[0], str):
-            self.fabCol = window.fabric.Color.new(a[0])
+            self.fabCol = worker.fabric.Color.new(a[0])
         elif len(a) == 1 and isinstance(a[0], (list, tuple)):
             colorStr = self.PartsToHex(*a[0])
-            self.fabCol = window.fabric.Color.new(colorStr)
+            self.fabCol = worker.fabric.Color.new(colorStr)
         else:
             colorStr = self.PartsToHex(*a)
-            self.fabCol = window.fabric.Color.new(colorStr)
+            self.fabCol = worker.fabric.Color.new(colorStr)
 
     def PartsToHex(self, r, g, b, a=1.0):
         r = int(r*255)
@@ -373,32 +372,32 @@ class AffineMatrix2D(object):
         AffineMatrix2D.nextMat += 1
 
         if other:
-            self.matrix = window.fabric.util.composeMatrix(other.matrix)
+            self.matrix = worker.fabric.util.composeMatrix(other.matrix)
         else:
             d = {'angle': 0,
                  'scaleX': 1.0, 'scaleY': 1.0,
                  'flipX': False, 'flipY': False,
                  'skewX': 0.0, 'skewY': 0.0,
                  'translateX': 0, 'translateY': 0}
-            self.matrix = window.fabric.util.composeMatrix(d)
+            self.matrix = worker.fabric.util.composeMatrix(d)
 
     def Translate(self, x, y):
-        newMat = window.fabric.util.composeMatrix({'translateX':x, 'translateY':y})
-        newMat = window.fabric.util.multiplyTransformMatrices(self.matrix, newMat, False)
+        newMat = worker.fabric.util.composeMatrix({'translateX':x, 'translateY':y})
+        newMat = worker.fabric.util.multiplyTransformMatrices(self.matrix, newMat, False)
         self.matrix = newMat
 
     def Rotate(self, angle):
         angle = math.degrees(angle)
-        newMat = window.fabric.util.composeMatrix({'angle': angle})
-        newMat = window.fabric.util.multiplyTransformMatrices(self.matrix, newMat, False)
+        newMat = worker.fabric.util.composeMatrix({'angle': angle})
+        newMat = worker.fabric.util.multiplyTransformMatrices(self.matrix, newMat, False)
         self.matrix = newMat
 
     def Invert(self):
-        newMat = window.fabric.util.invertTransform(self.matrix)
+        newMat = worker.fabric.util.invertTransform(self.matrix)
         self.matrix = newMat
 
     def TransformPoint(self, x, y):
-        pos = window.fabric.util.transformPoint({'x':x, 'y':y}, self.matrix)
+        pos = worker.fabric.util.transformPoint({'x':x, 'y':y}, self.matrix)
         return RealPoint(pos.x, pos.y)
 
 
@@ -509,12 +508,12 @@ class CDSSize(Size):
         self.model.FramePartChanged(self)
 
 
-def RunOnMainSync(func):
-    def wrapper_run_on_main(*args, **kwargs):
-        return func(*args, **kwargs)
-    return wrapper_run_on_main
-
-def RunOnMainAsync(func):
-    def wrapper_run_on_main(*args, **kwargs):
-        func(*args, **kwargs)
-    return wrapper_run_on_main
+# def RunOnMainSync(func):
+#     def wrapper_run_on_main(*args, **kwargs):
+#         return func(*args, **kwargs)
+#     return wrapper_run_on_main
+#
+# def RunOnMainAsync(func):
+#     def wrapper_run_on_main(*args, **kwargs):
+#         func(*args, **kwargs)
+#     return wrapper_run_on_main
