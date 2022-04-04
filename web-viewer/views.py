@@ -88,8 +88,9 @@ class UiView(object):
             if self.model.type in ["line", "pen"]:
                 if rect.Height == 2: pos[1] -= 2
 
-            aff = self.model.parent.GetAffineTransform()
-            pos = aff.TransformPoint(pos[0], pos[1])
+            if self.model.parent and (self.model.parent.type != "card" or rot):
+                aff = self.model.parent.GetAffineTransform()
+                pos = aff.TransformPoint(pos[0], pos[1])
             pos = self.stackManager.ConvPoint(pos)
             results.append((pos[0], pos[1], rot))
         return results
@@ -700,7 +701,7 @@ class UiImage(UiView):
         elif fit == "Center":
             dx = (imgSize.width - s.width) / 2
             dy = (imgSize.height - s.height) / 2
-            self.offsets = ((max(-dx, 0), max(-dy,0)),)
+            self.offsets = ((max(-dx, 0), min(dy,0)),)
             results = self.GetFabObjCoords()[0]
             options = {'fit': "Center", 'left': results[0], 'top': results[1],
                        'clipLeft': max(dx, 0), 'clipTop': max(dy, 0),
@@ -711,7 +712,7 @@ class UiImage(UiView):
             scale = min(s.width / imgSize.width, s.height / imgSize.height)
             dx = (imgSize.width*scale - s.width) / 2
             dy = (imgSize.height*scale - s.height) / 2
-            self.offsets = ((-min(dx,0), -min(dy,0)),)
+            self.offsets = ((max(-dx,0), min(dy,0)),)
             results = self.GetFabObjCoords()[0]
             options = {'fit': "Contain", 'left': results[0], 'top': results[1],
                        'clipLeft': 0, 'clipTop': 0, 'clipWidth': imgSize.width, 'clipHeight': imgSize.height,

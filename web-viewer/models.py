@@ -78,6 +78,7 @@ class ViewModel(object):
         self.animations = {}
         self.bounceObjs = {}
         self.polygon = None
+        self.isPolyDirty = False
         self.polygonPos = None
         self.proxyClass = ViewProxy
         self.didSetDown = False
@@ -500,7 +501,7 @@ class ViewModel(object):
             if key in ("rotation", "size"):
                 self.polygon = None
             if key == "position":
-                self.MovePolygon(value)
+                self.isPolyDirty = True
             self.properties[key] = value
             if notify:
                 self.Notify(key)
@@ -520,16 +521,21 @@ class ViewModel(object):
 
     def GetPolygon(self):
         if not self.polygon:
+            print("make")
             s = self.GetProperty('size')
             f = wx.Rect(0, 0, s[0], s[1])
             points = self.RotatedRectPoints(f)
             self.polygon = worker.SAT.Polygon.new(worker.SAT.Vector.new(),
                                                   [worker.SAT.Vector.new(p.x, p.y) for p in points])
             self.polygonPos = wx.Point(self.properties['position'])
+        elif self.isPolyDirty:
+            self.MovePolygon()
         return self.polygon
 
-    def MovePolygon(self, newPos):
+    def MovePolygon(self):
         if self.polygon:
+            print("move")
+            newPos = self.GetAbsolutePosition()
             dx,dy = (newPos[0] - self.polygonPos[0], newPos[1] - self.polygonPos[1])
             self.polygon.setOffset(worker.SAT.Vector.new(dx, dy))
 
