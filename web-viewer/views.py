@@ -1,11 +1,9 @@
 from browser import self as worker
 import wx_compat as wx
+from time import time
 import math
 
 FontMap = {'Default': 'Arial', 'Mono': 'monospace', 'Serif': 'serif', 'Sans-Serif': 'Arial'}
-
-def time():
-    return worker.Date.now() / 1000.0
 
 
 class UiView(object):

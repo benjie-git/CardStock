@@ -3,14 +3,11 @@ import wx_compat as wx
 import sanitizer
 from urllib.parse import urlparse
 import math
+from time import time
 import re
 
 VERSION='0.9.8'
 FILE_FORMAT_VERSION=3
-
-def time():
-    return worker.Date.now() / 1000.0
-
 
 
 class ViewModel(object):

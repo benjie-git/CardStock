@@ -1,14 +1,13 @@
 import re
 import sys
 from browser import self as worker
+from browser import timer
 import traceback
 import wx_compat as wx
+from time import time
 import models
 import types
 import math
-
-def time():
-    return worker.Date.now() / 1000.0
 
 
 class Runner():
@@ -155,7 +154,7 @@ class Runner():
 
     def StopTimers(self):
         for t in self.timers:
-            worker.clearTimeout(t)
+            timer.clear_timeout(t)
         self.timers = []
 
     def DoReturnFromStack(self, stackReturnVal):
@@ -641,7 +640,7 @@ class Runner():
             def onTimer():
                 if self.stopRunnerThread: return
                 func(*args, **kwargs)
-            t = worker.setTimeout(onTimer, int(adjustedDuration*1000))
+            t = timer.set_timeout(onTimer, int(adjustedDuration*1000))
             self.timers.append(t)
         else:
             func(*args, **kwargs)

@@ -506,14 +506,3 @@ class CDSSize(Size):
             raise TypeError("height must be a number")
         self._height = val
         self.model.FramePartChanged(self)
-
-
-# def RunOnMainSync(func):
-#     def wrapper_run_on_main(*args, **kwargs):
-#         return func(*args, **kwargs)
-#     return wrapper_run_on_main
-#
-# def RunOnMainAsync(func):
-#     def wrapper_run_on_main(*args, **kwargs):
-#         func(*args, **kwargs)
-#     return wrapper_run_on_main
