@@ -1241,6 +1241,7 @@ class ViewProxy(object):
         uiView = model.stackManager.GetUiViewByModel(model)
         if uiView and uiView.view:
             return uiView.view.HasFocus()
+        return False
 
     def Clone(self, name=None, **kwargs):
         model = self._model
@@ -1594,16 +1595,16 @@ class ViewProxy(object):
 
         model = self._model
         oModel = obj._model
-        if not model or not oModel: return None
+        if not model or not oModel: return []
         ui = model.stackManager.GetUiViewByModel(model)
         oUi = model.stackManager.GetUiViewByModel(oModel)
 
         @RunOnMainSync
         def f():
-            if model.didSetDown or oModel.didSetDown: return None
+            if model.didSetDown or oModel.didSetDown: return []
 
             if not skipIsTouchingCheck and not self.IsTouching(obj):
-                return None
+                return []
 
             def intersectTest(r, edge):
                 testReg = wx.Region(r)
@@ -1653,8 +1654,6 @@ class ViewProxy(object):
             if len(edges) == 3 and "Left" in edges and "Right" in edges:
                 edges.remove("Left")
                 edges.remove("Right")
-            if len(edges) == 0:
-                edges = None
             return edges
         return f()
 

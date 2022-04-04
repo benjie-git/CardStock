@@ -569,7 +569,7 @@ class HelpDataObject():
                                "this function, otherwise returns <b>False</b>."},
         "IsTouchingEdge": {"args": {"other": {"type": "object", "info":"The other object to compare to this one"}},
                            "return": "list",
-                           "info": "Returns <b>None</b> if this object is not touching any edges of the <b>other</b> "
+                           "info": "Returns an empty list if this object is not touching any edges of the <b>other</b> "
                                    "object passed into this function.  If this object is touching any edges of the "
                                    "other object, the return value will be a list including one or more of the strings:"
                                    " 'Top', 'Bottom', 'Left', or 'Right', accordingly."},
