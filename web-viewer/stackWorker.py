@@ -32,7 +32,7 @@ class StackWorker(object):
         msg = evt.data[0]
         values = evt.data[1:]
 
-        # print("Worker", msg, values)
+        # if msg != "frame": print("Worker", msg, values)
 
         if msg == "frame":
             numFrames = worker.Atomics.sub(self.countsSA32, 0, 1)

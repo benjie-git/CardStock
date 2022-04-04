@@ -521,7 +521,6 @@ class ViewModel(object):
 
     def GetPolygon(self):
         if not self.polygon:
-            print("make")
             s = self.GetProperty('size')
             f = wx.Rect(0, 0, s[0], s[1])
             points = self.RotatedRectPoints(f)
@@ -534,7 +533,6 @@ class ViewModel(object):
 
     def MovePolygon(self):
         if self.polygon:
-            print("move")
             newPos = self.GetAbsolutePosition()
             dx,dy = (newPos[0] - self.polygonPos[0], newPos[1] - self.polygonPos[1])
             self.polygon.setOffset(worker.SAT.Vector.new(dx, dy))
@@ -2411,32 +2409,19 @@ class WebView(ViewProxy):
 
     @property
     def canGoBack(self):
-        ui = self._model.stackManager.GetUiViewByModel(self._model)
-        if ui:
-            return ui.webView.CanGoBack()
         return False
 
     @property
     def canGoForward(self):
-        ui = self._model.stackManager.GetUiViewByModel(self._model)
-        if ui:
-            return ui.webView.CanGoForward()
         return False
 
     def GoBack(self):
-        ui = self._model.stackManager.GetUiViewByModel(self._model)
-        if ui:
-            ui.webView.GoBack()
+        pass
 
     def GoForward(self):
-        ui = self._model.stackManager.GetUiViewByModel(self._model)
-        if ui:
-            ui.webView.GoForward()
+        pass
 
     def RunJavaScript(self, code):
-        ui = self._model.stackManager.GetUiViewByModel(self._model)
-        if ui:
-            return ui.RunJavaScript(code)
         return None
 
 
@@ -2577,14 +2562,14 @@ class LineModel(ViewModel):
             return
 
         # adjust view rect
-        self.SetProperty("position", rect.Position)
+        self.SetProperty("position", rect.Position, notify=False)
         if rect.Width < self.minSize.width: rect.Width = self.minSize.width
         if rect.Height < self.minSize.height: rect.Height = self.minSize.height
 
         if oldSize:
-            self.SetProperty("size", [oldSize[0], oldSize[1]])
+            self.SetProperty("size", [oldSize[0], oldSize[1]], notify=False)
         else:
-            self.SetProperty("size", rect.Size)
+            self.SetProperty("size", rect.Size, notify=False)
         self.SetProperty("originalSize", rect.Size)
 
         if len(points) > 0:

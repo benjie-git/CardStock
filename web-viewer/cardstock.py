@@ -32,6 +32,7 @@ class StackManager(object):
 
         self.stackModel.SetDown()
         self.stackModel.DismantleChildTree()
+        worker.stackWorker.SendAsync(("fabFunc", 0, "clear"))
 
     def LoadFromStr(self, stackStr):
         stackJSON = json.loads(stackStr)

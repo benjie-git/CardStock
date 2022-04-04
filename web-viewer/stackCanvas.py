@@ -116,7 +116,7 @@ class StackCanvas(object):
                 options = args[1]
                 oldObj = self.fabObjs[uid]
                 origImage = self.imgCache[oldObj.filePath]
-                index = self.canvas.getObjects().index(oldObj)
+                index = [o.csid for o in self.canvas.getObjects()].index(oldObj.csid)
                 self.canvas.remove(oldObj)
 
                 def setImg(img):
@@ -163,7 +163,7 @@ class StackCanvas(object):
                 uid = args[0]
 
                 oldObj = self.fabObjs[uid]
-                index = self.canvas.getObjects().index(oldObj)
+                index = [o.csid for o in self.canvas.getObjects()].index(oldObj.csid)
                 self.canvas.remove(oldObj)
 
                 fabClass = window.fabric[args[1]]

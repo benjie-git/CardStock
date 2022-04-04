@@ -504,6 +504,8 @@ class UiTextLabel(UiView):
 
 class UiTextField(UiView):
     def __init__(self, parent, stackManager, model):
+        self.textBg = None
+        self.textbox = None
         super().__init__(parent, stackManager, model)
 
     def CreateFabObjs(self):
@@ -731,8 +733,8 @@ class UiImage(UiView):
 
 
 class UiGroup(UiView):
-    def __init__(self, parent, stackManager, model):
-        super().__init__(parent, stackManager, model)
+    # def __init__(self, parent, stackManager, model):
+    #     super().__init__(parent, stackManager, model)
 
     def LoadChildren(self):
         super().LoadChildren()
@@ -752,4 +754,38 @@ class UiGroup(UiView):
 
 
 class UiWebView(UiView):
-    pass
+    def __init__(self, parent, stackManager, model):
+        self.textBg = None
+        self.textbox = None
+        super().__init__(parent, stackManager, model)
+
+    def CreateFabObjs(self):
+        model = self.model
+        rect = model.GetAbsoluteFrame()
+        self.offsets = ((0, 0), (2, -2))
+        coords = self.GetFabObjCoords()
+
+        self.textBg = worker.stackWorker.CreateFab("Rect",
+                                                   {'width': model.properties['size'].width,
+                                                    'height': model.properties['size'].height,
+                                                    'left': coords[0][0],
+                                                    'top': coords[0][1],
+                                                    'fill': 'grey',
+                                                    'stroke': 'black',
+                                                    'strokeWidth': 1,
+                                                    'hoverCursor': "arrow",
+                                                    'visible': model.properties['isVisible']})
+
+        self.textbox = worker.stackWorker.CreateFab("Textbox",model.properties['URL'],
+                                                        {'width': rect.Width - 2,
+                                                         'left': coords[0][0],
+                                                         'top': coords[0][1],
+                                                         'angle': coords[0][2],
+                                                         'textAlign': "center",
+                                                         'fill': 'black',
+                                                         'fontFamily': 'Arial',
+                                                         'fontSize': 14,
+                                                         'hoverCursor': "arrow",
+                                                         'editable': False,
+                                                         'visible': model.properties['isVisible']})
+        self.fabIds = [self.textBg, self.textbox]
