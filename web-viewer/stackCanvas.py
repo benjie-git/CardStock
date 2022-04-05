@@ -177,10 +177,10 @@ class StackCanvas(object):
                 self.fabObjs[uid] = fabObj
 
                 self.canvas.add(fabObj)
-                fabObj.on('selected', self.OnTextboxSelected)
-                fabObj.on('deselected', self.OnTextboxDeselected)
+                fabObj.on('selected', self.OnTextFieldSelected)
+                fabObj.on('deselected', self.OnTextFieldDeselected)
                 fabObj.oldOnKeyDown = fabObj.onKeyDown
-                fabObj.onKeyDown = self.OnTextboxKeyDown
+                fabObj.onKeyDown = self.OnTextFieldKeyDown
 
             elif msg == "fabReplace":  # uid, type, options
                 uid = args[0]
@@ -208,8 +208,8 @@ class StackCanvas(object):
                         fabObj = self.fabObjs[uid]
                         del self.fabObjs[uid]
                         if fabObj.isType == 'TextField':
-                            fabObj.off('selected', self.OnTextboxSelected)
-                            fabObj.off('deselected', self.OnTextboxDeselected)
+                            fabObj.off('selected', self.OnTextFieldSelected)
+                            fabObj.off('deselected', self.OnTextFieldDeselected)
                         self.canvas.remove(fabObj)
                     else:
                         print("Delete: no object with uid", uid)
@@ -240,8 +240,13 @@ class StackCanvas(object):
 
             elif msg == "focus":  # uid
                 uid = args[0]
-                fabObj = self.fabObjs[uid]
-                self.canvas.setActiveObject(fabObj)
+                if not self.canvas.getActiveObject() or self.canvas.getActiveObject().csid != uid:
+                    field = self.fabObjs[uid]
+                    self.canvas.setActiveObject(field)
+                    field.enterEditing()
+                    length = len(field.text)
+                    field.setSelectionStart(length)
+                    field.setSelectionEnd(length)
 
             elif msg == "alert":  # text
                 self.canvas.requestRenderAll()
@@ -311,6 +316,8 @@ class StackCanvas(object):
         uid = 0
         if options.target:
             uid = options.target.csid
+            if options.target.isType == "TextField":
+                self.OnTextFieldMouseDown(options.target, options.e)
         pos = self.ConvPoint(options.e.pageX, options.e.pageY)
         self.lastMousePos = pos
         stackWorker.send(("mouseDown", uid, pos))
@@ -347,7 +354,12 @@ class StackCanvas(object):
         window.Atomics.add(self.countsSA32, 0, 1)
         stackWorker.send(("frame",))
 
-    def OnTextboxKeyDown(self, e):
+    def OnTextFieldMouseDown(self, field, e):
+        self.canvas.setActiveObject(field)
+        field.enterEditing()
+        field.setCursorByClick(e)
+
+    def OnTextFieldKeyDown(self, e):
         fabObj = self.canvas.getActiveObject()
         if fabObj and fabObj.isType == 'TextField':
             fabObj.oldOnKeyDown(e)
@@ -359,12 +371,8 @@ class StackCanvas(object):
                         e.preventDefault()
                     stackWorker.send(("textEnter", fabObj.csid))
 
-    def OnTextboxSelected(self, options):
+    def OnTextFieldSelected(self, options):
         fabObj = options.target
-        fabObj.enterEditing()
-        end = len(fabObj.text)
-        fabObj.setSelectionStart(end)
-        fabObj.setSelectionEnd(end)
         stackWorker.send(("objectFocus", fabObj.csid))
 
     def OnTextChanged(self, options):
@@ -372,7 +380,7 @@ class StackCanvas(object):
         textbox = self.fabObjs[uid]
         stackWorker.send(("textChanged", uid, textbox.text))
 
-    def OnTextboxDeselected(self, options):
+    def OnTextFieldDeselected(self, options):
         fabObj = options.target
         fabObj.exitEditing()
         fabObj = self.canvas.getActiveObject()

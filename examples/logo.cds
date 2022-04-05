@@ -13,13 +13,13 @@
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "import math\n\npoints = None\npos = None\nrot = None\nisPenDown = True\n\ndef pd():\n   global points\n   global isPenDown\n   isPenDown = True\n   if len(points[-1]) > 0:\n      points.append([pos.copy()])\n   else:\n      points[-1].append(pos.copy())\n\ndef pu():\n   global isPenDown\n   isPenDown = False\n   if len(points[-1]) == 1:\n      del points[-1][0]\n\ndef fd(dist):\n   global pos\n   global rot\n   global points\n   global isPenDown\n   pos = [pos[0]+math.cos(math.radians(rot))*dist,\n         pos[1]+math.sin(math.radians(rot))*dist]\n   if isPenDown:\n      points[-1].append(pos.copy())\n\ndef bk(dist):\n   fd(-dist)\n\ndef home():\n   global pos\n   global rot\n   global points\n   global isPenDown\n   pos = [code.size.width + (card.size.width - code.size.width)/2,\n         card.size.height/2]\n   rot = 0\n   if isPenDown:\n      points[-1].append(pos.copy())\n\ndef rt(angle):\n   global rot\n   rot = (rot - angle) % 360\n\ndef lt(angle):\n   rt(-angle)\n\ndef run_logo(text):\n   global points\n   \n   clear.Click()\n   points = [[]]\n   isPenDown = True\n   home()\n\n   exec(text)\n   \n   lines = []\n   for l in points:\n      newLine = card.AddLine(l, \"output_line\")\n      newLine.penThickness = 1\n      lines.append(newLine)\n   if len(lines) > 1:\n      card.AddGroup(lines, \"output\")\n\ndef ShowHelp():\n   Alert(\n      \"Logo Commands:\\n\\n\"\n      \"pu() - Pen Up\\n\"\n      \"pd() - Pen Down\\n\"\n      \"fd(x) - Move Forward X pixels\\n\"\n      \"bk(x) - Move Backwards X pixels\\n\"\n      \"rt(x) - Rotate Right X degrees\\n\"\n      \"lt(x) - Rotate Left X degrees\\n\"\n      \"home() - Move to the center, pointing right\"\n      )\n",
+        "OnSetup": "import math\n\npoints = None\npos = None\nrot = None\nisPenDown = True\n\ndef pd():\n   global points\n   global isPenDown\n   isPenDown = True\n   if len(points[-1]) > 0:\n      points.append([pos.copy()])\n   else:\n      points[-1].append(pos.copy())\n\ndef pu():\n   global isPenDown\n   isPenDown = False\n   if len(points[-1]) == 1:\n      del points[-1][0]\n\ndef fd(dist):\n   global pos\n   global rot\n   global points\n   global isPenDown\n   pos = [pos[0]+math.cos(math.radians(rot))*dist,\n         pos[1]+math.sin(math.radians(rot))*dist]\n   if isPenDown:\n      points[-1].append(pos.copy())\n\ndef bk(dist):\n   fd(-dist)\n\ndef home():\n   global pos\n   global rot\n   global points\n   global isPenDown\n   pos = [code.size.width + (card.size.width - code.size.width)/2,\n         card.size.height/2]\n   rot = 0\n   if isPenDown:\n      points[-1].append(pos.copy())\n\ndef rt(angle):\n   global rot\n   rot = (rot - angle) % 360\n\ndef lt(angle):\n   rt(-angle)\n\ndef run_logo(text):\n   global points\n   \n   clear.Click()\n   points = [[]]\n   isPenDown = True\n   home()\n\n   exec(text)\n   \n   lines = []\n   for l in points:\n      newLine = card.AddLine(l, \"output_line\")\n      newLine.penThickness = 1\n      lines.append(newLine)\n      newLine.OrderToBack()\n   if len(lines) > 1:\n      g = card.AddGroup(lines, \"output\")\n      g.OrderToBack()\n\ndef clear_logo():\n   for obj in card.children:\n      if obj.name.startswith(\"output\"):\n         obj.Delete()\n\ndef ShowHelp():\n   Alert(\n      \"Logo Commands:\\n\\n\"\n      \"pu() - Pen Up\\n\"\n      \"pd() - Pen Down\\n\"\n      \"fd(x) - Move Forward X pixels\\n\"\n      \"bk(x) - Move Backwards X pixels\\n\"\n      \"rt(x) - Rotate Right X degrees\\n\"\n      \"lt(x) - Rotate Left X degrees\\n\"\n      \"home() - Move to the center, pointing right\"\n      )\n",
         "OnShowCard": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height",
         "OnResize": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height"
       },
       "properties": {
         "name": "card_1",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -34,7 +34,8 @@
             "position": [
               2.0,
               440.0
-            ]
+            ],
+            "rotation": 0.0
           },
           "childModels": [
             {
@@ -53,7 +54,7 @@
                   27.0
                 ],
                 "title": "<",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -72,13 +73,13 @@
                   27.0
                 ],
                 "title": ">",
-                "border": true
+                "hasBorder": true
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "c = card.Clone()\nc.SetEventHandler(\"OnSetup\", \"\")\nGotoCard(c.name)"
+                "OnClick": "c = card.Clone()\nc.SetEventCode(\"OnSetup\", \"\")\nGotoCard(c.name)"
               },
               "properties": {
                 "name": "new",
@@ -91,7 +92,7 @@
                   0.0
                 ],
                 "title": "New",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -112,8 +113,8 @@
                 "textColor": "black",
                 "font": "Default",
                 "fontSize": 12,
-                "editable": true,
-                "multiline": false
+                "isEditable": true,
+                "isMultiline": false
               }
             },
             {
@@ -132,7 +133,7 @@
                   1.0
                 ],
                 "title": "Run",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -151,13 +152,13 @@
                   1.0
                 ],
                 "title": "?",
-                "border": true
+                "hasBorder": true
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "for obj in card.children:\n   if obj.name.startswith(\"output\"):\n      obj.Delete()\n"
+                "OnClick": "clear_logo()"
               },
               "properties": {
                 "name": "clear",
@@ -170,7 +171,7 @@
                   1.0
                 ],
                 "title": "Clear",
-                "border": true
+                "hasBorder": true
               }
             }
           ]
@@ -193,8 +194,8 @@
             "textColor": "black",
             "font": "Mono",
             "fontSize": 12,
-            "editable": true,
-            "multiline": true
+            "isEditable": true,
+            "isMultiline": true
           }
         }
       ]
@@ -207,7 +208,7 @@
       },
       "properties": {
         "name": "card_2",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -222,7 +223,8 @@
             "position": [
               2.0,
               440.0
-            ]
+            ],
+            "rotation": 0.0
           },
           "childModels": [
             {
@@ -241,7 +243,7 @@
                   27.0
                 ],
                 "title": "<",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -260,7 +262,7 @@
                   27.0
                 ],
                 "title": ">",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -279,7 +281,7 @@
                   0.0
                 ],
                 "title": "New",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -300,8 +302,8 @@
                 "textColor": "black",
                 "font": "Default",
                 "fontSize": 12,
-                "editable": true,
-                "multiline": false
+                "isEditable": true,
+                "isMultiline": false
               }
             },
             {
@@ -320,7 +322,7 @@
                   1.0
                 ],
                 "title": "Run",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -339,13 +341,13 @@
                   1.0
                 ],
                 "title": "?",
-                "border": true
+                "hasBorder": true
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "for obj in card.children:\n   if obj.name.startswith(\"output\"):\n      obj.Delete()\n"
+                "OnClick": "clear_logo()"
               },
               "properties": {
                 "name": "clear",
@@ -358,7 +360,7 @@
                   1.0
                 ],
                 "title": "Clear",
-                "border": true
+                "hasBorder": true
               }
             }
           ]
@@ -381,8 +383,8 @@
             "textColor": "black",
             "font": "Mono",
             "fontSize": 12,
-            "editable": true,
-            "multiline": true
+            "isEditable": true,
+            "isMultiline": true
           }
         }
       ]
@@ -395,7 +397,7 @@
       },
       "properties": {
         "name": "card_3",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -410,7 +412,8 @@
             "position": [
               2.0,
               440.0
-            ]
+            ],
+            "rotation": 0.0
           },
           "childModels": [
             {
@@ -429,7 +432,7 @@
                   27.0
                 ],
                 "title": "<",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -448,7 +451,7 @@
                   27.0
                 ],
                 "title": ">",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -467,7 +470,7 @@
                   0.0
                 ],
                 "title": "New",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -488,14 +491,14 @@
                 "textColor": "black",
                 "font": "Default",
                 "fontSize": 12,
-                "editable": true,
-                "multiline": false
+                "isEditable": true,
+                "isMultiline": false
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "for obj in card.children:\n   if obj.name.startswith(\"output\"):\n      obj.Delete()\n"
+                "OnClick": "clear_logo()"
               },
               "properties": {
                 "name": "clear",
@@ -508,7 +511,7 @@
                   1.0
                 ],
                 "title": "Clear",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -527,7 +530,7 @@
                   1.0
                 ],
                 "title": "?",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -546,7 +549,7 @@
                   1.0
                 ],
                 "title": "Run",
-                "border": true
+                "hasBorder": true
               }
             }
           ]
@@ -569,8 +572,8 @@
             "textColor": "black",
             "font": "Mono",
             "fontSize": 12,
-            "editable": true,
-            "multiline": true
+            "isEditable": true,
+            "isMultiline": true
           }
         }
       ]
@@ -583,7 +586,7 @@
       },
       "properties": {
         "name": "card_4",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -598,7 +601,8 @@
             "position": [
               2.0,
               440.0
-            ]
+            ],
+            "rotation": 0.0
           },
           "childModels": [
             {
@@ -617,7 +621,7 @@
                   27.0
                 ],
                 "title": "<",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -636,7 +640,7 @@
                   27.0
                 ],
                 "title": ">",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -655,7 +659,7 @@
                   0.0
                 ],
                 "title": "New",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -676,14 +680,14 @@
                 "textColor": "black",
                 "font": "Default",
                 "fontSize": 12,
-                "editable": true,
-                "multiline": false
+                "isEditable": true,
+                "isMultiline": false
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "for obj in card.children:\n   if obj.name.startswith(\"output\"):\n      obj.Delete()\n"
+                "OnClick": "clear_logo()"
               },
               "properties": {
                 "name": "clear",
@@ -696,7 +700,7 @@
                   1.0
                 ],
                 "title": "Clear",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -715,7 +719,7 @@
                   1.0
                 ],
                 "title": "?",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -734,7 +738,7 @@
                   1.0
                 ],
                 "title": "Run",
-                "border": true
+                "hasBorder": true
               }
             }
           ]
@@ -757,8 +761,8 @@
             "textColor": "black",
             "font": "Mono",
             "fontSize": 12,
-            "editable": true,
-            "multiline": true
+            "isEditable": true,
+            "isMultiline": true
           }
         }
       ]
@@ -771,7 +775,7 @@
       },
       "properties": {
         "name": "card_5",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -786,7 +790,8 @@
             "position": [
               2.0,
               440.0
-            ]
+            ],
+            "rotation": 0.0
           },
           "childModels": [
             {
@@ -805,7 +810,7 @@
                   27.0
                 ],
                 "title": "<",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -824,7 +829,7 @@
                   27.0
                 ],
                 "title": ">",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -843,7 +848,7 @@
                   0.0
                 ],
                 "title": "New",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -864,14 +869,14 @@
                 "textColor": "black",
                 "font": "Default",
                 "fontSize": 12,
-                "editable": true,
-                "multiline": false
+                "isEditable": true,
+                "isMultiline": false
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "for obj in card.children:\n   if obj.name.startswith(\"output\"):\n      obj.Delete()\n"
+                "OnClick": "clear_logo()"
               },
               "properties": {
                 "name": "clear",
@@ -884,7 +889,7 @@
                   1.0
                 ],
                 "title": "Clear",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -903,7 +908,7 @@
                   1.0
                 ],
                 "title": "?",
-                "border": true
+                "hasBorder": true
               }
             },
             {
@@ -922,7 +927,7 @@
                   1.0
                 ],
                 "title": "Run",
-                "border": true
+                "hasBorder": true
               }
             }
           ]
@@ -945,13 +950,13 @@
             "textColor": "black",
             "font": "Mono",
             "fontSize": 12,
-            "editable": true,
-            "multiline": true
+            "isEditable": true,
+            "isMultiline": true
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9.3"
+  "CardStock_stack_format": 3,
+  "CardStock_stack_version": "0.9.8"
 }

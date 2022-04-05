@@ -570,7 +570,7 @@ class UiTextField(UiView):
 
     def OnMouseDown(self, pos):
         super().OnMouseDown(pos)
-        worker.stackWorker.SendAsync(("objectFocus", self.textbox))
+        worker.stackWorker.SendAsync(("focus", self.textbox))
 
     def OnPropertyChanged(self, key):
         super().OnPropertyChanged(key)
