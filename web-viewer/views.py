@@ -14,7 +14,7 @@ class UiView(object):
         self.model = model
         self.fabIds = []
         self.offsets = []
-        self.uiViews = {}
+        self.uiViews = []
         self.CreateFabObjs()
 
     def CreateFabObjs(self):
@@ -31,7 +31,7 @@ class UiView(object):
     def LoadChildren(self):
         for m in self.model.childModels:
             ui = self.stackManager.UiViewFromModel(self, self.stackManager, m)
-            self.uiViews[m] = ui
+            self.uiViews.append(ui)
             ui.LoadChildren()
 
     def OnMouseDown(self, pos):
@@ -45,7 +45,7 @@ class UiView(object):
 
     def OnPeriodic(self):
         self.stackManager.runner.RunHandler(self.model, "OnPeriodic", None)
-        for ui in self.uiViews.copy().values():
+        for ui in self.uiViews.copy():
             ui.OnPeriodic()
 
     def OnPropertyChanged(self, key):
@@ -287,7 +287,7 @@ class UiCard(UiView):
 
     def GetAllUiViews(self):
         allUiViews = []
-        for uiView in self.uiViews.values():
+        for uiView in self.uiViews:
             allUiViews.append(uiView)
             if uiView.model.type == "group":
                 uiView.GetAllUiViews(allUiViews)
@@ -299,6 +299,15 @@ class UiCard(UiView):
         for ui in self.GetAllUiViews():
             if uid in ui.fabIds:
                 return ui
+        return None
+
+    def GetFirstFabIndexForUiView(self, uiView):
+        uiViews = self.GetAllUiViews()
+        n = 0
+        for ui in uiViews:
+            if ui == uiView:
+                return n
+            n += len(ui.fabIds)
         return None
 
     def OnFabricMouseDown(self, uid, pos):
@@ -436,7 +445,7 @@ class UiButton(UiView):
 
     def OnMouseMove(self, pos):
         if self.isMouseDown:
-            contains = self.group.containsPoint(pos)
+            contains = self.rrBg.containsPoint(pos)
             if not self.isHilighted and contains:
                 self.Highlight(True)
             elif self.isHilighted and not contains:
@@ -741,7 +750,7 @@ class UiGroup(UiView):
         super().CreateFabObjs()
 
     def GetAllUiViews(self, allUiViews):
-        for uiView in self.uiViews.values():
+        for uiView in self.uiViews:
             allUiViews.append(uiView)
             if uiView.model.type == "group":
                 uiView.GetAllUiViews(allUiViews)
@@ -749,7 +758,7 @@ class UiGroup(UiView):
     def OnPropertyChanged(self, key):
         super().OnPropertyChanged(key)
         if key in ("size", "position", "center", "rotation"):
-            for ui in self.uiViews.values():
+            for ui in self.uiViews:
                 ui.OnPropertyChanged(key)
 
 

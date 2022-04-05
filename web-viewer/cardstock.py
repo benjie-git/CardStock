@@ -26,9 +26,9 @@ class StackManager(object):
 
     def Unload(self):
         self.uiCard.UnLoad()
-        for ui in self.uiCard.uiViews.values():
+        for ui in self.uiCard.uiViews:
             ui.SetDown()
-        self.uiCard.uiViews = {}
+        self.uiCard.uiViews = []
 
         self.stackModel.SetDown()
         self.stackModel.DismantleChildTree()
@@ -125,7 +125,7 @@ class StackManager(object):
         def FindSubView(uiView):
             if uiView.model == model:
                 return uiView
-            for ui in uiView.uiViews.values():
+            for ui in uiView.uiViews:
                 found = FindSubView(ui)
                 if found:
                     return found
@@ -157,7 +157,7 @@ class StackManager(object):
                 uiView.model.GetProperty("name"), exclude=[]), notify=False)
 
         if uiView:
-            self.uiCard.uiViews[model] = uiView
+            self.uiCard.uiViews.append(uiView)
             if uiView.model not in self.uiCard.model.childModels:
                 self.uiCard.model.AddChild(uiView.model)
 
@@ -167,7 +167,7 @@ class StackManager(object):
         ids = []
         def remUi(ui):
             ids.extend(ui.fabIds)
-            for u in ui.uiViews.values():
+            for u in ui.uiViews:
                 remUi(u)
         remUi(uiView)
         worker.stackWorker.SendAsync(("fabDel", *ids))
@@ -191,7 +191,7 @@ class StackManager(object):
         """
         ui = self.GetUiViewByModel(viewModel)
         if ui:
-            del self.uiCard.uiViews[viewModel]
+            self.uiCard.uiViews.remove(ui)
             if ui.model.parent:
                 self.uiCard.model.RemoveChild(ui.model)
             self.RemoveFabObjs(ui)

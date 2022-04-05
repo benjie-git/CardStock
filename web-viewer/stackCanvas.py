@@ -30,6 +30,7 @@ class StackCanvas(object):
         self.imgCache = {}
         self.lastMousePos = (0,0)
         self.isLoading = False
+        self.needsRender = False
 
         stackWorker.bind("message", self.OnMessageM)
 
@@ -47,7 +48,7 @@ class StackCanvas(object):
 
     def Render(self):
         if not self.isLoading:
-            self.canvas.requestRenderAll()
+            self.needsRender = True
 
     def HandleMessageM(self, messages):
         for vals in messages:
@@ -64,7 +65,7 @@ class StackCanvas(object):
 
             elif msg == "didLoad":
                 self.isLoading = False
-                self.canvas.requestRenderAll()
+                self.Render()
 
             elif msg == "willUnload":
                 self.isLoading = True
@@ -223,6 +224,12 @@ class StackCanvas(object):
                 if 'left' in options or 'width' in options:
                     fabObj.setCoords()
 
+            elif msg == "fabReorder":  # uid, index
+                uid = args[0]
+                index = args[1]
+                fabObj = self.fabObjs[uid]
+                self.canvas.moveTo(fabObj, index)
+
             elif msg == "render":  # No args
                 self.Render()
 
@@ -327,6 +334,9 @@ class StackCanvas(object):
 
     def OnAnimationFrame(self, _dummy):
         timer.request_animation_frame(self.OnAnimationFrame)
+        if not self.isLoading and self.needsRender:
+            self.needsRender = False
+            self.canvas.requestRenderAll()
         window.Atomics.add(self.countsSA32, 0, 1)
         stackWorker.send(("frame",))
 

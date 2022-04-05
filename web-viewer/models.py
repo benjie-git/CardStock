@@ -441,17 +441,23 @@ class ViewModel(object):
             return
         self.parent.childModels.remove(self)
         self.parent.childModels.insert(index, self)
-        if self.GetCard() == self.stackManager.uiCard.model:
+        card = self.GetCard()
+        if card == self.stackManager.uiCard.model:
             ui = self.stackManager.GetUiViewByModel(self)
-            if ui.view:
-                self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
-            else:
-                ui.parent.uiViews.remove(ui)
-                ui.parent.uiViews.insert(index, ui)
+            ui.parent.uiViews.remove(ui)
+            ui.parent.uiViews.insert(index, ui)
+            n = self.stackManager.uiCard.GetFirstFabIndexForUiView(ui)
+            if n is None:
+                return
+            for fabId in ui.fabIds:
+                worker.stackWorker.SendAsync(("fabReorder", fabId, n))
+                n += 1
 
     def OrderMoveBy(self, delta):
-        index = self.parent.childModels.index(self) + delta
-        self.OrderMoveTo(index)
+        index = self.parent.childModels.index(self)
+        if (delta < 0 and index > 0) or (delta > 0 and index < len(self.parent.childModels)-1):
+            index += delta
+            self.OrderMoveTo(index)
 
     def FramePartChanged(self, cdsFramePart):
         if cdsFramePart.role == "position":
