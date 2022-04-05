@@ -111,6 +111,26 @@ class StackCanvas(object):
                 else:
                     window.fabric.Image.fromURL(filePath, didLoad)
 
+            elif msg == "imgReplace":  # uid, filePath
+                uid = args[0]
+                filePath = args[1]
+                oldObj = self.fabObjs[uid]
+                oldObj['filePath'] = filePath
+                index = [o.csid for o in self.canvas.getObjects()].index(oldObj.csid)
+
+                def didLoad(img, failed):
+                    if not failed:
+                        if filePath not in self.imgCache:
+                            self.imgCache[filePath] = img
+                        s = self.imgCache[filePath].getOriginalSize()
+                        stackWorker.send(("imgSize", uid, s.width, s.height))
+
+                if filePath in self.imgCache:
+                    s = self.imgCache[filePath].getOriginalSize()
+                    stackWorker.send(("imgSize", uid, s.width, s.height))
+                else:
+                    window.fabric.Image.fromURL(filePath, didLoad)
+
             elif msg == "imgRefit":  # uid, options
                 uid = args[0]
                 options = args[1]

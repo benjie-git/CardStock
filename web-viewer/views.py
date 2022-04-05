@@ -729,7 +729,7 @@ class UiImage(UiView):
             self.FitImage()
         elif key == "file":
             file = "Resources/" + self.model.properties['file']
-            #self.image.setSrc(file)
+            worker.stackWorker.CreateImage(file, replace=self.image)
 
 
 class UiGroup(UiView):

@@ -130,9 +130,13 @@ class StackWorker(object):
         worker.send((("tboxNew", i, *args),))
         return i
 
-    def CreateImage(self, *args):
-        i = NextId()
-        worker.send((("imgNew", i, *args),))
+    def CreateImage(self, *args, replace=None):
+        if replace == None:
+            i = NextId()
+            worker.send((("imgNew", i, *args),))
+        else:
+            i = replace
+            worker.send((("imgReplace", replace, *args),))
         return i
 
     def write(self, text):
