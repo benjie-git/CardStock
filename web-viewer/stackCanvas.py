@@ -23,6 +23,7 @@ class StackCanvas(object):
         self.canvas.on('text:changed', self.OnTextChanged)
         document.onkeydown = self.OnKeyDown
         document.onkeyup = self.OnKeyUp
+        window.onresize = self.OnWindowResize
 
         self.fabObjs = {0: self.canvas}
         self.canvasSize = (500, 500)
@@ -36,6 +37,7 @@ class StackCanvas(object):
 
         stackWorker.send(('setup', self.waitSAB, self.countsSAB, self.dataSAB))
         stackWorker.send(('load', window.stackJSON))
+        self.OnWindowResize(None)
 
         timer.request_animation_frame(self.OnAnimationFrame)
 
@@ -376,6 +378,9 @@ class StackCanvas(object):
         fabObj = self.canvas.getActiveObject()
         if not fabObj:
             stackWorker.send(("objectFocus", 0))
+
+    def OnWindowResize(self, _e):
+        stackWorker.send(("windowSized", window.innerWidth-2, window.innerHeight-2))
 
 
 class ConsoleOutput:

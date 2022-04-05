@@ -89,6 +89,9 @@ class StackWorker(object):
         elif msg == 'objectFocus':
             self.focusedFabId = values[0]
 
+        elif msg == "windowSized":
+            self.stackManager.WindowDidResize(*values)
+
         elif msg == 'imgSize':
             uid = values[0]
             uiImage = self.stackManager.uiCard.FindTargetUi(uid)
