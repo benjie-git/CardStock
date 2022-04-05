@@ -16,6 +16,7 @@ class StackManager(object):
         self.runner = None
         self.lastPeriodic = time()
         self.lastFrame = self.lastPeriodic
+        self.delayedSetDowns = []
 
     def SetDown(self):
         self.uiCard.SetDown()
@@ -24,8 +25,13 @@ class StackManager(object):
         self.stackModel.DismantleChildTree()
         self.stackModel = None
 
+    def RunDelayedSetDowns(self):
+        for o in self.delayedSetDowns:
+            o.SetDown()
+        self.delayedSetDowns = []
+
     def Unload(self):
-        self.uiCard.UnLoad()
+        self.uiCard.Unload()
         for ui in self.uiCard.uiViews:
             ui.SetDown()
         self.uiCard.uiViews = []
@@ -195,6 +201,7 @@ class StackManager(object):
             if ui.model.parent:
                 self.uiCard.model.RemoveChild(ui.model)
             self.RemoveFabObjs(ui)
+            self.delayedSetDowns.append(ui)
             worker.stackWorker.SendAsync(("render",))
         else:
             if viewModel.parent:
@@ -271,6 +278,8 @@ class StackManager(object):
                 if group.GetCard() == self.uiCard.model:
                     self.RemoveUiViewByModel(group)
                     self.AddUiViewsFromModels(childModels)
+                    for child in childModels:
+                        child.Notify("position")
                 else:
                     p = group.parent
                     p.RemoveChild(group)

@@ -38,6 +38,7 @@ class StackWorker(object):
             numFrames = worker.Atomics.sub(self.countsSA32, 0, 1)
             if numFrames == 1:
                 self.stackManager.OnFrame()
+            self.stackManager.RunDelayedSetDowns()
 
         elif msg == 'setup':
             self.waitSAB = values[0]

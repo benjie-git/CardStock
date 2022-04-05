@@ -30,7 +30,7 @@ class StackCanvas(object):
         self.imgCache = {}
         self.lastMousePos = (0,0)
         self.isLoading = False
-        self.needsRender = False
+        self.writeBuffer = ""
 
         stackWorker.bind("message", self.OnMessageM)
 
@@ -48,7 +48,7 @@ class StackCanvas(object):
 
     def Render(self):
         if not self.isLoading:
-            self.needsRender = True
+            self.canvas.requestRenderAll()
 
     def HandleMessageM(self, messages):
         for vals in messages:
@@ -202,12 +202,15 @@ class StackCanvas(object):
 
             elif msg == "fabDel":  # uid, [more uids...]
                 for uid in args:
-                    fabObj = self.fabObjs[uid]
-                    del self.fabObjs[uid]
-                    if fabObj.isType == 'TextField':
-                        fabObj.off('selected', self.OnTextboxSelected)
-                        fabObj.off('deselected', self.OnTextboxDeselected)
-                    self.canvas.remove(fabObj)
+                    if uid in self.fabObjs:
+                        fabObj = self.fabObjs[uid]
+                        del self.fabObjs[uid]
+                        if fabObj.isType == 'TextField':
+                            fabObj.off('selected', self.OnTextboxSelected)
+                            fabObj.off('deselected', self.OnTextboxDeselected)
+                        self.canvas.remove(fabObj)
+                    else:
+                        print("Delete: no object with uid", uid)
 
             elif msg == "fabFunc":  # uid, funcName, [args...]
                 uid = args[0]
@@ -292,7 +295,12 @@ class StackCanvas(object):
                     snd.pause()
 
             elif msg == "write":  # text
-                print(args[0], end='')
+                self.writeBuffer += args[0]
+
+    def SendBuffer(self):
+        if len(self.writeBuffer):
+            print(window.stackCanvas.writeBuffer, end='')
+            self.writeBuffer = ""
 
     def ConvPoint(self, x, y):
         return (x, self.canvasSize[1] - y)
@@ -334,9 +342,6 @@ class StackCanvas(object):
 
     def OnAnimationFrame(self, _dummy):
         timer.request_animation_frame(self.OnAnimationFrame)
-        if not self.isLoading and self.needsRender:
-            self.needsRender = False
-            self.canvas.requestRenderAll()
         window.Atomics.add(self.countsSA32, 0, 1)
         stackWorker.send(("frame",))
 
@@ -386,6 +391,7 @@ class ConsoleOutput:
         self.dirty = True
 
     def update(self, force=False):
+        window.stackCanvas.SendBuffer()
         if console and console.style.display == "block" and (force or self.dirty):
             self.console.text = self.text
             self.console.scrollTop = self.console.scrollHeight
@@ -403,6 +409,9 @@ class ConsoleOutput:
 
 
 if __name__ == "__main__":
+
+    window.stackCanvas = StackCanvas()
+
     console = None
     consoleLabel = None
     if "console" in document and "consoleLabel" in document:
@@ -414,7 +423,7 @@ if __name__ == "__main__":
         timer.set_interval(cOutput.update, 1000)
         window.console = cOutput
         window.toggleConsole = cOutput.toggleConsole
-
-    window.stackCanvas = StackCanvas()
+    else:
+        timer.set_interval(window.stackCanvas.SendBuffer, 1000)
 
     print("window.crossOriginIsolated:", window.crossOriginIsolated)

@@ -269,9 +269,10 @@ class UiCard(UiView):
     def __init__(self, parent, stackManager, model):
         super().__init__(parent, stackManager, model)
         self.lastMouseOverObj = None
+        self.mouseCaptureObj = None
 
     def Load(self, model):
-        self.UnLoad()
+        self.Unload()
         self.lastMouseOverObj = None
         self.model = model
         worker.stackWorker.SendAsync(("fabFunc", 0, "setBackgroundColor", self.model.GetProperty("fillColor")))
@@ -280,10 +281,12 @@ class UiCard(UiView):
         self.stackManager.runner.SetupForCard(self.model)
         self.stackManager.runner.RunHandler(self.model, "OnShowCard", None)
 
-    def UnLoad(self):
+    def Unload(self):
         if self.model:
             self.stackManager.runner.RunHandler(self.model, "OnHideCard", None)
             self.stackManager.RemoveFabObjs(self)
+            self.stackManager.delayedSetDowns.extend(self.uiViews)
+            self.uiViews = []
 
     def GetAllUiViews(self):
         allUiViews = []
@@ -314,6 +317,8 @@ class UiCard(UiView):
         target_ui = self.FindTargetUi(uid)
         pos = wx.Point(pos[0], pos[1])
         self.stackManager.runner.ResetStopHandlingMouseEvent()
+        if self.mouseCaptureObj:
+            target_ui = self.mouseCaptureObj
         if target_ui:
             target_ui.OnMouseDown(pos)
             if self.stackManager.runner.DidStopHandlingMouseEvent():
@@ -333,6 +338,8 @@ class UiCard(UiView):
                 self.stackManager.runner.RunHandler(self.lastMouseOverObj.model, "OnMouseEnter", pos)
 
         self.stackManager.runner.ResetStopHandlingMouseEvent()
+        if self.mouseCaptureObj:
+            target_ui = self.mouseCaptureObj
         if target_ui:
             target_ui.OnMouseMove(pos)
             if self.stackManager.runner.DidStopHandlingMouseEvent():
@@ -343,6 +350,8 @@ class UiCard(UiView):
         target_ui = self.FindTargetUi(uid)
         pos = wx.Point(pos[0], pos[1])
         self.stackManager.runner.ResetStopHandlingMouseEvent()
+        if self.mouseCaptureObj:
+            target_ui = self.mouseCaptureObj
         if target_ui:
             target_ui.OnMouseUp(pos)
             if self.stackManager.runner.DidStopHandlingMouseEvent():
@@ -439,19 +448,21 @@ class UiButton(UiView):
         self.isHilighted = on
 
     def OnMouseDown(self, pos):
+        self.stackManager.uiCard.mouseCaptureObj = self
         super().OnMouseDown(pos)
         self.isMouseDown = True
         self.Highlight(True)
 
     def OnMouseMove(self, pos):
         if self.isMouseDown:
-            contains = self.rrBg.containsPoint(pos)
+            contains = self.model.GetProxy().IsTouchingPoint(pos)
             if not self.isHilighted and contains:
                 self.Highlight(True)
             elif self.isHilighted and not contains:
                 self.Highlight(False)
 
     def OnMouseUp(self, pos):
+        self.stackManager.uiCard.mouseCaptureObj = None
         self.isMouseDown = False
         if self.isHilighted:
             self.Highlight(False)

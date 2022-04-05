@@ -88,12 +88,15 @@ class ViewModel(object):
         return f"<{self.GetDisplayType()}:'{self.GetProperty('name')}'>"
 
     def SetBackUp(self, stackManager):
-        if self.didSetDown:
-            self.stackManager = stackManager
-            self.didSetDown = False
-            for child in self.childModels:
-                child.SetBackUp(stackManager)
-                child.parent = self
+        if self in stackManager.delayedSetDowns:
+            stackManager.delayedSetDowns.remove(self)
+        else:
+            if self.didSetDown:
+                self.stackManager = stackManager
+                self.didSetDown = False
+                for child in self.childModels:
+                    child.SetBackUp(stackManager)
+                    child.parent = self
 
     def SetDown(self):
         self.didSetDown = True
@@ -726,17 +729,11 @@ class ViewProxy(object):
         if not model or not model.parent or model.parent.type == "group":
             return
 
-        # immediately update the model
-        sm = model.stackManager
         if model.type != "card":
-            model.parent.RemoveChild(model)
-
-        if model.type != "card":
-            # update views on the main thread
-            sm.RemoveUiViewByModel(model)
+            model.stackManager.RemoveUiViewByModel(model)
         else:
             # When cloning a card, update the model and view together in a rare synchronous call to the main thread
-            sm.RemoveCardRaw(model)
+            model.stackManager.RemoveCardRaw(model)
 
     def Cut(self):
         # update the model and view together in a rare synchronous call to the main thread
@@ -1477,7 +1474,7 @@ class CardModel(ViewModel):
 
     def RemoveChild(self, model):
         self.childModels.remove(model)
-        model.SetDown()
+        self.stackManager.delayedSetDowns.append(model)
         self.isDirty = True
         if self.stackManager.runner and self.stackManager.uiCard.model == self:
             self.stackManager.runner.SetupForCard(self)
@@ -2148,7 +2145,7 @@ class GroupModel(ViewModel):
         pos = model.GetProperty("position")
         selfPos = self.GetProperty("position")
         model.SetProperty("position", [pos[0]+selfPos[0], pos[1]+selfPos[1]], notify=False)
-        model.SetDown()
+        self.stackManager.delayedSetDowns.append(model)
         self.isDirty = True
 
     def UpdateFrame(self):
