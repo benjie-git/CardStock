@@ -25,24 +25,12 @@ class Runner():
         self.pressedKeys = []
         self.keyTimings = {}
         self.timers = []
-        self.errors = []
         self.lastHandlerStack = []
         self.didSetup = False
-        self.runnerDepth = 0
-        self.numOnPeriodicsQueued = 0
         self.rewrittenHandlerMap = {}
-        self.onRunFinished = None
         self.funcDefs = {}
         self.lastCard = None
         self.stopHandlingMouseEvent = False
-        self.shouldUpdateVars = False
-
-        self.stackSetupValue = None
-
-        self.stopRunnerThread = False
-
-        self.soundCache = {}
-
         self.stackStartTime = None
 
         self.initialClientVars = {
@@ -88,20 +76,12 @@ class Runner():
         self.pressedKeys = None
         self.keyTimings = None
         self.StopTimers()
-        self.errors = None
         self.lastHandlerStack = None
         self.didSetup = False
-        self.runnerDepth = 0
-        self.numOnPeriodicsQueued = 0
         self.rewrittenHandlerMap = None
-        self.onRunFinished = None
         self.funcDefs = None
         self.lastCard = None
         self.stopHandlingMouseEvent = False
-        self.shouldUpdateVars = False
-        self.stackSetupValue = None
-        self.stopRunnerThread = False
-        self.soundCache = None
         self.stackStartTime = None
         self.clientVars = None
 
@@ -110,17 +90,12 @@ class Runner():
         self.clientVars = self.initialClientVars.copy()
         self.cardVarKeys = []
         self.timers = []
-        self.errors = []
         self.lastHandlerStack = []
         self.didSetup = False
-        self.runnerDepth = 0
-        self.numOnPeriodicsQueued = 0
         self.rewrittenHandlerMap = {}
-        self.onRunFinished = None
         self.funcDefs = {}
         self.lastCard = None
         self.stopHandlingMouseEvent = False
-        self.shouldUpdateVars = False
 
     def SetupForCard(self, cardModel):
         """
@@ -180,8 +155,6 @@ class Runner():
 
         if handlerName in ["OnMouseDown", "OnMouseMove", "OnMouseUp"] and self.stopHandlingMouseEvent:
             return
-
-        self.runnerDepth += 1
 
         noValue = ("no", "value")  # Use this if this var didn't exist/had no value (not even None)
 
@@ -333,8 +306,6 @@ class Runner():
                     self.clientVars.pop(k)
             else:
                 self.clientVars[k] = v
-
-        self.runnerDepth -= 1
 
     def RewriteHandler(self, handlerStr):
         # rewrite handlers that use return outside of a function, and replace with an exception that we catch, to
@@ -550,18 +521,12 @@ class Runner():
         return math.sqrt((pointB[0] - pointA[0]) ** 2 + (pointB[1] - pointA[1]) ** 2)
 
     def Alert(self, message):
-        if self.stopRunnerThread:
-            return
         worker.stackWorker.SendSync(None, ("alert", message))
 
     def AskYesNo(self, message):
-        if self.stopRunnerThread:
-            return None
         return worker.stackWorker.SendSync(bool, ("confirm", message))
 
     def AskText(self, message, defaultResponse=""):
-        if self.stopRunnerThread:
-            return None
         return worker.stackWorker.SendSync(str, ("prompt", message, defaultResponse))
 
     def PlaySound(self, filepath):
@@ -619,13 +584,9 @@ class Runner():
             raise TypeError("RunAfterDelay(): duration must be a number")
 
         startTime = time()
-
-        if self.stopRunnerThread: return
-
         adjustedDuration = duration + startTime - time()
         if adjustedDuration > 0.010:
             def onTimer():
-                if self.stopRunnerThread: return
                 func(*args, **kwargs)
             t = timer.set_timeout(onTimer, int(adjustedDuration*1000))
             self.timers.append(t)
