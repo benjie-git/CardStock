@@ -129,7 +129,7 @@ class StackWorker(object):
             worker.send((("fabReplace", replace, *args),))
         return i
 
-    def CreateTextbox(self, *args):
+    def CreateTextField(self, *args):
         i = NextId()
         worker.send((("tboxNew", i, *args),))
         return i

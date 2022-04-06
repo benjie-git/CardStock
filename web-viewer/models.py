@@ -2336,8 +2336,7 @@ class WebViewModel(ViewModel):
         # Add custom handlers to the top of the list
         handlers = {"OnSetup": "", "OnDoneLoading": "", "OnCardStockLink": ""}
         for k,v in self.handlers.items():
-            if "Mouse" not in k:
-                handlers[k] = v
+            handlers[k] = v
         self.handlers = handlers
         self.initialEditHandler = "OnDoneLoading"
 

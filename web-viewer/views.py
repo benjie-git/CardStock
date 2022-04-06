@@ -546,19 +546,19 @@ class UiTextField(UiView):
                                                     'strokeWidth': 1,
                                                     'visible': model.properties['isVisible']})
 
-        self.textbox = worker.stackWorker.CreateTextbox(model.properties['text'],
-                                                        {'width': rect.Width - 2,
-                                                         'height': rect.Height - 2,
-                                                         'left': coords[0][0],
-                                                         'top': coords[0][1],
-                                                         'angle': coords[0][2],
-                                                         'textAlign': model.properties['alignment'].lower(),
-                                                         'fill': model.properties['textColor'],
-                                                         'fontFamily': FontMap[model.properties['font']],
-                                                         'fontSize': model.properties['fontSize'] * 1.2,
-                                                         'editable': model.properties['isEditable'],
-                                                         'isMultiline': model.properties['isMultiline'],
-                                                         'visible': model.properties['isVisible']})
+        self.textbox = worker.stackWorker.CreateTextField(model.properties['text'],
+                                                          {'width': rect.Width - 2,
+                                                           'height': rect.Height - 2,
+                                                           'left': coords[0][0],
+                                                           'top': coords[0][1],
+                                                           'angle': coords[0][2],
+                                                           'textAlign': model.properties['alignment'].lower(),
+                                                           'fill': model.properties['textColor'],
+                                                           'fontFamily': FontMap[model.properties['font']],
+                                                           'fontSize': model.properties['fontSize'] * 1.2,
+                                                           'editable': model.properties['isEditable'],
+                                                           'isMultiline': model.properties['isMultiline'],
+                                                           'visible': model.properties['isVisible']})
         self.fabIds = [self.textBg, self.textbox]
 
     def OnEnter(self):
@@ -796,7 +796,7 @@ class UiWebView(UiView):
                                                     'hoverCursor': "arrow",
                                                     'visible': model.properties['isVisible']})
 
-        self.textbox = worker.stackWorker.CreateFab("Textbox",model.properties['URL'],
+        self.textbox = worker.stackWorker.CreateFab("Textbox", model.properties['URL'],
                                                         {'width': rect.Width - 2,
                                                          'left': coords[0][0],
                                                          'top': coords[0][1],
