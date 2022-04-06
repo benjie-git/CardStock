@@ -1,7 +1,17 @@
 from browser import self as worker
+from browser import timer
 import sys
 import cardstock
 
+"""
+This StackWorker class, which runs on a worker thread, works tightly with the StackCanvas class back on the main thread,
+communicating by posting messages back and forth.  The StackWorker hosts the StackManager which itself runs the 
+cardstock stack and code, and sends messages back to the StackCanvas to update the UI.
+"""
+
+
+# We generate our own ids to recognize individual UI objects on the fabric canvas, back on the main thread.  These are
+# passed back and forth as identifiers in mesasges.
 _LastId = 0
 def NextId():
     global _LastId
@@ -30,88 +40,100 @@ class StackWorker(object):
 
     def OnMessageW(self, evt):
         msg = evt.data[0]
-        values = evt.data[1:]
+        args = evt.data[1:]
 
-        # if msg != "frame": print("Worker", msg, values)
+        # print("Worker", msg, args)
 
-        if msg == "frame":
-            numFrames = worker.Atomics.sub(self.countsSA32, 0, 1)
-            if numFrames == 1:
-                self.stackManager.OnFrame()
-            self.stackManager.RunDelayedSetDowns()
-
-        elif msg == 'setup':
-            self.waitSAB = values[0]
-            self.countsSAB = values[1]
-            self.dataSAB = values[2]
+        if msg == 'setup':
+            # Set up the shared memory for sync calls (alert, prompt, confirm)
+            self.waitSAB = args[0]
+            self.countsSAB = args[1]
+            self.dataSAB = args[2]
             self.waitSA32 = worker.Int32Array.new(self.waitSAB)
             self.countsSA32 = worker.Int32Array.new(self.countsSAB)
             self.dataSA16 = worker.Int16Array.new(self.dataSAB)
+            # This is our main interval timer for running OnPeriodic, animations, etc.  This fires at ~60 Hz.
+            timer.set_interval(self.stackManager.OnPeriodic, 16.666)
 
         elif msg == 'load':
-            json = values[0]
+            # Load a stack from a dict object
+            json = args[0]
             self.stackManager.Load(json.to_dict())
             self.SendAsync(("render",))
 
         elif msg == 'loadStr':
-            jsonStr = values[0]
+            # load a stack from a json string
+            jsonStr = args[0]
             self.stackManager.LoadFromStr(jsonStr)
             self.SendAsync(("render",))
 
         elif msg == 'mouseDown':
+            # handle a mouseDown
             self.isMouseDown = True
-            uid, pos = values
+            uid, pos = args
             self.stackManager.uiCard.OnFabricMouseDown(uid, pos)
 
         elif msg == 'mouseMove':
-            numMoves = worker.Atomics.sub(self.countsSA32, 1, 1)
+            # handle a mouseMove
+            numMoves = worker.Atomics.sub(self.countsSA32, 0, 1)
             if numMoves == 1:
-                uid, pos = values
+                uid, pos = args
                 self.stackManager.uiCard.OnFabricMouseMove(uid, pos)
 
         elif msg == 'mouseUp':
+            # handle a mouseUp
             self.isMouseDown = False
-            uid, pos = values
+            uid, pos = args
             self.stackManager.uiCard.OnFabricMouseUp(uid, pos)
 
         elif msg == 'keyDown':
-            self.stackManager.uiCard.OnKeyDown(*values)
+            # handle a keyDown
+            self.stackManager.uiCard.OnKeyDown(*args)
 
         elif msg == 'keyUp':
-            self.stackManager.uiCard.OnKeyUp(*values)
+            # handle a keyUp
+            self.stackManager.uiCard.OnKeyUp(*args)
 
         elif msg == 'textChanged':
-            self.stackManager.uiCard.OnTextChanged(*values)
+            self.stackManager.uiCard.OnTextChanged(*args)
 
         elif msg == 'textEnter':
-            self.stackManager.uiCard.OnTextEnter(*values)
+            self.stackManager.uiCard.OnTextEnter(*args)
 
         elif msg == 'objectFocus':
-            self.focusedFabId = values[0]
+            self.focusedFabId = args[0]
 
         elif msg == "windowSized":
-            self.stackManager.WindowDidResize(*values)
+            self.stackManager.WindowDidResize(*args)
 
         elif msg == 'imgSize':
-            uid = values[0]
+            # when we tell the StackCanvas to add an image object, it downloads the image and tells us the size(w,h)
+            # now we can crop/scale the image to fit where it's supposed to go.
+            uid = args[0]
             uiImage = self.stackManager.uiCard.FindTargetUi(uid)
             if uiImage:
-                uiImage.SetImageSize(values[1], values[2])
+                uiImage.SetImageSize(args[1], args[2])
 
     def Wait(self, durationSec):
+        # no sleep() allowed, so wait for a thing that will never happen, but with a timeout!
         self.waitSA32[0] = 0
         worker.Atomics.wait(self.waitSA32, 0, 0, durationSec * 1000)
 
     def SendAsync(self, *args):
+        # Send a message and don't wait
         worker.send(args)
 
     def SendSync(self, returnType, *args):
+        # Send a message and wait for a response
         self.waitSA32[0] = 0
         worker.send(args)
+        # wait for the waitSA32[0] value to be set to a 1, which means the main thread is done, so we can stop waiting
         worker.Atomics.wait(self.waitSA32, 0, 0)
         if returnType == bool:
+            # if we're expecting a bool, just look at the first val
             return bool(self.dataSA16[0])
         elif returnType == str:
+            # if we're expecting a string, read the first val as length, and then get the rest as 16bit unicode chars
             length = self.dataSA16[0] # first int holds length
             if length == -1:
                 return None
@@ -121,6 +143,7 @@ class StackWorker(object):
             return s
 
     def CreateFab(self, *args, replace=None):
+        # Tell the StackCanvas to create o new fabric object, or replace an existing one
         if replace == None:
             i = NextId()
             worker.send((("fabNew", i, *args),))
@@ -130,11 +153,13 @@ class StackWorker(object):
         return i
 
     def CreateTextField(self, *args):
+        # Tell the StackCanvas to create o new fabric TextField object
         i = NextId()
-        worker.send((("tboxNew", i, *args),))
+        worker.send((("fieldNew", i, *args),))
         return i
 
     def CreateImage(self, *args, replace=None):
+        # Tell the StackCanvas to create o new fabric Image object, or replace an existing one
         if replace == None:
             i = NextId()
             worker.send((("imgNew", i, *args),))
@@ -144,6 +169,7 @@ class StackWorker(object):
         return i
 
     def write(self, text):
+        # stderr and stdout will write here on print, errors, etc.
         worker.send((("write", text),))
 
 # Start up the worker class

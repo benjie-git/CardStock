@@ -31,6 +31,7 @@ class UiView(object):
     def LoadChildren(self):
         for m in self.model.childModels:
             ui = self.stackManager.UiViewFromModel(self, self.stackManager, m)
+            self.stackManager.AddUiViewToMap(ui)
             self.uiViews.append(ui)
             ui.LoadChildren()
 
@@ -488,6 +489,7 @@ class UiButton(UiView):
 
 class UiTextLabel(UiView):
     def __init__(self, parent, stackManager, model):
+        self.textbox = None
         super().__init__(parent, stackManager, model)
 
     def CreateFabObjs(self):

@@ -3,12 +3,26 @@ import sys
 
 stackWorker = worker.Worker("stackWorker")
 
+"""
+This StackCanvas class, which runs on the main thread, works tightly with the StackWorker class, which runs in a
+web worker/background thread.  The StackCanvas is the only code that runs in the main thread of the browser tab.
+The StackWorker hosts the StackManager which itself runs the cardstock stack and code.
+This class is just a thin layer that:
+  - senses events
+  - sends event messages to the worker thread that's actually running all of the cardstock code
+  - receives messages back from the worker thread about what to show,
+  - and updates the canvas, to draw to the screen.
+  
+The web worker API doesn't allow sharing our model objects between threads.  It allows passing messages, and very simple
+shared memory, that we just use for synchronization. 
+"""
+
 
 class StackCanvas(object):
     def __init__(self):
         self.waitSAB = window.SharedArrayBuffer.new(4)
         self.waitSA32 = window.Int32Array.new(self.waitSAB)
-        self.countsSAB = window.SharedArrayBuffer.new(8)
+        self.countsSAB = window.SharedArrayBuffer.new(4)
         self.countsSA32 = window.Int32Array.new(self.countsSAB)
         self.dataSAB = window.SharedArrayBuffer.new(32768)
         self.dataSA16 = window.Int16Array.new(self.dataSAB)
@@ -17,9 +31,9 @@ class StackCanvas(object):
         self.canvas.preserveObjectStacking = True
         self.canvas.selection = False
         self.canvas.renderOnAddRemove = False
-        self.canvas.on('mouse:down', self.OnFabricMouseDown)
-        self.canvas.on('mouse:move', self.OnFabricMouseMove)
-        self.canvas.on('mouse:up', self.OnFabricMouseUp)
+        self.canvas.on('mouse:down', self.OnMouseDown)
+        self.canvas.on('mouse:move', self.OnMouseMove)
+        self.canvas.on('mouse:up', self.OnMouseUp)
         self.canvas.on('text:changed', self.OnTextChanged)
         document.onkeydown = self.OnKeyDown
         document.onkeyup = self.OnKeyUp
@@ -35,284 +49,321 @@ class StackCanvas(object):
 
         stackWorker.bind("message", self.OnMessageM)
 
+        # Send over references to the shared memory chunks to get the worker set up.
         stackWorker.send(('setup', self.waitSAB, self.countsSAB, self.dataSAB))
+
+        # Load up the initial/blank/embedded stack
         stackWorker.send(('load', window.stackJSON))
         self.OnWindowResize(None)
-
-        timer.request_animation_frame(self.OnAnimationFrame)
 
     def LoadFromStr(self, s):
         stackWorker.send(('loadStr', s))
 
-    def OnMessageM(self, evt):
-        """Handles the messages sent by the worker."""
-        self.HandleMessageM(evt.data)
-
+    # Redraw, only if we're done loading a page (to avoid briefly showing objects that get hidden or moved on startup)
     def Render(self):
         if not self.isLoading:
             self.canvas.requestRenderAll()
 
-    def HandleMessageM(self, messages):
-        for vals in messages:
-            msg = vals[0]
-            args = vals[1:]
+    def OnMessageM(self, evt):
+        """Handles the messages sent by the worker, which are sent as lists of messages."""
+        for msg in evt.data:
+            self.HandleOneMessage(msg)
 
-            # if msg != "write": print("Main", msg, args)
+    def HandleOneMessage(self, message):
+        msg = message[0]
+        args = message[1:]
 
-            if msg == "canvasSetSize":  # x, y
-                self.canvasSize = args
+        # if msg != "write": print("Main", msg, args)
 
-                self.canvas.setWidth(args[0])
-                self.canvas.setHeight(args[1])
+        if msg == "canvasSetSize":  # x, y
+            self.canvasSize = args
 
-            elif msg == "didLoad":
-                self.isLoading = False
-                self.Render()
+            self.canvas.setWidth(args[0])
+            self.canvas.setHeight(args[1])
 
-            elif msg == "willUnload":
-                self.isLoading = True
+        elif msg == "willUnloadCard":
+            # stop rendering until the card is done loading
+            self.isLoading = True
 
-            elif msg == "fabNew":  # uid, type, options
-                uid = args[0]
-                fabClass = window.fabric[args[1]]
-                options = {'csid': uid,
-                           'isType': args[1],
-                           'centeredRotation': True,
-                           'selectable': False,
-                           'hoverCursor': "arrow"}
-                options.update(args[-1].to_dict())
-                fabObj = fabClass.new(*(args[2:-1]), options)
-                fabObj.set()
-                self.fabObjs[uid] = fabObj
-                self.canvas.add(fabObj)
+        elif msg == "didLoadCard":
+            # start rendering again
+            self.isLoading = False
+            self.Render()
 
-            elif msg == "imgNew":  # uid, filePath
-                uid = args[0]
-                filePath = args[1]
+        elif msg == "fabNew":  # uid, type, options
+            # Add a new object to the canvas
+            uid = args[0]
+            fabClass = window.fabric[args[1]]
+            options = {'csid': uid,
+                       'isType': args[1],
+                       'centeredRotation': True,
+                       'selectable': False,
+                       'hoverCursor': "arrow"}
+            options.update(args[-1].to_dict())
+            fabObj = fabClass.new(*(args[2:-1]), options)
+            fabObj.set()
+            self.fabObjs[uid] = fabObj
+            self.canvas.add(fabObj)
 
-                # Set up placeholder rect
-                fabObj = window.fabric.Rect.new(
-                    {'csid': uid,
-                     'isType': "Rect",
-                     'strokeWidth': 0,
-                     'selectable': False,
-                     'hoverCursor': "arrow",
-                     'filePath': filePath})
-                self.fabObjs[uid] = fabObj
-                self.canvas.add(fabObj)
+        elif msg == "imgNew":  # uid, filePath
+            # Add a new Image object to the canvas
+            # this requires loading the image, telling the Worker its size, and then possibly cropping it and resizing,
+            # which happens later in an "imgRefit" message
+            uid = args[0]
+            filePath = args[1]
 
-                def didLoad(img, failed):
-                    if not failed:
-                        if filePath not in self.imgCache:
-                            self.imgCache[filePath] = img
-                        s = self.imgCache[filePath].getOriginalSize()
-                        stackWorker.send(("imgSize", uid, s.width, s.height))
+            # Set up placeholder rect
+            fabObj = window.fabric.Rect.new(
+                {'csid': uid,
+                 'isType': "Rect",
+                 'strokeWidth': 0,
+                 'selectable': False,
+                 'hoverCursor': "arrow",
+                 'filePath': filePath})
+            self.fabObjs[uid] = fabObj
+            self.canvas.add(fabObj)
 
-                if filePath in self.imgCache:
+            def didLoad(img, failed):
+                if not failed:
+                    if filePath not in self.imgCache:
+                        self.imgCache[filePath] = img
                     s = self.imgCache[filePath].getOriginalSize()
                     stackWorker.send(("imgSize", uid, s.width, s.height))
-                else:
-                    window.fabric.Image.fromURL(filePath, didLoad)
 
-            elif msg == "imgReplace":  # uid, filePath
-                uid = args[0]
-                filePath = args[1]
-                oldObj = self.fabObjs[uid]
-                oldObj['filePath'] = filePath
-                index = [o.csid for o in self.canvas.getObjects()].index(oldObj.csid)
+            if filePath in self.imgCache:
+                s = self.imgCache[filePath].getOriginalSize()
+                stackWorker.send(("imgSize", uid, s.width, s.height))
+            else:
+                window.fabric.Image.fromURL(filePath, didLoad)
 
-                def didLoad(img, failed):
-                    if not failed:
-                        if filePath not in self.imgCache:
-                            self.imgCache[filePath] = img
-                        s = self.imgCache[filePath].getOriginalSize()
-                        stackWorker.send(("imgSize", uid, s.width, s.height))
+        elif msg == "imgReplace":  # uid, filePath
+            # download a new image to use to replace the current one.  used when user code sets an image.file
+            uid = args[0]
+            filePath = args[1]
+            oldObj = self.fabObjs[uid]
+            oldObj['filePath'] = filePath
+            index = [o.csid for o in self.canvas.getObjects()].index(oldObj.csid)
 
-                if filePath in self.imgCache:
+            def didLoad(img, failed):
+                if not failed:
+                    if filePath not in self.imgCache:
+                        self.imgCache[filePath] = img
                     s = self.imgCache[filePath].getOriginalSize()
                     stackWorker.send(("imgSize", uid, s.width, s.height))
-                else:
-                    window.fabric.Image.fromURL(filePath, didLoad)
 
-            elif msg == "imgRefit":  # uid, options
-                uid = args[0]
-                options = args[1]
-                oldObj = self.fabObjs[uid]
-                origImage = self.imgCache[oldObj.filePath]
-                index = [o.csid for o in self.canvas.getObjects()].index(oldObj.csid)
-                self.canvas.remove(oldObj)
+            if filePath in self.imgCache:
+                s = self.imgCache[filePath].getOriginalSize()
+                stackWorker.send(("imgSize", uid, s.width, s.height))
+            else:
+                window.fabric.Image.fromURL(filePath, didLoad)
 
-                def setImg(img):
-                    img.set({'csid': uid,
-                             'isType': "Image",
-                             'scaleX': options['scaleX'], 'scaleY': options['scaleY'],
-                             'centeredRotation': True,
-                             'selectable': False,
-                             'hoverCursor': "arrow",
-                             'filePath': oldObj.filePath,
-                             'left': options['left'], 'top': options['top'],
-                             'visible': options['visible']
-                             })
-                    img.rotate(options['angle'])
-                    self.fabObjs[uid] = img
-                    self.canvas.insertAt(img, index, False)
-                    img.setCoords()
-                    self.Render()
+        elif msg == "imgRefit":  # uid, options
+            # crop and resize as needed
+            uid = args[0]
+            options = args[1]
+            oldObj = self.fabObjs[uid]
+            origImage = self.imgCache[oldObj.filePath]
+            index = [o.csid for o in self.canvas.getObjects()].index(oldObj.csid)
+            self.canvas.remove(oldObj)
 
-                origImage.cloneAsImage(setImg, {'left': int(options['clipLeft']), 'top': int(options['clipTop']),
-                                                'width': int(options['clipWidth']), 'height': int(options['clipHeight'])})
-
-            elif msg == "tboxNew":  # uid, text, options
-                uid = args[0]
-                text = args[1]
-                fabObj = window.fabric.Textbox.new(text, args[2])
-
-                fabObj.set({'csid': uid,
-                            'isType': 'TextField',
-                            'hasControls': False,
-                            'lockMovementX': True,
-                            'lockMovementY': True,
-                            'centeredRotation': True,
-                            'hoverCursor': "text"})
-                self.fabObjs[uid] = fabObj
-
-                self.canvas.add(fabObj)
-                fabObj.on('selected', self.OnTextFieldSelected)
-                fabObj.on('deselected', self.OnTextFieldDeselected)
-                fabObj.oldOnKeyDown = fabObj.onKeyDown
-                fabObj.onKeyDown = self.OnTextFieldKeyDown
-
-            elif msg == "fabReplace":  # uid, type, options
-                uid = args[0]
-
-                oldObj = self.fabObjs[uid]
-                index = [o.csid for o in self.canvas.getObjects()].index(oldObj.csid)
-                self.canvas.remove(oldObj)
-
-                fabClass = window.fabric[args[1]]
-                fabObj = fabClass.new(*args[2:])
-                fabObj.set({'csid':uid,
-                            'isType': args[1],
-                            'hasControls': False,
-                            'lockMovementX': True,
-                            'lockMovementY': True,
-                            'centeredRotation': True,
-                            'selectable': False,
-                            'hoverCursor': "arrow"})
-                self.fabObjs[uid] = fabObj
-                self.canvas.insertAt(fabObj, index, False)
-
-            elif msg == "fabDel":  # uid, [more uids...]
-                for uid in args:
-                    if uid in self.fabObjs:
-                        fabObj = self.fabObjs[uid]
-                        del self.fabObjs[uid]
-                        if fabObj.isType == 'TextField':
-                            fabObj.off('selected', self.OnTextFieldSelected)
-                            fabObj.off('deselected', self.OnTextFieldDeselected)
-                        self.canvas.remove(fabObj)
-                    else:
-                        print("Delete: no object with uid", uid)
-
-            elif msg == "fabFunc":  # uid, funcName, [args...]
-                uid = args[0]
-                fabObj = self.fabObjs[uid]
-                fabFunc = fabObj[args[1]]
-                fabFunc(*args[2:])
-
-            elif msg == "fabSet":  # uid, options
-                uid = args[0]
-                options = args[1]
-                fabObj = self.fabObjs[uid]
-                fabObj.set(options)
-                options = options.to_dict()
-                if 'left' in options or 'width' in options:
-                    fabObj.setCoords()
-
-            elif msg == "fabReorder":  # uid, index
-                uid = args[0]
-                index = args[1]
-                fabObj = self.fabObjs[uid]
-                self.canvas.moveTo(fabObj, index)
-
-            elif msg == "render":  # No args
+            def setImg(img):
+                img.set({'csid': uid,
+                         'isType': "Image",
+                         'scaleX': options['scaleX'], 'scaleY': options['scaleY'],
+                         'centeredRotation': True,
+                         'selectable': False,
+                         'hoverCursor': "arrow",
+                         'filePath': oldObj.filePath,
+                         'left': options['left'], 'top': options['top'],
+                         'visible': options['visible']
+                         })
+                img.rotate(options['angle'])
+                self.fabObjs[uid] = img
+                self.canvas.insertAt(img, index, False)
+                img.setCoords()
                 self.Render()
 
-            elif msg == "focus":  # uid
-                uid = args[0]
-                if not self.canvas.getActiveObject() or self.canvas.getActiveObject().csid != uid:
-                    field = self.fabObjs[uid]
-                    self.canvas.setActiveObject(field)
-                    field.enterEditing()
-                    length = len(field.text)
-                    field.setSelectionStart(length)
-                    field.setSelectionEnd(length)
+            origImage.cloneAsImage(setImg, {'left': int(options['clipLeft']), 'top': int(options['clipTop']),
+                                            'width': int(options['clipWidth']), 'height': int(options['clipHeight'])})
 
-            elif msg == "alert":  # text
-                self.canvas.requestRenderAll()
-                timer.set_timeout(self.HandleMessageM, 20, (("alertInternal", *args),))
-            elif msg == "alertInternal":
-                text = args[0]
-                window.alert(text)
-                self.dataSA16[0] = 0
-                self.waitSA32[0] = 1
-                window.Atomics.notify(self.waitSA32, 0)
+        elif msg == "fieldNew":  # uid, text, options
+            # Add a new TextField object to the canvas
+            uid = args[0]
+            text = args[1]
+            fabObj = window.fabric.Textbox.new(text, args[2])
 
-            elif msg == "confirm":  # text
-                self.canvas.requestRenderAll()
-                timer.set_timeout(self.HandleMessageM, 20, (("confirmInternal", *args),))
-            elif msg == "confirmInternal":
-                text = args[0]
-                result = window.confirm(text)
-                self.dataSA16[0] = result
-                self.waitSA32[0] = 1
-                window.Atomics.notify(self.waitSA32, 0)
+            fabObj.set({'csid': uid,
+                        'isType': 'TextField',
+                        'hasControls': False,
+                        'lockMovementX': True,
+                        'lockMovementY': True,
+                        'centeredRotation': True,
+                        'hoverCursor': "text"})
+            self.fabObjs[uid] = fabObj
 
-            elif msg == "prompt":  # text, [defaultResponseText]
-                self.canvas.requestRenderAll()
-                timer.set_timeout(self.HandleMessageM, 20, (("promptInternal", *args),))
-            elif msg == "promptInternal":
-                text = args[0]
-                default = "" if len(args) < 2 else args[1]
-                result = window.prompt(text, default)
-                if result is not None:
-                    self.dataSA16[0] = len(result)
-                    for i in range(len(result)):
-                        self.dataSA16[i+1] = ord(result[i])
+            self.canvas.add(fabObj)
+            fabObj.on('selected', self.OnTextFieldSelected)
+            fabObj.on('deselected', self.OnTextFieldDeselected)
+            fabObj.oldOnKeyDown = fabObj.onKeyDown
+            fabObj.onKeyDown = self.OnTextFieldKeyDown
+
+        elif msg == "fabReplace":  # uid, type, options
+            # replace a fabric object with this one (used when user code sets line.points)
+            uid = args[0]
+
+            oldObj = self.fabObjs[uid]
+            index = [o.csid for o in self.canvas.getObjects()].index(oldObj.csid)
+            self.canvas.remove(oldObj)
+
+            fabClass = window.fabric[args[1]]
+            fabObj = fabClass.new(*args[2:])
+            fabObj.set({'csid':uid,
+                        'isType': args[1],
+                        'hasControls': False,
+                        'lockMovementX': True,
+                        'lockMovementY': True,
+                        'centeredRotation': True,
+                        'selectable': False,
+                        'hoverCursor': "arrow"})
+            self.fabObjs[uid] = fabObj
+            self.canvas.insertAt(fabObj, index, False)
+
+        elif msg == "fabDel":  # uid, [more uids...]
+            # delete objects from the canvas
+            for uid in args:
+                if uid in self.fabObjs:
+                    fabObj = self.fabObjs[uid]
+                    del self.fabObjs[uid]
+                    if fabObj.isType == 'TextField':
+                        fabObj.off('selected', self.OnTextFieldSelected)
+                        fabObj.off('deselected', self.OnTextFieldDeselected)
+                    self.canvas.remove(fabObj)
                 else:
-                    self.dataSA16[0] = -1  # Flag to return None
-                self.waitSA32[0] = 1
-                window.Atomics.notify(self.waitSA32, 0)
+                    print("Delete: no object with uid", uid)
 
-            elif msg == "playAudio":  # filePath
-                file = args[0]
-                if file in self.soundCache:
-                    snd = self.soundCache[file]
-                else:
-                    path = "Resources/" + file
-                    snd = window.Audio.new(path)
-                    snd.load()
-                if snd:
-                    self.soundCache[file] = snd
-                    snd.currentTime = 0
-                    snd.play()
+        elif msg == "fabFunc":  # uid, funcName, [args...]
+            # call a fabric function on an object by name
+            uid = args[0]
+            fabObj = self.fabObjs[uid]
+            fabFunc = fabObj[args[1]]
+            fabFunc(*args[2:])
 
-            elif msg == "stopAudio":  # No args
-                for snd in self.soundCache.values():
-                    snd.pause()
+        elif msg == "fabSet":  # uid, options
+            # update a fabric object's options
+            uid = args[0]
+            options = args[1]
+            fabObj = self.fabObjs[uid]
+            fabObj.set(options)
+            options = options.to_dict()
+            if 'left' in options or 'width' in options:
+                fabObj.setCoords()
 
-            elif msg == "write":  # text
-                self.writeBuffer += args[0]
+        elif msg == "fabReorder":  # uid, index
+            # change an object's z-order
+            uid = args[0]
+            index = args[1]
+            fabObj = self.fabObjs[uid]
+            self.canvas.moveTo(fabObj, index)
+
+        elif msg == "render":  # No args
+            self.Render()
+
+        elif msg == "focus":  # uid
+            # focus a textfield
+            uid = args[0]
+            if not self.canvas.getActiveObject() or self.canvas.getActiveObject().csid != uid:
+                field = self.fabObjs[uid]
+                self.canvas.setActiveObject(field)
+                field.enterEditing()
+                length = len(field.text)
+                field.setSelectionStart(length)
+                field.setSelectionEnd(length)
+
+        elif msg == "alert":  # text
+            # open an alert (Just an OK button).  first make sure our render is up to date, by requesting a render
+            # and waiting for the next frame.  then actually open the alert.  The Worker will wait until the user
+            # closes the alert, so we need to update waitSA32[0] and notify that it has been updated,since this is
+            # what the Worker is waiting on.
+            self.canvas.requestRenderAll()
+            timer.set_timeout(self.HandleOneMessage, 20, ("alertInternal", *args))
+        elif msg == "alertInternal":
+            text = args[0]
+            window.alert(text)
+            self.dataSA16[0] = 0
+            self.waitSA32[0] = 1
+            window.Atomics.notify(self.waitSA32, 0)
+
+        elif msg == "confirm":  # text
+            # open a confirmation alert (OK/Cancel buttons).  But first make sure our render is up to date, by
+            # requesting a render and waiting for the next frame.  then actually open the alert.  The Worker will
+            # wait until the user closes the alert, so we need to update waitSA32[0] and notify that it has been
+            # updated,since this is what the Worker is waiting on.  And we also update dataSA16[0] to send back the
+            # result: Ok vs. Cancel.
+            self.canvas.requestRenderAll()
+            timer.set_timeout(self.HandleOneMessage, 20, ("confirmInternal", *args))
+        elif msg == "confirmInternal":
+            text = args[0]
+            result = window.confirm(text)
+            self.dataSA16[0] = result
+            self.waitSA32[0] = 1
+            window.Atomics.notify(self.waitSA32, 0)
+
+        elif msg == "prompt":  # text, [defaultResponseText]
+            # open a prompt alert (Text field and OK/Cancel buttons).  But first make sure our render is up to date, by
+            # requesting a render and waiting for the next frame.  then actually open the alert.  The Worker will
+            # wait until the user closes the alert, so we need to update waitSA32[0] and notify that it has been
+            # updated,since this is what the Worker is waiting on.  And we also update dataSA16 to send back the
+            # result: dataSA16[0] holds the length, and then the following int16 values hold the data as unicode values.
+            self.canvas.requestRenderAll()
+            timer.set_timeout(self.HandleOneMessage, 20, ("promptInternal", *args))
+        elif msg == "promptInternal":
+            text = args[0]
+            default = "" if len(args) < 2 else args[1]
+            result = window.prompt(text, default)
+            if result is not None:
+                self.dataSA16[0] = len(result)
+                for i in range(len(result)):
+                    self.dataSA16[i+1] = ord(result[i])
+            else:
+                self.dataSA16[0] = -1  # Flag to return None
+            self.waitSA32[0] = 1
+            window.Atomics.notify(self.waitSA32, 0)
+
+        elif msg == "playAudio":  # filePath
+            # play an audio file
+            file = args[0]
+            if file in self.soundCache:
+                snd = self.soundCache[file]
+            else:
+                path = "Resources/" + file
+                snd = window.Audio.new(path)
+                snd.load()
+            if snd:
+                self.soundCache[file] = snd
+                snd.currentTime = 0
+                snd.play()
+
+        elif msg == "stopAudio":  # No args
+            # stop all audio
+            for snd in self.soundCache.values():
+                snd.pause()
+
+        elif msg == "write":  # text
+            # Allows printing from the worker thread
+            self.writeBuffer += args[0]
 
     def SendBuffer(self):
+        # print out any buffered writes from the worker thread's print() calls
         if len(self.writeBuffer):
             print(window.stackCanvas.writeBuffer, end='')
             self.writeBuffer = ""
 
     def ConvPoint(self, x, y):
+        # Flip coords vertically to match cardstock: (0,0) = Bottom Left
         return (x, self.canvasSize[1] - y)
 
-    def OnFabricMouseDown(self, options):
+    def OnMouseDown(self, options):
+        # Flip points vertically and send to the worker.  Also fix TextField selection on click.
         uid = 0
         if options.target:
             uid = options.target.csid
@@ -322,17 +373,21 @@ class StackCanvas(object):
         self.lastMousePos = pos
         stackWorker.send(("mouseDown", uid, pos))
 
-    def OnFabricMouseMove(self, options):
+    def OnMouseMove(self, options):
+        # Flip points vertically and send to the worker.
         uid = 0
         if options.target:
             uid = options.target.csid
         pos = self.ConvPoint(options.e.pageX, options.e.pageY)
         if pos[0] != self.lastMousePos[0] or pos[1] != self.lastMousePos[1]:
             self.lastMousePos = pos
-            window.Atomics.add(self.countsSA32, 1, 1)
+            # keep track of how many OnMouseMove calls are pending, so the worker doesn't get bogged down
+            # if it's slow to process these
+            window.Atomics.add(self.countsSA32, 0, 1)
             stackWorker.send(("mouseMove", uid, pos))
 
-    def OnFabricMouseUp(self, options):
+    def OnMouseUp(self, options):
+        # Flip points vertically and send to the worker.
         uid = 0
         if options.target:
             uid = options.target.csid
@@ -341,25 +396,26 @@ class StackCanvas(object):
         stackWorker.send(("mouseUp", uid, pos))
 
     def OnKeyDown(self, e):
+        # Don't tab focus out of the canvas
+        # forward these events on to the worker
         if e.key == "Tab":
             e.preventDefault()
         if not e.repeat:
             stackWorker.send(("keyDown", e.key))
 
     def OnKeyUp(self, e):
+        # forward these events on to the worker
         stackWorker.send(("keyUp", e.key))
 
-    def OnAnimationFrame(self, _dummy):
-        timer.request_animation_frame(self.OnAnimationFrame)
-        window.Atomics.add(self.countsSA32, 0, 1)
-        stackWorker.send(("frame",))
-
     def OnTextFieldMouseDown(self, field, e):
+        # Start text selection on a mouse down in a text field
         self.canvas.setActiveObject(field)
         field.enterEditing()
         field.setCursorByClick(e)
 
     def OnTextFieldKeyDown(self, e):
+        # Forward arrow keys to the card, and catch Enter/Return so we can run "OnEnter"
+        # Also avoid adding newlines to non-multiline text fields
         fabObj = self.canvas.getActiveObject()
         if fabObj and fabObj.isType == 'TextField':
             fabObj.oldOnKeyDown(e)
@@ -372,15 +428,18 @@ class StackCanvas(object):
                     stackWorker.send(("textEnter", fabObj.csid))
 
     def OnTextFieldSelected(self, options):
+        # tell the worker that the field got focused
         fabObj = options.target
         stackWorker.send(("objectFocus", fabObj.csid))
 
     def OnTextChanged(self, options):
+        # Tell the worker that the field's text changed
         uid = options.target.csid
         textbox = self.fabObjs[uid]
         stackWorker.send(("textChanged", uid, textbox.text))
 
     def OnTextFieldDeselected(self, options):
+        # tell the worker that the field got un-focused
         fabObj = options.target
         fabObj.exitEditing()
         fabObj = self.canvas.getActiveObject()
@@ -388,10 +447,14 @@ class StackCanvas(object):
             stackWorker.send(("objectFocus", 0))
 
     def OnWindowResize(self, _e):
+        # tell the worker that the window resized
         stackWorker.send(("windowSized", window.innerWidth-2, window.innerHeight-2))
 
 
 class ConsoleOutput:
+    """
+    Show output in the console TextArea on the page, if it exists
+    """
     def __init__(self, console, consoleLabel):
         self.console = console
         self.consoleLabel = consoleLabel

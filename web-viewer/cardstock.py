@@ -7,9 +7,16 @@ import json
 
 
 class StackManager(object):
+    """
+    StackManager is the hub of cardstock.  It controls using the data in the Models to bring the UiViews to life, by
+    running their code in a Runner object.  This runs on a Web Worker thread, and uses the StackWorker to send messages
+    back to the StackCanvas to actually show the stack.
+    It is persistent, across loads of different stacks
+    """
     def __init__(self):
         super().__init__(self)
         self.stackModel = None
+        self.modelToViewMap = {}
         self.uiCard = UiCard(None, self, None)
         self.cardIndex = None
         self.didSetup = False
@@ -22,6 +29,7 @@ class StackManager(object):
     def SetDown(self):
         self.uiCard.SetDown()
         self.uiCard = None
+        self.modelToViewMap = None
         self.stackModel.SetDown()
         self.stackModel.DismantleChildTree()
         self.stackModel = None
@@ -32,6 +40,14 @@ class StackManager(object):
         self.delayedSetDowns = []
 
     def Unload(self):
+        def DelFromMap(ui):
+            if ui.model.type != "card":
+                del self.modelToViewMap[ui.model]
+            if ui.model.type in ["card", "group"]:
+                for childUi in ui.uiViews:
+                    DelFromMap(childUi)
+        DelFromMap(self.uiCard)
+
         self.uiCard.Unload()
         for ui in self.uiCard.uiViews:
             ui.SetDown()
@@ -73,13 +89,13 @@ class StackManager(object):
     def LoadCardAtIndex(self, cardIndex, reload=False):
         if len(self.stackModel.childModels) > cardIndex:
             if reload or cardIndex != self.cardIndex:
-                worker.stackWorker.SendAsync(("willUnload",))
+                worker.stackWorker.SendAsync(("willUnloadCard",))
                 worker.stackWorker.Wait(0.02) # wait for pending frame render before changing cards
                 self.cardIndex = cardIndex
                 card = self.stackModel.childModels[cardIndex]
                 self.runner.SetupForCard(card)
                 self.uiCard.Load(card)
-                worker.stackWorker.SendAsync(("didLoad",))
+                worker.stackWorker.SendAsync(("didLoadCard",))
 
     def WindowDidResize(self, w, h):
         self.windowSize = wx.Size(w, h)
@@ -88,8 +104,8 @@ class StackManager(object):
             worker.stackWorker.SendAsync(("canvasSetSize", self.windowSize.width, self.windowSize.height))
             self.runner.RunHandler(self.uiCard.model, "OnResize", None)
 
-
-    def OnFrame(self):
+    def OnPeriodic(self):
+        # This is called at approximately 60 Hz, unless the stack/computer/browser are unable to keep up.
         if not self.didSetup:
             return
 
@@ -130,6 +146,7 @@ class StackManager(object):
             self.lastPeriodic = now
             self.uiCard.OnKeyHold()
             self.uiCard.OnPeriodic()
+            self.RunDelayedSetDowns()
 
     def ConvPoint(self, p):
         cardSize = self.uiCard.model.GetProperty("size")
@@ -140,15 +157,17 @@ class StackManager(object):
         return wx.Rect(r.Left, cardSize.height - (r.Top+r.Height), r.Width, r.Height)
 
     def GetUiViewByModel(self, model):
-        def FindSubView(uiView):
-            if uiView.model == model:
-                return uiView
-            for ui in uiView.uiViews:
-                found = FindSubView(ui)
-                if found:
-                    return found
-            return None
-        return FindSubView(self.uiCard)
+        if model == self.uiCard.model:
+            return self.uiCard
+        if model in self.modelToViewMap:
+            return self.modelToViewMap[model]
+        return None
+
+    def AddUiViewToMap(self, ui):
+        self.modelToViewMap[ui.model] = ui
+        if ui.model.type == "group":
+            for childUi in ui.uiViews:
+                self.AddUiViewToMap(childUi)
 
     def AddUiViewInternal(self, model):
         uiView = None
@@ -169,6 +188,8 @@ class StackManager(object):
             uiView.LoadChildren()
         elif objType in ["pen", "line", "oval", "rect", "polygon", "roundrect"]:
             uiView = UiShape(self.uiCard, self, model)
+
+        self.AddUiViewToMap(uiView)
 
         if not model.GetCard():
             uiView.model.SetProperty("name", self.uiCard.model.DeduplicateNameInCard(
@@ -208,7 +229,16 @@ class StackManager(object):
         this method will only make changes to the views.
         """
         ui = self.GetUiViewByModel(viewModel)
+
         if ui:
+            def DelFromMap(ui):
+                del self.modelToViewMap[ui.model]
+                if ui.model.type == "group":
+                    for childUi in ui.uiViews:
+                        DelFromMap(childUi)
+
+            DelFromMap(ui)
+
             self.uiCard.uiViews.remove(ui)
             if ui.model.parent:
                 self.uiCard.model.RemoveChild(ui.model)
