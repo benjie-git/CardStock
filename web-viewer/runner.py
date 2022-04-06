@@ -16,19 +16,6 @@ class Runner():
     can be shared between handlers, offers global variables and functions, and makes event arguments (message,
     mousePos, etc.) available to the handlers that expect them, and then restores any old values of those variables upon
     finishing those events.
-
-    Keep the UI responsive even if an event handler runs an infinite loop.  Do this by running all handler code in the
-    runnerThread.  From there, run all UI calls on the main thread, as required by wxPython.  If we need a return value
-    from the main thread call, then run the call synchronously using @RunOnMainSync, and pause the runner thread until the
-    main thread call returns a value.  Otherwise, just fire off the main thread call using @RunOnMainAsync and keep on
-    truckin'.  In general, the stack model is modified on the runnerThread, and uiView and other UI changes are made on
-    the Main thread.  This lets us consolidate many model changes made quickly, into one UI update, to avoid flickering
-    the screen as the stack makes changes to multiple objects.  We try to minimize UI updates, and only display changes
-    once per frame (~60Hz), and then only if something actually changed.  Exceptions are that we will update immediately
-    if the stack changes to another card, or actual native views (buttons and text fields) get created or destroyed.
-
-    When we want to stop the stack running, but a handler is still going, then we tell the thread to terminate, which
-    injects a SystemExit("Return") exception into the runnerThread, so it will stop and allow us to close viewer.
     """
 
     def __init__(self, stackManager):

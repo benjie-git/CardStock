@@ -283,7 +283,7 @@ class StackManager(object):
                     self.LoadCardAtIndex(index)
 
     def GroupModelsInternal(self, models, group=None, name=None):
-        """ Groups both the models and uiView objects, so while running, call this within a @RunOnMainSync. """
+        """ Groups both the models and uiView objects. """
         if len(models) > 1:
             card = models[0].GetCard()
             if not group:
@@ -307,7 +307,7 @@ class StackManager(object):
         return group
 
     def UngroupModelsInternal(self, groups):
-        """ Ungroups both the models and uiView objects, so while running, call this within a @RunOnMainSync. """
+        """ Ungroups both the models and uiView objects. """
         modelSets = []
         if len(groups) > 0:
             for group in groups:

@@ -60,6 +60,8 @@ class StackCanvas(object):
         stackWorker.send(('loadStr', s))
 
     # Redraw, only if we're done loading a page (to avoid briefly showing objects that get hidden or moved on startup)
+    # We also try to minimize UI updates, and only display changes once per frame (~60Hz), and then only if something
+    # actually changed.
     def Render(self):
         if not self.isLoading:
             self.canvas.requestRenderAll()
@@ -90,7 +92,7 @@ class StackCanvas(object):
             self.isLoading = False
             self.Render()
 
-        elif msg == "fabNew":  # uid, type, options
+        elif msg == "fabNew":  # uid, type, [other args,] options
             # Add a new object to the canvas
             uid = args[0]
             fabClass = window.fabric[args[1]]
@@ -174,14 +176,13 @@ class StackCanvas(object):
                          'selectable': False,
                          'hoverCursor': "arrow",
                          'filePath': oldObj.filePath,
-                         'left': options['left'], 'top': options['top'],
+                         'left': int(options['left']), 'top': int(options['top']),
                          'visible': options['visible']
                          })
                 img.rotate(options['angle'])
                 self.fabObjs[uid] = img
-                self.canvas.insertAt(img, index, False)
                 img.setCoords()
-                self.Render()
+                self.canvas.insertAt(img, index, False)
 
             origImage.cloneAsImage(setImg, {'left': int(options['clipLeft']), 'top': int(options['clipTop']),
                                             'width': int(options['clipWidth']), 'height': int(options['clipHeight'])})
