@@ -335,14 +335,16 @@ class StackCanvas(object):
             file = args[0]
             if file in self.soundCache:
                 snd = self.soundCache[file]
+                snd.pause()
+                snd.currentTime = 0
+                snd.play()
             else:
                 path = "Resources/" + file
                 snd = window.Audio.new(path)
-                snd.load()
-            if snd:
                 self.soundCache[file] = snd
-                snd.currentTime = 0
-                snd.play()
+                print(snd)
+                snd.bind("loadedmetadata", snd.play)
+                snd.load()
 
         elif msg == "stopAudio":  # No args
             # stop all audio

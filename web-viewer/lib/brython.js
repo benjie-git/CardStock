@@ -120,8 +120,8 @@ new Function("$locals_script",js)({})}})(__BRYTHON__)
 __BRYTHON__.implementation=[3,10,6,'dev',0]
 __BRYTHON__.__MAGIC__="3.10.6"
 __BRYTHON__.version_info=[3,10,0,'final',0]
-__BRYTHON__.compiled_date="2022-04-02 10:32:38.660949"
-__BRYTHON__.timestamp=1648888358660
+__BRYTHON__.compiled_date="2022-04-06 21:53:23.596405"
+__BRYTHON__.timestamp=1649274803595
 __BRYTHON__.builtin_module_names=["_aio","_ajax","_ast","_base64","_binascii","_io_classes","_json","_jsre","_locale","_multiprocessing","_posixsubprocess","_profile","_sre","_sre1","_sre_utils","_string","_strptime","_svg","_symtable","_webcomponent","_webworker","_zlib_utils","array","bry_re","builtins","dis","encoding_cp932","hashlib","html_parser","long_int","marshal","math","modulefinder","posix","python_re","random","unicodedata"]
 ;
 ;(function($B){var _b_=$B.builtins
@@ -8589,12 +8589,10 @@ $B.JSConstructor=JSConstructor
 function pyargs2jsargs(pyargs){var args=[]
 for(var i=0,len=pyargs.length;i < len;i++){var arg=pyargs[i]
 if(arg !==undefined && arg !==null &&
-arg.$nat !==undefined){var kw=arg.kw
-if(Array.isArray(kw)){kw=$B.extend(js_attr.name,...kw)}
-if(Object.keys(kw).length > 0){
+arg.$nat !==undefined){
 throw _b_.TypeError.$factory(
 "A Javascript function can't take "+
-"keyword arguments")}}else{args.push($B.pyobj2jsobj(arg))}}
+"keyword arguments")}else{args.push($B.pyobj2jsobj(arg))}}
 return args}
 $B.JSObj=$B.make_class("JSObject",function(jsobj){if(Array.isArray(jsobj)){}else if(typeof jsobj=="function"){jsobj.$is_js_func=true
 jsobj.__new__=function(){return new jsobj.$js_func(...arguments)}}else if(typeof jsobj=="number" && ! Number.isInteger(jsobj)){return new Number(jsobj)}
@@ -8632,7 +8630,9 @@ for(var i=0,len=arguments.length;i < len;i++){args.push(arguments[i])}
 return $B.JSObj.$factory(class_attr.apply(null,args))}}else{return class_attr}}
 if(attr=="bind" && typeof self.addEventListener=="function"){return function(event,callback){return self.addEventListener(event,callback)}}
 throw $B.attr_error(attr,self)}
-if(typeof js_attr==='function'){var res=function(){var args=pyargs2jsargs(arguments),target=self.$js_func ||self
+if(typeof js_attr==='function'){var res=function(){if(false && arguments.length > 0 && $B.last(arguments).$nat=='kw'){throw _b_.TypeError.$factory('Javascript functions cannot '+
+'be called with keyword arguments')}
+var args=pyargs2jsargs(arguments),target=self.$js_func ||self
 try{var result=js_attr.apply(target,args)}catch(err){console.log("error",err)
 console.log("attribute",attr,"of self",self,js_attr,args,arguments)
 throw err}
@@ -12628,7 +12628,9 @@ Attributes.values=function(){var $=$B.args("values",1,{self:null},["self"],argum
 for(var i=0;i < attrs.length;i++){values.push(attrs[i].value)}
 return _b_.list.__iter__(values)}
 $B.set_func_names(Attributes,"<dom>")
-var DOMEvent=$B.DOMEvent={__class__:_b_.type,__mro__:[object],$infos:{__name__:"DOMEvent"}}
+var DOMEvent=$B.DOMEvent=$B.make_class("DOMEvent",function(evt_name){
+return DOMEvent.__new__(DOMEvent,evt_name)}
+)
 DOMEvent.__new__=function(cls,evt_name){var ev=new Event(evt_name)
 ev.__class__=DOMEvent
 if(ev.preventDefault===undefined){ev.preventDefault=function(){ev.returnValue=false}}
@@ -12669,21 +12671,17 @@ func.$infos={__name__:res.name,__qualname__:res.name}
 return func}
 return $B.$JS2Py(res)}
 throw $B.attr_error(attr,self)}
-DOMEvent.$factory=function(evt_name){
-return DOMEvent.__new__(DOMEvent,evt_name)}
 var $DOMEvent=$B.$DOMEvent=function(ev){ev.__class__=DOMEvent
 ev.$no_dict=true
 if(ev.preventDefault===undefined){ev.preventDefault=function(){ev.returnValue=false}}
 if(ev.stopPropagation===undefined){ev.stopPropagation=function(){ev.cancelBubble=true}}
 return ev}
 $B.set_func_names(DOMEvent,"browser")
-var Clipboard={__class__:_b_.type,$infos:{__module__:"browser",__name__:"Clipboard"}}
-Clipboard.__getitem__=function(self,name){return self.data.getData(name)}
-Clipboard.__mro__=[object]
-Clipboard.__setitem__=function(self,name,value){self.data.setData(name,value)}
-Clipboard.$factory=function(data){
-return{
+var Clipboard=$B.make_class('Clipboard',function(data){return{
 __class__ :Clipboard,__dict__:$B.empty_dict(),data :data}}
+)
+Clipboard.__getitem__=function(self,name){return self.data.getData(name)}
+Clipboard.__setitem__=function(self,name,value){self.data.setData(name,value)}
 $B.set_func_names(Clipboard,"<dom>")
 function $EventsList(elt,evt,arg){
 this.elt=elt
@@ -12697,7 +12695,7 @@ this.elt.removeEventListener(this.evt,callback,false)
 break}}
 if(! found){throw _b_.KeyError.$factory("not found")}}}
 var OpenFile=$B.OpenFile={__class__:_b_.type,
-__mro__:[object],$infos:{__module__:"<pydom>",__name__:"OpenFile"}}
+__mro__:[object],$infos:{__module__:"<pydom>",__name__:"OpenFile"},$is_class:true}
 OpenFile.$factory=function(file,mode,encoding){var res={__class__:$OpenFileDict,file:file,reader:new FileReader()}
 if(mode==="r"){res.reader.readAsText(file,encoding)}else if(mode==="rb"){res.reader.readAsBinaryString(file)}
 return res}
@@ -12713,8 +12711,8 @@ dom.File.__class__=_b_.type
 dom.File.__str__=function(){return "<class 'File'>"}
 dom.FileReader.__class__=_b_.type
 dom.FileReader.__str__=function(){return "<class 'FileReader'>"}
-var DOMNode={__class__ :_b_.type,__mro__:[object],$infos:{__module__:"browser",__name__:"DOMNode"}}
-DOMNode.$factory=function(elt){return elt}
+var DOMNode=$B.make_class('browser',function(elt){return elt}
+)
 DOMNode.__add__=function(self,other){
 var res=TagSum.$factory()
 res.children=[self],pos=1
@@ -13123,7 +13121,7 @@ flag=true
 break}}
 if(!flag){throw _b_.KeyError.$factory('missing callback for event '+event)}}}
 $B.set_func_names(DOMNode,"browser")
-var Query={__class__:_b_.type,__mro__:[_b_.object],$infos:{__name__:"query"}}
+var Query=$B.make_class("query")
 Query.__contains__=function(self,key){return self._keys.indexOf(key)>-1}
 Query.__getitem__=function(self,key){
 var result=self._values[key]
@@ -13151,7 +13149,9 @@ catch(err){if(_default===undefined){return _b_.None}
 return _default}}
 Query.keys=function(self){return self._keys}
 $B.set_func_names(Query,"<dom>")
-var TagSum={__class__ :_b_.type,__mro__:[object],$infos:{__module__:"<pydom>",__name__:"TagSum"}}
+var TagSum=$B.make_class("TagSum",function(){return{
+__class__:TagSum,children:[],toString:function(){return "(TagSum)"}}}
+)
 TagSum.appendChild=function(self,child){self.children.push(child)}
 TagSum.__add__=function(self,other){if($B.get_class(other)===TagSum){self.children=self.children.concat(other.children)}else if(_b_.isinstance(other,[_b_.str,_b_.int,_b_.float,_b_.dict,_b_.set,_b_.list])){self.children=self.children.concat(
 DOMNode.$factory(document.createTextNode(other)))}else{self.children.push(other)}
@@ -13168,8 +13168,6 @@ TagSum.__str__=TagSum.toString=TagSum.__repr__
 TagSum.clone=function(self){var res=TagSum.$factory()
 for(var i=0;i < self.children.length;i++){res.children.push(self.children[i].cloneNode(true))}
 return res}
-TagSum.$factory=function(){return{
-__class__:TagSum,children:[],toString:function(){return "(TagSum)"}}}
 $B.set_func_names(TagSum,"<dom>")
 $B.TagSum=TagSum 
 var win=$B.JSObj.$factory(_window)
