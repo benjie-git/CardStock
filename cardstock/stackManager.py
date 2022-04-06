@@ -533,9 +533,11 @@ class StackManager(object):
             else:
                 group.SetBackUp(self)
             validModels = []
+            proxies = {}
             for m in models:
                 if m.GetCard() == card:
                     validModels.append(m)
+                    proxies[m] = m.proxy
                     self.RemoveUiViewByModel(m)
                     m.SetBackUp(self)
             group.AddChildModels(validModels)
@@ -543,6 +545,9 @@ class StackManager(object):
                 self.AddUiViewsFromModels([group], False)
             else:
                 card.AddChild(group)
+            for m, p in proxies.items():
+                p._model = m
+                m.proxy = p
         return group
 
     def UngroupModelsInternal(self, groups):
@@ -553,8 +558,10 @@ class StackManager(object):
             for group in groups:
                 childModels = []
                 modelSets.append(childModels)
+                proxies = {}
                 for child in group.childModels.copy():
                     childModels.append(child)
+                    proxies[child] = child.proxy
                     group.RemoveChild(child)
                     child.SetBackUp(self)
                 if group.GetCard() == self.uiCard.model:
@@ -565,6 +572,9 @@ class StackManager(object):
                     p.RemoveChild(group)
                     for child in childModels:
                         p.AddChild(child)
+                for m,p in proxies.items():
+                    p._model = m
+                    m.proxy = p
 
         return modelSets
 
