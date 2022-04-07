@@ -89,13 +89,11 @@ class StackManager(object):
     def LoadCardAtIndex(self, cardIndex, reload=False):
         if len(self.stackModel.childModels) > cardIndex:
             if reload or cardIndex != self.cardIndex:
-                worker.stackWorker.SendAsync(("willUnloadCard",))
                 worker.stackWorker.Wait(0.02) # wait for pending frame render before changing cards
                 self.cardIndex = cardIndex
                 card = self.stackModel.childModels[cardIndex]
                 self.runner.SetupForCard(card)
                 self.uiCard.Load(card)
-                worker.stackWorker.SendAsync(("didLoadCard",))
 
     def WindowDidResize(self, w, h):
         self.windowSize = wx.Size(w, h)
