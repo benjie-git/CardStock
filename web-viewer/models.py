@@ -2743,7 +2743,7 @@ class ShapeModel(LineModel):
             points = [(p.x+t, p.y-t) for p in points]
             if worker.decomp.makeCCW(points):
                 points.reverse()
-            convexPolygons = worker.decomp.decomp(points)
+            convexPolygons = worker.decomp.quickDecomp(points)
             self.polygons = []
             for poly in convexPolygons:
                 self.polygons.append(worker.SAT.Polygon.new(worker.SAT.Vector.new(),
