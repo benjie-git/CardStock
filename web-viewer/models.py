@@ -77,9 +77,11 @@ class ViewModel(object):
         self.lastOnPeriodicTime = None
         self.animations = {}
         self.bounceObjs = {}
-        self.polygon = None
+        self.polygons = []
         self.isPolyDirty = False
         self.polygonPos = None
+        self.isPolyRect = True
+
         self.proxyClass = ViewProxy
         self.didSetDown = False
         self.clonedFrom = None
@@ -107,7 +109,7 @@ class ViewModel(object):
             self.proxy = None
         self.animations = {}
         self.bounceObjs = {}
-        self.polygon = None
+        self.polygons = None
         self.polygonPos = None
         self.stackManager = None
         self.parent = None
@@ -508,7 +510,7 @@ class ViewModel(object):
 
         if self.properties[key] != value:
             if key in ("rotation", "size"):
-                self.polygon = None
+                self.polygons = []
             if key == "position":
                 self.isPolyDirty = True
             self.properties[key] = value
@@ -528,23 +530,27 @@ class ViewModel(object):
                 objs[m] = [None, None]
         self.bounceObjs = objs
 
-    def GetPolygon(self):
-        if not self.polygon:
-            s = self.GetProperty('size')
-            f = wx.Rect(0, 0, s[0], s[1])
-            points = self.RotatedRectPoints(f)
-            self.polygon = worker.SAT.Polygon.new(worker.SAT.Vector.new(),
-                                                  [worker.SAT.Vector.new(p.x, p.y) for p in points])
+    def GetPolygons(self):
+        if not self.polygons:
+            self.MakePolygon()
             self.polygonPos = wx.Point(self.properties['position'])
         elif self.isPolyDirty:
             self.MovePolygon()
-        return self.polygon
+        return self.polygons
+
+    def MakePolygon(self):
+        s = self.GetProperty('size')
+        f = wx.Rect(0, 0, s[0], s[1])
+        points = self.RotatedRectPoints(f)
+        self.polygons = [worker.SAT.Polygon.new(worker.SAT.Vector.new(),
+                                              [worker.SAT.Vector.new(p.x, p.y) for p in points])]
 
     def MovePolygon(self):
-        if self.polygon:
+        if self.polygons:
             newPos = self.GetAbsolutePosition()
             dx,dy = (newPos[0] - self.polygonPos[0], newPos[1] - self.polygonPos[1])
-            self.polygon.setOffset(worker.SAT.Vector.new(dx, dy))
+            for poly in self.polygons:
+                poly.setOffset(worker.SAT.Vector.new(dx, dy))
 
     def AddAnimation(self, key, duration, onUpdate, onStart=None, onFinish=None, onCancel=None):
         # On Runner thread
@@ -969,8 +975,11 @@ class ViewProxy(object):
             s = model.GetProperty('size')
             return point[0] >= 0 and point[1] >= 0 and point[0] <= s.width and point[1] <= s.height
         else:
-            poly = model.GetPolygon()
-            return worker.SAT.pointInPolygon(worker.SAT.Vector.new(point.x, point.y), poly)
+            polys = model.GetPolygons()
+            for poly in polys:
+                if worker.SAT.pointInPolygon(worker.SAT.Vector.new(point.x, point.y), poly):
+                    return True
+            return False
 
     def IsTouching(self, obj):
         if not isinstance(obj, ViewProxy):
@@ -981,10 +990,13 @@ class ViewProxy(object):
         if not model or not oModel:
             return False
 
-        poly = model.GetPolygon()
-        oPoly = oModel.GetPolygon()
-        result = worker.SAT.testPolygonPolygon(poly, oPoly)
-        return result
+        polys = model.GetPolygons()
+        oPolys = oModel.GetPolygons()
+        for poly in polys:
+            for oPoly in oPolys:
+                if worker.SAT.testPolygonPolygon(poly, oPoly):
+                    return True
+        return False
 
     def IsTouchingEdge(self, obj, skipIsTouchingCheck=False):
         if not isinstance(obj, ViewProxy):
@@ -1027,9 +1039,11 @@ class ViewProxy(object):
             scratch = ViewProxy.scratchPoly
             scratch.setPoints(points)
             # scratch = worker.SAT.Polygon.new(worker.SAT.Vector.new(), points)
-            poly = model.GetPolygon()
-            result = worker.SAT.testPolygonPolygon(poly, scratch)
-            return result
+            polys = model.GetPolygons()
+            for poly in polys:
+                if worker.SAT.testPolygonPolygon(poly, scratch):
+                    return True
+            return False
 
         def RotEdge(rot):
             # Rotate reported edge hits according to other object's rotation
@@ -1420,7 +1434,7 @@ class CardModel(ViewModel):
     def SetProperty(self, key, value, notify=True):
         if key in ["size", "canSave", "canResize"]:
             if key == "size":
-                self.polygon = None
+                self.polygons = []
             self.parent.SetProperty(key, value, notify)
         else:
             super().SetProperty(key, value, notify)
@@ -2440,6 +2454,7 @@ class LineModel(ViewModel):
         self.proxyClass = Line
         self.points = []
         self.scaledPoints = None
+        self.isPolyRect = False
 
         if shapeType == "pen":
             self.properties["name"] = "line_1"
@@ -2484,6 +2499,20 @@ class LineModel(ViewModel):
         if key == "size":
             self.scaledPoints = None
         super().SetProperty(key, value, notify)
+
+    def MakePolygon(self):
+        if self.type in ["line", "pen"]:
+            points = self.GetAbsolutePoints()
+            self.polygons = []
+            if len(points) > 1:
+                oldP = points[0]
+                for p in points[1:]:
+                    self.polygons.append(worker.SAT.Polygon.new(worker.SAT.Vector.new(),
+                                                                [worker.SAT.Vector.new(oldP[0], oldP[1]),
+                                                                 worker.SAT.Vector.new(p[0], p[1])]))
+                    oldP = p
+        else:
+            super().MakePolygon()
 
     def DidUpdateShape(self):  # If client updates the points list already passed to AddShape
         self.isDirty = True
@@ -2701,9 +2730,42 @@ class ShapeModel(LineModel):
 
         self.properties["fillColor"] = "white"
         self.propertyTypes["fillColor"] = "color"
+        if shapeType in ["oval", "polygon"]:
+            self.isPolyRect = False
 
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "penColor", "penThickness", "fillColor", "position", "size", "rotation"]
+
+    def MakePolygon(self):
+        if self.type == "polygon":
+            t = self.properties['penThickness'] / 2
+            points = self.GetAbsolutePoints()
+            points = [(p.x+t, p.y-t) for p in points]
+            if worker.decomp.makeCCW(points):
+                points.reverse()
+            convexPolygons = worker.decomp.decomp(points)
+            self.polygons = []
+            for poly in convexPolygons:
+                self.polygons.append(worker.SAT.Polygon.new(worker.SAT.Vector.new(),
+                                                            [worker.SAT.Vector.new(p[0], p[1]) for p in poly]))
+        elif self.type == "oval":
+            t = self.properties['penThickness'] / 2
+            rX = self.properties['size'].width/2 + t
+            rY = self.properties['size'].height/2 + t
+            if min(rX, rY) < 12:
+                # Tiny oval? just use a rect.
+                super().MakePolygon()
+            else:
+                n = 20  # points to generate
+                ellipsePoints = [
+                    (rX * math.cos(theta) + rX-t, rY * math.sin(theta) + rY-t)
+                    for theta in (math.pi * 2 * i / n for i in range(n))
+                ]
+                ellipsePoints = self.RotatedPoints(ellipsePoints)
+                self.polygons = [worker.SAT.Polygon.new(worker.SAT.Vector.new(),
+                                                        [worker.SAT.Vector.new(p.x, p.y) for p in ellipsePoints])]
+        elif self.type == "rect":
+            super().MakePolygon()
 
     def SetShape(self, shape):
         self.properties["fillColor"] = shape["fillColor"]
@@ -2791,6 +2853,15 @@ class RoundRectModel(ShapeModel):
 
         # Custom property order and mask for the inspector
         self.propertyKeys = ["name", "penColor", "penThickness", "fillColor", "cornerRadius", "position", "size", "rotation"]
+
+    def MakePolygon(self):
+        t = self.properties['penThickness'] / 2
+        s = self.GetProperty('size')
+        f = wx.Rect(-t, -t, s[0]+2*t, s[1]+2*t)
+        points = [f.BottomLeft, f.BottomRight, f.TopRight, f.TopLeft]
+        points = self.RotatedPoints(points)
+        self.polygons = [worker.SAT.Polygon.new(worker.SAT.Vector.new(),
+                                              [worker.SAT.Vector.new(p.x, p.y) for p in points])]
 
     def SetShape(self, shape):
         self.properties["cornerRadius"] = shape["cornerRadius"] if "cornerRadius" in shape else 8

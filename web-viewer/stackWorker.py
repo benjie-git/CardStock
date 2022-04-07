@@ -23,6 +23,7 @@ class StackWorker(object):
     def __init__(self):
         worker.importScripts(worker.location.origin + '/lib/fabric.worker.js')
         worker.importScripts(worker.location.origin + '/lib/SAT.js')
+        worker.importScripts(worker.location.origin + '/lib/decomp.min.js')
 
         self.waitSAB = None
         self.waitSA32 = None
