@@ -44,7 +44,6 @@ class StackCanvas(object):
         self.soundCache = {}
         self.imgCache = {}
         self.lastMousePos = (0,0)
-        self.isLoading = False
         self.writeBuffer = ""
 
         stackWorker.bind("message", self.OnMessageM)
@@ -63,8 +62,7 @@ class StackCanvas(object):
     # We also try to minimize UI updates, and only display changes once per frame (~60Hz), and then only if something
     # actually changed.
     def Render(self):
-        if not self.isLoading:
-            self.canvas.requestRenderAll()
+        self.canvas.renderAll()
 
     def OnMessageM(self, evt):
         """Handles the messages sent by the worker, which are sent as lists of messages."""
@@ -83,22 +81,12 @@ class StackCanvas(object):
             self.canvas.setWidth(args[0])
             self.canvas.setHeight(args[1])
 
-        elif msg == "willUnloadCard":
-            # stop rendering until the card is done loading
-            self.isLoading = True
-
-        elif msg == "didLoadCard":
-            # start rendering again
-            self.isLoading = False
-            self.Render()
-
         elif msg == "fabNew":  # uid, type, [other args,] options
             # Add a new object to the canvas
             uid = args[0]
             fabClass = window.fabric[args[1]]
             options = {'csid': uid,
                        'isType': args[1],
-                       'centeredRotation': True,
                        'selectable': False,
                        'hoverCursor': "arrow"}
             options.update(args[-1].to_dict())
@@ -172,14 +160,13 @@ class StackCanvas(object):
                 img.set({'csid': uid,
                          'isType': "Image",
                          'scaleX': options['scaleX'], 'scaleY': options['scaleY'],
-                         'centeredRotation': True,
+                         'angle':options['angle'],
                          'selectable': False,
                          'hoverCursor': "arrow",
                          'filePath': oldObj.filePath,
                          'left': int(options['left']), 'top': int(options['top']),
                          'visible': options['visible']
                          })
-                img.rotate(options['angle'])
                 self.fabObjs[uid] = img
                 img.setCoords()
                 self.canvas.insertAt(img, index, False)
@@ -198,7 +185,6 @@ class StackCanvas(object):
                         'hasControls': False,
                         'lockMovementX': True,
                         'lockMovementY': True,
-                        'centeredRotation': True,
                         'hoverCursor': "text"})
             self.fabObjs[uid] = fabObj
 
@@ -223,7 +209,6 @@ class StackCanvas(object):
                         'hasControls': False,
                         'lockMovementX': True,
                         'lockMovementY': True,
-                        'centeredRotation': True,
                         'selectable': False,
                         'hoverCursor': "arrow"})
             self.fabObjs[uid] = fabObj
@@ -342,7 +327,6 @@ class StackCanvas(object):
                 path = "Resources/" + file
                 snd = window.Audio.new(path)
                 self.soundCache[file] = snd
-                print(snd)
                 snd.bind("loadedmetadata", snd.play)
                 snd.load()
 
@@ -354,6 +338,9 @@ class StackCanvas(object):
         elif msg == "write":  # text
             # Allows printing from the worker thread
             self.writeBuffer += args[0]
+
+        else:
+            print("StackCanvas received bad msg:", msg)
 
     def SendBuffer(self):
         # print out any buffered writes from the worker thread's print() calls

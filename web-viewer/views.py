@@ -102,8 +102,7 @@ class UiView(object):
         for i in range(min(len(results), len(self.fabIds))):
             uid = self.fabIds[i]
             vals = results[i]
-            msgs.append(("fabFunc", uid, "rotate", vals[2]))
-            msgs.append(("fabSet", uid, {'left': vals[0], 'top': vals[1]}))
+            msgs.append(("fabSet", uid, {'left': vals[0], 'top': vals[1], 'angle':vals[2]}))
         worker.stackWorker.SendAsync(*msgs)
 
     def RunAnimations(self, onFinishedCalls, elapsedTime):
