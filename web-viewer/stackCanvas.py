@@ -45,6 +45,7 @@ class StackCanvas(object):
         self.imgCache = {}
         self.lastMousePos = (0,0)
         self.writeBuffer = ""
+        self.resourceMap = {}
 
         stackWorker.bind("message", self.OnMessageM)
 
@@ -52,6 +53,8 @@ class StackCanvas(object):
         stackWorker.send(('setup', self.waitSAB, self.countsSAB, self.dataSAB))
 
         # Load up the initial/blank/embedded stack
+        if 'resourceMap' in window:
+            self.resourceMap = window.resourceMap.to_dict()
         stackWorker.send(('load', window.stackJSON))
         self.OnWindowResize(None)
 
@@ -124,7 +127,10 @@ class StackCanvas(object):
                 s = self.imgCache[filePath].getOriginalSize()
                 stackWorker.send(("imgSize", uid, s.width, s.height))
             else:
-                window.fabric.Image.fromURL(filePath, didLoad)
+                if filePath in self.resourceMap:
+                    window.fabric.Image.fromURL(self.resourceMap[filePath], didLoad)
+                else:
+                    window.fabric.Image.fromURL("Resources/"+filePath, didLoad)
 
         elif msg == "imgReplace":  # uid, filePath
             # download a new image to use to replace the current one.  used when user code sets an image.file
@@ -145,7 +151,10 @@ class StackCanvas(object):
                 s = self.imgCache[filePath].getOriginalSize()
                 stackWorker.send(("imgSize", uid, s.width, s.height))
             else:
-                window.fabric.Image.fromURL(filePath, didLoad)
+                if filePath in self.resourceMap:
+                    window.fabric.Image.fromURL(self.resourceMap[filePath], didLoad)
+                else:
+                    window.fabric.Image.fromURL("Resources/"+filePath, didLoad)
 
         elif msg == "imgRefit":  # uid, options
             # crop and resize as needed
@@ -321,7 +330,11 @@ class StackCanvas(object):
                 snd.currentTime = 0
                 snd.play()
             else:
-                path = "Resources/" + file
+                path = file
+                if file in self.resourceMap:
+                    path = self.resourceMap[path]
+                else:
+                    path = "Resources/"+path
                 snd = window.Audio.new(path)
                 self.soundCache[file] = snd
                 snd.bind("loadedmetadata", snd.play)

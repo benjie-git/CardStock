@@ -2,6 +2,7 @@ from browser import self as worker
 from browser import timer
 import sys
 import cardstock
+from settings import *
 
 """
 This StackWorker class, which runs on a worker thread, works tightly with the StackCanvas class back on the main thread,
@@ -21,9 +22,9 @@ def NextId():
 
 class StackWorker(object):
     def __init__(self):
-        worker.importScripts(worker.location.origin + '/lib/fabric.worker.js')
-        worker.importScripts(worker.location.origin + '/lib/SAT.js')
-        worker.importScripts(worker.location.origin + '/lib/decomp.min.js')
+        worker.importScripts(worker.location.origin + LIB_PREFIX + 'fabric.worker.js')
+        worker.importScripts(worker.location.origin + LIB_PREFIX + 'SAT.js')
+        worker.importScripts(worker.location.origin + LIB_PREFIX + 'decomp.min.js')
 
         self.waitSAB = None
         self.waitSA32 = None
@@ -176,5 +177,5 @@ class StackWorker(object):
 # Start up the worker class
 worker.stackWorker = StackWorker()
 
-sys.stdout = worker.stackWorker
-sys.stderr = worker.stackWorker
+# sys.stdout = worker.stackWorker
+# sys.stderr = worker.stackWorker

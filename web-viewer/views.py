@@ -693,7 +693,7 @@ class UiImage(UiView):
 
     def CreateFabObjs(self):
         model = self.model
-        file = "Resources/" + model.properties['file']
+        file = model.properties['file']
         self.image = worker.stackWorker.CreateImage(file)
         self.fabIds = [self.image]
 
@@ -749,7 +749,7 @@ class UiImage(UiView):
         if key in ("size", "fit"):
             self.FitImage()
         elif key == "file":
-            file = "Resources/" + self.model.properties['file']
+            file = self.model.properties['file']
             worker.stackWorker.CreateImage(file, replace=self.image)
 
 
