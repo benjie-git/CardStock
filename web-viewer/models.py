@@ -286,7 +286,7 @@ class ViewModel(object):
             self.SetProperty("position", pos)
 
     def IsVisible(self):
-        """ Returns True iff this object or any of its ancestors has its hidden property set to True """
+        """ Returns False iff this object or any of its ancestors has its isVisible property set to False """
         if not self.properties["isVisible"]:
             return False
         if self.parent and self.parent.type not in ["card", "stack"]:
@@ -392,6 +392,8 @@ class ViewModel(object):
     def GetProperty(self, key):
         if key == "center":
             return self.GetAbsoluteCenter()
+        elif key == "isVisible":
+            return self.IsVisible()
         elif key in self.properties:
             return self.properties[key]
         return None
