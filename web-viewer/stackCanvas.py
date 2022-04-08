@@ -206,9 +206,6 @@ class StackCanvas(object):
             fabObj = fabClass.new(*args[2:])
             fabObj.set({'csid':uid,
                         'isType': args[1],
-                        'hasControls': False,
-                        'lockMovementX': True,
-                        'lockMovementY': True,
                         'selectable': False,
                         'hoverCursor': "arrow"})
             self.fabObjs[uid] = fabObj

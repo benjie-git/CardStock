@@ -80,7 +80,7 @@ class UiView(object):
             if self.model.type in ["oval", "rect", "roundrect", "polygon", "line", "pen"]:
                 thick = self.model.GetProperty('penThickness')
                 pos = wx.Point(pos[0] - thick / 2, pos[1] + thick / 2)
-            if rot and self.model.type in ["image", "line"]:
+            if rot:
                 s = self.model.GetProperty('size') + (-2*objOffset[0], 2*objOffset[1])
                 aff = wx.AffineMatrix2D()
                 aff.Rotate(math.radians(-rot))

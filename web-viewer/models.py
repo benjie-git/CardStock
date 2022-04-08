@@ -1435,8 +1435,6 @@ class CardModel(ViewModel):
 
     def SetProperty(self, key, value, notify=True):
         if key in ["size", "canSave", "canResize"]:
-            if key == "size":
-                self.polygons = []
             self.parent.SetProperty(key, value, notify)
         else:
             super().SetProperty(key, value, notify)

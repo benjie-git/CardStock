@@ -77,6 +77,8 @@ class StackManager(object):
         self.LoadCardAtIndex(0)
         if self.stackModel.GetProperty("canResize"):
             self.stackModel.SetProperty("size", self.windowSize)
+            for ui in self.uiCard.uiViews:
+                ui.OnPropertyChanged("position")
             self.runner.RunHandler(self.uiCard.model, "OnResize", None)
         s = self.stackModel.GetProperty("size")
         worker.stackWorker.SendAsync(("canvasSetSize", s.width, s.height))
@@ -100,6 +102,8 @@ class StackManager(object):
         if self.stackModel.properties['canResize']:
             self.stackModel.SetProperty('size', self.windowSize)
             worker.stackWorker.SendAsync(("canvasSetSize", self.windowSize.width, self.windowSize.height))
+            for ui in self.uiCard.uiViews:
+                ui.OnPropertyChanged("position")
             self.runner.RunHandler(self.uiCard.model, "OnResize", None)
 
     def OnPeriodic(self):
