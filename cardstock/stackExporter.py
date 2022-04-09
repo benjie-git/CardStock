@@ -1,3 +1,4 @@
+import requests
 import wx
 import os
 import sys
@@ -11,6 +12,12 @@ try:
     PY_INSTALLER_AVAILABLE = True
 except ModuleNotFoundError:
     PY_INSTALLER_AVAILABLE = False
+
+try:
+    from cssecrets import *
+    CSWEB_AVAILABLE = True
+except ModuleNotFoundError:
+    CSWEB_AVAILABLE = False
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -30,7 +37,7 @@ class StackExporter(object):
 
     def StartExport(self, doSave):
         # Check that we even have pyinstaller available
-        if not PY_INSTALLER_AVAILABLE and not getattr(sys, 'frozen', False):
+        if not PY_INSTALLER_AVAILABLE and not getattr(sys, 'frozen', False) and not CSWEB_AVAILABLE:
             wx.MessageDialog(self.stackManager.designer,
                              "To export a stack as a stand-alone program, "
                              "you need to first install the pyinstaller python package.",
@@ -147,7 +154,7 @@ class StackExporter(object):
             wx.YieldIfNeeded()
         return path
 
-    def Export(self):
+    def ExportApp(self):
         filepath = self.GetOutputPath()
         if getattr(sys, 'frozen', False) and hasattr(sys, "_MEIPASS"):
             # We're running in a bundle
@@ -298,6 +305,40 @@ class StackExporter(object):
 
         print("Export finished.")
 
+    def ExportWeb(self):
+        stackName = os.path.basename(self.stackManager.filename)
+        if stackName.endswith(".cds"):
+            stackName = stackName[:-4]
+        resMap = {}
+        i=1
+        stackDir = os.path.dirname(self.stackManager.filename)
+        for path in self.resList:
+            resMap[path] = "r-"+str(i)
+            i += 1
+
+        files = {"stack_data": open(self.stackManager.filename, 'rb')}
+        params = {
+            "username": CSWEB_UPLOAD_USER,
+            "name": stackName,
+            "is_public": True,
+            "resource_map": json.dumps(resMap),
+        }
+        for k,v in resMap.items():
+            absPath = os.path.join(stackDir, k)
+            files[v] = open(absPath, 'rb')
+        try:
+            response = requests.post(CSWEB_UPLOAD_URL, data=params, files=files)
+            responseJson = response.json()
+            if 'url' in responseJson:
+                msg = f"Upload done.  This stack is available at\n\n{responseJson['url']}"
+                wx.MessageDialog(None, msg, "", wx.OK).ShowModal()
+                return responseJson['url']
+            msg = f"Upload failed. \n\n {params}"
+        except Exception as e:
+            msg = f"Upload failed.\n\n{e}"
+        wx.MessageDialog(None, msg, "", wx.OK).ShowModal()
+        return None
+
 
 class ExportDialog(wx.Dialog):
     def __init__(self, parent, exporter):
@@ -315,14 +356,17 @@ class ExportDialog(wx.Dialog):
         rmBtn = wx.Button(self.panel, label = "Remove", size=(50, 20))
         rmBtn.Bind(wx.EVT_BUTTON, self.OnRemove)
 
-        exportBtn = wx.Button(self.panel, label = "Export", size=(50, 20))
-        exportBtn.Bind(wx.EVT_BUTTON, self.OnExport)
-        exportBtn.SetDefault()
+        exportAppBtn = wx.Button(self.panel, label = "Export App", size=(50, 20))
+        exportAppBtn.Bind(wx.EVT_BUTTON, self.OnExportApp)
 
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         buttonSizer.Add(addBtn, 1, wx.EXPAND|wx.ALL, spacing)
         buttonSizer.Add(rmBtn, 1, wx.EXPAND|wx.ALL, spacing)
-        buttonSizer.Add(exportBtn, 1, wx.EXPAND|wx.ALL, spacing)
+        buttonSizer.Add(exportAppBtn, 1, wx.EXPAND|wx.ALL, spacing)
+        if CSWEB_AVAILABLE:
+            exportWebBtn = wx.Button(self.panel, label = "Upload to Web", size=(50, 20))
+            exportWebBtn.Bind(wx.EVT_BUTTON, self.OnExportWeb)
+            buttonSizer.Add(exportWebBtn, 1, wx.EXPAND|wx.ALL, spacing)
 
         if len(self.exporter.resList) > 0:
             labelStr = "These are the image and sound files that this stack seems to need.  " \
@@ -380,11 +424,20 @@ class ExportDialog(wx.Dialog):
             self.listBox.SetItems(self.items)
             self.listBox.SetSelection(min(i, len(self.items)-1))
 
-    def OnExport(self, event):
+    def OnExportApp(self, event):
         self.SetTitle("Exporting Stack...")
         self.panel.Enable(False)
         wx.YieldIfNeeded()
         self.exporter.resList = set(self.items)
-        self.exporter.Export()
+        self.exporter.ExportApp()
+        self.exporter = None
+        self.Close()
+
+    def OnExportWeb(self, event):
+        self.SetTitle("Uploading Stack...")
+        self.panel.Enable(False)
+        wx.YieldIfNeeded()
+        self.exporter.resList = set(self.items)
+        url = self.exporter.ExportWeb()
         self.exporter = None
         self.Close()
