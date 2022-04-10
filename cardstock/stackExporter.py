@@ -331,9 +331,20 @@ class StackExporter(object):
             responseJson = response.json()
             if 'url' in responseJson:
                 msg = f"Upload done.  This stack is available at\n\n{responseJson['url']}"
-                wx.MessageDialog(None, msg, "", wx.OK).ShowModal()
+                dialog = wx.MessageDialog(None, msg, 'Upload Succeeded', wx.YES_NO | wx.CANCEL | wx.CANCEL_DEFAULT)
+                dialog.SetYesNoCancelLabels('Copy URL', 'Open URL', 'Done')
+                answer = dialog.ShowModal()
+                dialog.Destroy()
+                if answer == wx.ID_YES:
+                    # Copy URL
+                    if wx.TheClipboard.Open():
+                        wx.TheClipboard.SetData(wx.TextDataObject(responseJson['url']))
+                        wx.TheClipboard.Close()
+                elif answer == wx.ID_NO:
+                    # Open URL
+                    wx.LaunchDefaultBrowser(responseJson['url'])
                 return responseJson['url']
-            msg = f"Upload failed. \n\n {params}"
+            msg = f"Upload failed. \n\n {responseJson.get('error')}"
         except Exception as e:
             msg = f"Upload failed.\n\n{e}"
         wx.MessageDialog(None, msg, "", wx.OK).ShowModal()
