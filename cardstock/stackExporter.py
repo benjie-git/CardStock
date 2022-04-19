@@ -316,18 +316,22 @@ class StackExporter(object):
             resMap[path] = "r-"+str(i)
             i += 1
 
-        files = {"stack_data": open(self.stackManager.filename, 'rb')}
+        token = self.stackManager.designer.configInfo["upload_token"]
+        headers = {"Authorization": f"Token {token}"}
+
         params = {
-            "username": CSWEB_UPLOAD_USER,
             "name": stackName,
             "is_public": True,
             "resource_map": json.dumps(resMap),
         }
+
+        files = {"stack_data": open(self.stackManager.filename, 'rb')}
         for k,v in resMap.items():
             absPath = os.path.join(stackDir, k)
             files[v] = open(absPath, 'rb')
+
         try:
-            response = requests.post(CSWEB_UPLOAD_URL, data=params, files=files)
+            response = requests.post(CSWEB_UPLOAD_URL, headers=headers, data=params, files=files)
             responseJson = response.json()
             if 'url' in responseJson:
                 msg = f"Upload done.  This stack is available at\n\n{responseJson['url']}"
@@ -382,15 +386,15 @@ class ExportDialog(wx.Dialog):
         if len(self.exporter.resList) > 0:
             labelStr = "These are the image and sound files that this stack seems to need.  " \
                        "If you think other files are needed, try running the stack again and make sure to use " \
-                       "all of the images and sounds that it can.  Or you can add or remove files here by using the " \
+                       "all of the images and sounds that this stack can.  Or you can add or remove files here by using the " \
                        "buttons below, and when the list is complete, " \
-                       "click the \"Export\" button to Export these files along with this stack."
+                       "click an \"Export\" button to Export these files along with this stack."
         else:
             labelStr = "No image or sound files seem to be used by this stack.  That's fine, but " \
                        "if you think other files are needed, try running the stack again and make sure to use " \
-                       "all of the images and sounds that it can.  Or you can add or remove files here by using the " \
+                       "all of the images and sounds that this stack can.  Or you can add or remove files here by using the " \
                        "buttons below, and when the list is complete, " \
-                       "click the \"Export\" button to Export these files along with this stack."
+                       "click an \"Export\" button to Export these files along with this stack."
 
         if len(exporter.moduleList) > 0:
             labelStr += "\n\nFound imports for python modules: " + ", ".join(exporter.moduleList)
@@ -445,10 +449,139 @@ class ExportDialog(wx.Dialog):
         self.Close()
 
     def OnExportWeb(self, event):
+        dlg = UploadDialog(self.GetParent(), self.exporter, self.items)
+        self.exporter = None
+        self.Close()
+        dlg.ShowModal()
+
+
+class UploadDialog(wx.Dialog):
+    def __init__(self, parent, exporter, items):
+        super().__init__(parent, title="Upload Stack")
+
+        self.exporter = exporter
+        self.items = items
+        username = self.exporter.stackManager.designer.configInfo["upload_username"]
+
+        self.panel = wx.Panel(self)
+        spacing = 5
+        buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        cancelBtn = wx.Button(self.panel, label = "Cancel")
+        cancelBtn.Bind(wx.EVT_BUTTON, self.OnCancel)
+        buttonSizer.Add(cancelBtn, 1, wx.EXPAND | wx.ALL, spacing)
+
+        if not username:
+            labelStr = f"You are not yet logged in to {CSWEB_NAME}.  Please Sign Up, or Log In if you already have an account."
+
+            user_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            user_lbl = wx.StaticText(self, label="Username:")
+            user_sizer.Add(user_lbl, 0, wx.ALL | wx.CENTER, spacing)
+            self.userField = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
+            self.userField.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
+            user_sizer.Add(self.userField, 0, wx.ALL, spacing)
+
+            pass_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            p_lbl = wx.StaticText(self, label="Password:")
+            pass_sizer.Add(p_lbl, 0, wx.ALL | wx.CENTER, spacing)
+            self.passField = wx.TextCtrl(self, style=wx.TE_PASSWORD | wx.TE_PROCESS_ENTER)
+            self.passField.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
+            pass_sizer.Add(self.passField, 0, wx.ALL, spacing)
+
+            signupBtn = wx.Button(self.panel, label="Sign Up")
+            signupBtn.Bind(wx.EVT_BUTTON, self.OnSignUp)
+            buttonSizer.Add(signupBtn, 1, wx.EXPAND | wx.ALL, spacing)
+
+            loginBtn = wx.Button(self.panel, label="Log In")
+            loginBtn.Bind(wx.EVT_BUTTON, self.OnLogIn)
+            loginBtn.SetDefault()
+            buttonSizer.Add(loginBtn, 1, wx.EXPAND | wx.ALL, spacing)
+
+        else:
+            labelStr = f"You are logged in to {CSWEB_NAME} as '{username}'.  You can Upload now, or Logout to sign in as a different user."
+
+            logoutBtn = wx.Button(self.panel, label="Log Out")
+            logoutBtn.Bind(wx.EVT_BUTTON, self.OnLogOut)
+            buttonSizer.Add(logoutBtn, 1, wx.EXPAND | wx.ALL, spacing)
+
+            uploadBtn = wx.Button(self.panel, label="Upload")
+            uploadBtn.Bind(wx.EVT_BUTTON, self.OnUpload)
+            uploadBtn.SetDefault()
+            buttonSizer.Add(uploadBtn, 1, wx.EXPAND | wx.ALL, spacing)
+
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        label = wx.StaticText(self.panel, label=labelStr)
+        sizer.Add(label, 0, wx.EXPAND | wx.ALL, spacing)
+        if not username:
+            sizer.Add(user_sizer, 0, wx.EXPAND | wx.ALL, spacing)
+            sizer.Add(pass_sizer, 0, wx.EXPAND | wx.ALL, spacing)
+        sizer.Add(buttonSizer, 0, wx.EXPAND | wx.ALL, spacing)
+        self.panel.SetSizerAndFit(sizer)
+        sizer.Layout()
+        self.Fit()
+
+        label.Wrap(self.GetClientSize().width-spacing*2)
+        sizes = wx.MemoryDC().GetFullMultiLineTextExtent(label.GetLabelText(), label.GetFont())
+        label.SetSize(wx.Size(label.GetSize().Width, sizes[1]))
+
+        if not username:
+            self.userField.SetFocus()
+
+    def OnTextEnter(self, event):
+        username = self.userField.GetValue()
+        password = self.passField.GetValue()
+        if not len(username):
+            self.userField.SetFocus()
+        elif len(username) and not len(password):
+            self.passField.SetFocus()
+        else:
+            self.OnLogIn(event)
+
+    def OnSignUp(self, event):
+        wx.LaunchDefaultBrowser(CSWEB_SIGNUP_URL)
+
+    def OnLogIn(self, event):
+        username = self.userField.GetValue()
+        password = self.passField.GetValue()
+        params = {"username": username, "password": password}
+        response = requests.post(CSWEB_GET_TOKEN_URL, data=params)
+        responseJson = response.json()
+        if "token" in responseJson:
+            self.exporter.stackManager.designer.configInfo["upload_username"] = username
+            self.exporter.stackManager.designer.configInfo["upload_token"] = responseJson["token"]
+            self.exporter.stackManager.designer.WriteConfig()
+            dlg = UploadDialog(self.GetParent(), self.exporter, self.items)
+            self.exporter = None
+            self.items = None
+            self.Close()
+            dlg.ShowModal()
+        else:
+            wx.MessageDialog(self, "Couldn't Log In").ShowModal()
+
+    def OnLogOut(self, event):
+        self.exporter.stackManager.designer.configInfo["upload_username"] = None
+        self.exporter.stackManager.designer.configInfo["upload_token"] = None
+        self.exporter.stackManager.designer.WriteConfig()
+        dlg = UploadDialog(self.GetParent(), self.exporter, self.items)
+        self.exporter = None
+        self.items = None
+        self.Close()
+        dlg.ShowModal()
+
+    def OnUpload(self, event):
         self.SetTitle("Uploading Stack...")
         self.panel.Enable(False)
         wx.YieldIfNeeded()
         self.exporter.resList = set(self.items)
         url = self.exporter.ExportWeb()
+        if url:
+            self.exporter = None
+            self.items = None
+            self.Close()
+
+    def OnCancel(self, event):
         self.exporter = None
+        self.items = None
         self.Close()
+

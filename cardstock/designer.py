@@ -94,6 +94,7 @@ class DesignerFrame(wx.Frame):
         os.makedirs(config_folder, exist_ok=True)
         settings_file = "cardstock.conf"
         self.full_config_file_path = os.path.join(config_folder, settings_file)
+        self.configInfo = self.ReadConfig()
 
         super().__init__(parent, -1, self.title, size=(800,600), style=wx.DEFAULT_FRAME_STYLE)
         self.SetMinClientSize(wx.Size(600,500))
@@ -105,7 +106,6 @@ class DesignerFrame(wx.Frame):
         self.MakeMenuBar()
         self.filename = None
         self.app = None
-        self.configInfo = None
         # self.lastStats = {}
 
         self.toolbar = self.CreateToolBar(style=wx.TB_TEXT)
@@ -1075,7 +1075,6 @@ class DesignerFrame(wx.Frame):
 
     def FinishedStarting(self):
         if not self.filename:
-            self.configInfo = self.ReadConfig()
             self.cPanel.ShowContextHelp(self.configInfo["show_context_help"])
             if self.configInfo["last_open_file"] and os.path.exists(self.configInfo["last_open_file"]):
                 self.ReadFile(self.configInfo["last_open_file"])
@@ -1092,11 +1091,13 @@ class DesignerFrame(wx.Frame):
         config = configparser.ConfigParser()
         last_file = self.filename if self.filename else ""
         if last_file and os.path.samefile(os.path.dirname(last_file), self.GetExamplesDir()):
-            if self.configInfo and "last_open_file" in self.configInfo:
+            if "last_open_file" in self.configInfo:
                 last_file = self.configInfo["last_open_file"]
         self.configInfo = {"last_open_file": last_file,
-                          "show_context_help": str(self.cPanel.IsContextHelpShown()),
-                          "cardstock_app_version": version.VERSION}
+                           "show_context_help": str(self.cPanel.IsContextHelpShown()),
+                           "upload_username": self.configInfo["upload_username"] or "",
+                           "upload_token": self.configInfo["upload_token"] or "",
+                           "cardstock_app_version": version.VERSION}
         config['User'] = self.configInfo
         with open(self.full_config_file_path, 'w') as configfile:
             config.write(configfile)
@@ -1126,6 +1127,8 @@ class DesignerFrame(wx.Frame):
             config = configparser.ConfigParser()
             config.read(self.full_config_file_path)
             last_open_file = config['User'].get('last_open_file', None)
+            upload_username = config['User'].get('upload_username', None)
+            upload_token = config['User'].get('upload_token', None)
             show_context_help = config['User'].get('show_context_help', "True") == "True"
             cardstock_app_version = config['User'].get('cardstock_app_version', "0")
 
@@ -1134,6 +1137,8 @@ class DesignerFrame(wx.Frame):
 
         return {"last_open_file": last_open_file,
                 "show_context_help": show_context_help,
+                "upload_username": upload_username,
+                "upload_token": upload_token,
                 "cardstock_app_version": cardstock_app_version}
 
 # ----------------------------------------------------------------------
