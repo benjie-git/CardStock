@@ -336,15 +336,15 @@ class StackExporter(object):
             if 'url' in responseJson:
                 msg = f"Upload done.  This stack is available at\n\n{responseJson['url']}"
                 dialog = wx.MessageDialog(None, msg, 'Upload Succeeded', wx.YES_NO | wx.CANCEL | wx.CANCEL_DEFAULT)
-                dialog.SetYesNoCancelLabels('Copy URL', 'Open URL', 'Done')
+                dialog.SetYesNoCancelLabels('Open URL', 'Copy URL', 'Done')
                 answer = dialog.ShowModal()
                 dialog.Destroy()
-                if answer == wx.ID_YES:
+                if answer == wx.ID_NO:
                     # Copy URL
                     if wx.TheClipboard.Open():
                         wx.TheClipboard.SetData(wx.TextDataObject(responseJson['url']))
                         wx.TheClipboard.Close()
-                elif answer == wx.ID_NO:
+                elif answer == wx.ID_YES:
                     # Open URL
                     wx.LaunchDefaultBrowser(responseJson['url'])
                 return responseJson['url']
@@ -371,17 +371,24 @@ class ExportDialog(wx.Dialog):
         rmBtn = wx.Button(self.panel, label = "Remove", size=(50, 20))
         rmBtn.Bind(wx.EVT_BUTTON, self.OnRemove)
 
-        exportAppBtn = wx.Button(self.panel, label = "Export App", size=(50, 20))
+        exportAppBtn = wx.Button(self.panel, label = "Export as App", size=(50, 20))
         exportAppBtn.Bind(wx.EVT_BUTTON, self.OnExportApp)
 
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         buttonSizer.Add(addBtn, 1, wx.EXPAND|wx.ALL, spacing)
         buttonSizer.Add(rmBtn, 1, wx.EXPAND|wx.ALL, spacing)
         buttonSizer.Add(exportAppBtn, 1, wx.EXPAND|wx.ALL, spacing)
+
+        isLoggedIn = False
         if CSWEB_AVAILABLE:
             exportWebBtn = wx.Button(self.panel, label = "Upload to Web", size=(50, 20))
             exportWebBtn.Bind(wx.EVT_BUTTON, self.OnExportWeb)
             buttonSizer.Add(exportWebBtn, 1, wx.EXPAND|wx.ALL, spacing)
+            username = self.exporter.stackManager.designer.configInfo["upload_username"]
+            if username:
+                isLoggedIn = True
+                self.logoutBtn = wx.Button(self.panel, label=f"[Logout '{username}']", style=wx.BORDER_NONE)
+                self.logoutBtn.Bind(wx.EVT_BUTTON, self.OnLogOut)
 
         if len(self.exporter.resList) > 0:
             labelStr = "These are the image and sound files that this stack seems to need.  " \
@@ -406,6 +413,11 @@ class ExportDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(label, 0, wx.EXPAND|wx.ALL, spacing)
         sizer.Add(self.listBox, 1, wx.EXPAND|wx.ALL, spacing)
+        if isLoggedIn:
+            sizer.Add(self.logoutBtn, 0, wx.ALL|wx.ALIGN_RIGHT, spacing)
+            exportWebBtn.SetDefault()
+        else:
+            exportAppBtn.SetDefault()
         sizer.Add(buttonSizer, 0, wx.EXPAND|wx.ALL, spacing)
         self.panel.SetSizerAndFit(sizer)
         sizer.Layout()
@@ -414,6 +426,12 @@ class ExportDialog(wx.Dialog):
         sizes = wx.MemoryDC().GetFullMultiLineTextExtent(label.GetLabelText(), label.GetFont())
         label.SetSize(wx.Size(label.GetSize().Width, sizes[1]))
         sizer.Layout()
+
+    def OnLogOut(self, event):
+        self.exporter.stackManager.designer.configInfo["upload_username"] = None
+        self.exporter.stackManager.designer.configInfo["upload_token"] = None
+        self.exporter.stackManager.designer.WriteConfig()
+        self.logoutBtn.Hide()
 
     def OnAdd(self, event):
         initialDir = os.path.dirname(self.exporter.stackManager.filename)
@@ -449,19 +467,30 @@ class ExportDialog(wx.Dialog):
         self.Close()
 
     def OnExportWeb(self, event):
-        dlg = UploadDialog(self.GetParent(), self.exporter, self.items)
-        self.exporter = None
-        self.Close()
-        dlg.ShowModal()
+        username = self.exporter.stackManager.designer.configInfo["upload_username"]
+        if username:
+            self.SetTitle("Uploading Stack...")
+            self.panel.Enable(False)
+            wx.YieldIfNeeded()
+            self.exporter.resList = set(self.items)
+            url = self.exporter.ExportWeb()
+            if url:
+                self.exporter = None
+                self.items = None
+                self.Close()
+        else:
+            dlg = LoginDialog(self.GetParent(), self.exporter, self.items)
+            self.exporter = None
+            self.Close()
+            dlg.ShowModal()
 
 
-class UploadDialog(wx.Dialog):
+class LoginDialog(wx.Dialog):
     def __init__(self, parent, exporter, items):
-        super().__init__(parent, title="Upload Stack")
+        super().__init__(parent, title="Login for Upload")
 
         self.exporter = exporter
         self.items = items
-        username = self.exporter.stackManager.designer.configInfo["upload_username"]
 
         self.panel = wx.Panel(self)
         spacing = 5
@@ -471,51 +500,37 @@ class UploadDialog(wx.Dialog):
         cancelBtn.Bind(wx.EVT_BUTTON, self.OnCancel)
         buttonSizer.Add(cancelBtn, 1, wx.EXPAND | wx.ALL, spacing)
 
-        if not username:
-            labelStr = f"You are not yet logged in to {CSWEB_NAME}.  Please Sign Up, or Log In if you already have an account."
+        labelStr = f"You are not yet logged in to {CSWEB_NAME}.  Please Log In if you already have an account.  " \
+                   f"Otherwise please Sign Up, and then Log In once you have an account."
 
-            user_sizer = wx.BoxSizer(wx.HORIZONTAL)
-            user_lbl = wx.StaticText(self, label="Username:")
-            user_sizer.Add(user_lbl, 0, wx.ALL | wx.CENTER, spacing)
-            self.userField = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
-            self.userField.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
-            user_sizer.Add(self.userField, 0, wx.ALL, spacing)
+        user_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        user_lbl = wx.StaticText(self, label="Username:")
+        user_sizer.Add(user_lbl, 0, wx.ALL | wx.CENTER, spacing)
+        self.userField = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
+        self.userField.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
+        user_sizer.Add(self.userField, 0, wx.ALL, spacing)
 
-            pass_sizer = wx.BoxSizer(wx.HORIZONTAL)
-            p_lbl = wx.StaticText(self, label="Password:")
-            pass_sizer.Add(p_lbl, 0, wx.ALL | wx.CENTER, spacing)
-            self.passField = wx.TextCtrl(self, style=wx.TE_PASSWORD | wx.TE_PROCESS_ENTER)
-            self.passField.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
-            pass_sizer.Add(self.passField, 0, wx.ALL, spacing)
+        pass_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        p_lbl = wx.StaticText(self, label="Password:")
+        pass_sizer.Add(p_lbl, 0, wx.ALL | wx.CENTER, spacing)
+        self.passField = wx.TextCtrl(self, style=wx.TE_PASSWORD | wx.TE_PROCESS_ENTER)
+        self.passField.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
+        pass_sizer.Add(self.passField, 0, wx.ALL, spacing)
 
-            signupBtn = wx.Button(self.panel, label="Sign Up")
-            signupBtn.Bind(wx.EVT_BUTTON, self.OnSignUp)
-            buttonSizer.Add(signupBtn, 1, wx.EXPAND | wx.ALL, spacing)
+        signupBtn = wx.Button(self.panel, label="Sign Up")
+        signupBtn.Bind(wx.EVT_BUTTON, self.OnSignUp)
+        buttonSizer.Add(signupBtn, 1, wx.EXPAND | wx.ALL, spacing)
 
-            loginBtn = wx.Button(self.panel, label="Log In")
-            loginBtn.Bind(wx.EVT_BUTTON, self.OnLogIn)
-            loginBtn.SetDefault()
-            buttonSizer.Add(loginBtn, 1, wx.EXPAND | wx.ALL, spacing)
-
-        else:
-            labelStr = f"You are logged in to {CSWEB_NAME} as '{username}'.  You can Upload now, or Logout to sign in as a different user."
-
-            logoutBtn = wx.Button(self.panel, label="Log Out")
-            logoutBtn.Bind(wx.EVT_BUTTON, self.OnLogOut)
-            buttonSizer.Add(logoutBtn, 1, wx.EXPAND | wx.ALL, spacing)
-
-            uploadBtn = wx.Button(self.panel, label="Upload")
-            uploadBtn.Bind(wx.EVT_BUTTON, self.OnUpload)
-            uploadBtn.SetDefault()
-            buttonSizer.Add(uploadBtn, 1, wx.EXPAND | wx.ALL, spacing)
-
+        loginBtn = wx.Button(self.panel, label="Log In")
+        loginBtn.Bind(wx.EVT_BUTTON, self.OnLogIn)
+        loginBtn.SetDefault()
+        buttonSizer.Add(loginBtn, 1, wx.EXPAND | wx.ALL, spacing)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         label = wx.StaticText(self.panel, label=labelStr)
         sizer.Add(label, 0, wx.EXPAND | wx.ALL, spacing)
-        if not username:
-            sizer.Add(user_sizer, 0, wx.EXPAND | wx.ALL, spacing)
-            sizer.Add(pass_sizer, 0, wx.EXPAND | wx.ALL, spacing)
+        sizer.Add(user_sizer, 0, wx.EXPAND | wx.ALL, spacing)
+        sizer.Add(pass_sizer, 0, wx.EXPAND | wx.ALL, spacing)
         sizer.Add(buttonSizer, 0, wx.EXPAND | wx.ALL, spacing)
         self.panel.SetSizerAndFit(sizer)
         sizer.Layout()
@@ -525,8 +540,7 @@ class UploadDialog(wx.Dialog):
         sizes = wx.MemoryDC().GetFullMultiLineTextExtent(label.GetLabelText(), label.GetFont())
         label.SetSize(wx.Size(label.GetSize().Width, sizes[1]))
 
-        if not username:
-            self.userField.SetFocus()
+        self.userField.SetFocus()
 
     def OnTextEnter(self, event):
         username = self.userField.GetValue()
@@ -551,34 +565,15 @@ class UploadDialog(wx.Dialog):
             self.exporter.stackManager.designer.configInfo["upload_username"] = username
             self.exporter.stackManager.designer.configInfo["upload_token"] = responseJson["token"]
             self.exporter.stackManager.designer.WriteConfig()
-            dlg = UploadDialog(self.GetParent(), self.exporter, self.items)
-            self.exporter = None
-            self.items = None
-            self.Close()
-            dlg.ShowModal()
-        else:
-            wx.MessageDialog(self, "Couldn't Log In").ShowModal()
 
-    def OnLogOut(self, event):
-        self.exporter.stackManager.designer.configInfo["upload_username"] = None
-        self.exporter.stackManager.designer.configInfo["upload_token"] = None
-        self.exporter.stackManager.designer.WriteConfig()
-        dlg = UploadDialog(self.GetParent(), self.exporter, self.items)
-        self.exporter = None
-        self.items = None
-        self.Close()
-        dlg.ShowModal()
-
-    def OnUpload(self, event):
-        self.SetTitle("Uploading Stack...")
-        self.panel.Enable(False)
-        wx.YieldIfNeeded()
-        self.exporter.resList = set(self.items)
-        url = self.exporter.ExportWeb()
-        if url:
-            self.exporter = None
-            self.items = None
-            self.Close()
+            self.exporter.resList = set(self.items)
+            url = self.exporter.ExportWeb()
+            if url:
+                self.exporter = None
+                self.items = None
+                self.Close()
+                return
+        wx.MessageDialog(self, "Couldn't Log In").ShowModal()
 
     def OnCancel(self, event):
         self.exporter = None
