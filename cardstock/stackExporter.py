@@ -478,6 +478,8 @@ class ExportDialog(wx.Dialog):
                 self.exporter = None
                 self.items = None
                 self.Close()
+            else:
+                self.panel.Enable(True)
         else:
             dlg = LoginDialog(self.GetParent(), self.exporter, self.items)
             self.exporter = None
