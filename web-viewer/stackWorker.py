@@ -1,7 +1,8 @@
 from browser import self as worker
 from browser import timer
 import sys
-import cardstock
+from time import time
+import stackManager
 from settings import *
 
 """
@@ -33,7 +34,7 @@ class StackWorker(object):
         self.dataSAB = None
         self.dataSA16 = None
 
-        self.stackManager = cardstock.StackManager()
+        self.stackManager = stackManager.StackManager()
 
         self.isMouseDown = False
         self.focusedFabId = 0
@@ -96,6 +97,11 @@ class StackWorker(object):
             # handle a keyUp
             self.stackManager.uiCard.OnKeyUp(*args)
 
+        elif msg == "runAnimationsFinished":
+            # This got echoed back to us, originally from this thread,
+            # to enqueue it to happen now, after the previous handler finished.
+            self.stackManager.RunAnimationsFinished()
+
         elif msg == 'textChanged':
             self.stackManager.uiCard.OnTextChanged(*args)
 
@@ -117,9 +123,15 @@ class StackWorker(object):
                 uiImage.SetImageSize(args[1], args[2])
 
     def Wait(self, durationSec):
-        # no sleep() allowed, so wait for a thing that will never happen, but with a timeout!
-        self.waitSA32[0] = 0
-        worker.Atomics.wait(self.waitSA32, 0, 0, durationSec * 1000)
+        # no sleep() allowed, so use Atomics.wait() to wait for a thing that will never happen, but with a timeout!
+        start = time()
+        endTime = start + durationSec
+        while time() < endTime:
+            self.stackManager.Yield()
+            remaining = (endTime - time()) * 1000
+            self.waitSA32[0] = 0
+            # wait up to 15ms at a time, or ~1 frame at 60Hz
+            worker.Atomics.wait(self.waitSA32, 0, 0, max(0, min(15, remaining)))
 
     def SendAsync(self, *args):
         # Send a message and don't wait

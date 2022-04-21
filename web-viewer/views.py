@@ -54,7 +54,7 @@ class UiView(object):
             s = self.model.GetProperty("size")
             data = []
             for i in self.fabIds:
-                data.append(("fabSet", i, {'width': s.width, 'height': s.height}))
+                data.append(("fabSet", i, {'width': int(s.width), 'height': int(s.height)}))
             worker.stackWorker.SendAsync(*data)
         if key in ("position", "center", "size", "rotation"):
             self.UpdateFabObjCoords()
@@ -66,12 +66,15 @@ class UiView(object):
             worker.stackWorker.SendAsync(*data)
 
     def GetFabObjCoords(self):
-        rect = self.model.GetFrame()
-        rot = self.model.GetAbsoluteRotation()
+        size = self.model.properties["size"]
+        if self.model.parent and self.model.parent.type != "card":
+            rot = self.model.GetAbsoluteRotation()
+        else:
+            rot = self.model.properties["rotation"] if "rotation" in self.model.properties else 0
         num = max(len(self.offsets), 1)
         results = []
         for i in range(num):
-            pos = rect.BottomLeft
+            pos = self.model.properties["position"] + (0, size.height)
             objOffset = (0,0)
             if i < len(self.offsets):
                 objOffset = self.offsets[i]
@@ -81,18 +84,18 @@ class UiView(object):
                 thick = self.model.GetProperty('penThickness')
                 pos = wx.Point(pos[0] - thick / 2, pos[1] + thick / 2)
             if rot:
-                s = self.model.GetProperty('size') + (-2*objOffset[0], 2*objOffset[1])
+                s = size + (-2*objOffset[0], 2*objOffset[1])
                 aff = wx.AffineMatrix2D()
                 aff.Rotate(math.radians(-rot))
                 offset = aff.TransformPoint(s[0] / 2, -s[1] / 2)
                 pos += (s[0] / 2 - offset[0], -s[1] / 2 - offset[1])
             if self.model.type in ["line", "pen"]:
-                if rect.Height == 2: pos[1] -= 2
+                if size.height == 2: pos[1] -= 2
 
             if self.model.parent and (self.model.parent.type != "card" or rot):
                 aff = self.model.parent.GetAffineTransform()
                 pos = aff.TransformPoint(pos[0], pos[1])
-            pos = self.stackManager.ConvPoint(pos)
+            self.stackManager.ConvPointInPlace(pos)
             results.append((pos[0], pos[1], rot))
         return results
 
@@ -316,19 +319,25 @@ class UiCard(UiView):
     def OnFabricMouseDown(self, uid, pos):
         target_ui = self.FindTargetUi(uid)
         pos = wx.Point(pos[0], pos[1])
+        self.stackManager.runner.lastMousePos = pos
         self.stackManager.runner.ResetStopHandlingMouseEvent()
         if self.mouseCaptureObj:
             target_ui = self.mouseCaptureObj
         if target_ui:
-            target_ui.OnMouseDown(pos)
-            if self.stackManager.runner.DidStopHandlingMouseEvent():
-                return
+            while target_ui.model.type != "card":
+                target_ui.OnMouseDown(pos)
+                if self.stackManager.runner.DidStopHandlingMouseEvent():
+                    return
+                target_ui = target_ui.parent
         self.OnMouseDown(pos)
 
     def OnFabricMouseMove(self, uid, pos):
         target_ui = self.FindTargetUi(uid)
         pos = wx.Point(pos[0], pos[1])
         self.stackManager.runner.lastMousePos = pos
+
+        if self.lastMouseOverObj and not self.lastMouseOverObj.model:
+            self.lastMouseOverObj = None
 
         if target_ui != self.lastMouseOverObj:
             if self.lastMouseOverObj:
@@ -341,9 +350,11 @@ class UiCard(UiView):
         if self.mouseCaptureObj:
             target_ui = self.mouseCaptureObj
         if target_ui:
-            target_ui.OnMouseMove(pos)
-            if self.stackManager.runner.DidStopHandlingMouseEvent():
-                return
+            while target_ui.model.type != "card":
+                target_ui.OnMouseMove(pos)
+                if self.stackManager.runner.DidStopHandlingMouseEvent():
+                    return
+                target_ui = target_ui.parent
         self.OnMouseMove(pos)
 
     def OnFabricMouseUp(self, uid, pos):
@@ -353,9 +364,11 @@ class UiCard(UiView):
         if self.mouseCaptureObj:
             target_ui = self.mouseCaptureObj
         if target_ui:
-            target_ui.OnMouseUp(pos)
-            if self.stackManager.runner.DidStopHandlingMouseEvent():
-                return
+            while target_ui.model.type != "card":
+                target_ui.OnMouseUp(pos)
+                if self.stackManager.runner.DidStopHandlingMouseEvent():
+                    return
+                target_ui = target_ui.parent
         self.OnMouseUp(pos)
 
     def OnKeyDown(self, code):
@@ -673,7 +686,7 @@ class UiShape(UiView):
             worker.stackWorker.SendAsync(("fabSet", self.shape, {'strokeWidth': self.model.GetProperty(key)}))
         elif self.model.type == "oval" and key == "size":
             s = self.model.GetProperty("size")
-            worker.stackWorker.SendAsync(("fabSet", self.shape, {'rx': s.width/2, 'ry': s.height/2}))
+            worker.stackWorker.SendAsync(("fabSet", self.shape, {'rx': int(s.width/2), 'ry': int(s.height/2)}))
         elif key == "shape" or (key == "size" and self.model.type in ("line", "pen", "polygon")):
             self.CreateFabObjs()
         else:
@@ -718,7 +731,7 @@ class UiImage(UiView):
             results = self.GetFabObjCoords()[0]
             options = {'fit': "Fill", 'left': results[0], 'top': results[1],
                        'clipLeft': max(dx, 0) / scale, 'clipTop': max(dy, 0) / scale,
-                       'clipWidth': s.width / scale, 'clipHeight': s.height / scale,
+                       'clipWidth': int(s.width / scale), 'clipHeight': int(s.height / scale),
                        'scaleX': scale, 'scaleY': scale, 'angle': results[2], 'visible': self.model.properties['isVisible']}
 
         elif fit == "Center":

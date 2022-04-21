@@ -113,6 +113,19 @@ class Runner():
             self.clientVars[name] = m.GetProxy()
             self.cardVarKeys.append(name)
         self.didSetup = True
+        self.lastCard = cardModel
+
+    def AddCardObj(self, model):
+        if model.GetCard() == self.lastCard:
+            name = model.GetProperty("name")
+            self.clientVars[name] = model.GetProxy()
+            self.cardVarKeys.append(name)
+
+    def RemoveCardObj(self, model):
+        if model.GetCard() == self.lastCard:
+            name = model.GetProperty("name")
+            del self.clientVars[name]
+            self.cardVarKeys.remove(name)
 
     def StopTimers(self):
         for t in self.timers:

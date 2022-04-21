@@ -252,14 +252,14 @@ class ViewModel(object):
     def GetAbsolutePosition(self):
         parent = self.parent
         pos = self.GetProperty("position")
-        if self.parent and (self.parent.type != "card" or self.GetProperty("rotation")):
+        if self.parent and self.parent.type != "card":
             aff = parent.GetAffineTransform()
             pos = aff.TransformPoint(*pos)
         return wx.RealPoint(pos)
 
     def SetAbsolutePosition(self, pos):
         parent = self.parent
-        if self.parent and (self.parent.type != "card" or self.GetProperty("rotation")):
+        if self.parent and self.parent.type != "card":
             iaff = parent.GetAffineTransform()
             iaff.Invert()
             pos = iaff.TransformPoint(pos[0], pos[1])
@@ -267,9 +267,9 @@ class ViewModel(object):
 
     def GetAbsoluteCenter(self):
         s = self.GetProperty("size")
-        if self.parent and self.parent.type == "card" and not self.GetProperty("rotation"):
+        if self.parent and self.parent.type == "card":
             pos = self.GetProperty("position")
-            return pos + tuple(s/2)
+            return pos + (s[0]/2, s[1]/2)
         aff = self.GetAffineTransform()
         p = wx.RealPoint(*aff.TransformPoint(int(s[0]/2), int(s[1]/2)))
         return p
@@ -278,7 +278,7 @@ class ViewModel(object):
         parent = self.parent
         s = self.GetProperty("size")
         if not self.parent or self.parent.type == "card":
-            self.SetProperty("position", pos - tuple(s/2))
+            self.SetProperty("position", pos - (s[0]/2, s[1]/2))
         else:
             iaff = parent.GetAffineTransform()
             iaff.Invert()
@@ -708,8 +708,7 @@ class ViewProxy(object):
 
             self._model.stackManager.uiCard.model.AddChild(newModel)
             newModel.RunSetup(model.stackManager.runner)
-            if newModel.GetCard() != model.stackManager.uiCard.model:
-                model.stackManager.runner.SetupForCard(model.stackManager.uiCard.model)
+            model.stackManager.runner.AddCardObj(newModel)
 
             if not newModel.didSetDown:
                 # add the view on the main thread
@@ -1413,6 +1412,8 @@ class CardModel(ViewModel):
         super().__init__(stackManager)
         self.type = "card"
         self.proxyClass = Card
+        self.allChildModels = None
+
         # Add custom handlers to the top of the list
         handlers = {"OnSetup": "", "OnShowCard": "", "OnKeyDown": "", "OnKeyHold": "", "OnKeyUp": ""}
         del self.handlers["OnBounce"]
@@ -1453,12 +1454,13 @@ class CardModel(ViewModel):
         return self.GetFrame()
 
     def GetAllChildModels(self):
-        allModels = []
-        for child in self.childModels:
-            allModels.append(child)
-            if child.type == "group":
-                allModels.extend(child.GetAllChildModels())
-        return allModels
+        if not self.allChildModels:
+            self.allChildModels = []
+            for child in self.childModels:
+                self.allChildModels.append(child)
+                if child.type == "group":
+                    self.allChildModels.extend(child.GetAllChildModels())
+        return self.allChildModels
 
     def GetData(self):
         data = super().GetData()
@@ -1477,21 +1479,24 @@ class CardModel(ViewModel):
             self.childModels.append(m)
 
     def AddChild(self, model):
+        self.allChildModels = None
         self.InsertChild(model, len(self.childModels))
 
     def InsertChild(self, model, index):
+        self.allChildModels = None
         self.childModels.insert(index, model)
         model.parent = self
         self.isDirty = True
         if self.stackManager.runner and self.stackManager.uiCard.model == self:
-            self.stackManager.runner.SetupForCard(self)
+            model.stackManager.runner.AddCardObj(model)
 
     def RemoveChild(self, model):
+        self.allChildModels = None
         self.childModels.remove(model)
         self.stackManager.delayedSetDowns.append(model)
         self.isDirty = True
         if self.stackManager.runner and self.stackManager.uiCard.model == self:
-            self.stackManager.runner.SetupForCard(self)
+            model.stackManager.runner.RemoveCardObj(model)
 
     def AddNewObject(self, typeStr, name, size, points=None, kwargs=None):
         if not isinstance(name, str):

@@ -3,6 +3,10 @@ import sys
 
 stackWorker = worker.Worker("stackWorker")
 
+MAX_CANVAS_WIDTH = 800
+MAX_CANVAS_HEIGHT = 800
+
+
 """
 This StackCanvas class, which runs on the main thread, works tightly with the StackWorker class, which runs in a
 web worker/background thread.  The StackCanvas is the only code that runs in the main thread of the browser tab.
@@ -27,25 +31,32 @@ class StackCanvas(object):
         self.dataSAB = window.SharedArrayBuffer.new(32768)
         self.dataSA16 = window.Int16Array.new(self.dataSAB)
 
-        self.canvas = window.fabric.Canvas.new('c')
-        self.canvas.preserveObjectStacking = True
-        self.canvas.selection = False
-        self.canvas.renderOnAddRemove = False
-        self.canvas.on('mouse:down', self.OnMouseDown)
-        self.canvas.on('mouse:move', self.OnMouseMove)
-        self.canvas.on('mouse:up', self.OnMouseUp)
-        self.canvas.on('text:changed', self.OnTextChanged)
+        self.canvas = document.getElementById('canvas')
+
+        self.fabCanvas = window.fabric.Canvas.new('canvas')
+        self.fabCanvas.preserveObjectStacking = True
+        self.fabCanvas.selection = False
+        self.fabCanvas.renderOnAddRemove = False
+        self.fabCanvas.on('mouse:down', self.OnMouseDown)
+        self.fabCanvas.on('mouse:move', self.OnMouseMove)
+        self.fabCanvas.on('mouse:up', self.OnMouseUp)
+        # self.fabCanvas.on('touchstart', self.OnTouchStart)
+        # self.fabCanvas.on('touchmove', self.OnTouchMove)
+        # self.fabCanvas.on('touchend', self.OnTouchEnd)
+        # self.fabCanvas.on('touchcancel', self.OnTouchEnd)
+        self.fabCanvas.on('text:changed', self.OnTextChanged)
         document.onkeydown = self.OnKeyDown
         document.onkeyup = self.OnKeyUp
         window.onresize = self.OnWindowResize
 
-        self.fabObjs = {0: self.canvas}
-        self.canvasSize = (500, 500)
+        self.fabObjs = {0: self.fabCanvas}
+        self.canvasSize = (0, 0)
         self.soundCache = {}
         self.imgCache = {}
         self.lastMousePos = (0,0)
         self.writeBuffer = ""
         self.resourceMap = {}
+        self.canResize = False
 
         stackWorker.bind("message", self.OnMessageM)
 
@@ -56,7 +67,7 @@ class StackCanvas(object):
         if 'resourceMap' in window:
             self.resourceMap = window.resourceMap.to_dict()
         stackWorker.send(('load', window.stackJSON))
-        self.OnWindowResize(None)
+        self.OnWindowResize(None, force=True)
 
     def LoadFromStr(self, s):
         stackWorker.send(('loadStr', s))
@@ -65,7 +76,7 @@ class StackCanvas(object):
     # We also try to minimize UI updates, and only display changes once per frame (~60Hz), and then only if something
     # actually changed.
     def Render(self):
-        self.canvas.renderAll()
+        self.fabCanvas.renderAll()
 
     def OnMessageM(self, evt):
         """Handles the messages sent by the worker, which are sent as lists of messages."""
@@ -78,11 +89,11 @@ class StackCanvas(object):
 
         # if msg != "write": print("Main", msg, args)
 
-        if msg == "canvasSetSize":  # x, y
-            self.canvasSize = args
-
-            self.canvas.setWidth(args[0])
-            self.canvas.setHeight(args[1])
+        if msg == "canvasSetSize":  # x, y, canResize
+            self.canvasSize = (args[0], args[1])
+            self.canResize = args[2]
+            self.fabCanvas.setWidth(self.canvasSize[0])
+            self.fabCanvas.setHeight(self.canvasSize[1]+2)
 
         elif msg == "fabNew":  # uid, type, [other args,] options
             # Add a new object to the canvas
@@ -96,7 +107,7 @@ class StackCanvas(object):
             fabObj = fabClass.new(*(args[2:-1]), options)
             fabObj.set()
             self.fabObjs[uid] = fabObj
-            self.canvas.add(fabObj)
+            self.fabCanvas.add(fabObj)
 
         elif msg == "imgNew":  # uid, filePath
             # Add a new Image object to the canvas
@@ -114,7 +125,7 @@ class StackCanvas(object):
                  'hoverCursor': "arrow",
                  'filePath': filePath})
             self.fabObjs[uid] = fabObj
-            self.canvas.add(fabObj)
+            self.fabCanvas.add(fabObj)
 
             def didLoad(img, failed):
                 if not failed:
@@ -138,7 +149,7 @@ class StackCanvas(object):
             filePath = args[1]
             oldObj = self.fabObjs[uid]
             oldObj['filePath'] = filePath
-            index = [o.csid for o in self.canvas.getObjects()].index(oldObj.csid)
+            index = [o.csid for o in self.fabCanvas.getObjects()].index(oldObj.csid)
 
             def didLoad(img, failed):
                 if not failed:
@@ -162,8 +173,8 @@ class StackCanvas(object):
             options = args[1]
             oldObj = self.fabObjs[uid]
             origImage = self.imgCache[oldObj.filePath]
-            index = [o.csid for o in self.canvas.getObjects()].index(oldObj.csid)
-            self.canvas.remove(oldObj)
+            index = [o.csid for o in self.fabCanvas.getObjects()].index(oldObj.csid)
+            self.fabCanvas.remove(oldObj)
 
             def setImg(img):
                 img.set({'csid': uid,
@@ -178,7 +189,7 @@ class StackCanvas(object):
                          })
                 self.fabObjs[uid] = img
                 img.setCoords()
-                self.canvas.insertAt(img, index, False)
+                self.fabCanvas.insertAt(img, index, False)
 
             origImage.cloneAsImage(setImg, {'left': int(options['clipLeft']), 'top': int(options['clipTop']),
                                             'width': int(options['clipWidth']), 'height': int(options['clipHeight'])})
@@ -197,7 +208,7 @@ class StackCanvas(object):
                         'hoverCursor': "text"})
             self.fabObjs[uid] = fabObj
 
-            self.canvas.add(fabObj)
+            self.fabCanvas.add(fabObj)
             fabObj.on('selected', self.OnTextFieldSelected)
             fabObj.on('deselected', self.OnTextFieldDeselected)
             fabObj.oldOnKeyDown = fabObj.onKeyDown
@@ -208,8 +219,8 @@ class StackCanvas(object):
             uid = args[0]
 
             oldObj = self.fabObjs[uid]
-            index = [o.csid for o in self.canvas.getObjects()].index(oldObj.csid)
-            self.canvas.remove(oldObj)
+            index = [o.csid for o in self.fabCanvas.getObjects()].index(oldObj.csid)
+            self.fabCanvas.remove(oldObj)
 
             fabClass = window.fabric[args[1]]
             fabObj = fabClass.new(*args[2:])
@@ -218,7 +229,7 @@ class StackCanvas(object):
                         'selectable': False,
                         'hoverCursor': "arrow"})
             self.fabObjs[uid] = fabObj
-            self.canvas.insertAt(fabObj, index, False)
+            self.fabCanvas.insertAt(fabObj, index, False)
 
         elif msg == "fabDel":  # uid, [more uids...]
             # delete objects from the canvas
@@ -229,7 +240,7 @@ class StackCanvas(object):
                     if fabObj.isType == 'TextField':
                         fabObj.off('selected', self.OnTextFieldSelected)
                         fabObj.off('deselected', self.OnTextFieldDeselected)
-                    self.canvas.remove(fabObj)
+                    self.fabCanvas.remove(fabObj)
                 else:
                     print("Delete: no object with uid", uid)
 
@@ -239,6 +250,8 @@ class StackCanvas(object):
             fabObj = self.fabObjs[uid]
             fabFunc = fabObj[args[1]]
             fabFunc(*args[2:])
+            # if uid == 0 and args[1] == "setBackgroundColor":
+            #     document.body.style.backgroundColor = args[2]
 
         elif msg == "fabSet":  # uid, options
             # update a fabric object's options
@@ -255,7 +268,7 @@ class StackCanvas(object):
             uid = args[0]
             index = args[1]
             fabObj = self.fabObjs[uid]
-            self.canvas.moveTo(fabObj, index)
+            self.fabCanvas.moveTo(fabObj, index)
 
         elif msg == "render":  # No args
             self.Render()
@@ -263,9 +276,9 @@ class StackCanvas(object):
         elif msg == "focus":  # uid
             # focus a textfield
             uid = args[0]
-            if not self.canvas.getActiveObject() or self.canvas.getActiveObject().csid != uid:
+            if not self.fabCanvas.getActiveObject() or self.fabCanvas.getActiveObject().csid != uid:
                 field = self.fabObjs[uid]
-                self.canvas.setActiveObject(field)
+                self.fabCanvas.setActiveObject(field)
                 field.enterEditing()
                 length = len(field.text)
                 field.setSelectionStart(length)
@@ -276,7 +289,7 @@ class StackCanvas(object):
             # and waiting for the next frame.  then actually open the alert.  The Worker will wait until the user
             # closes the alert, so we need to update waitSA32[0] and notify that it has been updated,since this is
             # what the Worker is waiting on.
-            self.canvas.requestRenderAll()
+            self.fabCanvas.requestRenderAll()
             timer.set_timeout(self.HandleOneMessage, 20, ("alertInternal", *args))
         elif msg == "alertInternal":
             text = args[0]
@@ -291,7 +304,7 @@ class StackCanvas(object):
             # wait until the user closes the alert, so we need to update waitSA32[0] and notify that it has been
             # updated,since this is what the Worker is waiting on.  And we also update dataSA16[0] to send back the
             # result: Ok vs. Cancel.
-            self.canvas.requestRenderAll()
+            self.fabCanvas.requestRenderAll()
             timer.set_timeout(self.HandleOneMessage, 20, ("confirmInternal", *args))
         elif msg == "confirmInternal":
             text = args[0]
@@ -306,7 +319,7 @@ class StackCanvas(object):
             # wait until the user closes the alert, so we need to update waitSA32[0] and notify that it has been
             # updated,since this is what the Worker is waiting on.  And we also update dataSA16 to send back the
             # result: dataSA16[0] holds the length, and then the following int16 values hold the data as unicode values.
-            self.canvas.requestRenderAll()
+            self.fabCanvas.requestRenderAll()
             timer.set_timeout(self.HandleOneMessage, 20, ("promptInternal", *args))
         elif msg == "promptInternal":
             text = args[0]
@@ -349,6 +362,11 @@ class StackCanvas(object):
             # Allows printing from the worker thread
             self.writeBuffer += args[0]
 
+        elif msg == "echo":  # args
+            # pop the first arg ("echo") and send back the rest.
+            # This is used from the worker to queue up a message in its own message queue
+            stackWorker.send(args)
+
         else:
             print("StackCanvas received bad msg:", msg)
 
@@ -359,26 +377,53 @@ class StackCanvas(object):
             self.writeBuffer = ""
 
     def ConvPoint(self, x, y):
+        rect = self.canvas.getBoundingClientRect()
         # Flip coords vertically to match cardstock: (0,0) = Bottom Left
-        return (x, self.canvasSize[1] - y)
+        return (x-rect.left, self.canvasSize[1] - y + rect.top)
+
+    # def OnTouchStart(self, options):
+    #     touch = options.e.touches[0]
+    #     pos = self.ConvPoint(touch.clientX, touch.clientY)
+    #     self.DoMouseDown(options.target, pos[0], pos[1], touch)
+    #     options.e.preventDefault()
 
     def OnMouseDown(self, options):
-        # Flip points vertically and send to the worker.  Also fix TextField selection on click.
         uid = 0
         if options.target:
             uid = options.target.csid
             if options.target.isType == "TextField":
                 self.OnTextFieldMouseDown(options.target, options.e)
-        pos = self.ConvPoint(options.e.pageX, options.e.pageY)
+        if "touch" in options.e.type:
+            pos = (options.e.touches[0].clientX, options.e.touches[0].clientY)
+        else:
+            pos = (options.e.clientX, options.e.clientY)
+        self.DoMouseDown(uid, pos[0], pos[1])
+
+    def DoMouseDown(self, uid, x, y):
+        # Flip points vertically and send to the worker.  Also fix TextField selection on click.
+        pos = self.ConvPoint(x, y)
         self.lastMousePos = pos
         stackWorker.send(("mouseDown", uid, pos))
 
+    # def OnTouchMove(self, options):
+    #     touch = options.e.touches[0]
+    #     pos = self.ConvPoint(touch.clientX, touch.clientY)
+    #     self.DoMouseMove(options.target, pos[0], pos[1], touch)
+    #     options.e.preventDefault()
+
     def OnMouseMove(self, options):
-        # Flip points vertically and send to the worker.
         uid = 0
         if options.target:
             uid = options.target.csid
-        pos = self.ConvPoint(options.e.pageX, options.e.pageY)
+        if options.e.type.startswith("touch"):
+            pos = (options.e.touches[0].clientX, options.e.touches[0].clientY)
+        else:
+            pos = (options.e.clientX, options.e.clientY)
+        self.DoMouseMove(uid, pos[0], pos[1])
+
+    def DoMouseMove(self, uid, x, y):
+        # Flip points vertically and send to the worker.
+        pos = self.ConvPoint(x, y)
         if pos[0] != self.lastMousePos[0] or pos[1] != self.lastMousePos[1]:
             self.lastMousePos = pos
             # keep track of how many OnMouseMove calls are pending, so the worker doesn't get bogged down
@@ -386,12 +431,25 @@ class StackCanvas(object):
             window.Atomics.add(self.countsSA32, 0, 1)
             stackWorker.send(("mouseMove", uid, pos))
 
+    # def OnTouchEnd(self, options):
+    #     touch = options.e.touches[0]
+    #     pos = self.ConvPoint(touch.clientX, touch.clientY)
+    #     self.DoMouseUp(options.target, pos[0], pos[1], touch)
+    #     options.e.preventDefault()
+
     def OnMouseUp(self, options):
-        # Flip points vertically and send to the worker.
         uid = 0
         if options.target:
             uid = options.target.csid
-        pos = self.ConvPoint(options.e.pageX, options.e.pageY)
+        if options.e.type.startswith("touch"):
+            pos = self.lastMousePos
+        else:
+            pos = (options.e.clientX, options.e.clientY)
+        self.DoMouseUp(uid, pos[0], pos[1])
+
+    def DoMouseUp(self, uid, x, y):
+        # Flip points vertically and send to the worker.
+        pos = self.ConvPoint(x, y)
         self.lastMousePos = pos
         stackWorker.send(("mouseUp", uid, pos))
 
@@ -409,14 +467,14 @@ class StackCanvas(object):
 
     def OnTextFieldMouseDown(self, field, e):
         # Start text selection on a mouse down in a text field
-        self.canvas.setActiveObject(field)
+        self.fabCanvas.setActiveObject(field)
         field.enterEditing()
         field.setCursorByClick(e)
 
     def OnTextFieldKeyDown(self, e):
         # Forward arrow keys to the card, and catch Enter/Return so we can run "OnEnter"
         # Also avoid adding newlines to non-multiline text fields
-        fabObj = self.canvas.getActiveObject()
+        fabObj = self.fabCanvas.getActiveObject()
         if fabObj and fabObj.isType == 'TextField':
             fabObj.oldOnKeyDown(e)
             if not e.repeat:
@@ -442,13 +500,18 @@ class StackCanvas(object):
         # tell the worker that the field got un-focused
         fabObj = options.target
         fabObj.exitEditing()
-        fabObj = self.canvas.getActiveObject()
+        fabObj = self.fabCanvas.getActiveObject()
         if not fabObj:
             stackWorker.send(("objectFocus", 0))
 
-    def OnWindowResize(self, _e):
+    def OnWindowResize(self, _e, force=False):
         # tell the worker that the window resized
-        stackWorker.send(("windowSized", window.innerWidth-2, window.innerHeight-2))
+        if self.canResize or force:
+            self.fabCanvas.setWidth(0)
+            self.fabCanvas.setHeight(0)
+            canvasDiv = document.getElementById('canvasContainer')
+            stackWorker.send(("windowSized", min(MAX_CANVAS_WIDTH, canvasDiv.scrollWidth),
+                                             min(MAX_CANVAS_HEIGHT, canvasDiv.scrollHeight)))
 
 
 class ConsoleOutput:
