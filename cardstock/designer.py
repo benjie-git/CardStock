@@ -1104,7 +1104,7 @@ class DesignerFrame(wx.Frame):
 
     def GetExamplesDir(self):
         def welcomeExistsHere(path):
-            return os.path.exists(os.path.join(path, os.path.join("examples", "welcome.cds")))
+            return os.path.exists(os.path.join(path, os.path.join("examples", "Welcome.cds")))
 
         base_dir = os.path.dirname(__file__)
         if not welcomeExistsHere(base_dir):
@@ -1133,7 +1133,7 @@ class DesignerFrame(wx.Frame):
             cardstock_app_version = config['User'].get('cardstock_app_version', "0")
 
         if not last_open_file:
-            last_open_file = os.path.join(self.GetExamplesDir(), "welcome.cds")
+            last_open_file = os.path.join(self.GetExamplesDir(), "Welcome.cds")
 
         return {"last_open_file": last_open_file,
                 "show_context_help": show_context_help,
