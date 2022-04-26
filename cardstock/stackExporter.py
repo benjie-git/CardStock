@@ -361,6 +361,7 @@ class ExportDialog(wx.Dialog):
         self.exporter = exporter
 
         self.panel = wx.Panel(self)
+        self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         spacing = 5
 
         self.items = list(self.exporter.resList)
@@ -426,6 +427,12 @@ class ExportDialog(wx.Dialog):
         sizes = wx.MemoryDC().GetFullMultiLineTextExtent(label.GetLabelText(), label.GetFont())
         label.SetSize(wx.Size(label.GetSize().Width, sizes[1]))
         sizer.Layout()
+
+    def OnKeyDown(self, event):
+        code = event.GetKeyCode()
+        if code == wx.WXK_ESCAPE or (code == ord("W") and event.ControlDown()):
+            self.Close()
+        event.Skip()
 
     def OnLogOut(self, event):
         self.exporter.stackManager.designer.configInfo["upload_username"] = None
@@ -495,6 +502,7 @@ class LoginDialog(wx.Dialog):
         self.items = items
 
         self.panel = wx.Panel(self)
+        self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         spacing = 5
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -543,6 +551,12 @@ class LoginDialog(wx.Dialog):
         label.SetSize(wx.Size(label.GetSize().Width, sizes[1]))
 
         self.userField.SetFocus()
+
+    def OnKeyDown(self, event):
+        code = event.GetKeyCode()
+        if code == wx.WXK_ESCAPE or (code == ord("W") and event.ControlDown()):
+            self.Close()
+        event.Skip()
 
     def OnTextEnter(self, event):
         username = self.userField.GetValue()
