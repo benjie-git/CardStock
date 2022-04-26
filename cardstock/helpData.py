@@ -392,10 +392,13 @@ class HelpDataGlobals():
                          "return": "bool",
                          "info": "Returns <b>True</b> if the named keyboard key is currently pressed down, otherwise "
                                  "returns <b>False</b>."},
-        "IsMouseDown": {"args": {},
+        "IsMouseDown": {"args": {"eventType": {"type": "string", "info": "Optional argument to specify whether you're "
+                            "only interested in whether a mouse or touchpad is clicked, whether a Touch Screen is "
+                             "being pressed, or either. Accepted values are 'Mouse', 'Touch', or leave it empty or "
+                             "use None to mean either."}},
                          "return": "bool",
-                         "info": "Returns <b>True</b> if the left mouse button is currently pressed down, otherwise "
-                                 "returns <b>False</b>."},
+                         "info": "Returns <b>True</b> if the main mouse button is currently pressed down, or the user "
+                                 "is touching a touch screen, otherwise returns <b>False</b>."},
         "GetMousePos": {"args": {},
                          "return": "point",
                          "info": "Returns the current position of the mouse, whether or not it is inside of the stack "
@@ -633,18 +636,21 @@ class HelpDataObject():
                     "info": "The <b>OnSetup</b> event is run once for every object in your stack, immediately when the stack "
                             "starts running, before showing the first card.  This is a great place to run any imports that your "
                             "program needs, and to define functions, and set up any variables with their initial values."},
-        "OnMouseDown": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
+        "OnMouseDown": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."},
+                                 "fromTouchScreen": {"type": "bool", "info": "Is this mouse event caused by touching a touch screen."}},
                         "info": "The <b>OnMouseDown</b> event is run when the mouse button gets clicked down inside of this object, "
                                 "and gives you the current mouse position as the point <b>mousePos</b>.  This event will be "
                                 "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
                                 "itself, unless this propagation is stopped by calling self.StopHandlingMouseEvent() from your code."},
-        "OnMouseMove": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
+        "OnMouseMove": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."},
+                                 "fromTouchScreen": {"type": "bool", "info": "Is this mouse event caused by touching a touch screen."}},
                         "info": "The <b>OnMouseMove</b> event is run every time the mouse moves, while over this object, whether "
                                 "or not the mouse button is down, and gives you the current mouse position as the point <b>mousePos</b>.  "
                                 "This event will be "
                                 "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
                                 "itself, unless this propagation is stopped by calling self.StopHandlingMouseEvent() from your code."},
-        "OnMouseUp": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
+        "OnMouseUp": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."},
+                               "fromTouchScreen": {"type": "bool", "info": "Is this mouse event caused by touching a touch screen."}},
                       "info": "The <b>OnMouseUp</b> event is run when the mouse button is released over this object, and "
                               "gives you the current mouse position as the point <b>mousePos</b>.  This event will be "
                                 "run for all objects underneath the mouse pointer, from the topmost object, down to the card "

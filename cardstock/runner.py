@@ -432,6 +432,13 @@ class Runner():
                 oldVars["mousePos"] = noValue
             self.clientVars["mousePos"] = mousePos
 
+        if mousePos and handlerName in ("OnMouseDown", "OnMouseMove", "OnMouseUp"):
+            if "fromTouchScreen" in self.clientVars:
+                oldVars["fromTouchScreen"] = self.clientVars["fromTouchScreen"]
+            else:
+                oldVars["fromTouchScreen"] = noValue
+            self.clientVars["fromTouchScreen"] = False  # Currently only implemented when running in a browser
+
         if keyName and handlerName.startswith("OnKey"):
             if "keyName" in self.clientVars:
                 oldVars["keyName"] = self.clientVars["keyName"]
@@ -914,7 +921,11 @@ class Runner():
         return name in self.pressedKeys
 
     @RunOnMainSync
-    def IsMouseDown(self):
+    def IsMouseDown(self, eventType=None):
+        if eventType not in (None, "Touch", "Mouse"):
+            raise TypeError("IsMouseDown(eventType): eventType must be either 'Mouse', 'Touch', None, or left empty.")
+        if eventType == "Touch":
+            return False
         return wx.GetMouseState().LeftIsDown()
 
     @RunOnMainSync
