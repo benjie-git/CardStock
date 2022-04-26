@@ -104,6 +104,7 @@ class Runner():
             "BroadcastMessage": self.BroadcastMessage,
             "IsKeyPressed": self.IsKeyPressed,
             "IsMouseDown": self.IsMouseDown,
+            "IsUsingTouchScreen": self.IsUsingTouchScreen,
             "GetMousePos": self.GetMousePos,
             "Quit":self.Quit,
             "Color": self.MakeColor,
@@ -431,13 +432,6 @@ class Runner():
             else:
                 oldVars["mousePos"] = noValue
             self.clientVars["mousePos"] = mousePos
-
-        if mousePos and handlerName in ("OnMouseDown", "OnMouseMove", "OnMouseUp"):
-            if "fromTouchScreen" in self.clientVars:
-                oldVars["fromTouchScreen"] = self.clientVars["fromTouchScreen"]
-            else:
-                oldVars["fromTouchScreen"] = noValue
-            self.clientVars["fromTouchScreen"] = False  # Currently only implemented when running in a browser
 
         if keyName and handlerName.startswith("OnKey"):
             if "keyName" in self.clientVars:
@@ -921,12 +915,11 @@ class Runner():
         return name in self.pressedKeys
 
     @RunOnMainSync
-    def IsMouseDown(self, eventType=None):
-        if eventType not in (None, "Touch", "Mouse"):
-            raise TypeError("IsMouseDown(eventType): eventType must be either 'Mouse', 'Touch', None, or left empty.")
-        if eventType == "Touch":
-            return False
+    def IsMouseDown(self):
         return wx.GetMouseState().LeftIsDown()
+
+    def IsUsingTouchScreen(self):
+        return False  # Only implemented in web viewer
 
     @RunOnMainSync
     def GetMousePos(self):

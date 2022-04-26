@@ -128,8 +128,6 @@ class CodeAnalyzer(object):
                     # Later, track the actual type of each user variable
                     retVals = (objType, p, "any", None)
                 elif p == "mousePos":
-                    retVals = (objType, p, "point", None)
-                elif p == "fromTouchScreen":
                     retVals = (objType, p, "bool", None)
                 elif p == "elapsedTime":
                     retVals = (objType, p, "float", None)
@@ -182,7 +180,7 @@ class CodeAnalyzer(object):
             names.extend([s+"()" for s in self.funcNames])
             names.extend(self.objNames.keys())
             if handlerName:
-                if "Mouse" in handlerName: names.extend(("mousePos", "fromTouchScreen"))
+                if "Mouse" in handlerName: names.append("mousePos")
                 if "Key" in handlerName: names.append("keyName")
                 if "Periodic" in handlerName: names.append("elapsedTime")
                 if "KeyHold" in handlerName: names.append("elapsedTime")
