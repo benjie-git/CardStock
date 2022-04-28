@@ -13,13 +13,15 @@
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "isGameOver = False\n\ntubes = [shape_1, shape_2, shape_3, shape_4]\n",
-        "OnKeyDown": "if not isGameOver:\n   if keyName == \"Space\":\n      bird.speed.y += 250  # Flap!\n\nif isGameOver:\n   if keyName == \"Space\":\n      # Reset positions of bird and tubes\n      bird.position.y = 200\n      for tube in tubes:\n         tube.position.x += 200\n      isGameOver = False\n",
-        "OnPeriodic": "if not isGameOver:\n   bird.speed.y -= 18  # Apply gravity\n   \n   if bird.IsTouchingEdge(card):\n      # Bird hit the floor or ceiling\n      isGameOver = True\n      bird.speed.y = 0\n\n   for tube in tubes:\n      if tube.IsTouching(bird):\n         # Bird hit this tube\n         isGameOver = True\n         bird.speed.y = 0\n\n   for tube in tubes:\n      # Move the tubes\n      tube.position.x -= 3\n      if tube.position.x < -tube.size.width:\n         # Wrap the tubes back to the right edge of the card\n         tube.position.x = card.size.width\n"
+        "OnSetup": "isGameOver = False\n\ntubes = [shape_1, shape_2, shape_3, shape_4]",
+        "OnKeyDown": "if keyName == \"Space\":\n   self.SendMessage(\"tap\")",
+        "OnMouseDown": "self.SendMessage(\"tap\")",
+        "OnMessage": "if message == \"tap\":\n   if not isGameOver:\n      bird.speed.y += 250  # Flap!\n\n   if isGameOver:\n      # Reset positions of bird and tubes\n      bird.position.y = 200\n      for tube in tubes:\n         tube.position.x += 200\n      isGameOver = False",
+        "OnPeriodic": "if not isGameOver:\n   bird.speed.y -= 18  # Apply gravity\n   \n   if bird.IsTouchingEdge(card):\n      # Bird hit the floor or ceiling\n      isGameOver = True\n      bird.speed.y = 0\n\n   for tube in tubes:\n      if tube.IsTouching(bird):\n         # Bird hit this tube\n         isGameOver = True\n         bird.speed.y = 0\n\n   for tube in tubes:\n      # Move the tubes\n      tube.position.x -= 3\n      if tube.position.x < -tube.size.width:\n         # Wrap the tubes back to the right edge of the card\n         tube.position.x = card.size.width"
       },
       "properties": {
         "name": "card_1",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -41,6 +43,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#9C00FF"
           },
           "points": [
@@ -73,6 +76,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#9C00FF"
           },
           "points": [
@@ -105,6 +109,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#9C00FF"
           },
           "points": [
@@ -137,6 +142,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#9C00FF"
           },
           "points": [
@@ -169,6 +175,7 @@
             ],
             "penColor": "black",
             "penThickness": 2,
+            "rotation": 0.0,
             "fillColor": "#FB0207"
           },
           "points": [
@@ -185,6 +192,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9.2.2"
+  "CardStock_stack_format": 3,
+  "CardStock_stack_version": "0.99.0"
 }

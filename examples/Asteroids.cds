@@ -62,28 +62,6 @@
           ]
         },
         {
-          "type": "textlabel",
-          "handlers": {},
-          "properties": {
-            "name": "try_again",
-            "size": [
-              400,
-              35
-            ],
-            "position": [
-              185.0,
-              756.0
-            ],
-            "text": "Press Return to Play Again",
-            "alignment": "Center",
-            "textColor": "white",
-            "font": "Default",
-            "fontSize": 18,
-            "canAutoShrink": true,
-            "rotation": 0.0
-          }
-        },
-        {
           "type": "image",
           "handlers": {
             "OnPeriodic": "# Only move if we're not isGameOver / gameOver\nif not isGameOver:\n   # Respond to these keys continuously while pressed\n   if IsMouseDown() and IsUsingTouchScreen() and self.IsTouchingPoint(GetMousePos()):\n      ship.speed += rotate((0, 450*elapsedTime), ship.rotation)\n      PlaySound(\"puff.wav\")\n\n   if IsKeyPressed(\"Up\"):\n      self.file = \"ship-on.png\"\n   else:\n      ship.file = \"ship-off.png\"\n\n   # Wrap the ship around the edges of the card\n   if ship.center.y <= 0 and ship.speed.y < 0:\n      # Off the Bottom edge\n      ship.center = [self.center.x, card.size.height]\n   elif ship.center.y >= card.size.height and ship.speed.y > 0:\n      # Off the Top edge\n      ship.center = [self.center.x, 0]\n   elif ship.center.x <= 0 and ship.speed.x < 0:\n      # Off the Left edge\n      ship.center = [card.size.width, self.center.y]\n   elif ship.center.x >= card.size.width and ship.speed.x > 0:\n      # Off the Right edge\n      ship.center = [0, self.center.y]\n\n   # Did we collide with any asteroid?\n   for child in card.children:\n      # Check the asteroid clones, but not the original, hidden asteroid\n      if child.name.startswith(\"asteroid_\"):\n         d = Distance(self.center, child.center)\n         if d <= 30 + child.size.width/2:\n            card.SendMessage(\"gameOver\")\n            break\n"
@@ -103,6 +81,28 @@
             "rotation": 0.0,
             "xFlipped": false,
             "yFlipped": false
+          }
+        },
+        {
+          "type": "textlabel",
+          "handlers": {},
+          "properties": {
+            "name": "try_again",
+            "size": [
+              400,
+              35
+            ],
+            "position": [
+              185.0,
+              756.0
+            ],
+            "text": "Press Return to Play Again",
+            "alignment": "Center",
+            "textColor": "white",
+            "font": "Default",
+            "fontSize": 18,
+            "canAutoShrink": true,
+            "rotation": 0.0
           }
         }
       ]
