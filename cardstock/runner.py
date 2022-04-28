@@ -20,12 +20,13 @@ import simpleaudio
 
 class TaskType (Enum):
     """ Types of tasks in the handlerQueue """
-    Wake = 1       # Wake up the handler thread
-    SetupCard = 2  # Set up for the card we just switched to
-    Handler = 3    # Run an event handler
-    Func = 4       # Run an arbitrary function with args and kwargs
-    Code = 5       # Run an arbitrary string as code
+    Wake = 1            # Wake up the handler thread
+    SetupCard = 2       # Set up for the card we just switched to
+    Handler = 3         # Run an event handler
+    Func = 4            # Run an arbitrary function with args and kwargs
+    Code = 5            # Run an arbitrary string as code
     StopHandlingMouseEvent = 6  # Stop propagating the current mouse event
+    CallbackMain = 7    # Run a callback func on the main thread.  Used for synchronization.
 
 
 class Runner():
@@ -147,6 +148,9 @@ class Runner():
             msg = f"SyntaxError in {self.HandlerPath(model, handlerName)}, line {lineNum}: {e[0]}"
             error = CardStockError(model.GetCard(), model, handlerName, lineNum, msg)
             self.errors.append(error)
+
+    def AddCallbackToMain(self, func, *args):
+        self.handlerQueue.put((TaskType.CallbackMain, func, *args))
 
     def SetupForCard(self, cardModel):
         """
@@ -311,6 +315,11 @@ class Runner():
                 elif args[0] == TaskType.Code:
                     # Run the given code
                     self.RunCodeWithExceptionHandling(args[1])
+                elif args[0] == TaskType.CallbackMain:
+                    @RunOnMainAsync
+                    def f():
+                        args[1](*args[2:])
+                    f()
                 elif args[0] == TaskType.Handler:
                     # Run this handler
                     self.lastCard = args[1].GetCard()

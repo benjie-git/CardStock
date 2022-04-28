@@ -173,6 +173,7 @@ class DesignerFrame(wx.Frame):
         self.lastRunErrors = []
 
         self.viewer = None
+        self.thumbnail = None
         self.isStartingViewer = False
         self.NewFile()
         self.UpdateStatusBar(None, None)

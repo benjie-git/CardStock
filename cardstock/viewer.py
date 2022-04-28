@@ -527,8 +527,36 @@ class ViewerFrame(wx.Frame):
         if not (0 <= cardIndex < len(self.stackManager.stackModel.childModels)):
             cardIndex = 0
         self.stackManager.LoadCardAtIndex(cardIndex)
+        if self.designer:
+            # Once loading has finished, we'll call MakeThumbnail
+            runner.AddCallbackToMain(self.MakeThumbnail)
+
         if isGoingBack:
             runner.DoReturnFromStack(ioValue)
+
+    def MakeThumbnail(self):
+        view = self.stackManager.view
+        dc = wx.ClientDC(view)
+        size = view.GetSize()
+        bmp = wx.Bitmap(*size)
+        memDC = wx.MemoryDC()
+        memDC.SelectObject(bmp)
+        memDC.Blit( 0, #Copy to this X coordinate
+                    0, #Copy to this Y coordinate
+                    size.width, #Copy this width
+                    size.height, #Copy this height
+                    dc, #From where do we copy?
+                    0, #What's the X offset in the original DC?
+                    0  #What's the Y offset in the original DC?
+                    )
+        img = bmp.ConvertToImage()
+        memDC.SelectObject(wx.NullBitmap)
+
+        # Shrink to fit inside a 160x160 square
+        targetSize = 160
+        scale = min(targetSize/size.width, targetSize/size.height)
+        img.Rescale(int(size.width * scale), int(size.height * scale), wx.IMAGE_QUALITY_HIGH)
+        self.designer.thumbnail = img.ConvertToBitmap()
 
 
 # ----------------------------------------------------------------------

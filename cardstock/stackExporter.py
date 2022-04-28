@@ -325,13 +325,19 @@ class StackExporter(object):
             "resource_map": json.dumps(resMap),
         }
 
-        files = {"stack_data": open(self.stackManager.filename, 'rb')}
+        tmp = "/tmp/" if wx.Platform != "__WXMSW__" else "C:\\Windows\\Temp\\"
+        tmpPath = tmp + "CardStock_" + str(random.randint(1000000, 9999999)) + ".png"
+        self.stackManager.designer.thumbnail.SaveFile(tmpPath, wx.BITMAP_TYPE_PNG)
+
+        files = {"stack_data": open(self.stackManager.filename, 'rb'),
+                 "thumbnail": open(tmpPath, 'rb')}
         for k,v in resMap.items():
             absPath = os.path.join(stackDir, k)
             files[v] = open(absPath, 'rb')
 
         try:
             response = requests.post(CSWEB_UPLOAD_URL, headers=headers, data=params, files=files)
+            os.remove(tmpPath)
             responseJson = response.json()
             if 'url' in responseJson:
                 msg = f"Upload done.  This stack is available at\n\n{responseJson['url']}"
@@ -351,6 +357,8 @@ class StackExporter(object):
             msg = f"Upload failed. \n\n {responseJson.get('error')}"
         except Exception as e:
             msg = f"Upload failed.\n\n{e}"
+            os.remove(tmpPath)
+
         wx.MessageDialog(None, msg, "", wx.OK).ShowModal()
         return None
 
@@ -474,6 +482,10 @@ class ExportDialog(wx.Dialog):
         self.Close()
 
     def OnExportWeb(self, event):
+        if not self.exporter.stackManager.designer.thumbnail:
+            wx.MessageDialog(None, "Please run this stack once before uploading, to automatically create a small screenshot.", "", wx.OK).ShowModal()
+            return
+
         username = self.exporter.stackManager.designer.configInfo["upload_username"]
         if username:
             self.SetTitle("Uploading Stack...")
