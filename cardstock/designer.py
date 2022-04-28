@@ -171,6 +171,7 @@ class DesignerFrame(wx.Frame):
         self.allCodeWindow = None
         self.errorListWindow = None
         self.lastRunErrors = []
+        self.runnerFinishedCallback = None
 
         self.viewer = None
         self.thumbnail = None
@@ -639,7 +640,7 @@ class DesignerFrame(wx.Frame):
         exporter = StackExporter(self.stackManager)
         exporter.StartExport(doSave)
 
-    def RunFromCard(self, cardIndex):
+    def RunFromCard(self, cardIndex, generateThumbnail=False):
         if self.isStartingViewer:
             return
         self.isStartingViewer = True
@@ -668,6 +669,8 @@ class DesignerFrame(wx.Frame):
         stackModel.SetData(data)
 
         self.viewer = ViewerFrame(self, False)
+        if generateThumbnail:
+            self.viewer.generateThumbnail = True
         self.viewer.designer = self
 
         self.viewer.PushStack(stackModel, self.filename, cardIndex)
@@ -722,11 +725,13 @@ class DesignerFrame(wx.Frame):
         self.Show()
         self.Refresh()
         self.Update()
-
         # wx.CallLater(500, self.UpdateGC_Data)
 
         if len(self.lastRunErrors):
             self.OnMenuShowErrorList(None)
+
+        if self.runnerFinishedCallback:
+            self.runnerFinishedCallback()
 
     # def UpdateGC_Data(self):
     #     gc.collect()

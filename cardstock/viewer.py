@@ -60,6 +60,7 @@ class ViewerFrame(wx.Frame):
 
         self.designer = None  # The designer sets this, if being run from the designer app
         self.isStandalone = isStandalone  # Are we running as a standalone app?
+        self.generateThumbnail = False  # If set to true, the stack will run setup, create a thumbnail, and close
         self.Bind(wx.EVT_SIZE, self.OnResize)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
@@ -527,7 +528,7 @@ class ViewerFrame(wx.Frame):
         if not (0 <= cardIndex < len(self.stackManager.stackModel.childModels)):
             cardIndex = 0
         self.stackManager.LoadCardAtIndex(cardIndex)
-        if self.designer:
+        if self.generateThumbnail:
             # Once loading has finished, we'll call MakeThumbnail
             runner.AddCallbackToMain(self.MakeThumbnail)
 
@@ -557,6 +558,7 @@ class ViewerFrame(wx.Frame):
         scale = min(targetSize/size.width, targetSize/size.height)
         img.Rescale(int(size.width * scale), int(size.height * scale), wx.IMAGE_QUALITY_HIGH)
         self.designer.thumbnail = img.ConvertToBitmap()
+        self.Close()
 
 
 # ----------------------------------------------------------------------

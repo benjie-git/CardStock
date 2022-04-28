@@ -482,10 +482,13 @@ class ExportDialog(wx.Dialog):
         self.Close()
 
     def OnExportWeb(self, event):
-        if not self.exporter.stackManager.designer.thumbnail:
-            wx.MessageDialog(None, "Please run this stack once before uploading, to automatically create a small screenshot.", "", wx.OK).ShowModal()
-            return
+        # Generate Thumbnail
+        self.exporter.stackManager.designer.runnerFinishedCallback = self.OnExportWeb_Part2
+        self.exporter.stackManager.designer.RunFromCard(0, generateThumbnail=True)
+        self.panel.Enable(False)
 
+    def OnExportWeb_Part2(self):
+        self.exporter.stackManager.designer.runnerFinishedCallback = None
         username = self.exporter.stackManager.designer.configInfo["upload_username"]
         if username:
             self.SetTitle("Uploading Stack...")
