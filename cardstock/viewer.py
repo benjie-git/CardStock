@@ -452,6 +452,7 @@ class ViewerFrame(wx.Frame):
             self.stackManager.runner.StopTimers()
 
         runner = Runner(self.stackManager, self)
+        runner.generatingThumbnail = self.generateThumbnail
         if len(self.stackStack) == 0:
             self.rootRunner = runner
 

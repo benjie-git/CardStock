@@ -82,6 +82,7 @@ class Runner():
         self.runnerThread = CodeRunnerThread(target=self.StartRunLoop)
         self.runnerThread.start()
         self.stopRunnerThread = False
+        self.generatingThumbnail = False
 
         self.soundCache = {}
 
@@ -206,6 +207,7 @@ class Runner():
             def waitAndYield(duration):
                 # Wait up to duration seconds for the stack to finish running
                 # run wx.YieldIfNeeded() to process main thread events while waiting, to allow @RunOnMainSync* methods to complete
+                if self.generatingThumbnail: return
                 endTime = time() + duration
                 while time() < endTime:
                     breakpoint = time() + 0.05
@@ -227,7 +229,7 @@ class Runner():
                     self.runnerThread.join(0.05)
                     if not self.runnerThread.is_alive():
                         break
-                if self.runnerThread.is_alive():
+                if self.runnerThread.is_alive() and not self.generatingThumbnail:
                     # If the runnerThread is still going now, something went wrong
                     if len(self.lastHandlerStack) > 0:
                         model = self.lastHandlerStack[-1][0]
@@ -336,7 +338,7 @@ class Runner():
 
         except SystemExit:
             # The runnerThread got killed, because we told it to stop.
-            if self.lastHandlerStack and len(self.lastHandlerStack) > 0:
+            if self.lastHandlerStack and len(self.lastHandlerStack) > 0 and not self.generatingThumbnail:
                 model = self.lastHandlerStack[-1][0]
                 handlerName = self.lastHandlerStack[-1][1]
                 msg = f"Exited while {self.HandlerPath(model, handlerName, self.lastCard)} was still running.  Maybe you have a long or infinite loop?"
@@ -802,7 +804,7 @@ class Runner():
         self.stackManager.LoadCardAtIndex(cardIndex)
 
     def RunStack(self, filename, cardNumber=1, setupValue=None):
-        if self.stopRunnerThread:
+        if self.stopRunnerThread or self.generatingThumbnail:
             return None
         success = self.viewer.GosubStack(filename, cardNumber-1, sanitizer.SanitizeValue(setupValue, []))
         if success:
@@ -831,7 +833,7 @@ class Runner():
         endTime = time() + delay
         while time() < endTime:
             remaining = endTime - time()
-            if self.stopRunnerThread:
+            if self.stopRunnerThread or self.generatingThumbnail:
                 break
             sleep(min(remaining, 0.25))
 
@@ -850,7 +852,7 @@ class Runner():
         return math.sqrt((pointB[0] - pointA[0]) ** 2 + (pointB[1] - pointA[1]) ** 2)
 
     def Alert(self, message):
-        if self.stopRunnerThread:
+        if self.stopRunnerThread or self.generatingThumbnail:
             return
 
         @RunOnMainSync
@@ -859,7 +861,7 @@ class Runner():
         func()
 
     def AskYesNo(self, message):
-        if self.stopRunnerThread:
+        if self.stopRunnerThread or self.generatingThumbnail:
             return None
 
         @RunOnMainSync
@@ -869,7 +871,7 @@ class Runner():
         return func()
 
     def AskText(self, message, defaultResponse=None):
-        if self.stopRunnerThread:
+        if self.stopRunnerThread or self.generatingThumbnail:
             return None
 
         @RunOnMainSync
@@ -887,7 +889,7 @@ class Runner():
         if not isinstance(filepath, str):
             raise TypeError("PlaySound(): filepath must be a string")
 
-        if self.stopRunnerThread:
+        if self.stopRunnerThread or self.generatingThumbnail:
             return
 
         filepath = self.stackManager.resPathMan.GetAbsPath(filepath)
@@ -971,7 +973,7 @@ class Runner():
 
         @RunOnMainAsync
         def f():
-            if self.stopRunnerThread: return
+            if self.stopRunnerThread or self.generatingThumbnail: return
 
             adjustedDuration = duration + startTime - time()
             if adjustedDuration > 0.010:

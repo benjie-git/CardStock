@@ -484,10 +484,16 @@ class ExportDialog(wx.Dialog):
     def OnExportWeb(self, event):
         # Generate Thumbnail
         self.exporter.stackManager.designer.runnerFinishedCallback = self.OnExportWeb_Part2
-        self.exporter.stackManager.designer.RunFromCard(0, generateThumbnail=True)
         self.panel.Enable(False)
+        self.exporter.stackManager.designer.RunFromCard(0, generateThumbnail=True)
+        self.stillExporting = True
+        def ExportTimeout():
+            if self.exporter and self.stillExporting:
+                self.exporter.stackManager.designer.viewer.MakeThumbnail()
+        wx.CallLater(1000, ExportTimeout)
 
     def OnExportWeb_Part2(self):
+        self.stillExporting = False
         self.exporter.stackManager.designer.runnerFinishedCallback = None
         username = self.exporter.stackManager.designer.configInfo["upload_username"]
         if username:
