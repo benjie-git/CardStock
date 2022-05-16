@@ -104,6 +104,7 @@ class ControlPanel(wx.Panel):
         # ----------
 
         self.inspector = propertyInspector.PropertyInspector(self, self.stackManager)
+        self.inspector.mergeFontRow = True
         self.inspector.valueChangedFunc = self.InspectorValueChanged
         self.inspector.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnGridCellSelected)
 
@@ -257,6 +258,7 @@ class ControlPanel(wx.Panel):
                 else:
                     props[k] = ""
 
+        self.inspector.selectedModels = [ui.model for ui in uiViews]
         self.inspector.SetData(title, props, propTypes)
         self.Layout()
 

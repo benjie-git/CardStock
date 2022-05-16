@@ -14,6 +14,8 @@ class PropertyInspector(wx.grid.Grid):
         self.data = {}
         self.title = ""
         self.types = None
+        self.mergeFontRow = False  # Set to True to show Font rows as "Font [b] [i] [u]"
+        self.selectedModels = []
 
         self.stackManager = stackManager
         self.valueChangedFunc = None
@@ -150,6 +152,9 @@ class PropertyInspector(wx.grid.Grid):
 
             if valType == "bool":
                 editor = GridCellCustomChoiceEditor(["True", "False"])
+            elif self.mergeFontRow and k == "font" and valType == "choice":
+                editor = GridCellFontEditor(ViewModel.GetPropertyChoices(k), self, self.selectedModels)
+                renderer = GridCellFontRenderer(self.selectedModels)
             elif valType == "choice":
                 editor = GridCellCustomChoiceEditor(ViewModel.GetPropertyChoices(k))
             elif valType == "color":
@@ -475,3 +480,83 @@ class GridCellObjectRenderer(wx.grid.GridCellStringRenderer):
         if not self.objBmp:
             self.objBmp = wx.ArtProvider.GetBitmap(wx.ART_GO_FORWARD, size=wx.Size(rect.Height, rect.Height))
         dc.DrawBitmap(self.objBmp, wx.Point(rect.Left + rect.Width-((BUTTON_WIDTH+self.objBmp.Width)/2), rect.Top))
+
+
+class GridCellFontRenderer(wx.grid.GridCellStringRenderer):
+    def __init__(self, textObjs):
+        super().__init__()
+        self.textObjs = textObjs
+
+    def Draw(self, grid, attr, dc, rect, row, col, isSelected):
+        if isSelected:
+            bg = grid.GetSelectionBackground()
+            fg = grid.GetSelectionForeground()
+        else:
+            bg = attr.GetBackgroundColour()
+            fg = attr.GetTextColour()
+        dc.SetTextBackground(bg)
+        dc.SetTextForeground(fg)
+        dc.SetPen(wx.TRANSPARENT_PEN)
+        dc.SetBrush(wx.Brush(bg, wx.SOLID))
+        dc.DrawRectangle(rect)
+
+        text = grid.GetCellValue(row, col)
+        hAlign, vAlign = attr.GetAlignment()
+        dc.SetFont(attr.GetFont())
+        grid.DrawTextRectangle(dc, text, rect, hAlign, vAlign)
+
+        isBold = self.textObjs[0].GetProperty("bold") if len(self.textObjs) else False
+        dc.SetPen(wx.Pen('grey', 1, wx.PENSTYLE_SOLID))
+        dc.SetBrush(wx.Brush('grey' if isBold else 'white', wx.SOLID))
+        styleRect = wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH, rect.Top+1, COLOR_PATCH_WIDTH/3-2, rect.Height-1)
+        dc.DrawRectangle(styleRect)
+        dc.SetFont(attr.GetFont().Bold())
+        styleRect.Position -= (0, 2)
+        grid.DrawTextRectangle(dc, "b", styleRect, wx.ALIGN_CENTER, vAlign)
+
+        isItalic = self.textObjs[0].GetProperty("italic") if len(self.textObjs) else False
+        dc.SetPen(wx.Pen('grey', 1, wx.PENSTYLE_SOLID))
+        dc.SetBrush(wx.Brush('grey' if isItalic else 'white', wx.SOLID))
+        styleRect = wx.Rect(rect.Left + rect.Width-2*COLOR_PATCH_WIDTH/3+1, rect.Top+1, COLOR_PATCH_WIDTH/3-2, rect.Height-1)
+        dc.DrawRectangle(styleRect)
+        dc.SetFont(attr.GetFont().Italic())
+        styleRect.Position -= (0, 2)
+        grid.DrawTextRectangle(dc, "i", styleRect, wx.ALIGN_CENTER, vAlign)
+
+        isUnderlined = self.textObjs[0].GetProperty("underlined") if len(self.textObjs) else False
+        dc.SetPen(wx.Pen('grey', 1, wx.PENSTYLE_SOLID))
+        dc.SetBrush(wx.Brush('grey' if isUnderlined else 'white', wx.SOLID))
+        styleRect = wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH/3+2, rect.Top+1, COLOR_PATCH_WIDTH/3-2, rect.Height-1)
+        dc.DrawRectangle(styleRect)
+        dc.SetFont(attr.GetFont().Underlined())
+        styleRect.Position -= (0, 2)
+        grid.DrawTextRectangle(dc, "u", styleRect, wx.ALIGN_CENTER, vAlign)
+
+
+class GridCellFontEditor(GridCellCustomChoiceEditor):
+    def __init__(self, choices, inspector, textObjs):
+        super().__init__(choices)
+        self.textObjs = textObjs
+        self.inspector = inspector
+
+    def StartingClick(self):
+        self.row = self.inspector.GetGridCursorRow()
+        self.col = self.inspector.GetGridCursorCol()
+        x,y = self.inspector.ScreenToClient(wx.GetMousePosition())
+        if x > self.inspector.GetSize().Width - COLOR_PATCH_WIDTH/3:
+            self.inspector.HideCellEditControl()
+            isUnderlined = self.textObjs[0].GetProperty("underlined") if len(self.textObjs) else False
+            for obj in self.textObjs:
+                obj.SetProperty("underlined", not isUnderlined)
+        elif x > self.inspector.GetSize().Width - 2 * COLOR_PATCH_WIDTH / 3:
+            self.inspector.HideCellEditControl()
+            isItalic = self.textObjs[0].GetProperty("italic") if len(self.textObjs) else False
+            for obj in self.textObjs:
+                obj.SetProperty("italic", not isItalic)
+        elif x > self.inspector.GetSize().Width - COLOR_PATCH_WIDTH:
+            self.inspector.HideCellEditControl()
+            isBold = self.textObjs[0].GetProperty("bold") if len(self.textObjs) else False
+            for obj in self.textObjs:
+                obj.SetProperty("bold", not isBold)
+        else:
+            super().StartingClick()

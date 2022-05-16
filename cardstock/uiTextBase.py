@@ -225,6 +225,19 @@ class TextBaseProxy(ViewProxy):
         model.SetProperty("font", val)
 
     @property
+    def fontSize(self):
+        model = self._model
+        if not model: return 0
+        return model.GetProperty("fontSize")
+    @fontSize.setter
+    def fontSize(self, val):
+        if not isinstance(val, (int, float)):
+            raise TypeError("fontSize must be a number")
+        model = self._model
+        if not model: return
+        model.SetProperty("fontSize", val)
+
+    @property
     def bold(self):
         model = self._model
         if not model: return ""
@@ -264,19 +277,6 @@ class TextBaseProxy(ViewProxy):
         if model.type == "textfield":
             raise TypeError("Text Field objects do not support underlined text.")
         model.SetProperty("underlined", val)
-
-    @property
-    def fontSize(self):
-        model = self._model
-        if not model: return 0
-        return model.GetProperty("fontSize")
-    @fontSize.setter
-    def fontSize(self, val):
-        if not isinstance(val, (int, float)):
-            raise TypeError("fontSize must be a number")
-        model = self._model
-        if not model: return
-        model.SetProperty("fontSize", val)
 
     def AnimateTextColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
