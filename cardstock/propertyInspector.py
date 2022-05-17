@@ -523,14 +523,20 @@ class GridCellFontRenderer(wx.grid.GridCellStringRenderer):
         styleRect.Position -= (0, 2)
         grid.DrawTextRectangle(dc, "i", styleRect, wx.ALIGN_CENTER, vAlign)
 
-        isUnderlined = self.textObjs[0].GetProperty("underlined") if len(self.textObjs) else False
-        dc.SetPen(wx.Pen('grey', 1, wx.PENSTYLE_SOLID))
-        dc.SetBrush(wx.Brush('grey' if isUnderlined else 'white', wx.SOLID))
-        styleRect = wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH/3+2, rect.Top+1, COLOR_PATCH_WIDTH/3-2, rect.Height-1)
-        dc.DrawRectangle(styleRect)
-        dc.SetFont(attr.GetFont().Underlined())
-        styleRect.Position -= (0, 2)
-        grid.DrawTextRectangle(dc, "u", styleRect, wx.ALIGN_CENTER, vAlign)
+        showIsUnderlined = True
+        for m in self.textObjs:
+            if m.type != "textlabel":
+                showIsUnderlined = False
+                break
+        if showIsUnderlined:
+            isUnderlined = self.textObjs[0].GetProperty("underlined") if len(self.textObjs) else False
+            dc.SetPen(wx.Pen('grey', 1, wx.PENSTYLE_SOLID))
+            dc.SetBrush(wx.Brush('grey' if isUnderlined else 'white', wx.SOLID))
+            styleRect = wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH/3+2, rect.Top+1, COLOR_PATCH_WIDTH/3-2, rect.Height-1)
+            dc.DrawRectangle(styleRect)
+            dc.SetFont(attr.GetFont().Underlined())
+            styleRect.Position -= (0, 2)
+            grid.DrawTextRectangle(dc, "u", styleRect, wx.ALIGN_CENTER, vAlign)
 
 
 class GridCellFontEditor(GridCellCustomChoiceEditor):
@@ -545,9 +551,15 @@ class GridCellFontEditor(GridCellCustomChoiceEditor):
         x,y = self.inspector.ScreenToClient(wx.GetMousePosition())
         if x > self.inspector.GetSize().Width - COLOR_PATCH_WIDTH/3:
             self.inspector.HideCellEditControl()
-            isUnderlined = self.textObjs[0].GetProperty("underlined") if len(self.textObjs) else False
-            for obj in self.textObjs:
-                obj.SetProperty("underlined", not isUnderlined)
+            showingIsUnderlined = True
+            for m in self.textObjs:
+                if m.type != "textlabel":
+                    showingIsUnderlined = False
+                    break
+            if showingIsUnderlined:
+                isUnderlined = self.textObjs[0].GetProperty("underlined") if len(self.textObjs) else False
+                for obj in self.textObjs:
+                    obj.SetProperty("underlined", not isUnderlined)
         elif x > self.inspector.GetSize().Width - 2 * COLOR_PATCH_WIDTH / 3:
             self.inspector.HideCellEditControl()
             isItalic = self.textObjs[0].GetProperty("italic") if len(self.textObjs) else False

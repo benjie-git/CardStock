@@ -238,40 +238,40 @@ class TextBaseProxy(ViewProxy):
         model.SetProperty("fontSize", val)
 
     @property
-    def bold(self):
+    def isBold(self):
         model = self._model
         if not model: return ""
         return model.GetProperty("bold")
-    @bold.setter
-    def bold(self, val):
+    @isBold.setter
+    def isBold(self, val):
         if not isinstance(val, bool):
-            raise TypeError("bold must be True or False")
+            raise TypeError("isBold must be True or False")
         model = self._model
         if not model: return
         model.SetProperty("bold", val)
 
     @property
-    def italic(self):
+    def isItalic(self):
         model = self._model
         if not model: return ""
         return model.GetProperty("italic")
-    @italic.setter
-    def italic(self, val):
+    @isItalic.setter
+    def isItalic(self, val):
         if not isinstance(val, bool):
-            raise TypeError("italic must be True or False")
+            raise TypeError("isItalic must be True or False")
         model = self._model
         if not model: return
         model.SetProperty("italic", val)
 
     @property
-    def underlined(self):
+    def isUnderlined(self):
         model = self._model
         if not model: return ""
         return model.GetProperty("underlined")
-    @underlined.setter
-    def underlined(self, val):
+    @isUnderlined.setter
+    def isUnderlined(self, val):
         if not isinstance(val, bool):
-            raise TypeError("underlined must be True or False")
+            raise TypeError("isUnderlined must be True or False")
         model = self._model
         if not model: return
         if model.type == "textfield":

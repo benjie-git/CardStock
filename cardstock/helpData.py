@@ -721,9 +721,9 @@ class HelpDataTextField():
                  "info": "The <b>font</b> used for the text in this field."},
         "fontSize": {"type": "int",
                      "info": "The point size for the font used for the text in this field."},
-        "bold": {"type": "bool",
+        "isBold": {"type": "bool",
                  "info": "Set to True if this object's text is bold."},
-        "italic": {"type": "bool",
+        "isItalic": {"type": "bool",
                    "info": "Set to True if this object's text is italic."},
         "selection": {"type": "list",
                       "info": "A text field's <b>selection</b> value is a list of 2 numbers.  The first is the start position "
@@ -787,11 +787,11 @@ class HelpDataTextLabel():
                  "info": "The <b>font</b> used for the text in this label."},
         "fontSize": {"type": "int",
                      "info": "The point size for the font used for the text in this label."},
-        "bold": {"type": "bool",
+        "isBold": {"type": "bool",
                  "info": "Set to True if this object's text is bold."},
-        "italic": {"type": "bool",
+        "isItalic": {"type": "bool",
                    "info": "Set to True if this object's text is italic."},
-        "underlined": {"type": "bool",
+        "isUnderlined": {"type": "bool",
                        "info": "Set to True if this object's text is underlined."},
     }
 
