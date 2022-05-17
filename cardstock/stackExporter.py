@@ -13,11 +13,12 @@ try:
 except ModuleNotFoundError:
     PY_INSTALLER_AVAILABLE = False
 
-try:
-    from cssecrets import *
-    CSWEB_AVAILABLE = True
-except ModuleNotFoundError:
-    CSWEB_AVAILABLE = False
+# Settings for Uploading stack to CardStock.run
+CSWEB_DISPLAY_NAME = "CardStock.run"
+CSHOST = "https://www.cardstock.run"  # "http://127.0.0.1:8000"
+CSWEB_SIGNUP_URL = f"{CSHOST}/l/signup"
+CSWEB_GET_TOKEN_URL = f"{CSHOST}/v/1/api-token-auth/"
+CSWEB_UPLOAD_URL = f"{CSHOST}/v/1/upload-stack"
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -36,14 +37,6 @@ class StackExporter(object):
         self.stackManager = stackManager
 
     def StartExport(self, doSave):
-        # Check that we even have pyinstaller available
-        if not PY_INSTALLER_AVAILABLE and not getattr(sys, 'frozen', False) and not CSWEB_AVAILABLE:
-            wx.MessageDialog(self.stackManager.designer,
-                             "To export a stack as a stand-alone program, "
-                             "you need to first install the pyinstaller python package.",
-                             "Unable to Export", wx.OK).ShowModal()
-            return
-
         # Check that the user has saved the stack
         if self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(self.stackManager.designer,
@@ -155,6 +148,14 @@ class StackExporter(object):
         return path
 
     def ExportApp(self):
+        # Check that we even have pyinstaller available
+        if not PY_INSTALLER_AVAILABLE and not getattr(sys, 'frozen', False):
+            wx.MessageDialog(self.stackManager.designer,
+                             "To export a stack as a stand-alone program, "
+                             "you need to first install the pyinstaller python package.",
+                             "Unable to Export", wx.OK).ShowModal()
+            return
+
         filepath = self.GetOutputPath()
         if getattr(sys, 'frozen', False) and hasattr(sys, "_MEIPASS"):
             # We're running in a bundle
@@ -383,21 +384,21 @@ class ExportDialog(wx.Dialog):
         exportAppBtn = wx.Button(self.panel, label = "Export as App", size=(50, 20))
         exportAppBtn.Bind(wx.EVT_BUTTON, self.OnExportApp)
 
+        exportWebBtn = wx.Button(self.panel, label = "Upload to Web", size=(50, 20))
+        exportWebBtn.Bind(wx.EVT_BUTTON, self.OnExportWeb)
+
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         buttonSizer.Add(addBtn, 1, wx.EXPAND|wx.ALL, spacing)
         buttonSizer.Add(rmBtn, 1, wx.EXPAND|wx.ALL, spacing)
         buttonSizer.Add(exportAppBtn, 1, wx.EXPAND|wx.ALL, spacing)
+        buttonSizer.Add(exportWebBtn, 1, wx.EXPAND|wx.ALL, spacing)
 
         isLoggedIn = False
-        if CSWEB_AVAILABLE:
-            exportWebBtn = wx.Button(self.panel, label = "Upload to Web", size=(50, 20))
-            exportWebBtn.Bind(wx.EVT_BUTTON, self.OnExportWeb)
-            buttonSizer.Add(exportWebBtn, 1, wx.EXPAND|wx.ALL, spacing)
-            username = self.exporter.stackManager.designer.configInfo["upload_username"]
-            if username:
-                isLoggedIn = True
-                self.logoutBtn = wx.Button(self.panel, label=f"[Logout '{username}']", style=wx.BORDER_NONE)
-                self.logoutBtn.Bind(wx.EVT_BUTTON, self.OnLogOut)
+        username = self.exporter.stackManager.designer.configInfo["upload_username"]
+        if username:
+            isLoggedIn = True
+            self.logoutBtn = wx.Button(self.panel, label=f"[Logout '{username}']", style=wx.BORDER_NONE)
+            self.logoutBtn.Bind(wx.EVT_BUTTON, self.OnLogOut)
 
         if len(self.exporter.resList) > 0:
             labelStr = "These are the image and sound files that this stack seems to need.  " \
@@ -531,7 +532,7 @@ class LoginDialog(wx.Dialog):
         cancelBtn.Bind(wx.EVT_BUTTON, self.OnCancel)
         buttonSizer.Add(cancelBtn, 1, wx.EXPAND | wx.ALL, spacing)
 
-        labelStr = f"You are not yet logged in to {CSWEB_NAME}.  Please Log In if you already have an account.  " \
+        labelStr = f"You are not yet logged in to {CSWEB_DISPLAY_NAME}.  Please Log In if you already have an account.  " \
                    f"Otherwise please Sign Up, and then Log In once you have an account."
 
         user_sizer = wx.BoxSizer(wx.HORIZONTAL)
