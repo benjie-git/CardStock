@@ -168,14 +168,17 @@ selected object.  For example, only buttons have an OnClicked() event, and only 
 See the CardStock Reference for a description of each type of event, and when they each get run.</p>
 
 <p>In your python event-handling code, you have access to all of the objects in your stack, including their
-properties and methods, and some global variables and functions that are always available.
-You can always access a special variable called self, which refers to the object who's event is being run.
-(So in a button's OnClick() code, self refers to that button object.  In a card's OnShowCard() code, self will refer to that
-card object.)  There is also a variable for each object's name on the current card.  So if your button is called yes_button, you could write
-yes_button.SetTitle("Done") to change your button's title to Done.  See the CardStock Reference for a list of all 
+properties and methods, and some global variables and functions that are always available.  So if your button is called 
+yes_button, you could write yes_button.SetTitle("Done") to change your button's title to the string "Done".  You can 
+also use the variables that are passed into each event function, which are listed inside the parentheses after the event
+name.  All events receive a variable called self, which refers to the object who's event is being run.  
+(So in a button's OnClick(self) code, self refers to that button object.  In a card's OnShowCard(self) code, self will 
+refer to that card object.)  Some events also receive other relevant information, for example, OnKeyPress(self, keyName)
+includes keyName, so that your code can see which key was pressed, and OnMouseMove(self, mousePos) includes the current 
+mouse position as a variable called mousePos.  See the CardStock Reference for a list of all 
 variables that are automatically provided to your code.  You can of course also create your own variables as well.  It 
-is suggested that when you do, you set up the starting value of each variable in one of your
-objects' OnSetup events, to make sure that it will always have a value, from the very beginning of your stack running.</p>
+is suggested that when you do, you set up the starting value of each variable in one of your objects' OnSetup events, 
+to make sure that it will always have a value, from the very beginning of your stack running.</p>
 
 <p>When a stack first starts running, all of the cards and all objects on all of the cards will run their OnSetup() 
 events.  OnSetup() will also run for any new objects you create using any of the card.AddObject() methods.  
@@ -189,16 +192,16 @@ the new card size.  The OnMessage() event runs on an object when any of your oth
 object.SendMessage() method, or calls the BroadcastMessage() function, which sends the message to all objects in the 
 stack.</p>
 
-<p>The OnKeyDown() and OnKeyUp() events of the current card run when a keyboard key is pressed down, and released, 
+<p>The OnKeyPress() and OnKeyRelease() events of the current card run when a keyboard key is pressed down, and released, 
 respectively.  And OnKeyHold() is called approximately every 1/30th of a second for each key that remains held pressed 
 down.</p>
 
 <p>The OnMouseEnter() and OnMouseExit() events for an object are run when the mouse enters and exits screen space that 
-overlaps that object.  The OnMouseDown() and OnMouseUp() events of an object are run when the main mouse button is 
+overlaps that object.  The OnMousePress() and OnMouseRelease() events of an object are run when the main mouse button is 
 pressed and released while the mouse is inside that object.  These do not necessarily come in pairs for any particular 
 object, as the mouse could be pressed down while inside one object, moved, and then released outside of that object, or 
 vice versa.  The OnMouseMove() event of an object is run when the mouse position moves, while inside that object, 
-whether or not the mouse button is down.  The OnMouseDown(), OnMouseMove(), and OnMouseUp() events are all run for the 
+whether or not the mouse button is down.  The OnMousePress(), OnMouseMove(), and OnMouseRelease() events are all run for the 
 topmost object over which the mouse is 
 hovering, and then also called for any other objects underneath the mouse, top to bottom, all the way down to the current 
 card.  This allows, for example, a card's OnMouseMove() event to continue running for mouse movements, even when the 

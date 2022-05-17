@@ -132,8 +132,8 @@ class UiView(object):
             self.stackManager.view.Refresh()
 
     def OnMouseDown(self, event):
-        if self.stackManager.runner and self.model.GetHandler("OnMouseDown"):
-            self.stackManager.runner.RunHandler(self.model, "OnMouseDown", event)
+        if self.stackManager.runner and self.model.GetHandler("OnMousePress"):
+            self.stackManager.runner.RunHandler(self.model, "OnMousePress", event)
         event.Skip()
 
     def OnMouseMove(self, event):
@@ -144,8 +144,8 @@ class UiView(object):
         pass
 
     def OnMouseUp(self, event):
-        if self.stackManager.runner and self.model.GetHandler("OnMouseUp"):
-            self.stackManager.runner.RunHandler(self.model, "OnMouseUp", event)
+        if self.stackManager.runner and self.model.GetHandler("OnMouseRelease"):
+            self.stackManager.runner.RunHandler(self.model, "OnMouseRelease", event)
         event.Skip()
 
     def OnMouseEnter(self, event):
@@ -565,27 +565,27 @@ class UiView(object):
         return reg
 
     handlerDisplayNames = {
-        'OnSetup':      "OnSetup():",
-        'OnShowCard':   "OnShowCard():",
-        'OnHideCard':   "OnHideCard():",
-        'OnClick':      "OnClick():",
-        'OnTextEnter':  "OnTextEnter():",
-        'OnTextChanged':"OnTextChanged():",
-        'OnMouseDown':  "OnMouseDown(mousePos):",
-        'OnMouseMove':  "OnMouseMove(mousePos):",
-        'OnMouseUp':    "OnMouseUp(mousePos):",
-        'OnMouseEnter': "OnMouseEnter(mousePos):",
-        'OnMouseExit':  "OnMouseExit(mousePos):",
-        'OnDoneLoading':"OnDoneLoading(URL, didLoad):",
-        'OnCardStockLink':"OnCardStockLink(message):",
-        'OnBounce':     "OnBounce(otherObject, edge):",
-        'OnMessage':    "OnMessage(message):",
-        'OnKeyDown':    "OnKeyDown(keyName):",
-        'OnKeyHold':    "OnKeyHold(keyName, elapsedTime):",
-        'OnKeyUp':      "OnKeyUp(keyName):",
-        'OnResize':     "OnResize():",
-        'OnPeriodic':   "OnPeriodic(elapsedTime):",
-        'OnExitStack':  "OnExitStack():",
+        'OnSetup':      "OnSetup(self):",
+        'OnShowCard':   "OnShowCard(self):",
+        'OnHideCard':   "OnHideCard(self):",
+        'OnClick':      "OnClick(self):",
+        'OnTextEnter':  "OnTextEnter(self):",
+        'OnTextChanged':"OnTextChanged(self):",
+        'OnMousePress': "OnMousePress(self, mousePos):",
+        'OnMouseMove':  "OnMouseMove(self, mousePos):",
+        'OnMouseRelease':"OnMouseRelease(self, mousePos):",
+        'OnMouseEnter': "OnMouseEnter(self, mousePos):",
+        'OnMouseExit':  "OnMouseExit(self, mousePos):",
+        'OnDoneLoading':"OnDoneLoading(self, URL, didLoad):",
+        'OnCardStockLink':"OnCardStockLink(self, message):",
+        'OnBounce':     "OnBounce(self, otherObject, edge):",
+        'OnMessage':    "OnMessage(self, message):",
+        'OnKeyPress':   "OnKeyPress(self, keyName):",
+        'OnKeyHold':    "OnKeyHold(self, keyName, elapsedTime):",
+        'OnKeyRelease': "OnKeyRelease(self, keyName):",
+        'OnResize':     "OnResize(self):",
+        'OnPeriodic':   "OnPeriodic(self, elapsedTime):",
+        'OnExitStack':  "OnExitStack(self):",
     }
 
 
@@ -606,15 +606,15 @@ class ViewModel(object):
         self.parent = None
         self.handlers = {"OnSetup": "",
                          "OnMouseEnter": "",
-                         "OnMouseDown": "",
+                         "OnMousePress": "",
                          "OnMouseMove": "",
-                         "OnMouseUp": "",
+                         "OnMouseRelease": "",
                          "OnMouseExit": "",
                          "OnBounce": "",
                          "OnMessage": "",
                          "OnPeriodic": ""
                          }
-        self.initialEditHandler = "OnMouseDown"
+        self.initialEditHandler = "OnMousePress"
         self.visibleHandlers = set()
 
         self.properties = {"name": "",

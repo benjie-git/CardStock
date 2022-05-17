@@ -173,6 +173,19 @@ class StackModel(ViewModel):
                 for child in obj.childModels:
                     replaceNames(child)
             replaceNames(stackModel)
+        if fromVer <= 3:
+            """
+            In File Format Version 4, some properties and methods were renamed.
+            """
+            # Update names of StopAnimating methods, OnIdle->OnPeriodic
+            def replaceNames(obj):
+                if "OnMouseDown" in obj.handlers: obj.handlers["OnMousePress"]   = obj.handlers.pop("OnMouseDown")
+                if "OnMouseUp"   in obj.handlers: obj.handlers["OnMouseRelease"] = obj.handlers.pop("OnMouseUp")
+                if "OnKeyDown"   in obj.handlers: obj.handlers["OnKeyPress"]     = obj.handlers.pop("OnKeyDown")
+                if "OnKeyUp"     in obj.handlers: obj.handlers["OnKeyRelease"]   = obj.handlers.pop("OnKeyUp")
+                for child in obj.childModels:
+                    replaceNames(child)
+            replaceNames(stackModel)
 
 
 class Stack(ViewProxy):

@@ -381,7 +381,7 @@ class Runner():
         if not self.didSetup:
             return
 
-        if handlerName in ["OnMouseDown", "OnMouseMove", "OnMouseUp"] and self.stopHandlingMouseEvent:
+        if handlerName in ["OnMousePress", "OnMouseMove", "OnMouseRelease"] and self.stopHandlingMouseEvent:
             return
 
         self.runnerDepth += 1

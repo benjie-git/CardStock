@@ -247,7 +247,7 @@ class CodeInspector(wx.ScrolledWindow):
             self.cPanel.inspector.Disable()
         displayNames = []
         for k in self.currentUiView.model.GetHandlers().keys():
-            displayNames.append(UiView.handlerDisplayNames[k])
+            displayNames.append(k+'()')
 
         self.handlerPicker = SimpleListBox(self.cPanel)
         self.handlerPicker.SetupWithItems(displayNames, 2, 0)
@@ -273,10 +273,8 @@ class CodeInspector(wx.ScrolledWindow):
         event.Skip()
 
     def DisplayNameToRawName(self, displayName):
-        displayName = displayName.strip().replace("def ", "")
-        keys = list(UiView.handlerDisplayNames.keys())
-        vals = list(UiView.handlerDisplayNames.values())
-        return keys[vals.index(displayName)]
+        name = displayName.strip().replace("()", "")
+        return name
 
     def OnHandlerPickerDone(self, index, text):
         if self.handlerPicker:

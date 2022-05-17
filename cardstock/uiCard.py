@@ -89,12 +89,12 @@ class UiCard(UiView):
                 ui.OnPropertyChanged(ui.model, "position")
 
     def OnKeyDown(self, event):
-        if self.stackManager.runner and self.model.GetHandler("OnKeyDown"):
-            self.stackManager.runner.RunHandler(self.model, "OnKeyDown", event)
+        if self.stackManager.runner and self.model.GetHandler("OnKeyPress"):
+            self.stackManager.runner.RunHandler(self.model, "OnKeyPress", event)
 
     def OnKeyUp(self, event):
-        if self.stackManager.runner and self.model.GetHandler("OnKeyUp"):
-            self.stackManager.runner.RunHandler(self.model, "OnKeyUp", event)
+        if self.stackManager.runner and self.model.GetHandler("OnKeyRelease"):
+            self.stackManager.runner.RunHandler(self.model, "OnKeyRelease", event)
 
     def OnPeriodic(self, event):
         if self.stackManager.runner and self.model.GetHandler("OnKeyHold"):
@@ -120,7 +120,7 @@ class CardModel(ViewModel):
         self.type = "card"
         self.proxyClass = Card
         # Add custom handlers to the top of the list
-        handlers = {"OnSetup": "", "OnShowCard": "", "OnKeyDown": "", "OnKeyHold": "", "OnKeyUp": ""}
+        handlers = {"OnSetup": "", "OnShowCard": "", "OnKeyPress": "", "OnKeyHold": "", "OnKeyRelease": ""}
         del self.handlers["OnBounce"]
         for k,v in self.handlers.items():
             handlers[k] = v

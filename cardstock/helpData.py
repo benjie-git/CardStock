@@ -552,8 +552,8 @@ class HelpDataObject():
                                     "<b>code</b>."},
         "StopHandlingMouseEvent": {"args": {},
                                    "return": None,
-                                   "info": "If you call this method from your event code for any OnMouseDown(), OnMouseMove(), "
-                                           "or OnMouseUp() event, CardStock will skip running code for this event "
+                                   "info": "If you call this method from your event code for any OnMousePress(), OnMouseMove(), "
+                                           "or OnMouseRelease() event, CardStock will skip running code for this event "
                                            "for any overlapping objects underneath this object, which would otherwise "
                                            "be run immediately after this object's event code finishes.  Calling "
                                            "this method from any non-mouse event code does nothing.  Should be run as self.StopHandlingMouseEvent()."},
@@ -637,22 +637,25 @@ class HelpDataObject():
                     "info": "The <b>OnSetup</b> event is run once for every object in your stack, immediately when the stack "
                             "starts running, before showing the first card.  This is a great place to run any imports that your "
                             "program needs, and to define functions, and set up any variables with their initial values."},
-        "OnMouseDown": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
-                        "info": "The <b>OnMouseDown</b> event is run when the mouse button gets clicked down inside of this object, "
+        "OnMousePress": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
+                        "info": "The <b>OnMousePress</b> event is run when the mouse button gets pressed down inside of this object, "
                                 "and gives you the current mouse position as the point <b>mousePos</b>.  This event will be "
                                 "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
-                                "itself, unless this propagation is stopped by calling self.StopHandlingMouseEvent() from your code."},
+                                "itself, unless this propagation is stopped by calling self.StopHandlingMouseEvent() from your code.  "
+                                "Note that Mouse events are run whether you use a mouse, trackpad, touchscreen, or any other pointing device."},
         "OnMouseMove": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                         "info": "The <b>OnMouseMove</b> event is run every time the mouse moves, while over this object, whether "
                                 "or not the mouse button is down, and gives you the current mouse position as the point <b>mousePos</b>.  "
                                 "This event will be "
                                 "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
-                                "itself, unless this propagation is stopped by calling self.StopHandlingMouseEvent() from your code."},
-        "OnMouseUp": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
-                      "info": "The <b>OnMouseUp</b> event is run when the mouse button is released over this object, and "
+                                "itself, unless this propagation is stopped by calling self.StopHandlingMouseEvent() from your code.  "
+                                "Note that Mouse events are run whether you use a mouse, trackpad, touchscreen, or any other pointing device."},
+        "OnMouseRelease": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
+                      "info": "The <b>OnMouseRelease</b> event is run when the mouse button is released over this object, and "
                               "gives you the current mouse position as the point <b>mousePos</b>.  This event will be "
                                 "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
-                                "itself, unless this propagation is stopped by calling self.StopHandlingMouseEvent() from your code."},
+                                "itself, unless this propagation is stopped by calling self.StopHandlingMouseEvent() from your code.  "
+                                "Note that Mouse events are run whether you use a mouse, trackpad, touchscreen, or any other pointing device."},
         "OnMouseEnter": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
                          "info": "The <b>OnMouseEnter</b> event is run when the mouse pointer moves onto this object."},
         "OnMouseExit": {"args": {"mousePos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
@@ -1136,8 +1139,8 @@ class HelpDataCard():
         "OnResize": {"args": {},
                      "info": "The <b>OnResize</b> event is run on the currently visible card when the stack window is "
                              "resized."},
-        "OnKeyDown": {"args": {"keyName": {"type": "string", "info": "The name of the pressed key"}},
-                      "info": "The <b>OnKeyDown</b> event is run any time a keyboard key is pressed down.  Regular "
+        "OnKeyPress": {"args": {"keyName": {"type": "string", "info": "The name of the pressed key"}},
+                      "info": "The <b>OnKeyPress</b> event is run any time a keyboard key is pressed down.  Regular "
                               "keys are named as capital letters and digits, like 'A' or '1', and other keys have "
                               "keyNames like 'Shift', 'Return', 'Escape', 'Left', and 'Right'."},
         "OnKeyHold": {"args": {"keyName": {"type": "string", "info": "The name of the key that is still being held down"},
@@ -1147,8 +1150,8 @@ class HelpDataCard():
                       "info": "The <b>OnKeyHold</b> event is run repeatedly, while any keyboard key is pressed down.  "
                               "Regular keys are named as capital letters and digits, like 'A' or '1', and other keys "
                               "have keyNames like 'Shift', 'Return', 'Escape', 'Left', and 'Right'."},
-        "OnKeyUp": {"args": {"keyName": {"type": "string", "info": "The name of the released key"}},
-                    "info": "The <b>OnKeyUp</b> event is run any time a pressed keyboard key is released.  Regular "
+        "OnKeyRelease": {"args": {"keyName": {"type": "string", "info": "The name of the released key"}},
+                    "info": "The <b>OnKeyRelease</b> event is run any time a pressed keyboard key is released.  Regular "
                             "keys are named as capital letters and digits, like 'A' or '1', and other keys have "
                             "keyNames like 'Shift', 'Return', 'Escape', 'Left', and 'Right'."},
     }
