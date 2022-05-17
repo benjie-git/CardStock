@@ -198,7 +198,7 @@ class PropertyInspector(wx.grid.Grid):
                 self.SetCellValue(row, 1, val)
 
     def SetValue(self, key, val):
-        if key in ("bold", "italic", "underlined"):
+        if key in ("isBold", "isItalic", "isUnderlined"):
             self.Refresh(True)
         if key in self.data:
             self.data[key] = val
@@ -508,7 +508,7 @@ class GridCellFontRenderer(wx.grid.GridCellStringRenderer):
         dc.SetFont(attr.GetFont())
         grid.DrawTextRectangle(dc, text, rect, hAlign, vAlign)
 
-        isBold = self.textObjs[0].GetProperty("bold") if len(self.textObjs) else False
+        isBold = self.textObjs[0].GetProperty("isBold") if len(self.textObjs) else False
         dc.SetPen(wx.Pen('grey', 1, wx.PENSTYLE_SOLID))
         dc.SetBrush(wx.Brush('grey' if isBold else 'white', wx.SOLID))
         styleRect = wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH, rect.Top+1, COLOR_PATCH_WIDTH/3-2, rect.Height-1)
@@ -517,7 +517,7 @@ class GridCellFontRenderer(wx.grid.GridCellStringRenderer):
         styleRect.Position -= (0, 2)
         grid.DrawTextRectangle(dc, "b", styleRect, wx.ALIGN_CENTER, vAlign)
 
-        isItalic = self.textObjs[0].GetProperty("italic") if len(self.textObjs) else False
+        isItalic = self.textObjs[0].GetProperty("isItalic") if len(self.textObjs) else False
         dc.SetPen(wx.Pen('grey', 1, wx.PENSTYLE_SOLID))
         dc.SetBrush(wx.Brush('grey' if isItalic else 'white', wx.SOLID))
         styleRect = wx.Rect(rect.Left + rect.Width-2*COLOR_PATCH_WIDTH/3+1, rect.Top+1, COLOR_PATCH_WIDTH/3-2, rect.Height-1)
@@ -532,7 +532,7 @@ class GridCellFontRenderer(wx.grid.GridCellStringRenderer):
                 showIsUnderlined = False
                 break
         if showIsUnderlined:
-            isUnderlined = self.textObjs[0].GetProperty("underlined") if len(self.textObjs) else False
+            isUnderlined = self.textObjs[0].GetProperty("isUnderlined") if len(self.textObjs) else False
             dc.SetPen(wx.Pen('grey', 1, wx.PENSTYLE_SOLID))
             dc.SetBrush(wx.Brush('grey' if isUnderlined else 'white', wx.SOLID))
             styleRect = wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH/3+2, rect.Top+1, COLOR_PATCH_WIDTH/3-2, rect.Height-1)
@@ -560,27 +560,27 @@ class GridCellFontEditor(GridCellCustomChoiceEditor):
                     showingIsUnderlined = False
                     break
             if showingIsUnderlined:
-                isUnderlined = self.textObjs[0].GetProperty("underlined") if len(self.textObjs) else False
+                isUnderlined = self.textObjs[0].GetProperty("isUnderlined") if len(self.textObjs) else False
                 for obj in self.textObjs:
                     command = SetPropertyCommand(True, "Set Property", self.inspector.stackManager.designer.cPanel,
                                                  self.inspector.stackManager.cardIndex, obj,
-                                                 "underlined", not isUnderlined)
+                                                 "isUnderlined", not isUnderlined)
                     self.inspector.stackManager.command_processor.Submit(command)
         elif x > self.inspector.GetSize().Width - 2 * COLOR_PATCH_WIDTH / 3:
             self.inspector.HideCellEditControl()
-            isItalic = self.textObjs[0].GetProperty("italic") if len(self.textObjs) else False
+            isItalic = self.textObjs[0].GetProperty("isItalic") if len(self.textObjs) else False
             for obj in self.textObjs:
                 command = SetPropertyCommand(True, "Set Property", self.inspector.stackManager.designer.cPanel,
                                              self.inspector.stackManager.cardIndex, obj,
-                                             "italic", not isItalic)
+                                             "isItalic", not isItalic)
                 self.inspector.stackManager.command_processor.Submit(command)
         elif x > self.inspector.GetSize().Width - COLOR_PATCH_WIDTH:
             self.inspector.HideCellEditControl()
-            isBold = self.textObjs[0].GetProperty("bold") if len(self.textObjs) else False
+            isBold = self.textObjs[0].GetProperty("isBold") if len(self.textObjs) else False
             for obj in self.textObjs:
                 command = SetPropertyCommand(True, "Set Property", self.inspector.stackManager.designer.cPanel,
                                              self.inspector.stackManager.cardIndex, obj,
-                                             "bold", not isBold)
+                                             "isBold", not isBold)
                 self.inspector.stackManager.command_processor.Submit(command)
         else:
             super().StartingClick()

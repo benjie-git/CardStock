@@ -36,7 +36,7 @@ class UiTextBase(UiView):
                     self.view.SetEditable(wasEditable)
                     self.view.Refresh()
             self.OnResize(None)
-        elif key in ["font", "fontSize", "textColor", "autoShrink", "rotation", "bold", "italic", "underlined"]:
+        elif key in ["font", "fontSize", "textColor", "autoShrink", "rotation", "isBold", "isItalic", "isUnderlined"]:
             self.UpdateFont(model, self.view)
             self.OnResize(None)
             if self.view:
@@ -68,9 +68,9 @@ class UiTextBase(UiView):
         size = self.ScaleFontSize(model.GetProperty("fontSize"), view)
         font = wx.Font(wx.FontInfo(wx.Size(0, size))
                        .Family(self.FamilyForName(familyName))
-                       .Bold(model.properties["bold"])
-                       .Italic(model.properties["italic"])
-                       .Underlined(model.properties["underlined"]))
+                       .Bold(model.properties["isBold"])
+                       .Italic(model.properties["isItalic"])
+                       .Underlined(model.properties["isUnderlined"]))
         color = wx.Colour(model.GetProperty("textColor"))
         if color.IsOk():
             colorStr = color.GetAsString(flags=wx.C2S_HTML_SYNTAX)
@@ -154,18 +154,18 @@ class TextBaseModel(ViewModel):
         self.properties["textColor"] = "black"
         self.properties["font"] = "Default"
         self.properties["fontSize"] = 18
-        self.properties["bold"] = False
-        self.properties["italic"] = False
-        self.properties["underlined"] = False
+        self.properties["isBold"] = False
+        self.properties["isItalic"] = False
+        self.properties["isUnderlined"] = False
 
         self.propertyTypes["text"] = "string"
         self.propertyTypes["alignment"] = "choice"
         self.propertyTypes["textColor"] = "color"
         self.propertyTypes["font"] = "choice"
         self.propertyTypes["fontSize"] = "uint"
-        self.propertyTypes["bold"] = "bool"
-        self.propertyTypes["italic"] = "bool"
-        self.propertyTypes["underlined"] = "bool"
+        self.propertyTypes["isBold"] = "bool"
+        self.propertyTypes["isItalic"] = "bool"
+        self.propertyTypes["isUnderlined"] = "bool"
 
 
 class TextBaseProxy(ViewProxy):
@@ -241,33 +241,33 @@ class TextBaseProxy(ViewProxy):
     def isBold(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("bold")
+        return model.GetProperty("isBold")
     @isBold.setter
     def isBold(self, val):
         if not isinstance(val, bool):
             raise TypeError("isBold must be True or False")
         model = self._model
         if not model: return
-        model.SetProperty("bold", val)
+        model.SetProperty("isBold", val)
 
     @property
     def isItalic(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("italic")
+        return model.GetProperty("isItalic")
     @isItalic.setter
     def isItalic(self, val):
         if not isinstance(val, bool):
             raise TypeError("isItalic must be True or False")
         model = self._model
         if not model: return
-        model.SetProperty("italic", val)
+        model.SetProperty("isItalic", val)
 
     @property
     def isUnderlined(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("underlined")
+        return model.GetProperty("isUnderlined")
     @isUnderlined.setter
     def isUnderlined(self, val):
         if not isinstance(val, bool):
@@ -276,7 +276,7 @@ class TextBaseProxy(ViewProxy):
         if not model: return
         if model.type == "textfield":
             raise TypeError("Text Field objects do not support underlined text.")
-        model.SetProperty("underlined", val)
+        model.SetProperty("isUnderlined", val)
 
     def AnimateTextColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
