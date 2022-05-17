@@ -3,6 +3,7 @@ import wx.grid
 from uiView import ViewModel, ViewProxy
 from simpleListBox import SimpleListBox
 import mediaSearchDialogs
+from appCommands import SetPropertyCommand
 import os
 import math
 
@@ -197,6 +198,8 @@ class PropertyInspector(wx.grid.Grid):
                 self.SetCellValue(row, 1, val)
 
     def SetValue(self, key, val):
+        if key in ("bold", "italic", "underlined"):
+            self.Refresh(True)
         if key in self.data:
             self.data[key] = val
 
@@ -559,16 +562,25 @@ class GridCellFontEditor(GridCellCustomChoiceEditor):
             if showingIsUnderlined:
                 isUnderlined = self.textObjs[0].GetProperty("underlined") if len(self.textObjs) else False
                 for obj in self.textObjs:
-                    obj.SetProperty("underlined", not isUnderlined)
+                    command = SetPropertyCommand(True, "Set Property", self.inspector.stackManager.designer.cPanel,
+                                                 self.inspector.stackManager.cardIndex, obj,
+                                                 "underlined", not isUnderlined)
+                    self.inspector.stackManager.command_processor.Submit(command)
         elif x > self.inspector.GetSize().Width - 2 * COLOR_PATCH_WIDTH / 3:
             self.inspector.HideCellEditControl()
             isItalic = self.textObjs[0].GetProperty("italic") if len(self.textObjs) else False
             for obj in self.textObjs:
-                obj.SetProperty("italic", not isItalic)
+                command = SetPropertyCommand(True, "Set Property", self.inspector.stackManager.designer.cPanel,
+                                             self.inspector.stackManager.cardIndex, obj,
+                                             "italic", not isItalic)
+                self.inspector.stackManager.command_processor.Submit(command)
         elif x > self.inspector.GetSize().Width - COLOR_PATCH_WIDTH:
             self.inspector.HideCellEditControl()
             isBold = self.textObjs[0].GetProperty("bold") if len(self.textObjs) else False
             for obj in self.textObjs:
-                obj.SetProperty("bold", not isBold)
+                command = SetPropertyCommand(True, "Set Property", self.inspector.stackManager.designer.cPanel,
+                                             self.inspector.stackManager.cardIndex, obj,
+                                             "bold", not isBold)
+                self.inspector.stackManager.command_processor.Submit(command)
         else:
             super().StartingClick()
