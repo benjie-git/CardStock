@@ -15,7 +15,7 @@
       "handlers": {},
       "properties": {
         "name": "welcome",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -67,7 +67,7 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -90,7 +90,10 @@
             "textColor": "#A0A0A0",
             "font": "Default",
             "fontSize": 11,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -112,7 +115,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 25,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -134,7 +140,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -156,7 +165,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -180,7 +192,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         }
@@ -191,7 +206,7 @@
       "handlers": {},
       "properties": {
         "name": "labels",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -243,7 +258,7 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -264,7 +279,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 25,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -281,12 +299,15 @@
               34.0,
               342.0
             ],
-            "text": "You can draw objects like buttons,\ntext fields, text labels, and shapes\nonto your cards using the tools up here.",
+            "text": "You can draw objects like buttons,\ntext fields, shapes, and text\nonto your cards using the tools up here.",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -418,7 +439,7 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -434,12 +455,15 @@
               34.0,
               203.0
             ],
-            "text": "For example, this is a Text Label.  It shows text, but is not editable by the user when you run the stack.  But in the Designer, you can double click it to edit its text.",
+            "text": "For example, this is a Text object.  It shows text, but is not editable by the user when you run the stack.  But in the Designer, you can double click it to edit its text.",
             "alignment": "Left",
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         }
@@ -450,7 +474,7 @@
       "handlers": {},
       "properties": {
         "name": "fields",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -502,7 +526,7 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -523,7 +547,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 25,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -547,8 +574,11 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "editable": true,
-            "multiline": false
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "isEditable": true,
+            "isMultiline": false
           }
         },
         {
@@ -567,7 +597,7 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -588,7 +618,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         }
@@ -599,7 +632,7 @@
       "handlers": {},
       "properties": {
         "name": "buttons",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -651,7 +684,7 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -672,7 +705,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -694,7 +730,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 25,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -714,13 +753,13 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "border": true
+            "hasBorder": true
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "card.bgColor = \"#DDFFEE\""
+            "OnClick": "card.fillColor = \"#DDFFEE\""
           },
           "properties": {
             "name": "button_1",
@@ -733,7 +772,7 @@
               271.0
             ],
             "title": "I am a Button",
-            "border": true
+            "hasBorder": true
           }
         }
       ]
@@ -743,7 +782,7 @@
       "handlers": {},
       "properties": {
         "name": "images",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -795,7 +834,7 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -816,7 +855,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -858,7 +900,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 25,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -878,7 +923,7 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -1449,7 +1494,7 @@
       "handlers": {},
       "properties": {
         "name": "property_editor",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -1501,7 +1546,7 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -1522,14 +1567,17 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
         {
           "type": "image",
           "handlers": {
-            "OnMouseDown": "PlaySound(\"puff.wav\")"
+            "OnMousePress": "PlaySound(\"puff.wav\")"
           },
           "properties": {
             "name": "image_1",
@@ -1599,7 +1647,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -1621,7 +1672,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 25,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -1641,7 +1695,7 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -2325,7 +2379,7 @@
       "handlers": {},
       "properties": {
         "name": "try_it",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -2377,7 +2431,7 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -2398,12 +2452,15 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 25,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
         {
-          "type": "poly",
+          "type": "polygon",
           "handlers": {},
           "properties": {
             "name": "shape_1",
@@ -2523,7 +2580,7 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -2544,7 +2601,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         }
@@ -2555,7 +2615,7 @@
       "handlers": {},
       "properties": {
         "name": "code_editor",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -2609,7 +2669,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -2629,7 +2692,7 @@
               288.0
             ],
             "title": "Click Me!",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -2648,7 +2711,7 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -2789,7 +2852,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -2811,7 +2877,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 25,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -2831,7 +2900,7 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -2852,7 +2921,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         }
@@ -2863,7 +2935,7 @@
       "handlers": {},
       "properties": {
         "name": "code_1",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -2915,7 +2987,7 @@
               386.0
             ],
             "title": "Add One",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -2934,7 +3006,7 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -2955,7 +3027,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -2977,7 +3052,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 25,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -2997,7 +3075,7 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -3018,8 +3096,11 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "editable": true,
-            "multiline": false
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "isEditable": true,
+            "isMultiline": false
           }
         }
       ]
@@ -3029,7 +3110,7 @@
       "handlers": {},
       "properties": {
         "name": "code_2",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -3081,7 +3162,7 @@
               395.0
             ],
             "title": "Animate",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -3100,7 +3181,7 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -3121,7 +3202,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -3143,7 +3227,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 25,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -3163,7 +3250,7 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -3206,7 +3293,7 @@
       "handlers": {},
       "properties": {
         "name": "run",
-        "bgColor": "white"
+        "fillColor": "white"
       },
       "childModels": [
         {
@@ -3260,7 +3347,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 25,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -3282,7 +3372,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -3432,7 +3525,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -3454,7 +3550,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -3476,7 +3575,10 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         },
@@ -3496,7 +3598,7 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "border": true
+            "hasBorder": true
           }
         },
         {
@@ -3517,13 +3619,16 @@
             "textColor": "black",
             "font": "Default",
             "fontSize": 12,
-            "autoShrink": true,
+            "isBold": false,
+            "isItalic": false,
+            "isUnderlined": false,
+            "canAutoShrink": true,
             "rotation": 0.0
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9.8"
+  "CardStock_stack_format": 4,
+  "CardStock_stack_version": "0.99.0"
 }

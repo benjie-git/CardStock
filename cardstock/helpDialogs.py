@@ -80,7 +80,7 @@ event-driven python code.  It is inspired by the simplicity and power of Apple's
 <h2>The Basics</h2>
 <p>A program that you create in CardStock is called a stack.  It can have multiple pages, each called a card.
 On each card, you can draw out your user interface, as you would in a drawing program -- laying out objects like buttons,
-text fields (user-editable), text labels (just static text drawn on the screen), images, and 
+text fields (user-editable), text (just static text drawn on the screen), images, and 
 drawings, using lines, shapes, and a pen tool.  You can group objects together if you want to be able to move them
 as one piece, and that group becomes a new object itself.</p>
 
@@ -97,15 +97,15 @@ or remove objects from the selection by Shift-clicking them.  You can also drag 
 whose centers it contains.  You can also cycle forwards and backwards through objects on the current card using Tab and
 Shift-Tab.  While objects are selected, you can use the Object menu items to group them, flip them, or re-order them to adjust which
 objects are in front of, or behind, which others.  But note that buttons, text fields, and web views always stay in 
-front of shapes, images, and text labels.  When an object is selected, you can resize it by dragging the rectangular, blue resize knobs in the 
+front of shapes, images, and text.  When an object is selected, you can resize it by dragging the rectangular, blue resize knobs in the 
 corners of the selected object.  Holding down the Shift key while resizing will keep the object's aspect
 ratio stable.  You can drag selected objects to move them, or use the arrow keys to move selected objects by 1 pixel at
 a time, or by 5 or 20 pixels at a time by holding down Shift or Alt/Option, respectively.  You can also rotate an object 
 by dragging the round, blue rotation knob at the top of the selected object, and can constrain rotation to multiples of
 5 degrees by holding down the Shift key.</p>
-<p>The next five tools are the button, text field, text label, web view, and image tools.  These each 
+<p>The next five tools are the button, text field, web view, text, and image tools.  These each 
 let you create that type of object, by drawing out the new object's shape on the card on the left.  You can double-click
-a text field or text label to edit its text in-place on the card.</p>
+a text field or text object to edit its text in-place on the card.</p>
 <p>The next six tools
 are the drawing tools, which let you draw with a pen, drag out an oval, a rectangle, a rounded rectangle, a polygon, 
 or a line.
@@ -421,9 +421,9 @@ the current card.  And you can access objects on other cards as, for example, st
                                                     "objects.  Access an object's properties or methods as, for "
                                                     "example, objectName.size or objectName.Focus()")}
 <hr/>
-{HelpData.ObjectSection("textlabel", "Text Label", "Text labels are objects that show text on the card, but are not "
+{HelpData.ObjectSection("textlabel", "Text", "Text objects show text on the card, but are not "
                                                     "editable by users. The below properties, methods, and events, in "
-                                                    "addition to those in the All Objects section, apply to text label "
+                                                    "addition to those in the All Objects section, apply to text objects "
                                                     "objects.  Access an object's properties or methods as, for "
                                                     "example, objectName.size or objectName.Focus()")}
 <hr/>

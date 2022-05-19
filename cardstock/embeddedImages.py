@@ -1165,7 +1165,7 @@ embeddedImages = {
     "hand": hand,
     "button": button,
     "field": field,
-    "label": label,
+    "text": label,
     "image": image,
     "webview": webview,
     "oval": oval,

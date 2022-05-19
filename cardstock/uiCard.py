@@ -354,7 +354,7 @@ class Card(ViewProxy):
         obj = model.AddNewObject("textfield", name, (100,24), kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
-    def AddTextLabel(self, name="label", **kwargs):
+    def AddText(self, name="text", **kwargs):
         model = self._model
         if not model: return None
         obj = model.AddNewObject("textlabel", name, (100,24), kwargs=kwargs)
