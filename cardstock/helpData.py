@@ -1038,7 +1038,7 @@ class HelpDataCard():
                     "info": "Adds a new Text Field to the card, and returns the new object."},
         "AddText": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Text object.  If omitted, the name will be "
-                                                                "'label_{N}'."},
+                                                                "'text_{N}'."},
                                   "...": {"info": "optionally set more properties here.  For example, "
                                                                  "include position=(10,10)"}},
                          "return": "textlabel",
