@@ -392,7 +392,7 @@ class HelpDataGlobals():
                          "return": "bool",
                          "info": "Returns <b>True</b> if the named keyboard key is currently pressed down, otherwise "
                                  "returns <b>False</b>."},
-        "IsMouseDown": {"args": {},
+        "IsMousePressed": {"args": {},
                          "return": "bool",
                          "info": "Returns <b>True</b> if the main mouse button is currently pressed down, or the user "
                                  "is touching a touch screen, otherwise returns <b>False</b>."},

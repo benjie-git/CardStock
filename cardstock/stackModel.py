@@ -183,6 +183,11 @@ class StackModel(ViewModel):
                 if "OnMouseUp"   in obj.handlers: obj.handlers["OnMouseRelease"] = obj.handlers.pop("OnMouseUp")
                 if "OnKeyDown"   in obj.handlers: obj.handlers["OnKeyPress"]     = obj.handlers.pop("OnKeyDown")
                 if "OnKeyUp"     in obj.handlers: obj.handlers["OnKeyRelease"]   = obj.handlers.pop("OnKeyUp")
+                for k,v in obj.handlers.items():
+                    if len(v):
+                        val = v
+                        val = val.replace("IsMouseDown(", "IsMousePressed(")
+                        obj.handlers[k] = val
                 for child in obj.childModels:
                     replaceNames(child)
             replaceNames(stackModel)

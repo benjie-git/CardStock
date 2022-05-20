@@ -105,7 +105,7 @@ class Runner():
             "StopSound": self.StopSound,
             "BroadcastMessage": self.BroadcastMessage,
             "IsKeyPressed": self.IsKeyPressed,
-            "IsMouseDown": self.IsMouseDown,
+            "IsMousePressed": self.IsMousePressed,
             "IsUsingTouchScreen": self.IsUsingTouchScreen,
             "GetMousePos": self.GetMousePos,
             "Quit":self.Quit,
@@ -926,7 +926,7 @@ class Runner():
         return name in self.pressedKeys
 
     @RunOnMainSync
-    def IsMouseDown(self):
+    def IsMousePressed(self):
         return wx.GetMouseState().LeftIsDown()
 
     def IsUsingTouchScreen(self):

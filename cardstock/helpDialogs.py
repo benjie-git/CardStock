@@ -103,7 +103,7 @@ ratio stable.  You can drag selected objects to move them, or use the arrow keys
 a time, or by 5 or 20 pixels at a time by holding down Shift or Alt/Option, respectively.  You can also rotate an object 
 by dragging the round, blue rotation knob at the top of the selected object, and can constrain rotation to multiples of
 5 degrees by holding down the Shift key.</p>
-<p>The next five tools are the button, text field, web view, text, and image tools.  These each 
+<p>The next five tools are the button, text field, web view, image, and text tools.  These each 
 let you create that type of object, by drawing out the new object's shape on the card on the left.  You can double-click
 a text field or text object to edit its text in-place on the card.</p>
 <p>The next six tools
