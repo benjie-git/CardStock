@@ -405,12 +405,18 @@ class HelpDataGlobals():
                          "info": "Returns the current position of the mouse, whether or not it is inside of the stack "
                                  "window.  This point's x and y values can be negative, if the mouse is to the left "
                                  "or below the bottom left corner of the stack window."},
-        "Color": {"args": {"r": {"type": "float", "info": "The red component of the color as a number from 0.0 to 1.0."},
-                               "g": {"type": "float", "info": "The green component of the color as a number from 0.0 to 1.0."},
-                               "b": {"type": "float", "info": "The blue component of the color as a number from 0.0 to 1.0."}},
+        "ColorRGB": {"args": {"red": {"type": "float", "info": "The red component of the color as a number from 0.0 to 1.0."},
+                               "green": {"type": "float", "info": "The green component of the color as a number from 0.0 to 1.0."},
+                               "blue": {"type": "float", "info": "The blue component of the color as a number from 0.0 to 1.0."}},
+                         "return": "string",
+                         "info": "Returns an HTML color string of the form '#rrggbb' based on the red, green, and blue values given.  For example "
+                                 "<b>ColorRGB(1, 0, 0)</b> returns '#FF0000' which is bright red."},
+        "ColorHSB": {"args": {"hue": {"type": "float", "info": "The hue of the color as a number from 0.0 to 1.0, where 0 means red, and goes up through the rainbow, back to red again at 1.0."},
+                               "saturation": {"type": "float", "info": "The saturation of the color as a number from 0.0 to 1.0, where 0 means gray and 1 means fully saturated color."},
+                               "brightness": {"type": "float", "info": "The brightness component of the color as a number from 0.0 to 1.0, where 0 means black."}},
                          "return": "string",
                          "info": "Returns an HTML color string of the form '#rrggbb'.  For example "
-                                 "<b>Color(1, 0, 0)</b> returns '#FF0000' which is bright red."},
+                                 "<b>ColorHSB(0, 1, 1)</b> returns '#FF0000' which is bright red."},
         "Point": {"args": {"x": {"type": "float", "info": "The x (horizontal) part of this point."},
                            "y": {"type": "float", "info": "The y (vertical) part of this point."}},
                          "return": "point",

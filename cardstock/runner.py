@@ -6,7 +6,7 @@ import wx
 import uiView
 import types
 from uiCard import Card
-from wx.adv import Sound
+import colorsys
 from time import sleep, time
 import math
 from errorListWindow import CardStockError
@@ -109,7 +109,8 @@ class Runner():
             "IsUsingTouchScreen": self.IsUsingTouchScreen,
             "GetMousePos": self.GetMousePos,
             "Quit":self.Quit,
-            "Color": self.MakeColor,
+            "ColorRGB": self.MakeColorRGB,
+            "ColorHSB": self.MakeColorHSB,
             "Point": self.MakePoint,
             "Size": self.MakeSize,
         }
@@ -937,15 +938,27 @@ class Runner():
         return wx.RealPoint(self.stackManager.view.ScreenToClient(*wx.GetMousePosition()))
 
     @staticmethod
-    def MakeColor(r, g, b):
-        if not isinstance(r, (float, int)) or not 0 <= r <= 1:
-            raise TypeError("Color(): r must be a number between 0 and 1")
-        if not isinstance(g, (float, int)) or not 0 <= g <= 1:
-            raise TypeError("Color(): g must be a number between 0 and 1")
-        if not isinstance(b, (float, int)) or not 0 <= b <= 1:
-            raise TypeError("Color(): b must be a number between 0 and 1")
-        r, g, b = (int(r * 255), int(g * 255), int(b * 255))
-        return f"#{r:02X}{g:02X}{b:02X}"
+    def MakeColorRGB(red, green, blue):
+        if not isinstance(red, (float, int)) or not 0 <= red <= 1:
+            raise TypeError("ColorRGB(): red must be a number between 0 and 1")
+        if not isinstance(green, (float, int)) or not 0 <= green <= 1:
+            raise TypeError("ColorRGB(): green must be a number between 0 and 1")
+        if not isinstance(blue, (float, int)) or not 0 <= blue <= 1:
+            raise TypeError("ColorRGB(): blue must be a number between 0 and 1")
+        red, green, blue = (int(red * 255), int(green * 255), int(blue * 255))
+        return f"#{red:02X}{green:02X}{blue:02X}"
+
+    @staticmethod
+    def MakeColorHSB(hue, saturation, brightness):
+        if not isinstance(hue, (float, int)) or not 0 <= hue <= 1:
+            raise TypeError("ColorHSB(): hue must be a number between 0 and 1")
+        if not isinstance(saturation, (float, int)) or not 0 <= saturation <= 1:
+            raise TypeError("ColorHSB(): saturation must be a number between 0 and 1")
+        if not isinstance(brightness, (float, int)) or not 0 <= brightness <= 1:
+            raise TypeError("ColorHSB(): brightness must be a number between 0 and 1")
+        red, green, blue = colorsys.hsv_to_rgb(hue, saturation, brightness)
+        red, green, blue = (int(red * 255), int(green * 255), int(blue * 255))
+        return f"#{red:02X}{green:02X}{blue:02X}"
 
     @staticmethod
     def MakePoint(x, y):

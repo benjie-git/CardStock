@@ -186,6 +186,7 @@ class StackModel(ViewModel):
                 for k,v in obj.handlers.items():
                     if len(v):
                         val = v
+                        val = val.replace("Color(", "ColorRGB(")
                         val = val.replace("IsMouseDown(", "IsMousePressed(")
                         obj.handlers[k] = val
                 for child in obj.childModels:
