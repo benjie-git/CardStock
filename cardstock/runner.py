@@ -217,28 +217,23 @@ class Runner():
                     while time() < breakpoint:
                         wx.YieldIfNeeded()
 
-            waitAndYield(0.7) # wait 0.7 sec for the stack to finish
-            self.runnerThread.join(0.05) # try to join the finished thread
-
-            if self.runnerThread.is_alive():
-                # Thread didn't finish.  So kill it and wait for the thread to stop
-                for i in range(4):
-                    # Try a few times, on the off chance that someone has a long/infinite loop in their code,
-                    # inside a try block, with another long/infinite loop inside the exception handler
-                    self.runnerThread.terminate()
-                    waitAndYield(0.15)
-                    self.runnerThread.join(0.05)
-                    if not self.runnerThread.is_alive():
-                        break
-                if self.runnerThread.is_alive() and not self.generatingThumbnail:
-                    # If the runnerThread is still going now, something went wrong
-                    if len(self.lastHandlerStack) > 0:
-                        model = self.lastHandlerStack[-1][0]
-                        handlerName = self.lastHandlerStack[-1][1]
-                        msg = f"Exited while {self.HandlerPath(model, handlerName, self.lastCard)} was still running, and " \
-                              f"could not be stopped.  Maybe you have a long or infinite loop?"
-                        error = CardStockError(self.lastCard, model, handlerName, 1, msg)
-                        self.errors.append(error)
+            for i in range(4):
+                # Try a few times, on the off chance that someone has a long/infinite loop in their code,
+                # inside a try block, with another long/infinite loop inside the exception handler
+                self.runnerThread.terminate()
+                waitAndYield(0.15)
+                self.runnerThread.join(0.05)
+                if not self.runnerThread.is_alive():
+                    break
+            if self.runnerThread.is_alive() and not self.generatingThumbnail:
+                # If the runnerThread is still going now, something went wrong
+                if len(self.lastHandlerStack) > 0:
+                    model = self.lastHandlerStack[-1][0]
+                    handlerName = self.lastHandlerStack[-1][1]
+                    msg = f"Exited while {self.HandlerPath(model, handlerName, self.lastCard)} was still running, and " \
+                          f"could not be stopped.  Maybe you have a long or infinite loop?"
+                    error = CardStockError(self.lastCard, model, handlerName, 1, msg)
+                    self.errors.append(error)
 
             self.runnerThread = None
 

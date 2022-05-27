@@ -537,7 +537,8 @@ class StackManager(object):
             for m in models:
                 if m.GetCard() == card:
                     validModels.append(m)
-                    proxies[m] = m.proxy
+                    if m.proxy:
+                        proxies[m] = m.proxy
                     self.RemoveUiViewByModel(m)
                     m.SetBackUp(self)
             group.AddChildModels(validModels)
@@ -561,7 +562,8 @@ class StackManager(object):
                 proxies = {}
                 for child in group.childModels.copy():
                     childModels.append(child)
-                    proxies[child] = child.proxy
+                    if child.proxy:
+                        proxies[child] = child.proxy
                     group.RemoveChild(child)
                     child.SetBackUp(self)
                 if group.GetCard() == self.uiCard.model:
