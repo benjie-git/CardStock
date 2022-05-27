@@ -225,6 +225,8 @@ class GroupModel(ViewModel):
             pos = m.origGroupSubviewFrame.Position
             size = m.origGroupSubviewFrame.Size
             oldRot = m.origGroupSubviewRotation
+            if oldRot is None:
+                oldRot = 0
             if oldRot == 0:
                 # If this child is not rotated, just scale it
                 m.SetFrame(wx.Rect((pos.x*scaleX, pos.y*scaleY), (size.Width*scaleX, size.Height*scaleY)))
