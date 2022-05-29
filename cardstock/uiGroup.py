@@ -199,6 +199,8 @@ class GroupModel(ViewModel):
         if fx or fy:
             for m in self.childModels:
                 if fx != fy:
+                    if m.origGroupSubviewRotation is None:
+                        m.origGroupSubviewRotation = 0
                     m.origGroupSubviewRotation = -m.origGroupSubviewRotation
                 pos = m.origGroupSubviewFrame.Position
                 size = m.origGroupSubviewFrame.Size
@@ -208,7 +210,9 @@ class GroupModel(ViewModel):
             for m in self.childModels:
                 m.PerformFlips(fx, fy, notify=notify)
                 if fx != fy:
-                    m.SetProperty("rotation", -m.GetProperty("rotation"))
+                    rot = m.GetProperty("rotation")
+                    if rot is not None:
+                        m.SetProperty("rotation", -rot)
             self.ResizeChildModels()
         if notify:
             self.Notify("size")
