@@ -383,8 +383,6 @@ class StackManager(object):
                             command = AddNewUiViewCommand(True, "Paste Card", self, self.cardIndex + 1, "card", models[0])
                             self.command_processor.Submit(command, storeIt=canUndo)
                         else:
-                            for m in models:
-                                m.SetProperty("position", m.GetProperty("position") + (20, -20))
                             self.uiCard.model.DeduplicateNamesForModels(models)
                             command = AddUiViewsCommand(True, 'Add Views', self, self.cardIndex, models)
                             self.command_processor.Submit(command, storeIt=canUndo)
