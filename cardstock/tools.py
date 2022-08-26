@@ -37,7 +37,7 @@ class BaseTool(object):
     def ToolFromName(cls, name, stackManager):
         if name == "hand":
             return HandTool(stackManager)
-        elif name in ["button", "field", "text", "image", "webview"]:
+        elif name in ["button", "field", "label", "image", "webview"]:
             return ViewTool(stackManager, name)
         elif name == "pen":
             return PenTool(stackManager)
@@ -523,7 +523,7 @@ class HandTool(BaseTool):
 
 class ViewTool(BaseTool):
     """
-    The View tool allows creating Buttons, Text Fields, Text objects, and Images.
+    The View tool allows creating Buttons, Text Fields, Text labels, and Images.
     """
 
     def __init__(self, stackManager, name):

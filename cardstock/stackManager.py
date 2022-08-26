@@ -587,7 +587,7 @@ class StackManager(object):
             uiView = UiButton(self.uiCard, self, model)
         elif objType == "textfield" or objType == "field":
             uiView = UiTextField(self.uiCard, self, model)
-        elif objType == "textlabel" or objType == "text":
+        elif objType == "textlabel" or objType == "label":
             uiView = UiTextLabel(self.uiCard, self, model)
         elif objType == "image":
             uiView = UiImage(self.uiCard, self, model)
@@ -1075,7 +1075,7 @@ class StackManager(object):
                 elif code == ord('F'):
                     self.designer.cPanel.SetToolByName("field")
                 elif code == ord('T'):
-                    self.designer.cPanel.SetToolByName("text")
+                    self.designer.cPanel.SetToolByName("label")
                 elif code == ord('I'):
                     self.designer.cPanel.SetToolByName("image")
                 elif code == ord('W'):

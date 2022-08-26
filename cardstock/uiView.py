@@ -694,7 +694,7 @@ class ViewModel(object):
         displayTypes = {"card": "Card",
                         "button": "Button",
                         "textfield": "TextField",
-                        "textlabel": "Text",
+                        "textlabel": "TextLabel",
                         "image": "Image",
                         "webview": "WebView",
                         "pen": "Pen",

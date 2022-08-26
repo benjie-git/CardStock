@@ -245,7 +245,7 @@ class HelpData():
     @classmethod
     def TOCPage(cls):
         types = [["All Objects", "object"], ["Stack", "stack"], ["Card", "card"], ["Button", "button"],
-                 ["Text Field", "textfield"], ["Text", "textlabel"], ["Web View", "webview"],
+                 ["Text Label", "textfield"], ["Text", "textlabel"], ["Web View", "webview"],
                  ["Image", "image"], ["Line & Pen", "line"],
                  ["Oval & Rectangle", "shape"], ["Round Rectangle", "roundrect"], ["Group", "group"]]
         text = """
@@ -1042,13 +1042,13 @@ class HelpDataCard():
                                                                  "include position=(10,10)"}},
                     "return": "textfield",
                     "info": "Adds a new Text Field to the card, and returns the new object."},
-        "AddText": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
-                                                                "new Text object.  If omitted, the name will be "
-                                                                "'text_{N}'."},
+        "AddTextLabel": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
+                                                                "new Text Label object.  If omitted, the name will be "
+                                                                "'label_{N}'."},
                                   "...": {"info": "optionally set more properties here.  For example, "
                                                                  "include position=(10,10)"}},
                          "return": "textlabel",
-                    "info": "Adds a new Text object to the card, and returns the new object."},
+                    "info": "Adds a new Text Label object to the card, and returns the new object."},
         "AddImage": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Image object.  If omitted, the name will be "
                                                                 "'image_{N}'."},

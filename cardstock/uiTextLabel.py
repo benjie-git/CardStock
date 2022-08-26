@@ -144,8 +144,8 @@ class TextLabelModel(TextBaseModel):
     def __init__(self, stackManager):
         super().__init__(stackManager)
         self.type = "textlabel"
-        self.proxyClass = Text
-        self.properties["name"] = "text_1"
+        self.proxyClass = TextLabel
+        self.properties["name"] = "label_1"
         self.properties["canAutoShrink"] = True
         self.properties["rotation"] = 0.0
 
@@ -156,7 +156,7 @@ class TextLabelModel(TextBaseModel):
         self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "canAutoShrink", "position", "size", "rotation"]
 
 
-class Text(TextBaseProxy):
+class TextLabel(TextBaseProxy):
     """
     TextLabel proxy objects are the user-accessible objects exposed to event handler code for text label objects.
     """

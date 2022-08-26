@@ -21,7 +21,7 @@ class StackGenerator(object):
             return uiButton.UiButton(parent, stackManager, model)
         elif model.type == "textfield" or model.type == "field":
             return uiTextField.UiTextField(parent, stackManager, model)
-        elif model.type == "textlabel" or model.type == "text":
+        elif model.type == "textlabel" or model.type == "label":
             return uiTextLabel.UiTextLabel(parent, stackManager, model)
         elif model.type == "image":
             return uiImage.UiImage(parent, stackManager, model)
@@ -64,7 +64,7 @@ class StackGenerator(object):
             m = uiButton.ButtonModel(stackManager)
         elif typeStr == "textfield" or typeStr == "field":
             m = uiTextField.TextFieldModel(stackManager)
-        elif typeStr == "textlabel" or typeStr == "text":
+        elif typeStr == "textlabel" or typeStr == "label":
             m = uiTextLabel.TextLabelModel(stackManager)
         elif typeStr == "image":
             m = uiImage.ImageModel(stackManager)
