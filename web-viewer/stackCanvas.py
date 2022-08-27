@@ -1,6 +1,5 @@
 from browser import window, document, worker, bind, timer, ajax
 import sys
-from settings import UPLOAD_THUMB_URL, THUMB_SIZE
 
 stackWorker = worker.Worker("stackWorker")
 
