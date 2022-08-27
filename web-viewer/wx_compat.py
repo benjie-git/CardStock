@@ -40,6 +40,24 @@ class Size(object):
             raise TypeError("height must be a number")
         self._height = val
 
+    @property
+    def Width(self):
+        return self._width
+    @Width.setter
+    def Width(self, val):
+        if not isinstance(val, (int, float)):
+            raise TypeError("width must be a number")
+        self._width = val
+
+    @property
+    def Height(self):
+        return self._height
+    @Height.setter
+    def Height(self, val):
+        if not isinstance(val, (int, float)):
+            raise TypeError("height must be a number")
+        self._height = val
+
     def __str__(self):
         return f"({self._width}, {self._height})"
 
@@ -301,6 +319,10 @@ class Rect(object):
     @property
     def Position(self):
         return RealPoint(self.Left, self.Top)
+    @Position.setter
+    def Position(self, pos):
+        self.Left = pos[0]
+        self.Top = pos[1]
 
     @property
     def TopLeft(self):
@@ -321,6 +343,10 @@ class Rect(object):
     @property
     def Size(self):
         return Size(self.Width, self.Height)
+    @Size.setter
+    def Size(self, s):
+        self.Width = s[0]
+        self.Height = s[1]
 
 
 class Colour(object):

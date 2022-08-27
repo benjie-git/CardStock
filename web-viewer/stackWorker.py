@@ -37,6 +37,7 @@ class StackWorker(object):
         self.stackManager = stackManager.StackManager()
 
         self.isMouseDown = False
+        self.usingTouchScreen = False
         self.focusedFabId = 0
 
         worker.bind("message", self.OnMessageW)
@@ -72,22 +73,23 @@ class StackWorker(object):
 
         elif msg == 'mouseDown':
             # handle a mouseDown
+            uid, pos, isTouch = args
             self.isMouseDown = True
-            uid, pos = args
-            self.stackManager.uiCard.OnFabricMouseDown(uid, pos)
+            self.usingTouchScreen = isTouch
+            self.stackManager.uiCard.OnFabricMouseDown(uid, pos, isTouch)
 
         elif msg == 'mouseMove':
             # handle a mouseMove
             numMoves = worker.Atomics.sub(self.countsSA32, 0, 1)
             if numMoves == 1:
-                uid, pos = args
-                self.stackManager.uiCard.OnFabricMouseMove(uid, pos)
+                uid, pos, isTouch = args
+                self.stackManager.uiCard.OnFabricMouseMove(uid, pos, isTouch)
 
         elif msg == 'mouseUp':
             # handle a mouseUp
             self.isMouseDown = False
-            uid, pos = args
-            self.stackManager.uiCard.OnFabricMouseUp(uid, pos)
+            uid, pos, isTouch = args
+            self.stackManager.uiCard.OnFabricMouseUp(uid, pos, isTouch)
 
         elif msg == 'keyDown':
             # handle a keyDown
@@ -188,6 +190,5 @@ class StackWorker(object):
 
 # Start up the worker class
 worker.stackWorker = StackWorker()
-
-# sys.stdout = worker.stackWorker
-# sys.stderr = worker.stackWorker
+sys.stdout = worker.stackWorker
+sys.stderr = worker.stackWorker

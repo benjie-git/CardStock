@@ -24,6 +24,7 @@ class StackManager(object):
         self.lastPeriodic = time()
         self.lastFrame = self.lastPeriodic
         self.delayedSetDowns = []
+        self.delayedAnimFinishedCalls = []
         self.windowSize = None
 
     def SetDown(self):
@@ -76,12 +77,13 @@ class StackManager(object):
         self.didSetup = False
         self.LoadCardAtIndex(0)
         if self.stackModel.GetProperty("canResize"):
-            self.stackModel.SetProperty("size", self.windowSize)
+            if self.windowSize:
+                self.stackModel.SetProperty("size", self.windowSize)
             for ui in self.uiCard.uiViews:
                 ui.OnPropertyChanged("position")
             self.runner.RunHandler(self.uiCard.model, "OnResize", None)
         s = self.stackModel.GetProperty("size")
-        worker.stackWorker.SendAsync(("canvasSetSize", s.width, s.height))
+        worker.stackWorker.SendAsync(("canvasSetSize", s.width, s.height, self.stackModel.GetProperty('canResize')))
 
     def RunSetupIfNeeded(self):
         if not self.didSetup:
@@ -99,15 +101,18 @@ class StackManager(object):
 
     def WindowDidResize(self, w, h):
         self.windowSize = wx.Size(w, h)
-        if self.stackModel.properties['canResize']:
+        if self.stackModel.GetProperty('canResize'):
             self.stackModel.SetProperty('size', self.windowSize)
-            worker.stackWorker.SendAsync(("canvasSetSize", self.windowSize.width, self.windowSize.height))
+            worker.stackWorker.SendAsync(("canvasSetSize", self.windowSize.width, self.windowSize.height,
+                                          self.stackModel.properties['canResize']))
             for ui in self.uiCard.uiViews:
                 ui.OnPropertyChanged("position")
             self.runner.RunHandler(self.uiCard.model, "OnResize", None)
 
-    def OnPeriodic(self):
-        # This is called at approximately 60 Hz, unless the stack/computer/browser are unable to keep up.
+    def Yield(self):
+        self.RunAnimations()
+
+    def RunAnimations(self):
         if not self.didSetup:
             return
 
@@ -124,11 +129,10 @@ class StackManager(object):
             if ui.RunAnimations(onFinishedCalls, elapsedTime):
                 didRun = True
         # Let all animations process, before running their onFinished handlers,
-        # which could start new animations.
-        for c in onFinishedCalls:
-            c()
+        # which could start new animations.  Enqueue these to run later.
         if len(onFinishedCalls):
-            didRun = True
+            self.delayedAnimFinishedCalls.extend(onFinishedCalls)
+            worker.stackWorker.SendAsync(("echo", "runAnimationsFinished"))
 
         # Check for all collisions
         collisions = {}
@@ -143,6 +147,14 @@ class StackManager(object):
         if didRun:
             worker.stackWorker.SendAsync(("render",))
 
+    def OnPeriodic(self):
+        # This is called at approximately 60 Hz, unless the stack/computer/browser are unable to keep up.
+        if not self.didSetup:
+            return
+
+        self.RunAnimations()
+
+        now = time()
         elapsedTime = now - self.lastPeriodic
         if elapsedTime >= 0.03:
             self.lastPeriodic = now
@@ -150,9 +162,16 @@ class StackManager(object):
             self.uiCard.OnPeriodic()
             self.RunDelayedSetDowns()
 
-    def ConvPoint(self, p):
-        cardSize = self.uiCard.model.GetProperty("size")
-        return wx.Point(p.x, cardSize.height - p.y)
+    def RunAnimationsFinished(self):
+        if len(self.delayedAnimFinishedCalls):
+            for c in self.delayedAnimFinishedCalls:
+                c()
+            worker.stackWorker.SendAsync(("render",))
+            self.delayedAnimFinishedCalls = []
+
+    def ConvPointInPlace(self, p):
+        cardSize = self.stackModel.properties["size"]
+        p.y = cardSize.height - p.y
 
     def ConvRect(self, r):
         cardSize = self.uiCard.model.GetProperty("size")
@@ -179,7 +198,7 @@ class StackManager(object):
             uiView = UiButton(self.uiCard, self, model)
         elif objType == "textfield" or objType == "field":
             uiView = UiTextField(self.uiCard, self, model)
-        elif objType == "textlabel" or objType == "label":
+        elif objType == "textlabel" or objType == "text":
             uiView = UiTextLabel(self.uiCard, self, model)
         elif objType == "image":
             uiView = UiImage(self.uiCard, self, model)
@@ -383,7 +402,7 @@ class StackManager(object):
             m = ButtonModel(stackManager)
         elif typeStr == "textfield" or typeStr == "field":
             m = TextFieldModel(stackManager)
-        elif typeStr == "textlabel" or typeStr == "label":
+        elif typeStr == "textlabel" or typeStr == "text":
             m = TextLabelModel(stackManager)
         elif typeStr == "image":
             m = ImageModel(stackManager)
@@ -406,7 +425,7 @@ class StackManager(object):
             return UiButton(parent, stackManager, model)
         elif model.type == "textfield" or model.type == "field":
             return UiTextField(parent, stackManager, model)
-        elif model.type == "textlabel" or model.type == "label":
+        elif model.type == "textlabel" or model.type == "text":
             return UiTextLabel(parent, stackManager, model)
         elif model.type == "image":
             return UiImage(parent, stackManager, model)

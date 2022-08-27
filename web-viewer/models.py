@@ -7,7 +7,7 @@ from time import time
 import re
 
 VERSION='0.9.8'
-FILE_FORMAT_VERSION=3
+FILE_FORMAT_VERSION=4
 
 
 class ViewModel(object):
@@ -22,7 +22,7 @@ class ViewModel(object):
     reservedNames = ['keyName', 'mousePos', 'message', 'URL', 'didLoad', 'otherObject', 'edge', 'elapsedTime', 'self',
                      'stack', 'card', 'Wait', 'Distance', 'RunAfterDelay', 'Time', 'Paste', 'Alert', 'AskYesNo',
                      'AskText', 'GotoCard', 'GotoNextCard', 'GotoPreviousCard', 'RunStack', 'PlaySound', 'StopSound',
-                     'BroadcastMessage', 'IsKeyPressed', 'IsMouseDown', 'GetMousePos', 'Color', 'Point', 'Size', 'Quit',
+                     'BroadcastMessage', 'IsKeyPressed', 'IsMousePressed', 'GetMousePos', 'Color', 'Point', 'Size', 'Quit',
                      'name', 'type', 'data', 'position', 'size', 'center', 'rotation', 'speed', 'isVisible', 'hasFocus',
                      'parent', 'children', 'Copy', 'Cut', 'Clone', 'Delete', 'SendMessage', 'Focus', 'Show', 'Hide',
                      'ChildWithBaseName', 'FlipHorizontal', 'FlipVertical', 'OrderToFront', 'OrderForward',
@@ -42,15 +42,15 @@ class ViewModel(object):
         self.parent = None
         self.handlers = {"OnSetup": "",
                          "OnMouseEnter": "",
-                         "OnMouseDown": "",
+                         "OnMousePress": "",
                          "OnMouseMove": "",
-                         "OnMouseUp": "",
+                         "OnMouseRelease": "",
                          "OnMouseExit": "",
                          "OnBounce": "",
                          "OnMessage": "",
                          "OnPeriodic": ""
                          }
-        self.initialEditHandler = "OnMouseDown"
+        self.initialEditHandler = "OnMousePress"
         self.visibleHandlers = set()
 
         self.properties = {"name": "",
@@ -1364,6 +1364,25 @@ class StackModel(ViewModel):
                 for child in obj.childModels:
                     replaceNames(child)
             replaceNames(stackModel)
+        if fromVer <= 3:
+            """
+            In File Format Version 4, some methods were renamed.
+            """
+            # Update names of StopAnimating methods, OnIdle->OnPeriodic
+            def replaceNames(obj):
+                if "OnMouseDown" in obj.handlers: obj.handlers["OnMousePress"]   = obj.handlers.pop("OnMouseDown")
+                if "OnMouseUp"   in obj.handlers: obj.handlers["OnMouseRelease"] = obj.handlers.pop("OnMouseUp")
+                if "OnKeyDown"   in obj.handlers: obj.handlers["OnKeyPress"]     = obj.handlers.pop("OnKeyDown")
+                if "OnKeyUp"     in obj.handlers: obj.handlers["OnKeyRelease"]   = obj.handlers.pop("OnKeyUp")
+                for k,v in obj.handlers.items():
+                    if len(v):
+                        val = v
+                        val = val.replace("Color(", "ColorRGB(")
+                        val = val.replace("IsMouseDown(", "IsMousePressed(")
+                        obj.handlers[k] = val
+                for child in obj.childModels:
+                    replaceNames(child)
+            replaceNames(stackModel)
 
 
 class Stack(ViewProxy):
@@ -1415,7 +1434,7 @@ class CardModel(ViewModel):
         self.allChildModels = None
 
         # Add custom handlers to the top of the list
-        handlers = {"OnSetup": "", "OnShowCard": "", "OnKeyDown": "", "OnKeyHold": "", "OnKeyUp": ""}
+        handlers = {"OnSetup": "", "OnShowCard": "", "OnKeyPress": "", "OnKeyHold": "", "OnKeyRelease": ""}
         del self.handlers["OnBounce"]
         for k,v in self.handlers.items():
             handlers[k] = v
@@ -1822,12 +1841,18 @@ class TextBaseModel(ViewModel):
         self.properties["textColor"] = "black"
         self.properties["font"] = "Default"
         self.properties["fontSize"] = 18
+        self.properties["isBold"] = False
+        self.properties["isItalic"] = False
+        self.properties["isUnderlined"] = False
 
         self.propertyTypes["text"] = "string"
         self.propertyTypes["alignment"] = "choice"
         self.propertyTypes["textColor"] = "color"
         self.propertyTypes["font"] = "choice"
         self.propertyTypes["fontSize"] = "uint"
+        self.propertyTypes["isBold"] = "bool"
+        self.propertyTypes["isItalic"] = "bool"
+        self.propertyTypes["isUnderlined"] = "bool"
 
 
 class TextBaseProxy(ViewProxy):
@@ -1898,6 +1923,47 @@ class TextBaseProxy(ViewProxy):
         model = self._model
         if not model: return
         model.SetProperty("fontSize", val)
+
+    @property
+    def isBold(self):
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("isBold")
+    @isBold.setter
+    def isBold(self, val):
+        if not isinstance(val, bool):
+            raise TypeError("isBold must be True or False")
+        model = self._model
+        if not model: return
+        model.SetProperty("isBold", val)
+
+    @property
+    def isItalic(self):
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("isItalic")
+    @isItalic.setter
+    def isItalic(self, val):
+        if not isinstance(val, bool):
+            raise TypeError("isItalic must be True or False")
+        model = self._model
+        if not model: return
+        model.SetProperty("isItalic", val)
+
+    @property
+    def isUnderlined(self):
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("isUnderlined")
+    @isUnderlined.setter
+    def isUnderlined(self, val):
+        if not isinstance(val, bool):
+            raise TypeError("isUnderlined must be True or False")
+        model = self._model
+        if not model: return
+        if model.type == "textfield":
+            raise TypeError("Text Field objects do not support underlined text.")
+        model.SetProperty("isUnderlined", val)
 
     def AnimateTextColor(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
@@ -2184,6 +2250,8 @@ class GroupModel(ViewModel):
         if fx or fy:
             for m in self.childModels:
                 if fx != fy:
+                    if m.origGroupSubviewRotation is None:
+                        m.origGroupSubviewRotation = 0
                     m.origGroupSubviewRotation = -m.origGroupSubviewRotation
                 pos = m.origGroupSubviewFrame.Position
                 size = m.origGroupSubviewFrame.Size
@@ -2193,7 +2261,9 @@ class GroupModel(ViewModel):
             for m in self.childModels:
                 m.PerformFlips(fx, fy, notify=notify)
                 if fx != fy:
-                    m.SetProperty("rotation", -m.GetProperty("rotation"))
+                    rot = m.GetProperty("rotation")
+                    if rot is not None:
+                        m.SetProperty("rotation", -rot)
             self.ResizeChildModels()
         if notify:
             self.Notify("size")
@@ -2210,6 +2280,8 @@ class GroupModel(ViewModel):
             pos = m.origGroupSubviewFrame.Position
             size = m.origGroupSubviewFrame.Size
             oldRot = m.origGroupSubviewRotation
+            if oldRot is None:
+                oldRot = 0
             if oldRot == 0:
                 # If this child is not rotated, just scale it
                 m.SetFrame(wx.Rect((pos.x*scaleX, pos.y*scaleY), (size.Width*scaleX, size.Height*scaleY)))

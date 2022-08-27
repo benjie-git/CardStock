@@ -1,5 +1,6 @@
-from browser import window, document, worker, bind, timer
+from browser import window, document, worker, bind, timer, ajax
 import sys
+from settings import UPLOAD_THUMB_URL, THUMB_SIZE
 
 stackWorker = worker.Worker("stackWorker")
 
@@ -33,6 +34,9 @@ class StackCanvas(object):
 
         self.canvas = document.getElementById('canvas')
 
+        # if self.IsMobileBrowser() and window.navigator.hasOwnProperty("virtualKeyboard"):
+        #     window.navigator.virtualKeyboard.overlaysContent = True
+
         self.fabCanvas = window.fabric.Canvas.new('canvas')
         self.fabCanvas.preserveObjectStacking = True
         self.fabCanvas.selection = False
@@ -51,22 +55,29 @@ class StackCanvas(object):
 
         self.fabObjs = {0: self.fabCanvas}
         self.canvasSize = (0, 0)
-        self.soundCache = {}
         self.imgCache = {}
         self.lastMousePos = (0,0)
         self.writeBuffer = ""
         self.resourceMap = {}
         self.canResize = False
+        self.didRenderOnce = False
 
         stackWorker.bind("message", self.OnMessageM)
 
         # Send over references to the shared memory chunks to get the worker set up.
         stackWorker.send(('setup', self.waitSAB, self.countsSAB, self.dataSAB))
 
-        # Load up the initial/blank/embedded stack
+        # Load up the embedded stack
         if 'resourceMap' in window:
             self.resourceMap = window.resourceMap.to_dict()
         stackWorker.send(('load', window.stackJSON))
+
+        # Pre-load all sounds in the resourceMap
+        self.soundCache = {}
+        for key,path in self.resourceMap.items():
+            snd = window.Howl.new({'src': [path]})
+            self.soundCache[key] = snd
+
         self.OnWindowResize(None, force=True)
 
     def LoadFromStr(self, s):
@@ -90,10 +101,12 @@ class StackCanvas(object):
         # if msg != "write": print("Main", msg, args)
 
         if msg == "canvasSetSize":  # x, y, canResize
+            document.getElementById("loadingDiv").style.display = "none"
             self.canvasSize = (args[0], args[1])
             self.canResize = args[2]
             self.fabCanvas.setWidth(self.canvasSize[0])
             self.fabCanvas.setHeight(self.canvasSize[1]+2)
+            self.canvas.style.border = "1px solid black"
 
         elif msg == "fabNew":  # uid, type, [other args,] options
             # Add a new object to the canvas
@@ -180,7 +193,7 @@ class StackCanvas(object):
                 img.set({'csid': uid,
                          'isType': "Image",
                          'scaleX': options['scaleX'], 'scaleY': options['scaleY'],
-                         'angle':options['angle'],
+                         'angle': options['angle'],
                          'selectable': False,
                          'hoverCursor': "arrow",
                          'filePath': oldObj.filePath,
@@ -190,6 +203,8 @@ class StackCanvas(object):
                 self.fabObjs[uid] = img
                 img.setCoords()
                 self.fabCanvas.insertAt(img, index, False)
+                if self.didRenderOnce:
+                    self.Render()
 
             origImage.cloneAsImage(setImg, {'left': int(options['clipLeft']), 'top': int(options['clipTop']),
                                             'width': int(options['clipWidth']), 'height': int(options['clipHeight'])})
@@ -272,6 +287,12 @@ class StackCanvas(object):
 
         elif msg == "render":  # No args
             self.Render()
+            self.didRenderOnce = True
+
+        elif msg == "fabLabelAutoSize":
+            uid = args[0]
+            fabObj = self.fabObjs[uid]
+            self.UpdateTextSize(fabObj)
 
         elif msg == "focus":  # uid
             # focus a textfield
@@ -283,6 +304,9 @@ class StackCanvas(object):
                 length = len(field.text)
                 field.setSelectionStart(length)
                 field.setSelectionEnd(length)
+                if self.IsMobileBrowser() and window.navigator.hasOwnProperty("virtualKeyboard"):
+                    print("Show!")
+                    window.navigator.virtualKeyboard.show()
 
         elif msg == "alert":  # text
             # open an alert (Just an OK button).  first make sure our render is up to date, by requesting a render
@@ -337,30 +361,19 @@ class StackCanvas(object):
         elif msg == "playAudio":  # filePath
             # play an audio file
             file = args[0]
-            if file in self.soundCache:
-                snd = self.soundCache[file]
-                snd.pause()
-                snd.currentTime = 0
+            self.soundCache[file].play()
+            if file in self.resourceMap:
+                path = self.resourceMap[file]
+                snd = window.Howl.new({'src': [path]})
                 snd.play()
-            else:
-                path = file
-                if file in self.resourceMap:
-                    path = self.resourceMap[path]
-                else:
-                    path = "Resources/"+path
-                snd = window.Audio.new(path)
-                self.soundCache[file] = snd
-                snd.bind("loadedmetadata", snd.play)
-                snd.load()
 
         elif msg == "stopAudio":  # No args
             # stop all audio
-            for snd in self.soundCache.values():
-                snd.pause()
+            window.Howler.stop()
 
         elif msg == "write":  # text
             # Allows printing from the worker thread
-            self.writeBuffer += args[0]
+            print(args[0], end='')
 
         elif msg == "echo":  # args
             # pop the first arg ("echo") and send back the rest.
@@ -369,6 +382,14 @@ class StackCanvas(object):
 
         else:
             print("StackCanvas received bad msg:", msg)
+
+    def IsMobileBrowser(self):
+        toMatch = ["Android", "webOS", "iPhone", "iPad", "iPod", "Windows Phone"]
+        ua = window.navigator.userAgent
+        for m in toMatch:
+            if m in ua:
+                return True
+        return False
 
     def SendBuffer(self):
         # print out any buffered writes from the worker thread's print() calls
@@ -381,12 +402,6 @@ class StackCanvas(object):
         # Flip coords vertically to match cardstock: (0,0) = Bottom Left
         return (x-rect.left, self.canvasSize[1] - y + rect.top)
 
-    # def OnTouchStart(self, options):
-    #     touch = options.e.touches[0]
-    #     pos = self.ConvPoint(touch.clientX, touch.clientY)
-    #     self.DoMouseDown(options.target, pos[0], pos[1], touch)
-    #     options.e.preventDefault()
-
     def OnMouseDown(self, options):
         uid = 0
         if options.target:
@@ -394,34 +409,32 @@ class StackCanvas(object):
             if options.target.isType == "TextField":
                 self.OnTextFieldMouseDown(options.target, options.e)
         if "touch" in options.e.type:
+            isTouch = True
             pos = (options.e.touches[0].clientX, options.e.touches[0].clientY)
         else:
+            isTouch = False
             pos = (options.e.clientX, options.e.clientY)
-        self.DoMouseDown(uid, pos[0], pos[1])
+        self.DoMouseDown(uid, pos[0], pos[1], isTouch)
 
-    def DoMouseDown(self, uid, x, y):
+    def DoMouseDown(self, uid, x, y, isTouch):
         # Flip points vertically and send to the worker.  Also fix TextField selection on click.
         pos = self.ConvPoint(x, y)
         self.lastMousePos = pos
-        stackWorker.send(("mouseDown", uid, pos))
-
-    # def OnTouchMove(self, options):
-    #     touch = options.e.touches[0]
-    #     pos = self.ConvPoint(touch.clientX, touch.clientY)
-    #     self.DoMouseMove(options.target, pos[0], pos[1], touch)
-    #     options.e.preventDefault()
+        stackWorker.send(("mouseDown", uid, pos, isTouch))
 
     def OnMouseMove(self, options):
         uid = 0
         if options.target:
             uid = options.target.csid
         if options.e.type.startswith("touch"):
+            isTouch = True
             pos = (options.e.touches[0].clientX, options.e.touches[0].clientY)
         else:
+            isTouch = False
             pos = (options.e.clientX, options.e.clientY)
-        self.DoMouseMove(uid, pos[0], pos[1])
+        self.DoMouseMove(uid, pos[0], pos[1], isTouch)
 
-    def DoMouseMove(self, uid, x, y):
+    def DoMouseMove(self, uid, x, y, isTouch):
         # Flip points vertically and send to the worker.
         pos = self.ConvPoint(x, y)
         if pos[0] != self.lastMousePos[0] or pos[1] != self.lastMousePos[1]:
@@ -429,29 +442,25 @@ class StackCanvas(object):
             # keep track of how many OnMouseMove calls are pending, so the worker doesn't get bogged down
             # if it's slow to process these
             window.Atomics.add(self.countsSA32, 0, 1)
-            stackWorker.send(("mouseMove", uid, pos))
-
-    # def OnTouchEnd(self, options):
-    #     touch = options.e.touches[0]
-    #     pos = self.ConvPoint(touch.clientX, touch.clientY)
-    #     self.DoMouseUp(options.target, pos[0], pos[1], touch)
-    #     options.e.preventDefault()
+            stackWorker.send(("mouseMove", uid, pos, isTouch))
 
     def OnMouseUp(self, options):
         uid = 0
         if options.target:
             uid = options.target.csid
         if options.e.type.startswith("touch"):
+            isTouch = True
             pos = self.lastMousePos
         else:
+            isTouch = False
             pos = (options.e.clientX, options.e.clientY)
-        self.DoMouseUp(uid, pos[0], pos[1])
+        self.DoMouseUp(uid, pos[0], pos[1], isTouch)
 
-    def DoMouseUp(self, uid, x, y):
+    def DoMouseUp(self, uid, x, y, isTouch):
         # Flip points vertically and send to the worker.
         pos = self.ConvPoint(x, y)
         self.lastMousePos = pos
-        stackWorker.send(("mouseUp", uid, pos))
+        stackWorker.send(("mouseUp", uid, pos, isTouch))
 
     def OnKeyDown(self, e):
         # Don't tab focus out of the canvas
@@ -464,6 +473,15 @@ class StackCanvas(object):
     def OnKeyUp(self, e):
         # forward these events on to the worker
         stackWorker.send(("keyUp", e.key))
+
+    def UpdateTextSize(self, fab):
+        if fab.autoShrink:
+            s = fab.origFontSize
+            fab.set({'fontSize': s})
+            if fab.autoShrink:
+                while s > 4 and fab.calcTextHeight() > fab.height:
+                    s -= 1
+                    fab.set({'fontSize': s})
 
     def OnTextFieldMouseDown(self, field, e):
         # Start text selection on a mouse down in a text field
@@ -507,6 +525,7 @@ class StackCanvas(object):
     def OnWindowResize(self, _e, force=False):
         # tell the worker that the window resized
         if self.canResize or force:
+            self.canvas.style.border = "1px solid transparent"
             self.fabCanvas.setWidth(0)
             self.fabCanvas.setHeight(0)
             canvasDiv = document.getElementById('canvasContainer')
@@ -551,8 +570,6 @@ if __name__ == "__main__":
 
     window.stackCanvas = StackCanvas()
 
-    console = None
-    consoleLabel = None
     if "console" in document and "consoleLabel" in document:
         console = document['console']
         consoleLabel = document['consoleLabel']
@@ -564,5 +581,3 @@ if __name__ == "__main__":
         window.toggleConsole = cOutput.toggleConsole
     else:
         timer.set_interval(window.stackCanvas.SendBuffer, 1000)
-
-    print("window.crossOriginIsolated:", window.crossOriginIsolated)
