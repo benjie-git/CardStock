@@ -374,7 +374,7 @@ class HelpDataGlobals():
                               "the card number specified by the <b>cardNumber</b> argument.  If you include a "
                               "<b>setupValue</b> argument, this will be passed into the new stack, which can access it by "
                               "calling <b>stack.GetSetupValue()</b>.  The <b>RunStack()</b> call waits "
-                              "until the new stack exits by calling <b>stack.Return(returnVal)</b>, and then "
+                              "until the new stack exits by calling <b>stack.ReturnFromStack(returnVal)</b>, and then "
                               "this <b>RunStack()</b> call returns that returnVal value, or None if no returnValue was given."},
         "PlaySound": {"args": {"file": {"type": "string",
                                         "info": "This is the filename of the .wav format audio file to play, relative to where the stack file lives."}},
@@ -1138,7 +1138,7 @@ class HelpDataCard():
                                "card's OnShowCard event is run, when going to another card."},
         "OnExitStack": {"args": {},
                         "info": "The <b>OnExitStack</b> event is run for all cards when the stack exits, whether "
-                                "from the File Close menu item, the Quit() function, the stack.Return() method,"
+                                "from the File Close menu item, the Quit() function, the stack.ReturnFromStack() method,"
                                 "or closing the stack viewer window.  You can use this to clean up any external "
                                 "resources -- for example, closing files.  This event needs to run quickly, so it's "
                                 "not able to call functions like Alert(), AskText(), AskYesNo(), RunStack(), etc."},
@@ -1191,7 +1191,7 @@ class HelpDataStack():
                                     "info": "the card number of the card to get."}},
                            "return": "card",
                            "info": "Returns the card at card <b>number</b>.  The first card is <b>number</b> 1."},
-        "Return": {"args": {"returnValue": {"type": "any",
+        "ReturnFromStack": {"args": {"returnValue": {"type": "any",
                                             "info": "An optional value to pass back to the previous stack, that we are returning to."}},
                             "return": None,
                             "info": "If this stack was started from within another stack, by calling <b>RunStack()</b>, this "
