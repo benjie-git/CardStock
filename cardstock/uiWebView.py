@@ -70,13 +70,13 @@ class UiWebView(UiView):
             gc.DrawRectangle(f)
 
     def OnWillLoad(self, event):
-        allowedHosts = self.model.GetProperty("allowedHosts")
+        allowed_hosts = self.model.GetProperty("allowed_hosts")
         url = event.GetURL()
         parts = urlparse(url)
-        if len(allowedHosts):
+        if len(allowed_hosts):
             if "http" in parts.scheme:
                 allowed = False
-                for h in allowedHosts:
+                for h in allowed_hosts:
                     if parts.hostname.endswith(h):
                         allowed = True
                         break
@@ -86,8 +86,8 @@ class UiWebView(UiView):
                     return
         if parts.scheme == "cardstock":
             event.Veto()
-            if self.stackManager.runner and self.model and self.model.GetHandler("OnCardStockLink"):
-                wx.CallAfter(self.stackManager.runner.RunHandler, self.model, "OnCardStockLink", event,
+            if self.stackManager.runner and self.model and self.model.GetHandler("on_card_stock_link"):
+                wx.CallAfter(self.stackManager.runner.RunHandler, self.model, "on_card_stock_link", event,
                              url[10:])
 
     def OnDidLoad(self, event):
@@ -95,16 +95,16 @@ class UiWebView(UiView):
             url = event.GetURL()
             if url not in ("file:///", "about:blank"):
                 self.model.SetProperty("URL", url, notify=False)
-                if self.stackManager.runner and self.model and self.model.GetHandler("OnDoneLoading"):
-                    wx.CallAfter(self.stackManager.runner.RunHandler, self.model, "OnDoneLoading", event, (url, True))
+                if self.stackManager.runner and self.model and self.model.GetHandler("on_done_loading"):
+                    wx.CallAfter(self.stackManager.runner.RunHandler, self.model, "on_done_loading", event, (url, True))
         event.Skip()
 
     def OnDidError(self, event):
         if not self.stackManager.isEditing:
             url = event.GetURL()
             if url != "file:///" and not url.startswith("cardstock:"):
-                if self.stackManager.runner and self.model and self.model.GetHandler("OnDoneLoading"):
-                    wx.CallAfter(self.stackManager.runner.RunHandler, self.model, "OnDoneLoading", event, (url, False))
+                if self.stackManager.runner and self.model and self.model.GetHandler("on_done_loading"):
+                    wx.CallAfter(self.stackManager.runner.RunHandler, self.model, "on_done_loading", event, (url, False))
         event.Skip()
 
     @RunOnMainSync
@@ -126,23 +126,23 @@ class WebViewModel(ViewModel):
         self.proxyClass = WebView
 
         # Add custom handlers to the top of the list
-        handlers = {"OnSetup": "", "OnDoneLoading": "", "OnCardStockLink": ""}
+        handlers = {"on_setup": "", "on_done_loading": "", "on_card_stock_link": ""}
         for k,v in self.handlers.items():
             if "Mouse" not in k:
                 handlers[k] = v
         self.handlers = handlers
-        self.initialEditHandler = "OnDoneLoading"
+        self.initialEditHandler = "on_done_loading"
 
         self.properties["name"] = "webview_1"
         self.properties["URL"] = ""
         self.properties["HTML"] = ""
-        self.properties["allowedHosts"] = []
+        self.properties["allowed_hosts"] = []
         self.propertyTypes["URL"] = "string"
         self.propertyTypes["HTML"] = "string"
-        self.propertyTypes["allowedHosts"] = "list"
+        self.propertyTypes["allowed_hosts"] = "list"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "URL", "allowedHosts", "position", "size"]
+        self.propertyKeys = ["name", "URL", "allowed_hosts", "position", "size"]
 
     def SetProperty(self, key, value, notify=True):
         if key == "URL":
@@ -150,7 +150,7 @@ class WebViewModel(ViewModel):
                 parts = urlparse(value)
                 if not parts.scheme:
                     value = "https://" + value
-        elif key == "allowedHosts":
+        elif key == "allowed_hosts":
             if isinstance(value, (list, tuple)):
                 value = [str(i) for i in value]
         super().SetProperty(key, value, notify)
@@ -190,21 +190,21 @@ class WebView(ViewProxy):
         model.SetProperty("HTML", str(val))
 
     @property
-    def allowedHosts(self):
+    def allowed_hosts(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("allowedHosts")
-    @allowedHosts.setter
-    def allowedHosts(self, val):
+        return model.GetProperty("allowed_hosts")
+    @allowed_hosts.setter
+    def allowed_hosts(self, val):
         if not isinstance(val, (list, tuple)):
-            raise TypeError("allowedHosts must be set to a list value")
+            raise TypeError("allowed_hosts must be set to a list value")
         model = self._model
         if not model: return
-        model.SetProperty("allowedHosts", val)
+        model.SetProperty("allowed_hosts", val)
 
     @property
     @RunOnMainSync
-    def canGoBack(self):
+    def can_go_back(self):
         ui = self._model.stackManager.GetUiViewByModel(self._model)
         if ui:
             return ui.webView.CanGoBack()
@@ -212,25 +212,25 @@ class WebView(ViewProxy):
 
     @property
     @RunOnMainSync
-    def canGoForward(self):
+    def can_go_forward(self):
         ui = self._model.stackManager.GetUiViewByModel(self._model)
         if ui:
             return ui.webView.CanGoForward()
         return False
 
     @RunOnMainSync
-    def GoBack(self):
+    def go_back(self):
         ui = self._model.stackManager.GetUiViewByModel(self._model)
         if ui:
-            ui.webView.GoBack()
+            ui.webView.go_back()
 
     @RunOnMainSync
-    def GoForward(self):
+    def go_forward(self):
         ui = self._model.stackManager.GetUiViewByModel(self._model)
         if ui:
-            ui.webView.GoForward()
+            ui.webView.go_forward()
 
-    def RunJavaScript(self, code):
+    def run_java_script(self, code):
         ui = self._model.stackManager.GetUiViewByModel(self._model)
         if ui:
             return ui.RunJavaScript(code)

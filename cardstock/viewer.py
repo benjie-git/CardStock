@@ -4,9 +4,9 @@
 """
 This is the root frame of the CardStock stack viewer application.  It also is used to run stacks from within
 the designer, and is used to run the stack from a standalone, exported app as well.
-It allows running and using a stack, and even saving its updated state, if the stack has its canSave flag set to True.
+It allows running and using a stack, and even saving its updated state, if the stack has its can_save flag set to True.
 
-Another thing to note is that this class manages the nesting of stacks when calling RunStack() and ReturnFromStack().
+Another thing to note is that this class manages the nesting of stacks when calling run_stack() and return_from_stack().
 The list stackStack is a stack of cardstock stacks, and keeps the runner, stackModel, filename, and current cardIndex
 of each stack(file) in the stack(list).
 """
@@ -66,7 +66,7 @@ class ViewerFrame(wx.Frame):
 
         self.stackStack = []
 
-        # The original runner for the stack that the user runs.  (As opposed to ones reached by RunStack().)
+        # The original runner for the stack that the user runs.  (As opposed to ones reached by run_stack().)
         self.rootRunner = None
 
         self.findDlg = None
@@ -90,7 +90,7 @@ class ViewerFrame(wx.Frame):
 
     def OnResize(self, event):
         if self.stackManager:
-            if self.stackManager.stackModel.GetProperty("canResize"):
+            if self.stackManager.stackModel.GetProperty("can_resize"):
                 self.stackManager.view.SetSize(self.GetClientSize())
         event.Skip()
 
@@ -115,7 +115,7 @@ class ViewerFrame(wx.Frame):
         fileMenu = wx.Menu()
         if not self.isStandalone and not self.designer:
             fileMenu.Append(wx.ID_OPEN, "&Open\tCtrl-O", "Open Stack")
-        if self.stackManager.filename and self.stackManager.stackModel.GetProperty("canSave"):
+        if self.stackManager.filename and self.stackManager.stackModel.GetProperty("can_save"):
             fileMenu.Append(wx.ID_SAVE, "&Save\tCtrl-S", "Save Stack")
         if self.designer:
             fileMenu.Append(wx.ID_CLOSE, "&Close\tCtrl-W", "Close Stack")
@@ -248,7 +248,7 @@ class ViewerFrame(wx.Frame):
     wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
 
     def OpenFile(self, filename):
-        if self.stackManager.filename and self.stackManager.stackModel.GetProperty("canSave") and self.stackManager.stackModel.GetDirty():
+        if self.stackManager.filename and self.stackManager.stackModel.GetProperty("can_save") and self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before Closing?", wx.YES_NO | wx.CANCEL).ShowModal()
             if r == wx.ID_CANCEL:
@@ -258,7 +258,7 @@ class ViewerFrame(wx.Frame):
         wx.GetApp().OpenFile(filename)
 
     def OnMenuOpen(self, event):
-        if self.stackManager.filename and self.stackManager.stackModel.GetProperty("canSave") and self.stackManager.stackModel.GetDirty():
+        if self.stackManager.filename and self.stackManager.stackModel.GetProperty("can_save") and self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before Closing?", wx.YES_NO | wx.CANCEL).ShowModal()
             if r == wx.ID_CANCEL:
@@ -288,7 +288,7 @@ class ViewerFrame(wx.Frame):
         self.Refresh()
 
     def OnClose(self, event):
-        if self.stackManager.filename and self.stackManager.stackModel.GetProperty("canSave") and self.stackManager.stackModel.GetDirty():
+        if self.stackManager.filename and self.stackManager.stackModel.GetProperty("can_save") and self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before Quitting?", wx.YES_NO | wx.CANCEL).ShowModal()
             if r == wx.ID_CANCEL:
@@ -482,7 +482,7 @@ class ViewerFrame(wx.Frame):
                 self.stackManager.SetStackModel(parts[1], True)
 
     def SetupViewerSize(self):
-        # Size the stack viewer window for the new stack, and allow resizing only if canResize==True
+        # Size the stack viewer window for the new stack, and allow resizing only if can_resize==True
 
         if wx.Platform != "__WXGTK__":
             self.SetMaxClientSize(wx.DefaultSize)
@@ -495,10 +495,10 @@ class ViewerFrame(wx.Frame):
         self.SetClientSize(cs)
 
         if wx.Platform != "__WXGTK__":
-            # TODO: Allow disabling resizing on Linux / GTK when canResize==False
+            # TODO: Allow disabling resizing on Linux / GTK when can_resize==False
             # This is disabled currently due to bugs in converting Frame to Client sizing on that platform
             # SetMinClientSize and SetMaxClientSize don't work quite right.
-            if self.stackManager.stackModel.GetProperty("canResize"):
+            if self.stackManager.stackModel.GetProperty("can_resize"):
                 self.SetMinClientSize(wx.Size(200,200))
             else:
                 self.SetMaxClientSize(cs)

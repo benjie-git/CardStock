@@ -49,7 +49,7 @@ class ErrorListWindow(wx.Frame):
         self.listBox.SetSelection(wx.NOT_FOUND)
 
     def OnMouseDown(self, event):
-        # Pre-Focus the listBox, so that even if this was not the top window, this click will still select a row
+        # Pre-focus the listBox, so that even if this was not the top window, this click will still select a row
         self.Raise()
         self.listBox.SetFocus()
         event.Skip(True)

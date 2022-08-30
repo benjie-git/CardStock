@@ -38,7 +38,7 @@ class UiTextField(UiTextBase):
             alignment = wx.TE_CENTER
 
         pos = self.stackManager.ConvRect(model.GetAbsoluteFrame()).TopLeft
-        if model.GetProperty("isMultiline"):
+        if model.GetProperty("is_multiline"):
             field = CDSSTC(parent=stackManager.view, size=model.GetProperty("size"), pos=pos,
                                        style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
             field.SetUseHorizontalScrollBar(False)
@@ -69,7 +69,7 @@ class UiTextField(UiTextBase):
         if stackManager.isEditing:
             field.SetEditable(False)
         else:
-            field.SetEditable(model.GetProperty("isEditable"))
+            field.SetEditable(model.GetProperty("is_editable"))
         return field
 
     def GetCursor(self):
@@ -90,7 +90,7 @@ class UiTextField(UiTextBase):
 
     def OnSTCKeyDown(self, event):
         if event.GetKeyCode() == wx.WXK_RETURN:
-            self.OnTextEnter(event)
+            self.on_text_enter(event)
         event.Skip()
 
     def StartInlineEditing(self):
@@ -116,20 +116,20 @@ class UiTextField(UiTextBase):
             self.stackManager.view.SetFocus()
 
     def OnResize(self, event):
-        if self.view and self.model.GetProperty("isMultiline"):
+        if self.view and self.model.GetProperty("is_multiline"):
             self.view.SetScrollWidth(self.view.GetSize().Width-6)
         if event:
             event.Skip()
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key == "isMultiline":
+        if key == "is_multiline":
             self.StopInlineEditing(notify=False)
             sm = self.stackManager
             sm.SelectUiView(None)
             sm.LoadCardAtIndex(sm.cardIndex, reload=True)
             sm.SelectUiView(sm.GetUiViewByModel(model))
-        elif key == "isEditable":
+        elif key == "is_editable":
             if self.stackManager.isEditing:
                 self.view.SetEditable(False)
             else:
@@ -140,16 +140,16 @@ class UiTextField(UiTextBase):
     def OnTextEnter(self, event):
         if not self.stackManager.isEditing:
             def f():
-                if self.stackManager.runner and self.model.GetHandler("OnTextEnter"):
-                    self.stackManager.runner.RunHandler(self.model, "OnTextEnter", event)
+                if self.stackManager.runner and self.model.GetHandler("on_text_enter"):
+                    self.stackManager.runner.RunHandler(self.model, "on_text_enter", event)
             wx.CallAfter(f)
 
     def OnTextChanged(self, event):
         if not self.stackManager.isEditing:
             if not self.settingValueInternally:
                 self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
-                if self.stackManager.runner and self.model.GetHandler("OnTextChanged"):
-                    self.stackManager.runner.RunHandler(self.model, "OnTextChanged", event)
+                if self.stackManager.runner and self.model.GetHandler("on_text_changed"):
+                    self.stackManager.runner.RunHandler(self.model, "on_text_changed", event)
         event.Skip()
 
     def OnSTCTextChanged(self, event):
@@ -157,8 +157,8 @@ class UiTextField(UiTextBase):
             if event.GetModificationType()%2 == 1:
                 if not self.settingValueInternally:
                     self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
-                    if self.stackManager.runner and self.model.GetHandler("OnTextChanged"):
-                        self.stackManager.runner.RunHandler(self.model, "OnTextChanged", event)
+                    if self.stackManager.runner and self.model.GetHandler("on_text_changed"):
+                        self.stackManager.runner.RunHandler(self.model, "on_text_changed", event)
         event.Skip()
 
 
@@ -171,11 +171,11 @@ class CDSTextCtrl(wx.TextCtrl):
     def __init__(self, *args, **kwards):
         super().__init__(*args, **kwards)
         self.command_processor = CommandProcessor()
-        self.Bind(wx.EVT_TEXT, self.OnTextChanged)
+        self.Bind(wx.EVT_TEXT, self.on_text_changed)
         self.oldText = self.GetValue()
         self.oldSel = self.GetSelection()
 
-    def OnTextChanged(self, event):
+    def on_text_changed(self, event):
         newText = self.GetValue()
         newSel = self.GetSelection()
         command = TextEditCommand(True, "Change Text", self, self.oldText, newText, self.oldSel, newSel)
@@ -249,22 +249,22 @@ class TextFieldModel(TextBaseModel):
         self.proxyClass = TextField
 
         # Add custom handlers to the top of the list
-        handlers = {"OnSetup": "", "OnTextChanged": "", "OnTextEnter": ""}
+        handlers = {"on_setup": "", "on_text_changed": "", "on_text_enter": ""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
-        self.initialEditHandler = "OnTextEnter"
+        self.initialEditHandler = "on_text_enter"
 
         self.properties["name"] = "field_1"
-        self.properties["isEditable"] = True
-        self.properties["isMultiline"] = False
-        self.properties["fontSize"] = 12
+        self.properties["is_editable"] = True
+        self.properties["is_multiline"] = False
+        self.properties["font_size"] = 12
 
-        self.propertyTypes["isEditable"] = "bool"
-        self.propertyTypes["isMultiline"] = "bool"
+        self.propertyTypes["is_editable"] = "bool"
+        self.propertyTypes["is_multiline"] = "bool"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "isEditable", "isMultiline", "position", "size"]
+        self.propertyKeys = ["name", "text", "alignment", "font", "font_size", "text_color", "is_editable", "is_multiline", "position", "size"]
 
     @RunOnMainSync
     def GetSelectedText(self):
@@ -278,15 +278,15 @@ class TextFieldModel(TextBaseModel):
     def SetSelectedText(self, text):
         uiView = self.stackManager.GetUiViewByModel(self)
         if uiView and uiView.view:
-            isMultiline = self.GetProperty("isMultiline")
+            is_multiline = self.GetProperty("is_multiline")
             sel = uiView.view.GetSelection()
             length = len(self.GetProperty("text"))
             s = uiView.view.GetRange(0,sel[0]) + text + uiView.view.GetRange(sel[1], length)
-            if isMultiline:
+            if is_multiline:
                 pos = (uiView.view.GetScrollPos(wx.HORIZONTAL), uiView.view.GetScrollPos(wx.VERTICAL))
             self.SetProperty("text", s)
             uiView.view.SetSelection(sel[0], sel[0]+len(text))
-            if isMultiline:
+            if is_multiline:
                 uiView.view.ScrollToLine(pos[1])
                 uiView.view.ScrollToColumn(pos[0])
 
@@ -311,26 +311,26 @@ class TextField(TextBaseProxy):
     """
 
     @property
-    def isEditable(self):
+    def is_editable(self):
         model = self._model
         if not model: return False
-        return model.GetProperty("isEditable")
-    @isEditable.setter
-    def isEditable(self, val):
+        return model.GetProperty("is_editable")
+    @is_editable.setter
+    def is_editable(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("isEditable", bool(val))
+        model.SetProperty("is_editable", bool(val))
 
     @property
-    def isMultiline(self):
+    def is_multiline(self):
         model = self._model
         if not model: return False
-        return model.GetProperty("isMultiline")
-    @isMultiline.setter
-    def isMultiline(self, val):
+        return model.GetProperty("is_multiline")
+    @is_multiline.setter
+    def is_multiline(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("isMultiline", bool(val))
+        model.SetProperty("is_multiline", bool(val))
 
     @property
     def selection(self):
@@ -348,27 +348,27 @@ class TextField(TextBaseProxy):
         raise TypeError("selection must be a list of 2 numbers (start_position, end_position)")
 
     @property
-    def selectedText(self):
+    def selected_text(self):
         model = self._model
         if not model: return False
         return model.GetSelectedText()
-    @selectedText.setter
-    def selectedText(self, val):
+    @selected_text.setter
+    def selected_text(self, val):
         model = self._model
         if not model: return
         if isinstance(val,str):
             model.SetSelectedText(val)
             return
-        raise TypeError("selectedText must be a string")
+        raise TypeError("selected_text must be a string")
 
-    def SelectAll(self):
+    def select_all(self):
         model = self._model
         if not model: return
         model.Notify("selectAll")
 
-    def Enter(self):
+    def enter(self):
         model = self._model
         if not model: return
         if model.didSetDown: return
-        if model.stackManager.runner and model.GetHandler("OnTextEnter"):
-            model.stackManager.runner.RunHandler(model, "OnTextEnter", None)
+        if model.stackManager.runner and model.GetHandler("on_text_enter"):
+            model.stackManager.runner.RunHandler(model, "on_text_enter", None)

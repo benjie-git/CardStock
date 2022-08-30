@@ -18,7 +18,7 @@ class UiTextLabel(UiTextBase):
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key in ["text", "font", "fontSize", "size", "canAutoShrink"]:
+        if key in ["text", "font", "font_size", "size", "can_auto_shrink"]:
             self.lastFontSize = None
 
     def StartInlineEditing(self):
@@ -66,9 +66,9 @@ class UiTextLabel(UiTextBase):
             self.stackManager.view.SetFocus()
             self.stackManager.view.Refresh()
 
-    def DoesTextFitWithSize(self, gc, fontSize):
+    def DoesTextFitWithSize(self, gc, font_size):
         font = wx.Font(self.font)
-        font.SetPixelSize(wx.Size(0, fontSize))
+        font.SetPixelSize(wx.Size(0, font_size))
         gc.SetFont(font)
         (width, height) = self.model.GetProperty("size")
         lines = wordwrap(self.model.GetProperty("text"), width, gc)
@@ -79,22 +79,22 @@ class UiTextLabel(UiTextBase):
     def GetFontSizeFit(self, gc):
         if self.lastFontSize is not None:
             return (self.lastFontSize, self.lastDidShrink)
-        fontSize = self.ScaleFontSize(self.model.GetProperty("fontSize"), None)
-        if self.DoesTextFitWithSize(gc, fontSize):
-            self.lastFontSize = fontSize
+        font_size = self.ScaleFontSize(self.model.GetProperty("font_size"), None)
+        if self.DoesTextFitWithSize(gc, font_size):
+            self.lastFontSize = font_size
             self.lastDidShrink = False
-            return (fontSize, False)
-        self.lastFontSize = self.FindFittingFontSize(gc, 1, fontSize)
+            return (font_size, False)
+        self.lastFontSize = self.FindFittingFontSize(gc, 1, font_size)
         self.lastDidShrink = True
         return (self.lastFontSize, True)
 
     def FindFittingFontSize(self, gc, lower, upper):
-        fontSize = int((upper + lower) / 2)
+        font_size = int((upper + lower) / 2)
         if lower+1 < upper:
-            if self.DoesTextFitWithSize(gc, fontSize):
-                return self.FindFittingFontSize(gc, fontSize, upper)
+            if self.DoesTextFitWithSize(gc, font_size):
+                return self.FindFittingFontSize(gc, font_size, upper)
             else:
-                return self.FindFittingFontSize(gc, lower, fontSize-1)
+                return self.FindFittingFontSize(gc, lower, font_size-1)
         else:
             return lower
 
@@ -104,12 +104,12 @@ class UiTextLabel(UiTextBase):
 
         font = wx.Font(self.font)
         didShrink = False
-        if self.model.GetProperty("canAutoShrink"):
-            (fontSize, didShrink) = self.GetFontSizeFit(gc)
+        if self.model.GetProperty("can_auto_shrink"):
+            (font_size, didShrink) = self.GetFontSizeFit(gc)
             if didShrink:
-                font.SetPixelSize(wx.Size(0, fontSize))
+                font.SetPixelSize(wx.Size(0, font_size))
         gc.SetFont(font)
-        gc.SetTextForeground(wx.Colour(self.textColor))
+        gc.SetTextForeground(wx.Colour(self.text_color))
         lines = wordwrap(self.model.GetProperty("text"), width, gc)
 
         offsetY = height
@@ -146,14 +146,14 @@ class TextLabelModel(TextBaseModel):
         self.type = "textlabel"
         self.proxyClass = TextLabel
         self.properties["name"] = "label_1"
-        self.properties["canAutoShrink"] = True
+        self.properties["can_auto_shrink"] = True
         self.properties["rotation"] = 0.0
 
-        self.propertyTypes["canAutoShrink"] = "bool"
+        self.propertyTypes["can_auto_shrink"] = "bool"
         self.propertyTypes["rotation"] = "float"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "canAutoShrink", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "text", "alignment", "font", "font_size", "text_color", "can_auto_shrink", "position", "size", "rotation"]
 
 
 class TextLabel(TextBaseProxy):
@@ -162,15 +162,15 @@ class TextLabel(TextBaseProxy):
     """
 
     @property
-    def canAutoShrink(self):
+    def can_auto_shrink(self):
         model = self._model
         if not model: return False
-        return model.GetProperty("canAutoShrink")
-    @canAutoShrink.setter
-    def canAutoShrink(self, val):
+        return model.GetProperty("can_auto_shrink")
+    @can_auto_shrink.setter
+    def can_auto_shrink(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("canAutoShrink", bool(val))
+        model.SetProperty("can_auto_shrink", bool(val))
 
 
 def wordwrap(text, width, dc):

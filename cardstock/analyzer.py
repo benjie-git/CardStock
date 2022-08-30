@@ -127,11 +127,11 @@ class CodeAnalyzer(object):
                 elif p in self.varNames or p in self.funcNames:
                     # Later, track the actual type of each user variable
                     retVals = (objType, p, "any", None)
-                elif p == "mousePos":
+                elif p == "mouse_pos":
                     retVals = (objType, p, "bool", None)
-                elif p == "elapsedTime":
+                elif p == "elapsed_time":
                     retVals = (objType, p, "float", None)
-                elif p in ["message", "keyName"]:
+                elif p in ["message", "key_name"]:
                     retVals = (objType, p, "string", None)
                 elif len(parts[0]) and parts[0][-1] in ('"', "'"):  # string literal
                     retVals = (objType, p, "string", None)
@@ -180,14 +180,14 @@ class CodeAnalyzer(object):
             names.extend([s+"()" for s in self.funcNames])
             names.extend(self.objNames.keys())
             if handlerName:
-                if "Mouse" in handlerName: names.append("mousePos")
-                if "Key" in handlerName: names.append("keyName")
-                if "Periodic" in handlerName: names.append("elapsedTime")
-                if "KeyHold" in handlerName: names.append("elapsedTime")
-                if "Message" in handlerName: names.append("message")
-                if "Bounce" in handlerName: names.extend(["otherObject", "edge"])
-                if "CardStockLink" in handlerName: names.append("message")
-                if "DoneLoading" in handlerName: names.extend(["URL", "didLoad"])
+                if "mouse" in handlerName: names.append("mouse_pos")
+                if "key" in handlerName: names.append("key_name")
+                if "periodic" in handlerName: names.append("elapsed_time")
+                if "key_hold" in handlerName: names.append("elapsed_time")
+                if "message" in handlerName: names.append("message")
+                if "bounce" in handlerName: names.extend(["other_object", "edge"])
+                if "cardstock_link" in handlerName: names.append("message")
+                if "done_loading" in handlerName: names.extend(["URL", "did_load"])
 
                 path = handlerObj.GetPath() + "." + handlerName
                 if path in self.handlerVars:

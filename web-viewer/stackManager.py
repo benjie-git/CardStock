@@ -76,14 +76,14 @@ class StackManager(object):
         self.cardIndex = None
         self.didSetup = False
         self.LoadCardAtIndex(0)
-        if self.stackModel.GetProperty("canResize"):
+        if self.stackModel.GetProperty("can_resize"):
             if self.windowSize:
                 self.stackModel.SetProperty("size", self.windowSize)
             for ui in self.uiCard.uiViews:
                 ui.OnPropertyChanged("position")
-            self.runner.RunHandler(self.uiCard.model, "OnResize", None)
+            self.runner.RunHandler(self.uiCard.model, "on_resize", None)
         s = self.stackModel.GetProperty("size")
-        worker.stackWorker.SendAsync(("canvasSetSize", s.width, s.height, self.stackModel.GetProperty('canResize')))
+        worker.stackWorker.SendAsync(("canvasSetSize", s.width, s.height, self.stackModel.GetProperty('can_resize')))
 
     def RunSetupIfNeeded(self):
         if not self.didSetup:
@@ -101,13 +101,13 @@ class StackManager(object):
 
     def WindowDidResize(self, w, h):
         self.windowSize = wx.Size(w, h)
-        if self.stackModel.GetProperty('canResize'):
+        if self.stackModel.GetProperty('can_resize'):
             self.stackModel.SetProperty('size', self.windowSize)
             worker.stackWorker.SendAsync(("canvasSetSize", self.windowSize.width, self.windowSize.height,
-                                          self.stackModel.properties['canResize']))
+                                          self.stackModel.properties['can_resize']))
             for ui in self.uiCard.uiViews:
                 ui.OnPropertyChanged("position")
-            self.runner.RunHandler(self.uiCard.model, "OnResize", None)
+            self.runner.RunHandler(self.uiCard.model, "on_resize", None)
 
     def Yield(self):
         self.RunAnimations()
@@ -117,16 +117,16 @@ class StackManager(object):
             return
 
         now = time()
-        elapsedTime = now - self.lastFrame
+        elapsed_time = now - self.lastFrame
         self.lastFrame = now
 
         didRun = False
         allUi = self.uiCard.GetAllUiViews()
         onFinishedCalls = []
-        if self.uiCard.RunAnimations(onFinishedCalls, elapsedTime):
+        if self.uiCard.RunAnimations(onFinishedCalls, elapsed_time):
             didRun = True
         for ui in allUi:
-            if ui.RunAnimations(onFinishedCalls, elapsedTime):
+            if ui.RunAnimations(onFinishedCalls, elapsed_time):
                 didRun = True
         # Let all animations process, before running their onFinished handlers,
         # which could start new animations.  Enqueue these to run later.
@@ -141,7 +141,7 @@ class StackManager(object):
 
         # Perform any bounces
         for (k,v) in collisions.items():
-            v[0].PerformBounce(v, elapsedTime)
+            v[0].PerformBounce(v, elapsed_time)
             didRun = True
 
         if didRun:
@@ -155,8 +155,8 @@ class StackManager(object):
         self.RunAnimations()
 
         now = time()
-        elapsedTime = now - self.lastPeriodic
-        if elapsedTime >= 0.03:
+        elapsed_time = now - self.lastPeriodic
+        if elapsed_time >= 0.03:
             self.lastPeriodic = now
             self.uiCard.OnKeyHold()
             self.uiCard.OnPeriodic()

@@ -49,7 +49,7 @@ class UiCard(UiView):
         event.Skip()
 
     def Paint(self, gc):
-        bg = wx.Colour(self.model.GetProperty("fillColor"))
+        bg = wx.Colour(self.model.GetProperty("fill_color"))
         if not bg:
             bg = wx.Colour('white')
         gc.SetBrush(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
@@ -81,7 +81,7 @@ class UiCard(UiView):
         super().OnPropertyChanged(model, key)
         if key == "name":
             self.stackManager.designer.UpdateCardList()
-        elif key == "fillColor":
+        elif key == "fill_color":
             self.view.Refresh()
         elif key in ["size"]:
             for ui in self.uiViews:
@@ -89,17 +89,17 @@ class UiCard(UiView):
                 ui.OnPropertyChanged(ui.model, "position")
 
     def OnKeyDown(self, event):
-        if self.stackManager.runner and self.model.GetHandler("OnKeyPress"):
-            self.stackManager.runner.RunHandler(self.model, "OnKeyPress", event)
+        if self.stackManager.runner and self.model.GetHandler("on_key_press"):
+            self.stackManager.runner.RunHandler(self.model, "on_key_press", event)
 
     def OnKeyUp(self, event):
-        if self.stackManager.runner and self.model.GetHandler("OnKeyRelease"):
-            self.stackManager.runner.RunHandler(self.model, "OnKeyRelease", event)
+        if self.stackManager.runner and self.model.GetHandler("on_key_release"):
+            self.stackManager.runner.RunHandler(self.model, "on_key_release", event)
 
     def OnPeriodic(self, event):
-        if self.stackManager.runner and self.model.GetHandler("OnKeyHold"):
-            for keyName in self.stackManager.runner.pressedKeys:
-                self.stackManager.runner.RunHandler(self.model, "OnKeyHold", event, keyName)
+        if self.stackManager.runner and self.model.GetHandler("on_key_hold"):
+            for key_name in self.stackManager.runner.pressedKeys:
+                self.stackManager.runner.RunHandler(self.model, "on_key_hold", event, key_name)
         didRun = False
         for child in reversed(self.GetAllUiViews()):
             if child.OnPeriodic(event):
@@ -112,7 +112,7 @@ class UiCard(UiView):
 class CardModel(ViewModel):
     """
     The CardModel allows access to a few properties that actually live in the stack.  This is because the Designer
-    allows editing cards, but not the stack model itself.  These properties are size, canSave, and canResize.
+    allows editing cards, but not the stack model itself.  These properties are size, can_save, and can_resize.
     """
 
     def __init__(self, stackManager):
@@ -120,33 +120,33 @@ class CardModel(ViewModel):
         self.type = "card"
         self.proxyClass = Card
         # Add custom handlers to the top of the list
-        handlers = {"OnSetup": "", "OnShowCard": "", "OnKeyPress": "", "OnKeyHold": "", "OnKeyRelease": ""}
-        del self.handlers["OnBounce"]
+        handlers = {"on_setup": "", "on_show_card": "", "on_key_press": "", "on_key_hold": "", "on_key_release": ""}
+        del self.handlers["on_bounce"]
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
-        self.handlers["OnResize"] = ""
-        self.handlers["OnHideCard"] = ""
-        self.handlers["OnExitStack"] = ""
-        self.initialEditHandler = "OnSetup"
+        self.handlers["on_resize"] = ""
+        self.handlers["on_hide_card"] = ""
+        self.handlers["on_exit_stack"] = ""
+        self.initialEditHandler = "on_setup"
 
         # Custom property order and mask for the inspector
         self.properties["name"] = "card_1"
-        self.properties["fillColor"] = "white"
-        self.propertyKeys = ["name", "fillColor", "size", "canSave", "canResize"]
+        self.properties["fill_color"] = "white"
+        self.propertyKeys = ["name", "fill_color", "size", "can_save", "can_resize"]
 
-        self.propertyTypes["fillColor"] = "color"
-        self.propertyTypes["canSave"] = 'bool'
-        self.propertyTypes["canResize"] = 'bool'
+        self.propertyTypes["fill_color"] = "color"
+        self.propertyTypes["can_save"] = 'bool'
+        self.propertyTypes["can_resize"] = 'bool'
 
     def SetProperty(self, key, value, notify=True):
-        if key in ["size", "canSave", "canResize"]:
+        if key in ["size", "can_save", "can_resize"]:
             self.parent.SetProperty(key, value, notify)
         else:
             super().SetProperty(key, value, notify)
 
     def GetProperty(self, key):
-        if key in ["size", "canSave", "canResize"]:
+        if key in ["size", "can_save", "can_resize"]:
             return self.parent.GetProperty(key)
         else:
             return super().GetProperty(key)
@@ -298,17 +298,17 @@ class Card(ViewProxy):
     """
 
     @property
-    def fillColor(self):
+    def fill_color(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("fillColor")
-    @fillColor.setter
-    def fillColor(self, val):
+        return model.GetProperty("fill_color")
+    @fill_color.setter
+    def fill_color(self, val):
         if not isinstance(val, str):
-            raise TypeError("fillColor must be a string")
+            raise TypeError("fill_color must be a string")
         model = self._model
         if not model: return
-        model.SetProperty("fillColor", val)
+        model.SetProperty("fill_color", val)
 
     @property
     def number(self):
@@ -316,88 +316,88 @@ class Card(ViewProxy):
         if not model: return -1
         return model.parent.childModels.index(model)+1
 
-    def AnimateFillColor(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_fill_color(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimateFillColor(): duration must be a number")
+            raise TypeError("animate_fill_color(): duration must be a number")
         if not isinstance(endVal, str):
-            raise TypeError("AnimateFillColor(): endColor must be a string")
+            raise TypeError("animate_fill_color(): end_color must be a string")
 
         model = self._model
         if not model: return
 
-        endColor = wx.Colour(endVal)
-        if endColor.IsOk():
+        end_color = wx.Colour(endVal)
+        if end_color.IsOk():
             def onStart(animDict):
-                origVal = wx.Colour(self.fillColor)
+                origVal = wx.Colour(self.fill_color)
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
                 animDict["origParts"] = origParts
-                endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
+                endParts = [end_color.Red(), end_color.Green(), end_color.Blue(), end_color.Alpha()]
                 animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
             def onUpdate(progress, animDict):
-                model.SetProperty("fillColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
+                model.SetProperty("fill_color", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
             def internalOnFinished(animDict):
                 if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
-            model.AddAnimation("fillColor", duration, onUpdate, onStart, internalOnFinished)
+            model.AddAnimation("fill_color", duration, onUpdate, onStart, internalOnFinished)
 
-    def AddButton(self, name="button", **kwargs):
+    def add_button(self, name="button", **kwargs):
         model = self._model
         if not model: return None
         obj = model.AddNewObject("button", name, (100,24), kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
-    def AddTextField(self, name="field", **kwargs):
+    def add_text_field(self, name="field", **kwargs):
         model = self._model
         if not model: return None
         obj = model.AddNewObject("textfield", name, (100,24), kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
-    def AddTextLabel(self, name="label", **kwargs):
+    def add_text_label(self, name="label", **kwargs):
         model = self._model
         if not model: return None
         obj = model.AddNewObject("textlabel", name, (100,24), kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
-    def AddImage(self, name="image", **kwargs):
+    def add_image(self, name="image", **kwargs):
         model = self._model
         if not model: return None
         obj = model.AddNewObject("image", name, (80,80), kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
-    def AddOval(self, name="oval", **kwargs):
+    def add_oval(self, name="oval", **kwargs):
         model = self._model
         if not model: return None
         obj = model.AddNewObject("oval", name, None, [(10, 10), (100, 100)], kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
-    def AddRectangle(self, name="rect", **kwargs):
+    def add_rectangle(self, name="rect", **kwargs):
         model = self._model
         if not model: return None
         obj = model.AddNewObject("rect", name, None, [(10, 10), (100, 100)], kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
-    def AddRoundRectangle(self, name="roundrect", **kwargs):
+    def add_round_rectangle(self, name="roundrect", **kwargs):
         model = self._model
         if not model: return None
         obj = model.AddNewObject("roundrect", name, None, [(10, 10), (100, 100)], kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
-    def AddLine(self, points, name="line", **kwargs):
+    def add_line(self, points, name="line", **kwargs):
         if not isinstance(points, (list, tuple)):
-            raise TypeError("AddLine(): points should be a list of points")
+            raise TypeError("add_line(): points should be a list of points")
         if len(points) < 2:
-            raise TypeError("AddLine(): points should be a list of at least 2 points")
+            raise TypeError("add_line(): points should be a list of at least 2 points")
         for p in points:
             if not isinstance(p, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
-                raise TypeError("AddLine(): points items each need to be a point or a list of two numbers")
+                raise TypeError("add_line(): points items each need to be a point or a list of two numbers")
             if len(p) != 2:
-                raise TypeError("AddLine(): points items each need to be a point or a list of two numbers")
+                raise TypeError("add_line(): points items each need to be a point or a list of two numbers")
             try:
                 int(p[0]), int(p[1])
             except:
-                raise ValueError("AddLine(): points items each need to be a point or a list of two numbers")
+                raise ValueError("add_line(): points items each need to be a point or a list of two numbers")
 
         model = self._model
         if not model: return None
@@ -405,20 +405,20 @@ class Card(ViewProxy):
         line = model.AddNewObject("line", name, None, points, kwargs=kwargs)
         return line.GetProxy() if line else None
 
-    def AddPolygon(self, points, name="polygon", **kwargs):
+    def add_polygon(self, points, name="polygon", **kwargs):
         if not isinstance(points, (list, tuple)):
-            raise TypeError("AddPolygon(): points should be a list of points")
+            raise TypeError("add_polygon(): points should be a list of points")
         if len(points) < 2:
-            raise TypeError("AddPolygon(): points should be a list of at least 2 points")
+            raise TypeError("add_polygon(): points should be a list of at least 2 points")
         for p in points:
             if not isinstance(p, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
-                raise TypeError("AddPolygon(): points items each need to be a point or a list of two numbers")
+                raise TypeError("add_polygon(): points items each need to be a point or a list of two numbers")
             if len(p) != 2:
-                raise TypeError("AddPolygon(): points items each need to be a point or a list of two numbers")
+                raise TypeError("add_polygon(): points items each need to be a point or a list of two numbers")
             try:
                 int(p[0]), int(p[1])
             except:
-                raise ValueError("AddPolygon(): points items each need to be a point or a list of two numbers")
+                raise ValueError("add_polygon(): points items each need to be a point or a list of two numbers")
 
         model = self._model
         if not model: return None
@@ -426,11 +426,11 @@ class Card(ViewProxy):
         poly = model.AddNewObject("polygon", name, None, points, kwargs=kwargs)
         return poly.GetProxy() if poly else None
 
-    def AddGroup(self, objects, name="group"):
+    def add_group(self, objects, name="group"):
         models = []
         for o in objects:
             if not isinstance(o, ViewProxy):
-                raise TypeError("AddGroup(): objects must be a list of objects")
+                raise TypeError("add_group(): objects must be a list of objects")
             if o._model.type not in ["card", "stack"] and o._model.GetCard() == self._model:
                 models.append(o._model)
 
@@ -444,7 +444,7 @@ class Card(ViewProxy):
             return g.GetProxy() if g else None
         return func()
 
-    def StopAllAnimating(self, propertyName=None):
+    def stop_all_animating(self, propertyName=None):
         model = self._model
         if not model: return
         model.StopAnimation(propertyName)

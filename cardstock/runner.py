@@ -33,7 +33,7 @@ class Runner():
     """
     The Runner object runs all of the stack's user-written event handlers.  It keeps track of user variables, so that they
     can be shared between handlers, offers global variables and functions, and makes event arguments (message,
-    mousePos, etc.) available to the handlers that expect them, and then restores any old values of those variables upon
+    mouse_pos, etc.) available to the handlers that expect them, and then restores any old values of those variables upon
     finishing those events.
 
     Keep the UI responsive even if an event handler runs an infinite loop.  Do this by running all handler code in the
@@ -89,26 +89,26 @@ class Runner():
         self.stackStartTime = time()
 
         self.initialClientVars = {
-            "Wait": self.Wait,
-            "RunAfterDelay": self.RunAfterDelay,
-            "Time": self.Time,
-            "Distance": self.Distance,
-            "Paste": self.Paste,
-            "Alert": self.Alert,
-            "AskYesNo": self.AskYesNo,
-            "AskText": self.AskText,
-            "GotoCard": self.GotoCard,
-            "GotoNextCard": self.GotoNextCard,
-            "GotoPreviousCard": self.GotoPreviousCard,
-            "RunStack": self.RunStack,
-            "PlaySound": self.PlaySound,
-            "StopSound": self.StopSound,
-            "BroadcastMessage": self.BroadcastMessage,
-            "IsKeyPressed": self.IsKeyPressed,
-            "IsMousePressed": self.IsMousePressed,
-            "IsUsingTouchScreen": self.IsUsingTouchScreen,
-            "GetMousePos": self.GetMousePos,
-            "Quit":self.Quit,
+            "wait": self.wait,
+            "run_after_delay": self.run_after_delay,
+            "time": self.time,
+            "distance": self.distance,
+            "paste": self.paste,
+            "alert": self.alert,
+            "ask_yes_no": self.ask_yes_no,
+            "ask_text": self.ask_text,
+            "goto_card": self.goto_card,
+            "goto_next_card": self.goto_next_card,
+            "goto_previous_card": self.goto_previous_card,
+            "run_stack": self.run_stack,
+            "play_sound": self.play_sound,
+            "stop_sound": self.stop_sound,
+            "broadcast_message": self.broadcast_message,
+            "is_key_pressed": self.is_key_pressed,
+            "is_mouse_pressed": self.is_mouse_pressed,
+            "is_using_touch_screen": self.is_using_touch_screen,
+            "get_mouse_pos": self.get_mouse_pos,
+            "quit":self.quit,
             "ColorRGB": self.MakeColorRGB,
             "ColorHSB": self.MakeColorHSB,
             "Point": self.MakePoint,
@@ -201,12 +201,12 @@ class Runner():
             self.stopRunnerThread = True
             self.StopTimers()
             for card in self.stackManager.stackModel.childModels:
-                self.RunHandler(card, "OnExitStack", None)
-            self.stackReturnQueue.put(None)  # Stop waiting for a RunStack() call to return
+                self.RunHandler(card, "on_exit_stack", None)
+            self.stackReturnQueue.put(None)  # Stop waiting for a run_stack() call to return
             self.handlerQueue.put((TaskType.Wake, )) # Wake up the runner thread get() call so it can see that we're stopping
 
             def waitAndYield(duration):
-                # Wait up to duration seconds for the stack to finish running
+                # wait up to duration seconds for the stack to finish running
                 # run wx.YieldIfNeeded() to process main thread events while waiting, to allow @RunOnMainSync* methods to complete
                 if self.generatingThumbnail: return
                 endTime = time() + duration
@@ -240,7 +240,7 @@ class Runner():
         self.StopTimers()
         self.lastHandlerStack = None
         self.lastCard = None
-        self.StopSound()
+        self.stop_sound()
         self.soundCache = None
         self.cardVarKeys = None
         self.clientVars = None
@@ -265,7 +265,7 @@ class Runner():
     def EnqueueFunction(self, func, *args, **kwargs):
         """
         Add an arbitrary callable to the runner queue.
-        This is used to send RunAfterDelay(), and animation onFinished functions
+        This is used to send run_after_delay(), and animation onFinished functions
         from the main thread, back onto the runner thread, where we can properly
         catch errors in RunWithExceptionHandling(), to display to the user
         and avoid totally blowing up the app.
@@ -287,7 +287,7 @@ class Runner():
         the runnerThread is told to stop.
         """
 
-        # Allow a few last events to run while shutting down, to make sure we got to running any OnExitStack events
+        # Allow a few last events to run while shutting down, to make sure we got to running any on_exit_stack events
         exitCountdown = 4
 
         try:
@@ -322,9 +322,9 @@ class Runner():
                     # Run this handler
                     self.lastCard = args[1].GetCard()
                     self.RunHandlerInternal(*args[1:])
-                    if args[2] == "OnExitStack":
+                    if args[2] == "on_exit_stack":
                         runningOnExitStack = True
-                    if args[2] == "OnPeriodic":
+                    if args[2] == "on_periodic":
                         self.numOnPeriodicsQueued -= 1
 
                 if self.stopRunnerThread:
@@ -353,31 +353,31 @@ class Runner():
         if handlerStr == "":
             return False
 
-        mousePos = None
-        keyName = None
-        if event and handlerName.startswith("OnMouse"):
-            mousePos = wx.RealPoint(self.stackManager.view.ScreenToClient(wx.GetMousePosition()))
-        elif arg and handlerName == "OnKeyHold":
-            keyName = arg
-        elif event and handlerName.startswith("OnKey"):
-            keyName = self.KeyNameForEvent(event)
-            if not keyName:
+        mouse_pos = None
+        key_name = None
+        if event and handlerName.startswith("on_mouse"):
+            mouse_pos = wx.RealPoint(self.stackManager.view.ScreenToClient(wx.GetMousePosition()))
+        elif arg and handlerName == "on_key_hold":
+            key_name = arg
+        elif event and handlerName.startswith("on_key"):
+            key_name = self.KeyNameForEvent(event)
+            if not key_name:
                 return False
 
         if threading.currentThread() == self.runnerThread:
-            self.RunHandlerInternal(uiModel, handlerName, handlerStr, mousePos, keyName, arg)
+            self.RunHandlerInternal(uiModel, handlerName, handlerStr, mouse_pos, key_name, arg)
         else:
-            if handlerName == "OnPeriodic":
+            if handlerName == "on_periodic":
                 self.numOnPeriodicsQueued += 1
-            self.handlerQueue.put((TaskType.Handler, uiModel, handlerName, handlerStr, mousePos, keyName, arg))
+            self.handlerQueue.put((TaskType.Handler, uiModel, handlerName, handlerStr, mouse_pos, key_name, arg))
         return True
 
-    def RunHandlerInternal(self, uiModel, handlerName, handlerStr, mousePos, keyName, arg):
+    def RunHandlerInternal(self, uiModel, handlerName, handlerStr, mouse_pos, key_name, arg):
         """ Run an eventHandler.  This always runs on the runnerThread. """
         if not self.didSetup:
             return
 
-        if handlerName in ["OnMousePress", "OnMouseMove", "OnMouseRelease"] and self.stopHandlingMouseEvent:
+        if handlerName in ["on_mouse_press", "on_mouse_move", "on_mouse_release"] and self.stopHandlingMouseEvent:
             return
 
         self.runnerDepth += 1
@@ -394,79 +394,79 @@ class Runner():
             oldVars["self"] = noValue
         self.clientVars["self"] = uiModel.GetProxy()
 
-        if arg and handlerName == "OnMessage":
+        if arg and handlerName == "on_message":
             if "message" in self.clientVars:
                 oldVars["message"] = self.clientVars["message"]
             else:
                 oldVars["message"] = noValue
             self.clientVars["message"] = arg
 
-        if arg and handlerName == "OnDoneLoading":
+        if arg and handlerName == "on_done_loading":
             if "URL" in self.clientVars:
                 oldVars["URL"] = self.clientVars["URL"]
             else:
                 oldVars["URL"] = noValue
             self.clientVars["URL"] = arg[0]
-            if "didLoad" in self.clientVars:
-                oldVars["didLoad"] = self.clientVars["didLoad"]
+            if "did_load" in self.clientVars:
+                oldVars["did_load"] = self.clientVars["did_load"]
             else:
-                oldVars["didLoad"] = noValue
-            self.clientVars["didLoad"] = arg[1]
+                oldVars["did_load"] = noValue
+            self.clientVars["did_load"] = arg[1]
 
-        if handlerName == "OnCardStockLink":
+        if handlerName == "on_card_stock_link":
             if "message" in self.clientVars:
                 oldVars["message"] = self.clientVars["message"]
             else:
                 oldVars["message"] = noValue
             self.clientVars["message"] = arg
 
-        if handlerName == "OnPeriodic":
-            if "elapsedTime" in self.clientVars:
-                oldVars["elapsedTime"] = self.clientVars["elapsedTime"]
+        if handlerName == "on_periodic":
+            if "elapsed_time" in self.clientVars:
+                oldVars["elapsed_time"] = self.clientVars["elapsed_time"]
             else:
-                oldVars["elapsedTime"] = noValue
+                oldVars["elapsed_time"] = noValue
             now = time()
             if uiModel.lastOnPeriodicTime:
-                elapsedTime = now - uiModel.lastOnPeriodicTime
+                elapsed_time = now - uiModel.lastOnPeriodicTime
             else:
-                elapsedTime = now - self.stackStartTime
+                elapsed_time = now - self.stackStartTime
             uiModel.lastOnPeriodicTime = now
-            self.clientVars["elapsedTime"] = elapsedTime
+            self.clientVars["elapsed_time"] = elapsed_time
 
-        if mousePos and handlerName.startswith("OnMouse"):
-            if "mousePos" in self.clientVars:
-                oldVars["mousePos"] = self.clientVars["mousePos"]
+        if mouse_pos and handlerName.startswith("on_mouse"):
+            if "mouse_pos" in self.clientVars:
+                oldVars["mouse_pos"] = self.clientVars["mouse_pos"]
             else:
-                oldVars["mousePos"] = noValue
-            self.clientVars["mousePos"] = mousePos
+                oldVars["mouse_pos"] = noValue
+            self.clientVars["mouse_pos"] = mouse_pos
 
-        if keyName and handlerName.startswith("OnKey"):
-            if "keyName" in self.clientVars:
-                oldVars["keyName"] = self.clientVars["keyName"]
+        if key_name and handlerName.startswith("on_key"):
+            if "key_name" in self.clientVars:
+                oldVars["key_name"] = self.clientVars["key_name"]
             else:
-                oldVars["keyName"] = noValue
-            self.clientVars["keyName"] = keyName
+                oldVars["key_name"] = noValue
+            self.clientVars["key_name"] = key_name
 
-        if arg and handlerName == "OnKeyHold":
-            if "elapsedTime" in self.clientVars:
-                oldVars["elapsedTime"] = self.clientVars["elapsedTime"]
+        if arg and handlerName == "on_key_hold":
+            if "elapsed_time" in self.clientVars:
+                oldVars["elapsed_time"] = self.clientVars["elapsed_time"]
             else:
-                oldVars["elapsedTime"] = noValue
-            if keyName in self.keyTimings:
+                oldVars["elapsed_time"] = noValue
+            if key_name in self.keyTimings:
                 now = time()
-                elapsedTime = now - self.keyTimings[keyName]
-                self.keyTimings[keyName] = now
-                self.clientVars["elapsedTime"] = elapsedTime
+                elapsed_time = now - self.keyTimings[key_name]
+                self.keyTimings[key_name] = now
+                self.clientVars["elapsed_time"] = elapsed_time
             else:
                 # Shouldn't happen!  But just in case, return something that won't crash if the users divides by it
-                self.clientVars["elapsedTime"] = 0.01
+                self.clientVars["elapsed_time"] = 0.01
 
-        if arg and handlerName == "OnBounce":
-            if "otherObject" in self.clientVars:
-                oldVars["otherObject"] = self.clientVars["otherObject"]
+        if arg and handlerName == "on_bounce":
+            if "other_object" in self.clientVars:
+                oldVars["other_object"] = self.clientVars["other_object"]
             else:
-                oldVars["otherObject"] = noValue
-            self.clientVars["otherObject"] = arg[0]
+                oldVars["other_object"] = noValue
+            self.clientVars["other_object"] = arg[0]
             if "edge" in self.clientVars:
                 oldVars["edge"] = self.clientVars["edge"]
             else:
@@ -711,18 +711,18 @@ class Runner():
         return None
 
     def OnKeyDown(self, event):
-        keyName = self.KeyNameForEvent(event)
-        if keyName and keyName not in self.pressedKeys:
-            self.pressedKeys.append(keyName)
-            self.keyTimings[keyName] = time()
+        key_name = self.KeyNameForEvent(event)
+        if key_name and key_name not in self.pressedKeys:
+            self.pressedKeys.append(key_name)
+            self.keyTimings[key_name] = time()
             return True
         return False
 
     def OnKeyUp(self, event):
-        keyName = self.KeyNameForEvent(event)
-        if keyName and keyName in self.pressedKeys:
-            self.pressedKeys.remove(keyName)
-            del self.keyTimings[keyName]
+        key_name = self.KeyNameForEvent(event)
+        if key_name and key_name in self.pressedKeys:
+            self.pressedKeys.remove(key_name)
+            del self.keyTimings[key_name]
 
     def ClearPressedKeys(self):
         self.pressedKeys = []
@@ -758,15 +758,15 @@ class Runner():
 
     # --------- User-accessible view functions -----------
 
-    def BroadcastMessage(self, message):
+    def broadcast_message(self, message):
         if not isinstance(message, str):
-            raise TypeError("BroadcastMessage(): message must be a string")
+            raise TypeError("broadcast_message(): message must be a string")
 
-        self.RunHandler(self.stackManager.uiCard.model, "OnMessage", None, message)
+        self.RunHandler(self.stackManager.uiCard.model, "on_message", None, message)
         for ui in self.stackManager.uiCard.GetAllUiViews():
-            self.RunHandler(ui.model, "OnMessage", None, message)
+            self.RunHandler(ui.model, "on_message", None, message)
 
-    def GotoCard(self, card):
+    def goto_card(self, card):
         index = None
         if isinstance(card, str):
             cardName = card
@@ -775,7 +775,7 @@ class Runner():
         elif isinstance(card, int):
             index = card-1
         else:
-            raise TypeError("GotoCard(): card must be card object, a string, or an int")
+            raise TypeError("goto_card(): card must be card object, a string, or an int")
 
         if index is None:
             for m in self.stackManager.stackModel.childModels:
@@ -784,22 +784,22 @@ class Runner():
         if index is not None:
             if index < 0 or index >= len(self.stackManager.stackModel.childModels):
                 # Modify index back to 1 based for user visible error message
-                raise ValueError(f'GotoCard(): card number {index + 1} does not exist')
+                raise ValueError(f'goto_card(): card number {index + 1} does not exist')
             self.stackManager.LoadCardAtIndex(index)
         else:
-            raise ValueError("GotoCard(): cardName '" + cardName + "' does not exist")
+            raise ValueError("goto_card(): cardName '" + cardName + "' does not exist")
 
-    def GotoNextCard(self):
+    def goto_next_card(self):
         cardIndex = self.stackManager.cardIndex + 1
         if cardIndex >= len(self.stackManager.stackModel.childModels): cardIndex = 0
         self.stackManager.LoadCardAtIndex(cardIndex)
 
-    def GotoPreviousCard(self):
+    def goto_previous_card(self):
         cardIndex = self.stackManager.cardIndex - 1
         if cardIndex < 0: cardIndex = len(self.stackManager.stackModel.childModels) - 1
         self.stackManager.LoadCardAtIndex(cardIndex)
 
-    def RunStack(self, filename, cardNumber=1, setupValue=None):
+    def run_stack(self, filename, cardNumber=1, setupValue=None):
         if self.stopRunnerThread or self.generatingThumbnail:
             return None
         success = self.viewer.GosubStack(filename, cardNumber-1, sanitizer.SanitizeValue(setupValue, []))
@@ -810,9 +810,9 @@ class Runner():
             else:
                 raise RuntimeError("Return")
         else:
-            raise RuntimeError(f"RunStack(): Couldn't find stack '{filename}'.")
+            raise RuntimeError(f"run_stack(): Couldn't find stack '{filename}'.")
 
-    def ReturnFromStack(self, result=None):
+    def return_from_stack(self, result=None):
         stackReturnValue = sanitizer.SanitizeValue(result, [])
         if self.viewer.GosubStack(None,-1, stackReturnValue):
             raise RuntimeError('Return')
@@ -820,11 +820,11 @@ class Runner():
     def GetStackSetupValue(self):
         return self.stackSetupValue
 
-    def Wait(self, delay):
+    def wait(self, delay):
         try:
             delay = float(delay)
         except ValueError:
-            raise TypeError("Wait(): delay must be a number")
+            raise TypeError("wait(): delay must be a number")
 
         endTime = time() + delay
         while time() < endTime:
@@ -833,21 +833,21 @@ class Runner():
                 break
             sleep(min(remaining, 0.25))
 
-    def Time(self):
+    def time(self):
         return time()
 
-    def Distance(self, pointA, pointB):
+    def distance(self, pointA, pointB):
         try:
             pointA = wx.RealPoint(pointA[0], pointA[1])
         except:
-            raise ValueError("Distance(): pointA must be a point or a list of two numbers")
+            raise ValueError("distance(): pointA must be a point or a list of two numbers")
         try:
             pointB = wx.RealPoint(pointB[0], pointB[1])
         except:
-            raise ValueError("Distance(): pointB must be a point or a list of two numbers")
+            raise ValueError("distance(): pointB must be a point or a list of two numbers")
         return math.sqrt((pointB[0] - pointA[0]) ** 2 + (pointB[1] - pointA[1]) ** 2)
 
-    def Alert(self, message):
+    def alert(self, message):
         if self.stopRunnerThread or self.generatingThumbnail:
             return
 
@@ -856,7 +856,7 @@ class Runner():
             wx.MessageDialog(None, str(message), "", wx.OK).ShowModal()
         func()
 
-    def AskYesNo(self, message):
+    def ask_yes_no(self, message):
         if self.stopRunnerThread or self.generatingThumbnail:
             return None
 
@@ -866,7 +866,7 @@ class Runner():
 
         return func()
 
-    def AskText(self, message, defaultResponse=None):
+    def ask_text(self, message, defaultResponse=None):
         if self.stopRunnerThread or self.generatingThumbnail:
             return None
 
@@ -881,9 +881,9 @@ class Runner():
 
         return func()
 
-    def PlaySound(self, filepath):
+    def play_sound(self, filepath):
         if not isinstance(filepath, str):
-            raise TypeError("PlaySound(): filepath must be a string")
+            raise TypeError("play_sound(): filepath must be a string")
 
         if self.stopRunnerThread or self.generatingThumbnail:
             return
@@ -891,7 +891,7 @@ class Runner():
         filepath = self.stackManager.resPathMan.GetAbsPath(filepath)
 
         if not os.path.exists(filepath):
-            raise ValueError("PlaySound(): No file at '" + filepath + "'")
+            raise ValueError("play_sound(): No file at '" + filepath + "'")
 
         if filepath in self.soundCache:
             s = self.soundCache[filepath]
@@ -900,36 +900,36 @@ class Runner():
             if s:
                 self.soundCache[filepath] = s
             else:
-                raise ValueError("PlaySound(): Couldn't read audio file at '" + filepath + "'")
+                raise ValueError("play_sound(): Couldn't read audio file at '" + filepath + "'")
 
         if s:
             s.play()
 
-    def StopSound(self):
+    def stop_sound(self):
         simpleaudio.stop_all()
 
     @RunOnMainSync
-    def Paste(self):
+    def paste(self):
         models = self.stackManager.Paste(False)
         for model in models:
             model.RunSetup(self)
         return [m.GetProxy() for m in models]
 
-    def IsKeyPressed(self, name):
+    def is_key_pressed(self, name):
         if not isinstance(name, str):
-            raise TypeError("IsKeyPressed(): name must be a string")
+            raise TypeError("is_key_pressed(): name must be a string")
 
         return name in self.pressedKeys
 
     @RunOnMainSync
-    def IsMousePressed(self):
+    def is_mouse_pressed(self):
         return wx.GetMouseState().LeftIsDown()
 
-    def IsUsingTouchScreen(self):
+    def is_using_touch_screen(self):
         return False  # Only implemented in web viewer
 
     @RunOnMainSync
-    def GetMousePos(self):
+    def get_mouse_pos(self):
         return wx.RealPoint(self.stackManager.view.ScreenToClient(*wx.GetMousePosition()))
 
     @staticmethod
@@ -971,11 +971,11 @@ class Runner():
             raise TypeError("Size(): height must be a number")
         return wx.Size(width, height)
 
-    def RunAfterDelay(self, duration, func, *args, **kwargs):
+    def run_after_delay(self, duration, func, *args, **kwargs):
         try:
             duration = float(duration)
         except ValueError:
-            raise TypeError("RunAfterDelay(): duration must be a number")
+            raise TypeError("run_after_delay(): duration must be a number")
 
         startTime = time()
 
@@ -998,14 +998,14 @@ class Runner():
         f()
 
     @RunOnMainAsync
-    def Quit(self):
+    def quit(self):
         if self.stopRunnerThread: return
         self.stackManager.view.TopLevelParent.OnMenuClose(None)
 
     def ResetStopHandlingMouseEvent(self):
         self.handlerQueue.put((TaskType.StopHandlingMouseEvent, ))
 
-    def StopHandlingMouseEvent(self):
+    def stop_handling_mouse_event(self):
         self.stopHandlingMouseEvent = True
 
     def DidStopHandlingMouseEvent(self):

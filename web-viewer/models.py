@@ -8,7 +8,7 @@ from time import time
 import re
 
 VERSION='0.99.0'
-FILE_FORMAT_VERSION=4
+FILE_FORMAT_VERSION=5
 
 
 class ViewModel(object):
@@ -20,19 +20,19 @@ class ViewModel(object):
     """
 
     minSize = wx.Size(20, 20)
-    reservedNames = ['keyName', 'mousePos', 'message', 'URL', 'didLoad', 'otherObject', 'edge', 'elapsedTime', 'self',
-                     'stack', 'card', 'Wait', 'Distance', 'RunAfterDelay', 'Time', 'Paste', 'Alert', 'AskYesNo',
-                     'AskText', 'GotoCard', 'GotoNextCard', 'GotoPreviousCard', 'RunStack', 'PlaySound', 'StopSound',
-                     'BroadcastMessage', 'IsKeyPressed', 'IsMousePressed', 'GetMousePos', 'Color', 'Point', 'Size', 'Quit',
-                     'name', 'type', 'data', 'position', 'size', 'center', 'rotation', 'speed', 'isVisible', 'hasFocus',
-                     'parent', 'children', 'Copy', 'Cut', 'Clone', 'Delete', 'SendMessage', 'Focus', 'Show', 'Hide',
-                     'ChildWithBaseName', 'FlipHorizontal', 'FlipVertical', 'OrderToFront', 'OrderForward',
-                     'OrderBackward', 'OrderToBack', 'OrderToIndex', 'GetEventCode', 'SetEventCode',
-                     'StopHandlingMouseEvent', 'IsTouching', 'SetBounceObjects', 'IsTouchingPoint', 'IsTouchingEdge',
-                     'AnimatePosition', 'AnimateCenter', 'AnimateSize', 'AnimateRotation', 'StopAnimating', 'fillColor',
-                     'number', 'canSave', 'canResize', 'AddButton', 'AddTextField', 'AddTextLabel', 'AddImage', 'AddOval',
-                     'AddRectangle', 'AddRoundRectangle', 'AddLine', 'AddPolygon', 'AddGroup', 'AnimateFillColor',
-                     'StopAllAnimating', 'numCards', 'currentCard', 'False', 'None', 'True', '__peg_parser__', 'and',
+    reservedNames = ['key_name', 'mouse_pos', 'message', 'URL', 'did_load', 'other_object', 'edge', 'elapsed_time', 'self',
+                     'stack', 'card', 'wait', 'distance', 'run_after_delay', 'time', 'paste', 'alert', 'ask_yes_no',
+                     'ask_text', 'goto_card', 'goto_next_card', 'goto_previous_card', 'run_stack', 'play_sound', 'stop_sound',
+                     'broadcast_message', 'is_key_pressed', 'is_mouse_pressed', 'get_mouse_pos', 'Color', 'Point', 'Size', 'quit',
+                     'name', 'type', 'data', 'position', 'size', 'center', 'rotation', 'speed', 'is_visible', 'has_focus',
+                     'parent', 'children', 'copy', 'cut', 'clone', 'delete', 'send_message', 'focus', 'show', 'hide',
+                     'child_with_base_name', 'flip_horizontal', 'flip_vertical', 'order_to_front', 'order_forward',
+                     'order_backward', 'order_to_back', 'order_to_index', 'get_event_code', 'set_event_code',
+                     'stop_handling_mouse_event', 'is_touching', 'set_bounce_objects', 'is_touching_point', 'is_touching_edge',
+                     'animate_position', 'animate_center', 'animate_size', 'animate_rotation', 'stop_animating', 'fill_color',
+                     'number', 'can_save', 'can_resize', 'add_button', 'add_text_field', 'AddTextLabel', 'add_image', 'add_oval',
+                     'add_rectangle', 'add_round_rectangle', 'add_line', 'add_polygon', 'add_group', 'animate_fill_color',
+                     'stop_all_animating', 'num_cards', 'current_card', 'False', 'None', 'True', '__peg_parser__', 'and',
                      'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else',
                      'except', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal',
                      'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield']
@@ -41,24 +41,24 @@ class ViewModel(object):
         super().__init__()
         self.type = None
         self.parent = None
-        self.handlers = {"OnSetup": "",
-                         "OnMouseEnter": "",
-                         "OnMousePress": "",
-                         "OnMouseMove": "",
-                         "OnMouseRelease": "",
-                         "OnMouseExit": "",
-                         "OnBounce": "",
-                         "OnMessage": "",
-                         "OnPeriodic": ""
+        self.handlers = {"on_setup": "",
+                         "on_mouse_enter": "",
+                         "on_mouse_press": "",
+                         "on_mouse_move": "",
+                         "on_mouse_release": "",
+                         "on_mouse_exit": "",
+                         "on_bounce": "",
+                         "on_message": "",
+                         "on_periodic": ""
                          }
-        self.initialEditHandler = "OnMousePress"
+        self.initialEditHandler = "on_mouse_press"
         self.visibleHandlers = set()
 
         self.properties = {"name": "",
                            "size": wx.Size(0,0),
                            "position": wx.RealPoint(0,0),
                            "speed": wx.Point(0,0),
-                           "isVisible": True,
+                           "is_visible": True,
                            "data": {}
                            }
         self.propertyKeys = ["name", "position", "size"]
@@ -67,7 +67,7 @@ class ViewModel(object):
                               "center": "floatpoint",
                               "size": "size",
                               "speed": "point",
-                              "isVisible": "bool",
+                              "is_visible": "bool",
                               "data": "dict"
                               }
 
@@ -287,8 +287,8 @@ class ViewModel(object):
             self.SetProperty("position", pos)
 
     def IsVisible(self):
-        """ Returns False iff this object or any of its ancestors has its isVisible property set to False """
-        if not self.properties["isVisible"]:
+        """ Returns False iff this object or any of its ancestors has its is_visible property set to False """
+        if not self.properties["is_visible"]:
             return False
         if self.parent and self.parent.type not in ["card", "stack"]:
             return self.parent.IsVisible()
@@ -321,7 +321,7 @@ class ViewModel(object):
                 handlers[k] = v
 
         props = self.properties.copy()
-        props.pop("isVisible")
+        props.pop("is_visible")
         props.pop("speed")
         for k,v in self.propertyTypes.items():
             if v in ["point", "floatpoint", "size"] and k in props:
@@ -393,7 +393,7 @@ class ViewModel(object):
     def GetProperty(self, key):
         if key == "center":
             return self.GetAbsoluteCenter()
-        elif key == "isVisible":
+        elif key == "is_visible":
             return self.IsVisible()
         elif key in self.properties:
             return self.properties[key]
@@ -635,8 +635,8 @@ class ViewModel(object):
     def RunSetup(self, runner):
         if self.type == "card":
             runner.SetupForCard(self)
-        if self.GetHandler("OnSetup"):
-            runner.RunHandler(self, "OnSetup", None)
+        if self.GetHandler("on_setup"):
+            runner.RunHandler(self, "on_setup", None)
         for m in self.childModels:
             m.RunSetup(runner)
 
@@ -664,17 +664,17 @@ class ViewProxy(object):
                     return m.GetProxy()
         return super().__getattribute__(item)
 
-    def SendMessage(self, message):
+    def send_message(self, message):
         if not isinstance(message, str):
-            raise TypeError("SendMessage(): message must be a string")
+            raise TypeError("send_message(): message must be a string")
 
         model = self._model
         if not model: return
 
         if model.stackManager.runner:
-           model.stackManager.runner.RunHandler(model, "OnMessage", None, message)
+           model.stackManager.runner.RunHandler(model, "on_message", None, message)
 
-    def Focus(self):
+    def focus(self):
         model = self._model
         if not model: return
 
@@ -682,7 +682,7 @@ class ViewProxy(object):
             model.stackManager.runner.SetFocus(self)
 
     @property
-    def hasFocus(self):
+    def has_focus(self):
         model = self._model
         if not model: return False
         uiView = model.stackManager.GetUiViewByModel(model)
@@ -690,7 +690,7 @@ class ViewProxy(object):
             return worker.stackWorker.focusedFabId == uiView.textbox
         return False
 
-    def Clone(self, name=None, **kwargs):
+    def clone(self, name=None, **kwargs):
         model = self._model
         if not model: return None
 
@@ -699,13 +699,13 @@ class ViewProxy(object):
             newModel = model.CreateCopy(name)
             newModel.SetProperty("speed", model.GetProperty("speed"), notify=False)
             newModel.lastOnPeriodicTime = time()
-            if not self.isVisible:
-                newModel.SetProperty("isVisible", False, notify=False)
+            if not self.is_visible:
+                newModel.SetProperty("is_visible", False, notify=False)
             for k,v in kwargs.items():
                 if hasattr(newModel.GetProxy(), k):
                     setattr(newModel.GetProxy(), k, v)
                 else:
-                    raise TypeError(f"Clone(): unable to set property {k}")
+                    raise TypeError(f"clone(): unable to set property {k}")
 
             self._model.stackManager.uiCard.model.AddChild(newModel)
             newModel.RunSetup(model.stackManager.runner)
@@ -728,11 +728,11 @@ class ViewProxy(object):
                 if hasattr(newModel.GetProxy(), k):
                     setattr(newModel.GetProxy(), k, v)
                 else:
-                    raise TypeError(f"Clone(): unable to set property {k}")
+                    raise TypeError(f"clone(): unable to set property {k}")
 
         return newModel.GetProxy()
 
-    def Delete(self):
+    def delete(self):
         model = self._model
         if not model or not model.parent or model.parent.type == "group":
             return
@@ -791,7 +791,7 @@ class ViewProxy(object):
         if not model: return []
         return [m.GetProxy() for m in model.childModels]
 
-    def ChildWithBaseName(self, base):
+    def child_with_base_name(self, base):
         model = self._model
         if model and model.childModels:
             for m in model.childModels:
@@ -860,64 +860,64 @@ class ViewProxy(object):
         if not model: return
         model.SetCenter(center)
 
-    def FlipHorizontal(self):
+    def flip_horizontal(self):
         model = self._model
         if not model: return
         model.PerformFlips(True, False)
 
-    def FlipVertical(self):
+    def flip_vertical(self):
         model = self._model
         if not model: return
         model.PerformFlips(False, True)
 
-    def OrderToFront(self):
+    def order_to_front(self):
         model = self._model
         if not model: return
         model.OrderMoveTo(-1)
 
-    def OrderForward(self):
+    def order_forward(self):
         model = self._model
         if not model: return
         model.OrderMoveBy(1)
 
-    def OrderBackward(self):
+    def order_backward(self):
         model = self._model
         if not model: return
         model.OrderMoveBy(-1)
 
-    def OrderToBack(self):
+    def order_to_back(self):
         model = self._model
         if not model: return
         model.OrderMoveTo(0)
 
-    def OrderToIndex(self, i):
+    def order_to_index(self, i):
         if not isinstance(i, int):
-            raise TypeError("OrderToIndex(): index must be a number")
+            raise TypeError("order_to_index(): index must be a number")
 
         model = self._model
         if not model: return
 
         if i < 0 or i >= len(model.parent.childModels):
-            raise TypeError("OrderToIndex(): index is out of bounds")
+            raise TypeError("order_to_index(): index is out of bounds")
 
         if model.didSetDown: return
         model.OrderMoveTo(i)
 
-    def Show(self):
-        self.isVisible = True
-    def Hide(self):
-        self.isVisible = False
+    def show(self):
+        self.is_visible = True
+    def hide(self):
+        self.is_visible = False
 
     @property
-    def isVisible(self):
+    def is_visible(self):
         model = self._model
         if not model: return False
         return model.IsVisible()
-    @isVisible.setter
-    def isVisible(self, val):
+    @is_visible.setter
+    def is_visible(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("isVisible", bool(val))
+        model.SetProperty("is_visible", bool(val))
 
     @property
     def rotation(self):
@@ -934,41 +934,41 @@ class ViewProxy(object):
         if not model: return
         model.SetProperty("rotation", val)
 
-    def GetEventCode(self, eventName):
+    def get_event_code(self, eventName):
         model = self._model
         if not model: return ""
         return model.handlers[eventName]
 
-    def SetEventCode(self, eventName, code):
+    def set_event_code(self, eventName, code):
         model = self._model
         if not model: return
         if not isinstance(eventName, str):
-            raise TypeError("SetEventCode(): eventName must be a string")
+            raise TypeError("set_event_code(): eventName must be a string")
         if not isinstance(code, str):
-            raise TypeError("SetEventCode(): code must be a string")
+            raise TypeError("set_event_code(): code must be a string")
         if eventName not in model.handlers:
-            raise TypeError(f"SetEventCode(): this object has no event called '{eventName}'")
+            raise TypeError(f"set_event_code(): this object has no event called '{eventName}'")
 
         model.handlers[eventName] = code
 
-    def SetBounceObjects(self, objects):
+    def set_bounce_objects(self, objects):
         if not isinstance(objects, (list, tuple)):
-            raise TypeError("SetBounceObjects(): objects needs to be a list of cardstock objects")
+            raise TypeError("set_bounce_objects(): objects needs to be a list of cardstock objects")
         models = [o._model for o in objects if isinstance(o, ViewProxy)]
         self._model.SetBounceModels(models)
 
-    def StopHandlingMouseEvent(self):
-        self._model.stackManager.runner.StopHandlingMouseEvent()
+    def stop_handling_mouse_event(self):
+        self._model.stackManager.runner.stop_handling_mouse_event()
 
-    def IsTouchingPoint(self, point):
+    def is_touching_point(self, point):
         if not isinstance(point, (wx.Point, wx.RealPoint, wx.CDSPoint, wx.CDSRealPoint, list, tuple)):
-            raise TypeError("IsTouchingPoint(): point needs to be a point or a list of two numbers")
+            raise TypeError("is_touching_point(): point needs to be a point or a list of two numbers")
         if len(point) != 2:
-            raise TypeError("IsTouchingPoint(): point needs to be a point or a list of two numbers")
+            raise TypeError("is_touching_point(): point needs to be a point or a list of two numbers")
         try:
             int(point[0]), int(point[1])
         except:
-            raise ValueError("IsTouchingPoint(): point needs to be a point or a list of two numbers")
+            raise ValueError("is_touching_point(): point needs to be a point or a list of two numbers")
 
         model = self._model
         if not model: return False
@@ -983,9 +983,9 @@ class ViewProxy(object):
                     return True
             return False
 
-    def IsTouching(self, obj):
+    def is_touching(self, obj):
         if not isinstance(obj, ViewProxy):
-            raise TypeError("IsTouching(): obj must be a CardStock object")
+            raise TypeError("is_touching(): obj must be a CardStock object")
 
         model = self._model
         oModel = obj._model
@@ -1000,9 +1000,9 @@ class ViewProxy(object):
                     return True
         return False
 
-    def IsTouchingEdge(self, obj, skipIsTouchingCheck=False):
+    def is_touching_edge(self, obj, skipIsTouchingCheck=False):
         if not isinstance(obj, ViewProxy):
-            raise TypeError("IsTouchingEdge(): obj must be a CardStock object")
+            raise TypeError("is_touching_edge(): obj must be a CardStock object")
 
         model = self._model
         oModel = obj._model
@@ -1011,7 +1011,7 @@ class ViewProxy(object):
         if model.didSetDown or oModel.didSetDown: return []
 
         if not skipIsTouchingCheck:
-            if not self.IsTouching(obj):
+            if not self.is_touching(obj):
                 return []
 
         rect = oModel.GetAbsoluteFrame() # other frame in card coords
@@ -1067,20 +1067,20 @@ class ViewProxy(object):
             edges.remove("Right")
         return list(edges)
 
-    def AnimatePosition(self, duration, endPosition, onFinished=None, *args, **kwargs):
+    def animate_position(self, duration, end_position, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimatePosition(): duration must be a number")
+            raise TypeError("animate_position(): duration must be a number")
         try:
-            endPosition = wx.RealPoint(endPosition)
+            end_position = wx.RealPoint(end_position)
         except:
-            raise ValueError("AnimatePosition(): endPosition must be a point or a list of two numbers")
+            raise ValueError("animate_position(): end_position must be a point or a list of two numbers")
 
         model = self._model
         if not model: return
 
         def onStart(animDict):
             origPosition = model.GetAbsolutePosition()
-            offsetPt = endPosition - tuple(origPosition)
+            offsetPt = end_position - tuple(origPosition)
             offset = wx.RealPoint(offsetPt[0], offsetPt[1])
             animDict["origPosition"] = origPosition
             animDict["offset"] = offset
@@ -1098,20 +1098,20 @@ class ViewProxy(object):
 
         model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
-    def AnimateCenter(self, duration, endCenter, onFinished=None, *args, **kwargs):
+    def animate_center(self, duration, end_center, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimateCenter(): duration must be a number")
+            raise TypeError("animate_center(): duration must be a number")
         try:
-            endCenter = wx.RealPoint(endCenter)
+            end_center = wx.RealPoint(end_center)
         except:
-            raise ValueError("AnimateCenter(): endCenter must be a point or a list of two numbers")
+            raise ValueError("animate_center(): end_center must be a point or a list of two numbers")
 
         model = self._model
         if not model: return
 
         def onStart(animDict):
             origCenter = model.GetCenter()
-            offsetPt = endCenter - tuple(origCenter)
+            offsetPt = end_center - tuple(origCenter)
             offset = wx.RealPoint(offsetPt[0], offsetPt[1])
             animDict["origCenter"] = origCenter
             animDict["offset"] = offset
@@ -1129,20 +1129,20 @@ class ViewProxy(object):
 
         model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
-    def AnimateSize(self, duration, endSize, onFinished=None, *args, **kwargs):
+    def animate_size(self, duration, end_size, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimateSize(): duration must be a number")
+            raise TypeError("animate_size(): duration must be a number")
         try:
-            endSize = wx.Size(endSize)
+            end_size = wx.Size(end_size)
         except:
-            raise ValueError("AnimateSize(): endSize must be a size or a list of two numbers")
+            raise ValueError("animate_size(): end_size must be a size or a list of two numbers")
 
         model = self._model
         if not model: return
 
         def onStart(animDict):
             origSize = model.GetProperty("size")
-            offset = wx.Size(endSize-tuple(origSize))
+            offset = wx.Size(end_size-tuple(origSize))
             animDict["origSize"] = origSize
             animDict["offset"] = offset
 
@@ -1154,26 +1154,26 @@ class ViewProxy(object):
 
         model.AddAnimation("size", duration, onUpdate, onStart, internalOnFinished)
 
-    def AnimateRotation(self, duration, endRotation, forceDirection=0, onFinished=None, *args, **kwargs):
+    def animate_rotation(self, duration, end_rotation, forceDirection=0, onFinished=None, *args, **kwargs):
         if self._model.GetProperty("rotation") is None:
-            raise TypeError("AnimateRotation(): object does not support rotation")
+            raise TypeError("animate_rotation(): object does not support rotation")
 
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimateRotation(): duration must be a number")
-        if not isinstance(endRotation, (int, float)):
-            raise TypeError("AnimateRotation(): endRotation must be a number")
+            raise TypeError("animate_rotation(): duration must be a number")
+        if not isinstance(end_rotation, (int, float)):
+            raise TypeError("animate_rotation(): end_rotation must be a number")
         if not isinstance(forceDirection, (int, float)):
-            raise TypeError("AnimateRotation(): forceDirection must be a number")
+            raise TypeError("animate_rotation(): forceDirection must be a number")
 
         model = self._model
         if not model: return
 
-        endRotation = endRotation
+        end_rotation = end_rotation
 
         def onStart(animDict):
             origVal = self.rotation
             animDict["origVal"] = origVal
-            offset = endRotation - origVal
+            offset = end_rotation - origVal
             if forceDirection:
                 if forceDirection > 0:
                     if offset <= 0: offset += 360
@@ -1192,7 +1192,7 @@ class ViewProxy(object):
 
         model.AddAnimation("rotation", duration, onUpdate, onStart, internalOnFinished)
 
-    def StopAnimating(self, propertyName=None):
+    def stop_animating(self, propertyName=None):
         model = self._model
         if not model: return
         model.StopAnimation(propertyName)
@@ -1212,11 +1212,11 @@ class StackModel(ViewModel):
 
         self.properties["size"] = wx.Size(500, 500)
         self.properties["name"] = "stack"
-        self.properties["canSave"] = False
-        self.properties["canResize"] = False
+        self.properties["can_save"] = False
+        self.properties["can_resize"] = False
 
-        self.propertyTypes["canSave"] = 'bool'
-        self.propertyTypes["canResize"] = 'bool'
+        self.propertyTypes["can_save"] = 'bool'
+        self.propertyTypes["can_resize"] = 'bool'
 
         self.propertyKeys = []
 
@@ -1290,35 +1290,35 @@ class StackModel(ViewModel):
 
 class Stack(ViewProxy):
     @property
-    def numCards(self):
+    def num_cards(self):
         return len(self._model.childModels)
 
     @property
-    def currentCard(self):
+    def current_card(self):
         if self._model.didSetDown: return None
         return self._model.stackManager.uiCard.model.GetProxy()
 
-    def CardWithNumber(self, number):
+    def card_with_number(self, number):
         model = self._model
         if model.didSetDown: return None
         if not isinstance(number, int):
-            raise TypeError("CardWithNumber(): number is not an int")
+            raise TypeError("card_with_number(): number is not an int")
         if number < 1 or number > len(model.childModels):
-            raise ValueError("CardWithNumber(): number is out of bounds")
+            raise ValueError("card_with_number(): number is out of bounds")
         return model.childModels[number-1].GetProxy()
 
-    def ReturnFromStack(self, result=None):
-        self._model.stackManager.runner.ReturnFromStack(result)
+    def return_from_stack(self, result=None):
+        self._model.stackManager.runner.return_from_stack(result)
 
-    def GetSetupValue(self):
+    def get_setup_value(self):
         return self._model.stackManager.runner.GetStackSetupValue()
 
-    def AddCard(self, name="card", atNumber=0):
+    def add_card(self, name="card", atNumber=0):
         if not isinstance(name, str):
-            raise TypeError("AddCard(): name is not a string")
+            raise TypeError("add_card(): name is not a string")
         atNumber = int(atNumber)
         if atNumber < 0 or atNumber > len(self._model.childModels)+1:
-            raise ValueError("AddCard(): atNumber is out of bounds")
+            raise ValueError("add_card(): atNumber is out of bounds")
 
         if self._model.didSetDown: return None
         return self._model.InsertNewCard(name, atNumber-1).GetProxy()
@@ -1327,7 +1327,7 @@ class Stack(ViewProxy):
 class CardModel(ViewModel):
     """
     The CardModel allows access to a few properties that actually live in the stack.  This is because the Designer
-    allows editing cards, but not the stack model itself.  These properties are size, canSave, and canResize.
+    allows editing cards, but not the stack model itself.  These properties are size, can_save, and can_resize.
     """
 
     def __init__(self, stackManager):
@@ -1337,33 +1337,33 @@ class CardModel(ViewModel):
         self.allChildModels = None
 
         # Add custom handlers to the top of the list
-        handlers = {"OnSetup": "", "OnShowCard": "", "OnKeyPress": "", "OnKeyHold": "", "OnKeyRelease": ""}
-        del self.handlers["OnBounce"]
+        handlers = {"on_setup": "", "on_show_card": "", "on_key_press": "", "on_key_hold": "", "on_key_release": ""}
+        del self.handlers["on_bounce"]
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
-        self.handlers["OnResize"] = ""
-        self.handlers["OnHideCard"] = ""
-        self.handlers["OnExitStack"] = ""
-        self.initialEditHandler = "OnSetup"
+        self.handlers["on_resize"] = ""
+        self.handlers["on_hide_card"] = ""
+        self.handlers["on_exit_stack"] = ""
+        self.initialEditHandler = "on_setup"
 
         # Custom property order and mask for the inspector
         self.properties["name"] = "card_1"
-        self.properties["fillColor"] = "white"
-        self.propertyKeys = ["name", "fillColor", "size", "canSave", "canResize"]
+        self.properties["fill_color"] = "white"
+        self.propertyKeys = ["name", "fill_color", "size", "can_save", "can_resize"]
 
-        self.propertyTypes["fillColor"] = "color"
-        self.propertyTypes["canSave"] = 'bool'
-        self.propertyTypes["canResize"] = 'bool'
+        self.propertyTypes["fill_color"] = "color"
+        self.propertyTypes["can_save"] = 'bool'
+        self.propertyTypes["can_resize"] = 'bool'
 
     def SetProperty(self, key, value, notify=True):
-        if key in ["size", "canSave", "canResize"]:
+        if key in ["size", "can_save", "can_resize"]:
             self.parent.SetProperty(key, value, notify)
         else:
             super().SetProperty(key, value, notify)
 
     def GetProperty(self, key):
-        if key in ["size", "canSave", "canResize"]:
+        if key in ["size", "can_save", "can_resize"]:
             return self.parent.GetProperty(key)
         else:
             return super().GetProperty(key)
@@ -1514,17 +1514,17 @@ class Card(ViewProxy):
     """
 
     @property
-    def fillColor(self):
+    def fill_color(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("fillColor")
-    @fillColor.setter
-    def fillColor(self, val):
+        return model.GetProperty("fill_color")
+    @fill_color.setter
+    def fill_color(self, val):
         if not isinstance(val, str):
-            raise TypeError("fillColor must be a string")
+            raise TypeError("fill_color must be a string")
         model = self._model
         if not model: return
-        model.SetProperty("fillColor", val)
+        model.SetProperty("fill_color", val)
 
     @property
     def number(self):
@@ -1532,88 +1532,88 @@ class Card(ViewProxy):
         if not model: return -1
         return model.parent.childModels.index(model)+1
 
-    def AnimateFillColor(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_fill_color(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimateFillColor(): duration must be a number")
+            raise TypeError("animate_fill_color(): duration must be a number")
         if not isinstance(endVal, str):
-            raise TypeError("AnimateFillColor(): endColor must be a string")
+            raise TypeError("animate_fill_color(): end_color must be a string")
 
         model = self._model
         if not model: return
 
-        endColor = wx.Colour(endVal)
+        end_color = wx.Colour(endVal)
 
         def onStart(animDict):
-            origVal = wx.Colour(self.fillColor)
+            origVal = wx.Colour(self.fill_color)
             origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
             animDict["origParts"] = origParts
-            endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
+            endParts = [end_color.Red(), end_color.Green(), end_color.Blue(), end_color.Alpha()]
             animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
         def onUpdate(progress, animDict):
-            model.SetProperty("fillColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
+            model.SetProperty("fill_color", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
         def internalOnFinished(animDict):
             if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
-        model.AddAnimation("fillColor", duration, onUpdate, onStart, internalOnFinished)
+        model.AddAnimation("fill_color", duration, onUpdate, onStart, internalOnFinished)
 
-    def AddButton(self, name="button", **kwargs):
+    def add_button(self, name="button", **kwargs):
         model = self._model
         if not model: return None
         obj = model.AddNewObject("button", name, (100,24), kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
-    def AddTextField(self, name="field", **kwargs):
+    def add_text_field(self, name="field", **kwargs):
         model = self._model
         if not model: return None
         obj = model.AddNewObject("textfield", name, (100,24), kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
-    def AddTextLabel(self, name="label", **kwargs):
+    def add_text_label(self, name="label", **kwargs):
         model = self._model
         if not model: return None
         obj = model.AddNewObject("textlabel", name, (100,24), kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
-    def AddImage(self, name="image", **kwargs):
+    def add_image(self, name="image", **kwargs):
         model = self._model
         if not model: return None
         obj = model.AddNewObject("image", name, (80,80), kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
-    def AddOval(self, name="oval", **kwargs):
+    def add_oval(self, name="oval", **kwargs):
         model = self._model
         if not model: return None
         obj = model.AddNewObject("oval", name, None, [(10, 10), (100, 100)], kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
-    def AddRectangle(self, name="rect", **kwargs):
+    def add_rectangle(self, name="rect", **kwargs):
         model = self._model
         if not model: return None
         obj = model.AddNewObject("rect", name, None, [(10, 10), (100, 100)], kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
-    def AddRoundRectangle(self, name="roundrect", **kwargs):
+    def add_round_rectangle(self, name="roundrect", **kwargs):
         model = self._model
         if not model: return None
         obj = model.AddNewObject("roundrect", name, None, [(10, 10), (100, 100)], kwargs=kwargs)
         return obj.GetProxy() if obj else None
 
-    def AddLine(self, points, name="line", **kwargs):
+    def add_line(self, points, name="line", **kwargs):
         if not isinstance(points, (list, tuple)):
-            raise TypeError("AddLine(): points should be a list of points")
+            raise TypeError("add_line(): points should be a list of points")
         if len(points) < 2:
-            raise TypeError("AddLine(): points should be a list of at least 2 points")
+            raise TypeError("add_line(): points should be a list of at least 2 points")
         for p in points:
             if not isinstance(p, (wx.Point, wx.RealPoint, wx.CDSPoint, wx.CDSRealPoint, list, tuple)):
-                raise TypeError("AddLine(): points items each need to be a point or a list of two numbers")
+                raise TypeError("add_line(): points items each need to be a point or a list of two numbers")
             if len(p) != 2:
-                raise TypeError("AddLine(): points items each need to be a point or a list of two numbers")
+                raise TypeError("add_line(): points items each need to be a point or a list of two numbers")
             try:
                 int(p[0]), int(p[1])
             except:
-                raise ValueError("AddLine(): points items each need to be a point or a list of two numbers")
+                raise ValueError("add_line(): points items each need to be a point or a list of two numbers")
 
         model = self._model
         if not model: return None
@@ -1621,20 +1621,20 @@ class Card(ViewProxy):
         line = model.AddNewObject("line", name, None, points, kwargs=kwargs)
         return line.GetProxy() if line else None
 
-    def AddPolygon(self, points, name="polygon", **kwargs):
+    def add_polygon(self, points, name="polygon", **kwargs):
         if not isinstance(points, (list, tuple)):
-            raise TypeError("AddPolygon(): points should be a list of points")
+            raise TypeError("add_polygon(): points should be a list of points")
         if len(points) < 2:
-            raise TypeError("AddPolygon(): points should be a list of at least 2 points")
+            raise TypeError("add_polygon(): points should be a list of at least 2 points")
         for p in points:
             if not isinstance(p, (wx.Point, wx.RealPoint, wx.CDSPoint, wx.CDSRealPoint, list, tuple)):
-                raise TypeError("AddPolygon(): points items each need to be a point or a list of two numbers")
+                raise TypeError("add_polygon(): points items each need to be a point or a list of two numbers")
             if len(p) != 2:
-                raise TypeError("AddPolygon(): points items each need to be a point or a list of two numbers")
+                raise TypeError("add_polygon(): points items each need to be a point or a list of two numbers")
             try:
                 int(p[0]), int(p[1])
             except:
-                raise ValueError("AddPolygon(): points items each need to be a point or a list of two numbers")
+                raise ValueError("add_polygon(): points items each need to be a point or a list of two numbers")
 
         model = self._model
         if not model: return None
@@ -1642,11 +1642,11 @@ class Card(ViewProxy):
         poly = model.AddNewObject("polygon", name, None, points, kwargs=kwargs)
         return poly.GetProxy() if poly else None
 
-    def AddGroup(self, objects, name="group"):
+    def add_group(self, objects, name="group"):
         models = []
         for o in objects:
             if not isinstance(o, ViewProxy):
-                raise TypeError("AddGroup(): objects must be a list of objects")
+                raise TypeError("add_group(): objects must be a list of objects")
             if o._model.type not in ["card", "stack"] and o._model.GetCard() == self._model:
                 models.append(o._model)
 
@@ -1657,7 +1657,7 @@ class Card(ViewProxy):
         g = model.stackManager.GroupModelsInternal(models, name=name)
         return g.GetProxy() if g else None
 
-    def StopAllAnimating(self, propertyName=None):
+    def stop_all_animating(self, propertyName=None):
         model = self._model
         if not model: return
         model.StopAnimation(propertyName)
@@ -1678,27 +1678,27 @@ class ButtonModel(ViewModel):
         self.proxyClass = Button
 
         # Add custom handlers to the top of the list
-        handlers = {"OnSetup": "",
-                    "OnClick": ""}
+        handlers = {"on_setup": "",
+                    "on_click": ""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
-        self.initialEditHandler = "OnClick"
+        self.initialEditHandler = "on_click"
 
         self.properties["name"] = "button_1"
         self.properties["title"] = "Button"
-        self.properties["hasBorder"] = True
+        self.properties["has_border"] = True
         self.propertyTypes["title"] = "string"
-        self.propertyTypes["hasBorder"] = "bool"
+        self.propertyTypes["has_border"] = "bool"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "title", "hasBorder", "position", "size"]
+        self.propertyKeys = ["name", "title", "has_border", "position", "size"]
 
 
 class Button(ViewProxy):
     """
     Button proxy objects are the user-accessible objects exposed to event handler code for button objects.
-    Based on ProxyView, and adds title, border, and Click().
+    Based on ProxyView, and adds title, border, and click().
     """
 
     @property
@@ -1713,21 +1713,21 @@ class Button(ViewProxy):
         model.SetProperty("title", str(val))
 
     @property
-    def hasBorder(self):
+    def has_border(self):
         model = self._model
         if not model: return False
-        return model.GetProperty("hasBorder")
-    @hasBorder.setter
-    def hasBorder(self, val):
+        return model.GetProperty("has_border")
+    @has_border.setter
+    def has_border(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("hasBorder", bool(val))
+        model.SetProperty("has_border", bool(val))
 
-    def Click(self):
+    def click(self):
         model = self._model
         if not model: return
-        if model.stackManager.runner and model.GetHandler("OnClick"):
-            model.stackManager.runner.RunHandler(model, "OnClick", None)
+        if model.stackManager.runner and model.GetHandler("on_click"):
+            model.stackManager.runner.RunHandler(model, "on_click", None)
 
 
 class TextBaseModel(ViewModel):
@@ -1741,21 +1741,21 @@ class TextBaseModel(ViewModel):
 
         self.properties["text"] = "Text"
         self.properties["alignment"] = "Left"
-        self.properties["textColor"] = "black"
+        self.properties["text_color"] = "black"
         self.properties["font"] = "Default"
-        self.properties["fontSize"] = 18
-        self.properties["isBold"] = False
-        self.properties["isItalic"] = False
-        self.properties["isUnderlined"] = False
+        self.properties["font_size"] = 18
+        self.properties["is_bold"] = False
+        self.properties["is_italic"] = False
+        self.properties["is_underlined"] = False
 
         self.propertyTypes["text"] = "string"
         self.propertyTypes["alignment"] = "choice"
-        self.propertyTypes["textColor"] = "color"
+        self.propertyTypes["text_color"] = "color"
         self.propertyTypes["font"] = "choice"
-        self.propertyTypes["fontSize"] = "uint"
-        self.propertyTypes["isBold"] = "bool"
-        self.propertyTypes["isItalic"] = "bool"
-        self.propertyTypes["isUnderlined"] = "bool"
+        self.propertyTypes["font_size"] = "uint"
+        self.propertyTypes["is_bold"] = "bool"
+        self.propertyTypes["is_italic"] = "bool"
+        self.propertyTypes["is_underlined"] = "bool"
 
 
 class TextBaseProxy(ViewProxy):
@@ -1789,17 +1789,17 @@ class TextBaseProxy(ViewProxy):
         model.SetProperty("alignment", val)
 
     @property
-    def textColor(self):
+    def text_color(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("textColor")
-    @textColor.setter
-    def textColor(self, val):
+        return model.GetProperty("text_color")
+    @text_color.setter
+    def text_color(self, val):
         if not isinstance(val, str):
-            raise TypeError("textColor must be a string")
+            raise TypeError("text_color must be a string")
         model = self._model
         if not model: return
-        model.SetProperty("textColor", val)
+        model.SetProperty("text_color", val)
 
     @property
     def font(self):
@@ -1815,84 +1815,84 @@ class TextBaseProxy(ViewProxy):
         model.SetProperty("font", val)
 
     @property
-    def fontSize(self):
+    def font_size(self):
         model = self._model
         if not model: return 0
-        return model.GetProperty("fontSize")
-    @fontSize.setter
-    def fontSize(self, val):
+        return model.GetProperty("font_size")
+    @font_size.setter
+    def font_size(self, val):
         if not isinstance(val, (int, float)):
-            raise TypeError("fontSize must be a number")
+            raise TypeError("font_size must be a number")
         model = self._model
         if not model: return
-        model.SetProperty("fontSize", val)
+        model.SetProperty("font_size", val)
 
     @property
-    def isBold(self):
+    def is_bold(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("isBold")
-    @isBold.setter
-    def isBold(self, val):
+        return model.GetProperty("is_bold")
+    @is_bold.setter
+    def is_bold(self, val):
         if not isinstance(val, bool):
-            raise TypeError("isBold must be True or False")
+            raise TypeError("is_bold must be True or False")
         model = self._model
         if not model: return
-        model.SetProperty("isBold", val)
+        model.SetProperty("is_bold", val)
 
     @property
-    def isItalic(self):
+    def is_italic(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("isItalic")
-    @isItalic.setter
-    def isItalic(self, val):
+        return model.GetProperty("is_italic")
+    @is_italic.setter
+    def is_italic(self, val):
         if not isinstance(val, bool):
-            raise TypeError("isItalic must be True or False")
+            raise TypeError("is_italic must be True or False")
         model = self._model
         if not model: return
-        model.SetProperty("isItalic", val)
+        model.SetProperty("is_italic", val)
 
     @property
-    def isUnderlined(self):
+    def is_underlined(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("isUnderlined")
-    @isUnderlined.setter
-    def isUnderlined(self, val):
+        return model.GetProperty("is_underlined")
+    @is_underlined.setter
+    def is_underlined(self, val):
         if not isinstance(val, bool):
-            raise TypeError("isUnderlined must be True or False")
+            raise TypeError("is_underlined must be True or False")
         model = self._model
         if not model: return
         if model.type == "textfield":
             raise TypeError("Text Field objects do not support underlined text.")
-        model.SetProperty("isUnderlined", val)
+        model.SetProperty("is_underlined", val)
 
-    def AnimateTextColor(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_text_color(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimateTextColor(): duration must be a number")
+            raise TypeError("animate_text_color(): duration must be a number")
         if not isinstance(endVal, str):
-            raise TypeError("AnimateTextColor(): endColor must be a string")
+            raise TypeError("animate_text_color(): end_color must be a string")
 
         model = self._model
         if not model: return
 
-        endColor = wx.Colour(endVal)
+        end_color = wx.Colour(endVal)
 
         def onStart(animDict):
-            origVal = wx.Colour(self.textColor)
+            origVal = wx.Colour(self.text_color)
             origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
             animDict["origParts"] = origParts
-            endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
+            endParts = [end_color.Red(), end_color.Green(), end_color.Blue(), end_color.Alpha()]
             animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
         def onUpdate(progress, animDict):
-            model.SetProperty("textColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
+            model.SetProperty("text_color", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
         def internalOnFinished(animDict):
             if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
-        model.AddAnimation("textColor", duration, onUpdate, onStart, internalOnFinished)
+        model.AddAnimation("text_color", duration, onUpdate, onStart, internalOnFinished)
 
 
 class TextLabelModel(TextBaseModel):
@@ -1905,14 +1905,14 @@ class TextLabelModel(TextBaseModel):
         self.type = "textlabel"
         self.proxyClass = TextLabel
         self.properties["name"] = "label_1"
-        self.properties["canAutoShrink"] = True
+        self.properties["can_auto_shrink"] = True
         self.properties["rotation"] = 0.0
 
-        self.propertyTypes["canAutoShrink"] = "bool"
+        self.propertyTypes["can_auto_shrink"] = "bool"
         self.propertyTypes["rotation"] = "float"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "canAutoShrink", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "text", "alignment", "font", "font_size", "text_color", "can_auto_shrink", "position", "size", "rotation"]
 
 
 class TextLabel(TextBaseProxy):
@@ -1921,15 +1921,15 @@ class TextLabel(TextBaseProxy):
     """
 
     @property
-    def canAutoShrink(self):
+    def can_auto_shrink(self):
         model = self._model
         if not model: return False
-        return model.GetProperty("canAutoShrink")
-    @canAutoShrink.setter
-    def canAutoShrink(self, val):
+        return model.GetProperty("can_auto_shrink")
+    @can_auto_shrink.setter
+    def can_auto_shrink(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("canAutoShrink", bool(val))
+        model.SetProperty("can_auto_shrink", bool(val))
 
 
 class TextFieldModel(TextBaseModel):
@@ -1945,22 +1945,22 @@ class TextFieldModel(TextBaseModel):
         self.proxyClass = TextField
 
         # Add custom handlers to the top of the list
-        handlers = {"OnSetup": "", "OnTextChanged": "", "OnTextEnter": ""}
+        handlers = {"on_setup": "", "on_text_changed": "", "on_text_enter": ""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
-        self.initialEditHandler = "OnTextEnter"
+        self.initialEditHandler = "on_text_enter"
 
         self.properties["name"] = "field_1"
-        self.properties["isEditable"] = True
-        self.properties["isMultiline"] = False
-        self.properties["fontSize"] = 12
+        self.properties["is_editable"] = True
+        self.properties["is_multiline"] = False
+        self.properties["font_size"] = 12
 
-        self.propertyTypes["isEditable"] = "bool"
-        self.propertyTypes["isMultiline"] = "bool"
+        self.propertyTypes["is_editable"] = "bool"
+        self.propertyTypes["is_multiline"] = "bool"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "text", "alignment", "font", "fontSize", "textColor", "isEditable", "isMultiline", "position", "size"]
+        self.propertyKeys = ["name", "text", "alignment", "font", "font_size", "text_color", "is_editable", "is_multiline", "position", "size"]
 
     def GetSelectedText(self):
         uiView = self.stackManager.GetUiViewByModel(self)
@@ -1993,26 +1993,26 @@ class TextField(TextBaseProxy):
     """
 
     @property
-    def isEditable(self):
+    def is_editable(self):
         model = self._model
         if not model: return False
-        return model.GetProperty("isEditable")
-    @isEditable.setter
-    def isEditable(self, val):
+        return model.GetProperty("is_editable")
+    @is_editable.setter
+    def is_editable(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("isEditable", bool(val))
+        model.SetProperty("is_editable", bool(val))
 
     @property
-    def isMultiline(self):
+    def is_multiline(self):
         model = self._model
         if not model: return False
-        return model.GetProperty("isMultiline")
-    @isMultiline.setter
-    def isMultiline(self, val):
+        return model.GetProperty("is_multiline")
+    @is_multiline.setter
+    def is_multiline(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("isMultiline", bool(val))
+        model.SetProperty("is_multiline", bool(val))
 
     @property
     def selection(self):
@@ -2030,29 +2030,29 @@ class TextField(TextBaseProxy):
         raise TypeError("selection must be a list of 2 numbers (start_position, end_position)")
 
     @property
-    def selectedText(self):
+    def selected_text(self):
         model = self._model
         if not model: return False
         return model.GetSelectedText()
-    @selectedText.setter
-    def selectedText(self, val):
+    @selected_text.setter
+    def selected_text(self, val):
         model = self._model
         if not model: return
         if isinstance(val,str):
             model.SetSelectedText(val)
             return
-        raise TypeError("selectedText must be a string")
+        raise TypeError("selected_text must be a string")
 
-    def SelectAll(self):
+    def select_all(self):
         model = self._model
         if not model: return
         model.Notify("selectAll")
 
-    def Enter(self):
+    def enter(self):
         model = self._model
         if not model: return
         if model.didSetDown: return
-        model.stackManager.runner.RunHandler(model, "OnTextEnter", None)
+        model.stackManager.runner.RunHandler(model, "on_text_enter", None)
 
 
 class GroupModel(ViewModel):
@@ -2107,9 +2107,9 @@ class GroupModel(ViewModel):
     def SetProperty(self, key, value, notify=True):
         if self.didSetDown: return
         super().SetProperty(key, value, notify)
-        if key == "isVisible":
+        if key == "is_visible":
             for m in self.GetAllChildModels():
-                m.Notify("isVisible")
+                m.Notify("is_visible")
 
     def AddChildModels(self, models):
         selfPos = self.GetProperty("position")
@@ -2234,14 +2234,14 @@ class Group(ViewProxy):
     Group proxy objects are the user-accessible objects exposed to event handler code for group objects.
     """
 
-    def Ungroup(self):
+    def ungroup(self):
         model = self._model
         if not model: return None
         groups = model.stackManager.UngroupModelsInternal([model])
         if groups and len(groups) > 0:
             return groups[0]
 
-    def StopAllAnimating(self, propertyName=None):
+    def stop_all_animating(self, propertyName=None):
         model = self._model
         if not model: return
         model.StopAnimation(propertyName)
@@ -2328,22 +2328,22 @@ class WebViewModel(ViewModel):
         self.proxyClass = WebView
 
         # Add custom handlers to the top of the list
-        handlers = {"OnSetup": "", "OnDoneLoading": "", "OnCardStockLink": ""}
+        handlers = {"on_setup": "", "on_done_loading": "", "on_card_stock_link": ""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
-        self.initialEditHandler = "OnDoneLoading"
+        self.initialEditHandler = "on_done_loading"
 
         self.properties["name"] = "webview_1"
         self.properties["URL"] = ""
         self.properties["HTML"] = ""
-        self.properties["allowedHosts"] = []
+        self.properties["allowed_hosts"] = []
         self.propertyTypes["URL"] = "string"
         self.propertyTypes["HTML"] = "string"
-        self.propertyTypes["allowedHosts"] = "list"
+        self.propertyTypes["allowed_hosts"] = "list"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "URL", "allowedHosts", "position", "size"]
+        self.propertyKeys = ["name", "URL", "allowed_hosts", "position", "size"]
 
     def SetProperty(self, key, value, notify=True):
         if key == "URL":
@@ -2351,7 +2351,7 @@ class WebViewModel(ViewModel):
                 parts = urlparse(value)
                 if not parts.scheme:
                     value = "https://" + value
-        elif key == "allowedHosts":
+        elif key == "allowed_hosts":
             if isinstance(value, (list, tuple)):
                 value = [str(i) for i in value]
         super().SetProperty(key, value, notify)
@@ -2391,33 +2391,33 @@ class WebView(ViewProxy):
         model.SetProperty("HTML", str(val))
 
     @property
-    def allowedHosts(self):
+    def allowed_hosts(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("allowedHosts")
-    @allowedHosts.setter
-    def allowedHosts(self, val):
+        return model.GetProperty("allowed_hosts")
+    @allowed_hosts.setter
+    def allowed_hosts(self, val):
         if not isinstance(val, (list, tuple)):
-            raise TypeError("allowedHosts must be set to a list value")
+            raise TypeError("allowed_hosts must be set to a list value")
         model = self._model
         if not model: return
-        model.SetProperty("allowedHosts", val)
+        model.SetProperty("allowed_hosts", val)
 
     @property
-    def canGoBack(self):
+    def can_go_back(self):
         return False
 
     @property
-    def canGoForward(self):
+    def can_go_forward(self):
         return False
 
-    def GoBack(self):
+    def go_back(self):
         pass
 
-    def GoForward(self):
+    def go_forward(self):
         pass
 
-    def RunJavaScript(self, code):
+    def run_java_script(self, code):
         return None
 
 
@@ -2444,17 +2444,17 @@ class LineModel(ViewModel):
             self.properties["name"] = f"{shapeType}_1"
 
         self.properties["originalSize"] = None
-        self.properties["penColor"] = "black"
-        self.properties["penThickness"] = 2
+        self.properties["pen_color"] = "black"
+        self.properties["pen_thickness"] = 2
         self.properties["rotation"] = 0.0
 
         self.propertyTypes["originalSize"] = "size"
-        self.propertyTypes["penColor"] = "color"
-        self.propertyTypes["penThickness"] = "uint"
+        self.propertyTypes["pen_color"] = "color"
+        self.propertyTypes["pen_thickness"] = "uint"
         self.propertyTypes["rotation"] = "float"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "penColor", "penThickness", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "pen_color", "pen_thickness", "position", "size", "rotation"]
 
     def GetData(self):
         data = super().GetData()
@@ -2468,8 +2468,8 @@ class LineModel(ViewModel):
 
     def SetShape(self, shape):
         self.type = shape["type"]
-        self.properties["penColor"] = shape["penColor"]
-        self.properties["penThickness"] = shape["thickness"]
+        self.properties["pen_color"] = shape["pen_color"]
+        self.properties["pen_thickness"] = shape["thickness"]
         self.points = shape["points"]
         self.isDirty = True
         self.Notify("shape")
@@ -2608,30 +2608,30 @@ class Line(ViewProxy):
     """
 
     @property
-    def penColor(self):
+    def pen_color(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("penColor")
-    @penColor.setter
-    def penColor(self, val):
+        return model.GetProperty("pen_color")
+    @pen_color.setter
+    def pen_color(self, val):
         if not isinstance(val, str):
-            raise TypeError("penColor must be a string")
+            raise TypeError("pen_color must be a string")
         model = self._model
         if not model: return
-        model.SetProperty("penColor", val)
+        model.SetProperty("pen_color", val)
 
     @property
-    def penThickness(self):
+    def pen_thickness(self):
         model = self._model
         if not model: return 0
-        return model.GetProperty("penThickness")
-    @penThickness.setter
-    def penThickness(self, val):
+        return model.GetProperty("pen_thickness")
+    @pen_thickness.setter
+    def pen_thickness(self, val):
         if not isinstance(val, (int, float)):
-            raise TypeError("penThickness must be a number")
+            raise TypeError("pen_thickness must be a number")
         model = self._model
         if not model: return
-        model.SetProperty("penThickness", val)
+        model.SetProperty("pen_thickness", val)
 
     @property
     def points(self):
@@ -2650,53 +2650,53 @@ class Line(ViewProxy):
 
         model.SetPoints(points)
 
-    def AnimatePenThickness(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_pen_thickness(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimatePenThickness(): duration must be a number")
+            raise TypeError("animate_pen_thickness(): duration must be a number")
         if not isinstance(endVal, (int, float)):
-            raise TypeError("AnimatePenThickness(): endThickness must be a number")
+            raise TypeError("animate_pen_thickness(): end_thickness must be a number")
 
         model = self._model
         if not model: return
 
         def onStart(animDict):
-            origVal = self.penThickness
+            origVal = self.pen_thickness
             animDict["origVal"] = origVal
             animDict["offset"] = endVal - origVal
 
         def onUpdate(progress, animDict):
-            model.SetProperty("penThickness", animDict["origVal"] + animDict["offset"] * progress)
+            model.SetProperty("pen_thickness", animDict["origVal"] + animDict["offset"] * progress)
 
         def internalOnFinished(animDict):
             if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
-        model.AddAnimation("penThickness", duration, onUpdate, onStart, internalOnFinished)
+        model.AddAnimation("pen_thickness", duration, onUpdate, onStart, internalOnFinished)
 
-    def AnimatePenColor(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_pen_color(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimatePenColor(): duration must be a number")
+            raise TypeError("animate_pen_color(): duration must be a number")
         if not isinstance(endVal, str):
-            raise TypeError("AnimatePenColor(): endColor must be a string")
+            raise TypeError("animate_pen_color(): end_color must be a string")
 
         model = self._model
         if not model: return
 
-        endColor = wx.Colour(endVal)
+        end_color = wx.Colour(endVal)
 
         def onStart(animDict):
-            origVal = wx.Colour(self.penColor)
+            origVal = wx.Colour(self.pen_color)
             origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
             animDict["origParts"] = origParts
-            endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
+            endParts = [end_color.Red(), end_color.Green(), end_color.Blue(), end_color.Alpha()]
             animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
         def onUpdate(progress, animDict):
-            model.SetProperty("penColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
+            model.SetProperty("pen_color", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
         def internalOnFinished(animDict):
             if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
-        model.AddAnimation("penColor", duration, onUpdate, onStart, internalOnFinished)
+        model.AddAnimation("pen_color", duration, onUpdate, onStart, internalOnFinished)
 
 
 class ShapeModel(LineModel):
@@ -2708,17 +2708,17 @@ class ShapeModel(LineModel):
         super().__init__(stackManager, shapeType)
         self.proxyClass = Shape
 
-        self.properties["fillColor"] = "white"
-        self.propertyTypes["fillColor"] = "color"
+        self.properties["fill_color"] = "white"
+        self.propertyTypes["fill_color"] = "color"
         if shapeType in ["oval", "polygon"]:
             self.isPolyRect = False
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "penColor", "penThickness", "fillColor", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "pen_color", "pen_thickness", "fill_color", "position", "size", "rotation"]
 
     def MakePolygon(self):
         if self.type == "polygon":
-            t = self.properties['penThickness'] / 2
+            t = self.properties['pen_thickness'] / 2
             points = self.GetAbsolutePoints()
             points = [(p.x+t, p.y-t) for p in points]
             if worker.decomp.makeCCW(points):
@@ -2729,7 +2729,7 @@ class ShapeModel(LineModel):
                 self.polygons.append(worker.SAT.Polygon.new(worker.SAT.Vector.new(),
                                                             [worker.SAT.Vector.new(p[0], p[1]) for p in poly]))
         elif self.type == "oval":
-            t = self.properties['penThickness'] / 2
+            t = self.properties['pen_thickness'] / 2
             rX = self.properties['size'].width/2 + t
             rY = self.properties['size'].height/2 + t
             if min(rX, rY) < 12:
@@ -2748,7 +2748,7 @@ class ShapeModel(LineModel):
             super().MakePolygon()
 
     def SetShape(self, shape):
-        self.properties["fillColor"] = shape["fillColor"]
+        self.properties["fill_color"] = shape["fill_color"]
         super().SetShape(shape)
 
 
@@ -2780,43 +2780,43 @@ class Shape(Line):
                 raise TypeError(f"The points property is not available for shapes of type {model.type}.")
 
     @property
-    def fillColor(self):
+    def fill_color(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("fillColor")
-    @fillColor.setter
-    def fillColor(self, val):
+        return model.GetProperty("fill_color")
+    @fill_color.setter
+    def fill_color(self, val):
         if not isinstance(val, str):
-            raise TypeError("fillColor must be a string")
+            raise TypeError("fill_color must be a string")
         model = self._model
         if not model: return
-        model.SetProperty("fillColor", val)
+        model.SetProperty("fill_color", val)
 
-    def AnimateFillColor(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_fill_color(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimateFillColor(): duration must be a number")
+            raise TypeError("animate_fill_color(): duration must be a number")
         if not isinstance(endVal, str):
-            raise TypeError("AnimateFillColor(): endColor must be a string")
+            raise TypeError("animate_fill_color(): end_color must be a string")
 
         model = self._model
         if not model: return
 
-        endColor = wx.Colour(endVal)
+        end_color = wx.Colour(endVal)
 
         def onStart(animDict):
-            origVal = wx.Colour(self.fillColor)
+            origVal = wx.Colour(self.fill_color)
             origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
             animDict["origParts"] = origParts
-            endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
+            endParts = [end_color.Red(), end_color.Green(), end_color.Blue(), end_color.Alpha()]
             animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
         def onUpdate(progress, animDict):
-            model.SetProperty("fillColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
+            model.SetProperty("fill_color", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
         def internalOnFinished(animDict):
             if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
-        model.AddAnimation("fillColor", duration, onUpdate, onStart, internalOnFinished)
+        model.AddAnimation("fill_color", duration, onUpdate, onStart, internalOnFinished)
 
 
 class RoundRectModel(ShapeModel):
@@ -2828,14 +2828,14 @@ class RoundRectModel(ShapeModel):
         super().__init__(stackManager, shapeType)
         self.proxyClass = RoundRect
 
-        self.properties["cornerRadius"] = 8
-        self.propertyTypes["cornerRadius"] = "uint"
+        self.properties["corner_radius"] = 8
+        self.propertyTypes["corner_radius"] = "uint"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "penColor", "penThickness", "fillColor", "cornerRadius", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "pen_color", "pen_thickness", "fill_color", "corner_radius", "position", "size", "rotation"]
 
     def MakePolygon(self):
-        t = self.properties['penThickness'] / 2
+        t = self.properties['pen_thickness'] / 2
         s = self.GetProperty('size')
         f = wx.Rect(-t, -t, s[0]+2*t, s[1]+2*t)
         points = [f.BottomLeft, f.BottomRight, f.TopRight, f.TopLeft]
@@ -2844,7 +2844,7 @@ class RoundRectModel(ShapeModel):
                                               [worker.SAT.Vector.new(p.x, p.y) for p in points])]
 
     def SetShape(self, shape):
-        self.properties["cornerRadius"] = shape["cornerRadius"] if "cornerRadius" in shape else 8
+        self.properties["corner_radius"] = shape["corner_radius"] if "corner_radius" in shape else 8
         super().SetShape(shape)
 
 
@@ -2855,36 +2855,36 @@ class RoundRect(Shape):
     """
 
     @property
-    def cornerRadius(self):
+    def corner_radius(self):
         model = self._model
         if not model: return 0
-        return model.GetProperty("cornerRadius")
-    @cornerRadius.setter
-    def cornerRadius(self, val):
+        return model.GetProperty("corner_radius")
+    @corner_radius.setter
+    def corner_radius(self, val):
         if not isinstance(val, (int, float)):
-            raise TypeError("cornerRadius must be a number")
+            raise TypeError("corner_radius must be a number")
         model = self._model
         if not model: return
-        model.SetProperty("cornerRadius", val)
+        model.SetProperty("corner_radius", val)
 
-    def AnimateCornerRadius(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_corner_radius(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimateCornerRadius(): duration must be a number")
+            raise TypeError("animate_corner_radius(): duration must be a number")
         if not isinstance(endVal, (int, float)):
-            raise TypeError("AnimateCornerRadius(): endCornerRadius must be a number")
+            raise TypeError("animate_corner_radius(): end_corner_radius must be a number")
 
         model = self._model
         if not model: return
 
         def onStart(animDict):
-            origVal = self.cornerRadius
+            origVal = self.corner_radius
             animDict["origVal"] = origVal
             animDict["offset"] = endVal - origVal
 
         def onUpdate(progress, animDict):
-            model.SetProperty("cornerRadius", animDict["origVal"] + animDict["offset"] * progress)
+            model.SetProperty("corner_radius", animDict["origVal"] + animDict["offset"] * progress)
 
         def internalOnFinished(animDict):
             if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
-        model.AddAnimation("cornerRadius", duration, onUpdate, onStart, internalOnFinished)
+        model.AddAnimation("corner_radius", duration, onUpdate, onStart, internalOnFinished)

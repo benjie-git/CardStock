@@ -41,7 +41,7 @@ class UiShape(UiView):
             if self.model.type == "rect":
                 path.AddRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1])
             elif self.model.type == "roundrect":
-                radius = self.model.GetProperty("cornerRadius")
+                radius = self.model.GetProperty("corner_radius")
                 radius = min(radius, abs(p1[0]-p2[0])/2)
                 radius = min(radius, abs(p1[1]-p2[1])/2)
                 path.AddRoundedRectangle(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1], radius)
@@ -64,26 +64,26 @@ class UiShape(UiView):
         hasFill = self.model.type not in ["line", "pen"]
 
         with self.model.animLock:
-            thickness = self.model.properties["penThickness"]
+            thickness = self.model.properties["pen_thickness"]
             if hasFill:
-                fillColor = self.model.properties["fillColor"]
-            penColor = self.model.properties["penColor"]
+                fill_color = self.model.properties["fill_color"]
+            pen_color = self.model.properties["pen_color"]
 
-        penColor = wx.Colour(penColor)
-        if not penColor:
-            penColor = wx.Colour('black')
+        pen_color = wx.Colour(pen_color)
+        if not pen_color:
+            pen_color = wx.Colour('black')
         if thickness == 0:
             pen = wx.TRANSPARENT_PEN
         else:
-            pen = wx.Pen(penColor, thickness, wx.PENSTYLE_SOLID)
+            pen = wx.Pen(pen_color, thickness, wx.PENSTYLE_SOLID)
         gc.cachedGC.SetPen(pen)
 
         if hasFill:
             pen.SetJoin(wx.JOIN_MITER)
-            fillColor = wx.Colour(fillColor)
-            if not fillColor:
-                fillColor = wx.Colour('white')
-            gc.cachedGC.SetBrush(wx.Brush(fillColor, wx.BRUSHSTYLE_SOLID))
+            fill_color = wx.Colour(fill_color)
+            if not fill_color:
+                fill_color = wx.Colour('white')
+            gc.cachedGC.SetBrush(wx.Brush(fill_color, wx.BRUSHSTYLE_SOLID))
 
         if "paint" in self.cachedPaths:
             path = self.cachedPaths["paint"]
@@ -100,7 +100,7 @@ class UiShape(UiView):
     def PaintSelectionBox(self, gc):
         if self.isSelected and self.stackManager.tool.name == "hand":
             with self.model.animLock:
-                thickness = self.model.GetProperty("penThickness")
+                thickness = self.model.GetProperty("pen_thickness")
                 # s = self.model.GetProperty("size")
 
             if wx.Platform != "__WXMAC__":
@@ -140,7 +140,7 @@ class UiShape(UiView):
             self.hitRegion = wx.Region((0,0), (0,0))
 
         with self.model.animLock:
-            thickness = self.model.GetProperty("penThickness")
+            thickness = self.model.GetProperty("pen_thickness")
             s = self.model.GetProperty("size")
             origPoints = self.model.GetScaledPoints()
             rotRect = self.model.RotatedRect(self.model.RectFromPoints(origPoints))
@@ -196,7 +196,7 @@ class UiShape(UiView):
         self.hitRegionOffset = self.model.GetAbsolutePosition()
 
     def GetLocalResizeBoxPoints(self):
-        thicknessOffset = self.model.GetProperty("penThickness")/2
+        thicknessOffset = self.model.GetProperty("pen_thickness")/2
         resizerPoints = super().GetLocalResizeBoxPoints()
         for k,p in resizerPoints.items():
                 p += (thicknessOffset-2 if p.x > 0 else -thicknessOffset-2,
@@ -205,10 +205,10 @@ class UiShape(UiView):
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key in ["size", "shape", "penColor", "penThickness", "fillColor", "cornerRadius", "rotation"]:
+        if key in ["size", "shape", "pen_color", "pen_thickness", "fill_color", "corner_radius", "rotation"]:
             self.ClearHitRegion()
             self.stackManager.view.Refresh()
-        if key in ["size", "shape", "penThickness", "cornerRadius", "rotation"]:
+        if key in ["size", "shape", "pen_thickness", "corner_radius", "rotation"]:
             self.cachedPaths = {}
 
     @staticmethod
@@ -243,17 +243,17 @@ class LineModel(ViewModel):
             self.properties["name"] = f"{shapeType}_1"
 
         self.properties["originalSize"] = None
-        self.properties["penColor"] = "black"
-        self.properties["penThickness"] = 2
+        self.properties["pen_color"] = "black"
+        self.properties["pen_thickness"] = 2
         self.properties["rotation"] = 0.0
 
         self.propertyTypes["originalSize"] = "size"
-        self.propertyTypes["penColor"] = "color"
-        self.propertyTypes["penThickness"] = "uint"
+        self.propertyTypes["pen_color"] = "color"
+        self.propertyTypes["pen_thickness"] = "uint"
         self.propertyTypes["rotation"] = "float"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "penColor", "penThickness", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "pen_color", "pen_thickness", "position", "size", "rotation"]
 
     def GetData(self):
         data = super().GetData()
@@ -267,8 +267,8 @@ class LineModel(ViewModel):
 
     def SetShape(self, shape):
         self.type = shape["type"]
-        self.properties["penColor"] = shape["penColor"]
-        self.properties["penThickness"] = shape["thickness"]
+        self.properties["pen_color"] = shape["pen_color"]
+        self.properties["pen_thickness"] = shape["thickness"]
         self.points = shape["points"]
         self.isDirty = True
         self.Notify("shape")
@@ -391,30 +391,30 @@ class Line(ViewProxy):
     """
 
     @property
-    def penColor(self):
+    def pen_color(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("penColor")
-    @penColor.setter
-    def penColor(self, val):
+        return model.GetProperty("pen_color")
+    @pen_color.setter
+    def pen_color(self, val):
         if not isinstance(val, str):
-            raise TypeError("penColor must be a string")
+            raise TypeError("pen_color must be a string")
         model = self._model
         if not model: return
-        model.SetProperty("penColor", val)
+        model.SetProperty("pen_color", val)
 
     @property
-    def penThickness(self):
+    def pen_thickness(self):
         model = self._model
         if not model: return 0
-        return model.GetProperty("penThickness")
-    @penThickness.setter
-    def penThickness(self, val):
+        return model.GetProperty("pen_thickness")
+    @pen_thickness.setter
+    def pen_thickness(self, val):
         if not isinstance(val, (int, float)):
-            raise TypeError("penThickness must be a number")
+            raise TypeError("pen_thickness must be a number")
         model = self._model
         if not model: return
-        model.SetProperty("penThickness", val)
+        model.SetProperty("pen_thickness", val)
 
     @property
     def points(self):
@@ -433,53 +433,53 @@ class Line(ViewProxy):
 
         model.SetPoints(points)
 
-    def AnimatePenThickness(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_pen_thickness(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimatePenThickness(): duration must be a number")
+            raise TypeError("animate_pen_thickness(): duration must be a number")
         if not isinstance(endVal, (int, float)):
-            raise TypeError("AnimatePenThickness(): endThickness must be a number")
+            raise TypeError("animate_pen_thickness(): end_thickness must be a number")
 
         model = self._model
         if not model: return
 
         def onStart(animDict):
-            origVal = self.penThickness
+            origVal = self.pen_thickness
             animDict["origVal"] = origVal
             animDict["offset"] = endVal - origVal
 
         def onUpdate(progress, animDict):
-            model.SetProperty("penThickness", animDict["origVal"] + animDict["offset"] * progress)
+            model.SetProperty("pen_thickness", animDict["origVal"] + animDict["offset"] * progress)
 
         def internalOnFinished(animDict):
             if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
-        model.AddAnimation("penThickness", duration, onUpdate, onStart, internalOnFinished)
+        model.AddAnimation("pen_thickness", duration, onUpdate, onStart, internalOnFinished)
 
-    def AnimatePenColor(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_pen_color(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimatePenColor(): duration must be a number")
+            raise TypeError("animate_pen_color(): duration must be a number")
         if not isinstance(endVal, str):
-            raise TypeError("AnimatePenColor(): endColor must be a string")
+            raise TypeError("animate_pen_color(): end_color must be a string")
 
         model = self._model
         if not model: return
 
-        endColor = wx.Colour(endVal)
-        if endColor.IsOk():
+        end_color = wx.Colour(endVal)
+        if end_color.IsOk():
             def onStart(animDict):
-                origVal = wx.Colour(self.penColor)
+                origVal = wx.Colour(self.pen_color)
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
                 animDict["origParts"] = origParts
-                endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
+                endParts = [end_color.Red(), end_color.Green(), end_color.Blue(), end_color.Alpha()]
                 animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
             def onUpdate(progress, animDict):
-                model.SetProperty("penColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
+                model.SetProperty("pen_color", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
             def internalOnFinished(animDict):
                 if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
-            model.AddAnimation("penColor", duration, onUpdate, onStart, internalOnFinished)
+            model.AddAnimation("pen_color", duration, onUpdate, onStart, internalOnFinished)
 
 
 class ShapeModel(LineModel):
@@ -491,14 +491,14 @@ class ShapeModel(LineModel):
         super().__init__(stackManager, shapeType)
         self.proxyClass = Shape
 
-        self.properties["fillColor"] = "white"
-        self.propertyTypes["fillColor"] = "color"
+        self.properties["fill_color"] = "white"
+        self.propertyTypes["fill_color"] = "color"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "penColor", "penThickness", "fillColor", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "pen_color", "pen_thickness", "fill_color", "position", "size", "rotation"]
 
     def SetShape(self, shape):
-        self.properties["fillColor"] = shape["fillColor"]
+        self.properties["fill_color"] = shape["fill_color"]
         super().SetShape(shape)
 
 
@@ -530,43 +530,43 @@ class Shape(Line):
                 raise TypeError(f"The points property is not available for shapes of type {model.type}.")
 
     @property
-    def fillColor(self):
+    def fill_color(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("fillColor")
-    @fillColor.setter
-    def fillColor(self, val):
+        return model.GetProperty("fill_color")
+    @fill_color.setter
+    def fill_color(self, val):
         if not isinstance(val, str):
-            raise TypeError("fillColor must be a string")
+            raise TypeError("fill_color must be a string")
         model = self._model
         if not model: return
-        model.SetProperty("fillColor", val)
+        model.SetProperty("fill_color", val)
 
-    def AnimateFillColor(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_fill_color(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimateFillColor(): duration must be a number")
+            raise TypeError("animate_fill_color(): duration must be a number")
         if not isinstance(endVal, str):
-            raise TypeError("AnimateFillColor(): endColor must be a string")
+            raise TypeError("animate_fill_color(): end_color must be a string")
 
         model = self._model
         if not model: return
 
-        endColor = wx.Colour(endVal)
-        if endColor.IsOk():
+        end_color = wx.Colour(endVal)
+        if end_color.IsOk():
             def onStart(animDict):
-                origVal = wx.Colour(self.fillColor)
+                origVal = wx.Colour(self.fill_color)
                 origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
                 animDict["origParts"] = origParts
-                endParts = [endColor.Red(), endColor.Green(), endColor.Blue(), endColor.Alpha()]
+                endParts = [end_color.Red(), end_color.Green(), end_color.Blue(), end_color.Alpha()]
                 animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
             def onUpdate(progress, animDict):
-                model.SetProperty("fillColor", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
+                model.SetProperty("fill_color", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
             def internalOnFinished(animDict):
                 if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
-            model.AddAnimation("fillColor", duration, onUpdate, onStart, internalOnFinished)
+            model.AddAnimation("fill_color", duration, onUpdate, onStart, internalOnFinished)
 
 
 class RoundRectModel(ShapeModel):
@@ -578,14 +578,14 @@ class RoundRectModel(ShapeModel):
         super().__init__(stackManager, shapeType)
         self.proxyClass = RoundRect
 
-        self.properties["cornerRadius"] = 8
-        self.propertyTypes["cornerRadius"] = "uint"
+        self.properties["corner_radius"] = 8
+        self.propertyTypes["corner_radius"] = "uint"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "penColor", "penThickness", "fillColor", "cornerRadius", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "pen_color", "pen_thickness", "fill_color", "corner_radius", "position", "size", "rotation"]
 
     def SetShape(self, shape):
-        self.properties["cornerRadius"] = shape["cornerRadius"] if "cornerRadius" in shape else 8
+        self.properties["corner_radius"] = shape["corner_radius"] if "corner_radius" in shape else 8
         super().SetShape(shape)
 
 
@@ -596,36 +596,36 @@ class RoundRect(Shape):
     """
 
     @property
-    def cornerRadius(self):
+    def corner_radius(self):
         model = self._model
         if not model: return 0
-        return model.GetProperty("cornerRadius")
-    @cornerRadius.setter
-    def cornerRadius(self, val):
+        return model.GetProperty("corner_radius")
+    @corner_radius.setter
+    def corner_radius(self, val):
         if not isinstance(val, (int, float)):
-            raise TypeError("cornerRadius must be a number")
+            raise TypeError("corner_radius must be a number")
         model = self._model
         if not model: return
-        model.SetProperty("cornerRadius", val)
+        model.SetProperty("corner_radius", val)
 
-    def AnimateCornerRadius(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_corner_radius(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimateCornerRadius(): duration must be a number")
+            raise TypeError("animate_corner_radius(): duration must be a number")
         if not isinstance(endVal, (int, float)):
-            raise TypeError("AnimateCornerRadius(): endCornerRadius must be a number")
+            raise TypeError("animate_corner_radius(): end_corner_radius must be a number")
 
         model = self._model
         if not model: return
 
         def onStart(animDict):
-            origVal = self.cornerRadius
+            origVal = self.corner_radius
             animDict["origVal"] = origVal
             animDict["offset"] = endVal - origVal
 
         def onUpdate(progress, animDict):
-            model.SetProperty("cornerRadius", animDict["origVal"] + animDict["offset"] * progress)
+            model.SetProperty("corner_radius", animDict["origVal"] + animDict["offset"] * progress)
 
         def internalOnFinished(animDict):
             if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
 
-        model.AddAnimation("cornerRadius", duration, onUpdate, onStart, internalOnFinished)
+        model.AddAnimation("corner_radius", duration, onUpdate, onStart, internalOnFinished)

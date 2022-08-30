@@ -21,11 +21,11 @@ class StackModel(ViewModel):
 
         self.properties["size"] = wx.Size(500, 500)
         self.properties["name"] = "stack"
-        self.properties["canSave"] = False
-        self.properties["canResize"] = False
+        self.properties["can_save"] = False
+        self.properties["can_resize"] = False
 
-        self.propertyTypes["canSave"] = 'bool'
-        self.propertyTypes["canResize"] = 'bool'
+        self.propertyTypes["can_save"] = 'bool'
+        self.propertyTypes["can_resize"] = 'bool'
 
         self.propertyKeys = []
 
@@ -99,35 +99,35 @@ class StackModel(ViewModel):
 
 class Stack(ViewProxy):
     @property
-    def numCards(self):
+    def num_cards(self):
         return len(self._model.childModels)
 
     @property
-    def currentCard(self):
+    def current_card(self):
         if self._model.didSetDown: return None
         return self._model.stackManager.uiCard.model.GetProxy()
 
-    def CardWithNumber(self, number):
+    def card_with_number(self, number):
         model = self._model
         if model.didSetDown: return None
         if not isinstance(number, int):
-            raise TypeError("CardWithNumber(): number is not an int")
+            raise TypeError("card_with_number(): number is not an int")
         if number < 1 or number > len(model.childModels):
-            raise ValueError("CardWithNumber(): number is out of bounds")
+            raise ValueError("card_with_number(): number is out of bounds")
         return model.childModels[number-1].GetProxy()
 
-    def ReturnFromStack(self, result=None):
-        self._model.stackManager.runner.ReturnFromStack(result)
+    def return_from_stack(self, result=None):
+        self._model.stackManager.runner.return_from_stack(result)
 
-    def GetSetupValue(self):
+    def get_setup_value(self):
         return self._model.stackManager.runner.GetStackSetupValue()
 
-    def AddCard(self, name="card", atNumber=0):
+    def add_card(self, name="card", atNumber=0):
         if not isinstance(name, str):
-            raise TypeError("AddCard(): name is not a string")
+            raise TypeError("add_card(): name is not a string")
         atNumber = int(atNumber)
         if atNumber < 0 or atNumber > len(self._model.childModels)+1:
-            raise ValueError("AddCard(): atNumber is out of bounds")
+            raise ValueError("add_card(): atNumber is out of bounds")
 
         @RunOnMainSync
         def func():

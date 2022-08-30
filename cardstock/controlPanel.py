@@ -33,9 +33,9 @@ class ControlPanel(wx.Panel):
     def __init__(self, parent, ID, stackManager):
         super().__init__(parent, ID, style=wx.RAISED_BORDER)
         self.stackManager = stackManager
-        self.penColor = "black"
-        self.fillColor = "white"
-        self.penThickness = 4
+        self.pen_color = "black"
+        self.fill_color = "white"
+        self.pen_thickness = 4
         self.isContextHelpEnabled = True
         numCols = 12
         spacing = 6
@@ -99,7 +99,7 @@ class ControlPanel(wx.Panel):
         # with the stackManager view so it will be notified when the settings
         # change
         self.ci = ColorIndicator(self)
-        self.ci.UpdateShape(wx.Colour(self.penColor), wx.Colour(self.fillColor), self.penThickness)
+        self.ci.UpdateShape(wx.Colour(self.pen_color), wx.Colour(self.fill_color), self.pen_thickness)
 
         # ----------
 
@@ -372,9 +372,9 @@ class ControlPanel(wx.Panel):
                 self.box.Show(self.drawBox)
                 self.box.Hide(self.editBox)
                 self.stackManager.SelectUiView(None)
-                tool.SetPenColor(self.penColor)
-                tool.SetFillColor(self.fillColor)
-                tool.SetThickness(self.penThickness)
+                tool.SetPenColor(self.pen_color)
+                tool.SetFillColor(self.fill_color)
+                tool.SetThickness(self.pen_thickness)
             elif tool.name == "hand":
                 self.box.Hide(self.drawBox)
                 self.box.Show(self.editBox)
@@ -390,27 +390,27 @@ class ControlPanel(wx.Panel):
         newColor = event.GetColour()
         try:
             colorName = newColor.GetAsString(flags=wx.C2S_NAME)
-            self.penColor = colorName
+            self.pen_color = colorName
         except:
             colorStr = newColor.GetAsString(flags=wx.C2S_HTML_SYNTAX)
             if colorStr == "#000000": colorStr = "black"
             elif colorStr == "#FFFFFF": colorStr = "white"
-            self.penColor = colorStr
-        self.ci.UpdateShape(self.penColor, self.fillColor, self.penThickness)
-        self.stackManager.tool.SetPenColor(self.penColor)
+            self.pen_color = colorStr
+        self.ci.UpdateShape(self.pen_color, self.fill_color, self.pen_thickness)
+        self.stackManager.tool.SetPenColor(self.pen_color)
 
     def OnSetFillColor(self, event):
         newColor = event.GetColour()
         try:
             colorName = newColor.GetAsString(flags=wx.C2S_NAME)
-            self.fillColor = colorName
+            self.fill_color = colorName
         except:
             colorStr = newColor.GetAsString(flags=wx.C2S_HTML_SYNTAX)
             if colorStr == "#000000": colorStr = "black"
             elif colorStr == "#FFFFFF": colorStr = "white"
-            self.fillColor = colorStr
-        self.ci.UpdateShape(self.penColor, self.fillColor, self.penThickness)
-        self.stackManager.tool.SetFillColor(self.fillColor)
+            self.fill_color = colorStr
+        self.ci.UpdateShape(self.pen_color, self.fill_color, self.pen_thickness)
+        self.stackManager.tool.SetFillColor(self.fill_color)
 
     def OnSetThickness(self, event):
         """
@@ -418,11 +418,11 @@ class ControlPanel(wx.Panel):
         """
         newThickness = event.GetId()
         # untoggle the old thickness button
-        self.thknsBtns[self.penThickness].SetToggle(newThickness == self.penThickness)
+        self.thknsBtns[self.pen_thickness].SetToggle(newThickness == self.pen_thickness)
         # set the new color
-        self.penThickness = newThickness
-        self.ci.UpdateShape(wx.Colour(self.penColor), wx.Colour(self.fillColor), self.penThickness)
-        self.stackManager.tool.SetThickness(self.penThickness)
+        self.pen_thickness = newThickness
+        self.ci.UpdateShape(wx.Colour(self.pen_color), wx.Colour(self.fill_color), self.pen_thickness)
+        self.stackManager.tool.SetThickness(self.pen_thickness)
 
 
 # ----------------------------------------------------------------------
@@ -436,16 +436,16 @@ class ColorIndicator(wx.Window):
         super().__init__(parent, -1, style=wx.SUNKEN_BORDER)
         self.SetBackgroundColour(wx.WHITE)
         self.SetMinSize( (60, 60) )
-        self.penColor = self.fillColor = self.thickness = None
+        self.pen_color = self.fill_color = self.thickness = None
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-    def UpdateShape(self, penColor, fillColor, thickness):
+    def UpdateShape(self, pen_color, fill_color, thickness):
         """
         The stackManager view calls this method any time the color
         or line thickness changes.
         """
-        self.penColor = penColor
-        self.fillColor = fillColor
+        self.pen_color = pen_color
+        self.fill_color = fill_color
         self.thickness = thickness
         self.Refresh()  # generate a paint event
 
@@ -455,8 +455,8 @@ class ColorIndicator(wx.Window):
         redrawn.
         """
         dc = wx.PaintDC(self)
-        if self.penColor and self.fillColor and self.thickness:
+        if self.pen_color and self.fill_color and self.thickness:
             sz = self.GetClientSize()
-            dc.SetPen(wx.Pen(self.penColor, self.thickness))
-            dc.SetBrush(wx.Brush(self.fillColor))
+            dc.SetPen(wx.Pen(self.pen_color, self.thickness))
+            dc.SetBrush(wx.Brush(self.fill_color))
             dc.DrawRoundedRectangle(10, 10, int(sz.width-20), int(sz.height-20), 10)

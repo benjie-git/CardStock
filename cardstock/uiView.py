@@ -105,7 +105,7 @@ class UiView(object):
             else:
                 self.ClearHitRegion()
             self.stackManager.view.Refresh()
-        elif key == "isVisible":
+        elif key == "is_visible":
             if self.view:
                 self.view.Show(self.model.IsVisible())
             self.stackManager.view.Refresh()
@@ -132,8 +132,8 @@ class UiView(object):
             self.stackManager.view.Refresh()
 
     def OnMouseDown(self, event):
-        if self.stackManager.runner and self.model.GetHandler("OnMousePress"):
-            self.stackManager.runner.RunHandler(self.model, "OnMousePress", event)
+        if self.stackManager.runner and self.model.GetHandler("on_mouse_press"):
+            self.stackManager.runner.RunHandler(self.model, "on_mouse_press", event)
         event.Skip()
 
     def OnMouseMove(self, event):
@@ -144,22 +144,22 @@ class UiView(object):
         pass
 
     def OnMouseUp(self, event):
-        if self.stackManager.runner and self.model.GetHandler("OnMouseRelease"):
-            self.stackManager.runner.RunHandler(self.model, "OnMouseRelease", event)
+        if self.stackManager.runner and self.model.GetHandler("on_mouse_release"):
+            self.stackManager.runner.RunHandler(self.model, "on_mouse_release", event)
         event.Skip()
 
     def OnMouseEnter(self, event):
-        if self.stackManager.runner and self.model.GetHandler("OnMouseEnter"):
-            self.stackManager.runner.RunHandler(self.model, "OnMouseEnter", event)
+        if self.stackManager.runner and self.model.GetHandler("on_mouse_enter"):
+            self.stackManager.runner.RunHandler(self.model, "on_mouse_enter", event)
         event.Skip()
 
     def OnMouseExit(self, event):
         self.hasMouseMoved = False
-        if self.stackManager and self.stackManager.runner and self.model.GetHandler("OnMouseExit"):
-            self.stackManager.runner.RunHandler(self.model, "OnMouseExit", event)
+        if self.stackManager and self.stackManager.runner and self.model.GetHandler("on_mouse_exit"):
+            self.stackManager.runner.RunHandler(self.model, "on_mouse_exit", event)
         event.Skip()
 
-    def RunAnimations(self, onFinishedCalls, elapsedTime):
+    def RunAnimations(self, onFinishedCalls, elapsed_time):
         # Move the object by speed.x and speed.y pixels per second
         updateList = []
         finishList = []
@@ -169,7 +169,7 @@ class UiView(object):
                 speed = self.model.properties["speed"]
                 if speed != (0,0) and "position" not in self.model.animations:
                     pos = self.model.properties["position"]
-                    self.model.SetProperty("position", [pos.x + speed.x*elapsedTime, pos.y + speed.y*elapsedTime])
+                    self.model.SetProperty("position", [pos.x + speed.x*elapsed_time, pos.y + speed.y*elapsed_time])
                     didRun = True
 
             # Run any in-progress animations
@@ -199,12 +199,12 @@ class UiView(object):
         # Find collisions between this object and others in its bounceObjs list
         # and add them to the collisions list, to be handled after all are found.
         removeFromBounceObjs = []
-        if not self.model.didSetDown and self.model.GetProperty("isVisible") and tuple(self.model.GetProperty("speed")) != (0, 0):
+        if not self.model.didSetDown and self.model.GetProperty("is_visible") and tuple(self.model.GetProperty("speed")) != (0, 0):
             for k,v in self.model.bounceObjs.items():
                 other_ui = self.stackManager.GetUiViewByModel(k)
                 (mode, last_dist) = v
 
-                if not other_ui.model.GetProperty("isVisible"):
+                if not other_ui.model.GetProperty("is_visible"):
                     continue
 
                 if other_ui.model.didSetDown:
@@ -218,13 +218,13 @@ class UiView(object):
 
                 if not mode:
                     # Determine whether we're inside or outside of this object
-                    self.model.bounceObjs[k][0] = "In" if other_ui.model.GetProxy().IsTouchingPoint(self.model.GetCenter()) else "Out"
+                    self.model.bounceObjs[k][0] = "In" if other_ui.model.GetProxy().is_touching_point(self.model.GetCenter()) else "Out"
                     self.model.bounceObjs[k][1] = new_dist
                     continue
 
-                edges = self.model.GetProxy().IsTouchingEdge(other_ui.model.GetProxy(), mode == "In")
+                edges = self.model.GetProxy().is_touching_edge(other_ui.model.GetProxy(), mode == "In")
                 if mode == "In" and not edges:
-                    if not other_ui.model.GetProxy().IsTouchingPoint(self.model.GetCenter()):
+                    if not other_ui.model.GetProxy().is_touching_point(self.model.GetCenter()):
                         edges = []
                         sc = self.model.GetCenter()
                         oc = other_ui.model.GetCenter()
@@ -278,7 +278,7 @@ class UiView(object):
             for k in removeFromBounceObjs:
                 del self.model.bounceObjs[k]
 
-    def PerformBounce(self, info, elapsedTime):
+    def PerformBounce(self, info, elapsed_time):
         # Perform this bounce for this object, and the other object
         (this_ui, other_ui, selfAxes, otherAxes, edges, mode) = info
         ss = self.model.GetProxy().speed
@@ -290,7 +290,7 @@ class UiView(object):
         otherBounce = self.model in other_ui.model.bounceObjs
 
         # Back up to avoid overlap
-        self.model.SetProperty("position", self.model.GetProperty("position") - tuple(ss*(elapsedTime/2)))
+        self.model.SetProperty("position", self.model.GetProperty("position") - tuple(ss*(elapsed_time/2)))
 
         # Finally perform the actual bounces
         if selfBounce and "H" in selfAxes:
@@ -306,29 +306,29 @@ class UiView(object):
         # case we call this handler once per edge it bounced off of.
         if other_ui.model in self.model.bounceObjs:
             for edge in edges:
-                if self.stackManager.runner and self.model.GetHandler("OnBounce"):
-                    self.stackManager.runner.RunHandler(self.model, "OnBounce", None,
+                if self.stackManager.runner and self.model.GetHandler("on_bounce"):
+                    self.stackManager.runner.RunHandler(self.model, "on_bounce", None,
                                                         [other_ui.model.GetProxy(), edge])
 
         if self.model in other_ui.model.bounceObjs:
-            # Use this opposites dict to show the right edge names in the other object's OnBounce calls
+            # Use this opposites dict to show the right edge names in the other object's on_bounce calls
             opposites = {"Top": "Bottom", "Bottom": "Top", "Left": "Right", "Right": "Left"}
             for edge in edges:
                 otherEdge = edge if selfBounceInside else opposites[edge] # Don't flip names for inside bounces
-                if self.stackManager.runner and other_ui.model.GetHandler("OnBounce"):
-                    self.stackManager.runner.RunHandler(other_ui.model, "OnBounce", None,
+                if self.stackManager.runner and other_ui.model.GetHandler("on_bounce"):
+                    self.stackManager.runner.RunHandler(other_ui.model, "on_bounce", None,
                                                         [self.model.GetProxy(), otherEdge])
 
     def OnPeriodic(self, event):
         didRun = False
         if self.hasMouseMoved:
             self.hasMouseMoved = False
-            if self.stackManager.runner and self.model.GetHandler("OnMouseMove"):
-                self.stackManager.runner.RunHandler(self.model, "OnMouseMove", event)
+            if self.stackManager.runner and self.model.GetHandler("on_mouse_move"):
+                self.stackManager.runner.RunHandler(self.model, "on_mouse_move", event)
                 didRun = True
 
-        if self.stackManager.runner and self.model.GetHandler("OnPeriodic"):
-            self.stackManager.runner.RunHandler(self.model, "OnPeriodic", event)
+        if self.stackManager.runner and self.model.GetHandler("on_periodic"):
+            self.stackManager.runner.RunHandler(self.model, "on_periodic", event)
             didRun = True
 
         return didRun
@@ -404,8 +404,8 @@ class UiView(object):
     def HitTest(self, pt):
         f = self.model.GetAbsoluteFrame()
         inflate = 20
-        if "penThickness" in self.model.properties:
-            inflate += self.model.properties["penThickness"]
+        if "pen_thickness" in self.model.properties:
+            inflate += self.model.properties["pen_thickness"]
         f.Inflate(inflate)
         if f.Contains(pt):
             if not self.hitRegion:
@@ -565,27 +565,27 @@ class UiView(object):
         return reg
 
     handlerDisplayNames = {
-        'OnSetup':      "OnSetup(self):",
-        'OnShowCard':   "OnShowCard(self):",
-        'OnHideCard':   "OnHideCard(self):",
-        'OnClick':      "OnClick(self):",
-        'OnTextEnter':  "OnTextEnter(self):",
-        'OnTextChanged':"OnTextChanged(self):",
-        'OnMousePress': "OnMousePress(self, mousePos):",
-        'OnMouseMove':  "OnMouseMove(self, mousePos):",
-        'OnMouseRelease':"OnMouseRelease(self, mousePos):",
-        'OnMouseEnter': "OnMouseEnter(self, mousePos):",
-        'OnMouseExit':  "OnMouseExit(self, mousePos):",
-        'OnDoneLoading':"OnDoneLoading(self, URL, didLoad):",
-        'OnCardStockLink':"OnCardStockLink(self, message):",
-        'OnBounce':     "OnBounce(self, otherObject, edge):",
-        'OnMessage':    "OnMessage(self, message):",
-        'OnKeyPress':   "OnKeyPress(self, keyName):",
-        'OnKeyHold':    "OnKeyHold(self, keyName, elapsedTime):",
-        'OnKeyRelease': "OnKeyRelease(self, keyName):",
-        'OnResize':     "OnResize(self):",
-        'OnPeriodic':   "OnPeriodic(self, elapsedTime):",
-        'OnExitStack':  "OnExitStack(self):",
+        'on_setup':      "on_setup(self):",
+        'on_show_card':   "on_show_card(self):",
+        'on_hide_card':   "on_hide_card(self):",
+        'on_click':      "on_click(self):",
+        'on_text_enter':  "on_text_enter(self):",
+        'on_text_changed':"on_text_changed(self):",
+        'on_mouse_press': "on_mouse_press(self, mouse_pos):",
+        'on_mouse_move':  "on_mouse_move(self, mouse_pos):",
+        'on_mouse_release':"on_mouse_release(self, mouse_pos):",
+        'on_mouse_enter': "on_mouse_enter(self, mouse_pos):",
+        'on_mouse_exit':  "on_mouse_exit(self, mouse_pos):",
+        'on_done_loading':"on_done_loading(self, URL, did_load):",
+        'on_card_stock_link':"on_card_stock_link(self, message):",
+        'on_bounce':     "on_bounce(self, other_object, edge):",
+        'on_message':    "on_message(self, message):",
+        'on_key_press':   "on_key_press(self, key_name):",
+        'on_key_hold':    "on_key_hold(self, key_name, elapsed_time):",
+        'on_key_release': "on_key_release(self, key_name):",
+        'on_resize':     "on_resize(self):",
+        'on_periodic':   "on_periodic(self, elapsed_time):",
+        'on_exit_stack':  "on_exit_stack(self):",
     }
 
 
@@ -604,24 +604,24 @@ class ViewModel(object):
         super().__init__()
         self.type = None
         self.parent = None
-        self.handlers = {"OnSetup": "",
-                         "OnMouseEnter": "",
-                         "OnMousePress": "",
-                         "OnMouseMove": "",
-                         "OnMouseRelease": "",
-                         "OnMouseExit": "",
-                         "OnBounce": "",
-                         "OnMessage": "",
-                         "OnPeriodic": ""
+        self.handlers = {"on_setup": "",
+                         "on_mouse_enter": "",
+                         "on_mouse_press": "",
+                         "on_mouse_move": "",
+                         "on_mouse_release": "",
+                         "on_mouse_exit": "",
+                         "on_bounce": "",
+                         "on_message": "",
+                         "on_periodic": ""
                          }
-        self.initialEditHandler = "OnMousePress"
+        self.initialEditHandler = "on_mouse_press"
         self.visibleHandlers = set()
 
         self.properties = {"name": "",
                            "size": wx.Size(0,0),
                            "position": wx.RealPoint(0,0),
                            "speed": wx.Point(0,0),
-                           "isVisible": True,
+                           "is_visible": True,
                            "data": {}
                            }
         self.propertyKeys = ["name", "position", "size"]
@@ -630,7 +630,7 @@ class ViewModel(object):
                               "center": "floatpoint",
                               "size": "size",
                               "speed": "point",
-                              "isVisible": "bool",
+                              "is_visible": "bool",
                               "data": "dict"
                               }
 
@@ -833,7 +833,7 @@ class ViewModel(object):
 
     def IsVisible(self):
         """ Returns True iff this object or any of its ancestors has its hidden property set to True """
-        if not self.properties["isVisible"]:
+        if not self.properties["is_visible"]:
             return False
         if self.parent and self.parent.type not in ["card", "stack"]:
             return self.parent.IsVisible()
@@ -866,7 +866,7 @@ class ViewModel(object):
                 handlers[k] = v
 
         props = self.properties.copy()
-        props.pop("isVisible")
+        props.pop("is_visible")
         props.pop("speed")
         for k,v in self.propertyTypes.items():
             if v in ["point", "floatpoint", "size"] and k in props:
@@ -1188,8 +1188,8 @@ class ViewModel(object):
     def RunSetup(self, runner):
         if self.type == "card":
             runner.SetupForCard(self)
-        if self.GetHandler("OnSetup"):
-            runner.RunHandler(self, "OnSetup", None)
+        if self.GetHandler("on_setup"):
+            runner.RunHandler(self, "on_setup", None)
         for m in self.childModels:
             m.RunSetup(runner)
 
@@ -1215,17 +1215,17 @@ class ViewProxy(object):
                     return m.GetProxy()
         return super().__getattribute__(item)
 
-    def SendMessage(self, message):
+    def send_message(self, message):
         if not isinstance(message, str):
-            raise TypeError("SendMessage(): message must be a string")
+            raise TypeError("send_message(): message must be a string")
 
         model = self._model
         if not model: return
 
         if model.stackManager.runner:
-           model.stackManager.runner.RunHandler(model, "OnMessage", None, message)
+           model.stackManager.runner.RunHandler(model, "on_message", None, message)
 
-    def Focus(self):
+    def focus(self):
         model = self._model
         if not model: return
 
@@ -1234,7 +1234,7 @@ class ViewProxy(object):
 
     @property
     @RunOnMainSync
-    def hasFocus(self):
+    def has_focus(self):
         model = self._model
         if not model: return False
 
@@ -1243,7 +1243,7 @@ class ViewProxy(object):
             return uiView.view.HasFocus()
         return False
 
-    def Clone(self, name=None, **kwargs):
+    def clone(self, name=None, **kwargs):
         model = self._model
         if not model: return None
 
@@ -1252,13 +1252,13 @@ class ViewProxy(object):
             newModel = model.CreateCopy(name)
             newModel.SetProperty("speed", model.GetProperty("speed"), notify=False)
             newModel.lastOnPeriodicTime = time()
-            if not self.isVisible:
-                newModel.SetProperty("isVisible", False, notify=False)
+            if not self.is_visible:
+                newModel.SetProperty("is_visible", False, notify=False)
             for k,v in kwargs.items():
                 if hasattr(newModel.GetProxy(), k):
                     setattr(newModel.GetProxy(), k, v)
                 else:
-                    raise TypeError(f"Clone(): unable to set property {k}")
+                    raise TypeError(f"clone(): unable to set property {k}")
 
             self._model.stackManager.uiCard.model.AddChild(newModel)
             newModel.RunSetup(model.stackManager.runner)
@@ -1287,14 +1287,14 @@ class ViewProxy(object):
                     if hasattr(newModel.GetProxy(), k):
                         setattr(newModel.GetProxy(), k, v)
                     else:
-                        raise TypeError(f"Clone(): unable to set property {k}")
+                        raise TypeError(f"clone(): unable to set property {k}")
 
                 return newModel
             newModel = func()
 
         return newModel.GetProxy()
 
-    def Delete(self):
+    def delete(self):
         model = self._model
         if not model or not model.parent or model.parent.type == "group":
             return
@@ -1318,7 +1318,7 @@ class ViewProxy(object):
             func()
 
     @RunOnMainSync
-    def Cut(self):
+    def cut(self):
         # update the model and view together in a rare synchronous call to the main thread
         model = self._model
         if not model: return
@@ -1326,7 +1326,7 @@ class ViewProxy(object):
         model.stackManager.CutModels([model], False)
 
     @RunOnMainSync
-    def Copy(self):
+    def copy(self):
         # update the model and view together in a rare synchronous call to the main thread
         model = self._model
         if not model: return
@@ -1367,7 +1367,7 @@ class ViewProxy(object):
         if not model: return []
         return [m.GetProxy() for m in model.childModels]
 
-    def ChildWithBaseName(self, base):
+    def child_with_base_name(self, base):
         model = self._model
         if model and model.childModels:
             for m in model.childModels:
@@ -1437,50 +1437,50 @@ class ViewProxy(object):
         model.SetCenter(center)
 
     @RunOnMainAsync
-    def FlipHorizontal(self):
+    def flip_horizontal(self):
         model = self._model
         if not model: return
         model.PerformFlips(True, False)
 
     @RunOnMainAsync
-    def FlipVertical(self):
+    def flip_vertical(self):
         model = self._model
         if not model: return
         model.PerformFlips(False, True)
 
     @RunOnMainSync
-    def OrderToFront(self):
+    def order_to_front(self):
         model = self._model
         if not model: return
         model.OrderMoveTo(-1)
 
     @RunOnMainSync
-    def OrderForward(self):
+    def order_forward(self):
         model = self._model
         if not model: return
         model.OrderMoveBy(1)
 
     @RunOnMainSync
-    def OrderBackward(self):
+    def order_backward(self):
         model = self._model
         if not model: return
         model.OrderMoveBy(-1)
 
     @RunOnMainSync
-    def OrderToBack(self):
+    def order_to_back(self):
         model = self._model
         if not model: return
         model.OrderMoveTo(0)
 
-    def OrderToIndex(self, i):
+    def order_to_index(self, i):
         if not isinstance(i, int):
-            raise TypeError("OrderToIndex(): index must be a number")
+            raise TypeError("order_to_index(): index must be a number")
 
         model = self._model
         if not model: return
 
         if i < 0 or i >= len(model.parent.childModels):
-            raise TypeError("OrderToIndex(): index is out of bounds")
+            raise TypeError("order_to_index(): index is out of bounds")
 
         @RunOnMainSync
         def f():
@@ -1488,21 +1488,21 @@ class ViewProxy(object):
             model.OrderMoveTo(i)
         f()
 
-    def Show(self):
-        self.isVisible = True
-    def Hide(self):
-        self.isVisible = False
+    def show(self):
+        self.is_visible = True
+    def hide(self):
+        self.is_visible = False
 
     @property
-    def isVisible(self):
+    def is_visible(self):
         model = self._model
         if not model: return False
         return model.IsVisible()
-    @isVisible.setter
-    def isVisible(self, val):
+    @is_visible.setter
+    def is_visible(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("isVisible", bool(val))
+        model.SetProperty("is_visible", bool(val))
 
     @property
     def rotation(self):
@@ -1519,41 +1519,41 @@ class ViewProxy(object):
         if not model: return
         model.SetProperty("rotation", val)
 
-    def GetEventCode(self, eventName):
+    def get_event_code(self, eventName):
         model = self._model
         if not model: return ""
         return model.handlers[eventName]
 
-    def SetEventCode(self, eventName, code):
+    def set_event_code(self, eventName, code):
         model = self._model
         if not model: return
         if not isinstance(eventName, str):
-            raise TypeError("SetEventCode(): eventName must be a string")
+            raise TypeError("set_event_code(): eventName must be a string")
         if not isinstance(code, str):
-            raise TypeError("SetEventCode(): code must be a string")
+            raise TypeError("set_event_code(): code must be a string")
         if eventName not in model.handlers:
-            raise TypeError(f"SetEventCode(): this object has no event called '{eventName}'")
+            raise TypeError(f"set_event_code(): this object has no event called '{eventName}'")
 
         model.handlers[eventName] = code
 
-    def SetBounceObjects(self, objects):
+    def set_bounce_objects(self, objects):
         if not isinstance(objects, (list, tuple)):
-            raise TypeError("SetBounceObjects(): objects needs to be a list of cardstock objects")
+            raise TypeError("set_bounce_objects(): objects needs to be a list of cardstock objects")
         models = [o._model for o in objects if isinstance(o, ViewProxy)]
         self._model.SetBounceModels(models)
 
-    def StopHandlingMouseEvent(self):
-        self._model.stackManager.runner.StopHandlingMouseEvent()
+    def stop_handling_mouse_event(self):
+        self._model.stackManager.runner.stop_handling_mouse_event()
 
-    def IsTouchingPoint(self, point):
+    def is_touching_point(self, point):
         if not isinstance(point, (wx.Point, wx.RealPoint, CDSPoint, CDSRealPoint, list, tuple)):
-            raise TypeError("IsTouchingPoint(): point needs to be a point or a list of two numbers")
+            raise TypeError("is_touching_point(): point needs to be a point or a list of two numbers")
         if len(point) != 2:
-            raise TypeError("IsTouchingPoint(): point needs to be a point or a list of two numbers")
+            raise TypeError("is_touching_point(): point needs to be a point or a list of two numbers")
         try:
             int(point[0]), int(point[1])
         except:
-            raise ValueError("IsTouchingPoint(): point needs to be a point or a list of two numbers")
+            raise ValueError("is_touching_point(): point needs to be a point or a list of two numbers")
 
         model = self._model
         if not model: return False
@@ -1568,9 +1568,9 @@ class ViewProxy(object):
             return sreg.Contains(wx.Point(point)) == wx.InRegion
         return f()
 
-    def IsTouching(self, obj):
+    def is_touching(self, obj):
         if not isinstance(obj, ViewProxy):
-            raise TypeError("IsTouching(): obj must be a CardStock object")
+            raise TypeError("is_touching(): obj must be a CardStock object")
 
         model = self._model
         oModel = obj._model
@@ -1589,9 +1589,9 @@ class ViewProxy(object):
             return not sreg.IsEmpty()
         return f()
 
-    def IsTouchingEdge(self, obj, skipIsTouchingCheck=False):
+    def is_touching_edge(self, obj, skipIsTouchingCheck=False):
         if not isinstance(obj, ViewProxy):
-            raise TypeError("IsTouchingEdge(): obj must be a CardStock object")
+            raise TypeError("is_touching_edge(): obj must be a CardStock object")
 
         model = self._model
         oModel = obj._model
@@ -1603,7 +1603,7 @@ class ViewProxy(object):
         def f():
             if model.didSetDown or oModel.didSetDown: return []
 
-            if not skipIsTouchingCheck and not self.IsTouching(obj):
+            if not skipIsTouchingCheck and not self.is_touching(obj):
                 return []
 
             def intersectTest(r, edge):
@@ -1657,20 +1657,20 @@ class ViewProxy(object):
             return edges
         return f()
 
-    def AnimatePosition(self, duration, endPosition, onFinished=None, *args, **kwargs):
+    def animate_position(self, duration, end_position, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimatePosition(): duration must be a number")
+            raise TypeError("animate_position(): duration must be a number")
         try:
-            endPosition = wx.RealPoint(endPosition)
+            end_position = wx.RealPoint(end_position)
         except:
-            raise ValueError("AnimatePosition(): endPosition must be a point or a list of two numbers")
+            raise ValueError("animate_position(): end_position must be a point or a list of two numbers")
 
         model = self._model
         if not model: return
 
         def onStart(animDict):
             origPosition = model.GetAbsolutePosition()
-            offsetPt = endPosition - tuple(origPosition)
+            offsetPt = end_position - tuple(origPosition)
             offset = wx.RealPoint(offsetPt[0], offsetPt[1])
             animDict["origPosition"] = origPosition
             animDict["offset"] = offset
@@ -1688,20 +1688,20 @@ class ViewProxy(object):
 
         model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
-    def AnimateCenter(self, duration, endCenter, onFinished=None, *args, **kwargs):
+    def animate_center(self, duration, end_center, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimateCenter(): duration must be a number")
+            raise TypeError("animate_center(): duration must be a number")
         try:
-            endCenter = wx.RealPoint(endCenter)
+            end_center = wx.RealPoint(end_center)
         except:
-            raise ValueError("AnimateCenter(): endCenter must be a point or a list of two numbers")
+            raise ValueError("animate_center(): end_center must be a point or a list of two numbers")
 
         model = self._model
         if not model: return
 
         def onStart(animDict):
             origCenter = model.GetCenter()
-            offsetPt = endCenter - tuple(origCenter)
+            offsetPt = end_center - tuple(origCenter)
             offset = wx.RealPoint(offsetPt[0], offsetPt[1])
             animDict["origCenter"] = origCenter
             animDict["offset"] = offset
@@ -1719,20 +1719,20 @@ class ViewProxy(object):
 
         model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
-    def AnimateSize(self, duration, endSize, onFinished=None, *args, **kwargs):
+    def animate_size(self, duration, end_size, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimateSize(): duration must be a number")
+            raise TypeError("animate_size(): duration must be a number")
         try:
-            endSize = wx.Size(endSize)
+            end_size = wx.Size(end_size)
         except:
-            raise ValueError("AnimateSize(): endSize must be a size or a list of two numbers")
+            raise ValueError("animate_size(): end_size must be a size or a list of two numbers")
 
         model = self._model
         if not model: return
 
         def onStart(animDict):
             origSize = model.GetProperty("size")
-            offset = wx.Size(endSize-tuple(origSize))
+            offset = wx.Size(end_size-tuple(origSize))
             animDict["origSize"] = origSize
             animDict["offset"] = offset
 
@@ -1744,26 +1744,26 @@ class ViewProxy(object):
 
         model.AddAnimation("size", duration, onUpdate, onStart, internalOnFinished)
 
-    def AnimateRotation(self, duration, endRotation, forceDirection=0, onFinished=None, *args, **kwargs):
+    def animate_rotation(self, duration, end_rotation, forceDirection=0, onFinished=None, *args, **kwargs):
         if self._model.GetProperty("rotation") is None:
-            raise TypeError("AnimateRotation(): object does not support rotation")
+            raise TypeError("animate_rotation(): object does not support rotation")
 
         if not isinstance(duration, (int, float)):
-            raise TypeError("AnimateRotation(): duration must be a number")
-        if not isinstance(endRotation, (int, float)):
-            raise TypeError("AnimateRotation(): endRotation must be a number")
+            raise TypeError("animate_rotation(): duration must be a number")
+        if not isinstance(end_rotation, (int, float)):
+            raise TypeError("animate_rotation(): end_rotation must be a number")
         if not isinstance(forceDirection, (int, float)):
-            raise TypeError("AnimateRotation(): forceDirection must be a number")
+            raise TypeError("animate_rotation(): forceDirection must be a number")
 
         model = self._model
         if not model: return
 
-        endRotation = endRotation
+        end_rotation = end_rotation
 
         def onStart(animDict):
             origVal = self.rotation
             animDict["origVal"] = origVal
-            offset = endRotation - origVal
+            offset = end_rotation - origVal
             if forceDirection:
                 if forceDirection > 0:
                     if offset <= 0: offset += 360
@@ -1782,7 +1782,7 @@ class ViewProxy(object):
 
         model.AddAnimation("rotation", duration, onUpdate, onStart, internalOnFinished)
 
-    def StopAnimating(self, propertyName=None):
+    def stop_animating(self, propertyName=None):
         model = self._model
         if not model: return
         model.StopAnimation(propertyName)

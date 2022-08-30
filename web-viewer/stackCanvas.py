@@ -256,7 +256,7 @@ class StackCanvas(object):
                         fabObj.off('deselected', self.OnTextFieldDeselected)
                     self.fabCanvas.remove(fabObj)
                 else:
-                    print("Delete: no object with uid", uid)
+                    print("delete: no object with uid", uid)
 
         elif msg == "fabFunc":  # uid, funcName, [args...]
             # call a fabric function on an object by name
@@ -304,7 +304,6 @@ class StackCanvas(object):
                 field.setSelectionStart(length)
                 field.setSelectionEnd(length)
                 if self.IsMobileBrowser() and window.navigator.hasOwnProperty("virtualKeyboard"):
-                    print("Show!")
                     window.navigator.virtualKeyboard.show()
 
         elif msg == "alert":  # text

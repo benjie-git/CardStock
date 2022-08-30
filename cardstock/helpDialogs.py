@@ -160,11 +160,11 @@ property, for each kind of object.</p>
 <h2>Code Editor</h2>
 <p>The real fun begins when you start adding python code into your objects!  Your CardStock program works by running
 certain parts of your program's code when different types of events happen.  For example, you can add some code to a
-button object's OnClicked event, and it will be run when that button is clicked.  Just select the button, and if you don't 
-already see a "def OnClicked():" title, then click the "+ Add Event" button at the top of the code editor, and choose 
-"OnClicked()".  Then add your code into the button's OnClicked event in the code editor, and now when you run your 
+button object's on_click event, and it will be run when that button is clicked.  Just select the button, and if you don't 
+already see a "def on_click():" title, then click the "+ Add Event" button at the top of the code editor, and choose 
+"on_click()".  Then add your code into the button's on_click event in the code editor, and now when you run your 
 stack, whenever that button is clicked, this code will run.  The "+ Add Event" popup shows all of the events that apply to the
-selected object.  For example, only buttons have an OnClicked() event, and only cards have an OnShowCard() event.
+selected object.  For example, only buttons have an on_click() event, and only cards have an on_show_card() event.
 See the CardStock Reference for a description of each type of event, and when they each get run.</p>
 
 <p>In your python event-handling code, you have access to all of the objects in your stack, including their
@@ -172,42 +172,42 @@ properties and methods, and some global variables and functions that are always 
 yes_button, you could write yes_button.SetTitle("Done") to change your button's title to the string "Done".  You can 
 also use the variables that are passed into each event function, which are listed inside the parentheses after the event
 name.  All events receive a variable called self, which refers to the object who's event is being run.  
-(So in a button's OnClick(self) code, self refers to that button object.  In a card's OnShowCard(self) code, self will 
-refer to that card object.)  Some events also receive other relevant information, for example, OnKeyPress(self, keyName)
-includes keyName, so that your code can see which key was pressed, and OnMouseMove(self, mousePos) includes the current 
-mouse position as a variable called mousePos.  See the CardStock Reference for a list of all 
+(So in a button's on_click(self) code, self refers to that button object.  In a card's on_show_card(self) code, self will 
+refer to that card object.)  Some events also receive other relevant information, for example, on_key_press(self, key_name)
+includes key_name, so that your code can see which key was pressed, and on_mouse_move(self, mouse_pos) includes the current 
+mouse position as a variable called mouse_pos.  See the CardStock Reference for a list of all 
 variables that are automatically provided to your code.  You can of course also create your own variables as well.  It 
-is suggested that when you do, you set up the starting value of each variable in one of your objects' OnSetup events, 
+is suggested that when you do, you set up the starting value of each variable in one of your objects' on_setup events, 
 to make sure that it will always have a value, from the very beginning of your stack running.</p>
 
-<p>When a stack first starts running, all of the cards and all objects on all of the cards will run their OnSetup() 
-events.  OnSetup() will also run for any new objects you create using any of the card.AddObject() methods.  
-Then the first card's OnShowCard() event will run.  Any time you Goto another card, the current card's OnHideCard() 
-event will run, immediately followed by the new card's OnShowCard() event.  After your stack is done starting up, all 
-of the current card's objects (including the card itself) will start running their OnPeriodic() events, approximately every 
+<p>When a stack first starts running, all of the cards and all objects on all of the cards will run their on_setup() 
+events.  on_setup() will also run for any new objects you create using any of the card.AddObject() methods.  
+Then the first card's on_show_card() event will run.  Any time you Goto another card, the current card's on_hide_card() 
+event will run, immediately followed by the new card's on_show_card() event.  After your stack is done starting up, all 
+of the current card's objects (including the card itself) will start running their on_periodic() events, approximately every 
 1/30th of a second.  This is a 
-great place to run any periodic checks that need to keep happening often.  The OnResize() event runs on a card object 
+great place to run any periodic checks that need to keep happening often.  The on_resize() event runs on a card object 
 when the stack window is resized while that card is shown, to give your stack a chance to re-layout objects based on 
-the new card size.  The OnMessage() event runs on an object when any of your other code calls that object's 
-object.SendMessage() method, or calls the BroadcastMessage() function, which sends the message to all objects in the 
+the new card size.  The on_message() event runs on an object when any of your other code calls that object's 
+object.send_message() method, or calls the broadcast_message() function, which sends the message to all objects in the 
 stack.</p>
 
-<p>The OnKeyPress() and OnKeyRelease() events of the current card run when a keyboard key is pressed down, and released, 
-respectively.  And OnKeyHold() is called approximately every 1/30th of a second for each key that remains held pressed 
+<p>The on_key_press() and on_key_release() events of the current card run when a keyboard key is pressed down, and released, 
+respectively.  And on_key_hold() is called approximately every 1/30th of a second for each key that remains held pressed 
 down.</p>
 
-<p>The OnMouseEnter() and OnMouseExit() events for an object are run when the mouse enters and exits screen space that 
-overlaps that object.  The OnMousePress() and OnMouseRelease() events of an object are run when the main mouse button is 
+<p>The on_mouse_enter() and on_mouse_exit() events for an object are run when the mouse enters and exits screen space that 
+overlaps that object.  The on_mouse_press() and on_mouse_release() events of an object are run when the main mouse button is 
 pressed and released while the mouse is inside that object.  These do not necessarily come in pairs for any particular 
 object, as the mouse could be pressed down while inside one object, moved, and then released outside of that object, or 
-vice versa.  The OnMouseMove() event of an object is run when the mouse position moves, while inside that object, 
-whether or not the mouse button is down.  The OnMousePress(), OnMouseMove(), and OnMouseRelease() events are all run for the 
+vice versa.  The on_mouse_move() event of an object is run when the mouse position moves, while inside that object, 
+whether or not the mouse button is down.  The on_mouse_press(), on_mouse_move(), and on_mouse_release() events are all run for the 
 topmost object over which the mouse is 
 hovering, and then also called for any other objects underneath the mouse, top to bottom, all the way down to the current 
-card.  This allows, for example, a card's OnMouseMove() event to continue running for mouse movements, even when the 
-mouse moves over an oval object.  If you still want to allow the oval to handle this OnMouseMove() event, 
-but block the lower objects like the card from running their OnMouseMove() code too, then you can call the 
-StopHandlingMouseEvent() function in the oval's OnMouseMove() code, and then no other objects' event code will run for 
+card.  This allows, for example, a card's on_mouse_move() event to continue running for mouse movements, even when the 
+mouse moves over an oval object.  If you still want to allow the oval to handle this on_mouse_move() event, 
+but block the lower objects like the card from running their on_mouse_move() code too, then you can call the 
+stop_handling_mouse_event() function in the oval's on_mouse_move() code, and then no other objects' event code will run for 
 this particular mouse movement.  You can read more details about each of these 
 events in the CardStock Reference.</p>
 
@@ -216,14 +216,14 @@ background color from its current color to red, over a duration of 2 seconds, us
 card.AnimateBgColor(2, 'red').  If you animate a property that is already animating, it will queue up the animation to 
 start after the existing animations finish.  So you could make a circle's size grow and shrink over 2 seconds total, 
 using the code:<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;circle.AnimateSize(1, [300,300])<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;circle.AnimateSize(1, [100,100])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;circle.animate_size(1, [300,300])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;circle.animate_size(1, [100,100])<br/>
 You can also animate multiple properties of the same object at the same time, since animations only queue up if they are 
 animating the same property, otherwise they will animate in parallel.
-To stop or interrupt an animation on an object, you can call object.StopAnimating(), and can stop all animations running 
-anywhere on a given card or group, including on its children, by calling containerObject.StopAllAnimating().  Both of 
+To stop or interrupt an animation on an object, you can call object.stop_animating(), and can stop all animations running 
+anywhere on a given card or group, including on its children, by calling containerObject.stop_all_animating().  Both of 
 these methods can optionally take a propertyName argument as well, to stop only animations on that property.  For 
-example: card.StopAllAnimating("position") will stop any animations of any objects' position properties on the current 
+example: card.stop_all_animating("position") will stop any animations of any objects' position properties on the current 
 card.</p>
 
 <p>While editing your code, you'll notice that the editor uses syntax highlighting to help you better read your code.
@@ -243,22 +243,22 @@ Designer to continue building and editing, just close your running stack window.
 <p>There are a few ways to get objects on a card to move.  You can set an object's position (the ocation of its bottom 
 left corner) or center to instantly move the object to that position, for example: object.center = [100,200].  
 Or you can animate an object's position or 
-center to move it smoothly from its current position to the new one, for example: object.AnimateCenter(1.5, [100,200]) 
+center to move it smoothly from its current position to the new one, for example: object.animate_center(1.5, [100,200]) 
 to smoothly move the object over 1.5 seconds.</p>
 
 <p>Another way to make an object move is to give it a non-zero speed value.  Speed in CardStock is given in pixels per 
 second for both x and y axes.  To make an object start moving diagonally up and right, you can set
 object.speed=[100,100].  It will then keep moving in that direction (including past the edge of the card) until you 
 change its speed again.  Setting the speed to [0,0] will make it stop moving.  If you want an object to automatically 
-bounce off of the edge of the card, or off of other objects, you can call SetBounceObjects() with a list of the objects
-you would like it to bounce off of, for example object.SetBounceObjects([card, button_1]).  This is used in the pong 
-example stack to make the ball bounce off of the card edges, and the paddle.  When an object bounces, its OnBounce(otherObject, edge)
+bounce off of the edge of the card, or off of other objects, you can call set_bounce_objects() with a list of the objects
+you would like it to bounce off of, for example object.set_bounce_objects([card, button_1]).  This is used in the pong 
+example stack to make the ball bounce off of the card edges, and the paddle.  When an object bounces, its on_bounce(other_object, edge)
 event will run, which additionally tells your code which object it ran into, and which edge of that object it hit.  For
-example, if a ball object bounces off of the top edge of the card, the ball object's OnBounce event will run, with
-otherObject set to card, and edge set to "Top".</p>
+example, if a ball object bounces off of the top edge of the card, the ball object's on_bounce event will run, with
+other_object set to card, and edge set to "Top".</p>
 
 <p>An easy way to make an object's movement look like it is being affected by gravity is to give the object a speed, and
-then add a line like self.speed.y -= 30 into the object's OnPeriodic() event.</p>
+then add a line like self.speed.y -= 30 into the object's on_periodic() event.</p>
 
 <br/><br/>
 
@@ -266,21 +266,21 @@ then add a line like self.speed.y -= 30 into the object's OnPeriodic() event.</p
 
 <p>CardStock also allows you to embed web pages into your stacks, using Web View objects.  You can set the URL property
 of a Web View, and it will load the web page at that URL.  Or you can set the HTML property of a Web View, and it will 
-display that HTML.  You can restrict a Web View to only allow loading pages from a specific set of hosts, by setting its allowedHosts
+display that HTML.  You can restrict a Web View to only allow loading pages from a specific set of hosts, by setting its allowed_hosts
 property.  For example, if you only want to allow loading pages from my-fun-game.com, then you can set webview_1.URL to
-https://my-fun-game.com/starting-page.html, and set webview_1.allowedHosts to ['my-fun-game.com'].  This way it will 
+https://my-fun-game.com/starting-page.html, and set webview_1.allowed_hosts to ['my-fun-game.com'].  This way it will 
 not allow users to navigate off of the my-fun-game.com site.</p>
 
 <p>When a page loads, either because you set the Web View's URL, or because the user clicked a link to navigate to 
-another page, your Web View will run the event OnDoneLoading(URL, didLoad) with the URL as a string, and didLoad as
+another page, your Web View will run the event on_done_loading(URL, did_load) with the URL as a string, and did_load as
 True if the page loaded successfully, and False if the page was unable to load.</p>
 
 <p>From within your CardStock code, you can inject and run JavaScript code into a Web View by calling
-webview_1.RunJavaScript(jscode), and if your JavaScript code returns a value, it will be returned by the RunJavaScript() call.
+webview_1.run_java_script(jscode), and if your JavaScript code returns a value, it will be returned by the run_java_script() call.
 If you want the web page inside your Web View to be able to affect the rest of your CardStock stack, you can set up 
-your web page to try to load a URL using the cardstock: scheme, and this will show up in your Web View's OnCardStockLink()
+your web page to try to load a URL using the cardstock: scheme, and this will show up in your Web View's on_card_stock_link()
 event.  For example, if your HTML includes a link to 'cardstock:test', then when that link is clicked, your Web View's
-OnCardStockLink(message) will be called with message='test'.</p>
+on_card_stock_link(message) will be called with message='test'.</p>
 
 <br/><br/>
 
@@ -396,7 +396,7 @@ the current card.  And you can access objects on other cards as, for example, st
 {HelpData.ObjectSection("object", "All Objects", "Many properties, methods, and events apply to objects of all "
                                                  "types, so we'll list those all here just once.  Access an object's "
                                                  "properties or methods as, for example, objectName.size or "
-                                                 "objectName.Focus()")}
+                                                 "objectName.focus()")}
 <hr/>
 {HelpData.ObjectSection("stack", "Stack", "The stack object represents your whole CardStock program.  You can always "
                                           "access the stack as the global variable <b>stack</b>.  And you can access "
@@ -406,54 +406,54 @@ the current card.  And you can access objects on other cards as, for example, st
                                          "its own code for handling events.  The below properties, methods, and "
                                          "events, in addition to those in the All Objects section, apply to card "
                                          "objects.  Access an object's properties or methods as, for example, "
-                                         "objectName.size or objectName.Focus().  You can also access a child object "
+                                         "objectName.size or objectName.focus().  You can also access a child object "
                                          "of this card as card.objectName.")}
 <hr/>
-{HelpData.ObjectSection("button", "Button", "Buttons show their title, and when clicked, run their OnClicked event "
+{HelpData.ObjectSection("button", "Button", "Buttons show their title, and when clicked, run their on_click event "
                                              "code.  The below properties, methods, and events, in addition to those "
                                              "in the All Objects section, apply to button objects.  Access an object's "
                                              "properties or methods as, for example, objectName.size or "
-                                             "objectName.Focus()")}
+                                             "objectName.focus()")}
 <hr/>
 {HelpData.ObjectSection("textfield", "Text Field", "Text fields are object where your stack's users can enter or "
                                                     "edit text.  The below properties, methods, and events, in "
                                                     "addition to those in the All Objects section, apply to text field "
                                                     "objects.  Access an object's properties or methods as, for "
-                                                    "example, objectName.size or objectName.Focus()")}
+                                                    "example, objectName.size or objectName.focus()")}
 <hr/>
 {HelpData.ObjectSection("textlabel", "Text Label", "Text labels are objects that show text on the card, but are not "
                                                     "editable by users. The below properties, methods, and events, in "
                                                     "addition to those in the All Objects section, apply to text labels.  "
                                                     "Access an object's properties or methods as, for "
-                                                    "example, objectName.size or objectName.Focus()")}
+                                                    "example, objectName.size or objectName.focus()")}
 <hr/>
 {HelpData.ObjectSection("webview", "Web View", "Web views are objects that let you load web pages into your stacks. "
                                                "The below properties, methods, and events, in "
                                                     "addition to those in the All Objects section, apply to web view "
                                                     "objects.  Access an object's properties or methods as, for "
-                                                    "example, objectName.size or objectName.Focus()")}
+                                                    "example, objectName.size or objectName.focus()")}
 <hr/>
 {HelpData.ObjectSection("image", "Image", "Image objects show an image from an image file.  "
                                            "The below properties, methods, and events, in addition to those in the "
                                            "All Objects section, apply to image objects.  Access an object's "
                                            "properties or methods as, for example, objectName.size or "
-                                           "objectName.Focus()")}
+                                           "objectName.focus()")}
 <hr/>
 {HelpData.ObjectSection("line", "Shape - Line and Pen", "A line shape is a straight line connecting two points.  A "
                                                          "pen shape is whatever shape you draw out with the pen tool. "
-                                                         "Both have a penColor and a penThickness.  "
+                                                         "Both have a pen_color and a pen_thickness.  "
                                                          "The below properties and methods, in addition to "
                                                          "everything in the All Objects section, apply to these shape "
                                                          "objects.")}
 <hr/>
-{HelpData.ObjectSection("shape", "Shape - Oval, Rectangle, and Polygon", "Oval rectangle, and polygon shapes have a penColor and "
-                                                                "penThickness like Line and Pen objects, but also have "
-                                                                "a fillColor.  The below properties, methods, and "
+{HelpData.ObjectSection("shape", "Shape - Oval, Rectangle, and Polygon", "Oval rectangle, and polygon shapes have a pen_color and "
+                                                                "pen_thickness like Line and Pen objects, but also have "
+                                                                "a fill_color.  The below properties, methods, and "
                                                                 "events, in addition to those in the "
                                                                 "All Objects section, apply to these shape objects.")}
 <hr/>
 {HelpData.ObjectSection("roundrect", "Shape - Round Rectangle", "A round rectangle shape has a Rectangle shape's "
-                                                                 "properties, and additionally has a cornerRadius. "
+                                                                 "properties, and additionally has a corner_radius. "
                                                                  "The below properties and methods, in addition to "
                                                                  "everything in the All Objects section, apply to "
                                                                  "these shape objects.")}
@@ -466,7 +466,7 @@ the current card.  And you can access objects on other cards as, for example, st
                                           "properties or events, but respond to the following methods, along with "
                                           "everything in the "
                                           "All Objects section.  Access an object's properties or methods as, for "
-                                          "example, objectName.size or objectName.Focus().  You can also access a "
+                                          "example, objectName.size or objectName.focus().  You can also access a "
                                           "child object of this group as groupName.objectName")}
 
 </body>

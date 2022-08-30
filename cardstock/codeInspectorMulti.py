@@ -6,6 +6,7 @@ import appCommands
 from uiView import UiView
 from simpleListBox import SimpleListBox
 
+HEADER_HEIGHT = 30
 
 class CodeInspectorContainer(wx.Window):
     """ Contains the codeInspector, and the fixed-position 'Add Event' button """
@@ -90,7 +91,10 @@ class CodeInspector(wx.ScrolledWindow):
         self.container.addButton.Show(uiView is not None)
 
         if uiView:
-            self.sizer.AddSpacer(5)
+            # self.sizer.AddSpacer(5)
+            bar = wx.Window(self, size=wx.Size(10, HEADER_HEIGHT))
+            bar.SetBackgroundColour(wx.Colour('#EEEEEE'))
+            self.sizer.Add(bar, 0, wx.EXPAND | wx.ALL, 0)
             for (handlerName, code) in uiView.model.handlers.items():
                 editorBlock = self.GetEditorBlock()
                 editorBlock.SetupForHandler(uiView, handlerName)
@@ -98,11 +102,12 @@ class CodeInspector(wx.ScrolledWindow):
                 self.sizer.Add(editorBlock, 0, wx.EXPAND | wx.ALL, 0)
 
             self.UpdateEditorVisibility()
+            self.Scroll(0, HEADER_HEIGHT)
 
-            for (handlerName, code) in uiView.model.handlers.items():
-                if len(code.strip()):
-                    editorBlock = self.blocks[handlerName]
-                    break
+            # for (handlerName, code) in uiView.model.handlers.items():
+            #     if len(code.strip()):
+            #         editorBlock = self.blocks[handlerName]
+            #         break
 
     def UpdateEditorVisibility(self):
         if not self.currentUiView:
@@ -193,6 +198,8 @@ class CodeInspector(wx.ScrolledWindow):
             editorBlock.UpdateLabelState(handlerName)
 
             if selection:
+                self.SelectAndScrollTo(handlerName, *selection)
+            else:
                 self.SelectAndScrollTo(handlerName, *selection)
 
             self.stackManager.analyzer.RunAnalysis()
@@ -313,11 +320,11 @@ class CodeInspector(wx.ScrolledWindow):
                 if not firstBlock: firstBlock = block
                 lastBlock = block
         if firstBlock:
-            mousePos = event.GetPosition()
-            if mousePos.y <= firstBlock.codeEditor.GetPosition().y:
+            mouse_pos = event.GetPosition()
+            if mouse_pos.y <= firstBlock.codeEditor.GetPosition().y:
                 firstBlock.codeEditor.SetFocus()
                 firstBlock.codeEditor.SetSelection(0, 0)
-            elif mousePos.y > lastBlock.GetPosition().y:
+            elif mouse_pos.y > lastBlock.GetPosition().y:
                 lastBlock.codeEditor.SetFocus()
                 end = lastBlock.codeEditor.GetLastPosition()
                 lastBlock.codeEditor.SetSelection(end, end)
@@ -328,12 +335,12 @@ class CodeInspector(wx.ScrolledWindow):
         Clicked in a block, outside of the editor, so focus this block's editor and select the
         first or last position depending on whether the user clicked above or below the editor.
         """
-        mousePos = event.GetPosition()
+        mouse_pos = event.GetPosition()
         editorBlock = event.GetEventObject()
         if isinstance(editorBlock, wx.StaticText):
             editorBlock = editorBlock.GetParent()
         editorBlock.codeEditor.SetFocus()
-        if mousePos.y < editorBlock.codeEditor.GetPosition().y:
+        if mouse_pos.y < editorBlock.codeEditor.GetPosition().y:
             editorBlock.codeEditor.SetSelection(0, 0)
             self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView,
                                                                      editorBlock.codeEditor.currentHandler))

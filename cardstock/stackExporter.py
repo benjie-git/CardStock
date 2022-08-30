@@ -50,7 +50,7 @@ class StackExporter(object):
         subStackList = self.GatherSubStacks()
         if len(subStackList) > 0:
             wx.MessageDialog(self.stackManager.designer,
-                             "CardStock is not currently able to export a stack that includes any RunStack() calls.",
+                             "CardStock is not currently able to export a stack that includes any run_stack() calls.",
                              "Unable to Export", wx.OK).ShowModal()
             return
 
@@ -68,9 +68,9 @@ class StackExporter(object):
 
         # Add paths found by simple static analysis:
         # Look for any image objects with a file property
-        # Look in all handlers for PlaySound("<path>"), *.file = "<path>"
-        patterns = [[re.compile(r"\s*PlaySound\('([^']+)'\)", re.MULTILINE)],
-                    [re.compile(r'\s*PlaySound\("([^"]+)"\)', re.MULTILINE)],
+        # Look in all handlers for play_sound("<path>"), *.file = "<path>"
+        patterns = [[re.compile(r"\s*play_sound\('([^']+)'\)", re.MULTILINE)],
+                    [re.compile(r'\s*play_sound\("([^"]+)"\)', re.MULTILINE)],
                     [re.compile(r"\w\.file\s*=\s*'([^']+)'", re.MULTILINE)],
                     [re.compile(r'\w\.file\s*=\s*"([^"]+)"', re.MULTILINE)]]
         self.ScanObjTree(self.stackManager.stackModel, [["image", "file"]], patterns, self.resList)
@@ -88,8 +88,8 @@ class StackExporter(object):
     def GatherSubStacks(self):
         stackList = set()
 
-        # Find all uses of RunStack()
-        patterns = [[re.compile(r'\s*RunStack\("([^"]+)"\)', re.MULTILINE)]]
+        # Find all uses of run_stack()
+        patterns = [[re.compile(r'\s*run_stack\("([^"]+)"\)', re.MULTILINE)]]
         self.ScanObjTree(self.stackManager.stackModel, [], patterns, stackList)
         return stackList
 
@@ -167,7 +167,7 @@ class StackExporter(object):
         if filepath:
             filename = os.path.basename(filepath)
 
-            canSave = self.stackManager.stackModel.GetProperty("canSave")
+            can_save = self.stackManager.stackModel.GetProperty("can_save")
 
             # Prep temp dir
             tmp = "/tmp/CardStock" if wx.Platform != "__WXMSW__" else "C:\Windows\Temp\CardStock"
@@ -209,7 +209,7 @@ class StackExporter(object):
                     os.path.dirname(filepath)
                 ])
             elif wx.Platform == "__WXMSW__":
-                if canSave:
+                if can_save:
                     os.mkdir(filepath)
                     resPath = os.path.join(filepath, "Resources")
                     os.mkdir(resPath)
@@ -221,10 +221,10 @@ class StackExporter(object):
                 args.extend([
                     '--onefile',
                     '--distpath', distpath])
-                if not canSave:
+                if not can_save:
                     args.extend(["--add-data", f"{tmpStack}{sep}."])
             else:
-                if canSave:
+                if can_save:
                     os.mkdir(filepath)
                     resPath = os.path.join(filepath, "Resources")
                     os.mkdir(resPath)
@@ -237,7 +237,7 @@ class StackExporter(object):
                     '--onefile',
                     # '-s',  # slightly smaller, but slower to build.  Maybe make optional?
                     '--distpath', distpath])
-                if not canSave:
+                if not can_save:
                     args.extend(["--add-data", f"{tmpStack}{sep}."])
 
             args.extend(["--add-data", f"{mapFile}{sep}."])

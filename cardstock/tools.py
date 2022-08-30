@@ -267,7 +267,7 @@ class HandTool(BaseTool):
                     thickness = 0
                     if isinstance(self.targetUi, UiShape):
                         # Account for thickness of shapes while resizing
-                        thickness = self.targetUi.model.GetProperty("penThickness")
+                        thickness = self.targetUi.model.GetProperty("pen_thickness")
                         if localPos[0] == newRect.Left:
                             newRect.Left += min(thickness/2, newRect.Width)
                             newRect.Width -= min(thickness/2, newRect.Width)
@@ -589,11 +589,11 @@ class PenTool(BaseTool):
         self.curLine = []
         self.pos = wx.Point(0,0)
         self.thickness = 0
-        self.penColor = None
+        self.pen_color = None
         self.targetUi = None
 
     def SetPenColor(self, color):
-        self.penColor = color
+        self.pen_color = color
 
     def SetFillColor(self, color):
         pass
@@ -613,7 +613,7 @@ class PenTool(BaseTool):
         self.stackManager.view.CaptureMouse()
         self.curLine = []
         self.curLine.append(list(self.pos))
-        self.targetUi.model.SetShape({"type": "pen", "penColor": self.penColor, "thickness": self.thickness, "points": self.curLine})
+        self.targetUi.model.SetShape({"type": "pen", "pen_color": self.pen_color, "thickness": self.thickness, "points": self.curLine})
 
     def OnMouseMove(self, uiView, event):
         if self.targetUi and self.stackManager.view.HasCapture():
@@ -658,15 +658,15 @@ class ShapeTool(BaseTool):
         self.name = name
         self.startPoint = None
         self.thickness = 0
-        self.penColor = None
-        self.fillColor = None
+        self.pen_color = None
+        self.fill_color = None
         self.targetUi = None
 
     def SetPenColor(self, color):
-        self.penColor = color
+        self.pen_color = color
 
     def SetFillColor(self, color):
-        self.fillColor = color
+        self.fill_color = color
 
     def SetThickness(self, num):
         self.thickness = num
@@ -684,7 +684,7 @@ class ShapeTool(BaseTool):
                 m = generator.StackGenerator.ModelFromType(self.stackManager, self.name)
                 m.SetProperty("position", [0, 0], notify=False)
                 m.SetProperty("size", self.stackManager.stackModel.GetProperty("size"), notify=False)
-                m.SetShape({"type": self.name, "penColor": self.penColor, "fillColor": self.fillColor,
+                m.SetShape({"type": self.name, "pen_color": self.pen_color, "fill_color": self.fill_color,
                             "thickness": self.thickness, "points": self.points})
                 self.targetUi = self.stackManager.AddUiViewInternal(m)
                 # self.stackManager.SelectUiView(self.targetUi)
@@ -724,67 +724,67 @@ class PolygonTool(BaseTool):
         self.name = "polygon"
         self.points = None
         self.thickness = 0
-        self.penColor = None
-        self.fillColor = None
+        self.pen_color = None
+        self.fill_color = None
         self.targetUi = None
-        self.mousePos = None
+        self.mouse_pos = None
         self.lastMousePos = None
 
     def SetPenColor(self, color):
-        self.penColor = color
+        self.pen_color = color
 
     def SetFillColor(self, color):
-        self.fillColor = color
+        self.fill_color = color
 
     def SetThickness(self, num):
         self.thickness = num
 
     def OnMouseDown(self, uiView, event):
-        mousePos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        mouse_pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         if not self.stackManager.view.HasCapture():
-            self.points = [mousePos]
+            self.points = [mouse_pos]
             m = generator.StackGenerator.ModelFromType(self.stackManager, self.name)
             m.SetProperty("position", [0, 0], notify=False)
             m.SetProperty("size", self.stackManager.stackModel.GetProperty("size"), notify=False)
-            m.SetShape({"type": self.name, "penColor": self.penColor, "fillColor": self.fillColor,
+            m.SetShape({"type": self.name, "pen_color": self.pen_color, "fill_color": self.fill_color,
                         "thickness": self.thickness, "points": self.points})
             self.targetUi = self.stackManager.AddUiViewInternal(m)
             self.stackManager.view.CaptureMouse()
-        elif dist(mousePos, self.points[0]) < 5:
+        elif dist(mouse_pos, self.points[0]) < 5:
             self.FinishShape()
-        elif dist(mousePos, self.points[-1]) < 5:
+        elif dist(mouse_pos, self.points[-1]) < 5:
             self.FinishShape()
         else:
             self.points.append(self.ConstrainDragPoint("line", self.points[-1], event))
             self.targetUi.model.DidUpdateShape()
 
     def OnMouseMove(self, uiView, event):
-        self.mousePos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
+        self.mouse_pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
 
         if self.stackManager.view.HasCapture():
             if wx.GetMouseState().LeftIsDown():
                 if self.points and len(self.points)>1:
-                    self.mousePos = self.ConstrainDragPoint("line", self.points[-2], event)
-                self.points[-1] = self.mousePos
+                    self.mouse_pos = self.ConstrainDragPoint("line", self.points[-2], event)
+                self.points[-1] = self.mouse_pos
                 self.targetUi.model.DidUpdateShape()
             else:
                 if len(self.points) >= 1:
                     if self.points and len(self.points):
-                        self.mousePos = self.ConstrainDragPoint("line", self.points[-1], event)
-                    points = [self.points[0], self.points[-1], self.mousePos]
+                        self.mouse_pos = self.ConstrainDragPoint("line", self.points[-1], event)
+                    points = [self.points[0], self.points[-1], self.mouse_pos]
                     if self.lastMousePos:
                         points.append(self.lastMousePos)
                     self.targetUi.model.DidUpdateShape()
-                    self.lastMousePos = self.mousePos
+                    self.lastMousePos = self.mouse_pos
 
     def OnMouseUp(self, uiView, event):
         pass
 
     def Paint(self, gc):
-        if self.stackManager.view.HasCapture() and len(self.points) >= 1 and self.mousePos:
+        if self.stackManager.view.HasCapture() and len(self.points) >= 1 and self.mouse_pos:
             gc.SetPen(wx.Pen('Blue', 2, wx.PENSTYLE_DOT))
-            gc.DrawLine(self.points[0], self.mousePos)
-            gc.DrawLine(self.points[-1], self.mousePos)
+            gc.DrawLine(self.points[0], self.mouse_pos)
+            gc.DrawLine(self.points[-1], self.mouse_pos)
 
     def OnKeyDown(self, uiViewIn, event):
         if event.RawControlDown() or event.CmdDown():
@@ -826,6 +826,6 @@ class PolygonTool(BaseTool):
 
             self.stackManager.designer.cPanel.SetToolByName("hand")
         self.points = None
-        self.mousePos = None
+        self.mouse_pos = None
         self.lastMousePos = None
         self.stackManager.view.SetFocus()

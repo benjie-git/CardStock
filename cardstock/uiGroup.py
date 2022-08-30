@@ -153,9 +153,9 @@ class GroupModel(ViewModel):
     def SetProperty(self, key, value, notify=True):
         if self.didSetDown: return
         super().SetProperty(key, value, notify)
-        if key == "isVisible":
+        if key == "is_visible":
             for m in self.GetAllChildModels():
-                m.Notify("isVisible")
+                m.Notify("is_visible")
 
     def AddChildModels(self, models):
         selfPos = self.GetProperty("position")
@@ -281,14 +281,14 @@ class Group(ViewProxy):
     """
 
     @RunOnMainSync
-    def Ungroup(self):
+    def ungroup(self):
         model = self._model
         if not model: return None
         groups = model.stackManager.UngroupModelsInternal([model])
         if groups and len(groups) > 0:
             return groups[0]
 
-    def StopAllAnimating(self, propertyName=None):
+    def stop_all_animating(self, propertyName=None):
         model = self._model
         if not model: return
         model.StopAnimation(propertyName)

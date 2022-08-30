@@ -65,7 +65,7 @@ class AllCodeWindow(wx.Frame):
                 card = obj.GetCard()
                 name = card.GetProperty("name") + "." + obj.GetProperty("name")
 
-            handlerName = "OnSetup"
+            handlerName = "on_setup"
             displayName = UiView.handlerDisplayNames[handlerName]
             handlerCode = obj.GetHandler(handlerName)
             if handlerCode:
@@ -93,7 +93,7 @@ class AllCodeWindow(wx.Frame):
 
             didAddComment = False
             for handlerName in obj.handlers:
-                if handlerName == "OnSetup": continue
+                if handlerName == "on_setup": continue
 
                 displayName = UiView.handlerDisplayNames[handlerName]
                 handlerCode = obj.GetHandler(handlerName)

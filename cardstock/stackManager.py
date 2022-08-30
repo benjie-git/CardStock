@@ -198,19 +198,19 @@ class StackManager(object):
         if not self.runner.stopRunnerThread:
             didRun = False
             self.timerCount += 1
-            # Determine elapsed time since last round of OnPeriodic calls
+            # Determine elapsed time since last round of on_periodic calls
             now = time()
             if not self.lastOnPeriodicTime:
                 self.lastOnPeriodicTime = self.runner.stackStartTime
-            elapsedTime = now - self.lastOnPeriodicTime
+            elapsed_time = now - self.lastOnPeriodicTime
 
             # Run animations at 60 Hz / FPS
             allUi = self.uiCard.GetAllUiViews()
             onFinishedCalls = []
-            if self.uiCard.RunAnimations(onFinishedCalls, elapsedTime):
+            if self.uiCard.RunAnimations(onFinishedCalls, elapsed_time):
                 didRun = True
             for ui in allUi:
-                if ui.RunAnimations(onFinishedCalls, elapsedTime):
+                if ui.RunAnimations(onFinishedCalls, elapsed_time):
                     didRun = True
             # Let all animations process, before running their onFinished handlers,
             # which could start new animations.
@@ -225,10 +225,10 @@ class StackManager(object):
 
             # Perform any bounces
             for (k,v) in collisions.items():
-                v[0].PerformBounce(v, elapsedTime)
+                v[0].PerformBounce(v, elapsed_time)
                 didRun = True
 
-            # Run OnPeriodic at 30 Hz
+            # Run on_periodic at 30 Hz
             if self.timerCount % 2 == 0 and self.runner.numOnPeriodicsQueued == 0:
                 didRun = self.uiCard.OnPeriodic(event)
 
@@ -291,7 +291,7 @@ class StackManager(object):
             if not self.isEditing and self.cardIndex is not None and not reload:
                 oldCardModel = self.stackModel.childModels[self.cardIndex]
                 if self.runner:
-                    self.runner.RunHandler(oldCardModel, "OnHideCard", None)
+                    self.runner.RunHandler(oldCardModel, "on_hide_card", None)
             self.cardIndex = index
             if self.designer:
                 self.designer.Freeze()
@@ -307,8 +307,8 @@ class StackManager(object):
                 if not self.isEditing and self.runner:
                     self.runner.SetupForCard(cardModel)
                     if not reload:
-                        if self.uiCard.model.GetHandler("OnShowCard"):
-                            self.runner.RunHandler(self.uiCard.model, "OnShowCard", None)
+                        if self.uiCard.model.GetHandler("on_show_card"):
+                            self.runner.RunHandler(self.uiCard.model, "on_show_card", None)
                 self.view.Refresh()
             if self.designer:
                 self.designer.Thaw()
@@ -961,9 +961,9 @@ class StackManager(object):
         self.UpdateBuffer()
         didEnqueue = False
         self.view.didResize = True
-        if not self.isEditing and self.runner and self.stackModel.GetProperty("canResize"):
+        if not self.isEditing and self.runner and self.stackModel.GetProperty("can_resize"):
             self.uiCard.model.SetProperty("size", self.view.GetTopLevelParent().GetClientSize())
-            didEnqueue = self.runner.RunHandler(self.uiCard.model, "OnResize", None)
+            didEnqueue = self.runner.RunHandler(self.uiCard.model, "on_resize", None)
         if self.isEditing or not didEnqueue:
             self.view.Refresh()
             self.view.RefreshIfNeeded()

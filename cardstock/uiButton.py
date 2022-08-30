@@ -21,7 +21,7 @@ class UiButton(UiView):
         return wx.CURSOR_HAND
 
     def HackEvent(self, event):
-        if wx.Platform == '__WXMAC__' and self.model.GetProperty("hasBorder"):
+        if wx.Platform == '__WXMAC__' and self.model.GetProperty("has_border"):
             event.SetPosition(event.GetPosition() - MAC_BUTTON_OFFSET_HACK)
         return event
 
@@ -37,7 +37,7 @@ class UiButton(UiView):
             event.Skip(False)  # Fix double MouseUp events on Mac
 
     def CreateButton(self, stackManager, model):
-        if not model.GetProperty("hasBorder"):
+        if not model.GetProperty("has_border"):
             return None
 
         button = wx.Button(parent=stackManager.view, label="Button", size=model.GetProperty("size"),
@@ -56,7 +56,7 @@ class UiButton(UiView):
                 self.button.SetLabel(str(self.model.GetProperty(key)))
             else:
                 self.stackManager.view.Refresh()
-        elif key == "hasBorder":
+        elif key == "has_border":
             sm = self.stackManager
             sm.SelectUiView(None)
             sm.LoadCardAtIndex(sm.cardIndex, reload=True)
@@ -89,8 +89,8 @@ class UiButton(UiView):
 
     def OnButton(self, event):
         if not self.stackManager.isEditing:
-            if self.stackManager.runner and self.model.GetHandler("OnClick"):
-                self.stackManager.runner.RunHandler(self.model, "OnClick", event)
+            if self.stackManager.runner and self.model.GetHandler("on_click"):
+                self.stackManager.runner.RunHandler(self.model, "on_click", event)
 
     def Paint(self, gc):
         if not self.button:
@@ -126,21 +126,21 @@ class ButtonModel(ViewModel):
         self.proxyClass = Button
 
         # Add custom handlers to the top of the list
-        handlers = {"OnSetup": "",
-                    "OnClick": ""}
+        handlers = {"on_setup": "",
+                    "on_click": ""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
-        self.initialEditHandler = "OnClick"
+        self.initialEditHandler = "on_click"
 
         self.properties["name"] = "button_1"
         self.properties["title"] = "Button"
-        self.properties["hasBorder"] = True
+        self.properties["has_border"] = True
         self.propertyTypes["title"] = "string"
-        self.propertyTypes["hasBorder"] = "bool"
+        self.propertyTypes["has_border"] = "bool"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "title", "hasBorder", "position", "size"]
+        self.propertyKeys = ["name", "title", "has_border", "position", "size"]
 
 
 class Button(ViewProxy):
@@ -161,18 +161,18 @@ class Button(ViewProxy):
         model.SetProperty("title", str(val))
 
     @property
-    def hasBorder(self):
+    def has_border(self):
         model = self._model
         if not model: return False
-        return model.GetProperty("hasBorder")
-    @hasBorder.setter
-    def hasBorder(self, val):
+        return model.GetProperty("has_border")
+    @has_border.setter
+    def has_border(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("hasBorder", bool(val))
+        model.SetProperty("has_border", bool(val))
 
-    def Click(self):
+    def click(self):
         model = self._model
         if not model: return
-        if model.stackManager.runner and model.GetHandler("OnClick"):
-            model.stackManager.runner.RunHandler(model, "OnClick", None)
+        if model.stackManager.runner and model.GetHandler("on_click"):
+            model.stackManager.runner.RunHandler(model, "on_click", None)
