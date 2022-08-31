@@ -312,12 +312,12 @@ class GridCellImageFileRenderer(wx.grid.GridCellStringRenderer):
             dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH*2, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
             if not self.clipArtBmp:
                 self.clipArtBmp = wx.ArtProvider.GetBitmap(wx.ART_CUT, size=wx.Size(rect.Height, rect.Height))
-            dc.DrawBitmap(self.clipArtBmp, wx.Point(rect.Left + rect.Width-BUTTON_WIDTH-((BUTTON_WIDTH+self.clipArtBmp.Width)/2), rect.Top))
+            dc.DrawBitmap(self.clipArtBmp, wx.Point(int(rect.Left + rect.Width-BUTTON_WIDTH-((BUTTON_WIDTH+self.clipArtBmp.Width)/2)), rect.Top))
 
-        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
+        dc.DrawRectangle(wx.Rect(int(rect.Left + rect.Width-BUTTON_WIDTH), rect.Top+1, BUTTON_WIDTH, rect.Height-1))
         if not self.fileBmp:
             self.fileBmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, size=wx.Size(rect.Height, rect.Height))
-        dc.DrawBitmap(self.fileBmp, wx.Point(rect.Left + rect.Width-((BUTTON_WIDTH+self.fileBmp.Width)/2), rect.Top))
+        dc.DrawBitmap(self.fileBmp, wx.Point(int(rect.Left + rect.Width-((BUTTON_WIDTH+self.fileBmp.Width)/2)), rect.Top))
 
 
 class GridCellImageFileEditor(wx.grid.GridCellTextEditor):
@@ -511,7 +511,7 @@ class GridCellFontRenderer(wx.grid.GridCellStringRenderer):
         is_bold = self.textObjs[0].GetProperty("is_bold") if len(self.textObjs) else False
         dc.SetPen(wx.Pen('grey', 1, wx.PENSTYLE_SOLID))
         dc.SetBrush(wx.Brush('grey' if is_bold else 'white', wx.SOLID))
-        styleRect = wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH, rect.Top+1, COLOR_PATCH_WIDTH/3-2, rect.Height-1)
+        styleRect = wx.Rect(int(rect.Left + rect.Width-COLOR_PATCH_WIDTH), rect.Top+1, int(COLOR_PATCH_WIDTH/3-2), rect.Height-1)
         dc.DrawRectangle(styleRect)
         dc.SetFont(attr.GetFont().Bold())
         styleRect.Position -= (0, 2)
@@ -520,7 +520,7 @@ class GridCellFontRenderer(wx.grid.GridCellStringRenderer):
         is_italic = self.textObjs[0].GetProperty("is_italic") if len(self.textObjs) else False
         dc.SetPen(wx.Pen('grey', 1, wx.PENSTYLE_SOLID))
         dc.SetBrush(wx.Brush('grey' if is_italic else 'white', wx.SOLID))
-        styleRect = wx.Rect(rect.Left + rect.Width-2*COLOR_PATCH_WIDTH/3+1, rect.Top+1, COLOR_PATCH_WIDTH/3-2, rect.Height-1)
+        styleRect = wx.Rect(int(rect.Left + rect.Width-2*COLOR_PATCH_WIDTH/3+1), rect.Top+1, int(COLOR_PATCH_WIDTH/3-2), rect.Height-1)
         dc.DrawRectangle(styleRect)
         dc.SetFont(attr.GetFont().Italic())
         styleRect.Position -= (0, 2)
@@ -535,7 +535,7 @@ class GridCellFontRenderer(wx.grid.GridCellStringRenderer):
             is_underlined = self.textObjs[0].GetProperty("is_underlined") if len(self.textObjs) else False
             dc.SetPen(wx.Pen('grey', 1, wx.PENSTYLE_SOLID))
             dc.SetBrush(wx.Brush('grey' if is_underlined else 'white', wx.SOLID))
-            styleRect = wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH/3+2, rect.Top+1, COLOR_PATCH_WIDTH/3-2, rect.Height-1)
+            styleRect = wx.Rect(int(rect.Left + rect.Width-COLOR_PATCH_WIDTH/3+2), rect.Top+1, int(COLOR_PATCH_WIDTH/3-2), rect.Height-1)
             dc.DrawRectangle(styleRect)
             dc.SetFont(attr.GetFont().Underlined())
             styleRect.Position -= (0, 2)

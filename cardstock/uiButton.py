@@ -108,7 +108,7 @@ class UiButton(UiView):
                 gc.SetTextForeground(wx.Colour('#404040' if self.mouseDownInside else 'black'))
                 textWidth = gc.GetTextExtent(line).Width
                 xPos = startX + (width - textWidth) / 2
-                gc.DrawText(line, wx.Point(xPos, startY))
+                gc.DrawText(line, wx.Point(int(xPos), int(startY)))
 
         super().Paint(gc)
 

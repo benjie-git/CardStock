@@ -100,6 +100,7 @@ class CodeInspector(wx.ScrolledWindow):
                 editorBlock.SetupForHandler(uiView, handlerName)
                 self.blocks[handlerName] = editorBlock
                 self.sizer.Add(editorBlock, 0, wx.EXPAND | wx.ALL, 0)
+            # self.sizer.AddSpacer(100)
 
             self.UpdateEditorVisibility()
             self.Scroll(0, HEADER_HEIGHT)
@@ -393,8 +394,6 @@ class EditorBlock(wx.Window):
 
         self.label = wx.StaticText(self)
         self.label.Bind(wx.EVT_LEFT_DOWN, parent.OnBlockClick)
-        fsize = 17 if wx.Platform == "__WXGTK__" else 14
-        self.label.SetFont(wx.Font(wx.FontInfo(wx.Size(0, fsize)).Family(wx.FONTFAMILY_MODERN)))
         self.label.SetBackgroundColour('white')
 
         self.closeButton = wx.StaticBitmap(self, wx.ID_ANY, bitmap=EditorBlock.closeBmp)
@@ -449,10 +448,16 @@ class EditorBlock(wx.Window):
 
     def UpdateLabelState(self, handlerName):
         """ Set up label color, text, close button visibility. """
-        color = "black"
         code = self.uiView.model.handlers[handlerName]
+
+        color = "black"
+        fsize = 17  # if wx.Platform == "__WXGTK__" else 17
+        fontInfo = wx.FontInfo(wx.Size(0, fsize)).Family(wx.FONTFAMILY_MODERN).Weight(wx.FONTWEIGHT_MEDIUM)
         if len(code.strip()) == 0:
-            color = "#555555"
+            color = "#777777"
+            fontInfo.Weight(wx.FONTWEIGHT_NORMAL)
+
+        self.label.SetFont(wx.Font(fontInfo))
         self.label.SetForegroundColour(wx.Colour(color))
         self.label.SetLabel("def " + UiView.handlerDisplayNames[handlerName])
 

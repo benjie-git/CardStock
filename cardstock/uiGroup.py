@@ -233,7 +233,7 @@ class GroupModel(ViewModel):
                 oldRot = 0
             if oldRot == 0:
                 # If this child is not rotated, just scale it
-                m.SetFrame(wx.Rect((pos.x*scaleX, pos.y*scaleY), (size.Width*scaleX, size.Height*scaleY)))
+                m.SetFrame(wx.Rect((int(pos.x*scaleX), int(pos.y*scaleY)), (int(size.Width*scaleX), int(size.Height*scaleY))))
             else:
                 # If this child is rotated, we need to scale its size, but also scale the rotation
                 pos = (pos.x*scaleX, pos.y*scaleY)
@@ -262,17 +262,17 @@ class GroupModel(ViewModel):
                 m.SetProperty("rotation", rot)
 
                 # Find the center and the size of the new scaled state for this shape
-                center = wx.Point((points[0].x + points[1].x + points[2].x + points[3].x) / 4,
-                                  (points[0].y + points[1].y + points[2].y + points[3].y) / 4)
+                center = wx.Point(int((points[0].x + points[1].x + points[2].x + points[3].x) / 4),
+                                  int((points[0].y + points[1].y + points[2].y + points[3].y) / 4))
                 if size.Height > size.Width:
                     # if the height is longer, scale the width to get thinner as the parallelogram folds up
-                    size = wx.Size(math.cos(math.radians(rotB-rotA)) * math.sqrt((points[0].x - points[1].x)**2 + (points[0].y - points[1].y)**2),
-                                   math.sqrt((points[1].x - points[2].x) ** 2 + (points[1].y - points[2].y) ** 2))
+                    size = wx.Size(int(math.cos(math.radians(rotB-rotA)) * math.sqrt((points[0].x - points[1].x)**2 + (points[0].y - points[1].y)**2)),
+                                   int(math.sqrt((points[1].x - points[2].x) ** 2 + (points[1].y - points[2].y) ** 2)))
                 else:
                     # if the width is longer, scale the height to get thinner as the parallelogram folds up
-                    size = wx.Size(math.sqrt((points[0].x - points[1].x) ** 2 + (points[0].y - points[1].y) ** 2),
-                                   math.cos(math.radians(rotB-rotA)) * math.sqrt((points[1].x - points[2].x) ** 2 + (points[1].y - points[2].y) ** 2))
-                m.SetFrame(wx.Rect(center - tuple(size/2), size))
+                    size = wx.Size(int(math.sqrt((points[0].x - points[1].x) ** 2 + (points[0].y - points[1].y) ** 2)),
+                                   int(math.cos(math.radians(rotB-rotA)) * math.sqrt((points[1].x - points[2].x) ** 2 + (points[1].y - points[2].y) ** 2)))
+                m.SetFrame(wx.Rect(tuple(int(x) for x in (center - tuple(size/2))), size))
 
 
 class Group(ViewProxy):

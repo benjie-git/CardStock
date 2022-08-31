@@ -66,7 +66,7 @@ class UiTextBase(UiView):
         familyName = model.GetProperty("font")
 
         size = self.ScaleFontSize(model.GetProperty("font_size"), view)
-        font = wx.Font(wx.FontInfo(wx.Size(0, size))
+        font = wx.Font(wx.FontInfo(wx.Size(0, int(size)))
                        .Family(self.FamilyForName(familyName))
                        .Bold(model.properties["is_bold"])
                        .Italic(model.properties["is_italic"])

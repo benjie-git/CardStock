@@ -67,17 +67,19 @@ class UiImage(UiView):
                 img = img.Mirror(horizontally=False)
 
         if fit == "Stretch":
-            img = img.Scale(viewSize.width, viewSize.height, quality=wx.IMAGE_QUALITY_HIGH)
+            img = img.Scale(int(viewSize.width), int(viewSize.height), quality=wx.IMAGE_QUALITY_HIGH)
         elif fit == "Contain":
             scaleX = viewSize.width / imgSize.width
             scaleY = viewSize.height / imgSize.height
             scale = min(scaleX, scaleY)
-            img = img.Scale(imgSize.width * scale, imgSize.height * scale, quality=wx.IMAGE_QUALITY_HIGH)
+            img = img.Scale(max(1, int(imgSize.width * scale)),
+                            max(1, int(imgSize.height * scale)), quality=wx.IMAGE_QUALITY_HIGH)
         elif fit == "Fill":
             scaleX = viewSize.width / imgSize.width
             scaleY = viewSize.height / imgSize.height
             scale = max(scaleX, scaleY)
-            img = img.Scale(imgSize.width * scale, imgSize.height * scale, quality=wx.IMAGE_QUALITY_HIGH)
+            img = img.Scale(max(int(imgSize.width * scale)),
+                            max(int(imgSize.height * scale)), quality=wx.IMAGE_QUALITY_HIGH)
             imgSize = img.GetSize()
 
         if fit in ["Center", "Fill"]:
@@ -85,7 +87,7 @@ class UiImage(UiView):
             offY = 0 if imgSize.Height <= viewSize.Height else ((imgSize.Height - viewSize.Height) / 2)
             w = imgSize.width if imgSize.Width <= viewSize.Width else viewSize.Width
             h = imgSize.height if imgSize.Height <= viewSize.Height else viewSize.Height
-            img = img.GetSubImage(wx.Rect(offX, offY, w, h))
+            img = img.GetSubImage(wx.Rect(int(offX), int(offY), w, h))
 
         self.scaledBitmap = img.ConvertToBitmap(32)
 

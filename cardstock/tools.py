@@ -158,7 +158,7 @@ class HandTool(BaseTool):
                 self.targetUi = self.targetUi.parent
 
         self.absOrigin = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        self.relOrigin = self.absOrigin - wx.Point(self.targetUi.model.GetAbsolutePosition())
+        self.relOrigin = self.absOrigin - wx.Point(tuple(int(x) for x in self.targetUi.model.GetAbsolutePosition()))
         self.stackManager.view.CaptureMouse()
 
         if self.targetUi.isSelected and self.shiftDown:
@@ -201,6 +201,7 @@ class HandTool(BaseTool):
                             return
                     rotPt = self.targetUi.GetRotationHandlePoint()
                     if rotPt:
+                        rotPt = tuple(int(x) for x in rotPt)
                         r = wx.Rect(wx.Point(rotPt)-(6,6), (12,12))
                         if r.Contains(self.absOrigin):
                             # Drag started in a rotate knob
@@ -233,10 +234,11 @@ class HandTool(BaseTool):
                     offset = (pos.x - self.absOrigin.x, pos.y - self.absOrigin.y)
                     origPos = self.oldFrames[ui.model.GetProperty("name")].Position
                     ui.model.SetProperty("position", [origPos.x + offset[0], origPos.y + offset[1]])
+
             elif self.mode == "rotate":
                 # We're rotating an object
                 center = self.targetUi.model.GetCenter()
-                vector = pos - tuple(center)
+                vector = pos - tuple((int(x) for x in center))
                 if vector.y == 0:
                     rot = 90 if vector.x > 0 else -90
                 else:
@@ -259,25 +261,25 @@ class HandTool(BaseTool):
                     localPos = self.resizeAff.TransformPoint(*pos)
                     localPos = self.ConstrainDragPointAspect(self.resizeAnchorPointLocal, origSize, localPos, event.ShiftDown())
                     pos = self.resizeAffInverted.TransformPoint(*localPos)
-                    newRect = wx.Rect(wx.Point(min(self.resizeAnchorPointLocal[0], localPos[0]),
-                                               min(self.resizeAnchorPointLocal[1], localPos[1])),
-                                      wx.Point(max(self.resizeAnchorPointLocal[0], localPos[0]),
-                                               max(self.resizeAnchorPointLocal[1], localPos[1])))
+                    newRect = wx.Rect(wx.Point(int(min(self.resizeAnchorPointLocal[0], localPos[0])),
+                                               int(min(self.resizeAnchorPointLocal[1], localPos[1]))),
+                                      wx.Point(int(max(self.resizeAnchorPointLocal[0], localPos[0])),
+                                               int(max(self.resizeAnchorPointLocal[1], localPos[1]))))
 
                     thickness = 0
                     if isinstance(self.targetUi, UiShape):
                         # Account for thickness of shapes while resizing
                         thickness = self.targetUi.model.GetProperty("pen_thickness")
                         if localPos[0] == newRect.Left:
-                            newRect.Left += min(thickness/2, newRect.Width)
-                            newRect.Width -= min(thickness/2, newRect.Width)
+                            newRect.Left += int(min(thickness/2, newRect.Width))
+                            newRect.Width -= int(min(thickness/2, newRect.Width))
                         else:
-                            newRect.Right -= thickness / 2
+                            newRect.Right -= int(thickness / 2)
                         if localPos[1] == newRect.Top:
-                            newRect.Top += min(thickness/2, newRect.Height)
-                            newRect.Height -= min(thickness/2, newRect.Height)
+                            newRect.Top += int(min(thickness/2, newRect.Height))
+                            newRect.Height -= int(min(thickness/2, newRect.Height))
                         else:
-                            newRect.Bottom -= thickness / 2
+                            newRect.Bottom -= int(thickness / 2)
 
                     if self.resizeCorner[0]:
                         xFlipped = (localPos[0] > self.resizeAnchorPointLocal[0] + thickness / 2)
@@ -317,7 +319,7 @@ class HandTool(BaseTool):
                 newY = startPoint.y + newSize.height
             else:
                 newY = startPoint.y - newSize.height
-            return wx.Point(newX, newY)
+            return wx.Point(int(newX), int(newY))
         else:
             return pos
 

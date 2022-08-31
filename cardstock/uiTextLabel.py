@@ -33,7 +33,7 @@ class UiTextLabel(UiTextBase):
 
         field = CDSTextCtrl(parent=self.stackManager.view, style=wx.TE_MULTILINE | alignment)
         s = self.model.GetProperty("size")
-        rect = wx.Rect(wx.Point(self.model.GetAbsoluteCenter()-tuple(s/2)), s).Inflate(2)
+        rect = wx.Rect(wx.Point(tuple(int(x) for x in self.model.GetAbsoluteCenter()-tuple(s/2))), s).Inflate(2)
         rect.width += 20
         rect = self.stackManager.ConvRect(rect)
         field.SetRect(rect)
@@ -68,7 +68,7 @@ class UiTextLabel(UiTextBase):
 
     def DoesTextFitWithSize(self, gc, font_size):
         font = wx.Font(self.font)
-        font.SetPixelSize(wx.Size(0, font_size))
+        font.SetPixelSize(wx.Size(0, int(font_size)))
         gc.SetFont(font)
         (width, height) = self.model.GetProperty("size")
         lines = wordwrap(self.model.GetProperty("text"), width, gc)
@@ -107,7 +107,7 @@ class UiTextLabel(UiTextBase):
         if self.model.GetProperty("can_auto_shrink"):
             (font_size, didShrink) = self.GetFontSizeFit(gc)
             if didShrink:
-                font.SetPixelSize(wx.Size(0, font_size))
+                font.SetPixelSize(wx.Size(0, int(font_size)))
         gc.SetFont(font)
         gc.SetTextForeground(wx.Colour(self.text_color))
         lines = wordwrap(self.model.GetProperty("text"), width, gc)

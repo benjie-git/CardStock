@@ -63,7 +63,7 @@ class UiWebView(UiView):
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
             gc.SetPen(wx.Pen(color, 1, wx.PENSTYLE_DOT))
 
-            pos = wx.Point(0,0)-list(self.model.GetProperty("position"))
+            pos = wx.Point(0,0)-tuple(int(x) for x in self.model.GetProperty("position"))
             f = self.model.GetFrame()
             f.Inflate(2)
             f.Offset(pos)

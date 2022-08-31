@@ -373,14 +373,14 @@ class UiView(object):
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
             gc.SetPen(wx.Pen(color, 1, wx.PENSTYLE_DOT))
 
-            pos = wx.Point(0,0)-list(self.model.GetProperty("position"))
+            pos = wx.Point(0,0)-[int(x) for x in self.model.GetProperty("position")]
             f = self.model.GetFrame()
             f.Offset(pos)
             gc.DrawRectangle(f)
 
     def PaintSelectionBox(self, gc):
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
-            pos = wx.Point(0,0)-list(self.model.GetProperty("position"))
+            pos = wx.Point(0,0)-[int(x) for x in self.model.GetProperty("position")]
             f = self.model.GetFrame()
             f.Offset(pos)
 
@@ -434,7 +434,7 @@ class UiView(object):
     def GetResizeBoxPoints(self):
         points = self.GetLocalResizeBoxPoints()
         aff = self.model.GetAffineTransform()
-        return {k:wx.Point(aff.TransformPoint(*p)) for k,p in points.items()}
+        return {k:wx.Point(tuple(int(x) for x in aff.TransformPoint(*p))) for k,p in points.items()}
 
     def GetResizeBoxRects(self):
         points = self.GetResizeBoxPoints()
@@ -521,14 +521,14 @@ class UiView(object):
             rotPt = self.GetLocalRotationHandlePoint()
             if rotPt:
                 path = context.CreatePath()
-                path.AddCircle(*rotPt, 6)
+                path.AddCircle(*[int(x) for x in rotPt], 6)
                 path.Transform(aff)
                 context.FillPath(path)
         context.Flush()
 
         reg = img.ConvertToRegion(0,0,0)
         ImageFactory.shared().RecycleImage(img)
-        reg.Offset(rotPos_x-regOffset, rotPos_y-regOffset)
+        reg.Offset(int(rotPos_x-regOffset), int(rotPos_y-regOffset))
         self.hitRegion = reg
         self.hitRegionOffset = self.model.GetAbsolutePosition()
 
@@ -751,17 +751,17 @@ class ViewModel(object):
             pos = m.GetProperty("position")
             size = m.GetProperty("size")
             rot = m.GetProperty("rotation")
-            aff.Translate(*(pos + (int(size[0]/2), int(size[1]/2))))
+            aff.Translate(pos[0] + size[0]/2, pos[1] + size[1]/2)
             if rot:
                 aff.Rotate(math.radians(-rot))
-            aff.Translate(-int(size[0]/2), -int(size[1]/2))
+            aff.Translate(-size[0]/2, -size[1]/2)
         return aff
 
     def RotatedPoints(self, points, aff=None):
         # convert points in the local system to abs
         if aff is None:
             aff = self.GetAffineTransform()
-        return [wx.RealPoint(aff.TransformPoint(*p)) for p in points]
+        return [wx.RealPoint(*aff.TransformPoint(*p)) for p in points]
 
     def RotatedRectPoints(self, rect, aff=None):
         # Convert local rect to absolute corner points
@@ -772,8 +772,8 @@ class ViewModel(object):
         # Convert local rect to an absolute rect than contains the local one
         points = self.RotatedRectPoints(rect, aff)
         l2 = list(map(list, zip(*points)))
-        rotSize = (max(l2[0]) - min(l2[0]) - 1, max(l2[1]) - min(l2[1]) - 1)
-        rotPos_x, rotPos_y = (min(l2[0]), min(l2[1]))
+        rotSize = (int(max(l2[0]) - min(l2[0]) - 1), int(max(l2[1]) - min(l2[1]) - 1))
+        rotPos_x, rotPos_y = (int(min(l2[0])), int(min(l2[1])))
         return wx.Rect(rotPos_x, rotPos_y, rotSize[0], rotSize[1])
 
     def UnrotatedRectFromAbsPoints(self, ptA, ptB):
@@ -791,8 +791,8 @@ class ViewModel(object):
             ptA = aff.TransformPoint(*ptA)
             ptB = aff.TransformPoint(*ptB)
 
-        bl = wx.Point(min(ptA[0], ptB[0]), min(ptA[1], ptB[1]))
-        tr = wx.Point(max(ptA[0], ptB[0]), max(ptA[1], ptB[1]))
+        bl = wx.Point(int(min(ptA[0], ptB[0])), int(min(ptA[1], ptB[1])))
+        tr = wx.Point(int(max(ptA[0], ptB[0])), int(max(ptA[1], ptB[1])))
         return wx.Rect(bl, tr)
 
     def GetAbsolutePosition(self):
@@ -801,7 +801,7 @@ class ViewModel(object):
         if self.parent and (self.parent.type != "card" or self.GetProperty("rotation")):
             aff = parent.GetAffineTransform()
             pos = aff.TransformPoint(*pos)
-        return wx.RealPoint(pos)
+        return wx.RealPoint(*pos)
 
     def SetAbsolutePosition(self, pos):
         parent = self.parent
@@ -848,7 +848,7 @@ class ViewModel(object):
     def GetFrame(self):
         p = self.properties["position"]
         s = self.properties["size"]
-        return wx.Rect(*p, *s)
+        return wx.Rect(*[int(x) for x in p], *[int(x) for x in s])
 
     def GetAbsoluteFrame(self):
         if self.parent and self.parent.type == "card" and not self.GetProperty("rotation"):
@@ -887,11 +887,11 @@ class ViewModel(object):
         for k, v in data["properties"].items():
             if k in self.propertyTypes:
                 if self.propertyTypes[k] == "point":
-                    self.SetProperty(k, wx.Point(v), notify=False)
+                    self.SetProperty(k, wx.Point(tuple(int(x) for x in v)), notify=False)
                 elif self.propertyTypes[k] == "floatpoint":
                     self.SetProperty(k, wx.RealPoint(v[0], v[1]), notify=False)
                 elif self.propertyTypes[k] == "size":
-                    self.SetProperty(k, wx.Size(v), notify=False)
+                    self.SetProperty(k, wx.Size(tuple(int(x) for x in v)), notify=False)
                 else:
                     self.SetProperty(k, v, notify=False)
 
@@ -900,11 +900,11 @@ class ViewModel(object):
             self.handlers[k] = v
         for k, v in model.properties.items():
             if self.propertyTypes[k] == "point":
-                self.SetProperty(k, wx.Point(v), notify=False)
+                self.SetProperty(k, wx.Point(tuple(int(x) for x in v)), notify=False)
             elif self.propertyTypes[k] == "floatpoint":
                 self.SetProperty(k, wx.RealPoint(v[0], v[1]), notify=False)
             elif self.propertyTypes[k] == "size":
-                self.SetProperty(k, wx.Size(v), notify=False)
+                self.SetProperty(k, wx.Size(tuple(int(x) for x in v)), notify=False)
             else:
                 self.SetProperty(k, v, notify=False)
 
@@ -1020,11 +1020,11 @@ class ViewModel(object):
     def SetProperty(self, key, value, notify=True):
         if self.didSetDown: return
         if key in self.propertyTypes and self.propertyTypes[key] == "point" and not isinstance(value, wx.Point):
-            value = wx.Point(value)
+            value = wx.Point(tuple(int(x) for x in value))
         elif key in self.propertyTypes and self.propertyTypes[key] == "floatpoint" and not isinstance(value, wx.RealPoint):
             value = wx.RealPoint(value[0], value[1])
         elif key in self.propertyTypes and self.propertyTypes[key] == "size" and not isinstance(value, wx.Point):
-            value = wx.Size(value)
+            value = wx.Size(tuple(int(x) for x in value))
         elif key in self.propertyTypes and self.propertyTypes[key] == "choice" and value not in self.GetPropertyChoices(key):
             return
         elif key in self.propertyTypes and self.propertyTypes[key] == "color" and isinstance(value, wx.Colour):
@@ -1565,7 +1565,7 @@ class ViewProxy(object):
             if not s:
                 return False
             sreg = s.GetHitRegion()
-            return sreg.Contains(wx.Point(point)) == wx.InRegion
+            return sreg.Contains(wx.Point(tuple(int(x) for x in point))) == wx.InRegion
         return f()
 
     def is_touching(self, obj):
@@ -1661,7 +1661,7 @@ class ViewProxy(object):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_position(): duration must be a number")
         try:
-            end_position = wx.RealPoint(end_position)
+            end_position = wx.RealPoint(*end_position)
         except:
             raise ValueError("animate_position(): end_position must be a point or a list of two numbers")
 
@@ -1692,7 +1692,7 @@ class ViewProxy(object):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_center(): duration must be a number")
         try:
-            end_center = wx.RealPoint(end_center)
+            end_center = wx.RealPoint(*end_center)
         except:
             raise ValueError("animate_center(): end_center must be a point or a list of two numbers")
 

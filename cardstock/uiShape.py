@@ -35,7 +35,7 @@ class UiShape(UiView):
         elif shapeType in ["oval", "rect", "roundrect"] and len(points) == 2:
             rect = self.model.RectFromPoints(points)
             if inflate:
-                rect.Inflate(inflate)
+                rect.Inflate(int(inflate))
             p1 = rect.TopLeft
             p2 = rect.BottomRight
             if self.model.type == "rect":
@@ -191,7 +191,7 @@ class UiShape(UiView):
 
         reg = img.ConvertToRegion(0,0,0)
         ImageFactory.shared().RecycleImage(img)
-        reg.Offset(rotRect.Position.x-regOffset, rotRect.Position.y-regOffset)
+        reg.Offset(int(rotRect.Position.x-regOffset), int(rotRect.Position.y-regOffset))
         self.hitRegion = reg
         self.hitRegionOffset = self.model.GetAbsolutePosition()
 
@@ -322,9 +322,9 @@ class LineModel(ViewModel):
 
     @staticmethod
     def RectFromPoints(points):
-        rect = wx.Rect(points[0][0], points[0][1], 1, 1)
+        rect = wx.Rect(int(points[0][0]), int(points[0][1]), 1, 1)
         for x, y in points[1:]:
-            rect = rect.Union(wx.Rect(x, y, 1, 1))
+            rect = rect.Union(wx.Rect(int(x), int(y), 1, 1))
         return wx.Rect(rect.Left, rect.Top, rect.Width-1, rect.Height-1)
 
     # Re-fit the bounding box to the shape
@@ -347,9 +347,9 @@ class LineModel(ViewModel):
         if len(points) > 0:
             # calculate bounding rect
             if not rect:
-                rect = wx.Rect(points[0][0], points[0][1], 1, 1)
+                rect = wx.Rect(int(points[0][0]), int(points[0][1]), 1, 1)
             for x,y in points:
-                rect = rect.Union(wx.Rect(x, y, 1, 1))
+                rect = rect.Union(wx.Rect(int(x), int(y), 1, 1))
 
         rect = wx.Rect(rect.Left, rect.Top, rect.Width-1, rect.Height-1)
 

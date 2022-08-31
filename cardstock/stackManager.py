@@ -446,7 +446,7 @@ class StackManager(object):
 
         def setAlignPos(model, val, dir):
             rect = model.GetAbsoluteFrame()
-            pos = wx.Point(model.GetProperty("position"))
+            pos = wx.Point(tuple(int(x) for x in model.GetProperty("position")))
             if dir == "Left": pos.x += val - rect.Left
             if dir == "HCenter": pos.x += val - (rect.Left + (rect.Right - rect.Left)/2)
             if dir == "Right": pos.x += val - rect.Right
@@ -975,7 +975,7 @@ class StackManager(object):
         """
         if not height:
             height = self.stackModel.GetProperty("size").height
-        return wx.Point(pt[0], height - pt[1])
+        return wx.Point(int(pt[0]), int(height - pt[1]))
 
     def ConvRect(self, rect, height=None):
         """
