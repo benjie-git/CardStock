@@ -182,6 +182,7 @@ class ControlPanel(wx.Panel):
             self.inspector.EnableCellEditControl(True)
             control = editor.GetControl()
             control.SetSelection(selectStart, selectEnd)
+            editor.DecRef()
 
     def GetInspectorSelection(self):
         if len(self.lastSelectedUiViews) == 1:
@@ -189,6 +190,7 @@ class ControlPanel(wx.Panel):
                 row = self.inspector.GetGridCursorRow()
                 editor = self.inspector.GetCellEditor(row, 1)
                 control = editor.GetControl()
+                editor.DecRef()
                 if control:
                     start, end = control.GetSelection()
                     text = control.GetStringSelection()

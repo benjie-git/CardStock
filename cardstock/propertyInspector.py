@@ -77,6 +77,7 @@ class PropertyInspector(wx.grid.Grid):
                     ed.GetControl().DoClose(True)
                 else:
                     self.DisableCellEditControl()
+                ed.DecRef()
                 event.StopPropagation()
                 return
         elif event.GetKeyCode() in (wx.WXK_UP, wx.WXK_DOWN) and self.IsCellEditControlShown():
@@ -114,6 +115,7 @@ class PropertyInspector(wx.grid.Grid):
         if self.IsCellEditControlShown():
             ed = self.GetCellEditor(self.GetGridCursorRow(), self.GetGridCursorCol())
             val = ed.GetValue()
+            ed.DecRef()
             self.InspectorValueChanged(self.GetGridCursorRow(), val)
             self.HideCellEditControl()
 
@@ -482,7 +484,7 @@ class GridCellObjectRenderer(wx.grid.GridCellStringRenderer):
         dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
         if not self.objBmp:
             self.objBmp = wx.ArtProvider.GetBitmap(wx.ART_GO_FORWARD, size=wx.Size(rect.Height, rect.Height))
-        dc.DrawBitmap(self.objBmp, wx.Point(rect.Left + rect.Width-((BUTTON_WIDTH+self.objBmp.Width)/2), rect.Top))
+        dc.DrawBitmap(self.objBmp, wx.Point(int(rect.Left + rect.Width-((BUTTON_WIDTH+self.objBmp.Width)/2)), rect.Top))
 
 
 class GridCellFontRenderer(wx.grid.GridCellStringRenderer):

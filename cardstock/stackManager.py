@@ -1149,7 +1149,7 @@ class StackManager(object):
             ms = (self.lastVarUpdateTime+1.0 - now)*1000
             if ms < 10: ms = 10
             if self.varUpdateTimer:
-                self.varUpdateTimer.StartOnce(ms)
+                self.varUpdateTimer.StartOnce(int(ms))
 
     def OnUpdateVarsTimer(self, event=None):
         if self.runner:
