@@ -42,7 +42,9 @@ class CodeInspector(wx.ScrolledWindow):
     def __init__(self, parent, cPanel, stackManager):
         super().__init__(parent, style=wx.BORDER_SUNKEN)
         self.SetBackgroundColour('white')
-        self.AlwaysShowScrollbars(False, True)
+        self.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_ALWAYS)
+        self.EnableScrolling(False, True)
+
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
         self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
@@ -454,7 +456,7 @@ class EditorBlock(wx.Window):
         fsize = 17  # if wx.Platform == "__WXGTK__" else 17
         fontInfo = wx.FontInfo(wx.Size(0, fsize)).Family(wx.FONTFAMILY_MODERN).Weight(wx.FONTWEIGHT_MEDIUM)
         if len(code.strip()) == 0:
-            color = "#777777"
+            color = "#555555"
             fontInfo.Weight(wx.FONTWEIGHT_NORMAL)
 
         self.label.SetFont(wx.Font(fontInfo))
@@ -535,7 +537,7 @@ class EditorBlock(wx.Window):
             if line==0: y -= 20
             wx.CallAfter(self.parent.Scroll, 0, y)
         elif y+20 > vs + s:
-            wx.CallAfter(self.parent.Scroll, 0, y-s+20)
+            wx.CallAfter(self.parent.Scroll, 0, y-s+40)
 
     def OnEditorLostFocus(self, event):
         """ Remove selection, so non-focused editors don't show selections.  This was too confusing. """

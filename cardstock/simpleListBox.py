@@ -5,7 +5,7 @@ LINE_HEIGHT = 20
 class SimpleListBox(wx.Control):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, style=wx.WANTS_CHARS, **kwargs)
-        fSize = 14
+        fSize = 18
         if wx.Platform == "__WXGTK__": fSize = 18
         if wx.Platform == "__WXMSW__": fSize = 16
         self.SetFont(wx.Font(wx.FontInfo(wx.Size(0, fSize)).Family(wx.FONTFAMILY_MODERN)))
