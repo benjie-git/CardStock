@@ -250,8 +250,8 @@ class CardModel(ViewModel):
             for m in self.childModels:
                 pos = m.GetProperty("position")
                 size = m.GetProperty("size")
-                pos = wx.Point((cardSize.width - (pos.x + size.width)) if fx else pos.x,
-                               (cardSize.height - (pos.y + size.height)) if fy else pos.y)
+                pos = wx.Point(int((cardSize.width - (pos.x + size.width)) if fx else pos.x),
+                               int((cardSize.height - (pos.y + size.height)) if fy else pos.y))
                 m.SetProperty("position", pos, notify=notify)
         if notify:
             self.Notify("size")

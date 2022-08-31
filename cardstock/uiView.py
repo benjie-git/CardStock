@@ -1409,12 +1409,12 @@ class ViewProxy(object):
     def speed(self):
         model = self._model
         if not model: return wx.RealPoint(0,0)
-        speed = CDSRealPoint(model.GetProperty("speed"), model=model, role="speed")
+        speed = CDSPoint(model.GetProperty("speed"), model=model, role="speed")
         return speed
     @speed.setter
     def speed(self, val):
         try:
-            val = wx.RealPoint(val[0], val[1])
+            val = wx.Point(val[0], val[1])
         except:
             raise ValueError("speed must be a point or a list of two numbers")
         model = self._model

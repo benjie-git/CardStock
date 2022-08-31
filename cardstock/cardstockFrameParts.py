@@ -1,4 +1,5 @@
 import wx
+import sys
 
 # CardStock-specific Point, Size, RealPoint subclasses
 # These notify their model when their components are changed, so that, for example:
@@ -25,7 +26,7 @@ class CDSPoint(wx.Point):
     def x(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("x must be a number")
-        self += [val-self.x, 0]
+        self += [val-self[0], 0]
         self.model.FramePartChanged(self)
 
     @property
@@ -35,8 +36,15 @@ class CDSPoint(wx.Point):
     def y(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("y must be a number")
-        self += [0, val-self.y]
+        self += [0, val-self[1]]
         self.model.FramePartChanged(self)
+
+    def __iadd__(self, other):
+        super().__iadd__(tuple((int(x) for x in other)))
+        return self
+
+    def __add__(self, other):
+        return super().__add__(tuple((int(x) for x in other)))
 
 
 class CDSRealPoint(wx.RealPoint):
@@ -59,7 +67,7 @@ class CDSRealPoint(wx.RealPoint):
     def x(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("x must be a number")
-        self += [val-self.x, 0]
+        self += (val-self[0], 0)
         self.model.FramePartChanged(self)
 
     @property
@@ -69,8 +77,15 @@ class CDSRealPoint(wx.RealPoint):
     def y(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("y must be a number")
-        self += [0, val-self.y]
+        self += (0, val-self[1])
         self.model.FramePartChanged(self)
+
+    def __iadd__(self, other):
+        if sys.version_info.major == 3 and sys.version_info.minor >= 10:
+            super().__iadd__(tuple((int(x) for x in other)))
+        else:
+            super().__iadd__(other)
+        return self
 
 
 class CDSSize(wx.Size):
@@ -107,7 +122,7 @@ class CDSSize(wx.Size):
     def width(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("width must be a number")
-        self += [val-self.width, 0]
+        self += [val-self[0], 0]
         self.model.FramePartChanged(self)
 
     @property
@@ -117,5 +132,12 @@ class CDSSize(wx.Size):
     def height(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("height must be a number")
-        self += [0, val-self.height]
+        self += [0, val-self[1]]
         self.model.FramePartChanged(self)
+
+    def __iadd__(self, other):
+        super().__iadd__(tuple((int(x) for x in other)))
+        return self
+
+    def __add__(self, other):
+        return super().__add__(tuple((int(x) for x in other)))
