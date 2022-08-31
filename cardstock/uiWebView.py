@@ -222,13 +222,13 @@ class WebView(ViewProxy):
     def go_back(self):
         ui = self._model.stackManager.GetUiViewByModel(self._model)
         if ui:
-            ui.webView.go_back()
+            ui.webView.GoBack()
 
     @RunOnMainSync
     def go_forward(self):
         ui = self._model.stackManager.GetUiViewByModel(self._model)
         if ui:
-            ui.webView.go_forward()
+            ui.webView.GoForward()
 
     def run_java_script(self, code):
         ui = self._model.stackManager.GetUiViewByModel(self._model)
