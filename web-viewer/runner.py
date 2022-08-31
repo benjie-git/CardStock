@@ -527,7 +527,7 @@ class Runner():
             raise TypeError("wait(): delay must be a number")
 
         worker.stackWorker.SendAsync(("render",))
-        worker.stackWorker.wait(delay)
+        worker.stackWorker.Wait(delay)
 
     def time(self):
         return time()
