@@ -436,7 +436,7 @@ class HandTool(BaseTool):
     def UpdateBoxSelection(self):
         uiList = []
         for ui in self.stackManager.uiCard.uiViews:
-            if self.selectionRect.Contains(tuple(ui.model.GetCenter())):
+            if self.selectionRect.Contains(tuple((int(x) for x in ui.model.GetCenter()))):
                 uiList.append(ui)
         if uiList != self.lastBoxList:
             self.stackManager.SelectUiView(None)
