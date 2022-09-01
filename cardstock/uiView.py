@@ -569,6 +569,7 @@ class UiView(object):
         'on_show_card':   "on_show_card(self):",
         'on_hide_card':   "on_hide_card(self):",
         'on_click':      "on_click(self):",
+        'on_selection_changed': "on_selection_changed(self, is_selected):",
         'on_text_enter':  "on_text_enter(self):",
         'on_text_changed':"on_text_changed(self):",
         'on_mouse_press': "on_mouse_press(self, mouse_pos):",
@@ -931,6 +932,8 @@ class ViewModel(object):
             return ["Default", "Serif", "Sans-Serif", "Mono"]
         elif key == "fit":
             return ["Center", "Stretch", "Contain", "Fill"]
+        elif key == "style":
+            return ["Border", "Borderless", "Checkbox", "Radio"]
         return []
 
     def GetProperty(self, key):

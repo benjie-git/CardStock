@@ -21,7 +21,7 @@ class UiButton(UiView):
         return wx.CURSOR_HAND
 
     def HackEvent(self, event):
-        if wx.Platform == '__WXMAC__' and self.model.GetProperty("has_border"):
+        if wx.Platform == '__WXMAC__' and self.model.GetProperty("style") == "Border":
             event.SetPosition(event.GetPosition() - MAC_BUTTON_OFFSET_HACK)
         return event
 
@@ -37,17 +37,39 @@ class UiButton(UiView):
             event.Skip(False)  # Fix double MouseUp events on Mac
 
     def CreateButton(self, stackManager, model):
-        if not model.GetProperty("has_border"):
+        if model.GetProperty("style") == "Borderless":
             return None
 
-        button = wx.Button(parent=stackManager.view, label="Button", size=model.GetProperty("size"),
-                           pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft,
-                           style=wx.BORDER_DEFAULT)
-        button.SetLabel(model.GetProperty("title"))
-        button.Bind(wx.EVT_BUTTON, self.OnButton)
-        button.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        button.SetCursor(wx.Cursor(self.GetCursor()))
-        return button
+        elif model.GetProperty("style") == "Border":
+            button = wx.Button(parent=stackManager.view, label="Button", size=model.GetProperty("size"),
+                               pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft,
+                               style=wx.BORDER_DEFAULT)
+            button.SetLabel(model.GetProperty("title"))
+            button.Bind(wx.EVT_BUTTON, self.OnButton)
+            button.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+            button.SetCursor(wx.Cursor(self.GetCursor()))
+            return button
+
+        elif model.GetProperty("style") == "Checkbox":
+            button = wx.CheckBox(parent=stackManager.view, label="Button", size=model.GetProperty("size"),
+                                 pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft)
+            button.SetLabel(model.GetProperty("title"))
+            button.SetValue(model.GetProperty("is_selected"))
+            button.Bind(wx.EVT_CHECKBOX, self.OnCheckbox)
+            button.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+            button.SetCursor(wx.Cursor(self.GetCursor()))
+            return button
+
+        elif model.GetProperty("style") == "Radio":
+            button = wx.RadioButton(parent=stackManager.view, label="Button", size=model.GetProperty("size"),
+                                    pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft,
+                                    style=wx.RB_GROUP)
+            button.SetLabel(model.GetProperty("title"))
+            button.SetValue(model.GetProperty("is_selected"))
+            button.Bind(wx.EVT_RADIOBUTTON, self.OnRadio)
+            button.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+            button.SetCursor(wx.Cursor(self.GetCursor()))
+            return button
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
@@ -56,26 +78,29 @@ class UiButton(UiView):
                 self.button.SetLabel(str(self.model.GetProperty(key)))
             else:
                 self.stackManager.view.Refresh()
-        elif key == "has_border":
+        elif key == "style":
             sm = self.stackManager
             sm.SelectUiView(None)
             sm.LoadCardAtIndex(sm.cardIndex, reload=True)
             sm.SelectUiView(sm.GetUiViewByModel(model))
+        elif key == "is_selected":
+            if self.view:
+                self.view.SetValue(model.GetProperty("is_selected"))
 
     def OnMouseDown(self, event):
-        if not self.stackManager.isEditing and not self.button:
+        if not self.stackManager.isEditing and self.model.GetProperty("style") != "Border":
             self.mouseDownInside = True
             self.stackManager.view.Refresh()
         super().OnMouseDown(event)
 
     def OnMouseUpOutside(self, event):
-        if not self.button and self.mouseDownInside:
+        if self.mouseDownInside and self.model.GetProperty("style") != "Border":
             self.mouseDownInside = False
             if self.stackManager:
                 self.stackManager.view.Refresh()
 
     def OnMouseUp(self, event):
-        if self.stackManager and not self.stackManager.isEditing and not self.button:
+        if self.stackManager and not self.stackManager.isEditing and self.model.GetProperty("style") != "Border":
             if self.mouseDownInside:
                 self.OnButton(event)
                 self.mouseDownInside = False
@@ -84,7 +109,12 @@ class UiButton(UiView):
 
     def OnKeyDown(self, event):
         if event.GetKeyCode() in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
-            self.OnButton(event)
+            if self.view and self.model.GetProperty("style") in ("Checkbox", "Radio"):
+                self.model.SetProperty("is_selected", not self.model.GetProperty("is_selected"))
+                self.OnCheckbox(None)
+                return
+            else:
+                self.OnButton(event)
         event.Skip()
 
     def OnButton(self, event):
@@ -92,12 +122,20 @@ class UiButton(UiView):
             if self.stackManager.runner and self.model.GetHandler("on_click"):
                 self.stackManager.runner.RunHandler(self.model, "on_click", event)
 
+    def OnCheckbox(self, event):
+        is_selected = self.view.GetValue()
+        self.model.SetProperty("is_selected", is_selected)
+
+    def OnRadio(self, event):
+        is_selected = self.view.GetValue()
+        self.model.SetProperty("is_selected", is_selected)
+
     def Paint(self, gc):
         if not self.button:
             title = self.model.GetProperty("title")
             if len(title):
                 (width, height) = self.model.GetProperty("size")
-                font = wx.Font(wx.FontInfo(wx.Size(0, 15)).Family(wx.FONTFAMILY_DEFAULT))
+                font = wx.Font(wx.FontInfo(wx.Size(0, 16)).Family(wx.FONTFAMILY_DEFAULT))
                 lineHeight = font.GetPixelSize().height
                 (startX, startY) = (0, (height+lineHeight)/2)
 
@@ -127,7 +165,8 @@ class ButtonModel(ViewModel):
 
         # Add custom handlers to the top of the list
         handlers = {"on_setup": "",
-                    "on_click": ""}
+                    "on_click": "",
+                    "on_selection_changed": ""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
@@ -135,12 +174,50 @@ class ButtonModel(ViewModel):
 
         self.properties["name"] = "button_1"
         self.properties["title"] = "Button"
-        self.properties["has_border"] = True
-        self.propertyTypes["title"] = "string"
-        self.propertyTypes["has_border"] = "bool"
+        self.properties["style"] = "Border"
+        self.properties["is_selected"] = False
 
+        self.propertyTypes["title"] = "string"
+        self.propertyTypes["style"] = "choice"
+        self.propertyTypes["is_selected"] = "bool"
+
+        self.UpdatePropKeys("Default")
+
+    def SetProperty(self, key, value, notify=True):
+        if key == "style":
+            self.UpdatePropKeys(value)
+        elif key == "is_selected":
+            if value != self.GetProperty("is_selected"):
+                if value:
+                    for m in self.get_radio_group():
+                        if m.GetProperty("is_selected") and m != self:
+                            m.SetProperty("is_selected", False)
+                if self.stackManager and not self.stackManager.isEditing:
+                    if self.stackManager.runner and self.GetHandler("on_selection_changed"):
+                        self.stackManager.runner.RunHandler(self, "on_selection_changed", None, value)
+        super().SetProperty(key, value, notify)
+
+    def UpdatePropKeys(self, style):
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "title", "has_border", "position", "size"]
+        if style in ("Border", "Borderless"):
+            self.propertyKeys = ["name", "title", "style", "position", "size"]
+        else:
+            self.propertyKeys = ["name", "title", "style", "is_selected", "position", "size"]
+
+    def get_radio_group(self):
+        g = []
+        if self.GetProperty("style") == "Radio" and self.parent:
+            for m in self.parent.childModels:
+                if m.type == "button" and m.GetProperty("style") == "Radio":
+                    g.append(m)
+        return g
+
+    def get_radio_group_selection(self):
+        g = self.get_radio_group()
+        for m in g:
+            if m.GetProperty("is_selected"):
+                return m
+        return None
 
 
 class Button(ViewProxy):
@@ -161,18 +238,45 @@ class Button(ViewProxy):
         model.SetProperty("title", str(val))
 
     @property
-    def has_border(self):
+    def style(self):
         model = self._model
         if not model: return False
-        return model.GetProperty("has_border")
-    @has_border.setter
-    def has_border(self, val):
+        return model.GetProperty("style")
+    @style.setter
+    def style(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("has_border", bool(val))
+        model.SetProperty("style", bool(val))
+
+    @property
+    def is_selected(self):
+        model = self._model
+        if not model: return False
+        if model.GetProperty("style") in ("Border", "Borderless"):
+            return False
+        return model.GetProperty("is_selected")
+    @is_selected.setter
+    def is_selected(self, val):
+        model = self._model
+        if not model: return
+        if model.GetProperty("style") not in ("Border", "Borderless"):
+            model.SetProperty("is_selected", bool(val))
 
     def click(self):
         model = self._model
         if not model: return
         if model.stackManager.runner and model.GetHandler("on_click"):
             model.stackManager.runner.RunHandler(model, "on_click", None)
+
+    def get_radio_group(self):
+        model = self._model
+        if not model: return []
+        return [m.GetProxy() for m in model.get_radio_group()]
+
+    def get_radio_group_selection(self):
+        model = self._model
+        if model:
+            m = model.get_radio_group_selection()
+            if m:
+                return m.GetProxy()
+        return None

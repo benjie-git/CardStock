@@ -187,6 +187,7 @@ class CodeAnalyzer(object):
                 if "message" in handlerName: names.append("message")
                 if "bounce" in handlerName: names.extend(["other_object", "edge"])
                 if "cardstock_link" in handlerName: names.append("message")
+                if "selection_changed" in handlerName: names.append("is_selected")
                 if "done_loading" in handlerName: names.extend(["URL", "did_load"])
 
                 path = handlerObj.GetPath() + "." + handlerName

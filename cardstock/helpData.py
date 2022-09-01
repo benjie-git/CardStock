@@ -693,15 +693,35 @@ class HelpDataButton():
     properties = {
         "title": {"type": "string",
                   "info": "The <b>title</b> property is the visible text on the button."},
-        "has_border": {"type": "bool",
-                   "info": "By default buttons show a rectangular or rounded border, depending on your "
-                           "computer's operating system.  But you can disable this border, so the "
-                           "button is clear, just showing its title."},
+        "style": {"type": "[Border, Borderless, Checkbox, Radio]",
+                   "info": "Buttons with style <b>Border</b show a rectangular or rounded border, "
+                           "depending on your computer's operating system.  This is the most commonly seen style of "
+                           "button.  The <b>Borderless</b> style behaves the same, but is drawn without a border."
+                           "You can also set style to be <b>Checkbox</b>, which allows users to alternately select and "
+                           "deselect this button, and it is drawn with a checkbox to show the selection state.  "
+                           "You can set the style to <b>Radio</b>, which allows selecting only one button at a time from a "
+                           "group of Radio buttons, and is drawn with a round selection indicator.  All <b>Radio</b> "
+                           "buttons with the same immediate parent (the Card, or a Group) are considered to be in the "
+                           "same Radio button group, and selecting any of these will automatically deselect all of the "
+                           "rest in the group."},
+        "is_selected": {"type": "bool",
+                        "info": "For Border and Borderless style buttons, this is always False.  For Checkbox style "
+                                "buttons, this is True when the Checkbox is checked.  For Radio buttons, this is True "
+                                "when this Radio button is the selected button in its group."}
     }
 
     methods = {
         "click": {"args": {}, "return": None,
                     "info": "Runs this button's on_click event code."},
+        "get_radio_group": {"args": {}, "return": "list",
+                  "info": "If this button is a Radio button, then return a list of all Radio buttons in this button's "
+                          "Radio group, which is defined as all Radio buttons with the same direct parent (Card or "
+                          "Group).  Otherwise returns an empty list."},
+        "get_radio_group_selection": {"args": {}, "return": "button",
+                  "info": "If this button is a Radio button, then return the selected Radio button in this button's "
+                          "Radio group, which is defined as all Radio buttons with the same direct parent (Card or "
+                          "Group). If this button is not a Radio button, or if none of the buttons in the group are "
+                          "selected, returns None."},
     }
 
     handlers = {
@@ -710,6 +730,14 @@ class HelpDataButton():
                             "mouse, while still inside the button.  It is also run when the button's Click() "
                             "method is called, or when the user pressed the Enter/Return key while the button is "
                             "focused."},
+        "on_selection_changed": {"args": {"is_selected": {"type": "bool",
+                                                          "info": "The new selection state of this button.  True "
+                                                                  "if this button was just selected, otherwise False."}},
+                                 "info": "Used by Checkbox and Radio style buttons only, the <b>on_selection_changed</b> event "
+                                         "is run when a user selects or deselects this button. When a Radio button is "
+                                         "selected, this event will be run first for any previously selected Radio "
+                                         "button, with <b>is_selected</b> = False to deselect the old choice, and then "
+                                         "for this newly selected Radio button with <b>is_selected</b> = True."},
     }
 
 

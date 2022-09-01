@@ -89,6 +89,19 @@ def MigrateDataFromFormatVersion(fromVer, dataDict):
         for c in dataDict['cards']:
             replaceNames(c)
 
+    if fromVer <= 5:
+        """
+        In File Format Version 6, button.has_border changed to button.style
+        """
+        def replaceNames(dataDict):
+            if "has_border" in dataDict['properties']:
+                dataDict['properties']["style"] = ("Border" if dataDict['properties'].pop("has_border") else "Borderless")
+            if 'childModels' in dataDict:
+                for child in dataDict['childModels']:
+                    replaceNames(child)
+        for c in dataDict['cards']:
+            replaceNames(c)
+
 
 def MigrateModelFromFormatVersion(fromVer, stackModel):
     # Migration code to run after loading the json into models
