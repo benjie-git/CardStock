@@ -694,7 +694,7 @@ class HelpDataButton():
         "title": {"type": "string",
                   "info": "The <b>title</b> property is the visible text on the button."},
         "style": {"type": "[Border, Borderless, Checkbox, Radio]",
-                   "info": "Buttons with style <b>Border</b show a rectangular or rounded border, "
+                   "info": "Buttons with style <b>Border</b> show a rectangular or rounded border, "
                            "depending on your computer's operating system.  This is the most commonly seen style of "
                            "button.  The <b>Borderless</b> style behaves the same, but is drawn without a border."
                            "You can also set style to be <b>Checkbox</b>, which allows users to alternately select and "

@@ -15,8 +15,8 @@ TAB_WIDTH = 3
 if wx.Platform == '__WXMSW__':
     faces = { 'mono' : 'Courier New',
               'helv' : 'Arial',
-              'size' : 12,
-              'size2': 10,
+              'size' : 14,
+              'size2': 12,
              }
 elif wx.Platform == '__WXMAC__':
     faces = { 'mono' : 'Monaco',

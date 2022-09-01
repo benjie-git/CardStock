@@ -453,8 +453,8 @@ class EditorBlock(wx.Window):
         code = self.uiView.model.handlers[handlerName]
 
         color = "black"
-        fsize = 17  # if wx.Platform == "__WXGTK__" else 17
-        fontInfo = wx.FontInfo(wx.Size(0, fsize)).Family(wx.FONTFAMILY_MODERN).Weight(wx.FONTWEIGHT_MEDIUM)
+        fsize = 17 if wx.Platform == "__WXMAC__" else 15
+        fontInfo = wx.FontInfo(wx.Size(0, fsize)).Family(wx.FONTFAMILY_MODERN).Weight(wx.FONTWEIGHT_BOLD)
         if len(code.strip()) == 0:
             color = "#555555"
             fontInfo.Weight(wx.FONTWEIGHT_NORMAL)
