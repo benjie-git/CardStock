@@ -21,9 +21,13 @@ class UiButton(UiView):
         self.mouseDownInside = False
         if not UiButton.radioOnBmp:
             UiButton.radioOnBmp = radio_on.GetBitmap()
-            UiButton.radioOnBmp.SetScaleFactor(2)
             UiButton.radioOffBmp = radio_off.GetBitmap()
-            UiButton.radioOffBmp.SetScaleFactor(2)
+            if wx.Platform == "__WXMSW__":
+                wx.Bitmap.Rescale(UiButton.radioOnBmp,  (16,16))
+                wx.Bitmap.Rescale(UiButton.radioOffBmp, (16, 16))
+            else:
+                UiButton.radioOnBmp.SetScaleFactor(2)
+                UiButton.radioOffBmp.SetScaleFactor(2)
 
     def GetCursor(self):
         return wx.CURSOR_HAND
