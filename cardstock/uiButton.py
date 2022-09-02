@@ -1,6 +1,6 @@
 import wx
 from uiView import *
-from embeddedImages import radio_on, radio_off
+from embeddedImages import radio_on, radio_off, checkbox_on, checkbox_off
 from uiTextLabel import wordwrap
 
 # Native Button Mouse event positions on Mac are offset (?!?)
@@ -13,6 +13,8 @@ class UiButton(UiView):
     """
     radioOnBmp = None
     radioOffBmp = None
+    checkboxOnBmp = None
+    checkboxOffBmp = None
 
     def __init__(self, parent, stackManager, model):
         self.stackManager = stackManager
@@ -22,12 +24,18 @@ class UiButton(UiView):
         if not UiButton.radioOnBmp:
             UiButton.radioOnBmp = radio_on.GetBitmap()
             UiButton.radioOffBmp = radio_off.GetBitmap()
+            UiButton.checkboxOnBmp = checkbox_on.GetBitmap()
+            UiButton.checkboxOffBmp = checkbox_off.GetBitmap()
             if wx.Platform == "__WXMSW__":
                 wx.Bitmap.Rescale(UiButton.radioOnBmp,  (16,16))
                 wx.Bitmap.Rescale(UiButton.radioOffBmp, (16, 16))
+                wx.Bitmap.Rescale(UiButton.checkboxOnBmp,  (16,16))
+                wx.Bitmap.Rescale(UiButton.checkboxOffBmp, (16, 16))
             else:
                 UiButton.radioOnBmp.SetScaleFactor(2)
                 UiButton.radioOffBmp.SetScaleFactor(2)
+                UiButton.checkboxOnBmp.SetScaleFactor(2)
+                UiButton.checkboxOffBmp.SetScaleFactor(2)
 
     def GetCursor(self):
         return wx.CURSOR_HAND
@@ -49,10 +57,7 @@ class UiButton(UiView):
             event.Skip(False)  # Fix double MouseUp events on Mac
 
     def CreateButton(self, stackManager, model):
-        if model.GetProperty("style") in ("Borderless", "Radio"):
-            return None
-
-        elif model.GetProperty("style") == "Border":
+        if model.GetProperty("style") == "Border":
             button = wx.Button(parent=stackManager.view, label="Button", size=model.GetProperty("size"),
                                pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft,
                                style=wx.BORDER_DEFAULT)
@@ -61,16 +66,7 @@ class UiButton(UiView):
             button.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
             button.SetCursor(wx.Cursor(self.GetCursor()))
             return button
-
-        elif model.GetProperty("style") == "Checkbox":
-            button = wx.CheckBox(parent=stackManager.view, label="Button", size=model.GetProperty("size"),
-                                 pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft)
-            button.SetLabel(model.GetProperty("title"))
-            button.SetValue(model.GetProperty("is_selected"))
-            button.Bind(wx.EVT_CHECKBOX, self.OnCheckbox)
-            button.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-            button.SetCursor(wx.Cursor(self.GetCursor()))
-            return button
+        return None
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
@@ -97,6 +93,8 @@ class UiButton(UiView):
             self.stackManager.view.Refresh()
             if style == "Radio":
                 self.model.SetProperty("is_selected", True)
+            elif style == "Checkbox":
+                self.model.SetProperty("is_selected", not self.model.GetProperty("is_selected"))
         super().OnMouseDown(event)
 
     def OnMouseUpOutside(self, event):
@@ -115,22 +113,13 @@ class UiButton(UiView):
 
     def OnKeyDown(self, event):
         if event.GetKeyCode() in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
-            if self.view and self.model.GetProperty("style") == "Checkbox":
-                self.model.SetProperty("is_selected", not self.model.GetProperty("is_selected"))
-                self.OnCheckbox(None)
-                return
-            else:
-                self.OnButton(event)
+            self.OnButton(event)
         event.Skip()
 
     def OnButton(self, event):
         if not self.stackManager.isEditing:
             if self.stackManager.runner and self.model.GetHandler("on_click"):
                 self.stackManager.runner.RunHandler(self.model, "on_click", event)
-
-    def OnCheckbox(self, event):
-        is_selected = self.view.GetValue()
-        self.model.SetProperty("is_selected", is_selected)
 
     def Paint(self, gc):
         style = self.model.GetProperty("style")
@@ -152,11 +141,14 @@ class UiButton(UiView):
                 xPos = startX + (width - textWidth) / 2
                 gc.DrawText(line, wx.Point(int(xPos), int(startY)))
 
-        elif style == "Radio":
+        elif style in ("Radio", "Checkbox"):
             (width, height) = self.model.GetProperty("size")
 
-            radioBmp = UiButton.radioOnBmp if self.model.GetProperty("is_selected") else UiButton.radioOffBmp
-            gc.DrawBitmap(radioBmp, 2, int((height + radioBmp.ScaledHeight)/2))
+            if style == "Radio":
+                iconBmp = UiButton.radioOnBmp if self.model.GetProperty("is_selected") else UiButton.radioOffBmp
+            else:
+                iconBmp = UiButton.checkboxOnBmp if self.model.GetProperty("is_selected") else UiButton.checkboxOffBmp
+            gc.DrawBitmap(iconBmp, 2, int((height + iconBmp.ScaledHeight) / 2))
 
             title = self.model.GetProperty("title")
             if len(title):
