@@ -1,5 +1,6 @@
 import wx
 from uiView import *
+from embeddedImages import radio_on, radio_off
 from uiTextLabel import wordwrap
 
 # Native Button Mouse event positions on Mac are offset (?!?)
@@ -10,12 +11,19 @@ class UiButton(UiView):
     """
     This class is a controller that coordinates management of a Button view, based on data from a ButtonModel.
     """
+    radioOnBmp = None
+    radioOffBmp = None
 
     def __init__(self, parent, stackManager, model):
         self.stackManager = stackManager
         self.button = self.CreateButton(stackManager, model)
         super().__init__(parent, stackManager, model, self.button)
         self.mouseDownInside = False
+        if not UiButton.radioOnBmp:
+            UiButton.radioOnBmp = radio_on.GetBitmap()
+            UiButton.radioOnBmp.SetScaleFactor(2)
+            UiButton.radioOffBmp = radio_off.GetBitmap()
+            UiButton.radioOffBmp.SetScaleFactor(2)
 
     def GetCursor(self):
         return wx.CURSOR_HAND
@@ -37,7 +45,7 @@ class UiButton(UiView):
             event.Skip(False)  # Fix double MouseUp events on Mac
 
     def CreateButton(self, stackManager, model):
-        if model.GetProperty("style") == "Borderless":
+        if model.GetProperty("style") in ("Borderless", "Radio"):
             return None
 
         elif model.GetProperty("style") == "Border":
@@ -60,17 +68,6 @@ class UiButton(UiView):
             button.SetCursor(wx.Cursor(self.GetCursor()))
             return button
 
-        elif model.GetProperty("style") == "Radio":
-            button = wx.RadioButton(parent=stackManager.view, label="Button", size=model.GetProperty("size"),
-                                    pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft,
-                                    style=wx.RB_GROUP)
-            button.SetLabel(model.GetProperty("title"))
-            button.SetValue(model.GetProperty("is_selected"))
-            button.Bind(wx.EVT_RADIOBUTTON, self.OnRadio)
-            button.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-            button.SetCursor(wx.Cursor(self.GetCursor()))
-            return button
-
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "title":
@@ -86,11 +83,16 @@ class UiButton(UiView):
         elif key == "is_selected":
             if self.view:
                 self.view.SetValue(model.GetProperty("is_selected"))
+            else:
+                self.stackManager.view.Refresh()
 
     def OnMouseDown(self, event):
-        if not self.stackManager.isEditing and self.model.GetProperty("style") != "Border":
+        style = self.model.GetProperty("style")
+        if not self.stackManager.isEditing and style != "Border":
             self.mouseDownInside = True
             self.stackManager.view.Refresh()
+            if style == "Radio":
+                self.model.SetProperty("is_selected", True)
         super().OnMouseDown(event)
 
     def OnMouseUpOutside(self, event):
@@ -109,7 +111,7 @@ class UiButton(UiView):
 
     def OnKeyDown(self, event):
         if event.GetKeyCode() in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
-            if self.view and self.model.GetProperty("style") in ("Checkbox", "Radio"):
+            if self.view and self.model.GetProperty("style") == "Checkbox":
                 self.model.SetProperty("is_selected", not self.model.GetProperty("is_selected"))
                 self.OnCheckbox(None)
                 return
@@ -126,12 +128,10 @@ class UiButton(UiView):
         is_selected = self.view.GetValue()
         self.model.SetProperty("is_selected", is_selected)
 
-    def OnRadio(self, event):
-        is_selected = self.view.GetValue()
-        self.model.SetProperty("is_selected", is_selected)
-
     def Paint(self, gc):
-        if not self.button:
+        style = self.model.GetProperty("style")
+
+        if style == "Borderless":
             title = self.model.GetProperty("title")
             if len(title):
                 (width, height) = self.model.GetProperty("size")
@@ -147,6 +147,23 @@ class UiButton(UiView):
                 textWidth = gc.GetTextExtent(line).Width
                 xPos = startX + (width - textWidth) / 2
                 gc.DrawText(line, wx.Point(int(xPos), int(startY)))
+
+        elif style == "Radio":
+            (width, height) = self.model.GetProperty("size")
+
+            radioBmp = UiButton.radioOnBmp if self.model.GetProperty("is_selected") else UiButton.radioOffBmp
+            gc.DrawBitmap(radioBmp, 2, int((height + radioBmp.ScaledHeight)/2))
+
+            title = self.model.GetProperty("title")
+            if len(title):
+                font = wx.Font(wx.FontInfo(wx.Size(0, 16)).Family(wx.FONTFAMILY_DEFAULT))
+                lineHeight = font.GetPixelSize().height
+                startPos = (25, (height+lineHeight)/2)
+                gc.SetFont(font)
+                gc.SetTextForeground(wx.Colour('black'))
+                lines = wordwrap(title, width, gc)
+                line = lines.split("\n")[0]
+                gc.DrawText(line, startPos)
 
         super().Paint(gc)
 

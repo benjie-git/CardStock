@@ -11,7 +11,7 @@ from wx.lib import buttons # for generic button classes
 from wx.lib.resizewidget import ResizeWidget, EVT_RW_LAYOUT_NEEDED
 from pythonEditor import PythonEditor
 from uiView import UiView
-from embeddedImages import embeddedImages
+from embeddedImages import embeddedToolImages
 from helpData import HelpData
 
 
@@ -46,7 +46,7 @@ class ControlPanel(wx.Panel):
         # Make a grid of buttons for the tools.
         self.toolBtns = {}
         toolBitmaps = {}
-        for k,v in embeddedImages.items():
+        for k,v in embeddedToolImages.items():
             toolBitmaps[k] = v.GetBitmap()
 
         self.toolGrid = wx.GridSizer(cols=numCols, hgap=3, vgap=2)
