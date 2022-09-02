@@ -1114,11 +1114,13 @@ class DesignerFrame(wx.Frame):
 
         base_dir = os.path.dirname(__file__)
         if not welcomeExistsHere(base_dir):
-            base_dir = os.path.dirname(sys.executable)
-            if not welcomeExistsHere(base_dir) and hasattr(sys, "_MEIPASS"):
-                base_dir = sys._MEIPASS
-                if not welcomeExistsHere(base_dir):
-                    return None
+            base_dir = os.path.dirname(os.path.dirname(__file__))
+            if not welcomeExistsHere(base_dir):
+                base_dir = os.path.dirname(sys.executable)
+                if not welcomeExistsHere(base_dir) and hasattr(sys, "_MEIPASS"):
+                    base_dir = sys._MEIPASS
+                    if not welcomeExistsHere(base_dir):
+                        return None
 
         return os.path.abspath(os.path.join(base_dir, "examples"))
 
