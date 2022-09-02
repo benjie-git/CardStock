@@ -1228,24 +1228,6 @@ class ViewProxy(object):
         if model.stackManager.runner:
            model.stackManager.runner.RunHandler(model, "on_message", None, message)
 
-    def focus(self):
-        model = self._model
-        if not model: return
-
-        if model.stackManager.runner:
-            model.stackManager.runner.SetFocus(self)
-
-    @property
-    @RunOnMainSync
-    def has_focus(self):
-        model = self._model
-        if not model: return False
-
-        uiView = model.stackManager.GetUiViewByModel(model)
-        if uiView and uiView.view:
-            return uiView.view.HasFocus()
-        return False
-
     def clone(self, name=None, **kwargs):
         model = self._model
         if not model: return None

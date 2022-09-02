@@ -18,9 +18,9 @@ class UiButton(UiView):
 
     def __init__(self, parent, stackManager, model):
         self.stackManager = stackManager
-        self.button = self.CreateButton(stackManager, model)
-        super().__init__(parent, stackManager, model, self.button)
+        super().__init__(parent, stackManager, model, None)
         self.mouseDownInside = False
+        self.mouseStillInside = False
         if not UiButton.radioOnBmp:
             UiButton.radioOnBmp = radio_on.GetBitmap()
             UiButton.radioOffBmp = radio_off.GetBitmap()
@@ -40,41 +40,10 @@ class UiButton(UiView):
     def GetCursor(self):
         return wx.CURSOR_HAND
 
-    def HackEvent(self, event):
-        if wx.Platform == '__WXMAC__' and self.model.GetProperty("style") == "Border":
-            event.SetPosition(event.GetPosition() - MAC_BUTTON_OFFSET_HACK)
-        return event
-
-    def FwdOnMouseDown(self, event):
-        self.stackManager.OnMouseDown( self, self.HackEvent(event))
-
-    def FwdOnMouseMove(self, event):
-        self.stackManager.OnMouseMove( self, self.HackEvent(event))
-
-    def FwdOnMouseUp(self, event):
-        self.stackManager.OnMouseUp(   self, self.HackEvent(event))
-        if wx.Platform == "__WXMAC__":
-            event.Skip(False)  # Fix double MouseUp events on Mac
-
-    def CreateButton(self, stackManager, model):
-        if model.GetProperty("style") == "Border":
-            button = wx.Button(parent=stackManager.view, label="Button", size=model.GetProperty("size"),
-                               pos=self.stackManager.ConvRect(model.GetAbsoluteFrame()).BottomLeft,
-                               style=wx.BORDER_DEFAULT)
-            button.SetLabel(model.GetProperty("title"))
-            button.Bind(wx.EVT_BUTTON, self.OnButton)
-            button.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-            button.SetCursor(wx.Cursor(self.GetCursor()))
-            return button
-        return None
-
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
         if key == "title":
-            if self.button:
-                self.button.SetLabel(str(self.model.GetProperty(key)))
-            else:
-                self.stackManager.view.Refresh()
+            self.stackManager.view.Refresh()
         elif key == "style":
             sm = self.stackManager
             sm.SelectUiView(None)
@@ -88,8 +57,9 @@ class UiButton(UiView):
 
     def OnMouseDown(self, event):
         style = self.model.GetProperty("style")
-        if not self.stackManager.isEditing and style != "Border":
+        if not self.stackManager.isEditing:
             self.mouseDownInside = True
+            self.mouseStillInside = True
             self.stackManager.view.Refresh()
             if style == "Radio":
                 self.model.SetProperty("is_selected", True)
@@ -97,34 +67,61 @@ class UiButton(UiView):
                 self.model.SetProperty("is_selected", not self.model.GetProperty("is_selected"))
         super().OnMouseDown(event)
 
+    def OnMouseEnter(self, event):
+        if self.mouseDownInside:
+            self.mouseStillInside = True
+            self.stackManager.view.Refresh()
+
+    def OnMouseExit(self, event):
+        if self.mouseDownInside:
+            self.mouseStillInside = False
+            self.stackManager.view.Refresh()
+
     def OnMouseUpOutside(self, event):
-        if self.mouseDownInside and self.model.GetProperty("style") != "Border":
+        if self.mouseDownInside:
             self.mouseDownInside = False
             if self.stackManager:
                 self.stackManager.view.Refresh()
 
     def OnMouseUp(self, event):
-        if self.stackManager and not self.stackManager.isEditing and self.model.GetProperty("style") != "Border":
-            if self.mouseDownInside:
-                self.OnButton(event)
+        if self.stackManager and not self.stackManager.isEditing:
+            if self.mouseDownInside and self.mouseStillInside:
+                if self.stackManager.runner and self.model.GetHandler("on_click"):
+                    self.stackManager.runner.RunHandler(self.model, "on_click", event)
                 self.mouseDownInside = False
                 self.stackManager.view.Refresh()
         super().OnMouseUp(event)
 
-    def OnKeyDown(self, event):
-        if event.GetKeyCode() in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
-            self.OnButton(event)
-        event.Skip()
-
-    def OnButton(self, event):
-        if not self.stackManager.isEditing:
-            if self.stackManager.runner and self.model.GetHandler("on_click"):
-                self.stackManager.runner.RunHandler(self.model, "on_click", event)
-
     def Paint(self, gc):
         style = self.model.GetProperty("style")
 
-        if style == "Borderless":
+        hilighted = self.mouseDownInside and self.mouseStillInside
+        if style == "Border":
+            (width, height) = self.model.GetProperty("size")
+
+            gc.SetPen(wx.Pen('#AAAAAA88', 1))
+            gc.SetBrush(wx.Brush('#AAAAAA88'))
+            gc.DrawRoundedRectangle(wx.Rect(1, 0, width-1, height-1), 5)
+            gc.SetPen(wx.Pen('#00000066', 1))
+            gc.SetBrush(wx.Brush('#DDDDDD' if hilighted else 'white'))
+            gc.DrawRoundedRectangle(wx.Rect(0, 1, width-1, height-1), 5)
+
+            title = self.model.GetProperty("title")
+            if len(title):
+                font = wx.Font(wx.FontInfo(wx.Size(0, 16)).Family(wx.FONTFAMILY_DEFAULT))
+                lineHeight = font.GetPixelSize().height
+                (startX, startY) = (0, (height+lineHeight)/2+1)
+
+                lines = wordwrap(title, width, gc)
+                line = lines.split("\n")[0]
+
+                gc.SetFont(font)
+                gc.SetTextForeground(wx.Colour('#888888' if hilighted else 'black'))
+                textWidth = gc.GetTextExtent(line).Width
+                xPos = startX + (width - textWidth) / 2
+                gc.DrawText(line, wx.Point(int(xPos), int(startY)))
+
+        elif style == "Borderless":
             title = self.model.GetProperty("title")
             if len(title):
                 (width, height) = self.model.GetProperty("size")
@@ -136,7 +133,7 @@ class UiButton(UiView):
                 line = lines.split("\n")[0]
 
                 gc.SetFont(font)
-                gc.SetTextForeground(wx.Colour('#404040' if self.mouseDownInside else 'black'))
+                gc.SetTextForeground(wx.Colour('#888888' if hilighted else 'black'))
                 textWidth = gc.GetTextExtent(line).Width
                 xPos = startX + (width - textWidth) / 2
                 gc.DrawText(line, wx.Point(int(xPos), int(startY)))
@@ -189,12 +186,14 @@ class ButtonModel(ViewModel):
         self.properties["title"] = "Button"
         self.properties["style"] = "Border"
         self.properties["is_selected"] = False
+        self.properties["rotation"] = 0.0
 
         self.propertyTypes["title"] = "string"
         self.propertyTypes["style"] = "choice"
         self.propertyTypes["is_selected"] = "bool"
+        self.propertyTypes["rotation"] = "float"
 
-        self.UpdatePropKeys("Default")
+        self.UpdatePropKeys(self.properties["style"])
 
     def SetProperty(self, key, value, notify=True):
         if key == "style":
@@ -213,9 +212,9 @@ class ButtonModel(ViewModel):
     def UpdatePropKeys(self, style):
         # Custom property order and mask for the inspector
         if style in ("Border", "Borderless"):
-            self.propertyKeys = ["name", "title", "style", "position", "size"]
+            self.propertyKeys = ["name", "title", "style", "rotation", "position", "size"]
         else:
-            self.propertyKeys = ["name", "title", "style", "is_selected", "position", "size"]
+            self.propertyKeys = ["name", "title", "style", "is_selected", "rotation", "position", "size"]
 
     def get_radio_group(self):
         g = []

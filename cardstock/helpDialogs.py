@@ -96,8 +96,8 @@ lets you select, move, rotate, and resize objects, and edit their properties and
 or remove objects from the selection by Shift-clicking them.  You can also drag out a selection rectangle to select all objects
 whose centers it contains.  You can also cycle forwards and backwards through objects on the current card using Tab and
 Shift-Tab.  While objects are selected, you can use the Object menu items to group them, flip them, or re-order them to adjust which
-objects are in front of, or behind, which others.  But note that buttons, text fields, and web views always stay in 
-front of shapes, images, and text labels.  When an object is selected, you can resize it by dragging the rectangular, blue resize knobs in the 
+objects are in front of, or behind, which others.  But note that currently, Text Fields and Web Views always stay in 
+front of shapes, images, buttons, and text labels.  When an object is selected, you can resize it by dragging the rectangular, blue resize knobs in the 
 corners of the selected object.  Holding down the Shift key while resizing will keep the object's aspect
 ratio stable.  You can drag selected objects to move them, or use the arrow keys to move selected objects by 1 pixel at
 a time, or by 5 or 20 pixels at a time by holding down Shift or Alt/Option, respectively.  You can also rotate an object 
@@ -396,7 +396,7 @@ the current card.  And you can access objects on other cards as, for example, st
 {HelpData.ObjectSection("object", "All Objects", "Many properties, methods, and events apply to objects of all "
                                                  "types, so we'll list those all here just once.  Access an object's "
                                                  "properties or methods as, for example, objectName.size or "
-                                                 "objectName.focus()")}
+                                                 "objectName.show()")}
 <hr/>
 {HelpData.ObjectSection("stack", "Stack", "The stack object represents your whole CardStock program.  You can always "
                                           "access the stack as the global variable <b>stack</b>.  And you can access "
@@ -406,38 +406,38 @@ the current card.  And you can access objects on other cards as, for example, st
                                          "its own code for handling events.  The below properties, methods, and "
                                          "events, in addition to those in the All Objects section, apply to card "
                                          "objects.  Access an object's properties or methods as, for example, "
-                                         "objectName.size or objectName.focus().  You can also access a child object "
+                                         "objectName.size or objectName.show().  You can also access a child object "
                                          "of this card as card.objectName.")}
 <hr/>
 {HelpData.ObjectSection("button", "Button", "Buttons show their title, and when clicked, run their on_click event "
                                              "code.  The below properties, methods, and events, in addition to those "
                                              "in the All Objects section, apply to button objects.  Access an object's "
                                              "properties or methods as, for example, objectName.size or "
-                                             "objectName.focus()")}
+                                             "objectName.show()")}
 <hr/>
 {HelpData.ObjectSection("textfield", "Text Field", "Text fields are object where your stack's users can enter or "
                                                     "edit text.  The below properties, methods, and events, in "
                                                     "addition to those in the All Objects section, apply to text field "
                                                     "objects.  Access an object's properties or methods as, for "
-                                                    "example, objectName.size or objectName.focus()")}
+                                                    "example, objectName.size or objectName.show()")}
 <hr/>
 {HelpData.ObjectSection("textlabel", "Text Label", "Text labels are objects that show text on the card, but are not "
                                                     "editable by users. The below properties, methods, and events, in "
                                                     "addition to those in the All Objects section, apply to text labels.  "
                                                     "Access an object's properties or methods as, for "
-                                                    "example, objectName.size or objectName.focus()")}
+                                                    "example, objectName.size or objectName.show()")}
 <hr/>
 {HelpData.ObjectSection("webview", "Web View", "Web views are objects that let you load web pages into your stacks. "
                                                "The below properties, methods, and events, in "
                                                     "addition to those in the All Objects section, apply to web view "
                                                     "objects.  Access an object's properties or methods as, for "
-                                                    "example, objectName.size or objectName.focus()")}
+                                                    "example, objectName.size or objectName.show()")}
 <hr/>
 {HelpData.ObjectSection("image", "Image", "Image objects show an image from an image file.  "
                                            "The below properties, methods, and events, in addition to those in the "
                                            "All Objects section, apply to image objects.  Access an object's "
                                            "properties or methods as, for example, objectName.size or "
-                                           "objectName.focus()")}
+                                           "objectName.show()")}
 <hr/>
 {HelpData.ObjectSection("line", "Shape - Line and Pen", "A line shape is a straight line connecting two points.  A "
                                                          "pen shape is whatever shape you draw out with the pen tool. "
@@ -466,7 +466,7 @@ the current card.  And you can access objects on other cards as, for example, st
                                           "properties or events, but respond to the following methods, along with "
                                           "everything in the "
                                           "All Objects section.  Access an object's properties or methods as, for "
-                                          "example, objectName.size or objectName.focus().  You can also access a "
+                                          "example, objectName.size or objectName.show().  You can also access a "
                                           "child object of this group as groupName.objectName")}
 
 </body>

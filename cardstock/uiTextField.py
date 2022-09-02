@@ -361,6 +361,17 @@ class TextField(TextBaseProxy):
             return
         raise TypeError("selected_text must be a string")
 
+    @property
+    @RunOnMainSync
+    def has_focus(self):
+        model = self._model
+        if not model: return False
+
+        uiView = model.stackManager.GetUiViewByModel(model)
+        if uiView and uiView.view:
+            return uiView.view.HasFocus()
+        return False
+
     def select_all(self):
         model = self._model
         if not model: return
@@ -372,3 +383,10 @@ class TextField(TextBaseProxy):
         if model.didSetDown: return
         if model.stackManager.runner and model.GetHandler("on_text_enter"):
             model.stackManager.runner.RunHandler(model, "on_text_enter", None)
+
+    def focus(self):
+        model = self._model
+        if not model: return
+
+        if model.stackManager.runner:
+            model.stackManager.runner.SetFocus(self)

@@ -460,8 +460,8 @@ class HelpDataObject():
                            "This value is not stored, but computed based on position and size."},
         "rotation": {"type": "float",
                      "info": "This is the angle in degrees clockwise to rotate this object.  0 is upright.  Note that "
-                             "not all objects can be rotated.  Card and stack objects can not rotate, and text fields, "
-                             "web views, and buttons can't rotate either."},
+                             "not all objects can be rotated.  Card and stack objects can not rotate, and text fields "
+                             "and web views can't rotate either."},
         "speed": {"type": "point",
                   "info": "This is a point value corresponding to the current speed of the object, in pixels/second "
                           "in both the <b>x</b> and <b>y</b> directions."},
@@ -469,10 +469,6 @@ class HelpDataObject():
                     "info": "<b>True</b> if this object <b>is_visible</b>, or <b>False</b> if it is hidden.  If this "
                             "object is in a group that has been hidden, this object's <b>is_visible</b> property will be "
                             "<b>False</b> as well."},
-        "has_focus": {"type": "bool",
-                     "info": "<b>True</b> if this object is focused (if it is selected for typing into), otherwise "
-                             "<b>False</b>. This value is not settable, but you can call the method focus() to try to "
-                             "focus this object."},
         "parent": {"type": "object",
                    "info": "<b>parent</b> is the object that contains this object.  For most objects, it is the card, unless this "
                            "object has been grouped, in which case its <b>parent</b> is the group object  A card's "
@@ -503,11 +499,6 @@ class HelpDataObject():
                         "info": "Sends a <b>message</b> to this object, that the object can handle in its on_message event code.  For "
                                 "example, you could send the message 'reset' to an object, and in its on_message code, "
                                 "it could check for whether <b>message</b> == 'reset', and then set some variables back to their initial values."},
-        "focus": {"args": {},
-                  "return": None,
-                  "info": "Selects this object so that it will handle key presses.  A focused button will appear "
-                          "selected, and typing Enter/Return will click it.  Typed words will get entered into the "
-                          "currently focused TextField."},
         "show": {"args": {},
                  "return": None,
                  "info": "Shows this object if it was not visible."},
@@ -528,25 +519,25 @@ class HelpDataObject():
         "order_to_front": {"args": {},
                  "return": None,
                  "info": "Moves this object to the front of the card or group it is contained in, in front of all other objects.  But note that "
-                         "all buttons and text fields will remain in front of all other objects."},
+                         "currently, all text fields and web views will be displayed in front of other objects."},
         "order_forward": {"args": {},
                  "return": None,
                  "info": "Moves this object one position closer to the front of the card or group it is contained in.  But note that "
-                         "all buttons and text fields will remain in front of all other objects."},
+                         "currently, all text fields and web views will be displayed in front of other objects."},
         "order_backward": {"args": {},
                  "return": None,
                  "info": "Moves this object one position closer to the back of the card or group it is contained in.  But note that "
-                         "all buttons and text fields will remain in front of all other objects."},
+                         "currently, all text fields and web views will be displayed in front of other objects."},
         "order_to_back": {"args": {},
                  "return": None,
                  "info": "Moves this object to the back of the card or group it is contained in, behind all other objects.  But note that "
-                         "all buttons and text fields will remain in front of all other objects."},
+                         "currently, all text fields and web views will be displayed in front of other objects."},
         "order_to_index": {"args": {"toIndex": {"type": "int", "info": "The index to move this object to, in the list of "
                                  "the card or group's children.  Index 0 is at the back."}},
                        "return": None,
                          "info": "Moves this object to the given index, in the list of "
                                  "its parent's children, with 0 being at the back.  But note that "
-                                 "all buttons and text fields will remain in front of all other objects."},
+                         "currently, all text fields and web views will be displayed in front of other objects."},
         "get_event_code": {"args": {"eventName": {"type": "string", "info": "The name of the event to look up."}},
                             "return": "string",
                             "info": "Returns a string containing this object's event code for the given "
@@ -728,8 +719,7 @@ class HelpDataButton():
         "on_click": {"args": {},
                     "info": "The <b>on_click</b> event is run when a user clicks down on this button, and releases the "
                             "mouse, while still inside the button.  It is also run when the button's Click() "
-                            "method is called, or when the user pressed the Enter/Return key while the button is "
-                            "focused."},
+                            "method is called."},
         "on_selection_changed": {"args": {"is_selected": {"type": "bool",
                                                           "info": "The new selection state of this button.  True "
                                                                   "if this button was just selected, otherwise False."}},
@@ -762,6 +752,10 @@ class HelpDataTextField():
                  "info": "Set to True if this object's text is bold."},
         "is_italic": {"type": "bool",
                    "info": "Set to True if this object's text is italic."},
+        "has_focus": {"type": "bool",
+                     "info": "<b>True</b> if this TextField is focused (if it is selected for typing into), otherwise "
+                             "<b>False</b>. This value is not settable, but you can call the method focus() to try to "
+                             "focus this Field."},
         "selection": {"type": "list",
                       "info": "A text field's <b>selection</b> value is a list of 2 numbers.  The first is the start position "
                               "of the selection within the field's text, and the second is the position of the end "
@@ -794,6 +788,10 @@ class HelpDataTextField():
                     "info": "Runs this text field's on_text_enter event code."},
         "select_all": {"args": {}, "return": None,
                       "info": "Selects all text in this text field."},
+        "focus": {"args": {},
+                  "return": None,
+                  "info": "Selects this TextField so that it will handle key presses.  Typed words will get entered "
+                          "into the currently focused TextField."},
     }
 
     handlers = {
