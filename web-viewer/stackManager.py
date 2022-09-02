@@ -82,11 +82,11 @@ class StackManager(object):
             for ui in self.uiCard.uiViews:
                 ui.OnPropertyChanged("position")
             self.runner.RunHandler(self.uiCard.model, "on_resize", None)
-        s = self.stackModel.GetProperty("size")
-        worker.stackWorker.SendAsync(("canvasSetSize", s.width, s.height, self.stackModel.GetProperty('can_resize')))
 
     def RunSetupIfNeeded(self):
         if not self.didSetup:
+            s = self.stackModel.GetProperty("size")
+            worker.stackWorker.SendAsync(("canvasSetSize", s.width, s.height, self.stackModel.GetProperty('can_resize')))
             self.stackModel.RunSetup(self.runner)
             self.didSetup = True
 

@@ -208,6 +208,71 @@ class StackCanvas(object):
             origImage.cloneAsImage(setImg, {'left': int(options['clipLeft']), 'top': int(options['clipTop']),
                                             'width': int(options['clipWidth']), 'height': int(options['clipHeight'])})
 
+        elif msg == "imgNewStatic":  # uid, img_path, options
+            uid = args[0]
+            path = args[1]
+            options = args[2]
+
+            # Set up placeholder rect
+            fabObj = window.fabric.Rect.new(
+                {'csid': uid,
+                 'isType': "Rect",
+                 'strokeWidth': 0,
+                 'selectable': False,
+                 'hoverCursor': "arrow"})
+            self.fabObjs[uid] = fabObj
+            self.fabCanvas.add(fabObj)
+            oldObj = self.fabObjs[uid]
+
+            def didLoad(img, failed):
+                if not failed:
+                    img.set({'csid': uid,
+                             'isType': "Image",
+                             'angle': options['angle'],
+                             'selectable': False,
+                             'hoverCursor': "arrow",
+                             'left': int(options['left']), 'top': int(options['top']),
+                             'scaleX': options['scaleX'], 'scaleY': options['scaleY'],
+                             'visible': options['visible']
+                             })
+                    index = [o.csid for o in self.fabCanvas.getObjects()].index(oldObj.csid)
+                    self.fabCanvas.remove(oldObj)
+                    self.fabObjs[uid] = img
+                    img.setCoords()
+                    self.fabCanvas.insertAt(img, index, False)
+                    if self.didRenderOnce:
+                        self.Render()
+
+            window.fabric.Image.fromURL(path, didLoad)
+
+        elif msg == "imgReplaceStatic":  # uid, img_path, options
+            uid = args[0]
+            path = args[1]
+            options = args[2]
+
+            oldObj = self.fabObjs[uid]
+
+            def didLoad(img, failed):
+                if not failed:
+                    img.set({'csid': uid,
+                             'isType': "Image",
+                             'angle': options['angle'],
+                             'selectable': False,
+                             'hoverCursor': "arrow",
+                             'left': int(options['left']), 'top': int(options['top']),
+                             'scaleX': options['scaleX'], 'scaleY': options['scaleY'],
+                             'visible': options['visible']
+                             })
+                    index = [o.csid for o in self.fabCanvas.getObjects()].index(oldObj.csid)
+                    self.fabCanvas.remove(oldObj)
+                    self.fabObjs[uid] = img
+                    img.setCoords()
+                    self.fabCanvas.insertAt(img, index, False)
+                    if self.didRenderOnce:
+                        self.Render()
+
+            window.fabric.Image.fromURL(path, didLoad)
+
         elif msg == "fieldNew":  # uid, text, options
             # Add a new TextField object to the canvas
             uid = args[0]

@@ -409,16 +409,23 @@ class UiButton(UiView):
     def __init__(self, parent, stackManager, model):
         self.isHilighted = False
         self.isMouseDown = False
+        self.rrBg = None
+        self.icon = None
         super().__init__(parent, stackManager, model)
 
-    def CreateFabObjs(self):
+    def CreateFabObjs(self, shouldReplace=False):
         model = self.model
-        has_border = model.properties['has_border']
+        style = model.properties['style']
         rect = self.model.GetFrame()
-        self.offsets = ((0,0), (0, -(rect.Height - 16) / 2))
-        coords = self.GetFabObjCoords()
 
-        if has_border:
+        if style in ("Border", "Borderless"):
+            self.offsets = ((0, 0), (0, -(rect.Height - 16) / 2))
+            coords = self.GetFabObjCoords()
+        else:
+            self.offsets = ((0,0), (23, -(rect.Height - 16) / 2), (2, -(rect.Height - 16) / 2 - 1))
+            coords = self.GetFabObjCoords()
+
+        if style == "Border":
             self.rrBg = worker.stackWorker.CreateFab("Rect",
                                                      {'width': rect.Width,
                                                       'height': rect.Height,
@@ -429,7 +436,8 @@ class UiButton(UiView):
                                                       'fill': 'white',
                                                       'stroke': 'grey',
                                                       'strokeWidth': 1,
-                                                      'hoverCursor': "pointer"})
+                                                      'hoverCursor': "pointer"},
+                                                     replace=self.rrBg if shouldReplace else None)
         else:
             self.rrBg = worker.stackWorker.CreateFab("Rect",
                                                      {'width': rect.Width,
@@ -438,32 +446,64 @@ class UiButton(UiView):
                                                       'top': coords[0][1],
                                                       'angle': coords[0][2],
                                                       'fill': None,
-                                                      'strokeWidth':0,
-                                                      'hoverCursor': "pointer"})
+                                                      'strokeWidth': 0,
+                                                      'hoverCursor': "pointer"},
+                                                     replace=self.rrBg if shouldReplace else None)
 
-        self.titleLabel = worker.stackWorker.CreateFab("Textbox", model.GetProperty("title"),
-                                                       {'width': rect.Width,
-                                                        'height': rect.Height,
-                                                        'left': coords[1][0],
-                                                        'top': coords[1][1],
-                                                        'angle': coords[1][2],
-                                                        'textAlign': 'center',
-                                                        'fill': "black",
-                                                        'fontFamily': 'Arial',
-                                                        'fontSize': 14,
-                                                        'hoverCursor': "pointer"})
+        if style in ("Border", "Borderless"):
+            self.titleLabel = worker.stackWorker.CreateFab("Textbox", model.GetProperty("title"),
+                                                           {'width': rect.Width,
+                                                            'height': rect.Height,
+                                                            'left': coords[1][0],
+                                                            'top': coords[1][1],
+                                                            'angle': coords[1][2],
+                                                            'textAlign': 'center',
+                                                            'fill': "black",
+                                                            'fontFamily': 'Arial',
+                                                            'fontSize': 14,
+                                                            'hoverCursor': "pointer"},
+                                                           replace=self.titleLabel if shouldReplace else None)
+            self.fabIds = [self.rrBg, self.titleLabel]
 
-        self.fabIds = [self.rrBg, self.titleLabel]
+        else:
+            self.titleLabel = worker.stackWorker.CreateFab("Textbox", model.GetProperty("title"),
+                                                           {'width': rect.Width,
+                                                            'height': rect.Height,
+                                                            'left': coords[1][0],
+                                                            'top': coords[1][1],
+                                                            'angle': coords[1][2],
+                                                            'textAlign': 'left',
+                                                            'fill': "black",
+                                                            'fontFamily': 'Arial',
+                                                            'fontSize': 14,
+                                                            'hoverCursor': "pointer"},
+                                                           replace=self.titleLabel if shouldReplace else None)
+            self.icon = worker.stackWorker.CreateImageStatic(self.MakeIconPath(model),
+                                                             {'left': coords[2][0],
+                                                              'top': coords[2][1],
+                                                              'angle': coords[2][2],
+                                                              'scaleX': 0.5,
+                                                              'scaleY': 0.5,
+                                                              'visible': True},
+                                                             replace=self.icon if shouldReplace else None)
+            self.fabIds = [self.rrBg, self.titleLabel, self.icon]
+
+    def MakeIconPath(self, model):
+        style = model.properties['style']
+        is_sel = model.GetProperty("is_selected")
+        return f"/s/icons/{'checkbox' if style == 'Checkbox' else 'radio'}-{'on' if is_sel else 'off'}.png"
 
     def Highlight(self, on):
-        if on:
-            worker.stackWorker.SendAsync(('fabSet', self.rrBg, {'fill': "blue"}),
-                                         ('fabSet', self.titleLabel, {'fill': "white"}),
-                                         ("render",))
-        else:
-            worker.stackWorker.SendAsync(('fabSet', self.rrBg, {'fill': "white" if self.model.properties['has_border'] else None}),
-                                         ('fabSet', self.titleLabel, {'fill': "black"}),
-                                         ("render",))
+        style = self.model.properties['style']
+        if style in ("Border", "Borderless"):
+            if on:
+                worker.stackWorker.SendAsync(('fabSet', self.rrBg, {'fill': "blue"}),
+                                             ('fabSet', self.titleLabel, {'fill': "white"}),
+                                             ("render",))
+            else:
+                worker.stackWorker.SendAsync(('fabSet', self.rrBg, {'fill': "white" if self.model.properties['style'] == "Border" else None}),
+                                             ('fabSet', self.titleLabel, {'fill': "black"}),
+                                             ("render",))
         self.isHilighted = on
 
     def OnMouseDown(self, pos, isTouch):
@@ -471,6 +511,11 @@ class UiButton(UiView):
         super().OnMouseDown(pos, isTouch)
         self.isMouseDown = True
         self.Highlight(True)
+        style = self.model.properties['style']
+        if style == "Radio":
+            self.model.SetProperty("is_selected", True)
+        elif style == "Checkbox":
+            self.model.SetProperty("is_selected", not self.model.GetProperty("is_selected"))
 
     def OnMouseMove(self, pos, isTouch):
         if self.isMouseDown:
@@ -494,14 +539,8 @@ class UiButton(UiView):
             self.offsets = ((0,0), (0, -(s.height - 16) / 2))
         if key == "title":
             worker.stackWorker.SendAsync(('fabSet', self.titleLabel, {'text':self.model.GetProperty("title")}))
-        elif key == "has_border":
-            has_border = self.model.properties['has_border']
-            if has_border:
-                worker.stackWorker.SendAsync(('fabSet', self.rrBg,
-                                              {'rx': 6, 'ry': 6, 'fill': 'white', 'stroke': 'grey', 'strokeWidth': 1}))
-            else:
-                worker.stackWorker.SendAsync(('fabSet', self.rrBg,
-                                              {'rx': 0, 'ry': 0, 'fill': None, 'stroke': None, 'strokeWidth': 0}))
+        elif key in ("style", "is_selected"):
+            self.CreateFabObjs(shouldReplace=True)
         super().OnPropertyChanged(key)
 
 

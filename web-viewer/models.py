@@ -7,8 +7,8 @@ import migrations
 from time import time
 import re
 
-VERSION='0.99.0'
-FILE_FORMAT_VERSION=5
+VERSION='0.99.1'
+FILE_FORMAT_VERSION=6
 
 
 class ViewModel(object):
@@ -388,6 +388,8 @@ class ViewModel(object):
             return ["Default", "Serif", "Sans-Serif", "Mono"]
         elif key == "fit":
             return ["Center", "Stretch", "Contain", "Fill"]
+        elif key == "style":
+            return ["Border", "Borderless", "Checkbox", "Radio"]
         return []
 
     def GetProperty(self, key):
@@ -1679,7 +1681,8 @@ class ButtonModel(ViewModel):
 
         # Add custom handlers to the top of the list
         handlers = {"on_setup": "",
-                    "on_click": ""}
+                    "on_click": "",
+                    "on_selection_changed": ""}
         for k,v in self.handlers.items():
             handlers[k] = v
         self.handlers = handlers
@@ -1687,12 +1690,50 @@ class ButtonModel(ViewModel):
 
         self.properties["name"] = "button_1"
         self.properties["title"] = "Button"
-        self.properties["has_border"] = True
-        self.propertyTypes["title"] = "string"
-        self.propertyTypes["has_border"] = "bool"
+        self.properties["style"] = "Border"
+        self.properties["is_selected"] = False
 
+        self.propertyTypes["title"] = "string"
+        self.propertyTypes["style"] = "choice"
+        self.propertyTypes["is_selected"] = "bool"
+
+        self.UpdatePropKeys("Default")
+
+    def SetProperty(self, key, value, notify=True):
+        if key == "style":
+            self.UpdatePropKeys(value)
+        elif key == "is_selected":
+            if value != self.GetProperty("is_selected"):
+                if value:
+                    for m in self.get_radio_group():
+                        if m.GetProperty("is_selected") and m != self:
+                            m.SetProperty("is_selected", False)
+                if self.stackManager:
+                    if self.stackManager.runner and self.GetHandler("on_selection_changed"):
+                        self.stackManager.runner.RunHandler(self, "on_selection_changed", None, value)
+        super().SetProperty(key, value, notify)
+
+    def UpdatePropKeys(self, style):
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "title", "has_border", "position", "size"]
+        if style in ("Border", "Borderless"):
+            self.propertyKeys = ["name", "title", "style", "position", "size"]
+        else:
+            self.propertyKeys = ["name", "title", "style", "is_selected", "position", "size"]
+
+    def get_radio_group(self):
+        g = []
+        if self.GetProperty("style") == "Radio" and self.parent:
+            for m in self.parent.childModels:
+                if m.type == "button" and m.GetProperty("style") == "Radio":
+                    g.append(m)
+        return g
+
+    def get_radio_group_selection(self):
+        g = self.get_radio_group()
+        for m in g:
+            if m.GetProperty("is_selected"):
+                return m
+        return None
 
 
 class Button(ViewProxy):
@@ -1713,21 +1754,48 @@ class Button(ViewProxy):
         model.SetProperty("title", str(val))
 
     @property
-    def has_border(self):
+    def style(self):
         model = self._model
         if not model: return False
-        return model.GetProperty("has_border")
-    @has_border.setter
-    def has_border(self, val):
+        return model.GetProperty("style")
+    @style.setter
+    def style(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("has_border", bool(val))
+        model.SetProperty("style", bool(val))
+
+    @property
+    def is_selected(self):
+        model = self._model
+        if not model: return False
+        if model.GetProperty("style") in ("Border", "Borderless"):
+            return False
+        return model.GetProperty("is_selected")
+    @is_selected.setter
+    def is_selected(self, val):
+        model = self._model
+        if not model: return
+        if model.GetProperty("style") not in ("Border", "Borderless"):
+            model.SetProperty("is_selected", bool(val))
 
     def click(self):
         model = self._model
         if not model: return
         if model.stackManager.runner and model.GetHandler("on_click"):
             model.stackManager.runner.RunHandler(model, "on_click", None)
+
+    def get_radio_group(self):
+        model = self._model
+        if not model: return []
+        return [m.GetProxy() for m in model.get_radio_group()]
+
+    def get_radio_group_selection(self):
+        model = self._model
+        if model:
+            m = model.get_radio_group_selection()
+            if m:
+                return m.GetProxy()
+        return None
 
 
 class TextBaseModel(ViewModel):

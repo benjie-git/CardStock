@@ -210,6 +210,13 @@ class Runner():
                 oldVars["message"] = noValue
             self.clientVars["message"] = arg
 
+        if handlerName == "on_selection_changed":
+            if "is_selected" in self.clientVars:
+                oldVars["is_selected"] = self.clientVars["is_selected"]
+            else:
+                oldVars["is_selected"] = noValue
+            self.clientVars["is_selected"] = arg
+
         if handlerName == "on_periodic":
             if "elapsed_time" in self.clientVars:
                 oldVars["elapsed_time"] = self.clientVars["elapsed_time"]

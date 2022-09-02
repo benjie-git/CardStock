@@ -174,6 +174,16 @@ class StackWorker(object):
         worker.send((("fieldNew", i, *args),))
         return i
 
+    def CreateImageStatic(self, path, options, replace=None):
+        # Tell the StackCanvas to create o new static Image, or replace an existing one
+        if replace == None:
+            i = NextId()
+            worker.send((("imgNewStatic", i, path, options),))
+        else:
+            i = replace
+            worker.send((("imgReplaceStatic", replace, path, options),))
+        return i
+
     def CreateImage(self, *args, replace=None):
         # Tell the StackCanvas to create o new fabric Image object, or replace an existing one
         if replace == None:
