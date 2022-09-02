@@ -297,7 +297,8 @@ class HandTool(BaseTool):
                     self.yFlipped = yFlipped
                     self.targetUi.model.PerformFlips(flipX, flipY)
 
-                    unrotRect = self.targetUi.model.UnrotatedRectFromAbsPoints(wx.Point(self.resizeAnchorPointAbs), pos)
+                    unrotRect = self.targetUi.model.UnrotatedRectFromAbsPoints(wx.Point(self.resizeAnchorPointAbs),
+                                                                               wx.Point(int(pos[0]), int(pos[1])))
                     self.targetUi.model.SetProperty("position", unrotRect.TopLeft, notify=False)
                     self.targetUi.model.SetProperty("size", unrotRect.Size)
 
