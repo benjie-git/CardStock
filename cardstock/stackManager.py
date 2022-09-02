@@ -447,13 +447,13 @@ class StackManager(object):
         def setAlignPos(model, val, dir):
             rect = model.GetAbsoluteFrame()
             pos = wx.Point(tuple(int(x) for x in model.GetProperty("position")))
-            if dir == "Left": pos.x += val - rect.Left
-            if dir == "HCenter": pos.x += val - (rect.Left + (rect.Right - rect.Left)/2)
-            if dir == "Right": pos.x += val - rect.Right
+            if dir == "Left": pos.x += int(val - rect.Left)
+            if dir == "HCenter": pos.x += int(val - (rect.Left + (rect.Right - rect.Left)/2))
+            if dir == "Right": pos.x += int(val - rect.Right)
             # Bottom and Top are switched since we use positive y axis pointing up
-            if dir == "Top": pos.y += val - rect.Bottom
-            if dir == "VCenter": pos.y += val - (rect.Top + (rect.Bottom - rect.Top)/2)
-            if dir == "Bottom": pos.y += val - rect.Top
+            if dir == "Top": pos.y += int(val - rect.Bottom)
+            if dir == "VCenter": pos.y += int(val - (rect.Top + (rect.Bottom - rect.Top)/2))
+            if dir == "Bottom": pos.y += int(val - rect.Top)
             return SetPropertyCommand(True, "Set Property", self.designer.cPanel, self.cardIndex,
                                       model, "position", pos)
 
