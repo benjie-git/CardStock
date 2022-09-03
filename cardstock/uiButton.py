@@ -103,7 +103,7 @@ class UiButton(UiView):
             gc.SetBrush(wx.Brush('#AAAAAA88'))
             gc.DrawRoundedRectangle(wx.Rect(1, 0, width-1, height-1), 5)
             gc.SetPen(wx.Pen('#00000066', 1))
-            gc.SetBrush(wx.Brush('#DDDDDD' if hilighted else 'white'))
+            gc.SetBrush(wx.Brush('#3366FF' if hilighted else 'white'))
             gc.DrawRoundedRectangle(wx.Rect(0, 1, width-1, height-1), 5)
 
             title = self.model.GetProperty("title")
@@ -116,7 +116,7 @@ class UiButton(UiView):
                 line = lines.split("\n")[0]
 
                 gc.SetFont(font)
-                gc.SetTextForeground(wx.Colour('#888888' if hilighted else 'black'))
+                gc.SetTextForeground(wx.Colour('white' if hilighted else 'black'))
                 textWidth = gc.GetTextExtent(line).Width
                 xPos = startX + (width - textWidth) / 2
                 gc.DrawText(line, wx.Point(int(xPos), int(startY)))

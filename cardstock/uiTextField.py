@@ -90,7 +90,7 @@ class UiTextField(UiTextBase):
 
     def OnSTCKeyDown(self, event):
         if event.GetKeyCode() == wx.WXK_RETURN:
-            self.on_text_enter(event)
+            self.OnTextEnter(event)
         event.Skip()
 
     def StartInlineEditing(self):

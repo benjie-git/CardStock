@@ -86,6 +86,8 @@ def MigrateDataFromFormatVersion(fromVer, dataDict):
             if 'childModels' in dataDict:
                 for child in dataDict['childModels']:
                     replaceNames(child)
+
+        replaceNames(dataDict)
         for c in dataDict['cards']:
             replaceNames(c)
 
