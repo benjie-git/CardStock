@@ -1194,10 +1194,10 @@ class ViewProxy(object):
 
         model.AddAnimation("rotation", duration, onUpdate, onStart, internalOnFinished)
 
-    def stop_animating(self, propertyName=None):
+    def stop_animating(self, property_name=None):
         model = self._model
         if not model: return
-        model.StopAnimation(propertyName)
+        model.StopAnimation(property_name)
 
 
 class StackModel(ViewModel):
@@ -1659,12 +1659,12 @@ class Card(ViewProxy):
         g = model.stackManager.GroupModelsInternal(models, name=name)
         return g.GetProxy() if g else None
 
-    def stop_all_animating(self, propertyName=None):
+    def stop_all_animating(self, property_name=None):
         model = self._model
         if not model: return
-        model.StopAnimation(propertyName)
+        model.StopAnimation(property_name)
         for child in model.GetAllChildModels():
-            child.StopAnimation(propertyName)
+            child.StopAnimation(property_name)
 
 
 class ButtonModel(ViewModel):
@@ -2309,12 +2309,12 @@ class Group(ViewProxy):
         if groups and len(groups) > 0:
             return groups[0]
 
-    def stop_all_animating(self, propertyName=None):
+    def stop_all_animating(self, property_name=None):
         model = self._model
         if not model: return
-        model.StopAnimation(propertyName)
+        model.StopAnimation(property_name)
         for child in model.GetAllChildModels():
-            child.StopAnimation(propertyName)
+            child.StopAnimation(property_name)
 
 
 class ImageModel(ViewModel):
