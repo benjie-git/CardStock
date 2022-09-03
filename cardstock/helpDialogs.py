@@ -95,9 +95,10 @@ is the control panel.  The top of the control panel lets you choose an editing t
 lets you select, move, rotate, and resize objects, and edit their properties and code.  Select an object by clicking it, and add 
 or remove objects from the selection by Shift-clicking them.  You can also drag out a selection rectangle to select all objects
 whose centers it contains.  You can also cycle forwards and backwards through objects on the current card using Tab and
-Shift-Tab.  While objects are selected, you can use the Object menu items to group them, flip them, or re-order them to adjust which
-objects are in front of, or behind, which others.  But note that currently, Text Fields and Web Views always stay in 
-front of shapes, images, buttons, and text labels.  When an object is selected, you can resize it by dragging the rectangular, blue resize knobs in the 
+Shift-Tab.  While objects are selected, you can use the Object menu items to group them, flip them, align or distribute 
+them, or re-order them to adjust which
+objects are in front of, or behind, which others.  But note that currently, Text Fields and Web Views are always displayed in 
+front of other objects.  When an object is selected, you can resize it by dragging the rectangular, blue resize knobs in the 
 corners of the selected object.  Holding down the Shift key while resizing will keep the object's aspect
 ratio stable.  You can drag selected objects to move them, or use the arrow keys to move selected objects by 1 pixel at
 a time, or by 5 or 20 pixels at a time by holding down Shift or Alt/Option, respectively.  You can also rotate an object 
@@ -105,7 +106,9 @@ by dragging the round, blue rotation knob at the top of the selected object, and
 5 degrees by holding down the Shift key.</p>
 <p>The next five tools are the button, text field, web view, image, and text label tools.  These each 
 let you create that type of object, by drawing out the new object's shape on the card on the left.  You can double-click
-a text field or text label to edit its text in-place on the card.</p>
+a text field or text label to edit its text in-place on the card.  Note that you can set a Button object's style, to 
+make it it appear and behave as either a regular button with a Border, a Borderless button, a Checkbox, or a Radio button.  
+</p>
 <p>The next six tools
 are the drawing tools, which let you draw with a pen, drag out an oval, a rectangle, a rounded rectangle, a polygon, 
 or a line.
@@ -139,21 +142,21 @@ in your card, the control panel will show the two main object editing areas:  Th
 list of the selected object's properties, like name, size, position on the card, colors, etc.  Below the property editor is 
 the code editor.  The code editor lets you view and edit the code that runs when events are triggered for this object.
 For example, if you select a button object,
-you could edit the code for its OnClicked event, which runs when that button is clicked.  In between the two editors is 
+you could edit the code for its <b>on_click</b> event, which runs when that button is clicked.  In between the two editors is 
 the Context Help box.  This shows information about the most recently selected property or event, or the last 
 autocompleted term in the code editor.  You can resize the Context Help box by dragging the bottom-right, blue corner,
 and can hide it using the command in CardStock's Help Menu if you already know the info it's telling you, you want the
-space back, or it otherwise offends your sensibilities.</p>
+space back, or its incessant helpfulness otherwise offends your sensibilities.</p>
 
 <br/><br/>
 
 <h2>Property Editor</h2>
 <p>Each object in your stack, including each card, button, text field, shape, group, etc., has properties that
 you can change in the property editor when that object is selected. You can change things like the object's
-position and size. And each type of object also has its own specific properties.  For example, a button has a title,
-and a card has a background color.  Each object also has a name, which is how you control it from your python code. 
+position and size. And each type of object also has its own specific properties.  For example, a card has a <b>fill_color</b>, 
+and a button has a <b>title</b>.  Each object also has a name, which is how you control it from your python code. 
 CardStock makes sure that these names are unique within each card. See the CardStock Reference for a description of each
-property, for each kind of object.</p>
+property, for each type of object.</p>
 
 <br/><br/>
 
@@ -161,7 +164,7 @@ property, for each kind of object.</p>
 <p>The real fun begins when you start adding python code into your objects!  Your CardStock program works by running
 certain parts of your program's code when different types of events happen.  For example, you can add some code to a
 button object's on_click event, and it will be run when that button is clicked.  Just select the button, and if you don't 
-already see a "def on_click():" title, then click the "+ Add Event" button at the top of the code editor, and choose 
+already see a "def on_click():" heading in the code editor, then click the "+ Add Event" button at the top of the code editor, and choose 
 "on_click()".  Then add your code into the button's on_click event in the code editor, and now when you run your 
 stack, whenever that button is clicked, this code will run.  The "+ Add Event" popup shows all of the events that apply to the
 selected object.  For example, only buttons have an on_click() event, and only cards have an on_show_card() event.
@@ -169,20 +172,20 @@ See the CardStock Reference for a description of each type of event, and when th
 
 <p>In your python event-handling code, you have access to all of the objects in your stack, including their
 properties and methods, and some global variables and functions that are always available.  So if your button is called 
-yes_button, you could write yes_button.SetTitle("Done") to change your button's title to the string "Done".  You can 
+yes_button, you could write <b>yes_button.title = "Done"</b> to change your button's title to the string "Done".  You can 
 also use the variables that are passed into each event function, which are listed inside the parentheses after the event
 name.  All events receive a variable called self, which refers to the object who's event is being run.  
-(So in a button's on_click(self) code, self refers to that button object.  In a card's on_show_card(self) code, self will 
-refer to that card object.)  Some events also receive other relevant information, for example, on_key_press(self, key_name)
+So in a button's on_click(self) code, self refers to that button object.  In a card's on_show_card(self) code, self will 
+refer to that card object.  Some events also receive other relevant information, for example, on_key_press(self, key_name)
 includes key_name, so that your code can see which key was pressed, and on_mouse_move(self, mouse_pos) includes the current 
 mouse position as a variable called mouse_pos.  See the CardStock Reference for a list of all 
 variables that are automatically provided to your code.  You can of course also create your own variables as well.  It 
-is suggested that when you do, you set up the starting value of each variable in one of your objects' on_setup events, 
+is suggested that when you do, you set up the starting value of each variable in one of your objects' on_setup() events, 
 to make sure that it will always have a value, from the very beginning of your stack running.</p>
 
 <p>When a stack first starts running, all of the cards and all objects on all of the cards will run their on_setup() 
-events.  on_setup() will also run for any new objects you create using any of the card.AddObject() methods.  
-Then the first card's on_show_card() event will run.  Any time you Goto another card, the current card's on_hide_card() 
+events.  on_setup() will also run for any new objects you create using any of the card's add methods like card.add_button().  
+Then the first card's on_show_card() event will run.  Any time you go to another card, the current card's on_hide_card() 
 event will run, immediately followed by the new card's on_show_card() event.  After your stack is done starting up, all 
 of the current card's objects (including the card itself) will start running their on_periodic() events, approximately every 
 1/30th of a second.  This is a 
@@ -213,7 +216,7 @@ events in the CardStock Reference.</p>
 
 <p>You can also animate changes to many objects' properties.  For example, you could animate the current card's 
 background color from its current color to red, over a duration of 2 seconds, using the code: 
-card.AnimateBgColor(2, 'red').  If you animate a property that is already animating, it will queue up the animation to 
+card.animate_fill_color(2, 'red').  If you animate a property that is already animating, it will queue up the animation to 
 start after the existing animations finish.  So you could make a circle's size grow and shrink over 2 seconds total, 
 using the code:<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;circle.animate_size(1, [300,300])<br/>
@@ -222,7 +225,7 @@ You can also animate multiple properties of the same object at the same time, si
 animating the same property, otherwise they will animate in parallel.
 To stop or interrupt an animation on an object, you can call object.stop_animating(), and can stop all animations running 
 anywhere on a given card or group, including on its children, by calling containerObject.stop_all_animating().  Both of 
-these methods can optionally take a propertyName argument as well, to stop only animations on that property.  For 
+these methods can optionally take a property_name argument as well, to stop only animations on that property.  For 
 example: card.stop_all_animating("position") will stop any animations of any objects' position properties on the current 
 card.</p>
 
@@ -233,14 +236,14 @@ in red, to help you spot problems before even running your code.</p>
 
 <p>When you want to try running your stack from within the Designer app, and see how it works, you can use the Run Stack menu item
 in the File menu, or from the button in the Toolbar.  Or if you want to test directly from the current card, instead
-of starting from the first card, use Run From This Card from the menu or toolbar.  Then when you wan to return to the 
+of starting from the first card, use Run From Current Card from the menu or toolbar.  Then when you want to return to the 
 Designer to continue building and editing, just close your running stack window.</p>
 
 <br/><br/>
 
 <h2>Moving Objects</h2>
 
-<p>There are a few ways to get objects on a card to move.  You can set an object's position (the ocation of its bottom 
+<p>From your code, there are a few ways to get objects on a card to move.  You can set an object's position (the location of its bottom 
 left corner) or center to instantly move the object to that position, for example: object.center = [100,200].  
 Or you can animate an object's position or 
 center to move it smoothly from its current position to the new one, for example: object.animate_center(1.5, [100,200]) 
@@ -254,11 +257,11 @@ bounce off of the edge of the card, or off of other objects, you can call set_bo
 you would like it to bounce off of, for example object.set_bounce_objects([card, button_1]).  This is used in the pong 
 example stack to make the ball bounce off of the card edges, and the paddle.  When an object bounces, its on_bounce(other_object, edge)
 event will run, which additionally tells your code which object it ran into, and which edge of that object it hit.  For
-example, if a ball object bounces off of the top edge of the card, the ball object's on_bounce event will run, with
+example, if a ball object bounces off of the top edge of the card, the ball object's on_bounce() event will run, with
 other_object set to card, and edge set to "Top".</p>
 
 <p>An easy way to make an object's movement look like it is being affected by gravity is to give the object a speed, and
-then add a line like self.speed.y -= 30 into the object's on_periodic() event.</p>
+then add a line like <b>self.speed.y -= 30</b> into the object's on_periodic() event.</p>
 
 <br/><br/>
 
@@ -276,7 +279,7 @@ another page, your Web View will run the event on_done_loading(URL, did_load) wi
 True if the page loaded successfully, and False if the page was unable to load.</p>
 
 <p>From within your CardStock code, you can inject and run JavaScript code into a Web View by calling
-webview_1.run_java_script(jscode), and if your JavaScript code returns a value, it will be returned by the run_java_script() call.
+webview_1.run_java_script("some(javaScript);code;"), and if your JavaScript code returns a value, it will be returned by the run_java_script() call.
 If you want the web page inside your Web View to be able to affect the rest of your CardStock stack, you can set up 
 your web page to try to load a URL using the cardstock: scheme, and this will show up in your Web View's on_card_stock_link()
 event.  For example, if your HTML includes a link to 'cardstock:test', then when that link is clicked, your Web View's
@@ -291,6 +294,14 @@ stderr), this will appear in the Viewer application's Console window, which will
 text written out.  You can also open the Console manually using the "Show/Hide Console" menu item.  The 
 Console window also allows you to enter python commands while your stack is running.  You can interactively check variable 
 values, and call functions to help debug your code.<p>
+
+<p>CardStock also offers a Variable inspector window while your stack is running.  You can open it using the 
+"Show/Hide Variables" menu item.  This window shows you a list of all variables in use by your stack, and allows you to open 
+object and list variables hierarchically to see their items and properties, by clicking the right-arrow button on a row.  
+For example, you could click the right arrow on the "card" row to see your current card's properties, and then on the 
+"children" row to see all objects on that card.  Then on a button's row to see all the properties of that button.  For 
+rows representing numbers, strings, boolean values, etc., you can click on the row's value to edit it live, while your 
+stack is running.</p>
 
 <p>If any errors occur while running your stack, error messages will be written to the console window, and then after 
 you return to the Designer, they will be listed in the red-colored Error List window that will
@@ -312,11 +323,12 @@ want to use that to search for more complex expressions.</p>
 <p>There are lots of example stacks that come with CardStock.  Try playing with some of them, and then dig in deeper
 to figure out how they work, and make some changes to see if you can make things work the way you want them to.</p>
 
-<p>Later, once you've built a stack that you want to let other people try, you can run it in the CardStock Viewer 
-program (instead of in the Designer). which lets a user run the stack, but not edit it.  You can also run the Export
-Stack command from the Designer's File menu to export your stack as a stand-alone application, that you can send to other people,
+<p>Later, once you've built a stack that you want to let other people try, you can run the Export Stack command from 
+the Designer's File menu to export your stack, either to the web, or as a stand-alone application, that you can send to other people,
 who can run it from their computers without installing CardStock.  The export process will try to find and include any image and 
-sound files that your stack uses, and will include any external python modules that you've imported from your stack.</p>
+sound files that your stack uses, and will include any external python modules that you've imported into your stack.  To 
+export a stack to the web, CardStock will guide you to set up a cardstock.run account, so you can access your uploaded 
+stack, run it on the web, and send out links to let others run it.</p>
 
 </body>
 </html>
@@ -395,8 +407,8 @@ the current card.  And you can access objects on other cards as, for example, st
 <hr/>
 {HelpData.ObjectSection("object", "All Objects", "Many properties, methods, and events apply to objects of all "
                                                  "types, so we'll list those all here just once.  Access an object's "
-                                                 "properties or methods as, for example, objectName.size or "
-                                                 "objectName.show()")}
+                                                 "properties or methods as, for example, object_name.size or "
+                                                 "object_name.show()")}
 <hr/>
 {HelpData.ObjectSection("stack", "Stack", "The stack object represents your whole CardStock program.  You can always "
                                           "access the stack as the global variable <b>stack</b>.  And you can access "
@@ -406,38 +418,51 @@ the current card.  And you can access objects on other cards as, for example, st
                                          "its own code for handling events.  The below properties, methods, and "
                                          "events, in addition to those in the All Objects section, apply to card "
                                          "objects.  Access an object's properties or methods as, for example, "
-                                         "objectName.size or objectName.show().  You can also access a child object "
-                                         "of this card as card.objectName.")}
+                                         "object_name.size or object_name.show().  You can also access a child object "
+                                         "of this card as card.object_name.")}
 <hr/>
-{HelpData.ObjectSection("button", "Button", "Buttons show their title, and when clicked, run their on_click event "
-                                             "code.  The below properties, methods, and events, in addition to those "
-                                             "in the All Objects section, apply to button objects.  Access an object's "
-                                             "properties or methods as, for example, objectName.size or "
-                                             "objectName.show()")}
+{HelpData.ObjectSection("button", "Button", "Buttons in CardStock come in 4 styles.  <b>Border</b> style buttons "
+                                            "show their title centered inside of a rounded rectangle border, and when clicked, "
+                                            "run their on_click() event code.  <b>Borderless</b> buttons behave the same, but "
+                                            "are transparent and do not display a border.  A <b>Checkbox</b> button shows its "
+                                            "title left-justified, after a checkbox that shows a check when it is selected. "
+                                            "When a user clicks a Checkbox, its selection state toggles between selected and not,"
+                                            "and the object's on_selection_changed() event is run.  A <b>Radio</b> button shows its "
+                                            "title left-justified, after an indicator circle, that shows a dot inside when it is selected. "
+                                            "When a user clicks a Radio button, it is selected, and any other Radio "
+                                            "buttons in the same Radio group are deselected, "
+                                            "and both objects' on_selection_changed() events is run, first the deselection, "
+                                            "and then the selection.  All Radio buttons directly on the card are in one Radio group. "
+                                            "All Radio buttons that have been grouped together into the same Group object are in their own "
+                                            "Radio group. "
+                                            "The below properties, methods, and events, in addition to those "
+                                            "in the All Objects section, apply to button objects.  Access an object's "
+                                            "properties or methods as, for example, object_name.size or "
+                                            "object_name.show()")}
 <hr/>
 {HelpData.ObjectSection("textfield", "Text Field", "Text fields are object where your stack's users can enter or "
                                                     "edit text.  The below properties, methods, and events, in "
                                                     "addition to those in the All Objects section, apply to text field "
                                                     "objects.  Access an object's properties or methods as, for "
-                                                    "example, objectName.size or objectName.show()")}
+                                                    "example, object_name.size or object_name.show()")}
 <hr/>
 {HelpData.ObjectSection("textlabel", "Text Label", "Text labels are objects that show text on the card, but are not "
                                                     "editable by users. The below properties, methods, and events, in "
                                                     "addition to those in the All Objects section, apply to text labels.  "
                                                     "Access an object's properties or methods as, for "
-                                                    "example, objectName.size or objectName.show()")}
+                                                    "example, object_name.size or object_name.show()")}
 <hr/>
 {HelpData.ObjectSection("webview", "Web View", "Web views are objects that let you load web pages into your stacks. "
                                                "The below properties, methods, and events, in "
                                                     "addition to those in the All Objects section, apply to web view "
                                                     "objects.  Access an object's properties or methods as, for "
-                                                    "example, objectName.size or objectName.show()")}
+                                                    "example, object_name.size or object_name.show()")}
 <hr/>
 {HelpData.ObjectSection("image", "Image", "Image objects show an image from an image file.  "
                                            "The below properties, methods, and events, in addition to those in the "
                                            "All Objects section, apply to image objects.  Access an object's "
-                                           "properties or methods as, for example, objectName.size or "
-                                           "objectName.show()")}
+                                           "properties or methods as, for example, object_name.size or "
+                                           "object_name.show()")}
 <hr/>
 {HelpData.ObjectSection("line", "Shape - Line and Pen", "A line shape is a straight line connecting two points.  A "
                                                          "pen shape is whatever shape you draw out with the pen tool. "
@@ -466,8 +491,8 @@ the current card.  And you can access objects on other cards as, for example, st
                                           "properties or events, but respond to the following methods, along with "
                                           "everything in the "
                                           "All Objects section.  Access an object's properties or methods as, for "
-                                          "example, objectName.size or objectName.show().  You can also access a "
-                                          "child object of this group as groupName.objectName")}
+                                          "example, object_name.size or object_name.show().  You can also access a "
+                                          "child object of this group as groupName.object_name")}
 
 </body>
 </html>

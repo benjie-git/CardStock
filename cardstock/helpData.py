@@ -619,13 +619,13 @@ class HelpDataObject():
                             "info": "Visually animates changing this object's <b>rotation</b> angle to <b>end_rotation</b>, "
                                     "over <b>duration</b> seconds.  When the animation completes, runs the "
                                     "<b>on_finished</b> function, if one was passed in."},
-        "stop_animating": {"args": {"propertyName": {"type": "string",
+        "stop_animating": {"args": {"property_name": {"type": "string",
                                                     "info": "optional name of the property to stop animating, for "
                                                             "example: \"size\" or \"position\".  If left blank, stops "
                                                             "all animations of properties of this object."}},
                            "return": None,
-                           "info": "Stops the animation specified by <b>propertyName</b> from running on this object, "
-                                   "or if no <b>propertyName</b> is specified, stops all running animations on this "
+                           "info": "Stops the animation specified by <b>property_name</b> from running on this object, "
+                                   "or if no <b>property_name</b> is specified, stops all running animations on this "
                                    "object.  Any animated properties are left at their current, mid-animation values."},
     }
 
@@ -710,8 +710,7 @@ class HelpDataButton():
                           "Group).  Otherwise returns an empty list."},
         "get_radio_group_selection": {"args": {}, "return": "button",
                   "info": "If this button is a Radio button, then return the selected Radio button in this button's "
-                          "Radio group, which is defined as all Radio buttons with the same direct parent (Card or "
-                          "Group). If this button is not a Radio button, or if none of the buttons in the group are "
+                          "Radio group. If this button is not a Radio button, or if none of the buttons in the group are "
                           "selected, returns None."},
     }
 
@@ -926,13 +925,13 @@ class HelpDataGroup():
                    "return": None,
                    "info": "Ungroups this group.  Removes the group object from the card, and adds all of its "
                            "children back onto the card as individual objects."},
-        "stop_all_animating": {"args": {"propertyName": {"type": "string",
+        "stop_all_animating": {"args": {"property_name": {"type": "string",
                                        "info": "optional name of the property to stop animating, for "
                                                "example: \"size\" or \"position\".  If left blank, stops "
                                                "all animations of properties of this group and its children."}},
                               "return": None,
-                              "info": "Stops the animation specified by <b>propertyName</b> from running on this group "
-                                      "and on all objects in this group, or if no <b>propertyName</b> is specified, "
+                              "info": "Stops the animation specified by <b>property_name</b> from running on this group "
+                                      "and on all objects in this group, or if no <b>property_name</b> is specified, "
                                       "stops all running animations on this group and on all objects in this group.  "
                                       "Any animated properties are left at their current, mid-animation values."},
     }
@@ -1144,13 +1143,13 @@ class HelpDataCard():
                              "info": "Visually animates this card's <b>fill_color</b> to <b>end_color</b>, "
                                      "over <b>duration</b> seconds.  When the animation completes, runs the <b>on_finished</b> function, "
                                      "if one was passed in."},
-        "stop_all_animating": {"args": {"propertyName": {"type": "string",
+        "stop_all_animating": {"args": {"property_name": {"type": "string",
                                        "info": "optional name of the property to stop animating, for "
                                                "example: \"size\" or \"position\".  If left blank, stops "
                                               "animations of all properties of this card and its children."}},
                               "return": None,
-                              "info": "Stops the animation specified by <b>propertyName</b> from running on this card "
-                                      "and on all objects on this card, or if no <b>propertyName</b> is specified, "
+                              "info": "Stops the animation specified by <b>property_name</b> from running on this card "
+                                      "and on all objects on this card, or if no <b>property_name</b> is specified, "
                                       "stops all running animations on this card and on all objects on this card.  "
                                       "Any animated properties are left at their current, mid-animation values."},
     }

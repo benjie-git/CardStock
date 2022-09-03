@@ -1767,7 +1767,7 @@ class ViewProxy(object):
 
         model.AddAnimation("rotation", duration, onUpdate, onStart, internalOnFinished)
 
-    def stop_animating(self, propertyName=None):
+    def stop_animating(self, property_name=None):
         model = self._model
         if not model: return
-        model.StopAnimation(propertyName)
+        model.StopAnimation(property_name)

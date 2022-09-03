@@ -444,9 +444,9 @@ class Card(ViewProxy):
             return g.GetProxy() if g else None
         return func()
 
-    def stop_all_animating(self, propertyName=None):
+    def stop_all_animating(self, property_name=None):
         model = self._model
         if not model: return
-        model.StopAnimation(propertyName)
+        model.StopAnimation(property_name)
         for child in model.GetAllChildModels():
-            child.StopAnimation(propertyName)
+            child.StopAnimation(property_name)
