@@ -210,6 +210,7 @@ class ControlPanel(wx.Panel):
         event.Skip()
 
     def UpdateForUiViews(self, uiViews):
+        self.Freeze()
         if len(uiViews) > 0:
             if uiViews != self.lastSelectedUiViews:
                 self.UpdateInspectorForUiViews(uiViews)
@@ -220,6 +221,7 @@ class ControlPanel(wx.Panel):
             self.UpdateHandlerForUiViews([], None)
             self.UpdateHelpText("")
             self.lastSelectedUiViews = []
+        self.Thaw()
 
     def UpdatedProperty(self, uiView, key):
         if uiView in self.lastSelectedUiViews:
@@ -231,6 +233,7 @@ class ControlPanel(wx.Panel):
         propTypes = {}
         title = "None"
 
+        self.Freeze()
         if len(uiViews) == 1:
             uiView = uiViews[0]
             keys = uiView.model.PropertyKeys()
@@ -263,6 +266,7 @@ class ControlPanel(wx.Panel):
         self.inspector.selectedModels = [ui.model for ui in uiViews]
         self.inspector.SetData(title, props, propTypes)
         self.Layout()
+        self.Thaw()
 
     def InspectorValueChanged(self, key, val):
         uiView = self.lastSelectedUiViews[0]
