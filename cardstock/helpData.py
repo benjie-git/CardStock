@@ -1067,7 +1067,7 @@ class HelpDataCard():
                                                                  "include position=(10,10)"}},
                     "return": "textfield",
                     "info": "Adds a new Text Field to the card, and returns the new object."},
-        "AddTextLabel": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
+        "add_text_tabel": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Text Label object.  If omitted, the name will be "
                                                                 "'label_{N}'."},
                                   "...": {"info": "optionally set more properties here.  For example, "
