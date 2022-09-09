@@ -328,7 +328,7 @@ class ControlPanel(wx.Panel):
         return bmp
 
     def MakeLineBitmap(self, thickness):
-        bmp = wx.Bitmap(self.BMP_SIZE, thickness)
+        bmp = wx.Bitmap(self.BMP_SIZE, self.FromDIP(thickness))
         dc = wx.MemoryDC()
         dc.SelectObject(bmp)
         dc.SetBackground(wx.Brush("black"))
@@ -443,8 +443,9 @@ class ColorIndicator(wx.Window):
     """
     def __init__(self, parent):
         super().__init__(parent, -1, style=wx.SUNKEN_BORDER)
+        dipScale = self.FromDIP(1)
         self.SetBackgroundColour(wx.WHITE)
-        self.SetMinSize( (60, 60) )
+        self.SetMinSize( (60*dipScale, 60*dipScale) )
         self.pen_color = self.fill_color = self.thickness = None
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
@@ -455,7 +456,7 @@ class ColorIndicator(wx.Window):
         """
         self.pen_color = pen_color
         self.fill_color = fill_color
-        self.thickness = thickness
+        self.thickness = self.FromDIP(thickness)
         self.Refresh()  # generate a paint event
 
     def OnPaint(self, event):
@@ -466,6 +467,7 @@ class ColorIndicator(wx.Window):
         dc = wx.PaintDC(self)
         if self.pen_color and self.fill_color and self.thickness:
             sz = self.GetClientSize()
+            dipScale = self.FromDIP(1)
             dc.SetPen(wx.Pen(self.pen_color, self.thickness))
             dc.SetBrush(wx.Brush(self.fill_color))
-            dc.DrawRoundedRectangle(10, 10, int(sz.width-20), int(sz.height-20), 10)
+            dc.DrawRoundedRectangle(10*dipScale, 10*dipScale, int(sz.width-20*dipScale), int(sz.height-20*dipScale), 10*dipScale)
