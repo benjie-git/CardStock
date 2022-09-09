@@ -13,8 +13,8 @@ TAB_WIDTH = 3
 
 if wx.Platform == '__WXMSW__':
     faces = { 'mono' : 'Courier New',
-              'size' : 13,
-              'lineHeight': 15,
+              'size' : 12,
+              'lineHeight': 14,
               }
 elif wx.Platform == '__WXMAC__':
     faces = { 'mono' : 'Monaco',
@@ -53,7 +53,6 @@ class PythonEditor(stc.StyledTextCtrl):
         self.SetUndoCollection(False)
         self.SetScrollWidth(300)
         self.SetScrollWidthTracking(True)
-        self.SetBufferedDraw(True)
         self.CmdKeyClear(ord("Z"), stc.STC_SCMOD_CTRL)
         self.CmdKeyClear(ord("Z"), stc.STC_SCMOD_CTRL|stc.STC_SCMOD_SHIFT)
         self.CmdKeyClear(ord("Y"), stc.STC_SCMOD_CTRL)

@@ -475,10 +475,11 @@ class EditorBlock(wx.Window):
     def UpdateEditorSize(self):
         """ Keep the editor sized vertically to fit it's content. """
         height = (self.codeEditor.GetLineCount()+1) * self.codeEditor.TextHeight(0)+1
-        self.codeEditor.SetMinClientSize((100, height))
-        self.codeEditor.SetMaxClientSize((100000, height))
-        self.Fit()
-        self.parent.Relayout()
+        if height != self.codeEditor.GetMaxClientSize().Height:
+            self.codeEditor.SetMinClientSize((100, height))
+            self.codeEditor.SetMaxClientSize((100000, height))
+            self.Fit()
+            self.parent.Relayout()
 
     def SaveHandler(self, handlerName):
         """ Save the event handler code after the user makes changes. """
