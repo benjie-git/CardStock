@@ -1,7 +1,6 @@
 import wx
 import wx.stc as stc
 import keyword
-import analyzer
 import helpData
 
 """
@@ -54,6 +53,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.SetUndoCollection(False)
         self.SetScrollWidth(300)
         self.SetScrollWidthTracking(True)
+        self.SetBufferedDraw(True)
         self.CmdKeyClear(ord("Z"), stc.STC_SCMOD_CTRL)
         self.CmdKeyClear(ord("Z"), stc.STC_SCMOD_CTRL|stc.STC_SCMOD_SHIFT)
         self.CmdKeyClear(ord("Y"), stc.STC_SCMOD_CTRL)
