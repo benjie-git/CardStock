@@ -15,7 +15,7 @@ cmdHistory = []
 class ConsoleWindow(wx.Frame):
     def __init__(self, parent, allowInput):
         super().__init__(parent, title="Console", style=wx.DEFAULT_FRAME_STYLE|wx.FRAME_TOOL_WINDOW)
-        self.SetMinClientSize(self.FromDIP(wx.Size(300,100)))
+        self.SetMinClientSize(self.FromDIP(wx.Size(300,75)))
         self.SetClientSize(self.FromDIP(wx.Size(500,200)))
 
         self.textBox = pythonEditor.PythonEditor(self, None, parent.stackManager, skipLexer=True, style=wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
@@ -69,7 +69,7 @@ class ConsoleWindow(wx.Frame):
     def Show(self, doShow=True):
         super().Show(doShow)
         if doShow and not self.hasShown:
-            self.SetSize((self.GetParent().GetSize().Width, self.FromDIP(100)))
+            self.SetClientSize((self.GetParent().GetSize().Width, self.FromDIP(75)))
             self.SetPosition(self.GetParent().GetPosition() + (0, self.GetParent().GetSize().Height))
             self.textBox.SetSelection(self.lastOutputPos, self.lastOutputPos)
             self.UpdateAC()
