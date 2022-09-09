@@ -14,16 +14,17 @@ class UiWebView(UiView):
         self.model = None
         self.cover = None
         self.webView = None
+        stackManager.view.Freeze()
         container = wx.Window(parent=stackManager.view)
         super().__init__(parent, stackManager, model, container)
         self.CreateWebView(container)
+        stackManager.view.Thaw()
 
     def GetCursor(self):
         return None
 
     def CreateWebView(self, container):
-        s = self.model.GetProperty("size")
-
+        s = self.view.FromDIP(self.model.GetProperty("size"))
         self.webView = wx.html2.WebView.New(container, size=s)
         self.webView.RegisterHandler(wx.html2.WebViewFSHandler('cardstock'))
         self.webView.Bind(wx.html2.EVT_WEBVIEW_NAVIGATING, self.OnWillLoad)

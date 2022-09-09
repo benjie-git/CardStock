@@ -366,25 +366,26 @@ class StackExporter(object):
 
 class ExportDialog(wx.Dialog):
     def __init__(self, parent, exporter):
-        super().__init__(parent, title="Export Stack", size=(500, 400))
+        dipScale = parent.FromDIP(1)
+        super().__init__(parent, title="Export Stack", size=(500*dipScale, 400*dipScale))
         self.exporter = exporter
 
         self.panel = wx.Panel(self)
         self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        spacing = 5
+        spacing = 5*dipScale
 
         self.items = list(self.exporter.resList)
 
-        addBtn = wx.Button(self.panel, label = "Add", size=(50, 20))
+        addBtn = wx.Button(self.panel, label = "Add", size=(50*dipScale, 20*dipScale))
         addBtn.Bind(wx.EVT_BUTTON, self.OnAdd)
 
-        rmBtn = wx.Button(self.panel, label = "Remove", size=(50, 20))
+        rmBtn = wx.Button(self.panel, label = "Remove", size=(50*dipScale, 20*dipScale))
         rmBtn.Bind(wx.EVT_BUTTON, self.OnRemove)
 
-        exportAppBtn = wx.Button(self.panel, label = "Export as App", size=(50, 20))
+        exportAppBtn = wx.Button(self.panel, label = "Export as App", size=(50*dipScale, 20*dipScale))
         exportAppBtn.Bind(wx.EVT_BUTTON, self.OnExportApp)
 
-        exportWebBtn = wx.Button(self.panel, label = "Upload to Web", size=(50, 20))
+        exportWebBtn = wx.Button(self.panel, label = "Upload to Web", size=(50*dipScale, 20*dipScale))
         exportWebBtn.Bind(wx.EVT_BUTTON, self.OnExportWeb)
 
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)

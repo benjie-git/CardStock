@@ -40,14 +40,17 @@ class ControlPanel(wx.Panel):
         numCols = 12
         spacing = 6
 
-        btnSize = wx.Size(self.BMP_SIZE + 2*self.BMP_BORDER,
-                          self.BMP_SIZE + 2*self.BMP_BORDER)
+        btnSize = self.FromDIP(wx.Size(self.BMP_SIZE + 2*self.BMP_BORDER,
+                          self.BMP_SIZE + 2*self.BMP_BORDER))
 
         # Make a grid of buttons for the tools.
         self.toolBtns = {}
         toolBitmaps = {}
         for k,v in embeddedToolImages.items():
-            toolBitmaps[k] = v.GetBitmap()
+            b = v.GetBitmap()
+            if wx.Platform == "__WXMSW__":
+                b.Rescale(b, self.FromDIP(wx.Size(self.BMP_SIZE, self.BMP_SIZE)))
+            toolBitmaps[k] = b
 
         self.toolGrid = wx.GridSizer(cols=numCols, hgap=3, vgap=2)
         for i in range(len(self.toolNames)):
@@ -108,7 +111,7 @@ class ControlPanel(wx.Panel):
         self.inspector.valueChangedFunc = self.InspectorValueChanged
         self.inspector.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnGridCellSelected)
 
-        self.panelHelp = wx.html.HtmlWindow(self, size=(200, 50), style=wx.BORDER_SUNKEN)
+        self.panelHelp = wx.html.HtmlWindow(self, size=(self.FromDIP(200), self.FromDIP(50)), style=wx.BORDER_SUNKEN)
 
         self.helpResizer = ResizeWidget(self)
         self.helpResizer.SetColors(pen='blue', fill='blue')

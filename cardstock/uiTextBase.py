@@ -65,7 +65,8 @@ class UiTextBase(UiView):
     def UpdateFont(self, model, view):
         familyName = model.GetProperty("font")
 
-        size = self.ScaleFontSize(model.GetProperty("font_size"), view)
+        dipScale = self.stackManager.view.FromDIP(1)
+        size = self.ScaleFontSize(model.GetProperty("font_size"), view) * dipScale
         font = wx.Font(wx.FontInfo(wx.Size(0, int(size)))
                        .Family(self.FamilyForName(familyName))
                        .Bold(model.properties["is_bold"])
@@ -91,7 +92,7 @@ class UiTextBase(UiView):
                 fontName = font.GetNativeFontInfoUserDesc().split("'")[1]
             else:
                 fontName = font.GetNativeFontInfoUserDesc().split(" ")[0]
-            spec = f"fore:{colorStr},face:{fontName},size:{size}"
+            spec = f"fore:{colorStr},face:{fontName},size:{int(size/dipScale)}"
             view.StyleSetSpec(stc.STC_STYLE_DEFAULT, spec)
             view.StyleClearAll()
 

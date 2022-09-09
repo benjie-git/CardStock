@@ -26,12 +26,7 @@ class UiButton(UiView):
             UiButton.radioOffBmp = radio_off.GetBitmap()
             UiButton.checkboxOnBmp = checkbox_on.GetBitmap()
             UiButton.checkboxOffBmp = checkbox_off.GetBitmap()
-            if wx.Platform == "__WXMSW__":
-                wx.Bitmap.Rescale(UiButton.radioOnBmp,  (16,16))
-                wx.Bitmap.Rescale(UiButton.radioOffBmp, (16, 16))
-                wx.Bitmap.Rescale(UiButton.checkboxOnBmp,  (16,16))
-                wx.Bitmap.Rescale(UiButton.checkboxOffBmp, (16, 16))
-            else:
+            if wx.Platform != "__WXMSW__":
                 UiButton.radioOnBmp.SetScaleFactor(2)
                 UiButton.radioOffBmp.SetScaleFactor(2)
                 UiButton.checkboxOnBmp.SetScaleFactor(2)
@@ -96,21 +91,22 @@ class UiButton(UiView):
         style = self.model.GetProperty("style")
 
         hilighted = self.mouseDownInside and self.mouseStillInside
+        dipScale = self.stackManager.view.FromDIP(1)
         if style == "Border":
             (width, height) = self.model.GetProperty("size")
 
-            gc.SetPen(wx.Pen('#AAAAAA88', 1))
+            gc.SetPen(wx.Pen('#AAAAAA88', 1*dipScale))
             gc.SetBrush(wx.Brush('#AAAAAA88'))
-            gc.DrawRoundedRectangle(wx.Rect(1, 0, width-1, height-1), 5)
-            gc.SetPen(wx.Pen('#00000066', 1))
+            gc.DrawRoundedRectangle(wx.Rect(1, 0, width-1, height-1), 5*dipScale)
+            gc.SetPen(wx.Pen('#00000066', 1*dipScale))
             gc.SetBrush(wx.Brush('#3366FF' if hilighted else 'white'))
-            gc.DrawRoundedRectangle(wx.Rect(0, 1, width-1, height-1), 5)
+            gc.DrawRoundedRectangle(wx.Rect(0, 1, width-1, height-1), 5*dipScale)
 
             title = self.model.GetProperty("title")
             if len(title):
-                font = wx.Font(wx.FontInfo(wx.Size(0, 16)).Family(wx.FONTFAMILY_DEFAULT))
-                lineHeight = font.GetPixelSize().height
-                (startX, startY) = (0, (height+lineHeight)/2+1)
+                font = wx.Font(wx.FontInfo(wx.Size(0, 16*dipScale*dipScale)).Family(wx.FONTFAMILY_DEFAULT))
+                lineHeight = font.GetPixelSize().height / dipScale
+                (startX, startY) = (0, (height+lineHeight)/2 + (1 if dipScale == 1 else -3*dipScale))
 
                 lines = wordwrap(title, width, gc)
                 line = lines.split("\n")[0]
@@ -118,16 +114,16 @@ class UiButton(UiView):
                 gc.SetFont(font)
                 gc.SetTextForeground(wx.Colour('white' if hilighted else 'black'))
                 textWidth = gc.GetTextExtent(line).Width
-                xPos = startX + (width - textWidth) / 2
+                xPos = (startX + (width - textWidth/dipScale) / 2)
                 gc.DrawText(line, wx.Point(int(xPos), int(startY)))
 
         elif style == "Borderless":
             title = self.model.GetProperty("title")
             if len(title):
                 (width, height) = self.model.GetProperty("size")
-                font = wx.Font(wx.FontInfo(wx.Size(0, 16)).Family(wx.FONTFAMILY_DEFAULT))
-                lineHeight = font.GetPixelSize().height
-                (startX, startY) = (0, (height+lineHeight)/2)
+                font = wx.Font(wx.FontInfo(wx.Size(0, 16*dipScale*dipScale)).Family(wx.FONTFAMILY_DEFAULT))
+                lineHeight = font.GetPixelSize().height / dipScale
+                (startX, startY) = (0, (height+lineHeight)/2 + (1 if dipScale == 1 else -3*dipScale))
 
                 lines = wordwrap(title, width, gc)
                 line = lines.split("\n")[0]
@@ -135,7 +131,7 @@ class UiButton(UiView):
                 gc.SetFont(font)
                 gc.SetTextForeground(wx.Colour('#888888' if hilighted else 'black'))
                 textWidth = gc.GetTextExtent(line).Width
-                xPos = startX + (width - textWidth) / 2
+                xPos = (startX + (width - textWidth/dipScale) / 2)
                 gc.DrawText(line, wx.Point(int(xPos), int(startY)))
 
         elif style in ("Radio", "Checkbox"):
@@ -145,13 +141,15 @@ class UiButton(UiView):
                 iconBmp = UiButton.radioOnBmp if self.model.GetProperty("is_selected") else UiButton.radioOffBmp
             else:
                 iconBmp = UiButton.checkboxOnBmp if self.model.GetProperty("is_selected") else UiButton.checkboxOffBmp
-            gc.DrawBitmap(iconBmp, 2, int((height + iconBmp.ScaledHeight) / 2))
+            startY = int((height + iconBmp.ScaledHeight) / 2) + (1 if dipScale == 1 else -3*dipScale)
+            gc.DrawBitmap(iconBmp, 2*dipScale, startY)
 
             title = self.model.GetProperty("title")
             if len(title):
-                font = wx.Font(wx.FontInfo(wx.Size(0, 16)).Family(wx.FONTFAMILY_DEFAULT))
-                lineHeight = font.GetPixelSize().height
-                startPos = (25, (height+lineHeight)/2)
+                font = wx.Font(wx.FontInfo(wx.Size(0, 16*dipScale*dipScale)).Family(wx.FONTFAMILY_DEFAULT))
+                lineHeight = font.GetPixelSize().height / dipScale
+                startY = int((height + lineHeight) / 2) + (1 if dipScale == 1 else -3*dipScale)
+                startPos = (25, startY)
                 gc.SetFont(font)
                 gc.SetTextForeground(wx.Colour('black'))
                 lines = wordwrap(title, width, gc)

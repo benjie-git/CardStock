@@ -76,7 +76,7 @@ class DeferredRefreshWindow(wx.Window):
         """
         Vertically flip the mouse position / input to the stack view, so the origin is the bottom-left corner.
         """
-        return self.stackManager.ConvPoint(super().ScreenToClient(*args, **kwargs))
+        return self.stackManager.ConvPoint(super().ScreenToClient(*args, **kwargs), conv_ToDIP=True)
 
 
 class StackManager(object):
@@ -115,6 +115,7 @@ class StackManager(object):
         self.cardIndex = None
 
         # This is the only UiCard in the designer or viewer.  It gets re-set-up with each card model, one at a time.
+        self.uiCard = None
         self.uiCard = UiCard(None, self, self.stackModel.childModels[0])
 
         self.uiCard.model.SetDirty(False)
@@ -280,7 +281,7 @@ class StackManager(object):
         self.cardIndex = None
         if self.isEditing:
             wx.CallAfter(self.analyzer.RunAnalysis)
-            self.view.SetSize(self.stackModel.GetProperty("size"))
+            self.uiCard.ResizeCardView(self.stackModel.GetProperty("size"))
         self.command_processor.ClearCommands()
         self.stackModel.SetDirty(False)
         self.UpdateCursor()
@@ -684,10 +685,11 @@ class StackManager(object):
         if model == self.stackModel:
             uiView = self.uiCard
             if key == "size":
+                s = model.GetProperty(key)
                 if self.designer:
-                    self.view.SetSize(model.GetProperty(key))
+                    self.uiCard.ResizeCardView(s)
                 else:
-                    self.view.GetTopLevelParent().SetClientSize(model.GetProperty(key))
+                    self.view.GetTopLevelParent().SetClientSize(self.view.FromDIP(s))
         if uiView:
             uiView.OnPropertyChanged(model, key)
         if uiView and self.designer:
@@ -959,33 +961,33 @@ class StackManager(object):
         if not self.uiCard.model.parent:
             return # Not fully set up yet
         self.UpdateBuffer()
-        didEnqueue = False
-        self.view.didResize = True
-        if not self.isEditing and self.runner and self.stackModel.GetProperty("can_resize"):
-            self.uiCard.model.SetProperty("size", self.view.GetTopLevelParent().GetClientSize())
-            didEnqueue = self.runner.RunHandler(self.uiCard.model, "on_resize", None)
-        if self.isEditing or not didEnqueue:
-            self.view.Refresh()
-            self.view.RefreshIfNeeded()
         event.Skip()
 
-    def ConvPoint(self, pt, height=None):
+    def ConvPoint(self, pt, conv_ToDIP=False):
         """
         Vertically flip the stack view, so the origin is the bottom-left corner.
         """
-        if not height:
-            height = self.stackModel.GetProperty("size").height
-        return wx.Point(int(pt[0]), int(height - pt[1]))
+        height = self.view.GetSize().Height
 
-    def ConvRect(self, rect, height=None):
+        if wx.Platform == '__WXMSW__':
+            if conv_ToDIP:
+                return self.view.ToDIP(wx.Point(int(pt[0]), int(height - pt[1])))
+            else:
+                return self.view.FromDIP(wx.Point(int(pt[0]), int(self.view.ToDIP(height) - pt[1])))
+        else:
+            return wx.Point(int(pt[0]), int(height - pt[1]))
+
+    def ConvRect(self, rect):
         """
         Vertically flip the stack view, so the origin is the bottom-left corner.
         """
         if rect:
-            if not height:
-                height = self.stackModel.GetProperty("size").height
+            height = self.view.GetSize().Height
             bl = rect.BottomLeft
-            return wx.Rect((bl[0], height - bl[1]), rect.Size)
+            if wx.Platform == '__WXMSW__':
+                return wx.Rect(self.view.FromDIP(wx.Point(bl[0], self.view.ToDIP(height) - bl[1])), self.view.FromDIP(rect.Size))
+            else:
+                return wx.Rect(wx.Point(bl[0], height - bl[1]), rect.Size)
         return None
 
     def UpdateBuffer(self):

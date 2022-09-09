@@ -67,14 +67,16 @@ class UiTextLabel(UiTextBase):
             self.stackManager.view.Refresh()
 
     def DoesTextFitWithSize(self, gc, font_size):
+        dipScale = self.stackManager.view.FromDIP(1)
         font = wx.Font(self.font)
-        font.SetPixelSize(wx.Size(0, int(font_size)))
+        font.SetPixelSize(wx.Size(0, int(font_size*dipScale)))
         gc.SetFont(font)
         (width, height) = self.model.GetProperty("size")
         lines = wordwrap(self.model.GetProperty("text"), width, gc)
         extraLineSpacing = 1.25 if wx.Platform == "__WXMSW__" else 1.1
-        lineHeight = int(font.GetPixelSize().height * extraLineSpacing)
-        return height > lineHeight * len(lines.split('\n'))
+        lineHeight = int(font_size * extraLineSpacing)
+        numLines = len(lines.split('\n'))
+        return height > lineHeight * numLines
 
     def GetFontSizeFit(self, gc):
         if self.lastFontSize is not None:
@@ -99,38 +101,47 @@ class UiTextLabel(UiTextBase):
             return lower
 
     def Paint(self, gc):
+        dipScale = self.stackManager.view.FromDIP(1)
         align = self.model.GetProperty("alignment")
         (width, height) = self.model.GetProperty("size")
 
         font = wx.Font(self.font)
+        font_size = self.model.GetProperty("font_size")
+
         didShrink = False
         if self.model.GetProperty("can_auto_shrink"):
             (font_size, didShrink) = self.GetFontSizeFit(gc)
-            if didShrink:
-                font.SetPixelSize(wx.Size(0, int(font_size)))
+            font.SetPixelSize(wx.Size(0, int(font_size*dipScale*dipScale)))
+
+        width *= dipScale
+
         gc.SetFont(font)
         gc.SetTextForeground(wx.Colour(self.text_color))
         lines = wordwrap(self.model.GetProperty("text"), width, gc)
 
-        offsetY = height
+        offsetY = height * dipScale
         extraLineSpacing = 1.25 if wx.Platform == "__WXMSW__" else 1.1
-        lineHeight = int(font.GetPixelSize().height * extraLineSpacing)
+        lineHeight = int(font_size * dipScale * extraLineSpacing)
 
         for line in lines.split('\n'):
             line = line.rstrip()
             if align in ["Center", "Right"]:
                 textWidth = gc.GetTextExtent(line).Width
                 if align == "Center":
-                    xPos = (width - textWidth)/2
+                    xPos = (width - textWidth)/2/dipScale
                 else:
-                    xPos = width - textWidth
+                    xPos = (width - textWidth)/dipScale
             else:
                 xPos = 0
 
-            gc.DrawText(line, wx.Point(int(xPos), offsetY))
-            offsetY -= lineHeight
-            if offsetY + lineHeight > height:
+            if wx.Platform == "__WXMSW__":
+                gc.DrawText(line, wx.Point(int(xPos), self.stackManager.view.ToDIP(offsetY)))
+            else:
+                gc.DrawText(line, wx.Point(int(xPos), offsetY))
+            if offsetY > height * dipScale:
                 break
+            offsetY -= lineHeight
+
 
         if self.stackManager.isEditing:
             self.PaintBoundingBox(gc, 'red' if didShrink else 'gray')

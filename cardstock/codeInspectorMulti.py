@@ -23,7 +23,7 @@ class CodeInspectorContainer(wx.Window):
 
     def OnResize(self, event):
         if wx.Platform == "__WXMSW__":
-            self.codeInspector.SetRect(wx.Rect((0,24), event.GetSize()-(0,24)))
+            self.codeInspector.SetRect(wx.Rect((0,self.FromDIP(24)), event.GetSize()-(0,self.FromDIP(24))))
             self.addButton.SetPosition((self.codeInspector.Size.Width - self.addButton.Size.Width, 0))
         elif wx.Platform == "__WXGTK__":
             self.codeInspector.SetRect(wx.Rect((0, 12), event.GetSize()-(0,12)))
@@ -93,10 +93,13 @@ class CodeInspector(wx.ScrolledWindow):
         self.container.addButton.Show(uiView is not None)
 
         if uiView:
-            # self.sizer.AddSpacer(5)
-            bar = wx.Window(self, size=wx.Size(10, HEADER_HEIGHT))
-            bar.SetBackgroundColour(wx.Colour('#EEEEEE'))
-            self.sizer.Add(bar, 0, wx.EXPAND | wx.ALL, 0)
+            if wx.Platform == "__WXMSW__":
+                self.sizer.AddSpacer(5)
+            else:
+                bar = wx.Window(self, size=wx.Size(10, HEADER_HEIGHT))
+                bar.SetBackgroundColour(wx.Colour('#EEEEEE'))
+                self.sizer.Add(bar, 0, wx.EXPAND | wx.ALL, 0)
+
             for (handlerName, code) in uiView.model.handlers.items():
                 editorBlock = self.GetEditorBlock()
                 editorBlock.SetupForHandler(uiView, handlerName)
@@ -391,7 +394,7 @@ class EditorBlock(wx.Window):
         self.canShowClose = False
 
         if not EditorBlock.closeBmp:
-            s = 16 if (wx.Platform == "__WXGTK__") else 12
+            s = self.FromDIP(16 if (wx.Platform == "__WXGTK__") else 12)
             EditorBlock.closeBmp = wx.ArtProvider.GetBitmap(wx.ART_MINUS, size=wx.Size(s,s))
 
         self.label = wx.StaticText(self)
@@ -406,9 +409,9 @@ class EditorBlock(wx.Window):
 
         self.headerSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.headerSizer.Add(self.label, 1, wx.EXPAND | wx.ALL, 4)
-        self.headerSizer.AddSpacer(8)
+        self.headerSizer.AddSpacer(self.FromDIP(8))
         self.headerSizer.Add(self.closeButton, 0, wx.EXPAND | wx.ALL, 1)
-        self.headerSizer.AddSpacer(4)
+        self.headerSizer.AddSpacer(self.FromDIP(4))
 
         self.codeEditor = pythonEditor.PythonEditor(self, cPanel, self.stackManager, style=wx.BORDER_NONE)
         self.codeEditor.SetUseVerticalScrollBar(False)
@@ -427,9 +430,9 @@ class EditorBlock(wx.Window):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.headerSizer, 0, wx.EXPAND|wx.ALL, 0)
         self.sizer.Add(self.codeEditor, 0, wx.EXPAND|wx.ALL, 0)
-        self.sizer.AddSpacer(8)
+        self.sizer.AddSpacer(self.FromDIP(8))
         self.sizer.Add(self.line, 0, wx.EXPAND|wx.ALL, 0)
-        self.sizer.AddSpacer(8)
+        self.sizer.AddSpacer(self.FromDIP(8))
         self.SetSizer(self.sizer)
 
     def SetupForHandler(self, uiView, handlerName):
@@ -453,7 +456,7 @@ class EditorBlock(wx.Window):
         code = self.uiView.model.handlers[handlerName]
 
         color = "black"
-        fsize = 17 if wx.Platform == "__WXMAC__" else 15
+        fsize = self.FromDIP(17 if wx.Platform != "__WXMSW__" else 15)
         fontInfo = wx.FontInfo(wx.Size(0, fsize)).Family(wx.FONTFAMILY_MODERN).Weight(wx.FONTWEIGHT_BOLD)
         if len(code.strip()) == 0:
             color = "#555555"
@@ -478,7 +481,7 @@ class EditorBlock(wx.Window):
 
     def SaveHandler(self, handlerName):
         """ Save the event handler code after the user makes changes. """
-        if self.uiView:
+        if self.uiView and self.uiView.model:
             if self.codeEditor.HasFocus():
                 oldVal = self.uiView.model.GetHandler(handlerName)
                 newVal = self.codeEditor.GetText()

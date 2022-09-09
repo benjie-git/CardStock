@@ -56,7 +56,10 @@ class UiShape(UiView):
 
     def FlipPath(self, gc, path):
         flipAff = gc.cachedGC.CreateMatrix()
-        flipAff.Translate(0, self.stackManager.view.Size.Height)
+        scale = self.stackManager.view.FromDIP(1)
+        if scale != 1:
+            flipAff.Scale(scale, scale)
+        flipAff.Translate(0, self.stackManager.view.Size.Height/scale)
         flipAff.Scale(1, -1)
         path.Transform(flipAff)
 
@@ -75,7 +78,7 @@ class UiShape(UiView):
         if thickness == 0:
             pen = wx.TRANSPARENT_PEN
         else:
-            pen = wx.Pen(pen_color, thickness, wx.PENSTYLE_SOLID)
+            pen = wx.Pen(pen_color, self.stackManager.view.FromDIP(thickness), wx.PENSTYLE_SOLID)
         gc.cachedGC.SetPen(pen)
 
         if hasFill:
@@ -106,10 +109,10 @@ class UiShape(UiView):
             if wx.Platform != "__WXMAC__":
                 thickness -= 1
 
-            selThickness = 3
+            selThickness = self.stackManager.view.FromDIP(3)
             if (self.model.type in ["pen", "line", "polygon"]):
                 # Make lines extra thick for easier clicking
-                selThickness += 6
+                selThickness += self.stackManager.view.FromDIP(6)
             gc.cachedGC.SetPen(wx.Pen('Blue', selThickness, wx.PENSTYLE_SHORT_DASH))
             gc.cachedGC.SetBrush(wx.Brush('Blue', wx.BRUSHSTYLE_SOLID))
 

@@ -24,9 +24,9 @@ class PropertyInspector(wx.grid.Grid):
         self.isSettingUp = True
 
         self.CreateGrid(1, 2)
-        self.SetRowSize(0, 24)
-        self.SetColSize(0, 100)
-        self.SetColLabelSize(20)
+        self.SetRowSize(0, self.FromDIP(24))
+        self.SetColSize(0, self.FromDIP(110))
+        self.SetColLabelSize(self.FromDIP(20))
         self.SetColLabelValue(0, "")
         self.SetColLabelValue(1, "")
         self.SetRowLabelSize(1)
@@ -254,7 +254,8 @@ class GridCellColorRenderer(wx.grid.GridCellStringRenderer):
 
         dc.SetPen(wx.Pen('black', 1, wx.PENSTYLE_SOLID))
         dc.SetBrush(wx.Brush(color, wx.SOLID))
-        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-COLOR_PATCH_WIDTH, rect.Top+1, COLOR_PATCH_WIDTH, rect.Height-1))
+        cpw = grid.FromDIP(COLOR_PATCH_WIDTH)
+        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-cpw, rect.Top+1, cpw, rect.Height-1))
 
 
 class GridCellColorEditor(wx.grid.GridCellTextEditor):
@@ -267,7 +268,8 @@ class GridCellColorEditor(wx.grid.GridCellTextEditor):
         self.col = self.inspector.GetGridCursorCol()
         text = self.inspector.GetCellValue(self.row, self.col)
         x,y = self.inspector.ScreenToClient(wx.GetMousePosition())
-        if x > self.inspector.GetSize().Width - COLOR_PATCH_WIDTH:
+        cpw = self.inspector.FromDIP(COLOR_PATCH_WIDTH)
+        if x > self.inspector.GetSize().Width - cpw:
             data = wx.ColourData()
             data.SetColour(text)
             data.SetChooseAlpha(True)
@@ -310,16 +312,18 @@ class GridCellImageFileRenderer(wx.grid.GridCellStringRenderer):
         dc.SetFont(attr.GetFont())
         grid.DrawTextRectangle(dc, text, rect, hAlign, vAlign)
 
+        bw = grid.FromDIP(BUTTON_WIDTH)
+
         if self.showClipArtButton:
-            dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH*2, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
+            dc.DrawRectangle(wx.Rect(rect.Left + rect.Width - bw * 2, rect.Top + 1, bw, rect.Height - 1))
             if not self.clipArtBmp:
                 self.clipArtBmp = wx.ArtProvider.GetBitmap(wx.ART_CUT, size=wx.Size(rect.Height, rect.Height))
-            dc.DrawBitmap(self.clipArtBmp, wx.Point(int(rect.Left + rect.Width-BUTTON_WIDTH-((BUTTON_WIDTH+self.clipArtBmp.Width)/2)), rect.Top))
+            dc.DrawBitmap(self.clipArtBmp, wx.Point(int(rect.Left + rect.Width - bw - ((bw + self.clipArtBmp.Width) / 2)), rect.Top))
 
-        dc.DrawRectangle(wx.Rect(int(rect.Left + rect.Width-BUTTON_WIDTH), rect.Top+1, BUTTON_WIDTH, rect.Height-1))
+        dc.DrawRectangle(wx.Rect(int(rect.Left + rect.Width - bw), rect.Top + 1, bw, rect.Height - 1))
         if not self.fileBmp:
             self.fileBmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, size=wx.Size(rect.Height, rect.Height))
-        dc.DrawBitmap(self.fileBmp, wx.Point(int(rect.Left + rect.Width-((BUTTON_WIDTH+self.fileBmp.Width)/2)), rect.Top))
+        dc.DrawBitmap(self.fileBmp, wx.Point(int(rect.Left + rect.Width - ((bw + self.fileBmp.Width) / 2)), rect.Top))
 
 
 class GridCellImageFileEditor(wx.grid.GridCellTextEditor):
@@ -335,7 +339,9 @@ class GridCellImageFileEditor(wx.grid.GridCellTextEditor):
         self.col = self.inspector.GetGridCursorCol()
         text = self.inspector.GetCellValue(self.row, self.col)
         x,y = self.inspector.ScreenToClient(wx.GetMousePosition())
-        if x > self.inspector.GetSize().Width - BUTTON_WIDTH:
+        bw = self.inspector.FromDIP(BUTTON_WIDTH)
+        print(x, self.inspector.GetSize().Width - bw, self.inspector.GetSize().Width)
+        if x > self.inspector.GetSize().Width - bw:
             startDir = ""
             if self.inspector.stackManager.filename:
                 startDir = os.path.dirname(self.inspector.stackManager.filename)
@@ -358,7 +364,7 @@ class GridCellImageFileEditor(wx.grid.GridCellTextEditor):
                         pass
                 self.UpdateFile(filename)
             dlg.Destroy()
-        elif self.showClipArtButton and x > self.inspector.GetSize().Width - BUTTON_WIDTH*2:
+        elif self.showClipArtButton and x > self.inspector.GetSize().Width - bw*2:
             if not self.inspector.stackManager.filename:
                 wx.MessageDialog(self.inspector.stackManager.designer,
                                  "Please save your stack before downloading an Image.",
@@ -441,7 +447,7 @@ class GridCellObjectEditor(wx.grid.GridCellTextEditor):
         self.row = self.inspector.GetGridCursorRow()
         self.col = self.inspector.GetGridCursorCol()
         x,y = self.inspector.ScreenToClient(wx.GetMousePosition())
-        if x > self.inspector.GetSize().Width - COLOR_PATCH_WIDTH:
+        if x > self.inspector.GetSize().Width - self.inspector.FromDIP(BUTTON_WIDTH):
             self.inspector.HideCellEditControl()
             self.inspector.objClickedFunc(self.row)
         else:
@@ -480,11 +486,12 @@ class GridCellObjectRenderer(wx.grid.GridCellStringRenderer):
         hAlign, vAlign = attr.GetAlignment()
         dc.SetFont(attr.GetFont())
         grid.DrawTextRectangle(dc, text, rect, hAlign, vAlign)
+        bw = grid.FromDIP(BUTTON_WIDTH)
 
-        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-BUTTON_WIDTH, rect.Top+1, BUTTON_WIDTH, rect.Height-1))
+        dc.DrawRectangle(wx.Rect(rect.Left + rect.Width-bw, rect.Top+1, bw, rect.Height-1))
         if not self.objBmp:
             self.objBmp = wx.ArtProvider.GetBitmap(wx.ART_GO_FORWARD, size=wx.Size(rect.Height, rect.Height))
-        dc.DrawBitmap(self.objBmp, wx.Point(int(rect.Left + rect.Width-((BUTTON_WIDTH+self.objBmp.Width)/2)), rect.Top))
+        dc.DrawBitmap(self.objBmp, wx.Point(int(rect.Left + rect.Width-((bw+self.objBmp.Width)/2)), rect.Top))
 
 
 class GridCellFontRenderer(wx.grid.GridCellStringRenderer):
@@ -513,7 +520,8 @@ class GridCellFontRenderer(wx.grid.GridCellStringRenderer):
         is_bold = self.textObjs[0].GetProperty("is_bold") if len(self.textObjs) else False
         dc.SetPen(wx.Pen('grey', 1, wx.PENSTYLE_SOLID))
         dc.SetBrush(wx.Brush('grey' if is_bold else 'white', wx.SOLID))
-        styleRect = wx.Rect(int(rect.Left + rect.Width-COLOR_PATCH_WIDTH), rect.Top+1, int(COLOR_PATCH_WIDTH/3-2), rect.Height-1)
+        cpw = grid.FromDIP(COLOR_PATCH_WIDTH)
+        styleRect = wx.Rect(int(rect.Left + rect.Width-cpw), rect.Top+1, int(cpw/3-2), rect.Height-1)
         dc.DrawRectangle(styleRect)
         dc.SetFont(attr.GetFont().Bold())
         styleRect.Position -= (0, 2)
@@ -522,7 +530,7 @@ class GridCellFontRenderer(wx.grid.GridCellStringRenderer):
         is_italic = self.textObjs[0].GetProperty("is_italic") if len(self.textObjs) else False
         dc.SetPen(wx.Pen('grey', 1, wx.PENSTYLE_SOLID))
         dc.SetBrush(wx.Brush('grey' if is_italic else 'white', wx.SOLID))
-        styleRect = wx.Rect(int(rect.Left + rect.Width-2*COLOR_PATCH_WIDTH/3+1), rect.Top+1, int(COLOR_PATCH_WIDTH/3-2), rect.Height-1)
+        styleRect = wx.Rect(int(rect.Left + rect.Width-2*cpw/3+1), rect.Top+1, int(cpw/3-2), rect.Height-1)
         dc.DrawRectangle(styleRect)
         dc.SetFont(attr.GetFont().Italic())
         styleRect.Position -= (0, 2)
@@ -537,7 +545,7 @@ class GridCellFontRenderer(wx.grid.GridCellStringRenderer):
             is_underlined = self.textObjs[0].GetProperty("is_underlined") if len(self.textObjs) else False
             dc.SetPen(wx.Pen('grey', 1, wx.PENSTYLE_SOLID))
             dc.SetBrush(wx.Brush('grey' if is_underlined else 'white', wx.SOLID))
-            styleRect = wx.Rect(int(rect.Left + rect.Width-COLOR_PATCH_WIDTH/3+2), rect.Top+1, int(COLOR_PATCH_WIDTH/3-2), rect.Height-1)
+            styleRect = wx.Rect(int(rect.Left + rect.Width-cpw/3+2), rect.Top+1, int(cpw/3-2), rect.Height-1)
             dc.DrawRectangle(styleRect)
             dc.SetFont(attr.GetFont().Underlined())
             styleRect.Position -= (0, 2)
@@ -554,7 +562,8 @@ class GridCellFontEditor(GridCellCustomChoiceEditor):
         self.row = self.inspector.GetGridCursorRow()
         self.col = self.inspector.GetGridCursorCol()
         x,y = self.inspector.ScreenToClient(wx.GetMousePosition())
-        if x > self.inspector.GetSize().Width - COLOR_PATCH_WIDTH/3:
+        cpw = self.inspector.FromDIP(COLOR_PATCH_WIDTH)
+        if x > self.inspector.GetSize().Width - cpw/3:
             self.inspector.HideCellEditControl()
             showingIsUnderlined = True
             for m in self.textObjs:
@@ -568,7 +577,7 @@ class GridCellFontEditor(GridCellCustomChoiceEditor):
                                                  self.inspector.stackManager.cardIndex, obj,
                                                  "is_underlined", not is_underlined)
                     self.inspector.stackManager.command_processor.Submit(command)
-        elif x > self.inspector.GetSize().Width - 2 * COLOR_PATCH_WIDTH / 3:
+        elif x > self.inspector.GetSize().Width - 2 * cpw / 3:
             self.inspector.HideCellEditControl()
             is_italic = self.textObjs[0].GetProperty("is_italic") if len(self.textObjs) else False
             for obj in self.textObjs:
@@ -576,7 +585,7 @@ class GridCellFontEditor(GridCellCustomChoiceEditor):
                                              self.inspector.stackManager.cardIndex, obj,
                                              "is_italic", not is_italic)
                 self.inspector.stackManager.command_processor.Submit(command)
-        elif x > self.inspector.GetSize().Width - COLOR_PATCH_WIDTH:
+        elif x > self.inspector.GetSize().Width - cpw:
             self.inspector.HideCellEditControl()
             is_bold = self.textObjs[0].GetProperty("is_bold") if len(self.textObjs) else False
             for obj in self.textObjs:

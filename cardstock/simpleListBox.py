@@ -8,6 +8,7 @@ class SimpleListBox(wx.Control):
         fSize = 18
         if wx.Platform == "__WXGTK__": fSize = 18
         if wx.Platform == "__WXMSW__": fSize = 16
+        fSize = self.FromDIP(fSize)
         self.SetFont(wx.Font(wx.FontInfo(wx.Size(0, fSize)).Family(wx.FONTFAMILY_MODERN)))
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -38,7 +39,7 @@ class SimpleListBox(wx.Control):
             w,h = self.GetTextExtent(i)
             if w > width:
                 width = w
-        self.SetSize((width+20, LINE_HEIGHT*len(self.items)+3))
+        self.SetSize(self.FromDIP(wx.Size(width+20, LINE_HEIGHT*len(self.items)+3)))
 
     def SetSelection(self, sel):
         self.selection = sel
@@ -57,7 +58,8 @@ class SimpleListBox(wx.Control):
 
     def OnMouseMove(self, event):
         pos = event.GetPosition()
-        i = min(pos.y//LINE_HEIGHT, len(self.items)-1)
+        lheight = self.FromDIP(LINE_HEIGHT)
+        i = min(pos.y//lheight, len(self.items)-1)
         if i != self.selection:
             self.UpdateSelection(i)
         event.Skip()
@@ -133,7 +135,7 @@ class SimpleListBox(wx.Control):
         dc.DrawRectangle(wx.Rect(1,1,width-3,height-3))
 
         dc.SetBrush(wx.Brush('blue'))
-        dc.DrawRectangle(1, self.selection*LINE_HEIGHT, width-4, LINE_HEIGHT)
+        dc.DrawRectangle(self.FromDIP(1), self.FromDIP(self.selection*LINE_HEIGHT), self.FromDIP(width-4), self.FromDIP(LINE_HEIGHT))
 
         font = self.GetFont()
         dc.SetFont(font)
@@ -143,7 +145,7 @@ class SimpleListBox(wx.Control):
         for line in self.items:
             if lineNum == self.selection:
                 dc.SetTextForeground("#EEEEEE")
-            dc.DrawText(line, wx.Point(4, lineNum*LINE_HEIGHT+2))
+            dc.DrawText(line, self.FromDIP(wx.Point(4, lineNum*LINE_HEIGHT+2)))
             if lineNum == self.selection:
                 dc.SetTextForeground("#222222")
             lineNum += 1

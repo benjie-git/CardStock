@@ -18,8 +18,8 @@ class CardStockError(object):
 class ErrorListWindow(wx.Frame):
     def __init__(self, designer):
         super().__init__(designer, title="Error List", style=wx.DEFAULT_FRAME_STYLE|wx.FRAME_TOOL_WINDOW|wx.FRAME_FLOAT_ON_PARENT)
-        self.SetMinClientSize(wx.Size(300,20))
-        self.SetClientSize(wx.Size(500,50))
+        self.SetMinClientSize(self.FromDIP(wx.Size(300,20)))
+        self.SetClientSize(self.FromDIP(wx.Size(500,50)))
         self.designer = designer
         self.errors = []
         self.listBox = wx.html.SimpleHtmlListBox(self, choices=[""], style=wx.html.HLB_DEFAULT_STYLE)

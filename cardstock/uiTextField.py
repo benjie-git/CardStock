@@ -25,9 +25,10 @@ class UiTextField(UiTextBase):
         self.stackManager = stackManager
         self.isInlineEditing = False
         self.inlineStartText = None
+        stackManager.view.Freeze()
         field = self.CreateField(stackManager, model)
-
         super().__init__(parent, stackManager, model, field)
+        stackManager.view.Thaw()
 
     def CreateField(self, stackManager, model):
         text = model.GetProperty("text")

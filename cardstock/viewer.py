@@ -91,7 +91,10 @@ class ViewerFrame(wx.Frame):
     def OnResize(self, event):
         if self.stackManager:
             if self.stackManager.stackModel.GetProperty("can_resize"):
-                self.stackManager.view.SetSize(self.GetClientSize())
+                if not self.stackManager.uiCard.runningInternalResize:
+                    size = self.stackManager.view.GetTopLevelParent().GetClientSize()
+                    size = self.stackManager.view.ToDIP(size)
+                    self.stackManager.uiCard.model.SetProperty("size", size)
         event.Skip()
 
     def SaveFile(self):
@@ -488,7 +491,7 @@ class ViewerFrame(wx.Frame):
             self.SetMaxClientSize(wx.DefaultSize)
             self.SetMinClientSize(wx.DefaultSize)
 
-        cs = self.stackManager.stackModel.GetProperty("size")
+        cs = self.FromDIP(self.stackManager.stackModel.GetProperty("size"))
 
         self.stackManager.view.SetSize(cs)
         self.stackManager.UpdateBuffer()
@@ -499,7 +502,7 @@ class ViewerFrame(wx.Frame):
             # This is disabled currently due to bugs in converting Frame to Client sizing on that platform
             # SetMinClientSize and SetMaxClientSize don't work quite right.
             if self.stackManager.stackModel.GetProperty("can_resize"):
-                self.SetMinClientSize(wx.Size(200,200))
+                self.SetMinClientSize(self.FromDIP(wx.Size(200,200)))
             else:
                 self.SetMaxClientSize(cs)
                 self.SetMinClientSize(cs)
@@ -644,4 +647,11 @@ def RunViewerApp():
 
 
 if __name__ == '__main__':
+    if wx.Platform == "__WXMSW__":
+        try:
+            import ctypes
+            ctypes.windll.shcore.SetProcessDpiAwareness(True)
+        except:
+            pass
+
     RunViewerApp()

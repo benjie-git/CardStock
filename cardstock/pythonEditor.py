@@ -14,22 +14,19 @@ TAB_WIDTH = 3
 
 if wx.Platform == '__WXMSW__':
     faces = { 'mono' : 'Courier New',
-              'helv' : 'Arial',
-              'size' : 14,
-              'size2': 12,
-             }
+              'size' : 13,
+              'lineHeight': 15,
+              }
 elif wx.Platform == '__WXMAC__':
     faces = { 'mono' : 'Monaco',
-              'helv' : 'Arial',
               'size' : 14,
-              'size2': 12,
-             }
+              'lineHeight': 15,
+              }
 else:
     faces = { 'mono' : 'Courier',
-              'helv' : 'Helvetica',
-              'size' : 14,
-              'size2': 12,
-             }
+              'size' : 13,
+              'lineHeight': 15,
+              }
 
 
 class PythonEditor(stc.StyledTextCtrl):
@@ -53,7 +50,7 @@ class PythonEditor(stc.StyledTextCtrl):
         # self.SetIndentationGuides(True)
         self.SetUseAntiAliasing(True)
         self.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
-        self.SetMarginWidth(1, 24)
+        self.SetMarginWidth(1, self.FromDIP(32))
         self.SetUndoCollection(False)
         self.SetScrollWidth(300)
         self.SetScrollWidthTracking(True)
@@ -61,27 +58,27 @@ class PythonEditor(stc.StyledTextCtrl):
         self.CmdKeyClear(ord("Z"), stc.STC_SCMOD_CTRL|stc.STC_SCMOD_SHIFT)
         self.CmdKeyClear(ord("Y"), stc.STC_SCMOD_CTRL)
 
-        self.StyleSetSpec(stc.STC_STYLE_DEFAULT, 'face:%(mono)s,fore:#000000,size:%(size)d' % faces)
+        self.StyleSetSpec(stc.STC_STYLE_DEFAULT, 'face:%(mono)s,fore:#000000,size:%(lineHeight)d' % faces)
 
         if not skipLexer:
-            self.StyleSetSpec(stc.STC_STYLE_LINENUMBER, 'face:%(mono)s,fore:#999999,back:#EEEEEE' % faces)
-            self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT, 'face:%(mono)s,fore:#000000,back:#DDDDFF,bold' % faces)
-            self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,   'face:%(mono)s,fore:#000000,back:#FFCCCC,bold' % faces)
+            self.StyleSetSpec(stc.STC_STYLE_LINENUMBER, 'face:%(mono)s,fore:#999999,back:#EEEEEE,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT, 'face:%(mono)s,fore:#000000,back:#DDDDFF,bold,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,   'face:%(mono)s,fore:#000000,back:#FFCCCC,bold,size:%(size)d' % faces)
             self.StyleSetSpec(stc.STC_P_DEFAULT,        'face:%(mono)s,fore:#000000,size:%(size)d' % faces)
-            self.StyleSetSpec(stc.STC_P_NUMBER,         'face:%(mono)s,fore:#007F7F' % faces)
-            self.StyleSetSpec(stc.STC_P_CHARACTER,      'face:%(mono)s,fore:#007F7F,bold' % faces)
-            self.StyleSetSpec(stc.STC_P_WORD,           'face:%(mono)s,fore:#1111EE' % faces)
-            self.StyleSetSpec(stc.STC_P_CLASSNAME,      'face:%(mono)s,fore:#2222FF' % faces)
-            self.StyleSetSpec(stc.STC_P_DEFNAME,        'face:%(mono)s,fore:#2222FF' % faces)
-            self.StyleSetSpec(stc.STC_P_DECORATOR,      'face:%(mono)s,fore:#2222FF' % faces)
-            self.StyleSetSpec(stc.STC_P_OPERATOR,       'face:%(mono)s,fore:#000044,bold' % faces)
-            self.StyleSetSpec(stc.STC_P_IDENTIFIER,     'face:%(mono)s,fore:#000000' % faces)
-            self.StyleSetSpec(stc.STC_P_STRING,         'face:%(mono)s,fore:#007F7F,bold' % faces)
-            self.StyleSetSpec(stc.STC_P_STRINGEOL,      'face:%(mono)s,fore:#000000,back:#E0C0E0,eol' % faces)
-            self.StyleSetSpec(stc.STC_P_COMMENTLINE,    'face:%(mono)s,fore:#888888' % faces)
-            self.StyleSetSpec(stc.STC_P_COMMENTBLOCK,   'face:%(mono)s,fore:#999999' % faces)
-            self.StyleSetSpec(stc.STC_P_TRIPLE,         'face:%(mono)s,fore:#007F7F,bold' % faces)
-            self.StyleSetSpec(stc.STC_P_TRIPLEDOUBLE,   'face:%(mono)s,fore:#007F7F,bold' % faces)
+            self.StyleSetSpec(stc.STC_P_NUMBER,         'face:%(mono)s,fore:#007F7F,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_P_CHARACTER,      'face:%(mono)s,fore:#007F7F,bold,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_P_WORD,           'face:%(mono)s,fore:#1111EE,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_P_CLASSNAME,      'face:%(mono)s,fore:#2222FF,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_P_DEFNAME,        'face:%(mono)s,fore:#2222FF,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_P_DECORATOR,      'face:%(mono)s,fore:#2222FF,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_P_OPERATOR,       'face:%(mono)s,fore:#000044,bold,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_P_IDENTIFIER,     'face:%(mono)s,fore:#000000,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_P_STRING,         'face:%(mono)s,fore:#007F7F,bold,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_P_STRINGEOL,      'face:%(mono)s,fore:#000000,back:#E0C0E0,eol,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_P_COMMENTLINE,    'face:%(mono)s,fore:#888888,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_P_COMMENTBLOCK,   'face:%(mono)s,fore:#999999,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_P_TRIPLE,         'face:%(mono)s,fore:#007F7F,bold,size:%(size)d' % faces)
+            self.StyleSetSpec(stc.STC_P_TRIPLEDOUBLE,   'face:%(mono)s,fore:#007F7F,bold,size:%(size)d' % faces)
 
             self.SetLexer(stc.STC_LEX_PYTHON)
             self.SetKeyWords(0, " ".join(keyword.kwlist))

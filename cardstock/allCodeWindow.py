@@ -7,8 +7,8 @@ from uiView import UiView
 class AllCodeWindow(wx.Frame):
     def __init__(self, designer):
         super().__init__(designer, title="All Code", style=wx.DEFAULT_FRAME_STYLE|wx.FRAME_TOOL_WINDOW)
-        self.SetMinClientSize(wx.Size(300,50))
-        self.SetClientSize(wx.Size(500,500))
+        self.SetMinClientSize(self.FromDIP(wx.Size(300,50)))
+        self.SetClientSize(self.FromDIP(wx.Size(500,500)))
 
         self.designer = designer
         self.analyzer = self.designer.stackManager.analyzer

@@ -245,7 +245,7 @@ class HelpData():
     @classmethod
     def TOCPage(cls):
         types = [["All Objects", "object"], ["Stack", "stack"], ["Card", "card"], ["Button", "button"],
-                 ["Text Label", "textfield"], ["Text", "textlabel"], ["Web View", "webview"],
+                 ["Text Field", "textfield"], ["Text Label", "textlabel"], ["Web View", "webview"],
                  ["Image", "image"], ["Line & Pen", "line"],
                  ["Oval & Rectangle", "shape"], ["Round Rectangle", "roundrect"], ["Group", "group"]]
         text = """

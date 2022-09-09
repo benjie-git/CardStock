@@ -83,5 +83,12 @@ class StandaloneApp(wx.App, InspectionMixin):
 
 
 if __name__ == '__main__':
+    if wx.Platform == "__WXMSW__":
+        try:
+            import ctypes
+            ctypes.windll.shcore.SetProcessDpiAwareness(True)
+        except:
+            pass
+
     app = StandaloneApp(redirect=False)
     app.MainLoop()

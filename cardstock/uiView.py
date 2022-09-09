@@ -73,10 +73,18 @@ class UiView(object):
             if self.GetCursor():
                 self.view.SetCursor(wx.Cursor(self.GetCursor()))
 
-            mSize = self.model.GetProperty("size")
-            if mSize[0] > 0 and mSize[1] > 0:
-                self.view.SetSize(self.model.GetProperty("size"))
-                self.view.SetPosition(self.stackManager.ConvPoint(self.model.GetCenter())-self.model.GetProperty("size")/2)
+            s = self.model.GetProperty("size")
+            if s[0] > 0 and s[1] > 0:
+                if self.model.type in ("stack", "card"):
+                    if self.stackManager.uiCard:
+                        self.stackManager.uiCard.ResizeCardView(s)
+                    pos = (0,0)
+                else:
+                    c = self.stackManager.ConvPoint(wx.Point(self.model.GetCenter()))
+                    s = self.view.FromDIP(self.model.GetProperty("size"))
+                    pos = c - s / 2
+                    self.view.SetSize(s)
+                self.view.SetPosition(pos)
 
             self.BindEvents(view)
             view.Bind(wx.EVT_SIZE, self.OnResize)
@@ -95,8 +103,15 @@ class UiView(object):
     def OnPropertyChanged(self, model, key):
         if key in ["position", "size", "rotation"]:
             if self.view:
-                self.view.SetSize(self.model.GetProperty("size"))
-                pos = self.stackManager.ConvPoint(self.model.GetCenter())-self.model.GetProperty("size")/2
+                s = model.GetProperty("size")
+                if model.type in ("stack", "card"):
+                    self.stackManager.uiCard.ResizeCardView(s)
+                    pos = (0,0)
+                else:
+                    c = self.stackManager.ConvPoint(wx.Point(model.GetCenter()))
+                    s = self.view.FromDIP(model.GetProperty("size"))
+                    pos = c - s / 2
+                    self.view.SetSize(s)
                 self.view.SetPosition(pos)
                 self.view.Refresh()
             if key == "position":
@@ -355,15 +370,19 @@ class UiView(object):
         # Rotate and Translate the GC, such that we can draw this object in local coords
         stackSize = self.stackManager.stackModel.properties["size"]
         pos = self.model.properties["position"]
-        cen = self.model.properties["size"]/2
         rot = self.model.GetProperty("rotation")
         rot = math.radians(rot) if rot else None
         gc.cachedGC.PushState()
+        scale = self.stackManager.view.FromDIP(1)
 
-        gc.cachedGC.Translate(pos[0]+cen[0], stackSize.height-(pos[1]+cen[1]))
         if rot:
+            cen = self.model.properties["size"] / 2
+            gc.cachedGC.Translate(scale*(pos[0] + cen[0]), scale*(stackSize.height - (pos[1] + cen[1])))
             gc.cachedGC.Rotate(rot)
-        gc.cachedGC.Translate(-cen[0], cen[1]-stackSize.height)
+            gc.cachedGC.Translate(scale*(-cen[0]), scale*(cen[1] - stackSize.height))
+        else:
+            gc.cachedGC.Translate(scale*pos[0], -pos[1]*scale)
+
 
     def Paint(self, gc):
         self.PaintBoundingBox(gc)
@@ -371,7 +390,7 @@ class UiView(object):
     def PaintBoundingBox(self, gc, color='Gray'):
         if self.stackManager.isEditing:
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            gc.SetPen(wx.Pen(color, 1, wx.PENSTYLE_DOT))
+            gc.SetPen(wx.Pen(color, self.stackManager.view.FromDIP(1), wx.PENSTYLE_DOT))
 
             pos = wx.Point(0,0)-[int(x) for x in self.model.GetProperty("position")]
             f = self.model.GetFrame()
@@ -384,7 +403,7 @@ class UiView(object):
             f = self.model.GetFrame()
             f.Offset(pos)
 
-            gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
+            gc.SetPen(wx.Pen('Blue', self.stackManager.view.FromDIP(3), wx.PENSTYLE_SHORT_DASH))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
             gc.DrawRectangle(f.Inflate(2))
 
@@ -1208,7 +1227,9 @@ class ViewProxy(object):
         self._model = model
 
     def __repr__(self):
-        return f"<{self._model.GetDisplayType()}:'{self._model.GetProperty('name')}'>"
+        if self._model:
+            return f"<{self._model.GetDisplayType()}:'{self._model.GetProperty('name')}'>"
+        return str(self.__class__)
 
     def __getattr__(self, item):
         model = self._model

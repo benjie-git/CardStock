@@ -97,10 +97,10 @@ class DesignerFrame(wx.Frame):
         self.configInfo = self.ReadConfig()
 
         super().__init__(parent, -1, self.title, size=(800,600), style=wx.DEFAULT_FRAME_STYLE)
-        self.SetMinClientSize(wx.Size(600,500))
+        self.SetMinClientSize(self.FromDIP(wx.Size(500,500)))
         # self.SetIcon(wx.Icon(os.path.join(HERE, 'resources/stack.png')))
         sb = self.CreateStatusBar()
-        sb.SetFieldsCount(2, (80,400))
+        sb.SetFieldsCount(2, (self.FromDIP(80), self.FromDIP(400)))
 
         self.editMenu = None
         self.MakeMenuBar()
@@ -192,7 +192,6 @@ class DesignerFrame(wx.Frame):
         self.stackManager.SetStackModel(stackModel)
         self.stackManager.LoadCardAtIndex(0)
         self.Layout()
-        stackModel.SetProperty("size", self.stackManager.view.GetSize())
         self.stackManager.SelectUiView(self.stackManager.uiCard)
         self.stackManager.view.Refresh()
         self.stackManager.view.SetFocus()
@@ -263,10 +262,9 @@ class DesignerFrame(wx.Frame):
                 self.lastRunErrors = []
 
     def SetFrameSizeFromModel(self):
-        size = self.stackManager.view.GetSize()
-        self.stackContainer.SetSize(size)
-        self.stackContainer.Refresh()
-        self.stackManager.view.SetSize(size)
+        size = self.stackManager.stackModel.GetProperty("size")
+        self.stackManager.uiCard.ResizeCardView(size)
+        size = self.FromDIP(size)
         self.stackManager.UpdateBuffer()
         clientSize = (size.Width + self.splitter.GetSashSize() + self.cPanel.GetSize().Width,
                       max(size.Height, 500))
@@ -281,6 +279,7 @@ class DesignerFrame(wx.Frame):
     def OnSplitterChanging(self, event):
         if event.GetSashPosition() > self.stackManager.view.GetSize().Width:
             event.SetSashPosition(self.stackManager.view.GetSize().Width)
+        self.cPanel.Refresh(True)
         event.Skip()
 
     def OnStackResize(self, event):
@@ -1207,4 +1206,11 @@ def RunDesigner():
 
 
 if __name__ == '__main__':
+    if wx.Platform == "__WXMSW__":
+        try:
+            import ctypes
+            ctypes.windll.shcore.SetProcessDpiAwareness(True)
+        except:
+            pass
+
     RunDesigner()

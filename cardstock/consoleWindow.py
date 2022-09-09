@@ -15,8 +15,8 @@ cmdHistory = []
 class ConsoleWindow(wx.Frame):
     def __init__(self, parent, allowInput):
         super().__init__(parent, title="Console", style=wx.DEFAULT_FRAME_STYLE|wx.FRAME_TOOL_WINDOW)
-        self.SetMinClientSize(wx.Size(300,100))
-        self.SetClientSize(wx.Size(500,200))
+        self.SetMinClientSize(self.FromDIP(wx.Size(300,100)))
+        self.SetClientSize(self.FromDIP(wx.Size(500,200)))
 
         self.textBox = pythonEditor.PythonEditor(self, None, parent.stackManager, skipLexer=True, style=wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
         self.textBox.returnHandler = self.OnReturn
@@ -25,9 +25,9 @@ class ConsoleWindow(wx.Frame):
         self.textBox.SetMarginType(1, wx.stc.STC_MARGIN_BACK)
         self.textBox.SetMarginWidth(1, 3)
         #self.textBox.SetCaretStyle(stc.STC_CARETSTYLE_INVISIBLE)
-        self.textBox.StyleSetSpec(INPUT_STYLE, "fore:#000000")
-        self.textBox.StyleSetSpec(ERR_STYLE, "fore:#aa0000")
-        self.textBox.StyleSetSpec(OUTPUT_STYLE, "fore:#555555")
+        self.textBox.StyleSetSpec(INPUT_STYLE, "fore:#000000,size:14")
+        self.textBox.StyleSetSpec(ERR_STYLE, "fore:#aa0000,size:14")
+        self.textBox.StyleSetSpec(OUTPUT_STYLE, "fore:#555555,size:14")
 
         self.allowInput = allowInput
         self.timer = None
@@ -69,7 +69,7 @@ class ConsoleWindow(wx.Frame):
     def Show(self, doShow=True):
         super().Show(doShow)
         if doShow and not self.hasShown:
-            self.SetSize((self.GetParent().GetSize().Width, 100))
+            self.SetSize((self.GetParent().GetSize().Width, self.FromDIP(100)))
             self.SetPosition(self.GetParent().GetPosition() + (0, self.GetParent().GetSize().Height))
             self.textBox.SetSelection(self.lastOutputPos, self.lastOutputPos)
             self.UpdateAC()
@@ -81,6 +81,7 @@ class ConsoleWindow(wx.Frame):
 
     def OnResize(self, event):
         self.textBox.SetSize(self.GetClientSize())
+        event.Skip()
 
     def OnZoom(self, event):
         z = event.GetEventObject().GetZoom()

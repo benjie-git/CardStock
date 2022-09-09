@@ -14,6 +14,7 @@ class UiCard(UiView):
     """
 
     def __init__(self, parent, stackManager, model):
+        self.runningInternalResize = False
         super().__init__(parent, stackManager, model, stackManager.view)
 
     def DestroyView(self):
@@ -43,9 +44,24 @@ class UiCard(UiView):
     def GetCursor(self):
         return None
 
+    def ResizeCardView(self, newModelSize):
+        size = self.view.FromDIP(newModelSize)
+        self.runningInternalResize = True
+        self.view.SetSize(size)
+        self.view.SetPosition((0,0))
+        print(self.view.GetRect())
+        self.runningInternalResize = False
+
     def OnResize(self, event):
-        if self.stackManager and (self.stackManager.isEditing or self.model.parent.GetProperty("canResize")):
-            self.model.parent.SetProperty("size", self.view.GetSize())
+        if self.runningInternalResize:
+            return
+        didEnqueue = False
+        self.stackManager.view.didResize = True
+        if not self.stackManager.isEditing and self.stackManager.runner and self.stackManager.stackModel.GetProperty("can_resize"):
+            didEnqueue = self.stackManager.runner.RunHandler(self.model, "on_resize", None)
+        if self.stackManager.isEditing or not didEnqueue:
+            self.stackManager.view.Refresh()
+            self.stackManager.view.RefreshIfNeeded()
         event.Skip()
 
     def Paint(self, gc):
@@ -54,15 +70,15 @@ class UiCard(UiView):
             bg = wx.Colour('white')
         gc.SetBrush(wx.Brush(bg, wx.BRUSHSTYLE_SOLID))
         gc.SetPen(wx.TRANSPARENT_PEN)
-        gc.DrawRectangle(self.model.GetFrame())
+        gc.DrawRectangle(self.model.GetFrame().Inflate(1))
 
     def PaintSelectionBox(self, gc):
         if self.isSelected and self.stackManager.tool.name == "hand":
             f = self.model.GetAbsoluteFrame()
             f.Top += 1
-            gc.SetPen(wx.Pen('Blue', 3, wx.PENSTYLE_SHORT_DASH))
+            gc.SetPen(wx.Pen('Blue', self.stackManager.view.FromDIP(3), wx.PENSTYLE_SHORT_DASH))
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            gc.DrawRectangle(f.Deflate(1))
+            gc.DrawRectangle(f.Deflate(self.stackManager.view.FromDIP(1)))
 
             gc.SetPen(wx.TRANSPARENT_PEN)
             gc.SetBrush(wx.Brush('blue', wx.BRUSHSTYLE_SOLID))
