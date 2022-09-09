@@ -23,14 +23,14 @@ class SimpleListBox(wx.Control):
         self.parent = parent
         self.items = []
         self.matchCharIndex = 0
-        self.selection = 0
+        self.selection = None
         self.selectFunc = None
         self.doneFunc = None
 
     def SetupWithItems(self, items, matchCharIndex, selectedStr=None):
         self.items = items
         self.matchCharIndex = matchCharIndex
-        self.selection = 0
+        self.selection = None
         if selectedStr:
             i = self.items.index(selectedStr)
             self.selection = i
@@ -39,7 +39,9 @@ class SimpleListBox(wx.Control):
             w,h = self.GetTextExtent(i)
             if w > width:
                 width = w
-        self.SetSize(self.FromDIP(wx.Size(width+20, LINE_HEIGHT*len(self.items)+3)))
+        self.SetSize(self.FromDIP(wx.Size(self.ToDIP(width)+20, LINE_HEIGHT*len(self.items)+3)))
+        if not self.HasCapture():
+            self.CaptureMouse()
 
     def SetSelection(self, sel):
         self.selection = sel
@@ -51,6 +53,8 @@ class SimpleListBox(wx.Control):
         self.Refresh(True)
 
     def DoClose(self, success):
+        if self.HasCapture():
+            self.ReleaseMouse()
         if not success and self.doneFunc:
             self.selection = None
         self.ChooseCurrentItem()
@@ -58,10 +62,16 @@ class SimpleListBox(wx.Control):
 
     def OnMouseMove(self, event):
         pos = event.GetPosition()
-        lheight = self.FromDIP(LINE_HEIGHT)
-        i = min(pos.y//lheight, len(self.items)-1)
-        if i != self.selection:
-            self.UpdateSelection(i)
+        s = self.GetSize()
+        if 0 <= pos.x <= s.Width and 0 <= pos.y <= s.Height:
+            lheight = self.FromDIP(LINE_HEIGHT)
+            i = min(pos.y//lheight, len(self.items)-1)
+            if 0 <= i < len(self.items) and i != self.selection:
+                self.UpdateSelection(i)
+        else:
+            if self.selection is not None:
+                self.UpdateSelection(None)
+
         event.Skip()
 
     def OnMouseUp(self, event):
@@ -81,10 +91,14 @@ class SimpleListBox(wx.Control):
         if event.GetKeyCode() in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER, wx.WXK_SPACE):
             self.DoClose(True)
         elif event.GetKeyCode() == wx.WXK_UP:
-            if self.selection > 0:
+            if self.selection is None:
+                self.UpdateSelection(len(self.items)-1)
+            elif self.selection > 0:
                 self.UpdateSelection(self.selection-1)
         elif event.GetKeyCode() == wx.WXK_DOWN:
-            if self.selection < len(self.items)-1:
+            if self.selection is None:
+                self.UpdateSelection(0)
+            elif self.selection < len(self.items)-1:
                 self.UpdateSelection(self.selection+1)
         elif event.GetKeyCode() == wx.WXK_ESCAPE:
             self.selection = None
@@ -116,7 +130,10 @@ class SimpleListBox(wx.Control):
         self.selection = i
         self.Refresh(True)
         if self.selectFunc:
-            self.selectFunc(self.selection, self.items[self.selection])
+            if self.selection is not None:
+                self.selectFunc(self.selection, self.items[self.selection])
+            else:
+                self.selectFunc(self.selection, None)
 
     def OnLostFocus(self, event):
         self.DoClose(False)
@@ -134,8 +151,9 @@ class SimpleListBox(wx.Control):
         dc.SetBrush(wx.Brush('#F8F8F8'))
         dc.DrawRectangle(wx.Rect(1,1,width-3,height-3))
 
-        dc.SetBrush(wx.Brush('blue'))
-        dc.DrawRectangle(self.FromDIP(1), self.FromDIP(self.selection*LINE_HEIGHT), self.FromDIP(width-4), self.FromDIP(LINE_HEIGHT))
+        if self.selection is not None:
+            dc.SetBrush(wx.Brush('blue'))
+            dc.DrawRectangle(self.FromDIP(1), self.FromDIP(self.selection*LINE_HEIGHT), self.FromDIP(width-4), self.FromDIP(LINE_HEIGHT))
 
         font = self.GetFont()
         dc.SetFont(font)

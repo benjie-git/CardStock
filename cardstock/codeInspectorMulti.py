@@ -258,7 +258,6 @@ class CodeInspector(wx.ScrolledWindow):
         self.container.addButton.Hide()
         if wx.Platform == "__WXMSW__":
             self.container.Disable()
-            self.cPanel.inspector.Disable()
         displayNames = []
         for k in self.currentUiView.model.GetHandlers().keys():
             displayNames.append(k+'()')
@@ -308,13 +307,14 @@ class CodeInspector(wx.ScrolledWindow):
                 wx.CallAfter(f)
 
             self.container.addButton.Show()
-            self.container.Enable()
-            self.cPanel.inspector.Enable()
+            if wx.Platform == "__WXMSW__":
+                self.container.Enable()
             hp.DestroyLater()
 
     def OnHandlerPickerSelectionChanged(self, index, text):
-        handlerName = self.DisplayNameToRawName(text)
-        self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, handlerName))
+        if index is not None:
+            handlerName = self.DisplayNameToRawName(text)
+            self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, handlerName))
 
     def OnMouseDown(self, event):
         """
