@@ -49,7 +49,6 @@ class UiCard(UiView):
         self.runningInternalResize = True
         self.view.SetSize(size)
         self.view.SetPosition((0,0))
-        print(self.view.GetRect())
         self.runningInternalResize = False
 
     def OnResize(self, event):
