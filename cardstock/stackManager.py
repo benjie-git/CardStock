@@ -1172,10 +1172,11 @@ class StackManager(object):
             propName = uiView.model.PropertyKeys()[cPanel.inspector.GetGridCursorRow()]
             return (str(cardIndex) + "." + model.GetProperty("name") + ".property." + propName, (start, end, text))
 
-        handlerName = cPanel.codeInspector.GetCurrentHandler()
-        start, end, text = self.designer.cPanel.codeInspector.GetCodeEditorSelection(handlerName)
-        if model and handlerName:
-            return (str(cardIndex) + "." + model.GetProperty("name") + ".handler." + handlerName, (start, end, text))
+        if uiView:
+            handlerName = cPanel.codeInspector.GetCurrentHandler()
+            start, end, text = self.designer.cPanel.codeInspector.GetCodeEditorSelection(handlerName)
+            if model and handlerName:
+                return (str(cardIndex) + "." + model.GetProperty("name") + ".handler." + handlerName, (start, end, text))
 
         if not model:
             model = self.uiCard.model

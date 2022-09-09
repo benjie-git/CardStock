@@ -217,6 +217,7 @@ class CodeInspector(wx.ScrolledWindow):
             self.UpdateEditorVisibility()
         editorBlock.codeEditor.SetFocus()
         editorBlock.codeEditor.SetSelection(selStart, selEnd)
+        editorBlock.codeEditor.ScrollRange(selStart, selEnd)
         editorBlock.ScrollParentIfNeeded()
 
     def SelectAndScrollToLine(self, handlerName, selLine):
