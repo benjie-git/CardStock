@@ -56,8 +56,8 @@ class UiShape(UiView):
 
     def FlipPath(self, gc, path):
         flipAff = gc.cachedGC.CreateMatrix()
-        scale = self.stackManager.view.FromDIP(1)
-        if scale != 1:
+        scale = self.stackManager.view.FromDIP(1000)/1000.0
+        if scale != 1.0:
             flipAff.Scale(scale, scale)
         flipAff.Translate(0, self.stackManager.view.Size.Height/scale)
         flipAff.Scale(1, -1)

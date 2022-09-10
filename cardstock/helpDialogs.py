@@ -30,8 +30,7 @@ event-driven python code.  It is inspired by the simplicity and power of Apple's
 '''
 
     def __init__(self, parent):
-        dipScale = parent.FromDIP(1)
-        super().__init__(parent, -1, 'About CardStock', size=(500*dipScale, 200*dipScale))
+        super().__init__(parent, -1, 'About CardStock', size=(parent.FromDIP(500), parent.FromDIP(200)))
 
         html = wx.html.HtmlWindow(self, -1)
         html.SetPage(self.GetHTML())
@@ -336,9 +335,8 @@ stack, run it on the web, and send out links to let others run it.</p>
 '''
 
     def __init__(self, parent):
-        dipScale = parent.FromDIP(1)
         super().__init__(parent, -1, 'CardStock Manual',
-                          size=(800*dipScale, 600*dipScale))
+                          size=(parent.FromDIP(800), parent.FromDIP(600)))
 
         html = wx.html.HtmlWindow(self, -1)
         htmlStr = self.GetHTML()
@@ -501,9 +499,8 @@ the current card.  And you can access objects on other cards as, for example, st
 '''
 
     def __init__(self, parent):
-        dipScale = parent.FromDIP(1)
         super().__init__(parent, -1, 'CardStock Reference',
-                          size=(900*dipScale, 950*dipScale))
+                          size=(parent.FromDIP(900), parent.FromDIP(950)))
 
         self.splitter = wx.SplitterWindow(self, style=wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
 
@@ -521,8 +518,8 @@ the current card.  And you can access objects on other cards as, for example, st
         toc.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
         self.splitter.SplitVertically(toc, self.html)
-        self.splitter.SetMinimumPaneSize(120*dipScale)
-        self.splitter.SetSashPosition(200*dipScale)
+        self.splitter.SetMinimumPaneSize(self.FromDIP(120))
+        self.splitter.SetSashPosition(self.FromDIP(200))
         self.splitter.SetSashGravity(0.0)
 
         self.Layout()

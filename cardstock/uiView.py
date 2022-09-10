@@ -373,7 +373,7 @@ class UiView(object):
         rot = self.model.GetProperty("rotation")
         rot = math.radians(rot) if rot else None
         gc.cachedGC.PushState()
-        scale = self.stackManager.view.FromDIP(1)
+        scale = self.stackManager.view.FromDIP(1000)/1000.0
 
         if rot:
             cen = self.model.properties["size"] / 2

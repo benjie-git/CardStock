@@ -443,7 +443,7 @@ class ColorIndicator(wx.Window):
     """
     def __init__(self, parent):
         super().__init__(parent, -1, style=wx.SUNKEN_BORDER)
-        dipScale = self.FromDIP(1)
+        dipScale = self.FromDIP(1000)/1000.0
         self.SetBackgroundColour(wx.WHITE)
         self.SetMinSize( (60*dipScale, 60*dipScale) )
         self.pen_color = self.fill_color = self.thickness = None
@@ -467,7 +467,6 @@ class ColorIndicator(wx.Window):
         dc = wx.PaintDC(self)
         if self.pen_color and self.fill_color and self.thickness:
             sz = self.GetClientSize()
-            dipScale = self.FromDIP(1)
             dc.SetPen(wx.Pen(self.pen_color, self.thickness))
             dc.SetBrush(wx.Brush(self.fill_color))
-            dc.DrawRoundedRectangle(10*dipScale, 10*dipScale, int(sz.width-20*dipScale), int(sz.height-20*dipScale), 10*dipScale)
+            dc.DrawRoundedRectangle(self.FromDIP(10), self.FromDIP(10), int(sz.width-self.FromDIP(20)), int(sz.height-self.FromDIP(20)), self.FromDIP(10))

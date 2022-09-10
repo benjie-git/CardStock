@@ -54,11 +54,10 @@ class UiImage(UiView):
         if not img:
             return None
 
-        dipScale = self.stackManager.view.FromDIP(1)
         xFlipped = self.model.GetProperty("xFlipped")
         yFlipped = self.model.GetProperty("yFlipped")
         imgSize = img.GetSize()
-        viewSize = self.model.GetProperty("size") * dipScale
+        viewSize = self.stackManager.view.FromDIP(self.model.GetProperty("size"))
         fit = self.model.GetProperty("fit")
 
         if xFlipped or yFlipped:
@@ -68,7 +67,7 @@ class UiImage(UiView):
                 img = img.Mirror(horizontally=False)
 
         if fit == "Stretch":
-            img = img.Scale(int(viewSize.width), int(viewSize.height)*dipScale, quality=wx.IMAGE_QUALITY_HIGH)
+            img = img.Scale(self.stackManager.view.FromDIP(viewSize.width), self.stackManager.view.FromDIP(viewSize.height), quality=wx.IMAGE_QUALITY_HIGH)
         elif fit == "Contain":
             scaleX = viewSize.width / imgSize.width
             scaleY = viewSize.height / imgSize.height
@@ -84,12 +83,12 @@ class UiImage(UiView):
             imgSize = img.GetSize()
 
         if fit in ["Center", "Fill"]:
-            if dipScale != 1:
-                img = img.Scale(int(imgSize.width*dipScale),
-                                int(imgSize.height*dipScale), quality=wx.IMAGE_QUALITY_HIGH)
-                imgSize *= dipScale
-            offX = 0 if imgSize.Width <= viewSize.Width else ((imgSize.Width - viewSize.Width) / 2 / dipScale)
-            offY = 0 if imgSize.Height <= viewSize.Height else ((imgSize.Height - viewSize.Height) / 2 / dipScale)
+            if self.stackManager.view.FromDIP(100) != 100:
+                img = img.Scale(self.stackManager.view.FromDIP(imgSize.width),
+                                self.stackManager.view.FromDIP(imgSize.height), quality=wx.IMAGE_QUALITY_HIGH)
+                imgSize = self.stackManager.view.FromDIP(imgSize)
+            offX = 0 if imgSize.Width <= viewSize.Width else self.stackManager.view.ToDIP((imgSize.Width - viewSize.Width) / 2)
+            offY = 0 if imgSize.Height <= viewSize.Height else self.stackManager.view.ToDIP((imgSize.Height - viewSize.Height) / 2)
             w = imgSize.width if imgSize.Width <= viewSize.Width else viewSize.Width
             h = imgSize.height if imgSize.Height <= viewSize.Height else viewSize.Height
             img = img.GetSubImage(wx.Rect(int(offX), int(offY), w, h))
@@ -123,12 +122,11 @@ class UiImage(UiView):
                 if not self.scaledBitmap:
                     self.MakeScaledBitmap()
 
-                dipScale = self.stackManager.view.FromDIP(1)
                 imgSize = self.scaledBitmap.GetSize()
-                viewSize = self.model.GetProperty("size") * dipScale
+                viewSize = self.stackManager.view.FromDIP(self.model.GetProperty("size"))
                 offX = (viewSize.Width - imgSize.Width) / 2
                 offY = (viewSize.Height - imgSize.Height) / 2
-                gc.DrawBitmap(self.scaledBitmap, offX / dipScale, (offY + imgSize.Height) / dipScale)
+                gc.DrawBitmap(self.scaledBitmap, self.stackManager.view.ToDIP(int(offX)), self.stackManager.view.ToDIP(int(offY + imgSize.Height)))
 
         if self.stackManager.isEditing:
             self.PaintBoundingBox(gc)

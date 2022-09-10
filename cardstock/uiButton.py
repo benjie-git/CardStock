@@ -91,22 +91,23 @@ class UiButton(UiView):
         style = self.model.GetProperty("style")
 
         hilighted = self.mouseDownInside and self.mouseStillInside
-        dipScale = self.stackManager.view.FromDIP(1)
+        fd = self.stackManager.view.FromDIP
+        td = self.stackManager.view.ToDIP
         if style == "Border":
             (width, height) = self.model.GetProperty("size")
 
-            gc.SetPen(wx.Pen('#AAAAAA88', 1*dipScale))
+            gc.SetPen(wx.Pen('#AAAAAA88', fd(1)))
             gc.SetBrush(wx.Brush('#AAAAAA88'))
-            gc.DrawRoundedRectangle(wx.Rect(1, 0, width-1, height-1), 5*dipScale)
-            gc.SetPen(wx.Pen('#00000066', 1*dipScale))
+            gc.DrawRoundedRectangle(wx.Rect(1, 0, width-1, height-1), fd(5))
+            gc.SetPen(wx.Pen('#00000066', fd(1)))
             gc.SetBrush(wx.Brush('#3366FF' if hilighted else 'white'))
-            gc.DrawRoundedRectangle(wx.Rect(0, 1, width-1, height-1), 5*dipScale)
+            gc.DrawRoundedRectangle(wx.Rect(0, 1, width-1, height-1), fd(5))
 
             title = self.model.GetProperty("title")
             if len(title):
-                font = wx.Font(wx.FontInfo(wx.Size(0, 16*dipScale*dipScale)).Family(wx.FONTFAMILY_DEFAULT))
-                lineHeight = font.GetPixelSize().height / dipScale
-                (startX, startY) = (0, (height+lineHeight)/2 + (1 if dipScale == 1 else -3*dipScale))
+                font = wx.Font(wx.FontInfo(wx.Size(0, fd(fd(16)))).Family(wx.FONTFAMILY_DEFAULT))
+                lineHeight = td(font.GetPixelSize().height)
+                (startX, startY) = (0, (height+lineHeight)/2 + (1 if fd(100) == 100 else fd(-3)))
 
                 lines = wordwrap(title, width, gc)
                 line = lines.split("\n")[0]
@@ -114,16 +115,16 @@ class UiButton(UiView):
                 gc.SetFont(font)
                 gc.SetTextForeground(wx.Colour('white' if hilighted else 'black'))
                 textWidth = gc.GetTextExtent(line).Width
-                xPos = (startX + (width - textWidth/dipScale) / 2)
+                xPos = (startX + (width - td(textWidth)) / 2)
                 gc.DrawText(line, wx.Point(int(xPos), int(startY)))
 
         elif style == "Borderless":
             title = self.model.GetProperty("title")
             if len(title):
                 (width, height) = self.model.GetProperty("size")
-                font = wx.Font(wx.FontInfo(wx.Size(0, 16*dipScale*dipScale)).Family(wx.FONTFAMILY_DEFAULT))
-                lineHeight = font.GetPixelSize().height / dipScale
-                (startX, startY) = (0, (height+lineHeight)/2 + (1 if dipScale == 1 else -3*dipScale))
+                font = wx.Font(wx.FontInfo(wx.Size(0, fd(fd(16)))).Family(wx.FONTFAMILY_DEFAULT))
+                lineHeight = td(font.GetPixelSize().height)
+                (startX, startY) = (0, (height+lineHeight)/2 + (1 if fd(100) == 100 else fd(-3)))
 
                 lines = wordwrap(title, width, gc)
                 line = lines.split("\n")[0]
@@ -131,7 +132,7 @@ class UiButton(UiView):
                 gc.SetFont(font)
                 gc.SetTextForeground(wx.Colour('#888888' if hilighted else 'black'))
                 textWidth = gc.GetTextExtent(line).Width
-                xPos = (startX + (width - textWidth/dipScale) / 2)
+                xPos = (startX + (width - td(textWidth)) / 2)
                 gc.DrawText(line, wx.Point(int(xPos), int(startY)))
 
         elif style in ("Radio", "Checkbox"):
@@ -141,14 +142,14 @@ class UiButton(UiView):
                 iconBmp = UiButton.radioOnBmp if self.model.GetProperty("is_selected") else UiButton.radioOffBmp
             else:
                 iconBmp = UiButton.checkboxOnBmp if self.model.GetProperty("is_selected") else UiButton.checkboxOffBmp
-            startY = int((height + iconBmp.ScaledHeight) / 2) + (1 if dipScale == 1 else -3*dipScale)
-            gc.DrawBitmap(iconBmp, 2*dipScale, startY)
+            startY = int((height + iconBmp.ScaledHeight) / 2) + (1 if fd(100) == 100 else fd(-3))
+            gc.DrawBitmap(iconBmp, fd(2), startY)
 
             title = self.model.GetProperty("title")
             if len(title):
-                font = wx.Font(wx.FontInfo(wx.Size(0, 16*dipScale*dipScale)).Family(wx.FONTFAMILY_DEFAULT))
-                lineHeight = font.GetPixelSize().height / dipScale
-                startY = int((height + lineHeight) / 2) + (1 if dipScale == 1 else -3*dipScale)
+                font = wx.Font(wx.FontInfo(wx.Size(0, fd(fd(16)))).Family(wx.FONTFAMILY_DEFAULT))
+                lineHeight = td(font.GetPixelSize().height)
+                startY = int((height + lineHeight) / 2) + (1 if fd(100) == 100 else fd(-3))
                 startPos = (25, startY)
                 gc.SetFont(font)
                 gc.SetTextForeground(wx.Colour('black'))

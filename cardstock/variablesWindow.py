@@ -7,9 +7,8 @@ import uiView
 class VariablesWindow(wx.Frame):
     def __init__(self, parent, stackManager):
         super().__init__(parent, title="Variables", style=wx.DEFAULT_FRAME_STYLE|wx.FRAME_TOOL_WINDOW)
-        dipScale = self.FromDIP(1)
-        self.SetMinClientSize(wx.Size(300*dipScale,100*dipScale))
-        self.SetClientSize(wx.Size(300*dipScale,500*dipScale))
+        self.SetMinClientSize(wx.Size(self.FromDIP(300),self.FromDIP(100)))
+        self.SetClientSize(wx.Size(self.FromDIP(300),self.FromDIP(500)))
 
         self.stackManager = stackManager
         self.path = []
@@ -45,10 +44,9 @@ class VariablesWindow(wx.Frame):
 
     def Show(self, doShow=True):
         super().Show(doShow)
-        dipScale = self.FromDIP(1)
         self.stackManager.runner.EnableUpdateVars(True)
         if doShow and not self.hasShown:
-            self.SetSize((300*dipScale, self.GetParent().GetSize().Height))
+            self.SetSize((self.FromDIP(300), self.GetParent().GetSize().Height))
             self.SetPosition(self.GetParent().GetPosition() + (self.GetParent().GetSize().Width, 0))
             self.grid.SetGridCursor(0, 1)
             self.hasShown = True

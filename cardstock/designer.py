@@ -154,8 +154,8 @@ class DesignerFrame(wx.Frame):
         self.cPanel.Bind(wx.EVT_KEY_UP, self.FwdOnKeyUp)
 
         self.splitter.SplitVertically(self.stackContainer, self.cPanel)
-        self.splitter.SetMinimumPaneSize(120)
-        self.splitter.SetSashPosition(self.splitter.GetSize()[0]-600)
+        self.splitter.SetMinimumPaneSize(self.FromDIP(120))
+        self.splitter.SetSashPosition(self.splitter.GetSize()[0]-self.FromDIP(600))
         self.splitter.SetSashGravity(1.0)
 
         self.cPanel.SetSize([600,600])

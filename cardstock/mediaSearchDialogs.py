@@ -14,9 +14,8 @@ and build out a custom searching and browsing UI.
 
 class MediaSearchDialog(wx.Dialog):
     def __init__(self, parent, title, url, cur_dir, callback):
-        dipScale = parent.FromDIP(1)
         super().__init__(parent, -1, title,
-                          size=(600*dipScale, 600*dipScale), style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+                          size=(parent.FromDIP(600), parent.FromDIP(600)), style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
 
         self.browser = wx.html2.WebView.New(self)
         self.browser.Bind(wx.html2.EVT_WEBVIEW_NAVIGATING, self.OnLoad)

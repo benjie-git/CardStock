@@ -67,9 +67,8 @@ class UiTextLabel(UiTextBase):
             self.stackManager.view.Refresh()
 
     def DoesTextFitWithSize(self, gc, font_size):
-        dipScale = self.stackManager.view.FromDIP(1)
         font = wx.Font(self.font)
-        font.SetPixelSize(wx.Size(0, int(font_size*dipScale)))
+        font.SetPixelSize(wx.Size(0, self.stackManager.view.FromDIP(font_size)))
         gc.SetFont(font)
         (width, height) = self.model.GetProperty("size")
         lines = wordwrap(self.model.GetProperty("text"), width, gc)
@@ -101,7 +100,7 @@ class UiTextLabel(UiTextBase):
             return lower
 
     def Paint(self, gc):
-        dipScale = self.stackManager.view.FromDIP(1)
+        dipScale = self.stackManager.view.FromDIP(1000)/1000.0
         align = self.model.GetProperty("alignment")
         (width, height) = self.model.GetProperty("size")
 
@@ -111,7 +110,8 @@ class UiTextLabel(UiTextBase):
         didShrink = False
         if self.model.GetProperty("can_auto_shrink"):
             (font_size, didShrink) = self.GetFontSizeFit(gc)
-            font.SetPixelSize(wx.Size(0, int(font_size*dipScale*dipScale)))
+            # Shouldn't need to double FromDIP the size here... wx Bug?
+            font.SetPixelSize(wx.Size(0, self.stackManager.view.FromDIP(self.stackManager.view.FromDIP(font_size))))
 
         width *= dipScale
 
@@ -135,7 +135,7 @@ class UiTextLabel(UiTextBase):
                 xPos = 0
 
             if wx.Platform == "__WXMSW__":
-                gc.DrawText(line, wx.Point(int(xPos), self.stackManager.view.ToDIP(offsetY)))
+                gc.DrawText(line, wx.Point(int(xPos), self.stackManager.view.ToDIP(int(offsetY))))
             else:
                 gc.DrawText(line, wx.Point(int(xPos), offsetY))
             if offsetY > height * dipScale:
