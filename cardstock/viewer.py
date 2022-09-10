@@ -498,15 +498,11 @@ class ViewerFrame(wx.Frame):
         self.stackManager.UpdateBuffer()
         self.SetClientSize(cs)
 
-        if wx.Platform != "__WXGTK__":
-            # TODO: Allow disabling resizing on Linux / GTK when can_resize==False
-            # This is disabled currently due to bugs in converting Frame to Client sizing on that platform
-            # SetMinClientSize and SetMaxClientSize don't work quite right.
-            if self.stackManager.stackModel.GetProperty("can_resize"):
-                self.SetMinClientSize(self.FromDIP(wx.Size(200,200)))
-            else:
-                self.SetMaxClientSize(cs)
-                self.SetMinClientSize(cs)
+        if self.stackManager.stackModel.GetProperty("can_resize"):
+            self.SetMinClientSize(self.FromDIP(wx.Size(200,200)))
+        else:
+            self.SetMaxClientSize(cs)
+            self.SetMinClientSize(cs)
 
     def RunViewer(self, runner, stackModel, filename, cardIndex, ioValue, isGoingBack):
         # Load the model, start the runner, and handle ioValues(setup and return values) for pushed/popped stacks

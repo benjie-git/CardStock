@@ -36,7 +36,7 @@ class UiTextBase(UiView):
                     self.view.SetEditable(wasEditable)
                     self.view.Refresh()
             self.OnResize(None)
-        elif key in ["font", "font_size", "text_color", "autoShrink", "rotation", "is_bold", "is_italic", "is_underlined"]:
+        elif key in ["font", "font_size", "text_color", "can_auto_shrink", "rotation", "is_bold", "is_italic", "is_underlined"]:
             self.UpdateFont(model, self.view)
             self.OnResize(None)
             if self.view:
