@@ -37,7 +37,8 @@ class CodeRunnerThread(threading.Thread):
     def _get_my_tid(self):
         """determines this (self's) thread id"""
         if not self.is_alive():
-            raise threading.ThreadError("the thread is not active")
+            # the thread is not active
+            return None
 
         # do we have it cached?
         if hasattr(self, "_thread_id"):
@@ -49,11 +50,14 @@ class CodeRunnerThread(threading.Thread):
                 self._thread_id = tid
                 return tid
 
-        raise AssertionError("could not determine the thread's id")
+        # could not determine the thread's id
+        return None
 
     def raise_exc(self, exctype):
         """raises the given exception type in the context of this thread"""
-        _async_raise(self._get_my_tid(), exctype)
+        tid = self._get_my_tid()
+        if tid is not None:
+            _async_raise(tid, exctype)
 
     def terminate(self):
         """raises SystemExit in the context of the given thread, which should

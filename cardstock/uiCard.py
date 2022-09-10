@@ -52,8 +52,6 @@ class UiCard(UiView):
         self.runningInternalResize = False
 
     def OnResize(self, event):
-        if self.runningInternalResize:
-            return
         didEnqueue = False
         self.stackManager.view.didResize = True
         if not self.stackManager.isEditing and self.stackManager.runner and self.stackManager.stackModel.GetProperty("can_resize"):
@@ -98,7 +96,7 @@ class UiCard(UiView):
             self.stackManager.designer.UpdateCardList()
         elif key == "fill_color":
             self.view.Refresh()
-        elif key in ["size"]:
+        elif key == "size":
             for ui in self.uiViews:
                 ui.ClearHitRegion()
                 ui.OnPropertyChanged(ui.model, "position")
