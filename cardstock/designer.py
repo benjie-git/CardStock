@@ -540,7 +540,7 @@ class DesignerFrame(wx.Frame):
 
         return contextMenu
 
-    wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
+    wildcard = "CardStock files (*.cds)|*.cds"
 
     def OnMenuNew(self, event):
         if wx.GetMouseState().LeftIsDown():
@@ -592,6 +592,7 @@ class DesignerFrame(wx.Frame):
         initialDir = os.getcwd()
         if self.configInfo and "last_open_file" in self.configInfo:
             d = os.path.dirname(self.configInfo["last_open_file"])
+            d = os.path.join(d, '')
             if os.path.exists(d):
                 initialDir = d
         self.DoMenuOpen(initialDir)
@@ -615,6 +616,7 @@ class DesignerFrame(wx.Frame):
         initialDir = os.getcwd()
         if self.configInfo and "last_open_file" in self.configInfo:
             initialDir = os.path.dirname(self.configInfo["last_open_file"])
+            initialDir = os.path.join(initialDir, '')
         dlg = wx.FileDialog(self, "Save CardStock file as...", initialDir,
                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
                            wildcard = self.wildcard)
@@ -1096,9 +1098,10 @@ class DesignerFrame(wx.Frame):
     def WriteConfig(self):
         config = configparser.ConfigParser()
         last_file = self.filename if self.filename else ""
-        if last_file and os.path.samefile(os.path.dirname(last_file), self.GetExamplesDir()):
-            if "last_open_file" in self.configInfo:
-                last_file = self.configInfo["last_open_file"]
+        # if last_file and os.path.samefile(os.path.dirname(last_file), self.GetExamplesDir()):
+        #     # Don't save example stacks as the last open file
+        #     if "last_open_file" in self.configInfo:
+        #         last_file = self.configInfo["last_open_file"]
         self.configInfo = {"last_open_file": last_file,
                            "show_context_help": str(self.cPanel.IsContextHelpShown()),
                            "upload_username": self.configInfo["upload_username"] or "",

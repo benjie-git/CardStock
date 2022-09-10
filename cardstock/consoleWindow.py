@@ -72,8 +72,10 @@ class ConsoleWindow(wx.Frame):
             self.SetClientSize((self.GetParent().GetSize().Width, self.FromDIP(75)))
             self.SetPosition(self.GetParent().GetPosition() + (0, self.GetParent().GetSize().Height))
             self.textBox.SetSelection(self.lastOutputPos, self.lastOutputPos)
+            self.Raise()
             self.UpdateAC()
             self.hasShown = True
+            self.GetParent().Raise()
 
     def Destroy(self):
         self.SetStreamsDown()

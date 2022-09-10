@@ -248,7 +248,7 @@ class ViewerFrame(wx.Frame):
         self.variablesWindow.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
         self.variablesWindow.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
 
-    wildcard = "CardStock files (*.cds)|*.cds|All files (*.*)|*.*"
+    wildcard = "CardStock files (*.cds)|*.cds"
 
     def OpenFile(self, filename):
         if self.stackManager.filename and self.stackManager.stackModel.GetProperty("can_save") and self.stackManager.stackModel.GetDirty():
@@ -272,6 +272,7 @@ class ViewerFrame(wx.Frame):
         initialDir = os.getcwd()
         if self.stackManager.filename:
             initialDir = os.path.dirname(self.stackManager.filename)
+        initialDir = os.path.join(initialDir, '')
         dlg = wx.FileDialog(self, "Open CardStock file...", initialDir,
                            style=wx.FD_OPEN, wildcard = self.wildcard)
         self.stackManager.view.Enable(False)
