@@ -266,7 +266,7 @@ class DesignerFrame(wx.Frame):
         self.stackManager.uiCard.ResizeCardView(size)
         size = self.FromDIP(size)
         self.stackManager.UpdateBuffer()
-        cPanelWidth = max(self.FromDIP(450), self.cPanel.GetSize().Width)
+        cPanelWidth = max(self.FromDIP(self.cPanel.defaultPanelWidth), self.cPanel.GetSize().Width)
         clientSize = (size.Width + self.splitter.GetSashSize() + cPanelWidth,
                       max(size.Height, self.FromDIP(500)))
         self.splitter.SetSize(clientSize)

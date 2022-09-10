@@ -25,6 +25,8 @@ class ControlPanel(wx.Panel):
     BMP_SIZE = 25
     BMP_BORDER = 4
 
+    defaultPanelWidth = 450
+
     toolNames = ["hand", "button", "field", "webview", "image", "label",
                  "pen", "oval", "rect", "roundrect", "polygon", "line"]
     tooltips = ["Hand (Esc)", "Button (B)", "Text Field (F)", "Web View (W)", "Image (I)", "Text Label (T)",
