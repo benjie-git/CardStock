@@ -4,137 +4,165 @@
   "properties": {
     "size": [
       887,
-      675
+      680
     ],
-    "canSave": false,
-    "canResize": true
+    "can_save": false,
+    "can_resize": true
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnResize": "webview_1.size = (card.size.width-6, card.size.height-32)\n#group_1.position = (0, webview_1.size.height)\n#group_1.size = (card.size.width, 32)"
+        "on_resize": "webview_1.size = (card.size.width-6, card.size.height-40)\ngroup_1.position = (0, webview_1.size.height+5)\ngroup_1.size = (card.size.width, 32)"
       },
       "properties": {
         "name": "card_1",
-        "fillColor": "#D6D4D7"
+        "fill_color": "#D6D4D7"
       },
       "childModels": [
         {
           "type": "webview",
           "handlers": {
-            "OnDoneLoading": "print(URL, didLoad)\n",
-            "OnCardStockLink": "if message == \"alert\":\n   Alert(\"Beep!\")\nelif message == \"red\":\n   card.fillColor='red'\nelif message == \"white\":\n   card.fillColor='white'"
+            "on_done_loading": "print(URL, did_load)\n",
+            "on_card_stock_link": "if message == \"alert\":\n   alert(\"Beep!\")\nelif message == \"red\":\n   card.fill_color='red'\nelif message == \"white\":\n   card.fill_color='white'"
           },
           "properties": {
             "name": "webview_1",
             "size": [
-              881,
-              634
+              887,
+              640
             ],
             "position": [
-              3.0,
-              4.0
+              0.0,
+              0.0
             ],
             "URL": "",
             "HTML": "",
-            "allowedHosts": []
+            "allowed_hosts": []
           }
         },
         {
-          "type": "button",
-          "handlers": {
-            "OnClick": "webview_1.GoBack()"
-          },
+          "type": "group",
+          "handlers": {},
           "properties": {
-            "name": "button_1",
+            "name": "group_1",
             "size": [
-              141,
-              33
+              883,
+              32
             ],
             "position": [
-              2.0,
-              641.0
+              3.0,
+              645.0
             ],
-            "title": "Back",
-            "hasBorder": true
-          }
-        },
-        {
-          "type": "button",
-          "handlers": {
-            "OnClick": "webview_1.HTML = \"\"\"\nThis should do a thing: \n<a href=\"cardstock:alert\">Alert</a><br/>\nSet background color: \n<a href=\"cardstock:red\">Red</a> |\n<a href=\"cardstock:white\">White</a>\n<br/>\n\"\"\"\n"
+            "rotation": 0.0
           },
-          "properties": {
-            "name": "button_2",
-            "size": [
-              141,
-              33
-            ],
-            "position": [
-              187.0,
-              641.0
-            ],
-            "title": "Custom",
-            "hasBorder": true
-          }
-        },
-        {
-          "type": "button",
-          "handlers": {
-            "OnClick": "webview_1.URL = \"slashdot.org\""
-          },
-          "properties": {
-            "name": "button_3",
-            "size": [
-              141,
-              33
-            ],
-            "position": [
-              373.0,
-              641.0
-            ],
-            "title": "Slashdot",
-            "hasBorder": true
-          }
-        },
-        {
-          "type": "button",
-          "handlers": {
-            "OnClick": "webview_1.URL = \"google.com\""
-          },
-          "properties": {
-            "name": "button_4",
-            "size": [
-              141,
-              33
-            ],
-            "position": [
-              559.0,
-              641.0
-            ],
-            "title": "Google",
-            "hasBorder": true
-          }
-        },
-        {
-          "type": "button",
-          "handlers": {
-            "OnClick": "webview_1.GoForward()"
-          },
-          "properties": {
-            "name": "button_5",
-            "size": [
-              141,
-              33
-            ],
-            "position": [
-              745.0,
-              641.0
-            ],
-            "title": "Forward",
-            "hasBorder": true
-          }
+          "childModels": [
+            {
+              "type": "button",
+              "handlers": {
+                "on_click": "webview_1.go_back()"
+              },
+              "properties": {
+                "name": "button_1",
+                "size": [
+                  141,
+                  33
+                ],
+                "position": [
+                  0.0,
+                  0.0
+                ],
+                "title": "Back",
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
+              }
+            },
+            {
+              "type": "button",
+              "handlers": {
+                "on_click": "webview_1.HTML = \"\"\"\nThis should do a thing: \n<a href=\"cardstock:alert\">alert</a><br/>\nSet background color: \n<a href=\"cardstock:red\">Red</a> |\n<a href=\"cardstock:white\">White</a>\n<br/>\n\"\"\"\n"
+              },
+              "properties": {
+                "name": "button_2",
+                "size": [
+                  141,
+                  33
+                ],
+                "position": [
+                  185.0,
+                  0.0
+                ],
+                "title": "Custom",
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
+              }
+            },
+            {
+              "type": "button",
+              "handlers": {
+                "on_click": "webview_1.URL = \"slashdot.org\""
+              },
+              "properties": {
+                "name": "button_3",
+                "size": [
+                  141,
+                  33
+                ],
+                "position": [
+                  371.0,
+                  0.0
+                ],
+                "title": "Slashdot",
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
+              }
+            },
+            {
+              "type": "button",
+              "handlers": {
+                "on_click": "webview_1.URL = \"google.com\""
+              },
+              "properties": {
+                "name": "button_4",
+                "size": [
+                  141,
+                  33
+                ],
+                "position": [
+                  557.0,
+                  0.0
+                ],
+                "title": "Google",
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
+              }
+            },
+            {
+              "type": "button",
+              "handlers": {
+                "on_click": "webview_1.go_forward()"
+              },
+              "properties": {
+                "name": "button_5",
+                "size": [
+                  141,
+                  33
+                ],
+                "position": [
+                  743.0,
+                  0.0
+                ],
+                "title": "Forward",
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
+              }
+            }
+          ]
         }
       ]
     },
@@ -143,11 +171,11 @@
       "handlers": {},
       "properties": {
         "name": "card_2",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": []
     }
   ],
-  "CardStock_stack_format": 3,
-  "CardStock_stack_version": "0.9.8"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

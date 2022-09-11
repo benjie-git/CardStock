@@ -224,7 +224,7 @@ class Runner():
                 # Try a few times, on the off chance that someone has a long/infinite loop in their code,
                 # inside a try block, with another long/infinite loop inside the exception handler
                 self.runnerThread.terminate()
-                waitAndYield(0.1)
+                waitAndYield(0.2)
                 self.runnerThread.join(0.05)
                 if not self.runnerThread.is_alive():
                     break
