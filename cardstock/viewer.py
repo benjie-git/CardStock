@@ -312,35 +312,64 @@ class ViewerFrame(wx.Frame):
             event.Skip()
 
     def OnCut(self, event):
-        f = self.FindFocus()
-        if f and hasattr(f, "Cut"):
-            f.Cut()
+        def doCut():
+            f = self.FindFocus()
+            if f and hasattr(f, "Cut"):
+                f.Cut()
+        if wx.Platform == "__WXGTK__":
+            wx.CallAfter(doCut)
+        else:
+            doCut()
 
     def OnCopy(self, event):
-        f = self.FindFocus()
-        if f and hasattr(f, "Copy"):
-            f.Copy()
+        def doCopy():
+            f = self.FindFocus()
+            if f and hasattr(f, "Copy"):
+                f.Copy()
+        if wx.Platform == "__WXGTK__":
+            wx.CallAfter(doCopy)
+        else:
+            doCopy()
 
     def OnPaste(self, event):
-        f = self.FindFocus()
-        if f and hasattr(f, "Paste"):
-            f.Paste()
+        def doPaste():
+            f = self.FindFocus()
+            if f and hasattr(f, "Paste"):
+                f.Paste()
+        if wx.Platform == "__WXGTK__":
+            wx.CallAfter(doPaste)
+        else:
+            doPaste()
 
     def OnUndo(self, event):
-        f = self.FindFocus()
-        if f and hasattr(f, "Undo"):
-            if not hasattr(f, "CanUndo") or f.CanUndo():
-                f.Undo()
-                return
-        event.Skip()
+        def doUndo():
+            f = self.FindFocus()
+            if f and hasattr(f, "Undo"):
+                if not hasattr(f, "CanUndo") or f.CanUndo():
+                    f.Undo()
+                    return False
+            return True
+        if wx.Platform == "__WXGTK__":
+            wx.CallAfter(doUndo)
+            event.Skip()
+        else:
+            if doUndo():
+                event.Skip()
 
     def OnRedo(self, event):
-        f = self.FindFocus()
-        if f and hasattr(f, "Redo"):
-            if not hasattr(f, "CanRedo") or f.CanRedo():
-                f.Redo()
-                return
-        event.Skip()
+        def doRedo():
+            f = self.FindFocus()
+            if f and hasattr(f, "Redo"):
+                if not hasattr(f, "CanRedo") or f.CanRedo():
+                    f.Redo()
+                    return False
+            return True
+        if wx.Platform == "__WXGTK__":
+            wx.CallAfter(doRedo)
+            event.Skip()
+        else:
+            if doRedo():
+                event.Skip()
 
     def ShowFindDialog(self, isReplace):
         if self.findDlg:
