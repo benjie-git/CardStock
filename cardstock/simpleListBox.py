@@ -110,17 +110,17 @@ class SimpleListBox(wx.Control):
                 newSel = None
 
                 if self.selection is not None and self.selection < len(self.items)+1 and\
-                        self.items[self.selection][self.matchCharIndex] == chr(c):
+                        self.items[self.selection][self.matchCharIndex].lower() == chr(c).lower():
                     for i in self.items[self.selection+1:]:
                         if len(i) > self.matchCharIndex:
-                            if i[self.matchCharIndex] == chr(c):
+                            if i[self.matchCharIndex].lower() == chr(c).lower():
                                 newSel = self.items.index(i)
                                 break
 
                 if newSel is None:
                     for i in self.items:
                         if len(i) > self.matchCharIndex:
-                            if i[self.matchCharIndex] == chr(c):
+                            if i[self.matchCharIndex].lower() == chr(c).lower():
                                 newSel = self.items.index(i)
                                 break
                 if newSel is not None:
