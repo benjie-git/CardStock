@@ -340,7 +340,6 @@ class GridCellImageFileEditor(wx.grid.GridCellTextEditor):
         text = self.inspector.GetCellValue(self.row, self.col)
         x,y = self.inspector.ScreenToClient(wx.GetMousePosition())
         bw = self.inspector.FromDIP(BUTTON_WIDTH)
-        print(x, self.inspector.GetSize().Width - bw, self.inspector.GetSize().Width)
         if x > self.inspector.GetSize().Width - bw:
             startDir = ""
             if self.inspector.stackManager.filename:
