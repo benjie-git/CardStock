@@ -392,7 +392,7 @@ class GridCellCustomChoiceEditor(wx.grid.GridCellEditor):
         self._listBox = None
 
     def Create(self, parent, id, evtHandler):
-        self._listBox = SimpleListBox(parent, id=id)
+        self._listBox = SimpleListBox(parent, False, id=id)
         self._listBox.SetupWithItems(self.choices, 0, 0)
         self.SetControl(self._listBox)
         if evtHandler:

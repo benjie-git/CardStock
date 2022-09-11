@@ -262,7 +262,7 @@ class CodeInspector(wx.ScrolledWindow):
         for k in self.currentUiView.model.GetHandlers().keys():
             displayNames.append(k+'()')
 
-        self.handlerPicker = SimpleListBox(self.cPanel)
+        self.handlerPicker = SimpleListBox(self.cPanel, True)
         self.handlerPicker.SetupWithItems(displayNames, 2, 0)
         self.handlerPicker.doneFunc = self.OnHandlerPickerDone
         self.handlerPicker.selectFunc = self.OnHandlerPickerSelectionChanged

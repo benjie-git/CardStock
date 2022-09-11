@@ -22,7 +22,7 @@ elif wx.Platform == '__WXMAC__':
               'lineHeight': 15,
               }
 else:
-    faces = { 'mono' : 'Courier',
+    faces = { 'mono' : 'Liberation Mono',
               'size' : 13,
               'lineHeight': 15,
               }

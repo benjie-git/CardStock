@@ -3,7 +3,7 @@ LINE_HEIGHT = 20
 
 
 class SimpleListBox(wx.Control):
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, shouldCapture, **kwargs):
         super().__init__(parent, style=wx.WANTS_CHARS, **kwargs)
         fSize = 18
         if wx.Platform == "__WXGTK__": fSize = 18
@@ -21,6 +21,7 @@ class SimpleListBox(wx.Control):
         self.Bind(wx.EVT_KILL_FOCUS, self.OnLostFocus)
 
         self.parent = parent
+        self.shouldCapture = shouldCapture
         self.items = []
         self.matchCharIndex = 0
         self.selection = None
@@ -40,7 +41,7 @@ class SimpleListBox(wx.Control):
             if w > width:
                 width = w
         self.SetSize(self.FromDIP(wx.Size(self.ToDIP(width)+20, LINE_HEIGHT*len(self.items)+3)))
-        if not self.HasCapture():
+        if self.shouldCapture and not self.HasCapture():
             self.CaptureMouse()
 
     def SetSelection(self, sel):
@@ -53,7 +54,7 @@ class SimpleListBox(wx.Control):
         self.Refresh(True)
 
     def DoClose(self, success):
-        if self.HasCapture():
+        if self.shouldCapture and self.HasCapture():
             self.ReleaseMouse()
         if not success and self.doneFunc:
             self.selection = None
