@@ -299,7 +299,7 @@ class TextBaseProxy(ViewProxy):
                 animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
             def onUpdate(progress, animDict):
-                model.SetProperty("text_color", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
+                model.SetProperty("text_color", wx.Colour([int(animDict["origParts"][i] + animDict["offsets"][i] * progress) for i in range(4)]))
 
             def internalOnFinished(animDict):
                 if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
