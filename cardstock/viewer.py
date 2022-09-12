@@ -292,7 +292,8 @@ class ViewerFrame(wx.Frame):
         self.Refresh()
 
     def OnClose(self, event):
-        if self.stackManager.filename and self.stackManager.stackModel.GetProperty("can_save") and self.stackManager.stackModel.GetDirty():
+        if not self.generateThumbnail and self.stackManager.filename and \
+                self.stackManager.stackModel.GetProperty("can_save") and self.stackManager.stackModel.GetDirty():
             r = wx.MessageDialog(None, "There are unsaved changes. Do you want to Save first?",
                                  "Save before Quitting?", wx.YES_NO | wx.CANCEL).ShowModal()
             if r == wx.ID_CANCEL:

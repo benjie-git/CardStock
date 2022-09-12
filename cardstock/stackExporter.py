@@ -536,18 +536,18 @@ class LoginDialog(wx.Dialog):
                    f"Otherwise please Sign Up, and then Log In once you have an account."
 
         user_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        user_lbl = wx.StaticText(self, label="Username:")
+        user_lbl = wx.StaticText(self.panel, label="Username:")
         user_sizer.Add(user_lbl, 0, wx.ALL | wx.CENTER, spacing)
-        self.userField = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
+        self.userField = wx.TextCtrl(self.panel, style=wx.TE_PROCESS_ENTER)
         self.userField.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
-        user_sizer.Add(self.userField, 0, wx.ALL, spacing)
+        user_sizer.Add(self.userField, 1, wx.EXPAND | wx.ALL, spacing)
 
         pass_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        p_lbl = wx.StaticText(self, label="Password:")
+        p_lbl = wx.StaticText(self.panel, label="Password:")
         pass_sizer.Add(p_lbl, 0, wx.ALL | wx.CENTER, spacing)
-        self.passField = wx.TextCtrl(self, style=wx.TE_PASSWORD | wx.TE_PROCESS_ENTER)
+        self.passField = wx.TextCtrl(self.panel, style=wx.TE_PASSWORD | wx.TE_PROCESS_ENTER)
         self.passField.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
-        pass_sizer.Add(self.passField, 0, wx.ALL, spacing)
+        pass_sizer.Add(self.passField, 1, wx.EXPAND | wx.ALL, spacing)
 
         signupBtn = wx.Button(self.panel, label="Sign Up")
         signupBtn.Bind(wx.EVT_BUTTON, self.OnSignUp)
