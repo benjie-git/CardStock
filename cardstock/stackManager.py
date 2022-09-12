@@ -310,6 +310,8 @@ class StackManager(object):
                     if not reload:
                         if self.uiCard.model.GetHandler("on_show_card"):
                             self.runner.RunHandler(self.uiCard.model, "on_show_card", None)
+                        if self.stackModel.GetProperty("can_resize"):
+                            self.runner.RunHandler(self.uiCard.model, "on_resize", None, True)
                 self.view.Refresh()
             if self.designer:
                 self.designer.Thaw()

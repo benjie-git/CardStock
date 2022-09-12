@@ -55,7 +55,7 @@ class UiCard(UiView):
         didEnqueue = False
         self.stackManager.view.didResize = True
         if not self.stackManager.isEditing and self.stackManager.runner and self.stackManager.stackModel.GetProperty("can_resize"):
-            didEnqueue = self.stackManager.runner.RunHandler(self.model, "on_resize", None)
+            didEnqueue = self.stackManager.runner.RunHandler(self.model, "on_resize", None, False)
         if self.stackManager.isEditing or not didEnqueue:
             self.stackManager.view.Refresh()
             self.stackManager.view.RefreshIfNeeded()

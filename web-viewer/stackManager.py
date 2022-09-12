@@ -81,7 +81,7 @@ class StackManager(object):
                 self.stackModel.SetProperty("size", self.windowSize)
             for ui in self.uiCard.uiViews:
                 ui.OnPropertyChanged("position")
-            self.runner.RunHandler(self.uiCard.model, "on_resize", None)
+            self.runner.RunHandler(self.uiCard.model, "on_resize", None, True)
 
     def RunSetupIfNeeded(self):
         if not self.didSetup:
@@ -107,7 +107,7 @@ class StackManager(object):
                                           self.stackModel.properties['can_resize']))
             for ui in self.uiCard.uiViews:
                 ui.OnPropertyChanged("position")
-            self.runner.RunHandler(self.uiCard.model, "on_resize", None)
+            self.runner.RunHandler(self.uiCard.model, "on_resize", None, False)
 
     def Yield(self):
         self.RunAnimations()

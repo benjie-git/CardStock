@@ -180,15 +180,16 @@ class CodeAnalyzer(object):
             names.extend([s+"()" for s in self.funcNames])
             names.extend(self.objNames.keys())
             if handlerName:
-                if "mouse" in handlerName: names.append("mouse_pos")
-                if "key" in handlerName: names.append("key_name")
-                if "periodic" in handlerName: names.append("elapsed_time")
-                if "key_hold" in handlerName: names.append("elapsed_time")
-                if "message" in handlerName: names.append("message")
-                if "bounce" in handlerName: names.extend(["other_object", "edge"])
-                if "cardstock_link" in handlerName: names.append("message")
-                if "selection_changed" in handlerName: names.append("is_selected")
-                if "done_loading" in handlerName: names.extend(["URL", "did_load"])
+                if "_mouse" in handlerName: names.append("mouse_pos")
+                if "_key" in handlerName: names.append("key_name")
+                if "_periodic" in handlerName: names.append("elapsed_time")
+                if "_key_hold" in handlerName: names.append("elapsed_time")
+                if "_message" in handlerName: names.append("message")
+                if "_bounce" in handlerName: names.extend(["other_object", "edge"])
+                if "_cardstock_link" in handlerName: names.append("message")
+                if "_selection_changed" in handlerName: names.append("is_selected")
+                if "_resize" in handlerName: names.append("is_initial")
+                if "_done_loading" in handlerName: names.extend(["URL", "did_load"])
 
                 path = handlerObj.GetPath() + "." + handlerName
                 if path in self.handlerVars:

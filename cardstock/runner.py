@@ -430,6 +430,13 @@ class Runner():
                 oldVars["is_selected"] = noValue
             self.clientVars["is_selected"] = arg
 
+        if handlerName == "on_resize":
+            if "is_initial" in self.clientVars:
+                oldVars["is_initial"] = self.clientVars["is_initial"]
+            else:
+                oldVars["is_initial"] = noValue
+            self.clientVars["is_initial"] = arg
+
         if handlerName == "on_periodic":
             if "elapsed_time" in self.clientVars:
                 oldVars["elapsed_time"] = self.clientVars["elapsed_time"]

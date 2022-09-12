@@ -1187,9 +1187,13 @@ class HelpDataCard():
                                 "or closing the stack viewer window.  You can use this to clean up any external "
                                 "resources -- for example, closing files.  This event needs to run quickly, so it's "
                                 "not able to call functions like alert(), ask_text(), ask_yes_no(), run_stack(), etc."},
-        "on_resize": {"args": {},
+        "on_resize": {"args": {"is_initial": {"type": "bool", "info": "True if this event is running due to showing the "
+                                                                      "card.  False if this event is running due to the "
+                                                                      "card being resized."}},
                      "info": "The <b>on_resize</b> event is run on the currently visible card when the stack window is "
-                             "resized."},
+                             "resized.  It is also run each time a card is shown, to give the card a chance to set up "
+                             "its initial layout for the current size.  Your code can distinguish between these two "
+                             "cases by checking the value of <b>is_initial</b>."},
         "on_key_press": {"args": {"key_name": {"type": "string", "info": "The name of the pressed key"}},
                       "info": "The <b>on_key_press</b> event is run any time a keyboard key is pressed down.  Regular "
                               "keys are named as capital letters and digits, like 'A' or '1', and other keys have "

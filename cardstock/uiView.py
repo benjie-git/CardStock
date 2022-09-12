@@ -603,7 +603,7 @@ class UiView(object):
         'on_key_press':   "on_key_press(self, key_name):",
         'on_key_hold':    "on_key_hold(self, key_name, elapsed_time):",
         'on_key_release': "on_key_release(self, key_name):",
-        'on_resize':     "on_resize(self):",
+        'on_resize':     "on_resize(self, is_initial):",
         'on_periodic':   "on_periodic(self, elapsed_time):",
         'on_exit_stack':  "on_exit_stack(self):",
     }
