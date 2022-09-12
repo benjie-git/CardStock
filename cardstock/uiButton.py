@@ -212,8 +212,18 @@ class ButtonModel(ViewModel):
         # Custom property order and mask for the inspector
         if style in ("Border", "Borderless"):
             self.propertyKeys = ["name", "title", "style", "rotation", "position", "size"]
+            self.initialEditHandler = "on_click"
+            if "on_click" not in self.visibleHandlers:
+                self.visibleHandlers.add("on_click")
+            if "on_selection_changed" in self.visibleHandlers and len(self.handlers["on_selection_changed"]) == 0:
+                self.visibleHandlers.remove("on_selection_changed")
         else:
             self.propertyKeys = ["name", "title", "style", "is_selected", "rotation", "position", "size"]
+            self.initialEditHandler = "on_selection_changed"
+            if "on_selection_changed" not in self.visibleHandlers:
+                self.visibleHandlers.add("on_selection_changed")
+            if "on_click" in self.visibleHandlers and len(self.handlers["on_click"]) == 0:
+                self.visibleHandlers.remove("on_click")
 
     def get_radio_group(self):
         g = []

@@ -13,7 +13,7 @@
     {
       "type": "card",
       "handlers": {
-        "on_setup": "is_morphing = False\n\ndef MorphToCardNumber(cardNumber, duration):\n   \"\"\"\n   Morph from the current card to the card at the given index over dration seconds.\n   Do this by finding all objects by name that exist on both cards, and \n   animating their properties from the current card's version, to the destination\n   card's version.\n   \"\"\"\n   global is_morphing\n   \n   oldProps = {}\n   is_morphing = True\n   for obj in card.children:\n      d = {\n         \"position\": obj.position,\n         \"size\": obj.size,\n         \"pen_thickness\": obj.pen_thickness if hasattr(obj, \"pen_thickness\") else None,\n         \"pen_color\": obj.pen_color if hasattr(obj, \"pen_color\") else None,\n         \"fill_color\": obj.fill_color if hasattr(obj, \"fill_color\") else None,\n         \"corner_radius\": obj.corner_radius if hasattr(obj, \"corner_radius\") else None,\n         \"rotation\": obj.rotation if hasattr(obj, \"rotation\") else None\n      }\n      oldProps[obj.name] = d\n   \n   newCard = stack.card_with_number(cardNumber)\n   newProps = {}\n   for name, d in oldProps.items():\n      newObj = None\n      for obj in newCard.children:\n         if obj.name == name:\n            newObj = obj\n      if newObj:\n         d = {\n            \"position\": newObj.position,\n            \"size\": newObj.size,\n            \"pen_thickness\": newObj.pen_thickness if hasattr(newObj, \"pen_thickness\") else None,\n            \"pen_color\": newObj.pen_color if hasattr(newObj, \"pen_color\") else None,\n            \"fill_color\": newObj.fill_color if hasattr(newObj, \"fill_color\") else None,\n            \"corner_radius\": newObj.corner_radius if hasattr(newObj, \"corner_radius\") else None,\n            \"rotation\": newObj.rotation if hasattr(newObj, \"rotation\") else None\n         }\n         newProps[name] = d\n   \n   for name, d in newProps.items():\n      obj = None\n      for o in newCard.children:\n         if o.name == name:\n            obj = o\n      if obj:\n         obj.position = oldProps[name][\"position\"]\n         obj.size = oldProps[name][\"size\"]\n         if oldProps[name][\"pen_thickness\"] is not None: obj.pen_thickness = oldProps[name][\"pen_thickness\"]\n         if oldProps[name][\"pen_color\"] is not None: obj.pen_color = oldProps[name][\"pen_color\"]\n         if oldProps[name][\"fill_color\"] is not None: obj.fill_color = oldProps[name][\"fill_color\"]\n         if oldProps[name][\"corner_radius\"] is not None: obj.corner_radius = oldProps[name][\"corner_radius\"]\n         if oldProps[name][\"rotation\"] is not None: obj.rotation = oldProps[name][\"rotation\"]\n         \n         obj.animate_position(duration, newProps[name][\"position\"])\n         obj.animate_size(duration, newProps[name][\"size\"])\n         if oldProps[name][\"pen_thickness\"] is not None: obj.animate_pen_thickness(duration, newProps[name][\"pen_thickness\"])\n         if oldProps[name][\"pen_color\"] is not None: obj.animate_pen_color(duration, newProps[name][\"pen_color\"])\n         if oldProps[name][\"fill_color\"] is not None: obj.animate_fill_color(duration, newProps[name][\"fill_color\"])\n         if oldProps[name][\"corner_radius\"] is not None: obj.animate_corner_radius(duration, newProps[name][\"corner_radius\"])\n         if oldProps[name][\"rotation\"] is not None: obj.animate_rotation(duration, newProps[name][\"rotation\"])\n\n   goto_card(cardNumber)\n   \n   def allDone(): \n      global is_morphing\n      is_morphing = False\n   run_after_delay(1, allDone)\n\nis_morphing = False"
+        "on_setup": "is_morphing = False\n\ndef MorphToCardNumber(duration, cardNumber):\n   \"\"\"\n   Morph from the current card to the card at the given index over dration seconds.\n   Do this by finding all objects by name that exist on both cards, and \n   animating their properties from the current card's version, to the destination\n   card's version.\n   \"\"\"\n   global is_morphing\n   \n   oldProps = {}\n   is_morphing = True\n   for obj in card.children:\n      props = {\n         \"position\": obj.position,\n         \"size\": obj.size,\n         \"pen_thickness\": obj.pen_thickness if hasattr(obj, \"pen_thickness\") else None,\n         \"pen_color\": obj.pen_color if hasattr(obj, \"pen_color\") else None,\n         \"fill_color\": obj.fill_color if hasattr(obj, \"fill_color\") else None,\n         \"corner_radius\": obj.corner_radius if hasattr(obj, \"corner_radius\") else None,\n         \"rotation\": obj.rotation if hasattr(obj, \"rotation\") else None\n      }\n      oldProps[obj.name] = props\n   \n   newCard = stack.card_with_number(cardNumber)\n   newProps = {}\n   for name, props in oldProps.items():\n      newObj = None\n      for obj in newCard.children:\n         if obj.name == name:\n            newObj = obj\n      if newObj:\n         props = {\n            \"position\": newObj.position,\n            \"size\": newObj.size,\n            \"pen_thickness\": newObj.pen_thickness if hasattr(newObj, \"pen_thickness\") else None,\n            \"pen_color\": newObj.pen_color if hasattr(newObj, \"pen_color\") else None,\n            \"fill_color\": newObj.fill_color if hasattr(newObj, \"fill_color\") else None,\n            \"corner_radius\": newObj.corner_radius if hasattr(newObj, \"corner_radius\") else None,\n            \"rotation\": newObj.rotation if hasattr(newObj, \"rotation\") else None\n         }\n         newProps[name] = props\n   \n   for name, props in newProps.items():\n      obj = None\n      for o in newCard.children:\n         if o.name == name:\n            obj = o\n      if obj:\n         obj.position = oldProps[name][\"position\"]\n         obj.size = oldProps[name][\"size\"]\n         if oldProps[name][\"pen_thickness\"] is not None: obj.pen_thickness = oldProps[name][\"pen_thickness\"]\n         if oldProps[name][\"pen_color\"] is not None: obj.pen_color = oldProps[name][\"pen_color\"]\n         if oldProps[name][\"fill_color\"] is not None: obj.fill_color = oldProps[name][\"fill_color\"]\n         if oldProps[name][\"corner_radius\"] is not None: obj.corner_radius = oldProps[name][\"corner_radius\"]\n         if oldProps[name][\"rotation\"] is not None: obj.rotation = oldProps[name][\"rotation\"]\n         \n         obj.animate_position(duration, newProps[name][\"position\"])\n         obj.animate_size(duration, newProps[name][\"size\"])\n         if oldProps[name][\"pen_thickness\"] is not None: obj.animate_pen_thickness(duration, newProps[name][\"pen_thickness\"])\n         if oldProps[name][\"pen_color\"] is not None: obj.animate_pen_color(duration, newProps[name][\"pen_color\"])\n         if oldProps[name][\"fill_color\"] is not None: obj.animate_fill_color(duration, newProps[name][\"fill_color\"])\n         if oldProps[name][\"corner_radius\"] is not None: obj.animate_corner_radius(duration, newProps[name][\"corner_radius\"])\n         if oldProps[name][\"rotation\"] is not None: obj.animate_rotation(duration, newProps[name][\"rotation\"])\n\n   goto_card(cardNumber)\n   \n   def allDone(): \n      global is_morphing\n      is_morphing = False\n   run_after_delay(1, allDone)\n\nis_morphing = False"
       },
       "properties": {
         "name": "card_1",
@@ -342,7 +342,7 @@
         {
           "type": "button",
           "handlers": {
-            "on_click": "if not is_morphing:\n   MorphToCardNumber(2, 1)"
+            "on_click": "if not is_morphing:\n   MorphToCardNumber(1.0, 2)"
           },
           "properties": {
             "name": "button_1",
@@ -725,7 +725,7 @@
         {
           "type": "button",
           "handlers": {
-            "on_click": "if not is_morphing:\n   MorphToCardNumber(3, 1)"
+            "on_click": "if not is_morphing:\n   MorphToCardNumber(1.0, 3)"
           },
           "properties": {
             "name": "button_1",
@@ -740,7 +740,7 @@
             "title": "Morph",
             "style": "Border",
             "is_selected": false,
-            "rotation": 0.0
+            "rotation": 167.2
           }
         },
         {
@@ -1108,7 +1108,7 @@
         {
           "type": "button",
           "handlers": {
-            "on_click": "if not is_morphing:\n   MorphToCardNumber(1, 1)"
+            "on_click": "if not is_morphing:\n   MorphToCardNumber(1.0, 1)"
           },
           "properties": {
             "name": "button_1",
@@ -1123,7 +1123,7 @@
             "title": "Morph",
             "style": "Border",
             "is_selected": false,
-            "rotation": 0.0
+            "rotation": 323.5
           }
         },
         {
