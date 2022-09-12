@@ -105,7 +105,7 @@ class UiTextLabel(UiTextBase):
         (width, height) = self.model.GetProperty("size")
 
         font = wx.Font(self.font)
-        font_size = self.font.GetPixelSize().Height
+        font_size = self.ScaleFontSize(self.model.GetProperty("font_size"), None)
 
         didShrink = False
         if self.model.GetProperty("can_auto_shrink"):
