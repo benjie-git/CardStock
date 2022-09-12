@@ -425,7 +425,7 @@ class UiView(object):
         inflate = 20
         if "pen_thickness" in self.model.properties:
             inflate += self.model.properties["pen_thickness"]
-        f.Inflate(inflate)
+        f.Inflate(int(inflate))
         if f.Contains(pt):
             if not self.hitRegion:
                 self.MakeHitRegion()

@@ -6,8 +6,8 @@
       691,
       387
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
@@ -15,13 +15,13 @@
       "handlers": {},
       "properties": {
         "name": "card_1",
-        "bgColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
           "type": "button",
           "handlers": {
-            "OnClick": "items = [float(l) for l in field.text.split('\\n') if len(l)]\nlow = min(items)\nhigh = max(items)\nnum = len(items)\n\npos = graph_frame.position\ns = graph_frame.size\n\nxStep = (s.width-2)/(num-1)\nyStep = (s.height-3)/(high-low)\n\npoints = []\nfor i in range(len(items)):\n   points.append((xStep*i+pos.x, yStep*(items[i]-low)+pos.y))\n\nfor obj in card.children:\n   if obj.name == \"line_1\":\n      obj.Delete()\nline = card.AddLine(points, \"line_1\")"
+            "on_click": "items = [float(l) for l in field.text.split('\\n') if len(l)]\nlow = min(items)\nhigh = max(items)\nnum = len(items)\n\npos = graph_frame.position\ns = graph_frame.size\n\nxStep = (s.width-2)/(num-1)\nyStep = (s.height-3)/(high-low)\n\npoints = []\nfor i in range(len(items)):\n   points.append((xStep*i+pos.x, yStep*(items[i]-low)+pos.y))\n\nfor obj in card.children:\n   if obj.name == \"line_1\":\n      obj.delete()\nline = card.add_line(points, \"line_1\")"
           },
           "properties": {
             "name": "button_1",
@@ -34,7 +34,9 @@
               348.0
             ],
             "title": "Graph This List",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -54,9 +56,10 @@
               428,
               221
             ],
-            "penColor": "#B6B5B7",
-            "penThickness": 1,
-            "fillColor": "white"
+            "pen_color": "#B6B5B7",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "white"
           },
           "points": [
             [
@@ -72,7 +75,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoPreviousCard()"
+            "on_click": "goto_previous_card()"
           },
           "properties": {
             "name": "button_2",
@@ -85,13 +88,15 @@
               349.0
             ],
             "title": "<",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoNextCard()"
+            "on_click": "goto_next_card()"
           },
           "properties": {
             "name": "button_3",
@@ -104,7 +109,9 @@
               349.0
             ],
             "title": ">",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -122,11 +129,14 @@
             ],
             "text": "1\n1.1\n1.2\n1.4\n1.7\n2.3\n3.5\n4.5\n4.9\n5.1\n5.2\n5.3\n5.4\n5.45\n5.47\n5.45\n5.4\n5.3\n5.2\n5.1\n4.9\n4.5\n3.5\n2.3\n1.7\n1.4\n1.2\n1.1\n1\n",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "editable": true,
-            "multiline": true
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": true,
+            "is_multiline": true
           }
         }
       ]
@@ -136,13 +146,13 @@
       "handlers": {},
       "properties": {
         "name": "card_2",
-        "bgColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
           "type": "button",
           "handlers": {
-            "OnClick": "def func(x):\n   return eval(field.text)\nitems = [func(x/10+0.001) for x in range(-50,51)]\nlow = min(items)\nhigh = max(items)\nnum = len(items)\n\npos = graph_frame.position\ns = graph_frame.size\n\nxStep = (s.width-2)/(num-1)\nyStep = (s.height-3)/high\n\npoints = []\nfor i in range(len(items)):\n   points.append((xStep*i+pos.x, yStep*items[i]+pos.y))\n\nfor obj in card.children:\n   if obj.name == \"line_1\":\n      obj.Delete()\nline = card.AddLine(points, \"line_1\")"
+            "on_click": "def func(x):\n   return eval(field.text)\nitems = [func(x/10+0.001) for x in range(-50,51)]\nlow = min(items)\nhigh = max(items)\nnum = len(items)\n\npos = graph_frame.position\ns = graph_frame.size\n\nxStep = (s.width-2)/(num-1)\nyStep = (s.height-3)/high-(min(0, low))\n\npoints = []\nfor i in range(len(items)):\n   points.append((xStep*i+pos.x, yStep*items[i]+pos.y))\n\nfor obj in card.children:\n   if obj.name == \"line_1\":\n      obj.delete()\nline = card.add_line(points, \"line_1\")\nline.position = graph_frame.position\nline.size = graph_frame.size - (1,1)"
           },
           "properties": {
             "name": "button_1",
@@ -155,7 +165,9 @@
               355.0
             ],
             "title": "Graph This Function",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -175,9 +187,10 @@
               428,
               221
             ],
-            "penColor": "#B6B5B7",
-            "penThickness": 1,
-            "fillColor": "white"
+            "pen_color": "#B6B5B7",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "white"
           },
           "points": [
             [
@@ -205,15 +218,20 @@
             ],
             "text": "y =",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 14
+            "font_size": 14,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoPreviousCard()"
+            "on_click": "goto_previous_card()"
           },
           "properties": {
             "name": "button_2",
@@ -226,13 +244,15 @@
               349.0
             ],
             "title": "<",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoNextCard()"
+            "on_click": "goto_next_card()"
           },
           "properties": {
             "name": "button_3",
@@ -245,13 +265,15 @@
               349.0
             ],
             "title": ">",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "textfield",
           "handlers": {
-            "OnTextEnter": "button_1.Click()"
+            "on_text_enter": "button_1.click()"
           },
           "properties": {
             "name": "field",
@@ -265,16 +287,19 @@
             ],
             "text": "x**2 + 1",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "editable": true,
-            "multiline": false
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": true,
+            "is_multiline": false
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

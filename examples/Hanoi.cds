@@ -6,18 +6,18 @@
       655,
       434
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "pegs = [peg1, peg2, peg3]\ndisks = [disk1, disk2, disk3, disk4, disk5]\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nisRunning = False\nisSetup = False\n\ndef PlaceDisk(disk, peg, height, animate, onFinished):\n   center = [peg.center.x,\n      peg.position.y + (height + 1)*40]\n   if animate:\n      disk.AnimateCenter(0.6, center, onFinished)\n   else:\n      disk.center = center\n      if onFinished: onFinished()\n\ndef ShowStacks(animate, onFinished=None):\n   i = 0\n   for p in range(3):\n      for d in range(len(stacks[p])):\n         i += 1\n         PlaceDisk(stacks[p][d], pegs[p], d, animate, onFinished if (i == len(disks)) else None)\n\ndef MoveTower(disk, source, dest, spare):\n   if disk == 0:\n      steps.append([disk, source, dest])\n   else:\n      MoveTower(disk-1, source, spare, dest)\n      steps.append([disk, source, dest])\n      MoveTower(disk-1, spare, dest, source)\n\ndef MakeNextMove():\n   if len(steps):\n      disk, source, dest = steps.pop(0)\n      stacks[source].remove(disks[disk])\n      stacks[dest].append(disks[disk])\n      ShowStacks(True, MakeNextMove)\n   else:\n      isRunning = False\n\nShowStacks(False)\nisSetup = True"
+        "on_show_card": "pegs = [peg1, peg2, peg3]\ndisks = [disk1, disk2, disk3, disk4, disk5]\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nisRunning = False\nisSetup = False\n\ndef PlaceDisk(disk, peg, height, animate, onFinished):\n   center = [peg.center.x,\n      peg.position.y + (height + 1)*40]\n   if animate:\n      disk.animate_center(0.6, center, onFinished)\n   else:\n      disk.center = center\n      if onFinished: onFinished()\n\ndef ShowStacks(animate, onFinished=None):\n   i = 0\n   for p in range(3):\n      for d in range(len(stacks[p])):\n         i += 1\n         PlaceDisk(stacks[p][d], pegs[p], d, animate, onFinished if (i == len(disks)) else None)\n\ndef MoveTower(disk, source, dest, spare):\n   if disk == 0:\n      steps.append([disk, source, dest])\n   else:\n      MoveTower(disk-1, source, spare, dest)\n      steps.append([disk, source, dest])\n      MoveTower(disk-1, spare, dest, source)\n\ndef MakeNextMove():\n   if len(steps):\n      disk, source, dest = steps.pop(0)\n      stacks[source].remove(disks[disk])\n      stacks[dest].append(disks[disk])\n      ShowStacks(True, MakeNextMove)\n   else:\n      isRunning = False\n\nShowStacks(False)\nisSetup = True"
       },
       "properties": {
         "name": "card_1",
-        "bgColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -37,9 +37,10 @@
               585,
               34
             ],
-            "penColor": "#000000",
-            "penThickness": 0,
-            "fillColor": "#926143"
+            "pen_color": "#000000",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "#926143"
           },
           "points": [
             [
@@ -69,9 +70,10 @@
               585,
               34
             ],
-            "penColor": "#000000",
-            "penThickness": 0,
-            "fillColor": "#926143"
+            "pen_color": "#000000",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "#926143"
           },
           "points": [
             [
@@ -101,9 +103,10 @@
               585,
               34
             ],
-            "penColor": "#000000",
-            "penThickness": 0,
-            "fillColor": "#926143"
+            "pen_color": "#000000",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "#926143"
           },
           "points": [
             [
@@ -133,9 +136,10 @@
               585,
               34
             ],
-            "penColor": "#000000",
-            "penThickness": 0,
-            "fillColor": "#926143"
+            "pen_color": "#000000",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "#926143"
           },
           "points": [
             [
@@ -165,10 +169,11 @@
               163,
               36
             ],
-            "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "#FFFFFF",
-            "cornerRadius": 8
+            "pen_color": "#000000",
+            "pen_thickness": 4,
+            "rotation": 0.0,
+            "fill_color": "#FFFFFF",
+            "corner_radius": 8
           },
           "points": [
             [
@@ -198,10 +203,11 @@
               163,
               36
             ],
-            "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "#FFFFFF",
-            "cornerRadius": 8
+            "pen_color": "#000000",
+            "pen_thickness": 4,
+            "rotation": 0.0,
+            "fill_color": "#FFFFFF",
+            "corner_radius": 8
           },
           "points": [
             [
@@ -231,10 +237,11 @@
               163,
               36
             ],
-            "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "#FFFFFF",
-            "cornerRadius": 8
+            "pen_color": "#000000",
+            "pen_thickness": 4,
+            "rotation": 0.0,
+            "fill_color": "#FFFFFF",
+            "corner_radius": 8
           },
           "points": [
             [
@@ -250,39 +257,43 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if isRunning:\n   card.StopAllAnimating()\n\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nsteps = []\nMoveTower(len(disks)-1, 0, 1, 2)\n\nisRunning = True\n\nif not isSetup:\n   ShowStacks(True, MakeNextMove)\nelse:\n   MakeNextMove()\n\nisSetup = False"
+            "on_click": "if isRunning:\n   card.stop_all_animating()\n\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nsteps = []\nMoveTower(len(disks)-1, 0, 1, 2)\n\nisRunning = True\n\nif not isSetup:\n   ShowStacks(True, MakeNextMove)\nelse:\n   MakeNextMove()\n\nisSetup = False"
           },
           "properties": {
             "name": "solve",
             "size": [
               151,
-              37
+              28
             ],
             "position": [
               16.0,
-              382.0
+              392.0
             ],
             "title": "Solve",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if isRunning:\n   card.StopAllAnimating()\n\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nsteps = []\nisSetup = True\nShowStacks(True)\nisRunning = False\n"
+            "on_click": "if isRunning:\n   card.stop_all_animating()\n\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nsteps = []\nisSetup = True\nShowStacks(True)\nisRunning = False\n"
           },
           "properties": {
             "name": "reset",
             "size": [
               151,
-              37
+              28
             ],
             "position": [
               201.0,
-              382.0
+              392.0
             ],
             "title": "Reset",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -302,10 +313,11 @@
               163,
               36
             ],
-            "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "#FFFFFF",
-            "cornerRadius": 8
+            "pen_color": "#000000",
+            "pen_thickness": 4,
+            "rotation": 0.0,
+            "fill_color": "#FFFFFF",
+            "corner_radius": 8
           },
           "points": [
             [
@@ -335,10 +347,11 @@
               163,
               36
             ],
-            "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "#FFFFFF",
-            "cornerRadius": 8
+            "pen_color": "#000000",
+            "pen_thickness": 4,
+            "rotation": 0.0,
+            "fill_color": "#FFFFFF",
+            "corner_radius": 8
           },
           "points": [
             [
@@ -354,6 +367,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

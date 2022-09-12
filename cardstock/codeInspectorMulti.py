@@ -310,6 +310,7 @@ class CodeInspector(wx.ScrolledWindow):
             if wx.Platform == "__WXMSW__":
                 self.container.Enable()
             hp.DestroyLater()
+            self.Refresh(True)
 
     def OnHandlerPickerSelectionChanged(self, index, text):
         if index is not None:

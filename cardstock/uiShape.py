@@ -78,7 +78,7 @@ class UiShape(UiView):
         if thickness == 0:
             pen = wx.TRANSPARENT_PEN
         else:
-            pen = wx.Pen(pen_color, self.stackManager.view.FromDIP(thickness), wx.PENSTYLE_SOLID)
+            pen = wx.Pen(pen_color, self.stackManager.view.FromDIP(int(thickness)), wx.PENSTYLE_SOLID)
         gc.cachedGC.SetPen(pen)
 
         if hasFill:
@@ -161,7 +161,7 @@ class UiShape(UiView):
         img = ImageFactory.shared().GetImage(rotRect.Size[0]+2*regOffset, height)
         context = wx.GraphicsRenderer.GetDefaultRenderer().CreateContextFromImage(img)
         context.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
-        context.SetPen(wx.Pen('white', thickness, wx.PENSTYLE_SOLID))
+        context.SetPen(wx.Pen('white', int(thickness), wx.PENSTYLE_SOLID))
 
         aff = self.model.GetAffineTransform()
         vals = aff.Get()
