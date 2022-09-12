@@ -280,6 +280,28 @@ class TextBaseProxy(ViewProxy):
             raise TypeError("Text Field objects do not support underlined text.")
         model.SetProperty("is_underlined", val)
 
+    def animate_font_size(self, duration, endVal, onFinished=None, *args, **kwargs):
+        if not isinstance(duration, (int, float)):
+            raise TypeError("animate_font_size(): duration must be a number")
+        if not isinstance(endVal, (int, float)):
+            raise TypeError("animate_font_size(): end_thickness must be a number")
+
+        model = self._model
+        if not model: return
+
+        def onStart(animDict):
+            origVal = self.font_size
+            animDict["origVal"] = origVal
+            animDict["offset"] = endVal - origVal
+
+        def onUpdate(progress, animDict):
+            model.SetProperty("font_size", animDict["origVal"] + animDict["offset"] * progress)
+
+        def internalOnFinished(animDict):
+            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+
+        model.AddAnimation("font_size", duration, onUpdate, onStart, internalOnFinished)
+
     def animate_text_color(self, duration, endVal, onFinished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_text_color(): duration must be a number")

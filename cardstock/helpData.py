@@ -773,6 +773,16 @@ class HelpDataTextField():
     }
 
     methods = {
+        "animate_font_size": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
+                                      "end_size": {"type": "string",
+                                                   "info": "the final font_size at the end of the animation"},
+                                      "on_finished": {"type": "function",
+                                                     "info": "an optional function to run when the animation finishes."},
+                                      "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>on_finished</b>."}},
+                             "return": None,
+                             "info": "Visually animates changing this object's <b>font_size</b> to <b>end_size</b>, "
+                                     "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                     "<b>on_finished</b> function, if one was passed in."},
         "animate_text_color": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                       "end_color": {"type": "string",
                                                    "info": "the final text_color at the end of the animation"},
@@ -830,6 +840,16 @@ class HelpDataTextLabel():
     }
 
     methods = {
+        "animate_font_size": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
+                                      "end_size": {"type": "string",
+                                                   "info": "the final font_size at the end of the animation"},
+                                      "on_finished": {"type": "function",
+                                                     "info": "an optional function to run when the animation finishes."},
+                                      "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>on_finished</b>."}},
+                             "return": None,
+                             "info": "Visually animates changing this object's <b>font_size</b> to <b>end_size</b>, "
+                                     "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                     "<b>on_finished</b> function, if one was passed in."},
         "animate_text_color": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                       "end_color": {"type": "string",
                                                    "info": "the final text_color at the end of the animation"},
