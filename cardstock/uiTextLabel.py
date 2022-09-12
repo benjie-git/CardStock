@@ -110,8 +110,9 @@ class UiTextLabel(UiTextBase):
         didShrink = False
         if self.model.GetProperty("can_auto_shrink"):
             (font_size, didShrink) = self.GetFontSizeFit(gc)
-            # Shouldn't need to double FromDIP the size here... wx Bug?
-            font_size = self.stackManager.view.FromDIP(self.stackManager.view.FromDIP(font_size))
+
+        # Shouldn't need to double FromDIP the size here... wx Bug?
+        font_size = self.stackManager.view.FromDIP(self.stackManager.view.FromDIP(font_size))
         font.SetPixelSize(wx.Size(0, font_size))
 
         width *= dipScale
@@ -122,7 +123,7 @@ class UiTextLabel(UiTextBase):
 
         offsetY = height * dipScale
         extraLineSpacing = 1.25 if wx.Platform == "__WXMSW__" else 1.1
-        lineHeight = int(font_size * dipScale * extraLineSpacing)
+        lineHeight = int(font_size / dipScale * extraLineSpacing)
 
         for line in lines.split('\n'):
             line = line.rstrip()
