@@ -495,15 +495,12 @@ class UiButton(UiView):
 
     def Highlight(self, on):
         style = self.model.properties['style']
-        if style in ("Border", "Borderless"):
-            if on:
-                worker.stackWorker.SendAsync(('fabSet', self.rrBg, {'fill': "blue"}),
-                                             ('fabSet', self.titleLabel, {'fill': "white"}),
-                                             ("render",))
-            else:
-                worker.stackWorker.SendAsync(('fabSet', self.rrBg, {'fill': "white" if self.model.properties['style'] == "Border" else None}),
-                                             ('fabSet', self.titleLabel, {'fill': "black"}),
-                                             ("render",))
+        if style == "Border":
+            worker.stackWorker.SendAsync(('fabSet', self.rrBg, {'fill': "#CCCCCC" if on else "white"}),
+                                         ("render",))
+        elif style == "Borderless":
+            worker.stackWorker.SendAsync(('fabSet', self.titleLabel, {'fill': "#888888"  if on else "black"}),
+                                         ("render",))
         self.isHilighted = on
 
     def OnMouseDown(self, pos, isTouch):
