@@ -6,20 +6,20 @@
       757,
       493
     ],
-    "canSave": true,
-    "canResize": true
+    "can_save": true,
+    "can_resize": true
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "import math\n\npoints = None\npos = None\nrot = None\nisPenDown = True\n\ndef pd():\n   global points\n   global isPenDown\n   isPenDown = True\n   if len(points[-1]) > 0:\n      points.append([pos.copy()])\n   else:\n      points[-1].append(pos.copy())\n\ndef pu():\n   global isPenDown\n   isPenDown = False\n   if len(points[-1]) == 1:\n      del points[-1][0]\n\ndef fd(dist):\n   global pos\n   global rot\n   global points\n   global isPenDown\n   pos = [pos[0]+math.cos(math.radians(rot))*dist,\n         pos[1]+math.sin(math.radians(rot))*dist]\n   if isPenDown:\n      points[-1].append(pos.copy())\n\ndef bk(dist):\n   fd(-dist)\n\ndef home():\n   global pos\n   global rot\n   global points\n   global isPenDown\n   pos = [code.size.width + (card.size.width - code.size.width)/2,\n         card.size.height/2]\n   rot = 0\n   if isPenDown:\n      points[-1].append(pos.copy())\n\ndef rt(angle):\n   global rot\n   rot = (rot - angle) % 360\n\ndef lt(angle):\n   rt(-angle)\n\ndef run_logo(text):\n   global points\n   \n   clear.Click()\n   points = [[]]\n   isPenDown = True\n   home()\n\n   exec(text)\n   \n   lines = []\n   for l in points:\n      newLine = card.AddLine(l, \"output_line\", isVisible=False)\n      newLine.penThickness = 1\n      lines.append(newLine)\n      newLine.OrderToBack()\n   if len(lines) > 1:\n      output_group = card.AddGroup(lines, \"output_group\")\n      output_group.OrderToBack()\n   for line in lines:\n      line.isVisible = True\n\ndef clear_logo():\n   for obj in card.children:\n      if obj.name.startswith(\"output\"):\n         obj.Delete()\n\ndef ShowHelp():\n   Alert(\n      \"Logo Commands:\\n\\n\"\n      \"pu() - Pen Up\\n\"\n      \"pd() - Pen Down\\n\"\n      \"fd(x) - Move Forward X pixels\\n\"\n      \"bk(x) - Move Backwards X pixels\\n\"\n      \"rt(x) - Rotate Right X degrees\\n\"\n      \"lt(x) - Rotate Left X degrees\\n\"\n      \"home() - Move to the center, pointing right\"\n      )\n",
-        "OnShowCard": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height",
-        "OnResize": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height"
+        "on_setup": "import math\n\npoints = None\npos = None\nrot = None\nisPenDown = True\n\n# Define LOGO functions\n\ndef pd(): # Pen Down\n   global points\n   global isPenDown\n   isPenDown = True\n   if len(points[-1]) > 0:\n      points.append([pos.copy()])\n   else:\n      points[-1].append(pos.copy())\n\ndef pu():  # Pen Up\n   global isPenDown\n   isPenDown = False\n   if len(points[-1]) == 1:\n      del points[-1][0]\n\ndef fd(dist):  # ForwarD\n   global pos\n   global rot\n   global points\n   global isPenDown\n   pos = [pos[0]+math.cos(math.radians(rot))*dist,\n         pos[1]+math.sin(math.radians(rot))*dist]\n   if isPenDown:\n      points[-1].append(pos.copy())\n\ndef bk(dist):  # BacK\n   fd(-dist)\n\ndef home():  # Go back home\n   global pos\n   global rot\n   global points\n   global isPenDown\n   pos = [code.size.width + (card.size.width - code.size.width)/2,\n         card.size.height/2]\n   rot = 0\n   if isPenDown:\n      points[-1].append(pos.copy())\n\ndef rt(angle):  # rotate RighT\n   global rot\n   rot = (rot - angle) % 360\n\ndef lt(angle):  # rotate LefT\n   rt(-angle)\n\ndef run_logo(text):\n   global points\n   \n   clear.click()\n   points = [[]]\n   isPenDown = True\n   home()\n\n   exec(text)\n   \n   lines = []\n   # Build a multipoint line for each pen-down stretch\n   for l in points:\n      # Start lines off hidden, to avoid flickering\n      newLine = card.add_line(l, \"output_line\", is_visible=False)\n      newLine.pen_thickness = 1\n      lines.append(newLine)\n      newLine.order_to_back()\n   \n   # Group multiple lines\n   if len(lines) > 1:\n      output_group = card.add_group(lines, \"output_group\")\n      output_group.order_to_back()\n   \n   # Show all lines now that we're done\n   for line in lines:\n      line.is_visible = True\n\ndef clear_logo():\n   # Delete old lines\n   for obj in card.children:\n      if obj.name.startswith(\"output\"):\n         obj.delete()\n\ndef ShowHelp():\n   alert(\n      \"Logo Commands:\\n\\n\"\n      \"pu() - Pen Up\\n\"\n      \"pd() - Pen Down\\n\"\n      \"fd(x) - Move Forward X pixels\\n\"\n      \"bk(x) - Move Backwards X pixels\\n\"\n      \"rt(x) - Rotate Right X degrees\\n\"\n      \"lt(x) - Rotate Left X degrees\\n\"\n      \"home() - Move to the center, pointing right\"\n      )\n",
+        "on_show_card": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height",
+        "on_resize": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height"
       },
       "properties": {
         "name": "card_1",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -41,7 +41,7 @@
             {
               "type": "button",
               "handlers": {
-                "OnClick": "GotoPreviousCard()"
+                "on_click": "goto_previous_card()"
               },
               "properties": {
                 "name": "prev",
@@ -54,13 +54,15 @@
                   27.0
                 ],
                 "title": "<",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "GotoNextCard()"
+                "on_click": "goto_next_card()"
               },
               "properties": {
                 "name": "next",
@@ -73,13 +75,15 @@
                   27.0
                 ],
                 "title": ">",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "c = card.Clone()\nc.SetEventCode(\"OnSetup\", \"\")\nGotoCard(c.name)"
+                "on_click": "c = card.clone()\nc.set_event_code(\"on_setup\", \"\")\ngoto_card(c.name)"
               },
               "properties": {
                 "name": "new",
@@ -92,7 +96,9 @@
                   0.0
                 ],
                 "title": "New",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
@@ -110,17 +116,20 @@
                 ],
                 "text": "Square",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 12,
-                "isEditable": true,
-                "isMultiline": false
+                "font_size": 12,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "is_editable": true,
+                "is_multiline": false
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "run_logo(code.text)"
+                "on_click": "run_logo(code.text)"
               },
               "properties": {
                 "name": "run",
@@ -133,13 +142,15 @@
                   1.0
                 ],
                 "title": "Run",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "ShowHelp()"
+                "on_click": "ShowHelp()"
               },
               "properties": {
                 "name": "help",
@@ -152,13 +163,15 @@
                   1.0
                 ],
                 "title": "?",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "clear_logo()"
+                "on_click": "clear_logo()"
               },
               "properties": {
                 "name": "clear",
@@ -171,7 +184,9 @@
                   1.0
                 ],
                 "title": "Clear",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             }
           ]
@@ -191,11 +206,14 @@
             ],
             "text": "for _ in range(4):\n   fd(100)\n   rt(90)\n",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 12,
-            "isEditable": true,
-            "isMultiline": true
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": true,
+            "is_multiline": true
           }
         }
       ]
@@ -203,12 +221,12 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height",
-        "OnResize": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height"
+        "on_show_card": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height",
+        "on_resize": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height"
       },
       "properties": {
         "name": "card_2",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -230,7 +248,7 @@
             {
               "type": "button",
               "handlers": {
-                "OnClick": "GotoPreviousCard()"
+                "on_click": "goto_previous_card()"
               },
               "properties": {
                 "name": "prev",
@@ -243,13 +261,15 @@
                   27.0
                 ],
                 "title": "<",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "GotoNextCard()"
+                "on_click": "goto_next_card()"
               },
               "properties": {
                 "name": "next",
@@ -262,13 +282,15 @@
                   27.0
                 ],
                 "title": ">",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "c = card.Clone()\nGotoCard(c.name)"
+                "on_click": "c = card.clone()\ngoto_card(c.name)"
               },
               "properties": {
                 "name": "new",
@@ -281,7 +303,9 @@
                   0.0
                 ],
                 "title": "New",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
@@ -299,17 +323,20 @@
                 ],
                 "text": "Squares",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 12,
-                "isEditable": true,
-                "isMultiline": false
+                "font_size": 12,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "is_editable": true,
+                "is_multiline": false
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "run_logo(code.text)"
+                "on_click": "run_logo(code.text)"
               },
               "properties": {
                 "name": "run",
@@ -322,13 +349,15 @@
                   1.0
                 ],
                 "title": "Run",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "ShowHelp()"
+                "on_click": "ShowHelp()"
               },
               "properties": {
                 "name": "help",
@@ -341,13 +370,15 @@
                   1.0
                 ],
                 "title": "?",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "clear_logo()"
+                "on_click": "clear_logo()"
               },
               "properties": {
                 "name": "clear",
@@ -360,7 +391,9 @@
                   1.0
                 ],
                 "title": "Clear",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             }
           ]
@@ -380,11 +413,14 @@
             ],
             "text": "pu()\nrt(45)\nbk(300)\nlt(45)\npd()\n\nfor _ in range(4):\n   pu()\n   rt(45)\n   fd(80)\n   lt(45)\n   pd()\n\n   for _ in range(4):\n      fd(100)\n      rt(90)\n",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 12,
-            "isEditable": true,
-            "isMultiline": true
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": true,
+            "is_multiline": true
           }
         }
       ]
@@ -392,12 +428,12 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height",
-        "OnResize": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height"
+        "on_show_card": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height",
+        "on_resize": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height"
       },
       "properties": {
         "name": "card_3",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -419,7 +455,7 @@
             {
               "type": "button",
               "handlers": {
-                "OnClick": "GotoPreviousCard()"
+                "on_click": "goto_previous_card()"
               },
               "properties": {
                 "name": "prev",
@@ -432,13 +468,15 @@
                   27.0
                 ],
                 "title": "<",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "GotoNextCard()"
+                "on_click": "goto_next_card()"
               },
               "properties": {
                 "name": "next",
@@ -451,13 +489,15 @@
                   27.0
                 ],
                 "title": ">",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "c = card.Clone()\nGotoCard(c.name)"
+                "on_click": "c = card.clone()\ngoto_card(c.name)"
               },
               "properties": {
                 "name": "new",
@@ -470,7 +510,9 @@
                   0.0
                 ],
                 "title": "New",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
@@ -488,17 +530,20 @@
                 ],
                 "text": "Circle",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 12,
-                "isEditable": true,
-                "isMultiline": false
+                "font_size": 12,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "is_editable": true,
+                "is_multiline": false
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "clear_logo()"
+                "on_click": "clear_logo()"
               },
               "properties": {
                 "name": "clear",
@@ -511,13 +556,15 @@
                   1.0
                 ],
                 "title": "Clear",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "ShowHelp()"
+                "on_click": "ShowHelp()"
               },
               "properties": {
                 "name": "help",
@@ -530,13 +577,15 @@
                   1.0
                 ],
                 "title": "?",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "run_logo(code.text)"
+                "on_click": "run_logo(code.text)"
               },
               "properties": {
                 "name": "run",
@@ -549,7 +598,9 @@
                   1.0
                 ],
                 "title": "Run",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             }
           ]
@@ -569,11 +620,14 @@
             ],
             "text": "pu()\nbk(180)\nlt(90)\npd()\n\nfor _ in range(360):\n   fd(3)\n   rt(1)\n",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 12,
-            "isEditable": true,
-            "isMultiline": true
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": true,
+            "is_multiline": true
           }
         }
       ]
@@ -581,12 +635,12 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height",
-        "OnResize": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height"
+        "on_show_card": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height",
+        "on_resize": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height"
       },
       "properties": {
         "name": "card_4",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -608,7 +662,7 @@
             {
               "type": "button",
               "handlers": {
-                "OnClick": "GotoPreviousCard()"
+                "on_click": "goto_previous_card()"
               },
               "properties": {
                 "name": "prev",
@@ -621,13 +675,15 @@
                   27.0
                 ],
                 "title": "<",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "GotoNextCard()"
+                "on_click": "goto_next_card()"
               },
               "properties": {
                 "name": "next",
@@ -640,13 +696,15 @@
                   27.0
                 ],
                 "title": ">",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "c = card.Clone()\nGotoCard(c.name)"
+                "on_click": "c = card.clone()\ngoto_card(c.name)"
               },
               "properties": {
                 "name": "new",
@@ -659,7 +717,9 @@
                   0.0
                 ],
                 "title": "New",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
@@ -677,17 +737,20 @@
                 ],
                 "text": "Star",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 12,
-                "isEditable": true,
-                "isMultiline": false
+                "font_size": 12,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "is_editable": true,
+                "is_multiline": false
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "clear_logo()"
+                "on_click": "clear_logo()"
               },
               "properties": {
                 "name": "clear",
@@ -700,13 +763,15 @@
                   1.0
                 ],
                 "title": "Clear",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "ShowHelp()"
+                "on_click": "ShowHelp()"
               },
               "properties": {
                 "name": "help",
@@ -719,13 +784,15 @@
                   1.0
                 ],
                 "title": "?",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "run_logo(code.text)"
+                "on_click": "run_logo(code.text)"
               },
               "properties": {
                 "name": "run",
@@ -738,7 +805,9 @@
                   1.0
                 ],
                 "title": "Run",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             }
           ]
@@ -758,11 +827,14 @@
             ],
             "text": "pu()\nrt(20)\nbk(170)\nlt(20)\npd()\n\nfor _ in range(5):\n   fd(300)\n   rt(180-(180/5))\n",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 12,
-            "isEditable": true,
-            "isMultiline": true
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": true,
+            "is_multiline": true
           }
         }
       ]
@@ -770,12 +842,12 @@
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height",
-        "OnResize": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height"
+        "on_show_card": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height",
+        "on_resize": "header_group.position.y = card.size.height - header_group.size.height\ncode.size.height = card.size.height - header_group.size.height"
       },
       "properties": {
         "name": "card_5",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -797,7 +869,7 @@
             {
               "type": "button",
               "handlers": {
-                "OnClick": "GotoPreviousCard()"
+                "on_click": "goto_previous_card()"
               },
               "properties": {
                 "name": "prev",
@@ -810,13 +882,15 @@
                   27.0
                 ],
                 "title": "<",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "GotoNextCard()"
+                "on_click": "goto_next_card()"
               },
               "properties": {
                 "name": "next",
@@ -829,13 +903,15 @@
                   27.0
                 ],
                 "title": ">",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "c = card.Clone()\nGotoCard(c.name)"
+                "on_click": "c = card.clone()\ngoto_card(c.name)"
               },
               "properties": {
                 "name": "new",
@@ -848,7 +924,9 @@
                   0.0
                 ],
                 "title": "New",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
@@ -866,17 +944,20 @@
                 ],
                 "text": "Moire",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 12,
-                "isEditable": true,
-                "isMultiline": false
+                "font_size": 12,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "is_editable": true,
+                "is_multiline": false
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "clear_logo()"
+                "on_click": "clear_logo()"
               },
               "properties": {
                 "name": "clear",
@@ -889,13 +970,15 @@
                   1.0
                 ],
                 "title": "Clear",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "ShowHelp()"
+                "on_click": "ShowHelp()"
               },
               "properties": {
                 "name": "help",
@@ -908,13 +991,15 @@
                   1.0
                 ],
                 "title": "?",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             },
             {
               "type": "button",
               "handlers": {
-                "OnClick": "run_logo(code.text)"
+                "on_click": "run_logo(code.text)"
               },
               "properties": {
                 "name": "run",
@@ -927,7 +1012,9 @@
                   1.0
                 ],
                 "title": "Run",
-                "hasBorder": true
+                "style": "Border",
+                "is_selected": false,
+                "rotation": 0.0
               }
             }
           ]
@@ -947,16 +1034,19 @@
             ],
             "text": "pu()\nd = 450\nbk(d/2)\npd()\n\nfor _ in range(180):\n   fd(d)\n   rt(178)\n",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 12,
-            "isEditable": true,
-            "isMultiline": true
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": true,
+            "is_multiline": true
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 3,
-  "CardStock_stack_version": "0.9.8"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

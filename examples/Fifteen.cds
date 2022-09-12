@@ -6,19 +6,19 @@
       455,
       455
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "from random import randint\n\nisMoving = False\nspace.Hide() # hide the space piece\n\npieces = [c for c in card.children if c.name.startswith(\"group\")]\npieces.append(space)\n\norigPieces = pieces.copy()\n\ndef Shuffle():\n   # Switch each piece with a random other piece.\n   # Make one more swap so it's an even number of swaps\n   # otherwise it would be unsolvable.\n   shuffleList = list(range(len(pieces)-1))\n   shuffleList.append(randint(0,14))\n   for i in shuffleList:\n      j = i\n      while j == i:\n         # make sure we're not swapping a piece with itself\n         j = randint(0,len(pieces)-2)\n      pieces[i], pieces[j] = pieces[j], pieces[i]\n      tmp = pieces[j].position\n      pieces[j].position = pieces[i].position\n      pieces[i].position = tmp\n\ndef SlideSpots(moves):\n   # Animate sliding\n   global isMoving\n   if not isMoving:\n      tmpPieces = {}\n      tmpPositions = {}\n      for i,j in moves:\n         tmpPieces[i] = pieces[i]\n         tmpPositions[i] = pieces[i].position\n      for i,j in moves:\n         pieces[i].AnimatePosition(0.15, tmpPositions[j], DoneMoving)\n      for i,j in moves:\n         pieces[j] = tmpPieces[i]\n      isMoving = True\n\ndef DoneMoving():\n   global isMoving\n   isMoving = False\n\ndef CheckForWin():\n   if pieces == origPieces:\n      PlaySound(\"yay.wav\")\n      Wait(3)\n      Shuffle()\n\ndef BuildCycleList(start, offset, n):\n   # Create move list that moves n peices, and swaps the space piece to the other end of the list\n   spots = list(reversed([start + offset*i for i in range(n+1)]))\n   moves = []\n   for i in range(len(spots)-1):\n      moves.append((spots[i], spots[i+1]))\n   moves.append((spots[-1], spots[0]))\n   return moves\n\ndef MoveDir(dir, n):\n   # Move n pieces in direction\n   i = pieces.index(space)\n   if dir == \"Right\" and i%4 != 0:\n      SlideSpots(BuildCycleList(i, -1, n))\n   elif dir == \"Left\" and i%4 != 3:\n      SlideSpots(BuildCycleList(i, 1, n))\n   elif dir == \"Up\" and i<12:\n      SlideSpots(BuildCycleList(i, 4, n))\n   elif dir == \"Down\" and i>=4:\n      SlideSpots(BuildCycleList(i, -4, n))\n   CheckForWin()\n\ndef MoveFrom(obj):\n   # Slide pieces from the clicked object obj, to the space piece, if they are in the same row/col\n   global isMoving\n   s = pieces.index(space)\n   o = pieces.index(obj)\n   sx, sy = s%4, int(s/4)\n   ox, oy = o%4, int(o/4)\n   if sx == ox and sy < oy:\n      MoveDir(\"Up\", oy-sy)\n   elif sx == ox and sy > oy:\n      MoveDir(\"Down\", sy-oy)\n   elif sy == oy and sx < ox:\n      MoveDir(\"Left\", ox-sx)\n   elif sy == oy and sx > ox:\n      MoveDir(\"Right\", sx-ox)\n\n# Shuffle when we start the stack\nShuffle()",
-        "OnKeyDown": "if keyName in [\"Left\", \"Right\", \"Up\", \"Down\"]:\n   MoveDir(keyName, 1)"
+        "on_setup": "from random import randint\n\nisMoving = False\nspace.hide() # hide the space piece\n\npieces = [c for c in card.children if c.name.startswith(\"group\")]\npieces.append(space)\n\norigPieces = pieces.copy()\n\ndef Shuffle():\n   # Switch each piece with a random other piece.\n   # Make one more swap so it's an even number of swaps\n   # otherwise it would be unsolvable.\n   shuffleList = list(range(len(pieces)-1))\n   shuffleList.append(randint(0,14))\n   for i in shuffleList:\n      j = i\n      while j == i:\n         # make sure we're not swapping a piece with itself\n         j = randint(0,len(pieces)-2)\n      pieces[i], pieces[j] = pieces[j], pieces[i]\n      tmp = pieces[j].position\n      pieces[j].position = pieces[i].position\n      pieces[i].position = tmp\n\ndef SlideSpots(moves):\n   # Animate sliding\n   global isMoving\n   if not isMoving:\n      tmpPieces = {}\n      tmpPositions = {}\n      for i,j in moves:\n         tmpPieces[i] = pieces[i]\n         tmpPositions[i] = pieces[i].position\n      for i,j in moves:\n         pieces[i].animate_position(0.15, tmpPositions[j], DoneMoving)\n      for i,j in moves:\n         pieces[j] = tmpPieces[i]\n      isMoving = True\n\ndef DoneMoving():\n   global isMoving\n   isMoving = False\n\ndef CheckForWin():\n   if pieces == origPieces:\n      play_sound(\"yay.wav\")\n      wait(3)\n      Shuffle()\n\ndef BuildCycleList(start, offset, n):\n   # Create move list that moves n peices, and swaps the space piece to the other end of the list\n   spots = list(reversed([start + offset*i for i in range(n+1)]))\n   moves = []\n   for i in range(len(spots)-1):\n      moves.append((spots[i], spots[i+1]))\n   moves.append((spots[-1], spots[0]))\n   return moves\n\ndef MoveDir(dir, n):\n   # Move n pieces in direction\n   i = pieces.index(space)\n   if dir == \"Right\" and i%4 != 0:\n      SlideSpots(BuildCycleList(i, -1, n))\n   elif dir == \"Left\" and i%4 != 3:\n      SlideSpots(BuildCycleList(i, 1, n))\n   elif dir == \"Up\" and i<12:\n      SlideSpots(BuildCycleList(i, 4, n))\n   elif dir == \"Down\" and i>=4:\n      SlideSpots(BuildCycleList(i, -4, n))\n   CheckForWin()\n\ndef MoveFrom(obj):\n   # Slide pieces from the clicked object obj, to the space piece, if they are in the same row/col\n   global isMoving\n   s = pieces.index(space)\n   o = pieces.index(obj)\n   sx, sy = s%4, int(s/4)\n   ox, oy = o%4, int(o/4)\n   if sx == ox and sy < oy:\n      MoveDir(\"Up\", oy-sy)\n   elif sx == ox and sy > oy:\n      MoveDir(\"Down\", sy-oy)\n   elif sy == oy and sx < ox:\n      MoveDir(\"Left\", ox-sx)\n   elif sy == oy and sx > ox:\n      MoveDir(\"Right\", sx-ox)\n\n# Shuffle when we start the stack\nShuffle()",
+        "on_key_press": "if key_name in [\"Left\", \"Right\", \"Up\", \"Down\"]:\n   MoveDir(key_name, 1)"
       },
       "properties": {
         "name": "card_1",
-        "fillColor": "#BBD4BF"
+        "fill_color": "#BBD4BF"
       },
       "childModels": [
         {
@@ -38,10 +38,10 @@
               438,
               438
             ],
-            "penColor": "black",
-            "penThickness": 4,
+            "pen_color": "black",
+            "pen_thickness": 4,
             "rotation": 0.0,
-            "fillColor": "#E7E5E8"
+            "fill_color": "#E7E5E8"
           },
           "points": [
             [
@@ -71,10 +71,10 @@
               103,
               102
             ],
-            "penColor": "black",
-            "penThickness": 4,
+            "pen_color": "black",
+            "pen_thickness": 4,
             "rotation": 0.0,
-            "fillColor": "#FFFFFF00"
+            "fill_color": "#FFFFFF00"
           },
           "points": [
             [
@@ -90,7 +90,7 @@
         {
           "type": "group",
           "handlers": {
-            "OnMouseDown": "MoveFrom(self)"
+            "on_mouse_press": "MoveFrom(self)"
           },
           "properties": {
             "name": "group_1",
@@ -122,10 +122,10 @@
                   81,
                   81
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white"
+                "fill_color": "white"
               },
               "points": [
                 [
@@ -153,10 +153,13 @@
                 ],
                 "text": "1",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 50,
-                "canAutoShrink": true,
+                "font_size": 50,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "can_auto_shrink": true,
                 "rotation": 0.0
               }
             }
@@ -165,7 +168,7 @@
         {
           "type": "group",
           "handlers": {
-            "OnMouseDown": "MoveFrom(self)"
+            "on_mouse_press": "MoveFrom(self)"
           },
           "properties": {
             "name": "group_2",
@@ -197,10 +200,10 @@
                   81,
                   81
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white"
+                "fill_color": "white"
               },
               "points": [
                 [
@@ -228,10 +231,13 @@
                 ],
                 "text": "2",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 50,
-                "canAutoShrink": true,
+                "font_size": 50,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "can_auto_shrink": true,
                 "rotation": 0.0
               }
             }
@@ -240,7 +246,7 @@
         {
           "type": "group",
           "handlers": {
-            "OnMouseDown": "MoveFrom(self)"
+            "on_mouse_press": "MoveFrom(self)"
           },
           "properties": {
             "name": "group_3",
@@ -272,10 +278,10 @@
                   81,
                   81
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white"
+                "fill_color": "white"
               },
               "points": [
                 [
@@ -303,10 +309,13 @@
                 ],
                 "text": "3",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 50,
-                "canAutoShrink": true,
+                "font_size": 50,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "can_auto_shrink": true,
                 "rotation": 0.0
               }
             }
@@ -315,7 +324,7 @@
         {
           "type": "group",
           "handlers": {
-            "OnMouseDown": "MoveFrom(self)"
+            "on_mouse_press": "MoveFrom(self)"
           },
           "properties": {
             "name": "group_4",
@@ -347,10 +356,10 @@
                   81,
                   81
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white"
+                "fill_color": "white"
               },
               "points": [
                 [
@@ -378,10 +387,13 @@
                 ],
                 "text": "4",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 50,
-                "canAutoShrink": true,
+                "font_size": 50,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "can_auto_shrink": true,
                 "rotation": 0.0
               }
             }
@@ -390,7 +402,7 @@
         {
           "type": "group",
           "handlers": {
-            "OnMouseDown": "MoveFrom(self)"
+            "on_mouse_press": "MoveFrom(self)"
           },
           "properties": {
             "name": "group_5",
@@ -422,10 +434,10 @@
                   81,
                   81
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white"
+                "fill_color": "white"
               },
               "points": [
                 [
@@ -453,10 +465,13 @@
                 ],
                 "text": "5",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 50,
-                "canAutoShrink": true,
+                "font_size": 50,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "can_auto_shrink": true,
                 "rotation": 0.0
               }
             }
@@ -465,7 +480,7 @@
         {
           "type": "group",
           "handlers": {
-            "OnMouseDown": "MoveFrom(self)"
+            "on_mouse_press": "MoveFrom(self)"
           },
           "properties": {
             "name": "group_6",
@@ -497,10 +512,10 @@
                   81,
                   81
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white"
+                "fill_color": "white"
               },
               "points": [
                 [
@@ -528,10 +543,13 @@
                 ],
                 "text": "6",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 50,
-                "canAutoShrink": true,
+                "font_size": 50,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "can_auto_shrink": true,
                 "rotation": 0.0
               }
             }
@@ -540,7 +558,7 @@
         {
           "type": "group",
           "handlers": {
-            "OnMouseDown": "MoveFrom(self)"
+            "on_mouse_press": "MoveFrom(self)"
           },
           "properties": {
             "name": "group_7",
@@ -572,10 +590,10 @@
                   81,
                   81
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white"
+                "fill_color": "white"
               },
               "points": [
                 [
@@ -603,10 +621,13 @@
                 ],
                 "text": "7",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 50,
-                "canAutoShrink": true,
+                "font_size": 50,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "can_auto_shrink": true,
                 "rotation": 0.0
               }
             }
@@ -615,7 +636,7 @@
         {
           "type": "group",
           "handlers": {
-            "OnMouseDown": "MoveFrom(self)"
+            "on_mouse_press": "MoveFrom(self)"
           },
           "properties": {
             "name": "group_8",
@@ -647,10 +668,10 @@
                   81,
                   81
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white"
+                "fill_color": "white"
               },
               "points": [
                 [
@@ -678,10 +699,13 @@
                 ],
                 "text": "8",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 50,
-                "canAutoShrink": true,
+                "font_size": 50,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "can_auto_shrink": true,
                 "rotation": 0.0
               }
             }
@@ -690,7 +714,7 @@
         {
           "type": "group",
           "handlers": {
-            "OnMouseDown": "MoveFrom(self)"
+            "on_mouse_press": "MoveFrom(self)"
           },
           "properties": {
             "name": "group_9",
@@ -722,10 +746,10 @@
                   81,
                   81
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white"
+                "fill_color": "white"
               },
               "points": [
                 [
@@ -753,10 +777,13 @@
                 ],
                 "text": "9",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 50,
-                "canAutoShrink": true,
+                "font_size": 50,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "can_auto_shrink": true,
                 "rotation": 0.0
               }
             }
@@ -765,7 +792,7 @@
         {
           "type": "group",
           "handlers": {
-            "OnMouseDown": "MoveFrom(self)"
+            "on_mouse_press": "MoveFrom(self)"
           },
           "properties": {
             "name": "group_10",
@@ -797,10 +824,10 @@
                   81,
                   81
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white"
+                "fill_color": "white"
               },
               "points": [
                 [
@@ -828,10 +855,13 @@
                 ],
                 "text": "10",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 50,
-                "canAutoShrink": true,
+                "font_size": 50,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "can_auto_shrink": true,
                 "rotation": 0.0
               }
             }
@@ -840,7 +870,7 @@
         {
           "type": "group",
           "handlers": {
-            "OnMouseDown": "MoveFrom(self)"
+            "on_mouse_press": "MoveFrom(self)"
           },
           "properties": {
             "name": "group_11",
@@ -872,10 +902,10 @@
                   81,
                   81
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white"
+                "fill_color": "white"
               },
               "points": [
                 [
@@ -903,10 +933,13 @@
                 ],
                 "text": "11",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 50,
-                "canAutoShrink": true,
+                "font_size": 50,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "can_auto_shrink": true,
                 "rotation": 0.0
               }
             }
@@ -915,7 +948,7 @@
         {
           "type": "group",
           "handlers": {
-            "OnMouseDown": "MoveFrom(self)"
+            "on_mouse_press": "MoveFrom(self)"
           },
           "properties": {
             "name": "group_12",
@@ -947,10 +980,10 @@
                   81,
                   81
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white"
+                "fill_color": "white"
               },
               "points": [
                 [
@@ -978,10 +1011,13 @@
                 ],
                 "text": "12",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 50,
-                "canAutoShrink": true,
+                "font_size": 50,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "can_auto_shrink": true,
                 "rotation": 0.0
               }
             }
@@ -990,7 +1026,7 @@
         {
           "type": "group",
           "handlers": {
-            "OnMouseDown": "MoveFrom(self)"
+            "on_mouse_press": "MoveFrom(self)"
           },
           "properties": {
             "name": "group_13",
@@ -1022,10 +1058,10 @@
                   81,
                   81
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white"
+                "fill_color": "white"
               },
               "points": [
                 [
@@ -1053,10 +1089,13 @@
                 ],
                 "text": "13",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 50,
-                "canAutoShrink": true,
+                "font_size": 50,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "can_auto_shrink": true,
                 "rotation": 0.0
               }
             }
@@ -1065,7 +1104,7 @@
         {
           "type": "group",
           "handlers": {
-            "OnMouseDown": "MoveFrom(self)"
+            "on_mouse_press": "MoveFrom(self)"
           },
           "properties": {
             "name": "group_14",
@@ -1097,10 +1136,10 @@
                   81,
                   81
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white"
+                "fill_color": "white"
               },
               "points": [
                 [
@@ -1128,10 +1167,13 @@
                 ],
                 "text": "14",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 50,
-                "canAutoShrink": true,
+                "font_size": 50,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "can_auto_shrink": true,
                 "rotation": 0.0
               }
             }
@@ -1140,7 +1182,7 @@
         {
           "type": "group",
           "handlers": {
-            "OnMouseDown": "MoveFrom(self)"
+            "on_mouse_press": "MoveFrom(self)"
           },
           "properties": {
             "name": "group_15",
@@ -1172,10 +1214,10 @@
                   81,
                   81
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white"
+                "fill_color": "white"
               },
               "points": [
                 [
@@ -1203,10 +1245,13 @@
                 ],
                 "text": "15",
                 "alignment": "Center",
-                "textColor": "black",
+                "text_color": "black",
                 "font": "Default",
-                "fontSize": 50,
-                "canAutoShrink": true,
+                "font_size": 50,
+                "is_bold": false,
+                "is_italic": false,
+                "is_underlined": false,
+                "can_auto_shrink": true,
                 "rotation": 0.0
               }
             }
@@ -1215,6 +1260,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 3,
-  "CardStock_stack_version": "0.9.8"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

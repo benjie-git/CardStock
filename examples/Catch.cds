@@ -6,20 +6,20 @@
       598,
       400
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "from random import randint\n\nscore = 0\nnextMoveTime = Time() + 3\n",
-        "OnKeyHold": "if keyName == \"Left\":\n   guy.position.x -= 8\nelif keyName == \"Right\":\n   guy.position.x += 8\nelif keyName == \"Up\":\n   guy.position.y += 8\nelif keyName == \"Down\":\n   guy.position.y -= 8\n",
-        "OnPeriodic": "size = card.size\ndidUpdate = False\n\nif guy.IsTouching(goal):\n   score += 1\n   didUpdate = True\n\nif Time() >= nextMoveTime:\n   score -= 1\n   didUpdate = True\n   \nif didUpdate:\n   label.text = score\n   goal.position = [randint(0,size.width-goal.size.width),\\\n      randint(0,size.height-goal.size.height)]\n   nextMoveTime = Time() + 3\n"
+        "on_setup": "from random import randint\n\nscore = 0\n# 3 seconds until the green box (goal) moves\nnextMoveTime = time() + 3",
+        "on_key_hold": "# Use arrow keys to move the red box (guy) around\nif key_name == \"Left\" and guy.center.x > 0:\n   guy.position.x -= 8\nelif key_name == \"Right\" and guy.center.x < card.size.width:\n   guy.position.x += 8\nelif key_name == \"Up\" and guy.center.y < card.size.height:\n   guy.position.y += 8\nelif key_name == \"Down\" and guy.center.y > 0:\n   guy.position.y -= 8",
+        "on_periodic": "size = card.size\ndidUpdate = False\n\nif guy.is_touching(goal):\n   # Guy caught the goal!\n   score += 1\n   didUpdate = True\n\nif time() >= nextMoveTime:\n   # Time's up, move goal now\n   score -= 1\n   didUpdate = True\n   \nif didUpdate:\n   # we need to move the goal\n   label.text = score\n   goal.position = [randint(0,size.width - goal.size.width),\n                    randint(0,size.height- goal.size.height)]\n   nextMoveTime = time() + 3"
       },
       "properties": {
         "name": "main",
-        "bgColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -39,9 +39,10 @@
               41,
               36
             ],
-            "penColor": "#000000",
-            "penThickness": 1,
-            "fillColor": "red"
+            "pen_color": "#000000",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "red"
           },
           "points": [
             [
@@ -71,9 +72,10 @@
               118,
               118
             ],
-            "penColor": "#000000",
-            "penThickness": 1,
-            "fillColor": "green"
+            "pen_color": "#000000",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "green"
           },
           "points": [
             [
@@ -101,10 +103,14 @@
             ],
             "text": "0",
             "alignment": "Left",
-            "textColor": "blue",
+            "text_color": "blue",
             "font": "Mono",
-            "fontSize": 18,
-            "autoShrink": true
+            "font_size": 18,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -122,15 +128,19 @@
             ],
             "text": "Score:",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 18,
-            "autoShrink": true
+            "font_size": 18,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9.6"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

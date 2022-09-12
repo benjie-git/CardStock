@@ -6,18 +6,18 @@
       597,
       293
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "def UpdateBox():\n   lineStart = line.position.x\n   lineWidth = line.size.width\n   box.position.x = lineStart + (lowerBound-1) * lineWidth/100.0\n   box.size.width = (upperBound-lowerBound+1) * lineWidth/100.0\n\nresetButton.Click()\n"
+        "on_show_card": "def UpdateBox():\n   lineStart = line.position.x\n   lineWidth = line.size.width\n   box.position.x = lineStart + (lowerBound-1) * lineWidth/100.0\n   box.size.width = (upperBound-lowerBound+1) * lineWidth/100.0\n\nresetButton.click()\n"
       },
       "properties": {
         "name": "card_1",
-        "bgColor": "#CBE1C4"
+        "fill_color": "#CBE1C4"
       },
       "childModels": [
         {
@@ -31,19 +31,24 @@
             ],
             "position": [
               69.0,
-              5.0
+              247.0
             ],
             "text": "Guess a number from 1 - 100.",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 18
+            "font_size": 18,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
           "type": "textfield",
           "handlers": {
-            "OnTextEnter": "guess = int(self.text)\n\nif guess == number:\n   title.text = \"Congratulations, you guessed it!\"\n\nelif guess < number:\n   if guess > lowerBound:\n      lowerBound = guess\n   hint.text = \"Higher...\"\n   UpdateBox()\n\nelif guess > number:\n   if guess < upperBound:\n      upperBound = guess\n   hint.text = \"Lower...\"\n   UpdateBox()\n\nself.SelectAll()\n"
+            "on_text_enter": "try:\n   guess = int(self.text)\nexcept:\n   guess = None\n\nif guess is None:\n   return\n\nif guess == number:\n   title.text = \"Congratulations, you guessed it!\"\n\nelif guess < number:\n   if guess > lowerBound:\n      lowerBound = guess\n   hint.text = \"Higher...\"\n   UpdateBox()\n\nelif guess > number:\n   if guess < upperBound:\n      upperBound = guess\n   hint.text = \"Lower...\"\n   UpdateBox()\n\nself.select_all()\n"
           },
           "properties": {
             "name": "field",
@@ -53,12 +58,18 @@
             ],
             "position": [
               230.0,
-              55.0
+              210.0
             ],
             "text": "",
             "alignment": "Right",
-            "editable": true,
-            "multiline": false
+            "text_color": "black",
+            "font": "Default",
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": true,
+            "is_multiline": false
           }
         },
         {
@@ -72,15 +83,16 @@
             ],
             "position": [
               38.0,
-              167.0
+              106.0
             ],
             "originalSize": [
               420,
               20
             ],
-            "penColor": "#000000",
-            "penThickness": 1,
-            "fillColor": "#000000"
+            "pen_color": "#000000",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "#000000"
           },
           "points": [
             [
@@ -104,13 +116,18 @@
             ],
             "position": [
               17.0,
-              208.0
+              49.0
             ],
             "text": "1",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 18
+            "font_size": 18,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -124,13 +141,18 @@
             ],
             "position": [
               500.0,
-              208.0
+              53.0
             ],
             "text": "100",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 18
+            "font_size": 18,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -144,23 +166,24 @@
             ],
             "position": [
               535.0,
-              177.0
+              94.0
             ],
             "originalSize": [
               20,
               22
             ],
-            "penColor": "#000000",
-            "penThickness": 4
+            "pen_color": "#000000",
+            "pen_thickness": 4,
+            "rotation": 0.0
           },
           "points": [
             [
               0.0,
-              0.0
+              22.0
             ],
             [
               0.0,
-              22.0
+              0.0
             ]
           ]
         },
@@ -175,43 +198,46 @@
             ],
             "position": [
               40.0,
-              177.0
+              94.0
             ],
             "originalSize": [
               20,
               22
             ],
-            "penColor": "#000000",
-            "penThickness": 4
+            "pen_color": "#000000",
+            "pen_thickness": 4,
+            "rotation": 0.0
           },
           "points": [
             [
               0.0,
-              0.0
+              22.0
             ],
             [
               0.0,
-              22.0
+              0.0
             ]
           ]
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "field.Enter()"
+            "on_click": "field.enter()"
           },
           "properties": {
             "name": "enterButton",
             "size": [
               90,
-              30
+              26
             ],
             "position": [
               303.0,
-              54.0
+              211.0
             ],
             "title": "Enter",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -225,15 +251,16 @@
             ],
             "position": [
               178.0,
-              155.0
+              101.0
             ],
             "originalSize": [
               139,
               46
             ],
-            "penColor": "#000000",
-            "penThickness": 1,
-            "fillColor": "#009400"
+            "pen_color": "#000000",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "#009400"
           },
           "points": [
             [
@@ -249,7 +276,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "from random import randint\n\nnumber = randint(1, 100)\nlowerBound = 1\nupperBound = 100\nUpdateBox()\n\ntitle.text = \"Guess a number from 1 - 100.\"\nhint.text = \"\"\n\nfield.text = \"\"\nfield.Focus()\n"
+            "on_click": "from random import randint\n\nnumber = randint(1, 100)\nlowerBound = 1\nupperBound = 100\nUpdateBox()\n\ntitle.text = \"Guess a number from 1 - 100.\"\nhint.text = \"\"\n\nfield.text = \"\"\nfield.focus()\n"
           },
           "properties": {
             "name": "resetButton",
@@ -259,10 +286,12 @@
             ],
             "position": [
               0.0,
-              0.0
+              253.0
             ],
             "title": "Reset",
-            "border": false
+            "style": "Borderless",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -276,18 +305,23 @@
             ],
             "position": [
               210.0,
-              95.0
+              175.0
             ],
             "text": "",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.7"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

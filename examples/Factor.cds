@@ -6,46 +6,52 @@
       500,
       495
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "import math\n\ndef factor(n):\n   # Test for -1\n   if n < 0:\n      output.text += \"-1\\n\"\n      factor(-n)\n      return\n\n   # Test for 0 or 1\n   if n <= 1:\n      return\n   \n   # Test for 2\n   if n % 2 == 0:\n      output.text += str(2) + \"\\n\"\n      factor(int(n/2))\n      return\n\n   # Test for 3+ odds\n   for d in range(3, n+1, 2):\n      if n % d == 0:\n         output.text += str(d) + \"\\n\"\n         factor(int(n/d))\n         return\n",
-        "OnShowCard": "field.Focus()\n"
+        "on_setup": "import math\n\ndef factor(n):\n   # Test for -1\n   if n < 0:\n      output.text += \"-1\\n\"\n      factor(-n)\n      return\n\n   # Test for 0 or 1\n   if n <= 1:\n      return\n   \n   # Test for 2\n   if n % 2 == 0:\n      output.text += str(2) + \"\\n\"\n      factor(int(n/2))\n      return\n\n   # Test for 3+ odds\n   for d in range(3, n+1, 2):\n      if n % d == 0:\n         output.text += str(d) + \"\\n\"\n         factor(int(n/d))\n         return\n",
+        "on_show_card": "field.focus()\n"
       },
       "properties": {
         "name": "card_1",
-        "bgColor": "#DDEEDD"
+        "fill_color": "#DDEEDD"
       },
       "childModels": [
         {
           "type": "textfield",
           "handlers": {
-            "OnTextEnter": "button.Click()"
+            "on_text_enter": "button.click()"
           },
           "properties": {
             "name": "field",
             "size": [
-              105,
-              22
+              150,
+              24
             ],
             "position": [
-              136.0,
-              79.0
+              122.0,
+              393.0
             ],
             "text": "",
             "alignment": "Right",
-            "editable": true,
-            "multiline": false
+            "text_color": "black",
+            "font": "Default",
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": true,
+            "is_multiline": false
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "num = int(field.text)\noutput.text = \"\"\nfactor(num)\n"
+            "on_click": "output.text = \"\"\n\ntry:\n   num = int(field.text)\n   factor(num)\nexcept:\n   pass\n\nfield.focus()"
           },
           "properties": {
             "name": "button",
@@ -54,11 +60,13 @@
               21
             ],
             "position": [
-              261.0,
-              80.0
+              286.0,
+              394.0
             ],
             "title": "Find!",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -72,12 +80,18 @@
             ],
             "position": [
               52.0,
-              136.0
+              54.0
             ],
             "text": "",
             "alignment": "Left",
-            "editable": false,
-            "multiline": true
+            "text_color": "black",
+            "font": "Default",
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": false,
+            "is_multiline": true
           }
         },
         {
@@ -86,23 +100,28 @@
           "properties": {
             "name": "label_1",
             "size": [
-              377,
-              33
+              379,
+              38
             ],
             "position": [
-              58.0,
-              34.0
+              57.0,
+              428.0
             ],
             "text": "Enter a number to Prime Factor:",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 16
+            "font_size": 16,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.7"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

@@ -6,18 +6,18 @@
       822,
       211
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnMouseMove": "# The egg can't go further right than the tube's center\negg.center.x = min(mousePos.x, tube.center.x)\n\n# And ship can't go further left than the tube's center\nship.center.x = max(mousePos.x, tube.center.x)\n"
+        "on_mouse_move": "# The egg can't go further right than the tube's center\negg.center.x = min(mouse_pos.x, tube.center.x)\n\n# And ship can't go further left than the tube's center\nship.center.x = max(mouse_pos.x, tube.center.x)"
       },
       "properties": {
         "name": "card_1",
-        "bgColor": "#E6E6E6"
+        "fill_color": "#E6E6E6"
       },
       "childModels": [
         {
@@ -31,15 +31,16 @@
             ],
             "position": [
               344.0,
-              38.0
+              53.0
             ],
             "originalSize": [
               60,
               113
             ],
-            "penColor": "black",
-            "penThickness": 4,
-            "fillColor": "white"
+            "pen_color": "black",
+            "pen_thickness": 4,
+            "rotation": 0.0,
+            "fill_color": "white"
           },
           "points": [
             [
@@ -63,11 +64,11 @@
             ],
             "position": [
               371.0,
-              17.0
+              12.0
             ],
             "file": "ship-off.png",
             "fit": "Contain",
-            "rotation": 0,
+            "rotation": 0.0,
             "xFlipped": false,
             "yFlipped": false
           }
@@ -83,15 +84,16 @@
             ],
             "position": [
               299.0,
-              13.0
+              8.0
             ],
             "originalSize": [
               234,
               190
             ],
-            "penColor": "#000000",
-            "penThickness": 1,
-            "fillColor": "#66FFFF"
+            "pen_color": "#000000",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "#66FFFF"
           },
           "points": [
             [
@@ -115,18 +117,23 @@
             ],
             "position": [
               330.0,
-              88.0
+              89.0
             ],
             "text": "Magic Tube!",
             "alignment": "Center",
-            "textColor": "#074080",
+            "text_color": "#074080",
             "font": "Default",
-            "fontSize": 20
+            "font_size": 20,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.8.3"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

@@ -6,8 +6,8 @@
       500,
       500
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
@@ -15,7 +15,7 @@
       "handlers": {},
       "properties": {
         "name": "welcome",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -35,10 +35,10 @@
               431,
               70
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#ADCEA2"
+            "fill_color": "#ADCEA2"
           },
           "points": [
             [
@@ -54,7 +54,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoNextCard()"
+            "on_click": "goto_next_card()"
           },
           "properties": {
             "name": "button_2",
@@ -67,13 +67,15 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "textlabel",
           "handlers": {
-            "OnSetup": "# Make this text black when we run the stack,\n# and update the text.\nself.textColor = \"black\"\nself.text = \"Now that you're running the stack, this button will take you to the next card.\"\n"
+            "on_setup": "# Make this text black when we run the stack,\n# and update the text.\nself.text_color = \"black\"\nself.text = \"Now that you're running the stack, this button will take you to the next card.\"\n"
           },
           "properties": {
             "name": "label_5",
@@ -85,15 +87,15 @@
               202.0,
               56.0
             ],
-            "text": "(Later, when you run the stack, this button\r will take you to the next card.)",
+            "text": "(Later, when you run the stack, this button\n will take you to the next card.)",
             "alignment": "Right",
-            "textColor": "#A0A0A0",
+            "text_color": "#A0A0A0",
             "font": "Default",
-            "fontSize": 11,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 11,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -112,13 +114,13 @@
             ],
             "text": "Welcome to CardStock!",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 25,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 25,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -137,13 +139,13 @@
             ],
             "text": "A CardStock program is called a stack.  And each page of your program is called a card.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -160,22 +162,22 @@
               28.0,
               323.0
             ],
-            "text": "CardStock lets you build programs by drawing them out, and then adding bits of code right where you need it.  Then you can click Run to try it out.",
+            "text": "CardStock lets you build programs by drawing them out, and then adding bits of code right where you need them.  Then you can click Run to try it out.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
         {
           "type": "textlabel",
           "handlers": {
-            "OnSetup": "# Make this label disappear when we run the stack\nself.Hide()"
+            "on_setup": "# Make this label disappear when we run the stack\nself.hide()"
           },
           "properties": {
             "name": "label_6",
@@ -189,13 +191,13 @@
             ],
             "text": "Here in the Designer, you can move to the next card by clicking the \"Next Card\" button in the top right of this window.  Try it!",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         }
@@ -206,7 +208,7 @@
       "handlers": {},
       "properties": {
         "name": "labels",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -226,10 +228,10 @@
               431,
               70
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#ADCEA2"
+            "fill_color": "#ADCEA2"
           },
           "points": [
             [
@@ -245,7 +247,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoNextCard()"
+            "on_click": "goto_next_card()"
           },
           "properties": {
             "name": "button_2",
@@ -258,7 +260,9 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -276,13 +280,13 @@
             ],
             "text": "Objects",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 25,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 25,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -299,15 +303,15 @@
               34.0,
               342.0
             ],
-            "text": "You can draw objects like buttons,\ntext fields, shapes, and text\nonto your cards using the tools up here.",
+            "text": "You can draw objects like buttons,\ntext fields, shapes, and text labels\nonto your cards using the tools up here.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -328,8 +332,8 @@
               115,
               88
             ],
-            "penColor": "#000000",
-            "penThickness": 4,
+            "pen_color": "#000000",
+            "pen_thickness": 4,
             "rotation": 0.0
           },
           "points": [
@@ -360,8 +364,8 @@
               23,
               21
             ],
-            "penColor": "#000000",
-            "penThickness": 4,
+            "pen_color": "#000000",
+            "pen_thickness": 4,
             "rotation": 0.0
           },
           "points": [
@@ -426,7 +430,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoPreviousCard()"
+            "on_click": "goto_previous_card()"
           },
           "properties": {
             "name": "button_1",
@@ -439,7 +443,9 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -455,15 +461,15 @@
               34.0,
               203.0
             ],
-            "text": "For example, this is a Text object.  It shows text, but is not editable by the user when you run the stack.  But in the Designer, you can double click it to edit its text.",
+            "text": "For example, this is a Text Label object.  It shows text, but is not editable by the user when you run the stack.  But in the Designer, you can double click it to edit its text.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         }
@@ -474,7 +480,7 @@
       "handlers": {},
       "properties": {
         "name": "fields",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -494,10 +500,10 @@
               431,
               70
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#ADCEA2"
+            "fill_color": "#ADCEA2"
           },
           "points": [
             [
@@ -513,7 +519,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoNextCard()"
+            "on_click": "goto_next_card()"
           },
           "properties": {
             "name": "button_2",
@@ -526,7 +532,9 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -544,20 +552,20 @@
             ],
             "text": "Objects",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 25,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 25,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
         {
           "type": "textfield",
           "handlers": {
-            "OnTextEnter": "self.text = \"You pressed enter.\""
+            "on_text_enter": "self.text = \"You pressed enter.\""
           },
           "properties": {
             "name": "field_1",
@@ -571,20 +579,20 @@
             ],
             "text": "Edit me!  I'm a Text Field.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "isEditable": true,
-            "isMultiline": false
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": true,
+            "is_multiline": false
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoPreviousCard()"
+            "on_click": "goto_previous_card()"
           },
           "properties": {
             "name": "button_1",
@@ -597,7 +605,9 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -615,13 +625,13 @@
             ],
             "text": "And below is a Text Field.  Users of your stack can enter and edit text in them, and your code can get that text and use it.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         }
@@ -632,7 +642,7 @@
       "handlers": {},
       "properties": {
         "name": "buttons",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -652,10 +662,10 @@
               431,
               70
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#ADCEA2"
+            "fill_color": "#ADCEA2"
           },
           "points": [
             [
@@ -671,7 +681,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoNextCard()"
+            "on_click": "goto_next_card()"
           },
           "properties": {
             "name": "button_2",
@@ -684,7 +694,9 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -702,13 +714,13 @@
             ],
             "text": "Buttons let your stack perform actions when they are clicked, once your stack is running.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -727,20 +739,20 @@
             ],
             "text": "Objects",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 25,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 25,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoPreviousCard()"
+            "on_click": "goto_previous_card()"
           },
           "properties": {
             "name": "button_3",
@@ -753,13 +765,15 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "card.fillColor = \"#DDFFEE\""
+            "on_click": "card.fill_color = \"#DDFFEE\""
           },
           "properties": {
             "name": "button_1",
@@ -772,7 +786,9 @@
               271.0
             ],
             "title": "I am a Button",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         }
       ]
@@ -782,7 +798,7 @@
       "handlers": {},
       "properties": {
         "name": "images",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -802,10 +818,10 @@
               431,
               70
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#ADCEA2"
+            "fill_color": "#ADCEA2"
           },
           "points": [
             [
@@ -821,7 +837,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoNextCard()"
+            "on_click": "goto_next_card()"
           },
           "properties": {
             "name": "button_2",
@@ -834,7 +850,9 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -852,13 +870,13 @@
             ],
             "text": "Image objects can show an image from a file, and you can also draw shapes.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -897,20 +915,20 @@
             ],
             "text": "Objects",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 25,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 25,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoPreviousCard()"
+            "on_click": "goto_previous_card()"
           },
           "properties": {
             "name": "button_1",
@@ -923,7 +941,9 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -943,10 +963,10 @@
               125,
               55
             ],
-            "penColor": "black",
-            "penThickness": 4,
+            "pen_color": "black",
+            "pen_thickness": 4,
             "rotation": 0.0,
-            "fillColor": "white"
+            "fill_color": "white"
           },
           "points": [
             [
@@ -992,11 +1012,11 @@
                   60,
                   55
                 ],
-                "penColor": "#000000",
-                "penThickness": 4,
+                "pen_color": "#000000",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "white",
-                "cornerRadius": 12
+                "fill_color": "white",
+                "corner_radius": 12
               },
               "points": [
                 [
@@ -1026,8 +1046,8 @@
                   134,
                   190
                 ],
-                "penColor": "#000000",
-                "penThickness": 4,
+                "pen_color": "#000000",
+                "pen_thickness": 4,
                 "rotation": 0.0
               },
               "points": [
@@ -1494,7 +1514,7 @@
       "handlers": {},
       "properties": {
         "name": "property_editor",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -1514,10 +1534,10 @@
               431,
               70
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#ADCEA2"
+            "fill_color": "#ADCEA2"
           },
           "points": [
             [
@@ -1533,7 +1553,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoNextCard()"
+            "on_click": "goto_next_card()"
           },
           "properties": {
             "name": "button_2",
@@ -1546,7 +1566,9 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -1564,20 +1586,20 @@
             ],
             "text": "Whenever you have the Hand tool selected, you'll see the Property Editor here.  It lets you edit various aspects of your objects.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
         {
           "type": "image",
           "handlers": {
-            "OnMousePress": "PlaySound(\"puff.wav\")"
+            "on_mouse_press": "play_sound(\"puff.wav\")"
           },
           "properties": {
             "name": "image_1",
@@ -1613,10 +1635,10 @@
               125,
               55
             ],
-            "penColor": "black",
-            "penThickness": 4,
+            "pen_color": "black",
+            "pen_thickness": 4,
             "rotation": 23.4,
-            "fillColor": "#85DF6E"
+            "fill_color": "#85DF6E"
           },
           "points": [
             [
@@ -1644,13 +1666,13 @@
             ],
             "text": "Here, we've changed some of the objects' properties.  Try clicking each object to explore its properties, and edit them yourself!  Note that when you click on a property, you'll get a desciption of that property right below the Property Editor, in the Context Help area.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -1669,20 +1691,20 @@
             ],
             "text": "Properties",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 25,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 25,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoPreviousCard()"
+            "on_click": "goto_previous_card()"
           },
           "properties": {
             "name": "button_1",
@@ -1695,7 +1717,9 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -1731,8 +1755,8 @@
                   82,
                   2
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0
               },
               "points": [
@@ -1763,8 +1787,8 @@
                   2,
                   21
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0
               },
               "points": [
@@ -1795,8 +1819,8 @@
                   19,
                   9
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0
               },
               "points": [
@@ -1827,8 +1851,8 @@
                   19,
                   15
                 ],
-                "penColor": "black",
-                "penThickness": 4,
+                "pen_color": "black",
+                "pen_thickness": 4,
                 "rotation": 0.0
               },
               "points": [
@@ -1877,11 +1901,11 @@
                   60,
                   55
                 ],
-                "penColor": "#000000",
-                "penThickness": 4,
+                "pen_color": "#000000",
+                "pen_thickness": 4,
                 "rotation": 0.0,
-                "fillColor": "#FF9BB4",
-                "cornerRadius": 12
+                "fill_color": "#FF9BB4",
+                "corner_radius": 12
               },
               "points": [
                 [
@@ -1911,8 +1935,8 @@
                   134,
                   190
                 ],
-                "penColor": "red",
-                "penThickness": 12,
+                "pen_color": "red",
+                "pen_thickness": 12,
                 "rotation": 0.0
               },
               "points": [
@@ -2379,7 +2403,7 @@
       "handlers": {},
       "properties": {
         "name": "try_it",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -2399,10 +2423,10 @@
               431,
               70
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#ADCEA2"
+            "fill_color": "#ADCEA2"
           },
           "points": [
             [
@@ -2418,7 +2442,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoNextCard()"
+            "on_click": "goto_next_card()"
           },
           "properties": {
             "name": "button_2",
@@ -2431,7 +2455,9 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -2449,13 +2475,13 @@
             ],
             "text": "Properties",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 25,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 25,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -2476,10 +2502,10 @@
               296,
               242
             ],
-            "penColor": "#FB0207",
-            "penThickness": 4,
+            "pen_color": "#FB0207",
+            "pen_thickness": 4,
             "rotation": 0.0,
-            "fillColor": "#E6E7EA"
+            "fill_color": "#E6E7EA"
           },
           "points": [
             [
@@ -2567,7 +2593,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoPreviousCard()"
+            "on_click": "goto_previous_card()"
           },
           "properties": {
             "name": "button_1",
@@ -2580,7 +2606,9 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -2598,13 +2626,13 @@
             ],
             "text": "Try drawing out your own\nobjects below, and editing\ntheir properties yourself!",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         }
@@ -2615,7 +2643,7 @@
       "handlers": {},
       "properties": {
         "name": "code_editor",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -2635,10 +2663,10 @@
               431,
               70
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#ADCEA2"
+            "fill_color": "#ADCEA2"
           },
           "points": [
             [
@@ -2666,20 +2694,20 @@
             ],
             "text": "Whenever you have the Hand tool selected, you'll also see the Code Editor down here.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "Alert(\"Hello, this is an Alert.\")"
+            "on_click": "alert(\"Hello, this is an alert.\")"
           },
           "properties": {
             "name": "button_1",
@@ -2692,13 +2720,15 @@
               288.0
             ],
             "title": "Click Me!",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoNextCard()"
+            "on_click": "goto_next_card()"
           },
           "properties": {
             "name": "button_2",
@@ -2711,7 +2741,9 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -2731,8 +2763,8 @@
               312,
               142
             ],
-            "penColor": "#000000",
-            "penThickness": 4,
+            "pen_color": "#000000",
+            "pen_thickness": 4,
             "rotation": 0.0
           },
           "points": [
@@ -2763,8 +2795,8 @@
               21,
               30
             ],
-            "penColor": "#000000",
-            "penThickness": 4,
+            "pen_color": "#000000",
+            "pen_thickness": 4,
             "rotation": 0.0
           },
           "points": [
@@ -2847,15 +2879,15 @@
               23.0,
               59.0
             ],
-            "text": "This code is run when the currently chosen event happens.  The above button has code in its OnClick() event, which will run whenever this button is clicked.  Each type of object can respond to a different set of events.  For any selected object, you can see all of the events that already have code in them, and you can add more events by clicking the \"+ Add Events\" button.",
+            "text": "This code is run when the currently chosen event happens.  The above button has code in its on_click() event, which will run whenever this button is clicked.  Each type of object can respond to a different set of events.  For any selected object, you can see all of the events that already have code in them, and you can add more events by clicking the \"+ Add Event\" button.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -2874,20 +2906,20 @@
             ],
             "text": "Code Editor",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 25,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 25,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoPreviousCard()"
+            "on_click": "goto_previous_card()"
           },
           "properties": {
             "name": "button_3",
@@ -2900,7 +2932,9 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -2918,13 +2952,13 @@
             ],
             "text": "Select an object to see the code that will run when its events are triggered.  Try clicking on the button above.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         }
@@ -2935,7 +2969,7 @@
       "handlers": {},
       "properties": {
         "name": "code_1",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -2955,10 +2989,10 @@
               431,
               70
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#ADCEA2"
+            "fill_color": "#ADCEA2"
           },
           "points": [
             [
@@ -2974,7 +3008,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "number_field.text = int(number_field.text)+1"
+            "on_click": "number_field.text = int(number_field.text)+1"
           },
           "properties": {
             "name": "add_button",
@@ -2987,13 +3021,15 @@
               386.0
             ],
             "title": "Add One",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoNextCard()"
+            "on_click": "goto_next_card()"
           },
           "properties": {
             "name": "button_2",
@@ -3006,7 +3042,9 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -3022,15 +3060,15 @@
               29.0,
               75.0
             ],
-            "text": "This button does the following when clicked:\n- It takes the text from the above field, using number_field.text,\n- converts it to a number (an integer), using int(),\n- adds 1 to it, (+1)\n- and sets that new number as the new text for number_field.\n\nClick the button to select it, and see the code, and how it fits together.  Later, when you Run the stack, you'll be able to see this code work.\n\n\nCan you add a 2nd button that will double the number instead of adding 1?",
+            "text": "This button does the following when clicked:\n- It takes the text from the above field, using number_field.text,\n- converts it to a number (an integer), using int(),\n- adds 1 to it, (+1)\n- and sets that new number as the new text for number_field.\n\nClick the button to select it, and see this code, and how it fits together.  Later, when you Run the stack, you'll be able to see this code work.\n\n\nTry adding a second button that will double the number instead of adding 1!",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -3049,20 +3087,20 @@
             ],
             "text": "Event Code",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 25,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 25,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoPreviousCard()"
+            "on_click": "goto_previous_card()"
           },
           "properties": {
             "name": "button_3",
@@ -3075,7 +3113,9 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -3093,14 +3133,14 @@
             ],
             "text": "1",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "isEditable": true,
-            "isMultiline": false
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": true,
+            "is_multiline": false
           }
         }
       ]
@@ -3110,7 +3150,7 @@
       "handlers": {},
       "properties": {
         "name": "code_2",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -3130,10 +3170,10 @@
               431,
               70
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#ADCEA2"
+            "fill_color": "#ADCEA2"
           },
           "points": [
             [
@@ -3149,7 +3189,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "# Animate the ball to a point on the left over 1 second,\n# and then back to the right over 1 more second.\n# This queues up both animations to happen one after another,\n# since they are animating the same property.\nball.AnimatePosition(1, [  0, 325])\nball.AnimatePosition(1, [440, 325])\n\n# If you also add animations for a different property, for\n# example ball.AnimateSize(1, [20, 20]), this will\n# run simultaneously with ball's position animations."
+            "on_click": "# Animate the ball to a point on the left over 1 second,\n# and then back to the right over 1 more second.\n# This queues up both animations to happen one after another,\n# since they are animating the same property.\nball.animate_position(1, [  0, 325])\nball.animate_position(1, [440, 325])\n\n# If you also add animations for a different property, for\n# example ball.animate_fill_color(1, \"blue\"), this will\n# run simultaneously with ball's position animations."
           },
           "properties": {
             "name": "animate_button",
@@ -3162,13 +3202,15 @@
               395.0
             ],
             "title": "Animate",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoNextCard()"
+            "on_click": "goto_next_card()"
           },
           "properties": {
             "name": "button_2",
@@ -3181,7 +3223,9 @@
               14.0
             ],
             "title": "Next Card  =>",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -3197,15 +3241,15 @@
               29.0,
               56.0
             ],
-            "text": "This button animates the ball to move across the screen and back.\n\nNote that the circle has its name property set to \"ball\".  So the code in the button can perform actions on the ball object by name.\n\nCan you make the ball also animate its fillColor to blue and back to red, from the same button click?",
+            "text": "This button animates the ball to move across the screen and back.\n\nNote that the circle has its name property set to \"ball\".  So the code in the button can perform actions on the ball object by name.\n\nCan you make the ball also animate its fill_color to blue and back to red, from the same button click?",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -3224,20 +3268,20 @@
             ],
             "text": "Event Code",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 25,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 25,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoPreviousCard()"
+            "on_click": "goto_previous_card()"
           },
           "properties": {
             "name": "button_3",
@@ -3250,7 +3294,9 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -3270,10 +3316,10 @@
               54,
               54
             ],
-            "penColor": "black",
-            "penThickness": 1,
+            "pen_color": "black",
+            "pen_thickness": 1,
             "rotation": 0.0,
-            "fillColor": "#E62332"
+            "fill_color": "#E62332"
           },
           "points": [
             [
@@ -3293,7 +3339,7 @@
       "handlers": {},
       "properties": {
         "name": "run",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -3313,10 +3359,10 @@
               431,
               70
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#ADCEA2"
+            "fill_color": "#ADCEA2"
           },
           "points": [
             [
@@ -3344,13 +3390,13 @@
             ],
             "text": "Run Your Stack!",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 25,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 25,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -3369,13 +3415,13 @@
             ],
             "text": "When you're ready to test your stack, Click the Run Stack button up here.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -3396,8 +3442,8 @@
               50,
               84
             ],
-            "penColor": "#000000",
-            "penThickness": 4,
+            "pen_color": "#000000",
+            "pen_thickness": 4,
             "rotation": 0.0
           },
           "points": [
@@ -3428,8 +3474,8 @@
               28,
               30
             ],
-            "penColor": "#000000",
-            "penThickness": 4,
+            "pen_color": "#000000",
+            "pen_thickness": 4,
             "rotation": 0.0
           },
           "points": [
@@ -3522,13 +3568,13 @@
             ],
             "text": "For more info on how CardStock works, check out the Manual in the Help menu.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -3547,13 +3593,13 @@
             ],
             "text": "For more info on writing CardStock code, check out the Reference Guide in the Help menu.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -3572,20 +3618,20 @@
             ],
             "text": "You can also explore lots more CardStock code in the example CardStock stacks.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoPreviousCard()"
+            "on_click": "goto_previous_card()"
           },
           "properties": {
             "name": "button_1",
@@ -3598,7 +3644,9 @@
               14.0
             ],
             "title": "<= Prev Card",
-            "hasBorder": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -3616,19 +3664,19 @@
             ],
             "text": "When you're done running your stack, close the Viewer window to return here, to the Designer.",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "isBold": false,
-            "isItalic": false,
-            "isUnderlined": false,
-            "canAutoShrink": true,
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 4,
-  "CardStock_stack_version": "0.99.0"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

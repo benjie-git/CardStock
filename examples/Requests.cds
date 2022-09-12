@@ -6,24 +6,24 @@
       463,
       381
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "# requires you to have the python requests package installed\n# run: pip install requests\nimport requests\nimport json\n"
+        "on_setup": "# A minimal example showing how to use the requests API in CardStock\nimport requests\nimport json"
       },
       "properties": {
         "name": "card_1",
-        "bgColor": "#AABBCC"
+        "fill_color": "#AABBCC"
       },
       "childModels": [
         {
           "type": "button",
           "handlers": {
-            "OnClick": "field_1.text = \"Loading...\"\nresult = requests.get('https://geek-jokes.sameerkumar.website/api?format=json')\ndict = json.loads(result.text)\nfield_1.text = dict[\"joke\"]\n"
+            "on_click": "# Show loading while we wait for the API result.\nfield_1.text = \"Loading...\"\n\n# Make an API hit to a public joke-serving API.\nresult = requests.get('https://geek-jokes.sameerkumar.website/api?format=json')\n\n# When the result comes back, parse it as json,\ndict = json.loads(result.text)\n# and display the \"joke\" field from the resulting dictionary.\nfield_1.text = dict[\"joke\"]"
           },
           "properties": {
             "name": "button_1",
@@ -33,10 +33,12 @@
             ],
             "position": [
               187.0,
-              71.0
+              289.0
             ],
             "title": "Get it",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -50,20 +52,23 @@
             ],
             "position": [
               106.0,
-              144.0
+              64.0
             ],
             "text": "Want to hear a joke?",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "editable": false,
-            "multiline": true
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": false,
+            "is_multiline": true
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.8"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

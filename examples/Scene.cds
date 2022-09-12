@@ -6,26 +6,26 @@
       500,
       500
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "from random import randint",
-        "OnKeyDown": "if keyName == \"N\":\n   night.Click()\nelif keyName == \"D\":\n   day.Click()",
-        "OnPeriodic": "o = card.AddOval(\n   size = (10,10),\n   position = (randint(0,490),490),\n   fillColor = 'white',\n   penThickness = 1)\n\no.AnimatePosition(\n   randint(300,450)/100.0,\n   (o.position.x + randint(-20,20), -10),\n   o.Delete)\n"
+        "on_setup": "from random import randint",
+        "on_key_press": "if key_name == \"N\":\n   night.click()\nelif key_name == \"D\":\n   day.click()",
+        "on_periodic": "# Create a new piece of snow every 30th of a second, if we can keep up!\no = card.add_oval(\n   size = (10,10),\n   position = (randint(0,490),490),\n   fill_color = 'white',\n   pen_thickness = 1)\n\n# Animate it to the bottom of the stack, moing slightly on the x axis too, for fun.\n# When the animation is complete, run o.delete() to remove the new snow from\n# the card, so we don't accumulate old snow, which would slow down the stack and waste memory.\no.animate_position(\n   randint(300,450)/100.0,\n   (o.position.x + randint(-20,20), -10),\n   o.delete)\n"
       },
       "properties": {
         "name": "card_1",
-        "bgColor": "#88AAFF"
+        "fill_color": "#88AAFF"
       },
       "childModels": [
         {
           "type": "button",
           "handlers": {
-            "OnClick": "card.StopAnimating()\ncard.AnimateBgColor(1,\"#88AAFF\")\n\ncircle.StopAnimating()\ncircle.AnimateFillColor(1,\"yellow\")"
+            "on_click": "card.stop_animating()\ncard.animate_fill_color(1,\"#88AAFF\")\n\ncircle.stop_animating()\ncircle.animate_fill_color(1,\"yellow\")"
           },
           "properties": {
             "name": "day",
@@ -38,7 +38,9 @@
               425.0
             ],
             "title": "Day",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -58,9 +60,10 @@
               143,
               147
             ],
-            "penColor": "black",
-            "penThickness": 4,
-            "fillColor": "brown"
+            "pen_color": "black",
+            "pen_thickness": 4,
+            "rotation": 0.0,
+            "fill_color": "brown"
           },
           "points": [
             [
@@ -90,9 +93,10 @@
               97,
               94
             ],
-            "penColor": "black",
-            "penThickness": 0,
-            "fillColor": "yellow"
+            "pen_color": "black",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "yellow"
           },
           "points": [
             [
@@ -106,7 +110,7 @@
           ]
         },
         {
-          "type": "poly",
+          "type": "polygon",
           "handlers": {},
           "properties": {
             "name": "shape_2",
@@ -122,9 +126,10 @@
               232,
               136
             ],
-            "penColor": "black",
-            "penThickness": 4,
-            "fillColor": "brown"
+            "pen_color": "black",
+            "pen_thickness": 4,
+            "rotation": 0.0,
+            "fill_color": "brown"
           },
           "points": [
             [
@@ -158,9 +163,10 @@
               37,
               58
             ],
-            "penColor": "black",
-            "penThickness": 2,
-            "fillColor": "#A47D5D"
+            "pen_color": "black",
+            "pen_thickness": 2,
+            "rotation": 0.0,
+            "fill_color": "#A47D5D"
           },
           "points": [
             [
@@ -176,7 +182,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "card.StopAnimating()\ncard.AnimateBgColor(1,\"black\")\n\ncircle.StopAnimating()\ncircle.AnimateFillColor(1,\"grey\")"
+            "on_click": "card.stop_animating()\ncard.animate_fill_color(1,\"black\")\n\ncircle.stop_animating()\ncircle.animate_fill_color(1,\"grey\")"
           },
           "properties": {
             "name": "night",
@@ -189,12 +195,14 @@
               455.0
             ],
             "title": "Night",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

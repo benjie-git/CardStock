@@ -6,19 +6,19 @@
       269,
       267
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "from random import randint\n",
-        "OnKeyDown": "if keyName == \"Space\":\n   roll.Click()"
+        "on_setup": "from random import randint",
+        "on_key_press": "if key_name == \"Space\":\n   roll.click()"
       },
       "properties": {
         "name": "card_1",
-        "bgColor": "#88D174"
+        "fill_color": "#88D174"
       },
       "childModels": [
         {
@@ -36,10 +36,13 @@
             ],
             "text": "",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 14,
-            "autoShrink": true,
+            "font_size": 14,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -60,11 +63,11 @@
               77,
               77
             ],
-            "penColor": "black",
-            "penThickness": 4,
+            "pen_color": "black",
+            "pen_thickness": 4,
             "rotation": 0.0,
-            "fillColor": "white",
-            "cornerRadius": 8
+            "fill_color": "white",
+            "corner_radius": 8
           },
           "points": [
             [
@@ -92,10 +95,13 @@
             ],
             "text": "",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 30,
-            "autoShrink": true,
+            "font_size": 30,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
@@ -116,11 +122,11 @@
               77,
               77
             ],
-            "penColor": "black",
-            "penThickness": 4,
+            "pen_color": "black",
+            "pen_thickness": 4,
             "rotation": 0.0,
-            "fillColor": "white",
-            "cornerRadius": 8
+            "fill_color": "white",
+            "corner_radius": 8
           },
           "points": [
             [
@@ -148,17 +154,20 @@
             ],
             "text": "",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 30,
-            "autoShrink": true,
+            "font_size": 30,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
             "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "# Roll the dice\na = randint(1,6)\nb = randint(1,6)\nlabel_1.text = a\nlabel_2.text = b\n\n# Show the total\ntotalLabel.text = \"The total is \" + str(a+b)"
+            "on_click": "# Roll the dice\na = randint(1,6)\nb = randint(1,6)\nlabel_1.text = a\nlabel_2.text = b\n\n# show the total\ntotalLabel.text = \"The total is \" + str(a+b)"
           },
           "properties": {
             "name": "roll",
@@ -171,12 +180,14 @@
               205.0
             ],
             "title": "Roll",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9.8"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

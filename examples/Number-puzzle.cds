@@ -6,24 +6,24 @@
       603,
       250
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "import random\n\nlabels = [label_1, label_2, label_3, label_4, label_5,\n   label_6, label_7, label_8, label_9]\n\ndef reset():\n   digits = \"123456789\"\n\n   digitList = list(digits)\n   random.shuffle(digitList)\n   numberStr = ''.join(digitList)\n\n   for i in range(9):\n      labels[i].text = numberStr[i]\n\ndef swap(num):\n   str = [label.text for label in labels[:num]]\n   for i in range(num):\n      labels[i].text = str[num-i-1]\n   \n   if ''.join([label.text for label in labels]) == \"123456789\":\n      PlaySound(\"yay.wav\")\n      Wait(2)\n      reset()\n\nreset()"
+        "on_setup": "import random\n\nlabels = [label_1, label_2, label_3, label_4, label_5,\n   label_6, label_7, label_8, label_9]\n\ndef reset():\n   digits = \"123456789\"\n\n   digitList = list(digits)\n   random.shuffle(digitList)\n   numberStr = ''.join(digitList)\n\n   for i in range(9):\n      labels[i].text = numberStr[i]\n\ndef swap(num):\n   str = [label.text for label in labels[:num]]\n   for i in range(num):\n      labels[i].text = str[num-i-1]\n   \n   if ''.join([label.text for label in labels]) == \"123456789\":\n      play_sound(\"yay.wav\")\n      wait(2)\n      reset()\n\nreset()"
       },
       "properties": {
         "name": "card_1",
-        "bgColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
           "type": "textlabel",
           "handlers": {
-            "OnMouseDown": "swap(2)"
+            "on_mouse_press": "swap(2)"
           },
           "properties": {
             "name": "label_2",
@@ -37,15 +37,20 @@
             ],
             "text": "1",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 40
+            "font_size": 40,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
           "type": "textlabel",
           "handlers": {
-            "OnMouseDown": "swap(3)"
+            "on_mouse_press": "swap(3)"
           },
           "properties": {
             "name": "label_3",
@@ -59,15 +64,20 @@
             ],
             "text": "1",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 40
+            "font_size": 40,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
           "type": "textlabel",
           "handlers": {
-            "OnMouseDown": "swap(4)"
+            "on_mouse_press": "swap(4)"
           },
           "properties": {
             "name": "label_4",
@@ -81,15 +91,20 @@
             ],
             "text": "1",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 40
+            "font_size": 40,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
           "type": "textlabel",
           "handlers": {
-            "OnMouseDown": "swap(5)"
+            "on_mouse_press": "swap(5)"
           },
           "properties": {
             "name": "label_5",
@@ -103,15 +118,20 @@
             ],
             "text": "1",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 40
+            "font_size": 40,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
           "type": "textlabel",
           "handlers": {
-            "OnMouseDown": "swap(6)"
+            "on_mouse_press": "swap(6)"
           },
           "properties": {
             "name": "label_6",
@@ -125,15 +145,20 @@
             ],
             "text": "1",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 40
+            "font_size": 40,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
           "type": "textlabel",
           "handlers": {
-            "OnMouseDown": "swap(7)"
+            "on_mouse_press": "swap(7)"
           },
           "properties": {
             "name": "label_7",
@@ -147,15 +172,20 @@
             ],
             "text": "1",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 40
+            "font_size": 40,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
           "type": "textlabel",
           "handlers": {
-            "OnMouseDown": "swap(8)"
+            "on_mouse_press": "swap(8)"
           },
           "properties": {
             "name": "label_8",
@@ -169,15 +199,20 @@
             ],
             "text": "1",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 40
+            "font_size": 40,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
           "type": "textlabel",
           "handlers": {
-            "OnMouseDown": "swap(9)"
+            "on_mouse_press": "swap(9)"
           },
           "properties": {
             "name": "label_9",
@@ -191,9 +226,14 @@
             ],
             "text": "1",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 40
+            "font_size": 40,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -211,9 +251,14 @@
             ],
             "text": "Reorder the numbers from 1-9",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 24
+            "font_size": 24,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -231,9 +276,14 @@
             ],
             "text": "Click a number to flip it, along with all numbers to its left.",
             "alignment": "Center",
-            "textColor": "#626262",
+            "text_color": "#626262",
             "font": "Default",
-            "fontSize": 15
+            "font_size": 15,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -251,14 +301,19 @@
             ],
             "text": "1",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 40
+            "font_size": 40,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

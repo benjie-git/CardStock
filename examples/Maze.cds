@@ -6,26 +6,26 @@
       519,
       506
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "gotBall = False",
-        "OnMouseMove": "if gotBall:\n   ball.center = mousePos\n"
+        "on_setup": "gotBall = False",
+        "on_mouse_move": "if gotBall:\n   ball.center = mouse_pos\n"
       },
       "properties": {
         "name": "card_1",
-        "bgColor": "#FFFFFF"
+        "fill_color": "#FFFFFF"
       },
       "childModels": [
         {
           "type": "roundrect",
           "handlers": {
-            "OnMouseEnter": "gotBall = True",
-            "OnMessage": "if message == \"reset\":\n   PlaySound(\"click.wav\")\n   self.position = (10, 10)\n   gotBall = False\nelif message == \"win\":\n   PlaySound(\"yay.wav\")\n   self.position = (10, 10)\n   gotBall = False"
+            "on_mouse_enter": "gotBall = True",
+            "on_message": "if message == \"reset\":\n   play_sound(\"click.wav\")\n   self.position = (10, 10)\n   gotBall = False\nelif message == \"win\":\n   play_sound(\"yay.wav\")\n   self.position = (10, 10)\n   gotBall = False"
           },
           "properties": {
             "name": "ball",
@@ -34,17 +34,18 @@
               47
             ],
             "position": [
-              10.0,
+              19.0,
               10.0
             ],
             "originalSize": [
               46,
               43
             ],
-            "penColor": "black",
-            "penThickness": 0,
-            "fillColor": "#0A5FFF",
-            "cornerRadius": 10
+            "pen_color": "black",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "#0A5FFF",
+            "corner_radius": 10
           },
           "points": [
             [
@@ -60,7 +61,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"win\")\n"
+            "on_periodic": "if self.is_touching(ball):\n   ball.send_message(\"win\")\n"
           },
           "properties": {
             "name": "goal",
@@ -76,9 +77,10 @@
               102,
               24
             ],
-            "penColor": "#000000",
-            "penThickness": 0,
-            "fillColor": "green"
+            "pen_color": "#000000",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "green"
           },
           "points": [
             [
@@ -94,7 +96,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "on_periodic": "if self.is_touching(ball):\n   ball.send_message(\"reset\")\n"
           },
           "properties": {
             "name": "wall_1",
@@ -110,9 +112,10 @@
               211,
               66
             ],
-            "penColor": "#000000",
-            "penThickness": 1,
-            "fillColor": "#000000"
+            "pen_color": "#000000",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "#000000"
           },
           "points": [
             [
@@ -128,7 +131,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "on_periodic": "if self.is_touching(ball):\n   ball.send_message(\"reset\")\n"
           },
           "properties": {
             "name": "wall_2",
@@ -144,9 +147,10 @@
               211,
               66
             ],
-            "penColor": "#000000",
-            "penThickness": 1,
-            "fillColor": "#000000"
+            "pen_color": "#000000",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "#000000"
           },
           "points": [
             [
@@ -162,7 +166,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "on_periodic": "if self.is_touching(ball):\n   ball.send_message(\"reset\")\n"
           },
           "properties": {
             "name": "wall_3",
@@ -178,9 +182,10 @@
               211,
               66
             ],
-            "penColor": "#000000",
-            "penThickness": 1,
-            "fillColor": "#000000"
+            "pen_color": "#000000",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "#000000"
           },
           "points": [
             [
@@ -196,7 +201,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "on_periodic": "if self.is_touching(ball):\n   ball.send_message(\"reset\")\n"
           },
           "properties": {
             "name": "wall_4",
@@ -212,9 +217,10 @@
               211,
               66
             ],
-            "penColor": "#000000",
-            "penThickness": 1,
-            "fillColor": "#000000"
+            "pen_color": "#000000",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "#000000"
           },
           "points": [
             [
@@ -230,7 +236,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "on_periodic": "if self.is_touching(ball):\n   ball.send_message(\"reset\")\n"
           },
           "properties": {
             "name": "wall_5",
@@ -246,9 +252,10 @@
               211,
               66
             ],
-            "penColor": "#000000",
-            "penThickness": 1,
-            "fillColor": "#000000"
+            "pen_color": "#000000",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "#000000"
           },
           "points": [
             [
@@ -264,7 +271,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "on_periodic": "if self.is_touching(ball):\n   ball.send_message(\"reset\")\n"
           },
           "properties": {
             "name": "wall_6",
@@ -280,9 +287,10 @@
               211,
               66
             ],
-            "penColor": "#000000",
-            "penThickness": 1,
-            "fillColor": "#000000"
+            "pen_color": "#000000",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "#000000"
           },
           "points": [
             [
@@ -298,7 +306,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "on_periodic": "if self.is_touching(ball):\n   ball.send_message(\"reset\")\n"
           },
           "properties": {
             "name": "wall_7",
@@ -314,9 +322,10 @@
               211,
               66
             ],
-            "penColor": "#000000",
-            "penThickness": 1,
-            "fillColor": "#000000"
+            "pen_color": "#000000",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "#000000"
           },
           "points": [
             [
@@ -332,7 +341,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "on_periodic": "if self.is_touching(ball):\n   ball.send_message(\"reset\")\n"
           },
           "properties": {
             "name": "wall_8",
@@ -348,9 +357,10 @@
               211,
               66
             ],
-            "penColor": "#000000",
-            "penThickness": 1,
-            "fillColor": "#000000"
+            "pen_color": "#000000",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "#000000"
           },
           "points": [
             [
@@ -366,7 +376,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnPeriodic": "if self.IsTouching(ball):\n   ball.SendMessage(\"reset\")\n"
+            "on_periodic": "if self.is_touching(ball):\n   ball.send_message(\"reset\")\n"
           },
           "properties": {
             "name": "wall_9",
@@ -382,9 +392,10 @@
               211,
               66
             ],
-            "penColor": "#000000",
-            "penThickness": 1,
-            "fillColor": "#000000"
+            "pen_color": "#000000",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "#000000"
           },
           "points": [
             [
@@ -400,6 +411,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

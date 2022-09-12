@@ -6,49 +6,52 @@
       313,
       267
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "shouldReplaceText = False\nop = \"\"",
-        "OnShowCard": "f.Focus()"
+        "on_setup": "# After an operation like +, -, =, etc., then next number key should replace the old number\nshouldReplaceText = True\n# Which operation was last clicked, so we know what = should do\nop = \"\"",
+        "on_show_card": "field.focus()\nfield.select_all()"
       },
       "properties": {
         "name": "card_1",
-        "bgColor": "#555555"
+        "fill_color": "#555555"
       },
       "childModels": [
         {
           "type": "textfield",
           "handlers": {
-            "OnTextEnter": "button_eq.Click()"
+            "on_text_enter": "button_eq.click()"
           },
           "properties": {
-            "name": "f",
+            "name": "field",
             "size": [
               230,
               28
             ],
             "position": [
               40.0,
-              30.0
+              209.0
             ],
-            "text": "",
+            "text": "0",
             "alignment": "Right",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Mono",
-            "fontSize": 14,
-            "editable": true,
-            "multiline": false
+            "font_size": 14,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": true,
+            "is_multiline": false
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "oldVal = float(f.text)\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\nop = \"+\"\n"
+            "on_click": "oldVal = float(field.text)\nfield.focus()\nfield.select_all()\nshouldReplaceText = True\nop = \"+\"\n"
           },
           "properties": {
             "name": "button_16",
@@ -58,16 +61,18 @@
             ],
             "position": [
               220.0,
-              72.0
+              165.0
             ],
             "title": "+",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "oldVal = float(f.text)\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\nop = \"*\"\n"
+            "on_click": "oldVal = float(field.text)\nfield.focus()\nfield.select_all()\nshouldReplaceText = True\nop = \"*\"\n"
           },
           "properties": {
             "name": "button_1",
@@ -77,16 +82,18 @@
             ],
             "position": [
               220.0,
-              162.0
+              75.0
             ],
             "title": "*",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "oldVal = float(f.text)\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\nop = \"/\"\n"
+            "on_click": "oldVal = float(field.text)\nfield.focus()\nfield.select_all()\nshouldReplaceText = True\nop = \"/\"\n"
           },
           "properties": {
             "name": "button_3",
@@ -96,16 +103,18 @@
             ],
             "position": [
               220.0,
-              200.0
+              37.0
             ],
             "title": "/",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "newVal = float(f.text)\n\nif op==\"+\":\n  ans = oldVal+newVal\nelif op==\"-\":\n  ans = oldVal-newVal\nelif op==\"*\":\n  ans = oldVal*newVal\nelif op==\"/\":\n  ans = oldVal/newVal\nelse:\n   ans = 0\n   \noldVal = newVal\n\nf.text = ans\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\n"
+            "on_click": "newVal = float(field.text)\n\nif op==\"+\":\n  ans = oldVal+newVal\nelif op==\"-\":\n  ans = oldVal-newVal\nelif op==\"*\":\n  ans = oldVal*newVal\nelif op==\"/\":\n  ans = oldVal/newVal\nelse:\n   ans = 0\n   \noldVal = newVal\n\nfield.text = ans\nfield.focus()\nfield.select_all()\nshouldReplaceText = True\n"
           },
           "properties": {
             "name": "button_eq",
@@ -115,16 +124,18 @@
             ],
             "position": [
               100.0,
-              200.0
+              37.0
             ],
             "title": "=",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.text = \"1\"\n   shouldReplaceText = False\nelse:\n   f.text += \"1\""
+            "on_click": "if shouldReplaceText:\n   field.text = \"1\"\n   shouldReplaceText = False\nelse:\n   field.text += \"1\""
           },
           "properties": {
             "name": "button_5",
@@ -134,16 +145,18 @@
             ],
             "position": [
               41.0,
-              73.0
+              164.0
             ],
             "title": "1",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.text = \"2\"\n   shouldReplaceText = False\nelse:\n   f.text += \"2\""
+            "on_click": "if shouldReplaceText:\n   field.text = \"2\"\n   shouldReplaceText = False\nelse:\n   field.text += \"2\""
           },
           "properties": {
             "name": "button_6",
@@ -153,16 +166,18 @@
             ],
             "position": [
               100.0,
-              72.0
+              165.0
             ],
             "title": "2",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.text = \"3\"\n   shouldReplaceText = False\nelse:\n   f.text += \"3\""
+            "on_click": "if shouldReplaceText:\n   field.text = \"3\"\n   shouldReplaceText = False\nelse:\n   field.text += \"3\""
           },
           "properties": {
             "name": "button_7",
@@ -172,16 +187,18 @@
             ],
             "position": [
               160.0,
-              72.0
+              165.0
             ],
             "title": "3",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.text = \"4\"\n   shouldReplaceText = False\nelse:\n   f.text += \"4\""
+            "on_click": "if shouldReplaceText:\n   field.text = \"4\"\n   shouldReplaceText = False\nelse:\n   field.text += \"4\""
           },
           "properties": {
             "name": "button_8",
@@ -191,16 +208,18 @@
             ],
             "position": [
               40.0,
-              119.0
+              118.0
             ],
             "title": "4",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.text = \"5\"\n   shouldReplaceText = False\nelse:\n   f.text += \"5\""
+            "on_click": "if shouldReplaceText:\n   field.text = \"5\"\n   shouldReplaceText = False\nelse:\n   field.text += \"5\""
           },
           "properties": {
             "name": "button_9",
@@ -210,16 +229,18 @@
             ],
             "position": [
               100.0,
-              118.0
+              119.0
             ],
             "title": "5",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.text = \"6\"\n   shouldReplaceText = False\nelse:\n   f.text += \"6\""
+            "on_click": "if shouldReplaceText:\n   field.text = \"6\"\n   shouldReplaceText = False\nelse:\n   field.text += \"6\""
           },
           "properties": {
             "name": "button_10",
@@ -229,16 +250,18 @@
             ],
             "position": [
               160.0,
-              119.0
+              118.0
             ],
             "title": "6",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.text = \"7\"\n   shouldReplaceText = False\nelse:\n   f.text += \"7\""
+            "on_click": "if shouldReplaceText:\n   field.text = \"7\"\n   shouldReplaceText = False\nelse:\n   field.text += \"7\""
           },
           "properties": {
             "name": "button_11",
@@ -248,16 +271,18 @@
             ],
             "position": [
               40.0,
-              162.0
+              75.0
             ],
             "title": "7",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.text = \"8\"\n   shouldReplaceText = False\nelse:\n   f.text += \"8\""
+            "on_click": "if shouldReplaceText:\n   field.text = \"8\"\n   shouldReplaceText = False\nelse:\n   field.text += \"8\""
           },
           "properties": {
             "name": "button_12",
@@ -267,16 +292,18 @@
             ],
             "position": [
               100.0,
-              162.0
+              75.0
             ],
             "title": "8",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.text = \"9\"\n   shouldReplaceText = False\nelse:\n   f.text += \"9\""
+            "on_click": "if shouldReplaceText:\n   field.text = \"9\"\n   shouldReplaceText = False\nelse:\n   field.text += \"9\""
           },
           "properties": {
             "name": "button_13",
@@ -286,16 +313,18 @@
             ],
             "position": [
               160.0,
-              162.0
+              75.0
             ],
             "title": "9",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "if shouldReplaceText:\n   f.text = \"0\"\n   shouldReplaceText = False\nelse:\n   f.text += \"0\""
+            "on_click": "if shouldReplaceText:\n   field.text = \"0\"\n   shouldReplaceText = False\nelse:\n   field.text += \"0\""
           },
           "properties": {
             "name": "button_14",
@@ -305,16 +334,18 @@
             ],
             "position": [
               40.0,
-              200.0
+              37.0
             ],
             "title": "0",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "oldVal = float(f.text)\nf.Focus()\nf.SelectAll()\nshouldReplaceText = True\nop = \"-\"\n"
+            "on_click": "oldVal = float(field.text)\nfield.focus()\nfield.select_all()\nshouldReplaceText = True\nop = \"-\"\n"
           },
           "properties": {
             "name": "button_15",
@@ -324,15 +355,17 @@
             ],
             "position": [
               220.0,
-              118.0
+              119.0
             ],
             "title": "-",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 1,
-  "CardStock_stack_version": "0.8.8.3"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

@@ -6,22 +6,22 @@
       1000,
       500
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "isGameOver = False\n\ntubes = [shape_1, shape_2, shape_3, shape_4]",
-        "OnKeyDown": "if keyName == \"Space\":\n   self.SendMessage(\"tap\")",
-        "OnMouseDown": "self.SendMessage(\"tap\")",
-        "OnMessage": "if message == \"tap\":\n   if not isGameOver:\n      bird.speed.y += 250  # Flap!\n\n   if isGameOver:\n      # Reset positions of bird and tubes\n      bird.position.y = 200\n      for tube in tubes:\n         tube.position.x += 200\n      isGameOver = False",
-        "OnPeriodic": "if not isGameOver:\n   bird.speed.y -= 18  # Apply gravity\n   \n   if bird.IsTouchingEdge(card):\n      # Bird hit the floor or ceiling\n      isGameOver = True\n      bird.speed.y = 0\n\n   for tube in tubes:\n      if tube.IsTouching(bird):\n         # Bird hit this tube\n         isGameOver = True\n         bird.speed.y = 0\n\n   for tube in tubes:\n      # Move the tubes\n      tube.position.x -= 3\n      if tube.position.x < -tube.size.width:\n         # Wrap the tubes back to the right edge of the card\n         tube.position.x = card.size.width"
+        "on_setup": "isGameOver = False\n\ntubes = [shape_1, shape_2, shape_3, shape_4]",
+        "on_key_press": "if key_name == \"Space\":\n   self.send_message(\"tap\")",
+        "on_mouse_press": "self.send_message(\"tap\")",
+        "on_message": "if message == \"tap\":\n   if not isGameOver:\n      bird.speed.y += 250  # Flap!\n\n   if isGameOver:\n      # Reset positions of bird and tubes\n      bird.position.y = 200\n      for tube in tubes:\n         tube.position.x += 200\n      isGameOver = False",
+        "on_periodic": "if not isGameOver:\n   bird.speed.y -= 18  # Apply gravity\n   \n   if bird.is_touching_edge(card):\n      # Bird hit the floor or ceiling\n      isGameOver = True\n      bird.speed.y = 0\n\n   for tube in tubes:\n      if tube.is_touching(bird):\n         # Bird hit this tube\n         isGameOver = True\n         bird.speed.y = 0\n\n   for tube in tubes:\n      # Move the tubes\n      tube.position.x -= 3\n      if tube.position.x < -tube.size.width:\n         # Wrap the tubes back to the right edge of the card\n         tube.position.x = card.size.width"
       },
       "properties": {
         "name": "card_1",
-        "fillColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
@@ -41,10 +41,10 @@
               70,
               206
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#9C00FF"
+            "fill_color": "#9C00FF"
           },
           "points": [
             [
@@ -74,10 +74,10 @@
               70,
               206
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#9C00FF"
+            "fill_color": "#9C00FF"
           },
           "points": [
             [
@@ -107,10 +107,10 @@
               70,
               206
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#9C00FF"
+            "fill_color": "#9C00FF"
           },
           "points": [
             [
@@ -140,10 +140,10 @@
               70,
               206
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#9C00FF"
+            "fill_color": "#9C00FF"
           },
           "points": [
             [
@@ -173,10 +173,10 @@
               53,
               53
             ],
-            "penColor": "black",
-            "penThickness": 2,
+            "pen_color": "black",
+            "pen_thickness": 2,
             "rotation": 0.0,
-            "fillColor": "#FB0207"
+            "fill_color": "#FB0207"
           },
           "points": [
             [
@@ -192,6 +192,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 3,
-  "CardStock_stack_version": "0.99.0"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

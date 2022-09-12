@@ -6,18 +6,18 @@
       500,
       500
     ],
-    "canSave": true,
-    "canResize": false
+    "can_save": true,
+    "can_resize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnShowCard": "i = card.number\ntotal = stack.numCards\ncardNum.text = str(i) + '/' + str(total)\nfield.Focus()\n"
+        "on_show_card": "i = card.number\ntotal = stack.num_cards\ncardNum.text = str(i) + '/' + str(total)\nfield.focus()\n"
       },
       "properties": {
         "name": "card_1",
-        "bgColor": "#C4ACA9"
+        "fill_color": "#C4ACA9"
       },
       "childModels": [
         {
@@ -35,9 +35,14 @@
             ],
             "text": "My Diary",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Serif",
-            "fontSize": 18
+            "font_size": 18,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
@@ -57,9 +62,10 @@
               480,
               450
             ],
-            "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "#FFFFFF"
+            "pen_color": "#000000",
+            "pen_thickness": 4,
+            "rotation": 0.0,
+            "fill_color": "#FFFFFF"
           },
           "points": [
             [
@@ -75,7 +81,7 @@
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoNextCard()"
+            "on_click": "goto_next_card()"
           },
           "properties": {
             "name": "fwdButton",
@@ -88,13 +94,15 @@
               464.0
             ],
             "title": ">",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "GotoPreviousCard()"
+            "on_click": "goto_previous_card()"
           },
           "properties": {
             "name": "backButton",
@@ -107,7 +115,9 @@
               464.0
             ],
             "title": "<",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -125,17 +135,20 @@
             ],
             "text": "",
             "alignment": "Left",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "editable": true,
-            "multiline": true
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": true,
+            "is_multiline": true
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "newCard = card.Clone()\nnewCard.field.text = \"\"\nnewCard.title.text = \"Title\"\n"
+            "on_click": "newCard = card.clone()\nnewCard.field.text = \"\"\nnewCard.title.text = \"Title\"\n"
           },
           "properties": {
             "name": "addButton",
@@ -148,7 +161,9 @@
               464.0
             ],
             "title": "Add",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -166,15 +181,20 @@
             ],
             "text": "1/1",
             "alignment": "Right",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Serif",
-            "fontSize": 18
+            "font_size": 18,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "can_auto_shrink": true,
+            "rotation": 0.0
           }
         },
         {
           "type": "button",
           "handlers": {
-            "OnClick": "card.Delete()\n"
+            "on_click": "card.delete()\n"
           },
           "properties": {
             "name": "deleteButton",
@@ -187,7 +207,9 @@
               464.0
             ],
             "title": "Del",
-            "border": true
+            "style": "Border",
+            "is_selected": false,
+            "rotation": 0.0
           }
         },
         {
@@ -205,16 +227,19 @@
             ],
             "text": "Title",
             "alignment": "Center",
-            "textColor": "black",
+            "text_color": "black",
             "font": "Default",
-            "fontSize": 12,
-            "editable": true,
-            "multiline": false
+            "font_size": 12,
+            "is_bold": false,
+            "is_italic": false,
+            "is_underlined": false,
+            "is_editable": true,
+            "is_multiline": false
           }
         }
       ]
     }
   ],
-  "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }

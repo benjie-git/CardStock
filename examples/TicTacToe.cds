@@ -6,26 +6,25 @@
       500,
       500
     ],
-    "canSave": false,
-    "canResize": false
+    "can_save": false,
+    "can_resize": false
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "OnSetup": "x.Hide()\no.Hide()\n\npieces = []\n\ndef Reset():\n   global cells, player, moves, pieces\n   cells = [\"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\"]\n   player = 'X'\n   moves = 0\n   for p in pieces:\n      p.Delete()\n   pieces = []\n\ndef CheckBoard():\n   # Test across\n   if cells[0]+cells[1]+cells[2] in [\"XXX\", \"OOO\"]:\n      return cells[0]\n   if cells[3]+cells[4]+cells[5] in [\"XXX\", \"OOO\"]:\n      return cells[3]\n   if cells[6]+cells[7]+cells[8] in [\"XXX\", \"OOO\"]:\n      return cells[6]\n   \n   # Test down\n   if cells[0]+cells[3]+cells[6] in [\"XXX\", \"OOO\"]:\n      return cells[0]\n   if cells[1]+cells[4]+cells[7] in [\"XXX\", \"OOO\"]:\n      return cells[1]\n   if cells[2]+cells[5]+cells[8] in [\"XXX\", \"OOO\"]:\n      return cells[2]\n\n   # Test diagonals\n   if cells[0]+cells[4]+cells[8] in [\"XXX\", \"OOO\"]:\n      return cells[0]\n   if cells[2]+cells[4]+cells[6] in [\"XXX\", \"OOO\"]:\n      return cells[2]\n   \n   # No wins yet\n   return None",
-        "OnShowCard": "buttons = [cell_1, cell_2, cell_3,\n          cell_4, cell_5, cell_6, \n          cell_7, cell_8, cell_9]\n\nReset()\n",
-        "OnMessage": "cellIndex = int(message) - 1\n\nif cells[cellIndex] == \"\":\n   marker = x.Clone() if player == 'X' else o.Clone()\n   marker.center=buttons[cellIndex].center\n   marker.Show()\n   pieces.append(marker)\n   cells[cellIndex] = player\n   moves += 1\n   \n   winner = CheckBoard()\n   if winner == 'X':\n      Alert(\"X Wins!\")\n      Reset()\n   elif winner == 'O':\n      Alert(\"O Wins!\")\n      Reset()\n   elif moves == 9:\n      Alert(\"It's a Tie!\")\n      Reset()\n   else:\n      player = 'X' if (player == 'O') else 'O'\n\n"
+        "on_setup": "x.hide()\no.hide()\n\nbuttons = [cell_1, cell_2, cell_3,\n          cell_4, cell_5, cell_6, \n          cell_7, cell_8, cell_9]\n\npieces = []\n\ndef Reset():\n   global cells, player, moves, pieces\n   cells = [\"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\"]\n   player = 'X'\n   moves = 0\n   for p in pieces:\n      p.delete()\n   pieces = []\n\n# Test for a win, and return None (no win), or \"X\" or \"O\" for a win for that player\ndef CheckBoard():\n   # Test across\n   if cells[0]+cells[1]+cells[2] in [\"XXX\", \"OOO\"]:\n      return cells[0]\n   if cells[3]+cells[4]+cells[5] in [\"XXX\", \"OOO\"]:\n      return cells[3]\n   if cells[6]+cells[7]+cells[8] in [\"XXX\", \"OOO\"]:\n      return cells[6]\n   \n   # Test down\n   if cells[0]+cells[3]+cells[6] in [\"XXX\", \"OOO\"]:\n      return cells[0]\n   if cells[1]+cells[4]+cells[7] in [\"XXX\", \"OOO\"]:\n      return cells[1]\n   if cells[2]+cells[5]+cells[8] in [\"XXX\", \"OOO\"]:\n      return cells[2]\n\n   # Test diagonals\n   if cells[0]+cells[4]+cells[8] in [\"XXX\", \"OOO\"]:\n      return cells[0]\n   if cells[2]+cells[4]+cells[6] in [\"XXX\", \"OOO\"]:\n      return cells[2]\n   \n   # No wins yet\n   return None\n\nReset()",
+        "on_message": "cellIndex = int(message) - 1\n\nif cells[cellIndex] == \"\":\n   # This cell is open\n   marker = x.clone() if player == 'X' else o.clone()\n   marker.center = buttons[cellIndex].center\n   marker.show()\n   pieces.append(marker)\n   cells[cellIndex] = player\n   moves += 1\n   \n   winner = CheckBoard()\n   if winner == 'X':\n      alert(\"X Wins!\")\n      Reset()\n   elif winner == 'O':\n      alert(\"O Wins!\")\n      Reset()\n   elif moves == 9:\n      alert(\"It's a Tie!\")\n      Reset()\n   else:\n      player = 'X' if (player == 'O') else 'O'\n\n"
       },
       "properties": {
         "name": "card_1",
-        "bgColor": "white"
+        "fill_color": "white"
       },
       "childModels": [
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(\"9\")"
+            "on_mouse_press": "card.send_message(\"9\")"
           },
           "properties": {
             "name": "cell_9",
@@ -41,9 +40,10 @@
               127,
               125
             ],
-            "penColor": "white",
-            "penThickness": 0,
-            "fillColor": "white"
+            "pen_color": "white",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "white"
           },
           "points": [
             [
@@ -59,7 +59,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(\"8\")"
+            "on_mouse_press": "card.send_message(\"8\")"
           },
           "properties": {
             "name": "cell_8",
@@ -75,9 +75,10 @@
               127,
               125
             ],
-            "penColor": "white",
-            "penThickness": 0,
-            "fillColor": "white"
+            "pen_color": "white",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "white"
           },
           "points": [
             [
@@ -93,7 +94,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(\"7\")"
+            "on_mouse_press": "card.send_message(\"7\")"
           },
           "properties": {
             "name": "cell_7",
@@ -109,9 +110,10 @@
               127,
               125
             ],
-            "penColor": "white",
-            "penThickness": 0,
-            "fillColor": "white"
+            "pen_color": "white",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "white"
           },
           "points": [
             [
@@ -127,7 +129,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(\"6\")"
+            "on_mouse_press": "card.send_message(\"6\")"
           },
           "properties": {
             "name": "cell_6",
@@ -143,9 +145,10 @@
               127,
               125
             ],
-            "penColor": "white",
-            "penThickness": 0,
-            "fillColor": "white"
+            "pen_color": "white",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "white"
           },
           "points": [
             [
@@ -161,7 +164,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(\"5\")"
+            "on_mouse_press": "card.send_message(\"5\")"
           },
           "properties": {
             "name": "cell_5",
@@ -177,9 +180,10 @@
               127,
               125
             ],
-            "penColor": "white",
-            "penThickness": 0,
-            "fillColor": "white"
+            "pen_color": "white",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "white"
           },
           "points": [
             [
@@ -195,7 +199,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(\"4\")"
+            "on_mouse_press": "card.send_message(\"4\")"
           },
           "properties": {
             "name": "cell_4",
@@ -211,9 +215,10 @@
               127,
               125
             ],
-            "penColor": "white",
-            "penThickness": 0,
-            "fillColor": "white"
+            "pen_color": "white",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "white"
           },
           "points": [
             [
@@ -229,7 +234,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(\"3\")"
+            "on_mouse_press": "card.send_message(\"3\")"
           },
           "properties": {
             "name": "cell_3",
@@ -245,9 +250,10 @@
               127,
               125
             ],
-            "penColor": "white",
-            "penThickness": 0,
-            "fillColor": "white"
+            "pen_color": "white",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "white"
           },
           "points": [
             [
@@ -263,7 +269,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(\"2\")"
+            "on_mouse_press": "card.send_message(\"2\")"
           },
           "properties": {
             "name": "cell_2",
@@ -279,9 +285,10 @@
               127,
               125
             ],
-            "penColor": "white",
-            "penThickness": 0,
-            "fillColor": "white"
+            "pen_color": "white",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "white"
           },
           "points": [
             [
@@ -297,7 +304,7 @@
         {
           "type": "rect",
           "handlers": {
-            "OnMouseDown": "card.SendMessage(\"1\")"
+            "on_mouse_press": "card.send_message(\"1\")"
           },
           "properties": {
             "name": "cell_1",
@@ -313,9 +320,10 @@
               127,
               125
             ],
-            "penColor": "white",
-            "penThickness": 0,
-            "fillColor": "white"
+            "pen_color": "white",
+            "pen_thickness": 0,
+            "rotation": 0.0,
+            "fill_color": "white"
           },
           "points": [
             [
@@ -345,8 +353,9 @@
               395,
               20
             ],
-            "penColor": "#000000",
-            "penThickness": 4
+            "pen_color": "#000000",
+            "pen_thickness": 4,
+            "rotation": 0.0
           },
           "points": [
             [
@@ -376,8 +385,9 @@
               395,
               20
             ],
-            "penColor": "#000000",
-            "penThickness": 4
+            "pen_color": "#000000",
+            "pen_thickness": 4,
+            "rotation": 0.0
           },
           "points": [
             [
@@ -407,8 +417,9 @@
               20,
               339
             ],
-            "penColor": "#000000",
-            "penThickness": 4
+            "pen_color": "#000000",
+            "pen_thickness": 4,
+            "rotation": 0.0
           },
           "points": [
             [
@@ -438,8 +449,9 @@
               20,
               339
             ],
-            "penColor": "#000000",
-            "penThickness": 4
+            "pen_color": "#000000",
+            "pen_thickness": 4,
+            "rotation": 0.0
           },
           "points": [
             [
@@ -462,9 +474,10 @@
               78
             ],
             "position": [
-              74.0,
-              412.0
-            ]
+              82.0,
+              411.0
+            ],
+            "rotation": 0.0
           },
           "childModels": [
             {
@@ -484,8 +497,9 @@
                   76,
                   76
                 ],
-                "penColor": "#000000",
-                "penThickness": 4
+                "pen_color": "#000000",
+                "pen_thickness": 4,
+                "rotation": 0.0
               },
               "points": [
                 [
@@ -515,8 +529,9 @@
                   75,
                   73
                 ],
-                "penColor": "#000000",
-                "penThickness": 4
+                "pen_color": "#000000",
+                "pen_thickness": 4,
+                "rotation": 0.0
               },
               "points": [
                 [
@@ -542,15 +557,16 @@
             ],
             "position": [
               17.0,
-              418.0
+              417.0
             ],
             "originalSize": [
               69,
               69
             ],
-            "penColor": "#000000",
-            "penThickness": 4,
-            "fillColor": "#FFFFFF"
+            "pen_color": "#000000",
+            "pen_thickness": 4,
+            "rotation": 0.0,
+            "fill_color": "#FFFFFF"
           },
           "points": [
             [
@@ -566,6 +582,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 2,
-  "CardStock_stack_version": "0.9"
+  "CardStock_stack_format": 6,
+  "CardStock_stack_version": "0.99.1"
 }
