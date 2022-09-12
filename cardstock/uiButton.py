@@ -111,7 +111,7 @@ class UiButton(UiView):
                 lineHeight = td(font.GetPixelSize().height)
                 (startX, startY) = (0, (height+lineHeight)/2 + (1 if fd(100) == 100 else fd(-3)))
 
-                lines = wordwrap(title, width, gc)
+                lines = wordwrap(title, fd(width), gc)
                 line = lines.split("\n")[0]
 
                 gc.SetFont(font)
@@ -128,7 +128,7 @@ class UiButton(UiView):
                 lineHeight = td(font.GetPixelSize().height)
                 (startX, startY) = (0, (height+lineHeight)/2 + (1 if fd(100) == 100 else fd(-3)))
 
-                lines = wordwrap(title, width, gc)
+                lines = wordwrap(title, fd(width), gc)
                 line = lines.split("\n")[0]
 
                 gc.SetFont(font)
@@ -155,7 +155,7 @@ class UiButton(UiView):
                 startPos = (25, startY)
                 gc.SetFont(font)
                 gc.SetTextForeground(wx.Colour('black'))
-                lines = wordwrap(title, width, gc)
+                lines = wordwrap(title, fd(width-25), gc)
                 line = lines.split("\n")[0]
                 gc.DrawText(line, startPos)
 
