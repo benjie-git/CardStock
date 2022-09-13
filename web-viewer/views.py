@@ -289,6 +289,8 @@ class UiCard(UiView):
         self.stackManager.RunSetupIfNeeded()
         self.stackManager.runner.SetupForCard(self.model)
         self.stackManager.runner.RunHandler(self.model, "on_show_card", None)
+        if self.model.parent.GetProperty("can_resize"):
+            self.stackManager.runner.RunHandler(self.model, "on_resize", None, True)
 
     def Unload(self):
         if self.model:
