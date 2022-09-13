@@ -318,9 +318,9 @@ class Runner():
                     self.RunCodeWithExceptionHandling(args[1])
                 elif args[0] == TaskType.CallbackMain:
                     @RunOnMainAsync
-                    def f():
-                        args[1](*args[2:])
-                    f()
+                    def f(a, b):
+                        a(*b)
+                    f(args[1], args[2:])
                 elif args[0] == TaskType.Handler:
                     # Run this handler
                     self.lastCard = args[1].GetCard()

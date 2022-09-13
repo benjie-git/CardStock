@@ -530,6 +530,7 @@ class LoginDialog(wx.Dialog):
 
         cancelBtn = wx.Button(self.panel, label = "Cancel")
         cancelBtn.Bind(wx.EVT_BUTTON, self.OnCancel)
+        buttonSizer.AddStretchSpacer()
         buttonSizer.Add(cancelBtn, 1, wx.EXPAND | wx.ALL, spacing)
 
         labelStr = f"You are not yet logged in to {CSWEB_DISPLAY_NAME}.  Please Log In if you already have an account.  " \
@@ -560,7 +561,7 @@ class LoginDialog(wx.Dialog):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         label = wx.StaticText(self.panel, label=labelStr)
-        sizer.Add(label, 0, wx.EXPAND | wx.ALL, spacing)
+        sizer.Add(label, 1, wx.EXPAND | wx.ALL, spacing*2)
         sizer.Add(user_sizer, 0, wx.EXPAND | wx.ALL, spacing)
         sizer.Add(pass_sizer, 0, wx.EXPAND | wx.ALL, spacing)
         sizer.Add(buttonSizer, 0, wx.EXPAND | wx.ALL, spacing)
