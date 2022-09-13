@@ -82,8 +82,9 @@ class ViewerFrame(wx.Frame):
         if self.consoleWindow:
             self.consoleWindow.Destroy()
             self.consoleWindow = None
-        self.findEngine.stackManager = None
-        self.findEngine = None
+        if self.findEngine:
+            self.findEngine.stackManager = None
+            self.findEngine = None
         self.designer = None
         self.stackManager = None
         return super().Destroy()
@@ -589,7 +590,10 @@ class ViewerFrame(wx.Frame):
         scale = min(targetSize/size.width, targetSize/size.height)
         img.Rescale(int(size.width * scale), int(size.height * scale), wx.IMAGE_QUALITY_HIGH)
         self.designer.thumbnail = img.ConvertToBitmap()
-        self.Close()
+        if wx.Platform != "__WXMAC__":
+            self.Iconize()
+        self.Close(True)
+        wx.YieldIfNeeded()
 
 
 # ----------------------------------------------------------------------

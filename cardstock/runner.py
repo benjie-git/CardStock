@@ -1020,7 +1020,8 @@ class Runner():
         self.stackManager.view.TopLevelParent.OnMenuClose(None)
 
     def ResetStopHandlingMouseEvent(self):
-        self.handlerQueue.put((TaskType.StopHandlingMouseEvent, ))
+        if self.handlerQueue:
+            self.handlerQueue.put((TaskType.StopHandlingMouseEvent, ))
 
     def stop_handling_mouse_event(self):
         self.stopHandlingMouseEvent = True
