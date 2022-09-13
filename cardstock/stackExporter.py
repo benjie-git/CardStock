@@ -338,7 +338,6 @@ class StackExporter(object):
 
         try:
             response = requests.post(CSWEB_UPLOAD_URL, headers=headers, data=params, files=files)
-            os.remove(tmpPath)
             responseJson = response.json()
             if 'url' in responseJson:
                 msg = f"Upload done.  This stack is available at\n\n{responseJson['url']}"
@@ -358,7 +357,11 @@ class StackExporter(object):
             msg = f"Upload failed. \n\n {responseJson.get('error')}"
         except Exception as e:
             msg = f"Upload failed.\n\n{e}"
+
+        try:
             os.remove(tmpPath)
+        except:
+            pass
 
         wx.MessageDialog(None, msg, "", wx.OK).ShowModal()
         return None
