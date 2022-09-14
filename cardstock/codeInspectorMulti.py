@@ -108,7 +108,8 @@ class CodeInspector(wx.ScrolledWindow):
             # self.sizer.AddSpacer(100)
 
             self.UpdateEditorVisibility()
-            self.Scroll(0, HEADER_HEIGHT)
+            if wx.Platform != "__WXMSW__":
+                self.Scroll(0, HEADER_HEIGHT)
 
             # for (handlerName, code) in uiView.model.handlers.items():
             #     if len(code.strip()):
