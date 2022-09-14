@@ -660,7 +660,8 @@ class DesignerFrame(wx.Frame):
             self.allCodeWindow.Hide()
             self.allCodeWindow.Clear()
 
-        self.Hide()
+        if not generateThumbnail:
+            self.Hide()
 
         if self.stackManager.analyzer.analysisPending:
             self.stackManager.analyzer.RunAnalysis()
@@ -679,7 +680,7 @@ class DesignerFrame(wx.Frame):
         self.viewer.designer = self
 
         self.viewer.PushStack(stackModel, self.filename, cardIndex)
-        self.viewer.Show(True)
+        self.viewer.Show(not generateThumbnail)
         self.viewer.Refresh()
         self.isStartingViewer = False
 
