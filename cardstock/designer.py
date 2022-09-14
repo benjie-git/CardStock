@@ -269,9 +269,12 @@ class DesignerFrame(wx.Frame):
         cPanelWidth = max(self.FromDIP(self.cPanel.defaultPanelWidth), self.cPanel.GetSize().Width)
         clientSize = (size.Width + self.splitter.GetSashSize() + cPanelWidth,
                       max(size.Height, self.FromDIP(500)))
-        self.splitter.SetSize(clientSize)
-        self.SetClientSize(clientSize)
-        self.splitter.SetSashPosition(size.Width)
+        def updateSize():
+            self.splitter.SetSize(clientSize)
+            self.SetClientSize(clientSize)
+            self.splitter.SetSashPosition(size.Width)
+        updateSize()
+        wx.CallAfter(updateSize)  # fix initial sizing on linux
 
     def OnSplitterDoubleClick(self, event):
         self.splitter.SetSashPosition(self.stackManager.view.GetSize().Width)
