@@ -1099,6 +1099,17 @@ class DesignerFrame(wx.Frame):
             cur_dir = os.path.dirname(self.configInfo["last_open_file"])
         return cur_dir
 
+    def WriteDefaultConfig(self):
+        config = configparser.ConfigParser()
+        self.configInfo = {"last_open_file": os.path.join(self.GetExamplesDir(), "Welcome.cds"),
+                           "show_context_help": str(True),
+                           "upload_username": "",
+                           "upload_token": "",
+                           "cardstock_app_version": version.VERSION}
+        config['User'] = self.configInfo
+        with open(self.full_config_file_path, 'w') as configfile:
+            config.write(configfile)
+
     def WriteConfig(self):
         config = configparser.ConfigParser()
         last_file = self.filename if self.filename else ""
@@ -1137,7 +1148,7 @@ class DesignerFrame(wx.Frame):
         cardstock_app_version = "0"
         if not os.path.exists(self.full_config_file_path) \
                 or os.stat(self.full_config_file_path).st_size == 0:
-            self.WriteConfig()
+            self.WriteDefaultConfig()
         if os.path.exists(self.full_config_file_path) and os.stat(self.full_config_file_path).st_size > 0:
             config = configparser.ConfigParser()
             config.read(self.full_config_file_path)
@@ -1146,9 +1157,6 @@ class DesignerFrame(wx.Frame):
             upload_token = config['User'].get('upload_token', None)
             show_context_help = config['User'].get('show_context_help', "True") == "True"
             cardstock_app_version = config['User'].get('cardstock_app_version', "0")
-
-        if not last_open_file:
-            last_open_file = os.path.join(self.GetExamplesDir(), "Welcome.cds")
 
         return {"last_open_file": last_open_file,
                 "show_context_help": show_context_help,
