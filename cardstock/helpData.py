@@ -448,7 +448,7 @@ class HelpDataObject():
                          "store arbitrary data in any object within a stack that has <b>can_save</b> set to True."},
         "position": {"type": "point",
                      "info": "The <b>position</b> property is a point value that describes where on the "
-                             "card this object's bottom-left corner is'.  The first number, <b>x</b>, is how many pixels the object is "
+                             "card this object's bottom-left corner is.  The first number, <b>x</b>, is how many pixels the object is "
                              "from the left edge of the card.  The second number, <b>y</b>, is how far up from the bottom."},
         "size": {"type": "size",
                  "info": "The <b>size</b> property is a size value that describes how big this object is on screen. "
