@@ -46,6 +46,7 @@ ________
 * Visual selection indicators (the blue dotted outlines) are drawn behind native views, and so can hide behind overlapping text fields and web views.
 * Stacks can only import additional modules, and export stacks that include them, when running from source.  Not when running from the prebuilt applications. (The prebuilt applications are built with a few additional libraries: requests, pyserial, and more could be added by request.)
 * Ironically, WebViews do not work in the web-based viewer on https://cardstock.run.
+* For performance reasons, currently mouse events don't propagate through all overlapping objects when running on the web-viewer, just the topmost object under the mouse, any containing groups, and the card.
 
 ## Requirements
 The prebuilt applications for Mac and Windows have no external dependencies.
