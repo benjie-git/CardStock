@@ -27,10 +27,15 @@ class UiButton(UiView):
             UiButton.checkboxOnBmp = checkbox_on.GetBitmap()
             UiButton.checkboxOffBmp = checkbox_off.GetBitmap()
             if wx.Platform != "__WXMSW__":
-                UiButton.radioOnBmp.SetScaleFactor(2)
-                UiButton.radioOffBmp.SetScaleFactor(2)
-                UiButton.checkboxOnBmp.SetScaleFactor(2)
-                UiButton.checkboxOffBmp.SetScaleFactor(2)
+                def rescale(bmp):
+                    s = bmp.GetSize()
+                    img = bmp.ConvertToImage()
+                    img.Rescale(int(s.width/2), int(s.height/2), wx.IMAGE_QUALITY_HIGH)
+                    return img.ConvertToBitmap()
+                UiButton.radioOnBmp = rescale(UiButton.radioOnBmp)
+                UiButton.radioOffBmp = rescale(UiButton.radioOffBmp)
+                UiButton.checkboxOnBmp = rescale(UiButton.checkboxOnBmp)
+                UiButton.checkboxOffBmp = rescale(UiButton.checkboxOffBmp)
 
     def GetCursor(self):
         return wx.CURSOR_HAND
@@ -144,7 +149,7 @@ class UiButton(UiView):
                 iconBmp = UiButton.radioOnBmp if self.model.GetProperty("is_selected") else UiButton.radioOffBmp
             else:
                 iconBmp = UiButton.checkboxOnBmp if self.model.GetProperty("is_selected") else UiButton.checkboxOffBmp
-            startY = int((height + iconBmp.ScaledHeight) / 2) + (1 if fd(100) == 100 else fd(-3))
+            startY = int((height + iconBmp.Height) / 2) + (1 if fd(100) == 100 else fd(-3))
             gc.DrawBitmap(iconBmp, fd(2), startY)
 
             title = self.model.GetProperty("title")
