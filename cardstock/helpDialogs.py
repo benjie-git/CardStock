@@ -54,6 +54,76 @@ event-driven python code.  It is inspired by the simplicity and power of Apple's
         event.Skip()
 
 
+class CardStockBasics(wx.Frame):
+    """ A help window that uses an HTML view.  This is the Python Basics window. """
+
+    def GetHTML(self):
+        hints = {
+            "Basic types":'int: 5, 1000, -2\nfloat: 3.1415, 1000.0, 0.5\nstring: "Hello", "CardStock", "100 is a number"\nlist: [1,1,2,3,5], ["Bob", "Jane", "Gandalf"]\nobject: oval_1, card, stack, label_1',
+            "Convert types":'int("100") == 100\nstr(57) == "57"\nint(12.5) == 12',
+            "Get a property of an object": 'oval_1.fill_color\nlabel_1.text',
+            "Expressions": '4 + 7\n"Hello" + " friend"\nlabel_1.text + " BEEP"\nint(field_1.text) + 1',
+            "Set a value":'x = 2\noval_1.fill_color = "red"\nlabel_1.text = "Hello friend"\nfield_1.text = int(field_1.text) + 1',
+            "Check a value": 'if x == 3:\n   alert("x is three!")\n\nif label_1.text == "Hello friend":\n   print("Enter")',
+            "Make a list": 'odds = [1, 3, 5, 7, 9]\nprint([2, 4, 6])\nnames = ["Jonas", "Martha", "Magnus"]\novals = [oval_1, oval_2, oval_3]',
+            "Do something for each item in a list": 'for num in odds:\n   print(num)\n\nfor oval in ovals:\n   oval.fill_color = "red"',
+        }
+        html = f'''
+<html>
+<body bgcolor="#EEEEEE">
+<center><table bgcolor='#D0DFEE' cellspacing="0" cellpadding="4" border="0">
+<tr>
+    <td align="center"><h1>CardStock: Python Basics</h1>
+    </td>
+</tr>
+</table>
+</center>
+<table border='0' cellpadding='5' cellspacing='0'>
+'''
+        bgcolors = [" bgcolor='#D0DFEE'", " bgcolor='#CCCCCC'"]
+        bg = bgcolors[0]
+        for title,content in hints.items():
+            bg = bgcolors[0 if bg==bgcolors[1] else 1]
+            html += f"""
+    <tr><th align='left' valign='top'{bg}>{title}</th>
+    <td align='left' valign='top'{bg}><pre>{content}</pre></td></tr>
+        """
+
+        html += '''
+</table>
+</body>
+</html>
+'''
+        return html
+
+    def __init__(self, parent):
+        super().__init__(parent, -1, 'CardStock: Python Basics',
+                         size=(parent.FromDIP(800), parent.FromDIP(600)))
+
+        html = wx.html.HtmlWindow(self, -1)
+        htmlStr = self.GetHTML()
+        # f = open("manual.html","w")
+        # f.write(htmlStr)
+        # f.close()
+        html.SetPage(htmlStr)
+        html.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+
+        # Set up the layout with a Sizer
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(html, wx.SizerFlags(1).Expand().Border(wx.ALL, 5))
+        self.SetSizer(sizer)
+        self.Layout()
+
+        self.CentreOnParent(wx.BOTH)
+
+
+    def OnKeyDown(self, event):
+        code = event.GetKeyCode()
+        if code == wx.WXK_ESCAPE or (code == ord("W") and event.ControlDown()):
+            self.Close()
+        event.Skip()
+
+
 class CardStockManual(wx.Frame):
     """ A help window that uses an HTML view.  This is the manual, which explains how to use CardStock. """
 

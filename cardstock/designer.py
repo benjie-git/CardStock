@@ -78,6 +78,7 @@ ID_MOVE_VIEW_BACK = wx.NewIdRef()
 ID_MOVE_VIEW_END = wx.NewIdRef()
 ID_SHOW_ERROR_LIST = wx.NewIdRef()
 ID_SHOW_ALL_CODE = wx.NewIdRef()
+ID_BASICS = wx.NewIdRef()
 
 
 class DesignerFrame(wx.Frame):
@@ -403,6 +404,7 @@ class DesignerFrame(wx.Frame):
         # and the help menu
         helpMenu = wx.Menu()
         helpMenu.Append(wx.ID_ABOUT, "&About", "About")
+        helpMenu.Append(ID_BASICS, "&Python Basics\tCtrl-Alt-P", "Python Basics")
         helpMenu.Append(wx.ID_HELP, "&Manual\tCtrl-Alt-M", "Manual")
         helpMenu.Append(wx.ID_REFRESH, "&Reference Guide\tCtrl-Alt-R", "Reference Guide")
         helpMenu.Append(wx.ID_CONTEXT_HELP, "&Show/Hide Context Help\tCtrl-Alt-C", "Toggle Context Help")
@@ -433,6 +435,7 @@ class DesignerFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.OnMenuAbout, id=wx.ID_ABOUT)
         self.Bind(wx.EVT_MENU, self.OnMenuHelp, id=wx.ID_HELP)
+        self.Bind(wx.EVT_MENU, self.OnMenuBasics, id=ID_BASICS)
         self.Bind(wx.EVT_MENU, self.OnMenuReference, id=wx.ID_REFRESH)
         self.Bind(wx.EVT_MENU, self.OnMenuContextHelp, id=wx.ID_CONTEXT_HELP)
 
@@ -1060,6 +1063,11 @@ class DesignerFrame(wx.Frame):
         dlg = helpDialogs.CardStockAbout(self)
         dlg.ShowModal()
         dlg.Destroy()
+
+    def OnMenuBasics(self, event):
+        dlg = helpDialogs.CardStockBasics(self)
+        dlg.Bind(wx.EVT_CLOSE, self.OnHelpClose)
+        dlg.Show()
 
     def OnMenuHelp(self, event):
         dlg = helpDialogs.CardStockManual(self)
