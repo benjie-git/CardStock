@@ -405,6 +405,9 @@ class HelpDataGlobals():
                          "info": "Returns the current position of the mouse, whether or not it is inside of the stack "
                                  "window.  This point's x and y values can be negative, if the mouse is to the left "
                                  "or below the bottom left corner of the stack window."},
+        "clear_focus": {"args": {},
+                             "return": None,
+                             "info": "If any TextField has focus, clear it, so that typing will no longer be entered into any TextField."},
         "ColorRGB": {"args": {"red": {"type": "float", "info": "The red component of the color as a number from 0.0 to 1.0."},
                                "green": {"type": "float", "info": "The green component of the color as a number from 0.0 to 1.0."},
                                "blue": {"type": "float", "info": "The blue component of the color as a number from 0.0 to 1.0."}},

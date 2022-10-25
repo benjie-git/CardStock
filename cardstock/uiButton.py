@@ -71,11 +71,13 @@ class UiButton(UiView):
         if self.mouseDownInside:
             self.mouseStillInside = True
             self.stackManager.view.Refresh()
+        super().OnMouseEnter(event)
 
     def OnMouseExit(self, event):
         if self.mouseDownInside:
             self.mouseStillInside = False
             self.stackManager.view.Refresh()
+        super().OnMouseExit(event)
 
     def OnMouseUpOutside(self, event):
         if self.mouseDownInside:

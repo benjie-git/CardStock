@@ -176,9 +176,7 @@
         },
         {
           "type": "oval",
-          "handlers": {
-            "on_mouse_enter": "zzz=1"
-          },
+          "handlers": {},
           "properties": {
             "name": "oval_3",
             "size": [
@@ -357,7 +355,7 @@
         {
           "type": "button",
           "handlers": {
-            "on_click": "check()\nfields[0].focus()\nfields[0].select_all()\n"
+            "on_click": "check()\nfields[0].focus()\nfields[0].select_all()"
           },
           "properties": {
             "name": "guess",

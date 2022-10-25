@@ -108,6 +108,7 @@ class Runner():
             "is_mouse_pressed": self.is_mouse_pressed,
             "is_using_touch_screen": self.is_using_touch_screen,
             "get_mouse_pos": self.get_mouse_pos,
+            "clear_focus": self.clear_focus,
             "quit":self.quit,
             "ColorRGB": self.MakeColorRGB,
             "ColorHSB": self.MakeColorHSB,
@@ -764,13 +765,16 @@ class Runner():
 
     @RunOnMainAsync
     def SetFocus(self, obj):
-        uiView = self.stackManager.GetUiViewByModel(obj._model)
-        if uiView:
-            if uiView.model.type == "textfield":
-                sel = uiView.view.GetSelection()
-            uiView.view.SetFocus()
-            if uiView.model.type == "textfield":
-                uiView.view.SetSelection(sel[0], sel[1])
+        if obj:
+            uiView = self.stackManager.GetUiViewByModel(obj._model)
+            if uiView:
+                if uiView.model.type == "textfield":
+                    sel = uiView.view.GetSelection()
+                uiView.view.SetFocus()
+                if uiView.model.type == "textfield":
+                    uiView.view.SetSelection(sel[0], sel[1])
+        else:
+            self.stackManager.uiCard.view.SetFocus()
 
 
     # --------- User-accessible view functions -----------
@@ -948,6 +952,9 @@ class Runner():
     @RunOnMainSync
     def get_mouse_pos(self):
         return wx.RealPoint(*self.stackManager.view.ScreenToClient(*wx.GetMousePosition()))
+
+    def clear_focus(self):
+        self.SetFocus(None)
 
     @staticmethod
     def MakeColorRGB(red, green, blue):
