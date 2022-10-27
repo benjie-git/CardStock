@@ -407,7 +407,7 @@ class HelpDataGlobals():
                                  "or below the bottom left corner of the stack window."},
         "clear_focus": {"args": {},
                              "return": None,
-                             "info": "If any TextField has focus, clear it, so that typing will no longer be entered into any TextField."},
+                             "info": "If any TextField has focus, unfocus it, so that any typing will no longer be entered there."},
         "ColorRGB": {"args": {"red": {"type": "float", "info": "The red component of the color as a number from 0.0 to 1.0."},
                                "green": {"type": "float", "info": "The green component of the color as a number from 0.0 to 1.0."},
                                "blue": {"type": "float", "info": "The blue component of the color as a number from 0.0 to 1.0."}},
