@@ -24,7 +24,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * All of the creature comforts you've come to expect from a proper application, like full Undo/Redo, and a Find/Replace system that works throughout all of your code and object properties.
 
 ### More Advanced
-* You can animate most properties of objects, to bring your creations to life.
+* You can animate changes to most properties of objects, to bring your creations to life.
 * Objects can have speed, and can be set up to automatically bounce off of other objects.
 * You can **import** other python modules into your code, and use them make web requests and display the results, control robots, or run machine learning code, all from within your CardStock stack.
 * Basic IDE features, like syntax highlighting, underlining syntax errors while editing, and autocomplete for objects, variables, functions, methods, properties.
@@ -51,8 +51,8 @@ ________
 ## Requirements
 The prebuilt applications for Mac and Windows have no external dependencies.
 
-Running CardStock from source requires Python 3.7 or newer (3.10.x recommended), and wxPython 4.1 or newer (wxPython 4.2.x recommended).
-CardStock requires installing the python modules wxpython, attrdict3(linux-only), simpleaudio, PyInstaller, and requests.
+Running CardStock from source requires Python 3.7 or newer (3.10+ recommended), and wxPython 4.1 or newer (wxPython 4.2.x recommended).
+CardStock requires installing the python modules attrdict3(linux-only), wxpython, simpleaudio, PyInstaller, and requests.
 
 ## Installation
 You can either:
@@ -60,15 +60,15 @@ You can either:
 ### 1. Run it from source:
 1. install python3
 2. Linux-only: apt install libasound2-dev libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
-3. Linux-only: pip install attrdict3
-4. pip install wxpython PyInstaller simpleaudio requests  # note that wxpython can take a long time to build
+3. Linux-only: pip3 install attrdict3
+4. pip3 install wxpython PyInstaller simpleaudio requests  # note that wxpython can take a long time to build
 5. download or clone this repository
 6. run designer.py and viewer.py as desired
 7. optionally run build.py to create your own standalone applications for the Designer and Viewer applications.
 
 ### 2. Install using pip/pypi:
 1. Linux-only: apt install libasound2-dev libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
-2. pip install cardstock  # note that the dependency wxpython can take a very long time to build
+2. pip3 install cardstock  # note that the dependency wxpython can take a very long time to build
 3. run using the newly installed commands cardstock and cardstock_viewer
 
 ### 3. Or download the latest, pre-built CardStock application for Mac or Windows
