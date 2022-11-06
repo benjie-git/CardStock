@@ -1,6 +1,5 @@
 from browser import self as worker
 from browser import timer
-import sys
 from time import time
 import stackManager
 from settings import *
@@ -39,90 +38,104 @@ class StackWorker(object):
         self.isMouseDown = False
         self.usingTouchScreen = False
         self.focusedFabId = 0
-
+        self.messageQueue = []
         worker.bind("message", self.OnMessageW)
 
     def OnMessageW(self, evt):
-        msg = evt.data[0]
-        args = evt.data[1:]
+        self.messageQueue.append(evt.data)
+        self.ProcessQueue()
 
-        # print("Worker", msg, args)
+    def ProcessQueue(self):
+        while len(self.messageQueue):
+            data = self.messageQueue.pop(0)
+            msg = data[0]
+            args = data[1:]
 
-        if msg == 'setup':
-            # Set up the shared memory for sync calls (alert, prompt, confirm)
-            self.waitSAB = args[0]
-            self.countsSAB = args[1]
-            self.dataSAB = args[2]
-            self.waitSA32 = worker.Int32Array.new(self.waitSAB)
-            self.countsSA32 = worker.Int32Array.new(self.countsSAB)
-            self.dataSA16 = worker.Int16Array.new(self.dataSAB)
-            # This is our main interval timer for running OnPeriodic, animations, etc.  This fires at ~60 Hz.
-            timer.set_interval(self.stackManager.OnPeriodic, 16.666)
+            # if not "mouse" in msg:
+            #     print("Worker", msg, args)
 
-        elif msg == 'load':
-            # Load a stack from a dict object
-            json = args[0]
-            self.stackManager.Load(json.to_dict())
-            self.SendAsync(("render",))
+            if msg == 'setup':
+                # Set up the shared memory for sync calls (alert, prompt, confirm)
+                self.waitSAB = args[0]
+                self.countsSAB = args[1]
+                self.dataSAB = args[2]
+                self.waitSA32 = worker.Int32Array.new(self.waitSAB)
+                self.countsSA32 = worker.Int32Array.new(self.countsSAB)
+                self.dataSA16 = worker.Int16Array.new(self.dataSAB)
+                # This is our main interval timer for running OnPeriodic, animations, etc.  This fires at ~60 Hz.
+                timer.set_interval(self.stackManager.OnPeriodic, 16.666)
 
-        elif msg == 'loadStr':
-            # load a stack from a json string
-            jsonStr = args[0]
-            self.stackManager.LoadFromStr(jsonStr)
-            self.SendAsync(("render",))
+            elif msg == 'load':
+                # Load a stack from a dict object
+                json = args[0]
+                self.stackManager.Load(json.to_dict())
+                self.SendAsync(("render",))
 
-        elif msg == 'mouseDown':
-            # handle a mouseDown
-            uid, pos, isTouch = args
-            self.isMouseDown = True
-            self.usingTouchScreen = isTouch
-            self.stackManager.uiCard.OnFabricMouseDown(uid, pos, isTouch)
+            elif msg == 'loadStr':
+                # load a stack from a json string
+                jsonStr = args[0]
+                self.stackManager.LoadFromStr(jsonStr)
+                self.SendAsync(("render",))
 
-        elif msg == 'mouseMove':
-            # handle a mouseMove
-            numMoves = worker.Atomics.sub(self.countsSA32, 0, 1)
-            if numMoves == 1:
+            elif msg == 'mouseDown':
+                # handle a mouseDown
                 uid, pos, isTouch = args
-                self.stackManager.uiCard.OnFabricMouseMove(uid, pos, isTouch)
+                self.isMouseDown = True
+                self.usingTouchScreen = isTouch
+                self.stackManager.uiCard.OnFabricMouseDown(uid, pos, isTouch)
 
-        elif msg == 'mouseUp':
-            # handle a mouseUp
-            self.isMouseDown = False
-            uid, pos, isTouch = args
-            self.stackManager.uiCard.OnFabricMouseUp(uid, pos, isTouch)
+            elif msg == 'mouseMove':
+                # handle a mouseMove
+                numMoves = worker.Atomics.sub(self.countsSA32, 0, 1)
+                if numMoves == 1:
+                    uid, pos, isTouch = args
+                    self.stackManager.uiCard.OnFabricMouseMove(uid, pos, isTouch)
 
-        elif msg == 'keyDown':
-            # handle a keyDown
-            self.stackManager.uiCard.OnKeyDown(*args)
+            elif msg == 'mouseUp':
+                # handle a mouseUp
+                self.isMouseDown = False
+                uid, pos, isTouch = args
+                self.stackManager.uiCard.OnFabricMouseUp(uid, pos, isTouch)
 
-        elif msg == 'keyUp':
-            # handle a keyUp
-            self.stackManager.uiCard.OnKeyUp(*args)
+            elif msg == 'keyDown':
+                # handle a keyDown
+                self.stackManager.uiCard.OnKeyDown(*args)
 
-        elif msg == "runAnimationsFinished":
-            # This got echoed back to us, originally from this thread,
-            # to enqueue it to happen now, after the previous handler finished.
-            self.stackManager.RunAnimationsFinished()
+            elif msg == 'keyUp':
+                # handle a keyUp
+                self.stackManager.uiCard.OnKeyUp(*args)
 
-        elif msg == 'textChanged':
-            self.stackManager.uiCard.OnTextChanged(*args)
+            elif msg == "runAnimationsFinished":
+                # This got echoed back to us, originally from this thread,
+                # to enqueue it to happen now, after the previous handler finished.
+                self.stackManager.RunAnimationsFinished()
 
-        elif msg == 'textEnter':
-            self.stackManager.uiCard.OnTextEnter(*args)
+            elif msg == 'textChanged':
+                self.stackManager.uiCard.OnTextChanged(*args)
 
-        elif msg == 'objectFocus':
-            self.focusedFabId = args[0]
+            elif msg == 'textEnter':
+                self.stackManager.uiCard.OnTextEnter(*args)
 
-        elif msg == "windowSized":
-            self.stackManager.WindowDidResize(*args)
+            elif msg == 'objectFocus':
+                self.focusedFabId = args[0]
 
-        elif msg == 'imgSize':
-            # when we tell the StackCanvas to add an image object, it downloads the image and tells us the size(w,h)
-            # now we can crop/scale the image to fit where it's supposed to go.
-            uid = args[0]
-            uiImage = self.stackManager.uiCard.FindTargetUi(uid)
-            if uiImage:
-                uiImage.SetImageSize(args[1], args[2])
+            elif msg == "pageFocus":
+                self.EnqueueSyncPressedKeys()
+
+            elif msg == "windowSized":
+                self.stackManager.WindowDidResize(*args)
+
+            elif msg == 'imgSize':
+                # when we tell the StackCanvas to add an image object, it downloads the image and tells us the size(w,h)
+                # now we can crop/scale the image to fit where it's supposed to go.
+                uid = args[0]
+                uiImage = self.stackManager.uiCard.FindTargetUi(uid)
+                if uiImage:
+                    uiImage.SetImageSize(args[1], args[2])
+
+    def EnqueueSyncPressedKeys(self):
+        for name in self.stackManager.runner.pressedKeys:
+            self.messageQueue.append(("keyUp", name))
 
     def Wait(self, durationSec):
         # no sleep() allowed, so use Atomics.wait() to wait for a thing that will never happen, but with a timeout!
@@ -197,8 +210,3 @@ class StackWorker(object):
     def write(self, text):
         # stderr and stdout will write here on print, errors, etc.
         worker.send((("write", text),))
-
-# Start up the worker class
-worker.stackWorker = StackWorker()
-sys.stdout = worker.stackWorker
-sys.stderr = worker.stackWorker

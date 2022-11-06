@@ -54,6 +54,7 @@ class Runner():
             "is_mouse_pressed": self.is_mouse_pressed,
             "is_using_touch_screen": self.is_using_touch_screen,
             "get_mouse_pos": self.get_mouse_pos,
+            "clear_focus": self.clear_focus,
             "quit":self.quit,
             "ColorRGB": self.MakeColorRGB,
             "ColorHSB": self.MakeColorHSB,
@@ -476,10 +477,12 @@ class Runner():
             self.clientVars[k] = v
 
     def SetFocus(self, obj):
-        uiView = self.stackManager.GetUiViewByModel(obj._model)
-        if uiView and uiView.model.type == "textfield":
-            worker.stackWorker.SendAsync(("focus", uiView.textbox))
-
+        if obj:
+            uiView = self.stackManager.GetUiViewByModel(obj._model)
+            if uiView and uiView.model.type == "textfield":
+                worker.stackWorker.SendAsync(("focus", uiView.textbox))
+        else:
+            worker.stackWorker.SendAsync(("focus", 0))
 
     # --------- User-accessible view functions -----------
 
@@ -558,12 +561,15 @@ class Runner():
         return math.sqrt((pointB[0] - pointA[0]) ** 2 + (pointB[1] - pointA[1]) ** 2)
 
     def alert(self, message):
+        worker.stackWorker.EnqueueSyncPressedKeys()
         worker.stackWorker.SendSync(None, ("alert", message))
 
     def ask_yes_no(self, message):
+        worker.stackWorker.EnqueueSyncPressedKeys()
         return worker.stackWorker.SendSync(bool, ("confirm", message))
 
     def ask_text(self, message, defaultResponse=""):
+        worker.stackWorker.EnqueueSyncPressedKeys()
         return worker.stackWorker.SendSync(str, ("prompt", message, defaultResponse))
 
     def play_sound(self, filepath):
@@ -589,6 +595,9 @@ class Runner():
 
     def get_mouse_pos(self):
         return self.lastMousePos
+
+    def clear_focus(self):
+        self.SetFocus(None)
 
     @staticmethod
     def MakeColorRGB(red, green, blue):
@@ -635,12 +644,10 @@ class Runner():
         except ValueError:
             raise TypeError("run_after_delay(): duration must be a number")
 
-        startTime = time()
-        adjustedDuration = duration + startTime - time()
-        if adjustedDuration > 0.010:
+        if duration > 0.010:
             def onTimer():
                 func(*args, **kwargs)
-            t = timer.set_timeout(onTimer, int(adjustedDuration*1000))
+            t = timer.set_timeout(onTimer, int(duration*1000))
             self.timers.append(t)
         else:
             func(*args, **kwargs)

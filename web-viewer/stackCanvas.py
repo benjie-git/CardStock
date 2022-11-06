@@ -1,5 +1,4 @@
-from browser import window, document, worker, bind, timer, ajax
-import sys
+from browser import window, document, worker, bind, timer
 
 stackWorker = worker.Worker("stackWorker")
 
@@ -50,6 +49,7 @@ class StackCanvas(object):
         self.fabCanvas.on('text:changed', self.OnTextChanged)
         document.onkeydown = self.OnKeyDown
         document.onkeyup = self.OnKeyUp
+        window.bind("blur", self.OnTabFocusLost)
         window.onresize = self.OnWindowResize
 
         self.fabObjs = {0: self.fabCanvas}
@@ -66,6 +66,9 @@ class StackCanvas(object):
         # Send over references to the shared memory chunks to get the worker set up.
         stackWorker.send(('setup', self.waitSAB, self.countsSAB, self.dataSAB))
 
+        # Set up initial window size
+        self.OnWindowResize(None, force=True)
+
         # Load up the embedded stack
         if 'resourceMap' in window:
             self.resourceMap = window.resourceMap.to_dict()
@@ -76,8 +79,6 @@ class StackCanvas(object):
         for key,path in self.resourceMap.items():
             snd = window.Howl.new({'src': [path]})
             self.soundCache[key] = snd
-
-        self.OnWindowResize(None, force=True)
 
     def LoadFromStr(self, s):
         stackWorker.send(('loadStr', s))
@@ -97,7 +98,14 @@ class StackCanvas(object):
         msg = message[0]
         args = message[1:]
 
-        # if msg != "write": print("Main", msg, args)
+        # if msg != "write":
+        #     pyArgs = args.copy()
+        #     for i in range(len(args)):
+        #         try:
+        #             pyArgs[i] = args[i].to_dict()
+        #         except:
+        #             pass
+        #     print("Main", msg, pyArgs)
 
         if msg == "canvasSetSize":  # x, y, canResize
             document.getElementById("loadingDiv").style.display = "none"
@@ -292,6 +300,8 @@ class StackCanvas(object):
             fabObj.on('deselected', self.OnTextFieldDeselected)
             fabObj.oldOnKeyDown = fabObj.onKeyDown
             fabObj.onKeyDown = self.OnTextFieldKeyDown
+            fabObj.oldOnKeyUp = fabObj.onKeyUp
+            fabObj.onKeyUp = self.OnTextFieldKeyUp
 
         elif msg == "fabReplace":  # uid, type, options
             # replace a fabric object with this one (used when user code sets line.points)
@@ -350,8 +360,8 @@ class StackCanvas(object):
             self.fabCanvas.moveTo(fabObj, index)
 
         elif msg == "render":  # No args
-            self.Render()
             self.didRenderOnce = True
+            self.Render()
 
         elif msg == "fabLabelAutoSize":
             uid = args[0]
@@ -361,13 +371,17 @@ class StackCanvas(object):
         elif msg == "focus":  # uid
             # focus a textfield
             uid = args[0]
-            if not self.fabCanvas.getActiveObject() or self.fabCanvas.getActiveObject().csid != uid:
-                field = self.fabObjs[uid]
+            wasFocused = self.fabCanvas.getActiveObject() and self.fabCanvas.getActiveObject().csid == uid
+            field = self.fabObjs[uid]
+            if uid == 0:
+                self.fabCanvas.discardActiveObject()
+            else:
                 self.fabCanvas.setActiveObject(field)
                 field.enterEditing()
-                length = len(field.text)
-                field.setSelectionStart(length)
-                field.setSelectionEnd(length)
+                if not wasFocused:
+                    length = len(field.text)
+                    field.setSelectionStart(length)
+                    field.setSelectionEnd(length)
                 if self.IsMobileBrowser() and window.navigator.hasOwnProperty("virtualKeyboard"):
                     window.navigator.virtualKeyboard.show()
 
@@ -537,6 +551,10 @@ class StackCanvas(object):
         # forward these events on to the worker
         stackWorker.send(("keyUp", e.key))
 
+    def OnTabFocusLost(self, e):
+        # forward these events on to the worker
+        stackWorker.send(("pageFocus",))
+
     def UpdateTextSize(self, fab):
         if fab.autoShrink:
             s = fab.origFontSize
@@ -557,14 +575,28 @@ class StackCanvas(object):
         # Also avoid adding newlines to non-multiline text fields
         fabObj = self.fabCanvas.getActiveObject()
         if fabObj and fabObj.isType == 'TextField':
-            fabObj.oldOnKeyDown(e)
+            if e.key not in ("Enter", "Return"):
+                fabObj.oldOnKeyDown(e)
             if not e.repeat:
                 if "Arrow" in e.key:
                     self.OnKeyDown(e)
-                if e.key in ("Enter", "Return"):
-                    if not fabObj.isMultiline:
-                        e.preventDefault()
+            if e.key in ("Enter", "Return"):
+                if not fabObj.isMultiline:
+                    e.preventDefault()
                     stackWorker.send(("textEnter", fabObj.csid))
+
+    def OnTextFieldKeyUp(self, e):
+        # Forward arrow keys to the card, and catch Enter/Return so we can run "OnEnter"
+        # Also avoid adding newlines to non-multiline text fields
+        fabObj = self.fabCanvas.getActiveObject()
+        if fabObj and fabObj.isType == 'TextField':
+            if e.key not in ("Enter", "Return"):
+                fabObj.oldOnKeyUp(e)
+            if "Arrow" in e.key:
+                self.OnKeyUp(e)
+            if e.key in ("Enter", "Return"):
+                if not fabObj.isMultiline:
+                    e.preventDefault()
 
     def OnTextFieldSelected(self, options):
         # tell the worker that the field got focused
@@ -594,53 +626,3 @@ class StackCanvas(object):
             canvasDiv = document.getElementById('canvasContainer')
             stackWorker.send(("windowSized", min(MAX_CANVAS_WIDTH, canvasDiv.scrollWidth),
                                              min(MAX_CANVAS_HEIGHT, canvasDiv.scrollHeight)))
-
-
-class ConsoleOutput:
-    """
-    Show output in the console TextArea on the page, if it exists
-    """
-    def __init__(self, console, consoleLabel):
-        self.console = console
-        self.consoleLabel = consoleLabel
-        self.text = ""
-        self.dirty = False
-        self.isShown = False
-
-    def write(self, text):
-        self.text += text
-        self.dirty = True
-
-    def update(self, force=False):
-        window.stackCanvas.SendBuffer()
-        if console and console.style.display == "block" and (force or self.dirty):
-            self.console.text = self.text
-            self.console.scrollTop = self.console.scrollHeight
-            self.dirty = False
-
-    def toggleConsole(self):
-        self.isShown = not self.isShown
-        console.style.display = "block" if (self.isShown) else "none"
-        if self.isShown:
-            self.consoleLabel.text = " (-) Hide Output"
-            window.console.update(force=True)
-        else:
-            self.consoleLabel.text = " (+) Show Output"
-
-
-
-if __name__ == "__main__":
-
-    window.stackCanvas = StackCanvas()
-
-    if "console" in document and "consoleLabel" in document:
-        console = document['console']
-        consoleLabel = document['consoleLabel']
-        cOutput = ConsoleOutput(console, consoleLabel)
-        sys.stdout = cOutput
-        sys.stderr = cOutput
-        timer.set_interval(cOutput.update, 1000)
-        window.console = cOutput
-        window.toggleConsole = cOutput.toggleConsole
-    else:
-        timer.set_interval(window.stackCanvas.SendBuffer, 1000)

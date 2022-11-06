@@ -42,6 +42,12 @@ class UiView(object):
     def OnMouseMove(self, pos, isTouch):
         self.stackManager.runner.RunHandler(self.model, "on_mouse_move", pos, isTouch)
 
+    def OnMouseEnter(self, pos):
+        self.stackManager.runner.RunHandler(self.model, "on_mouse_enter", pos)
+
+    def OnMouseExit(self, pos):
+        self.stackManager.runner.RunHandler(self.model, "on_mouse_exit", pos)
+
     def OnMouseUp(self, pos, isTouch):
         self.stackManager.runner.RunHandler(self.model, "on_mouse_release", pos, isTouch)
 
@@ -349,10 +355,10 @@ class UiCard(UiView):
 
         if target_ui != self.lastMouseOverObj:
             if self.lastMouseOverObj:
-                self.stackManager.runner.RunHandler(self.lastMouseOverObj.model, "on_mouse_exit", pos)
+                self.lastMouseOverObj.OnMouseExit(pos)
             self.lastMouseOverObj = target_ui
             if self.lastMouseOverObj:
-                self.stackManager.runner.RunHandler(self.lastMouseOverObj.model, "on_mouse_enter", pos)
+                self.lastMouseOverObj.OnMouseEnter(pos)
 
         self.stackManager.runner.ResetStopHandlingMouseEvent()
         if self.mouseCaptureObj:
@@ -380,16 +386,18 @@ class UiCard(UiView):
         self.OnMouseUp(pos, isTouch)
 
     def OnKeyDown(self, code):
-        self.stackManager.runner.OnKeyDown(code)
-        self.stackManager.runner.RunHandler(self.model, "on_key_press", code)
+        if self.stackManager.runner.KeyNameForCode(code) not in self.stackManager.runner.pressedKeys:
+            self.stackManager.runner.OnKeyDown(code)
+            self.stackManager.runner.RunHandler(self.model, "on_key_press", code)
 
     def OnKeyHold(self):
         for key_name in self.stackManager.runner.pressedKeys:
             self.stackManager.runner.RunHandler(self.model, "on_key_hold", None, key_name)
 
     def OnKeyUp(self, code):
-        self.stackManager.runner.OnKeyUp(code)
-        self.stackManager.runner.RunHandler(self.model, "on_key_release", code)
+        if self.stackManager.runner.KeyNameForCode(code) in self.stackManager.runner.pressedKeys:
+            self.stackManager.runner.OnKeyUp(code)
+            self.stackManager.runner.RunHandler(self.model, "on_key_release", code)
 
     def OnTextChanged(self, uid, text):
         target_ui = self.FindTargetUi(uid)
@@ -516,13 +524,15 @@ class UiButton(UiView):
         elif style == "Checkbox":
             self.model.SetProperty("is_selected", not self.model.GetProperty("is_selected"))
 
-    def OnMouseMove(self, pos, isTouch):
-        if self.isMouseDown:
-            contains = self.model.GetProxy().is_touching_point(pos)
-            if not self.isHilighted and contains:
-                self.Highlight(True)
-            elif self.isHilighted and not contains:
-                self.Highlight(False)
+    def OnMouseEnter(self, pos):
+        if self.isMouseDown and not self.isHilighted:
+            self.Highlight(True)
+        super().OnMouseEnter(pos)
+
+    def OnMouseExit(self, pos):
+        if self.isMouseDown and self.isHilighted:
+            self.Highlight(False)
+        super().OnMouseExit(pos)
 
     def OnMouseUp(self, pos, isTouch):
         self.stackManager.uiCard.mouseCaptureObj = None

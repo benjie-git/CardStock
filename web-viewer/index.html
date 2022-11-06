@@ -7,6 +7,7 @@
     <script type="text/javascript" src="lib/brython.js"></script>
     <script type="text/javascript" src="lib/brython_stdlib.js"></script>
     <script type="text/javascript" src="lib/fabric.min.js"></script>
+    <script type="text/javascript" src="lib/howler.core.min.js"></script>
     <style>
         * { margin: 0; padding: 0; }
         html { height: 100%; }
@@ -31,8 +32,8 @@
 <!--    </main>-->
 </body>
 
-<script type="text/python" src="stackCanvas.py" id="__main__"></script>
-<script type="text/python" src="stackWorker.py" class="webworker" id="stackWorker"></script>
+    <script type="text/python" src="startStackCanvas.py" id="__main__"></script>
+    <script type="text/python" src="startStackWorker.py" class="webworker" id="stackWorker"></script>
 
 <script type="text/python" id="drop">
     from browser import window, document

@@ -71,22 +71,20 @@ class StackManager(object):
         self.runner = runner.Runner(self)
         self.stackModel = StackModel(self)
         self.stackModel.SetData(stackJSON)
+        if self.stackModel.GetProperty("can_resize"):
+            if self.windowSize:
+                self.stackModel.SetProperty("size", self.windowSize)
         self.lastPeriodic = time()
         self.runner.StartStack()
         self.cardIndex = None
         self.didSetup = False
         self.LoadCardAtIndex(0)
-        if self.stackModel.GetProperty("can_resize"):
-            if self.windowSize:
-                self.stackModel.SetProperty("size", self.windowSize)
-            for ui in self.uiCard.uiViews:
-                ui.OnPropertyChanged("position")
 
     def RunSetupIfNeeded(self):
         if not self.didSetup:
             s = self.stackModel.GetProperty("size")
-            worker.stackWorker.SendAsync(("canvasSetSize", s.width, s.height, self.stackModel.GetProperty('can_resize')))
             self.stackModel.RunSetup(self.runner)
+            worker.stackWorker.SendAsync(("canvasSetSize", s.width, s.height, self.stackModel.GetProperty('can_resize')))
             self.didSetup = True
 
     def LoadCardAtIndex(self, cardIndex, reload=False):
@@ -100,7 +98,7 @@ class StackManager(object):
 
     def WindowDidResize(self, w, h):
         self.windowSize = wx.Size(w, h)
-        if self.stackModel.GetProperty('can_resize'):
+        if self.stackModel and self.stackModel.GetProperty('can_resize'):
             self.stackModel.SetProperty('size', self.windowSize)
             worker.stackWorker.SendAsync(("canvasSetSize", self.windowSize.width, self.windowSize.height,
                                           self.stackModel.properties['can_resize']))

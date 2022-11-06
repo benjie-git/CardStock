@@ -30,7 +30,7 @@ class ViewModel(object):
                      'order_backward', 'order_to_back', 'order_to_index', 'get_event_code', 'set_event_code',
                      'stop_handling_mouse_event', 'is_touching', 'set_bounce_objects', 'is_touching_point', 'is_touching_edge',
                      'animate_position', 'animate_center', 'animate_size', 'animate_rotation', 'stop_animating', 'fill_color',
-                     'number', 'can_save', 'can_resize', 'add_button', 'add_text_field', 'add_text_label', 'add_image', 'add_oval',
+                     'number', 'can_save', 'can_resize', 'add_button', 'add_text_field', 'AddTextLabel', 'add_image', 'add_oval',
                      'add_rectangle', 'add_round_rectangle', 'add_line', 'add_polygon', 'add_group', 'animate_fill_color',
                      'stop_all_animating', 'num_cards', 'current_card', 'False', 'None', 'True', '__peg_parser__', 'and',
                      'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else',
