@@ -110,10 +110,11 @@ class UiCard(UiView):
             self.stackManager.runner.RunHandler(self.model, "on_key_release", event)
 
     def OnPeriodic(self, event):
+        didRun = False
         if self.stackManager.runner and self.model.GetHandler("on_key_hold"):
             for key_name in self.stackManager.runner.pressedKeys:
                 self.stackManager.runner.RunHandler(self.model, "on_key_hold", event, key_name)
-        didRun = False
+                didRun = True
         for child in reversed(self.GetAllUiViews()):
             if child.OnPeriodic(event):
                 didRun = True

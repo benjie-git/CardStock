@@ -302,7 +302,7 @@ class Runner():
                     # This is an enqueued task meant to Refresh after running all other tasks,
                     # and also serves to wake up the runner thread for stopping.
                     if not self.stopRunnerThread:
-                        self.stackManager.view.Refresh()
+                        self.stackManager.view.Refresh()  # TODO: This should not need to be called?
                         self.stackManager.view.RefreshIfNeeded()
                     if self.stopRunnerThread:
                         break
@@ -369,7 +369,7 @@ class Runner():
             if not key_name:
                 return False
 
-        if threading.currentThread() == self.runnerThread:
+        if threading.current_thread() == self.runnerThread:
             self.RunHandlerInternal(uiModel, handlerName, handlerStr, mouse_pos, key_name, arg)
         else:
             if handlerName == "on_periodic":
@@ -848,7 +848,7 @@ class Runner():
         except ValueError:
             raise TypeError("wait(): delay must be a number")
 
-        self.stackManager.view.Refresh()
+        self.stackManager.view.RefreshIfNeeded()
         endTime = time() + delay
         while time() < endTime:
             remaining = endTime - time()

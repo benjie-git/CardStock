@@ -231,7 +231,8 @@ class StackManager(object):
 
             # Run on_periodic at 30 Hz
             if self.timerCount % 2 == 0 and self.runner.numOnPeriodicsQueued == 0:
-                didRun = self.uiCard.OnPeriodic(event)
+                if self.uiCard.OnPeriodic(event):
+                    didRun = True
 
             if didRun:
                 self.runner.EnqueueRefresh()
