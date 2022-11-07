@@ -103,7 +103,7 @@ class BaseTool(object):
                 else:
                     # Square/Circle, as tall as the mouse drag
                     newPoint = [startPoint[0] + (math.copysign(dy, dx)), pos[1]]
-        return wx.Point(*newPoint)
+        return wx.Point(*(int(x) for x in newPoint))
 
 
 class HandTool(BaseTool):
