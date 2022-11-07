@@ -439,6 +439,7 @@ class ExportDialog(wx.Dialog):
         sizes = wx.MemoryDC().GetFullMultiLineTextExtent(label.GetLabelText(), label.GetFont())
         label.SetSize(wx.Size(label.GetSize().Width, sizes[1]))
         sizer.Layout()
+        self.listBox.SetFocus()
 
     def OnKeyDown(self, event):
         code = event.GetKeyCode()
