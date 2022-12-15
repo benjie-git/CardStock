@@ -330,7 +330,7 @@ class Card(ViewProxy):
         if not model: return -1
         return model.parent.childModels.index(model)+1
 
-    def animate_fill_color(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_fill_color(self, duration, endVal, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_fill_color(): duration must be a number")
         if not isinstance(endVal, str):
@@ -352,7 +352,7 @@ class Card(ViewProxy):
                 model.SetProperty("fill_color", wx.Colour([int(animDict["origParts"][i] + animDict["offsets"][i] * progress) for i in range(4)]))
 
             def internalOnFinished(animDict):
-                if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+                if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
             model.AddAnimation("fill_color", duration, onUpdate, onStart, internalOnFinished)
 

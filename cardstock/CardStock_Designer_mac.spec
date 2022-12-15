@@ -42,6 +42,7 @@ app = BUNDLE(coll,
              info_plist={
                 'NSPrincipalClass': 'NSApplication',
                 'NSAppleScriptEnabled': False,
+                'NSRequiresAquaSystemAppearance': True,
                 'CFBundleDocumentTypes': [
                     {
                         'CFBundleTypeName': 'CardStock Stack',

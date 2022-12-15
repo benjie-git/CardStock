@@ -65,7 +65,8 @@ class CardStockBasics(wx.Frame):
             "Expressions": '4 + 7\n"Hello" + " friend"\nlabel_1.text + " BEEP"\nint(field_1.text) + 1\nstr(age) + " years old"',
             "Set a value":'x = 2\noval_1.fill_color = "red"\nlabel_1.text = "Hello friend"',
             "Change a value": 'x = x + 1, x += 1\nfield_1.text = int(field_1.text) + 1\nfield_1.text += ", and this"',
-            "Check a value": 'if x == 3:\n   alert("x is three!")\n\nif label_1.text == "Hello friend":\n   print("Enter")',
+            "Check a value": 'if x == 3:\n   alert("x is three!")\n\nif field_1.text == "Hello friend":\n   print("Enter")\nelse:\n   print("Nope")\n\n'
+                             'if key_name == "Right":\n   oval.position.x += 10\nelif key_name == "Left":\n   oval.position.x -= 10\nelse:\n   print("Why\'d you press " + key_name)',
             "Make a list": 'odds = [1, 3, 5, 7, 9]\nprint([2, 4, 6])\nnames = ["Jonas", "Martha", "Magnus"]\novals = [oval_1, oval_2, oval_3]',
             "Do something for each item in a list": 'for num in odds:\n   print(num)\n\nfor oval in ovals:\n   oval.fill_color = "red"',
         }

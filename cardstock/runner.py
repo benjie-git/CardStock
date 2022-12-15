@@ -269,7 +269,7 @@ class Runner():
     def EnqueueFunction(self, func, *args, **kwargs):
         """
         Add an arbitrary callable to the runner queue.
-        This is used to send run_after_delay(), and animation onFinished functions
+        This is used to send run_after_delay(), and animation on_finished functions
         from the main thread, back onto the runner thread, where we can properly
         catch errors in RunWithExceptionHandling(), to display to the user
         and avoid totally blowing up the app.

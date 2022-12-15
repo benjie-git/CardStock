@@ -1663,7 +1663,7 @@ class ViewProxy(object):
             return edges
         return f()
 
-    def animate_position(self, duration, end_position, onFinished=None, *args, **kwargs):
+    def animate_position(self, duration, end_position, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_position(): duration must be a number")
         try:
@@ -1687,14 +1687,14 @@ class ViewProxy(object):
 
         def internalOnFinished(animDict):
             model.SetProperty("speed", (0,0), notify=False)
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         def onCanceled(animDict):
             model.SetProperty("speed", (0,0))
 
         model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
-    def animate_center(self, duration, end_center, onFinished=None, *args, **kwargs):
+    def animate_center(self, duration, end_center, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_center(): duration must be a number")
         try:
@@ -1718,14 +1718,14 @@ class ViewProxy(object):
 
         def internalOnFinished(animDict):
             model.SetProperty("speed", (0,0), notify=False)
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         def onCanceled(animDict):
             model.SetProperty("speed", (0,0))
 
         model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
-    def animate_size(self, duration, end_size, onFinished=None, *args, **kwargs):
+    def animate_size(self, duration, end_size, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_size(): duration must be a number")
         try:
@@ -1746,11 +1746,11 @@ class ViewProxy(object):
             model.SetProperty("size", animDict["origSize"] + tuple(animDict["offset"] * progress))
 
         def internalOnFinished(animDict):
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         model.AddAnimation("size", duration, onUpdate, onStart, internalOnFinished)
 
-    def animate_rotation(self, duration, end_rotation, forceDirection=0, onFinished=None, *args, **kwargs):
+    def animate_rotation(self, duration, end_rotation, force_direction=0, on_finished=None, *args, **kwargs):
         if self._model.GetProperty("rotation") is None:
             raise TypeError("animate_rotation(): object does not support rotation")
 
@@ -1758,8 +1758,8 @@ class ViewProxy(object):
             raise TypeError("animate_rotation(): duration must be a number")
         if not isinstance(end_rotation, (int, float)):
             raise TypeError("animate_rotation(): end_rotation must be a number")
-        if not isinstance(forceDirection, (int, float)):
-            raise TypeError("animate_rotation(): forceDirection must be a number")
+        if not isinstance(force_direction, (int, float)):
+            raise TypeError("animate_rotation(): force_direction must be a number")
 
         model = self._model
         if not model: return
@@ -1770,10 +1770,10 @@ class ViewProxy(object):
             origVal = self.rotation
             animDict["origVal"] = origVal
             offset = end_rotation - origVal
-            if forceDirection:
-                if forceDirection > 0:
+            if force_direction:
+                if force_direction > 0:
                     if offset <= 0: offset += 360
-                elif forceDirection < 0:
+                elif force_direction < 0:
                     if offset >= 0: offset -= 360
             else:
                 if offset > 180: offset -= 360
@@ -1784,7 +1784,7 @@ class ViewProxy(object):
             model.SetProperty("rotation", (animDict["origVal"] + animDict["offset"] * progress)%360)
 
         def internalOnFinished(animDict):
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         model.AddAnimation("rotation", duration, onUpdate, onStart, internalOnFinished)
 

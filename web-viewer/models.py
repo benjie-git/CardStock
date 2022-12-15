@@ -1069,7 +1069,7 @@ class ViewProxy(object):
             edges.remove("Right")
         return list(edges)
 
-    def animate_position(self, duration, end_position, onFinished=None, *args, **kwargs):
+    def animate_position(self, duration, end_position, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_position(): duration must be a number")
         try:
@@ -1093,14 +1093,14 @@ class ViewProxy(object):
 
         def internalOnFinished(animDict):
             model.SetProperty("speed", (0,0), notify=False)
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         def onCanceled(animDict):
             model.SetProperty("speed", (0,0))
 
         model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
-    def animate_center(self, duration, end_center, onFinished=None, *args, **kwargs):
+    def animate_center(self, duration, end_center, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_center(): duration must be a number")
         try:
@@ -1124,14 +1124,14 @@ class ViewProxy(object):
 
         def internalOnFinished(animDict):
             model.SetProperty("speed", (0,0), notify=False)
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         def onCanceled(animDict):
             model.SetProperty("speed", (0,0))
 
         model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
-    def animate_size(self, duration, end_size, onFinished=None, *args, **kwargs):
+    def animate_size(self, duration, end_size, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_size(): duration must be a number")
         try:
@@ -1152,11 +1152,11 @@ class ViewProxy(object):
             model.SetProperty("size", animDict["origSize"] + tuple(animDict["offset"] * progress))
 
         def internalOnFinished(animDict):
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         model.AddAnimation("size", duration, onUpdate, onStart, internalOnFinished)
 
-    def animate_rotation(self, duration, end_rotation, forceDirection=0, onFinished=None, *args, **kwargs):
+    def animate_rotation(self, duration, end_rotation, force_direction=0, on_finished=None, *args, **kwargs):
         if self._model.GetProperty("rotation") is None:
             raise TypeError("animate_rotation(): object does not support rotation")
 
@@ -1164,8 +1164,8 @@ class ViewProxy(object):
             raise TypeError("animate_rotation(): duration must be a number")
         if not isinstance(end_rotation, (int, float)):
             raise TypeError("animate_rotation(): end_rotation must be a number")
-        if not isinstance(forceDirection, (int, float)):
-            raise TypeError("animate_rotation(): forceDirection must be a number")
+        if not isinstance(force_direction, (int, float)):
+            raise TypeError("animate_rotation(): force_direction must be a number")
 
         model = self._model
         if not model: return
@@ -1176,10 +1176,10 @@ class ViewProxy(object):
             origVal = self.rotation
             animDict["origVal"] = origVal
             offset = end_rotation - origVal
-            if forceDirection:
-                if forceDirection > 0:
+            if force_direction:
+                if force_direction > 0:
                     if offset <= 0: offset += 360
-                elif forceDirection < 0:
+                elif force_direction < 0:
                     if offset >= 0: offset -= 360
             else:
                 if offset > 180: offset -= 360
@@ -1190,7 +1190,7 @@ class ViewProxy(object):
             model.SetProperty("rotation", (animDict["origVal"] + animDict["offset"] * progress)%360)
 
         def internalOnFinished(animDict):
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         model.AddAnimation("rotation", duration, onUpdate, onStart, internalOnFinished)
 
@@ -1534,7 +1534,7 @@ class Card(ViewProxy):
         if not model: return -1
         return model.parent.childModels.index(model)+1
 
-    def animate_fill_color(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_fill_color(self, duration, endVal, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_fill_color(): duration must be a number")
         if not isinstance(endVal, str):
@@ -1556,7 +1556,7 @@ class Card(ViewProxy):
             model.SetProperty("fill_color", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
         def internalOnFinished(animDict):
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         model.AddAnimation("fill_color", duration, onUpdate, onStart, internalOnFinished)
 
@@ -1936,7 +1936,7 @@ class TextBaseProxy(ViewProxy):
             raise TypeError("Text Field objects do not support underlined text.")
         model.SetProperty("is_underlined", val)
 
-    def animate_font_size(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_font_size(self, duration, endVal, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_font_size(): duration must be a number")
         if not isinstance(endVal, (int, float)):
@@ -1954,11 +1954,11 @@ class TextBaseProxy(ViewProxy):
             model.SetProperty("font_size", animDict["origVal"] + animDict["offset"] * progress)
 
         def internalOnFinished(animDict):
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         model.AddAnimation("font_size", duration, onUpdate, onStart, internalOnFinished)
 
-    def animate_text_color(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_text_color(self, duration, endVal, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_text_color(): duration must be a number")
         if not isinstance(endVal, str):
@@ -1980,7 +1980,7 @@ class TextBaseProxy(ViewProxy):
             model.SetProperty("text_color", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
         def internalOnFinished(animDict):
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         model.AddAnimation("text_color", duration, onUpdate, onStart, internalOnFinished)
 
@@ -2740,7 +2740,7 @@ class Line(ViewProxy):
 
         model.SetPoints(points)
 
-    def animate_pen_thickness(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_pen_thickness(self, duration, endVal, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_pen_thickness(): duration must be a number")
         if not isinstance(endVal, (int, float)):
@@ -2758,11 +2758,11 @@ class Line(ViewProxy):
             model.SetProperty("pen_thickness", animDict["origVal"] + animDict["offset"] * progress)
 
         def internalOnFinished(animDict):
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         model.AddAnimation("pen_thickness", duration, onUpdate, onStart, internalOnFinished)
 
-    def animate_pen_color(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_pen_color(self, duration, endVal, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_pen_color(): duration must be a number")
         if not isinstance(endVal, str):
@@ -2784,7 +2784,7 @@ class Line(ViewProxy):
             model.SetProperty("pen_color", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
         def internalOnFinished(animDict):
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         model.AddAnimation("pen_color", duration, onUpdate, onStart, internalOnFinished)
 
@@ -2882,7 +2882,7 @@ class Shape(Line):
         if not model: return
         model.SetProperty("fill_color", val)
 
-    def animate_fill_color(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_fill_color(self, duration, endVal, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_fill_color(): duration must be a number")
         if not isinstance(endVal, str):
@@ -2904,7 +2904,7 @@ class Shape(Line):
             model.SetProperty("fill_color", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * progress for i in range(4)]))
 
         def internalOnFinished(animDict):
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         model.AddAnimation("fill_color", duration, onUpdate, onStart, internalOnFinished)
 
@@ -2957,7 +2957,7 @@ class RoundRect(Shape):
         if not model: return
         model.SetProperty("corner_radius", val)
 
-    def animate_corner_radius(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_corner_radius(self, duration, endVal, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_corner_radius(): duration must be a number")
         if not isinstance(endVal, (int, float)):
@@ -2975,6 +2975,6 @@ class RoundRect(Shape):
             model.SetProperty("corner_radius", animDict["origVal"] + animDict["offset"] * progress)
 
         def internalOnFinished(animDict):
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         model.AddAnimation("corner_radius", duration, onUpdate, onStart, internalOnFinished)

@@ -280,7 +280,7 @@ class TextBaseProxy(ViewProxy):
             raise TypeError("Text Field objects do not support underlined text.")
         model.SetProperty("is_underlined", val)
 
-    def animate_font_size(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_font_size(self, duration, endVal, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_font_size(): duration must be a number")
         if not isinstance(endVal, (int, float)):
@@ -298,11 +298,11 @@ class TextBaseProxy(ViewProxy):
             model.SetProperty("font_size", animDict["origVal"] + animDict["offset"] * progress)
 
         def internalOnFinished(animDict):
-            if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         model.AddAnimation("font_size", duration, onUpdate, onStart, internalOnFinished)
 
-    def animate_text_color(self, duration, endVal, onFinished=None, *args, **kwargs):
+    def animate_text_color(self, duration, endVal, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_text_color(): duration must be a number")
         if not isinstance(endVal, str):
@@ -324,6 +324,6 @@ class TextBaseProxy(ViewProxy):
                 model.SetProperty("text_color", wx.Colour([int(animDict["origParts"][i] + animDict["offsets"][i] * progress) for i in range(4)]))
 
             def internalOnFinished(animDict):
-                if onFinished: self._model.stackManager.runner.EnqueueFunction(onFinished, *args, **kwargs)
+                if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
             model.AddAnimation("text_color", duration, onUpdate, onStart, internalOnFinished)

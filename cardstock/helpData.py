@@ -611,7 +611,7 @@ class HelpDataObject():
                                      "end_rotation": {"type": "int",
                                                              "info": "the final rotation angle in degrees clockwise at "
                                                                      "the end of the animation"},
-                                     "forceDirection":{"type": "int",
+                                     "force_direction":{"type": "int",
                                                                "info": "an optional hint to tell CardStock which direction "
                                                                        "you want the object to rotate.  A positive value forces "
                                                                        "clockwise rotation, and a negative value forces counter-clockwise."},

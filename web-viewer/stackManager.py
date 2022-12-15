@@ -125,7 +125,7 @@ class StackManager(object):
         for ui in allUi:
             if ui.RunAnimations(onFinishedCalls, elapsed_time):
                 didRun = True
-        # Let all animations process, before running their onFinished handlers,
+        # Let all animations process, before running their on_finished handlers,
         # which could start new animations.  Enqueue these to run later.
         if len(onFinishedCalls):
             self.delayedAnimFinishedCalls.extend(onFinishedCalls)
