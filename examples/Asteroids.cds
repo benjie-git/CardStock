@@ -13,7 +13,8 @@
     {
       "type": "card",
       "handlers": {
-        "on_setup": "from random import randint\nfrom math import radians, degrees, sin, cos, atan2\n\n# rotate point by angle in degrees around (0,0)\ndef rotate(point, angle):\n   angle = radians(angle)\n   px, py = point\n   return [-(cos(angle) * px - sin(angle) * py),\n           sin(angle) * px + cos(angle) * py]\n   \ntry_again.hide()\nasteroid.hide()\nisGameOver = False\n\nself.send_message(\"start\")",
+        "on_setup": "from random import randint\nfrom math import radians, degrees, sin, cos, atan2\n\n# rotate point by angle in degrees around (0,0)\ndef rotate(point, angle):\n   angle = radians(angle)\n   px, py = point\n   return [-(cos(angle) * px - sin(angle) * py),\n           sin(angle) * px + cos(angle) * py]\n   \ntry_again.hide()\nasteroid.hide()\nisGameOver = False",
+        "on_show_card": "self.send_message(\"start\")",
         "on_key_press": "# Respond to these keys once per press, on KeyDown\nif key_name == \"Space\" and not isGameOver:\n   self.send_message(\"shoot\")\nelif key_name == \"Return\" and isGameOver:\n   self.send_message(\"start\")",
         "on_key_hold": "if not isGameOver:\n   # Respond to these keys continuously while pressed\n   if key_name == \"Left\":\n      ship.rotation -= 180*elapsed_time\n   elif key_name == \"Right\":\n      ship.rotation += 180*elapsed_time\n   \n   elif key_name == \"Up\":\n      ship.speed += rotate((0, 450*elapsed_time), ship.rotation)\n      play_sound(\"puff.wav\")",
         "on_mouse_press": "if is_using_touch_screen():\n   if not isGameOver:\n      if not ship.is_touching_point(mouse_pos):\n         ship.rotation = degrees(atan2(*(mouse_pos-tuple(ship.center))))\n         self.send_message(\"shoot\")\n   else:\n      self.send_message(\"start\")\n",
@@ -112,5 +113,5 @@
     }
   ],
   "CardStock_stack_format": 6,
-  "CardStock_stack_version": "0.99.1"
+  "CardStock_stack_version": "0.99.2"
 }
