@@ -87,7 +87,7 @@ class UiWebView(UiView):
                     return
         if parts.scheme == "cardstock":
             event.Veto()
-            if self.stackManager.runner and self.model and self.model.GetHandler("on_card_stock_link"):
+            if not self.stackManager.isEditing and self.stackManager.runner and self.model and self.model.GetHandler("on_card_stock_link"):
                 wx.CallAfter(self.stackManager.runner.RunHandler, self.model, "on_card_stock_link", event,
                              url[10:])
 

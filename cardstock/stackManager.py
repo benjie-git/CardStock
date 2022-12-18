@@ -283,8 +283,9 @@ class StackManager(object):
         if self.isEditing:
             wx.CallAfter(self.analyzer.RunAnalysis)
             self.uiCard.ResizeCardView(self.stackModel.GetProperty("size"))
-        self.command_processor.ClearCommands()
-        self.stackModel.SetDirty(False)
+        if not skipSetDown:
+            self.command_processor.ClearCommands()
+            self.stackModel.SetDirty(False)
         self.UpdateCursor()
 
     @RunOnMainSync
@@ -292,7 +293,7 @@ class StackManager(object):
         if index != self.cardIndex or reload == True:
             if not self.isEditing and self.cardIndex is not None and not reload:
                 oldCardModel = self.stackModel.childModels[self.cardIndex]
-                if self.runner:
+                if not self.isEditing:
                     self.runner.RunHandler(oldCardModel, "on_hide_card", None)
             self.cardIndex = index
             if self.designer:
@@ -306,9 +307,9 @@ class StackManager(object):
                 self.SelectUiView(self.uiCard)
                 if self.designer:
                     self.designer.UpdateCardList()
-                if not self.isEditing and self.runner:
+                if self.runner:
                     self.runner.SetupForCard(cardModel)
-                    if not reload:
+                    if not self.isEditing and not reload:
                         if self.uiCard.model.GetHandler("on_show_card"):
                             self.runner.RunHandler(self.uiCard.model, "on_show_card", None)
                         if self.stackModel.GetProperty("can_resize"):
@@ -1157,7 +1158,7 @@ class StackManager(object):
                 self.varUpdateTimer.StartOnce(int(ms))
 
     def OnUpdateVarsTimer(self, event=None):
-        if self.runner:
+        if self.runner and not self.isEditing:
             self.runner.viewer.UpdateVars()
         self.lastVarUpdateTime = time()
 

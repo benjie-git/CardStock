@@ -29,6 +29,9 @@ class ConsoleWindow(wx.Frame):
         self.textBox.StyleSetSpec(ERR_STYLE, "fore:#aa0000,size:14")
         self.textBox.StyleSetSpec(OUTPUT_STYLE, "fore:#555555,size:14")
 
+        self.funcBeforeCode = None
+        self.funcAfterCode = None
+
         self.allowInput = allowInput
         self.timer = None
         self.stdoutIO = None
@@ -54,7 +57,6 @@ class ConsoleWindow(wx.Frame):
         self.workingCommand = None
         self.Hide()
         self.SetStreamsUp()
-        self.SetMenuBar(parent.GetMenuBar())
         self.runner = None
         self.didSetDown = False
 
@@ -219,6 +221,7 @@ class ConsoleWindow(wx.Frame):
             self.textBox.ChangeValue("> ")
             self.lastOutputPos = 2
             self.UpdateEditable()
+            self.textBox.SetSelection(self.lastOutputPos, self.lastOutputPos)
         else:
             self.textBox.ChangeValue("  ")
 
@@ -232,7 +235,11 @@ class ConsoleWindow(wx.Frame):
             if len(code.strip()) > 0:
                 cmdHistory.append(code)
                 self.historyPos = None
+                if self.funcBeforeCode:
+                    self.funcBeforeCode()
                 self.runner.EnqueueCode(code)
+                if self.funcAfterCode:
+                    self.funcAfterCode()
             self.AppendText('> ', INPUT_STYLE, False)
             self.ClearUndoHistory()
 

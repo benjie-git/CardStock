@@ -69,6 +69,7 @@ class CardStockBasics(wx.Frame):
                              'if key_name == "Right":\n   oval.position.x += 10\nelif key_name == "Left":\n   oval.position.x -= 10\nelse:\n   print("Why\'d you press " + key_name)',
             "Make a list": 'odds = [1, 3, 5, 7, 9]\nprint([2, 4, 6])\nnames = ["Jonas", "Martha", "Magnus"]\novals = [oval_1, oval_2, oval_3]',
             "Do something for each item in a list": 'for num in odds:\n   print(num)\n\nfor oval in ovals:\n   oval.fill_color = "red"',
+            "Do something a set number of times": 'for i in range(10):\n   print(i)',
         }
         html = f'''
 <html>

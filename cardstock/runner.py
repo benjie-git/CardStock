@@ -822,7 +822,7 @@ class Runner():
         self.stackManager.LoadCardAtIndex(cardIndex)
 
     def run_stack(self, filename, cardNumber=1, setupValue=None):
-        if self.stopRunnerThread or self.generatingThumbnail:
+        if self.stopRunnerThread or self.generatingThumbnail or not self.viewer:
             return None
         success = self.viewer.GosubStack(filename, cardNumber-1, sanitizer.SanitizeValue(setupValue, []))
         if success:
@@ -835,6 +835,8 @@ class Runner():
             raise RuntimeError(f"run_stack(): Couldn't find stack '{filename}'.")
 
     def return_from_stack(self, result=None):
+        if not self.viewer:
+            return
         stackReturnValue = sanitizer.SanitizeValue(result, [])
         if self.viewer.GosubStack(None,-1, stackReturnValue):
             raise RuntimeError('Return')

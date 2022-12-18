@@ -147,7 +147,7 @@ class UiView(object):
             self.stackManager.view.Refresh()
 
     def OnMouseDown(self, event):
-        if self.stackManager.runner and self.model.GetHandler("on_mouse_press"):
+        if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_mouse_press"):
             self.stackManager.runner.RunHandler(self.model, "on_mouse_press", event)
         event.Skip()
 
@@ -159,18 +159,18 @@ class UiView(object):
         pass
 
     def OnMouseUp(self, event):
-        if self.stackManager.runner and self.model.GetHandler("on_mouse_release"):
+        if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_mouse_release"):
             self.stackManager.runner.RunHandler(self.model, "on_mouse_release", event)
         event.Skip()
 
     def OnMouseEnter(self, event):
-        if self.stackManager.runner and self.model.GetHandler("on_mouse_enter"):
+        if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_mouse_enter"):
             self.stackManager.runner.RunHandler(self.model, "on_mouse_enter", event)
         event.Skip()
 
     def OnMouseExit(self, event):
         self.hasMouseMoved = False
-        if self.stackManager and self.stackManager.runner and self.model.GetHandler("on_mouse_exit"):
+        if not self.stackManager.isEditing and self.stackManager and self.stackManager.runner and self.model.GetHandler("on_mouse_exit"):
             self.stackManager.runner.RunHandler(self.model, "on_mouse_exit", event)
         event.Skip()
 
@@ -335,14 +335,17 @@ class UiView(object):
                                                         [self.model.GetProxy(), otherEdge])
 
     def OnPeriodic(self, event):
+        if self.stackManager.isEditing:
+            return
+
         didRun = False
         if self.hasMouseMoved:
             self.hasMouseMoved = False
-            if self.stackManager.runner and self.model.GetHandler("on_mouse_move"):
+            if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_mouse_move"):
                 self.stackManager.runner.RunHandler(self.model, "on_mouse_move", event)
                 didRun = True
 
-        if self.stackManager.runner and self.model.GetHandler("on_periodic"):
+        if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_periodic"):
             self.stackManager.runner.RunHandler(self.model, "on_periodic", event)
             didRun = True
 
@@ -1246,7 +1249,7 @@ class ViewProxy(object):
         model = self._model
         if not model: return
 
-        if model.stackManager.runner:
+        if not self.stackManager.isEditing and model.stackManager.runner:
            model.stackManager.runner.RunHandler(model, "on_message", None, message)
 
     def clone(self, name=None, **kwargs):

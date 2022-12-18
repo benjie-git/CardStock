@@ -21,14 +21,17 @@ from viewer import ViewerFrame
 import helpDialogs
 from errorListWindow import ErrorListWindow
 from allCodeWindow import AllCodeWindow
+from consoleWindow import ConsoleWindow
 from stackModel import StackModel
 from uiCard import CardModel
 from findEngineDesigner import FindEngine
 from wx.lib.mixins.inspection import InspectionMixin
 from stackExporter import StackExporter
 import mediaSearchDialogs
+from runner import Runner
 from imageFactory import ImageFactory
 from pythonEditor import PythonEditor
+from codeRunnerThread import RunOnMainSync
 # import gc
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -79,6 +82,8 @@ ID_MOVE_VIEW_END = wx.NewIdRef()
 ID_SHOW_ERROR_LIST = wx.NewIdRef()
 ID_SHOW_ALL_CODE = wx.NewIdRef()
 ID_BASICS = wx.NewIdRef()
+ID_SHOW_CONSOLE = wx.NewIdRef()
+ID_CLEAR_CONSOLE = wx.NewIdRef()
 
 
 class DesignerFrame(wx.Frame):
@@ -171,6 +176,7 @@ class DesignerFrame(wx.Frame):
 
         self.allCodeWindow = None
         self.errorListWindow = None
+        self.consoleWindow = None
         self.lastRunErrors = []
         self.runnerFinishedCallback = None
 
@@ -407,9 +413,10 @@ class DesignerFrame(wx.Frame):
         helpMenu.Append(ID_BASICS, "&Python Basics\tCtrl-Alt-P", "Python Basics")
         helpMenu.Append(wx.ID_HELP, "&Manual\tCtrl-Alt-M", "Manual")
         helpMenu.Append(wx.ID_REFRESH, "&Reference Guide\tCtrl-Alt-R", "Reference Guide")
-        helpMenu.Append(wx.ID_CONTEXT_HELP, "&Show/Hide Context Help\tCtrl-Alt-C", "Toggle Context Help")
-        helpMenu.Append(ID_SHOW_ERROR_LIST, "&Show/Hide Error List Window\tCtrl-Alt-E", "Toggle Errors")
-        helpMenu.Append(ID_SHOW_ALL_CODE, "&Show/Hide All Code Window\tCtrl-Alt-A", "Toggle AllCode")
+        helpMenu.Append(wx.ID_CONTEXT_HELP, "&Show/Hide Context Help\tCtrl-Alt-C", "Toggle Context Help Window")
+        helpMenu.Append(ID_SHOW_ERROR_LIST, "&Show/Hide Error List Window\tCtrl-Alt-E", "Toggle Error Window")
+        helpMenu.Append(ID_SHOW_ALL_CODE, "&Show/Hide All Code Window\tCtrl-Alt-A", "Toggle AllCode Window")
+        helpMenu.Append(ID_SHOW_CONSOLE, "&Show/Hide Console\tCtrl-Alt-O", "Toggle Console")
 
 
         # and add them to a menubar
@@ -484,6 +491,7 @@ class DesignerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuMoveView, id=ID_MOVE_VIEW_END)
         self.Bind(wx.EVT_MENU, self.OnMenuShowErrorList, id=ID_SHOW_ERROR_LIST)
         self.Bind(wx.EVT_MENU, self.OnMenuShowAllCodeWindow, id=ID_SHOW_ALL_CODE)
+        self.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
 
 
     def MakeContextMenu(self, uiViews):
@@ -663,6 +671,9 @@ class DesignerFrame(wx.Frame):
             self.allCodeWindow.Hide()
             self.allCodeWindow.Clear()
 
+        if self.consoleWindow and self.consoleWindow.IsShown():
+            self.consoleWindow.Hide()
+
         if not generateThumbnail:
             self.Hide()
 
@@ -799,6 +810,86 @@ class DesignerFrame(wx.Frame):
         self.allCodeWindow.Hide()
         self.allCodeWindow.Clear()
 
+    def OnMenuShowConsoleWindow(self, event):
+        if not self.consoleWindow:
+            self.consoleWindow = ConsoleWindow(self, allowInput=True)
+            self.stackManager.runner = Runner(self.stackManager, None)
+            self.consoleWindow.runner = self.stackManager.runner
+            self.MakeConsoleMenuBar()
+            self.consoleWindow.funcBeforeCode = self.OnPreConsoleRun
+            self.consoleWindow.funcAfterCode = self.OnPostConsoleRun
+
+            self.stackManager.LoadCardAtIndex(self.stackManager.cardIndex, reload=True)
+
+        if self.consoleWindow.IsShown():
+            self.consoleWindow.Hide()
+        else:
+            self.consoleWindow.Show()
+            self.consoleWindow.Raise()
+
+    def MakeConsoleMenuBar(self):
+        # create the file menu
+        fileMenu = wx.Menu()
+        fileMenu.Append(ID_SHOW_CONSOLE, "&Close\tCtrl-W", "Close Console")
+        fileMenu.AppendSeparator()
+        fileMenu.Append(ID_RUN, "&Run Stack\tCtrl-R", "Run the current Stack")
+        fileMenu.Append(ID_RUN_FROM, "&Run From Current Card\tCtrl-Shift-R", "Run from the current Card")
+
+        editMenu = wx.Menu()
+        editMenu.Append(wx.ID_UNDO, "&Undo\tCtrl-Z", "Undo Action")
+        editMenu.Append(wx.ID_REDO, "&Redo\tCtrl-Shift-Z", "Redo Action")
+        editMenu.AppendSeparator()
+        editMenu.Append(wx.ID_CUT,  "C&ut\tCtrl-X", "Cut Selection")
+        editMenu.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy Selection")
+        editMenu.Append(wx.ID_PASTE,"&Paste\tCtrl-V", "Paste Selection")
+
+        # and the help menu
+        helpMenu = wx.Menu()
+        helpMenu.Append(ID_SHOW_CONSOLE, "&Hide Console\tCtrl-Alt-O", "Toggle Console")
+        helpMenu.Append(ID_CLEAR_CONSOLE, "&Clear Console\tCtrl-Alt-C", "Clear Console")
+
+        # and add them to a menubar
+        menuBar = wx.MenuBar()
+        menuBar.Append(fileMenu, "&File")
+        menuBar.Append(editMenu, "&Edit")
+        menuBar.Append(helpMenu, "&Help")
+        self.consoleWindow.SetMenuBar(menuBar)
+
+        self.consoleWindow.Bind(wx.EVT_MENU, self.OnMenuConsoleClose, id=wx.ID_CLOSE)
+        self.consoleWindow.Bind(wx.EVT_MENU, self.OnMenuRun, id=ID_RUN)
+        self.consoleWindow.Bind(wx.EVT_MENU, self.OnMenuRunFrom, id=ID_RUN_FROM)
+
+        self.consoleWindow.Bind(wx.EVT_MENU, self.consoleWindow.DoUndo, id=wx.ID_UNDO)
+        self.consoleWindow.Bind(wx.EVT_MENU, self.consoleWindow.DoRedo, id=wx.ID_REDO)
+
+        self.consoleWindow.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
+        self.consoleWindow.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
+
+    @RunOnMainSync
+    def OnPreConsoleRun(self):
+        index = self.stackManager.cardIndex
+        self.console_run_state_pre = self.stackManager.stackModel
+        data = self.stackManager.stackModel.GetData()
+        newModel = StackModel(self.stackManager)
+        newModel.SetData(data)
+        self.stackManager.SetStackModel(newModel, skipSetDown=True)
+        self.stackManager.LoadCardAtIndex(index, reload=True)
+
+    @RunOnMainSync
+    def OnPostConsoleRun(self):
+        command = RunConsoleCommand(True, "Console Command", self.stackManager,
+                                     self.console_run_state_pre, self.stackManager.stackModel)
+        self.stackManager.command_processor.Submit(command)
+        self.console_run_state_pre = None
+
+    def OnMenuConsoleClose(self, event):
+        self.consoleWindow.runner = None
+        self.consoleWindow.Close()
+        self.consoleWindow = None
+
+    def OnMenuClearConsoleWindow(self, event):
+        self.consoleWindow.Clear()
+
     def OnMenuExit(self, event):
         self.Close()
 
@@ -815,6 +906,9 @@ class DesignerFrame(wx.Frame):
                 self.OnMenuSave(None)
         if self.viewer:
             self.viewer.Destroy()
+        if self.consoleWindow:
+            self.stackManager.runner.CleanupFromRun()
+            self.consoleWindow.Close()
         event.Skip()
 
     def OnMenuGroup(self, event):

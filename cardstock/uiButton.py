@@ -88,7 +88,7 @@ class UiButton(UiView):
     def OnMouseUp(self, event):
         if self.stackManager and not self.stackManager.isEditing:
             if self.mouseDownInside and self.mouseStillInside:
-                if self.stackManager.runner and self.model.GetHandler("on_click"):
+                if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_click"):
                     self.stackManager.runner.RunHandler(self.model, "on_click", event)
                 self.mouseDownInside = False
                 self.stackManager.view.Refresh()
@@ -213,7 +213,7 @@ class ButtonModel(ViewModel):
                         if m.GetProperty("is_selected") and m != self:
                             m.SetProperty("is_selected", False)
                 if self.stackManager and not self.stackManager.isEditing:
-                    if self.stackManager.runner and self.GetHandler("on_selection_changed"):
+                    if not self.stackManager.isEditing and self.stackManager.runner and self.GetHandler("on_selection_changed"):
                         self.stackManager.runner.RunHandler(self, "on_selection_changed", None, value)
         super().SetProperty(key, value, notify)
 
@@ -295,7 +295,7 @@ class Button(ViewProxy):
     def click(self):
         model = self._model
         if not model: return
-        if model.stackManager.runner and model.GetHandler("on_click"):
+        if not self.stackManager.isEditing and model.stackManager.runner and model.GetHandler("on_click"):
             model.stackManager.runner.RunHandler(model, "on_click", None)
 
     def get_radio_group(self):

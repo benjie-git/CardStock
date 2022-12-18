@@ -102,7 +102,7 @@ class AddNewUiViewCommand(Command):
         if self.viewType == "card":
             self.stackManager.LoadCardAtIndex(None)
             self.stackManager.stackModel.InsertCardModel(self.cardIndex, self.viewModel)
-            if self.viewModel and self.viewModel.stackManager.runner:
+            if not self.stackManager.isEditing and self.viewModel and self.viewModel.stackManager.runner:
                 self.viewModel.RunSetup(self.viewModel.stackManager.runner)
             self.stackManager.LoadCardAtIndex(self.cardIndex)
         else:
@@ -418,4 +418,27 @@ class CommandGroup(Command):
             self.stackManager.SelectUiView(None)
             for m in self.selectedModels:
                 self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(m), True)
+        return True
+
+
+class RunConsoleCommand(Command):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.stackManager = args[2]
+        self.preState = args[3]
+        self.postState = args[4]
+        self.hasRun = False
+
+    def Do(self):
+        if self.hasRun:
+            index = self.stackManager.cardIndex
+            self.stackManager.SetStackModel(self.postState, skipSetDown=True)
+            self.stackManager.LoadCardAtIndex(index, reload=True)
+        self.hasRun = True
+        return True
+
+    def Undo(self):
+        index = self.stackManager.cardIndex
+        self.stackManager.SetStackModel(self.preState, skipSetDown=True)
+        self.stackManager.LoadCardAtIndex(index, reload=True)
         return True

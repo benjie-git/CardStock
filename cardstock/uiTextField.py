@@ -141,7 +141,7 @@ class UiTextField(UiTextBase):
     def OnTextEnter(self, event):
         if not self.stackManager.isEditing:
             def f():
-                if self.stackManager.runner and self.model.GetHandler("on_text_enter"):
+                if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_text_enter"):
                     self.stackManager.runner.RunHandler(self.model, "on_text_enter", event)
             wx.CallAfter(f)
 
@@ -149,7 +149,7 @@ class UiTextField(UiTextBase):
         if not self.stackManager.isEditing:
             if not self.settingValueInternally:
                 self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
-                if self.stackManager.runner and self.model.GetHandler("on_text_changed"):
+                if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_text_changed"):
                     self.stackManager.runner.RunHandler(self.model, "on_text_changed", event)
         event.Skip()
 
@@ -158,7 +158,7 @@ class UiTextField(UiTextBase):
             if event.GetModificationType()%2 == 1:
                 if not self.settingValueInternally:
                     self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
-                    if self.stackManager.runner and self.model.GetHandler("on_text_changed"):
+                    if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_text_changed"):
                         self.stackManager.runner.RunHandler(self.model, "on_text_changed", event)
         event.Skip()
 
@@ -382,12 +382,12 @@ class TextField(TextBaseProxy):
         model = self._model
         if not model: return
         if model.didSetDown: return
-        if model.stackManager.runner and model.GetHandler("on_text_enter"):
+        if not model.stackManager.isEditing and model.stackManager.runner and model.GetHandler("on_text_enter"):
             model.stackManager.runner.RunHandler(model, "on_text_enter", None)
 
     def focus(self):
         model = self._model
         if not model: return
 
-        if model.stackManager.runner:
+        if not self.stackManager.isEditing and model.stackManager.runner:
             model.stackManager.runner.SetFocus(self)

@@ -146,7 +146,6 @@ class ViewerFrame(wx.Frame):
         if not self.isStandalone:
             helpMenu.Append(ID_SHOW_VARIABLES, "&Show/Hide Variables\tCtrl-Alt-V", "Toggle Variables")
         helpMenu.Append(ID_SHOW_CONSOLE, "&Show/Hide Console\tCtrl-Alt-O", "Toggle Console")
-        helpMenu.Append(ID_CLEAR_CONSOLE, "&Clear Console\tCtrl-Alt-C", "Clear Console")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
@@ -178,7 +177,6 @@ class ViewerFrame(wx.Frame):
         if not self.isStandalone:
             self.Bind(wx.EVT_MENU, self.OnMenuShowVariablesWindow, id=ID_SHOW_VARIABLES)
         self.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
-        self.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
 
     def MakeConsoleMenuBar(self):
         # create the file menu
@@ -234,7 +232,6 @@ class ViewerFrame(wx.Frame):
         helpMenu = wx.Menu()
         helpMenu.Append(ID_SHOW_VARIABLES, "&Hide Variables\tCtrl-Alt-V", "Toggle Variables")
         helpMenu.Append(ID_SHOW_CONSOLE, "&Show/Hide Console\tCtrl-Alt-O", "Toggle Console")
-        helpMenu.Append(ID_CLEAR_CONSOLE, "&Clear Console\tCtrl-Alt-C", "Clear Console")
 
         # and add them to a menubar
         menuBar = wx.MenuBar()
@@ -247,7 +244,6 @@ class ViewerFrame(wx.Frame):
 
         self.variablesWindow.Bind(wx.EVT_MENU, self.OnMenuShowVariablesWindow, id=ID_SHOW_VARIABLES)
         self.variablesWindow.Bind(wx.EVT_MENU, self.OnMenuShowConsoleWindow, id=ID_SHOW_CONSOLE)
-        self.variablesWindow.Bind(wx.EVT_MENU, self.OnMenuClearConsoleWindow, id=ID_CLEAR_CONSOLE)
 
     wildcard = "CardStock files (*.cds)|*.cds"
 

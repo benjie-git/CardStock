@@ -102,16 +102,16 @@ class UiCard(UiView):
                 ui.OnPropertyChanged(ui.model, "position")
 
     def OnKeyDown(self, event):
-        if self.stackManager.runner and self.model.GetHandler("on_key_press"):
+        if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_key_press"):
             self.stackManager.runner.RunHandler(self.model, "on_key_press", event)
 
     def OnKeyUp(self, event):
-        if self.stackManager.runner and self.model.GetHandler("on_key_release"):
+        if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_key_release"):
             self.stackManager.runner.RunHandler(self.model, "on_key_release", event)
 
     def OnPeriodic(self, event):
         didRun = False
-        if self.stackManager.runner and self.model.GetHandler("on_key_hold"):
+        if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_key_hold"):
             for key_name in self.stackManager.runner.pressedKeys:
                 self.stackManager.runner.RunHandler(self.model, "on_key_hold", event, key_name)
                 didRun = True
@@ -203,14 +203,14 @@ class CardModel(ViewModel):
         self.childModels.insert(index, model)
         model.parent = self
         self.isDirty = True
-        if self.stackManager.runner and self.stackManager.uiCard.model == self:
+        if not self.stackManager.isEditing and self.stackManager.runner and self.stackManager.uiCard.model == self:
             self.stackManager.runner.SetupForCard(self)
 
     def RemoveChild(self, model):
         self.childModels.remove(model)
         model.SetDown()
         self.isDirty = True
-        if self.stackManager.runner and self.stackManager.uiCard.model == self:
+        if not self.stackManager.isEditing and self.stackManager.runner and self.stackManager.uiCard.model == self:
             self.stackManager.runner.SetupForCard(self)
 
     def AddNewObject(self, typeStr, name, size, points=None, kwargs=None):
