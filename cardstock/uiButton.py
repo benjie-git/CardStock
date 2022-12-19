@@ -295,7 +295,7 @@ class Button(ViewProxy):
     def click(self):
         model = self._model
         if not model: return
-        if not self.stackManager.isEditing and model.stackManager.runner and model.GetHandler("on_click"):
+        if not model.stackManager.isEditing and model.stackManager.runner and model.GetHandler("on_click"):
             model.stackManager.runner.RunHandler(model, "on_click", None)
 
     def get_radio_group(self):

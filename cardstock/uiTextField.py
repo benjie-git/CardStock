@@ -389,5 +389,5 @@ class TextField(TextBaseProxy):
         model = self._model
         if not model: return
 
-        if not self.stackManager.isEditing and model.stackManager.runner:
+        if not model.stackManager.isEditing and model.stackManager.runner:
             model.stackManager.runner.SetFocus(self)

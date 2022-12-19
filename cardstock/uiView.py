@@ -1249,7 +1249,7 @@ class ViewProxy(object):
         model = self._model
         if not model: return
 
-        if not self.stackManager.isEditing and model.stackManager.runner:
+        if not model.stackManager.isEditing and model.stackManager.runner:
            model.stackManager.runner.RunHandler(model, "on_message", None, message)
 
     def clone(self, name=None, **kwargs):
