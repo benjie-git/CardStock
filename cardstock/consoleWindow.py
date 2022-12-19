@@ -3,6 +3,7 @@ import wx.stc as stc
 from io import StringIO
 import pythonEditor
 from wx.lib.docview import CommandProcessor, Command
+from codeRunnerThread import RunOnMainSync
 import sys
 
 INPUT_STYLE = stc.STC_STYLE_DEFAULT
@@ -239,9 +240,13 @@ class ConsoleWindow(wx.Frame):
                     self.funcBeforeCode()
                 self.runner.EnqueueCode(code)
                 if self.funcAfterCode:
-                    self.funcAfterCode()
-            self.AppendText('> ', INPUT_STYLE, False)
+                    self.runner.EnqueueFunction(self.funcAfterCode)
             self.ClearUndoHistory()
+            @RunOnMainSync
+            def on_done():
+                self.AppendText('> ', INPUT_STYLE, False)
+                self.ClearUndoHistory()
+            self.runner.EnqueueFunction(on_done)
 
     def AppendText(self, text, style, beforeInput):
         scrollPos = self.textBox.GetScrollPos(wx.VERTICAL) + self.textBox.LinesOnScreen()

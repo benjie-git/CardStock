@@ -868,19 +868,31 @@ class DesignerFrame(wx.Frame):
     @RunOnMainSync
     def OnPreConsoleRun(self):
         index = self.stackManager.cardIndex
-        self.console_run_state_pre = self.stackManager.stackModel
+        self.console_run_model_pre = self.stackManager.stackModel
+        self.console_run_dirty_pre = self.stackManager.stackModel.GetDirty()
         data = self.stackManager.stackModel.GetData()
         newModel = StackModel(self.stackManager)
         newModel.SetData(data)
         self.stackManager.SetStackModel(newModel, skipSetDown=True)
+        self.stackManager.stackModel.SetDirty(False)
         self.stackManager.LoadCardAtIndex(index, reload=True)
 
     @RunOnMainSync
     def OnPostConsoleRun(self):
-        command = RunConsoleCommand(True, "Console Command", self.stackManager,
-                                     self.console_run_state_pre, self.stackManager.stackModel)
-        self.stackManager.command_processor.Submit(command)
-        self.console_run_state_pre = None
+        if self.stackManager.stackModel.GetDirty():
+            command = RunConsoleCommand(True, "Console Command", self.stackManager,
+                                         self.console_run_model_pre, self.stackManager.stackModel)
+            self.stackManager.command_processor.Submit(command)
+        else:
+            index = self.stackManager.cardIndex
+            oldModel = self.stackManager.stackModel
+            self.stackManager.SetStackModel(self.console_run_model_pre, skipSetDown=True)
+            self.stackManager.LoadCardAtIndex(index, reload=True)
+            self.stackManager.stackModel.SetDirty(self.console_run_dirty_pre)
+            oldModel.SetDown()
+        del self.console_run_model_pre
+        del self.console_run_dirty_pre
+
 
     def OnMenuConsoleClose(self, event):
         self.consoleWindow.runner = None
