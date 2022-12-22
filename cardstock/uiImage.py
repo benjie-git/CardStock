@@ -87,8 +87,8 @@ class UiImage(UiView):
                 img = img.Scale(self.stackManager.view.FromDIP(imgSize.width),
                                 self.stackManager.view.FromDIP(imgSize.height), quality=wx.IMAGE_QUALITY_HIGH)
                 imgSize = self.stackManager.view.FromDIP(imgSize)
-            offX = 0 if imgSize.Width <= viewSize.Width else self.stackManager.view.ToDIP((imgSize.Width - viewSize.Width) / 2)
-            offY = 0 if imgSize.Height <= viewSize.Height else self.stackManager.view.ToDIP((imgSize.Height - viewSize.Height) / 2)
+            offX = 0 if imgSize.Width <= viewSize.Width else self.stackManager.view.ToDIP(int((imgSize.Width - viewSize.Width) / 2))
+            offY = 0 if imgSize.Height <= viewSize.Height else self.stackManager.view.ToDIP(int((imgSize.Height - viewSize.Height) / 2))
             w = imgSize.width if imgSize.Width <= viewSize.Width else viewSize.Width
             h = imgSize.height if imgSize.Height <= viewSize.Height else viewSize.Height
             img = img.GetSubImage(wx.Rect(int(offX), int(offY), w, h))
