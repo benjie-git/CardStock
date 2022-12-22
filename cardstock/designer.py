@@ -591,8 +591,8 @@ class DesignerFrame(wx.Frame):
             if r == wx.ID_YES:
                 self.OnMenuSave(None)
 
-        dlg = wx.FileDialog(self, "Open CardStock file...", initialDir,
-                           style=wx.FD_OPEN, wildcard = self.wildcard)
+        dlg = wx.FileDialog(self, "Open CardStock file...", defaultDir=initialDir, style=wx.FD_OPEN, wildcard=self.wildcard)
+
         self.stackContainer.Enable(False)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
@@ -604,9 +604,9 @@ class DesignerFrame(wx.Frame):
         if wx.GetMouseState().LeftIsDown():
             return
         initialDir = os.getcwd()
-        if self.configInfo and "last_open_file" in self.configInfo:
-            d = os.path.dirname(self.configInfo["last_open_file"])
-            d = os.path.join(d, '')
+        if self.configInfo and "last_open_dir" in self.configInfo:
+            d = self.configInfo["last_open_dir"]
+            d = os.path.join(d, '')  # Ensure a trailing slash
             if os.path.exists(d):
                 initialDir = d
         self.DoMenuOpen(initialDir)
@@ -628,12 +628,13 @@ class DesignerFrame(wx.Frame):
         if wx.GetMouseState().LeftIsDown():
             return
         initialDir = os.getcwd()
-        if self.configInfo and "last_open_file" in self.configInfo:
-            initialDir = os.path.dirname(self.configInfo["last_open_file"])
-            initialDir = os.path.join(initialDir, '')
-        dlg = wx.FileDialog(self, "Save CardStock file as...", initialDir,
+        if self.configInfo and "last_open_dir" in self.configInfo:
+            initialDir = self.configInfo["last_open_dir"]
+            initialDir = os.path.join(initialDir, '')  # Ensure a trailing slash
+        dlg = wx.FileDialog(self, "Save CardStock file as...",
                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
                            wildcard = self.wildcard)
+        dlg.SetDirectory(initialDir)
         self.stackContainer.Enable(False)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
@@ -1216,6 +1217,7 @@ class DesignerFrame(wx.Frame):
     def WriteDefaultConfig(self):
         config = configparser.ConfigParser()
         self.configInfo = {"last_open_file": os.path.join(self.GetExamplesDir(), "Welcome.cds"),
+                           "last_open_dir": os.path.expanduser('~'),
                            "show_context_help": str(True),
                            "upload_username": "",
                            "upload_token": "",
@@ -1227,11 +1229,15 @@ class DesignerFrame(wx.Frame):
     def WriteConfig(self):
         config = configparser.ConfigParser()
         last_file = self.filename if self.filename else ""
-        # if last_file and os.path.samefile(os.path.dirname(last_file), self.GetExamplesDir()):
-        #     # Don't save example stacks as the last open file
-        #     if "last_open_file" in self.configInfo:
-        #         last_file = self.configInfo["last_open_file"]
+        last_dir = os.path.dirname(self.filename)
+        if last_dir and os.path.samefile(last_dir, self.GetExamplesDir()):
+            # Don't save example stacks as the last open dir
+            if "last_open_dir" in self.configInfo:
+                last_dir = self.configInfo["last_open_dir"]
+                if not last_dir:
+                    last_dir = os.path.expanduser('~')
         self.configInfo = {"last_open_file": last_file,
+                           "last_open_dir": last_dir,
                            "show_context_help": str(self.cPanel.IsContextHelpShown()),
                            "upload_username": self.configInfo["upload_username"] or "",
                            "upload_token": self.configInfo["upload_token"] or "",
@@ -1267,12 +1273,14 @@ class DesignerFrame(wx.Frame):
             config = configparser.ConfigParser()
             config.read(self.full_config_file_path)
             last_open_file = config['User'].get('last_open_file', None)
+            last_open_dir = config['User'].get('last_open_dir', None)
             upload_username = config['User'].get('upload_username', None)
             upload_token = config['User'].get('upload_token', None)
             show_context_help = config['User'].get('show_context_help', "True") == "True"
             cardstock_app_version = config['User'].get('cardstock_app_version', "0")
 
         return {"last_open_file": last_open_file,
+                "last_open_dir": last_open_dir,
                 "show_context_help": show_context_help,
                 "upload_username": upload_username,
                 "upload_token": upload_token,
