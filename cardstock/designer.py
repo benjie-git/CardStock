@@ -603,7 +603,7 @@ class DesignerFrame(wx.Frame):
     def OnMenuOpen(self, event):
         if wx.GetMouseState().LeftIsDown():
             return
-        initialDir = os.getcwd()
+        initialDir = os.path.expanduser('~')
         if self.configInfo and "last_open_dir" in self.configInfo:
             d = self.configInfo["last_open_dir"]
             d = os.path.join(d, '')  # Ensure a trailing slash
@@ -627,7 +627,7 @@ class DesignerFrame(wx.Frame):
     def OnMenuSaveAs(self, event):
         if wx.GetMouseState().LeftIsDown():
             return
-        initialDir = os.getcwd()
+        initialDir = os.path.expanduser('~')
         if self.configInfo and "last_open_dir" in self.configInfo:
             initialDir = self.configInfo["last_open_dir"]
             initialDir = os.path.join(initialDir, '')  # Ensure a trailing slash

@@ -85,7 +85,7 @@ class ImageSearchDialog(MediaSearchDialog):
     @staticmethod
     def SaveImageData(parent, cur_dir, name, data):
         skipWrite = False
-        initialDir = os.getcwd()
+        initialDir = os.path.expanduser('~')
         if cur_dir:
             initialDir = cur_dir
 
@@ -172,7 +172,7 @@ class AudioSearchDialog(MediaSearchDialog):
             self.referrer = url
 
     def SaveUrl(self, url, name):
-        initialDir = os.getcwd()
+        initialDir = os.path.expanduser('~')
         if self.cur_dir:
             initialDir = self.cur_dir
         wildcard = "WAV files (*.wav)|*.wav"

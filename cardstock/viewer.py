@@ -266,7 +266,7 @@ class ViewerFrame(wx.Frame):
             if r == wx.ID_YES:
                 self.SaveFile()
 
-        initialDir = os.getcwd()
+        initialDir = os.path.expanduser('~')
         if self.stackManager.filename:
             initialDir = os.path.dirname(self.stackManager.filename)
         initialDir = os.path.join(initialDir, '')
