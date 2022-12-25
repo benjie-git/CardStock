@@ -101,6 +101,7 @@ class Runner():
             "goto_next_card": self.goto_next_card,
             "goto_previous_card": self.goto_previous_card,
             "run_stack": self.run_stack,
+            "open_url": self.open_url,
             "play_sound": self.play_sound,
             "stop_sound": self.stop_sound,
             "broadcast_message": self.broadcast_message,
@@ -905,6 +906,12 @@ class Runner():
             return None
 
         return func()
+
+    def open_url(self, URL, in_place=False):
+        if not isinstance(URL, str):
+            raise TypeError("open_url(): URL must be a string")
+
+        wx.LaunchDefaultBrowser(URL)
 
     def play_sound(self, filepath):
         if not isinstance(filepath, str):
