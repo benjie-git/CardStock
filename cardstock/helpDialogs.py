@@ -100,8 +100,7 @@ class CardStockBasics(wx.Frame):
         return html
 
     def __init__(self, parent):
-        super().__init__(parent, -1, 'CardStock: Python Basics',
-                         size=(parent.FromDIP(800), parent.FromDIP(600)))
+        super().__init__(parent, -1, 'CardStock: Python Basics', size=(parent.FromDIP(800), parent.FromDIP(600)))
 
         html = wx.html.HtmlWindow(self, -1)
         htmlStr = self.GetHTML()
@@ -411,8 +410,7 @@ stack, run it on the web, and send out links to let others run it.</p>
 '''
 
     def __init__(self, parent):
-        super().__init__(parent, -1, 'CardStock Manual',
-                          size=(parent.FromDIP(800), parent.FromDIP(600)))
+        super().__init__(parent, -1, 'CardStock Manual', size=(parent.FromDIP(800), parent.FromDIP(600)))
 
         html = wx.html.HtmlWindow(self, -1)
         htmlStr = self.GetHTML()

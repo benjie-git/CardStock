@@ -115,6 +115,9 @@ class ConsoleWindow(wx.Frame):
             self.command_processor.Redo()
             self.oldCmdText = self.GetCommandText()
             self.skipChanges = False
+        elif self.runner.stackManager.command_processor.CanRedo():
+                self.runner.stackManager.command_processor.Redo()
+                self.stackUndoCount -= 1
 
     def ClearUndoHistory(self):
         self.command_processor.ClearCommands()
