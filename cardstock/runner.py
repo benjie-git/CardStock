@@ -172,7 +172,7 @@ class Runner():
         This always runs on the runnerThread.
         """
         self.clientVars["card"] = cardModel.GetProxy()
-        self.clientVars["stack"] = cardModel.parent.GetProxy()
+        self.clientVars["stack"] = self.stackManager.stackModel.GetProxy()
         for k in self.cardVarKeys.copy():
             if k in self.clientVars:
                 self.clientVars.pop(k)
@@ -1034,7 +1034,7 @@ class Runner():
 
     @RunOnMainAsync
     def quit(self):
-        if self.stopRunnerThread: return
+        if self.stopRunnerThread or self.stackManager.isEditing: return
         self.stackManager.view.TopLevelParent.OnMenuClose(None)
 
     def ResetStopHandlingMouseEvent(self):
