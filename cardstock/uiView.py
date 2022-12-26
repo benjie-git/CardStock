@@ -1044,6 +1044,7 @@ class ViewModel(object):
 
     def SetProperty(self, key, value, notify=True):
         if self.didSetDown: return
+        if self.stackManager and self.stackManager.isEditing and key in ["speed"]: return
         if key in self.propertyTypes and self.propertyTypes[key] == "point" and not isinstance(value, wx.Point):
             value = wx.Point(tuple(int(x) for x in value))
         elif key in self.propertyTypes and self.propertyTypes[key] == "floatpoint" and not isinstance(value, wx.RealPoint):
@@ -1131,7 +1132,7 @@ class ViewModel(object):
 
     def AddAnimation(self, key, duration, onUpdate, onStart=None, onFinish=None, onCancel=None):
         # On Runner thread
-        if self.didSetDown: return
+        if self.didSetDown or (self.stackManager and self.stackManager.isEditing): return
         animDict = {"duration": duration if duration != 0 else 0.01,
                     "onStart": onStart,
                     "onUpdate": onUpdate,
