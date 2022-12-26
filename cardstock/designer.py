@@ -410,7 +410,7 @@ class DesignerFrame(wx.Frame):
         # and the help menu
         helpMenu = wx.Menu()
         helpMenu.Append(wx.ID_ABOUT, "&About", "About")
-        helpMenu.Append(ID_BASICS, "&Python Basics\tCtrl-Alt-P", "Python Basics")
+        # helpMenu.Append(ID_BASICS, "&Python Basics\tCtrl-Alt-P", "Python Basics")
         helpMenu.Append(wx.ID_HELP, "&Manual\tCtrl-Alt-M", "Manual")
         helpMenu.Append(wx.ID_REFRESH, "&Reference Guide\tCtrl-Alt-R", "Reference Guide")
         helpMenu.Append(wx.ID_CONTEXT_HELP, "&Show/Hide Context Help\tCtrl-Alt-C", "Toggle Context Help Window")
