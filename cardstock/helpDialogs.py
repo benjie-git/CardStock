@@ -340,7 +340,9 @@ then add a line like <b>self.speed.y -= 30</b> into the object's on_periodic() e
 
 <h2>Web Views</h2>
 
-<p>CardStock also allows you to embed web pages into your stacks, using Web View objects.  You can set the URL property
+<p>CardStock also allows you to embed web pages into your stacks, using Web View objects.  But note that currently 
+WebViews only work when your stack is run as a program on your computer, and not when uploaded and run through the
+cardstock.run site.  You can set the URL property
 of a Web View, and it will load the web page at that URL.  Or you can set the HTML property of a Web View, and it will 
 display that HTML.  You can restrict a Web View to only allow loading pages from a specific set of hosts, by setting its allowed_hosts
 property.  For example, if you only want to allow loading pages from my-fun-game.com, then you can set webview_1.URL to
@@ -366,7 +368,8 @@ on_card_stock_link(message) will be called with message='test'.</p>
 stderr), this will appear in the Viewer application's Console window, which will automatically appear on the first 
 text written out.  You can also open the Console manually using the "Show/Hide Console" menu item.  The 
 Console window also allows you to enter python commands while your stack is running.  You can interactively check variable 
-values, and call functions to help debug your code.<p>
+values, and call functions to help debug your code.  You can also use the Console while in the Designer, and modify 
+your stack using python commands.<p>
 
 <p>CardStock also offers a Variable inspector window while your stack is running.  You can open it using the 
 "Show/Hide Variables" menu item.  This window shows you a list of all variables in use by your stack, and allows you to open 

@@ -177,6 +177,7 @@ class DesignerFrame(wx.Frame):
         self.allCodeWindow = None
         self.errorListWindow = None
         self.consoleWindow = None
+        self.wasConsoleOpen = False
         self.lastRunErrors = []
         self.runnerFinishedCallback = None
 
@@ -673,6 +674,7 @@ class DesignerFrame(wx.Frame):
             self.allCodeWindow.Clear()
 
         if self.consoleWindow and self.consoleWindow.IsShown():
+            self.wasConsoleOpen = True
             self.consoleWindow.Hide()
 
         if not generateThumbnail:
@@ -747,6 +749,10 @@ class DesignerFrame(wx.Frame):
         self.Refresh()
         self.Update()
         # wx.CallLater(500, self.UpdateGC_Data)
+
+        if self.wasConsoleOpen:
+            self.wasConsoleOpen = False
+            self.consoleWindow.Show()
 
         if len(self.lastRunErrors):
             self.OnMenuShowErrorList(None)
@@ -896,9 +902,7 @@ class DesignerFrame(wx.Frame):
 
 
     def OnMenuConsoleClose(self, event):
-        self.consoleWindow.runner = None
-        self.consoleWindow.Close()
-        self.consoleWindow = None
+        self.consoleWindow.Hide()
 
     def OnMenuClearConsoleWindow(self, event):
         self.consoleWindow.Clear()

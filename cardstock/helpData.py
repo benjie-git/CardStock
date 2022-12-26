@@ -377,13 +377,13 @@ class HelpDataGlobals():
                               "until the new stack exits by calling <b>stack.return_from_stack(returnVal)</b>, and then "
                               "this <b>run_stack()</b> call returns that returnVal value, or None if no returnValue was given."},
         "open_url": {"args": {"URL": {"type": "string",
-                                        "info": "This is the URL to open in the system browser."},
+                                        "info": "This is the URL to open."},
                               "in_place": {"type": "bool",
                                       "info": "Optional parameter: When running in-browser after uploading your stack, if this is set to "
-                                              "True, the URL will open in the current tab, instead of opening a new tab."}
+                                              "True, the <b>URL</b> will open in the current tab, instead of opening a new tab.  Defaults to False."}
                               },
                       "return": None,
-                      "info": "Opens the given <b>URL</b> in the system's default browser."},
+                      "info": "Opens the given <b>URL</b> in the default browser."},
         "play_sound": {"args": {"file": {"type": "string",
                                         "info": "This is the filename of the .wav format audio file to play, relative to where the stack file lives."}},
                       "return": None,
