@@ -53,6 +53,7 @@ class ConsoleWindow(wx.Frame):
         self.oldCmdSelection = (0,0)
         self.needsNewPrompt = False
         self.historyPos = None  # None means we're on live input, not history
+        self.stackUndoCount = 0
         self.command_processor = CommandProcessor()
         self.skipChanges = False
         self.workingCommand = None
@@ -72,7 +73,7 @@ class ConsoleWindow(wx.Frame):
     def Show(self, doShow=True):
         super().Show(doShow)
         if doShow and not self.hasShown:
-            self.SetClientSize((self.GetParent().GetSize().Width, self.FromDIP(75)))
+            self.SetClientSize((self.GetParent().GetSize().Width, self.FromDIP(100)))
             self.SetPosition(self.GetParent().GetPosition() + (0, self.GetParent().GetSize().Height))
             self.textBox.SetSelection(self.lastOutputPos, self.lastOutputPos)
             self.Raise()
@@ -99,9 +100,17 @@ class ConsoleWindow(wx.Frame):
             self.command_processor.Undo()
             self.oldCmdText = self.GetCommandText()
             self.skipChanges = False
+        else:
+            if self.runner.stackManager.command_processor.CanUndo():
+                self.runner.stackManager.command_processor.Undo()
+                self.stackUndoCount += 1
 
     def DoRedo(self, event=None):
-        if self.command_processor.CanRedo():
+        if self.stackUndoCount:
+            if self.runner.stackManager.command_processor.CanRedo():
+                self.runner.stackManager.command_processor.Redo()
+                self.stackUndoCount -= 1
+        elif self.command_processor.CanRedo():
             self.skipChanges = True
             self.command_processor.Redo()
             self.oldCmdText = self.GetCommandText()
@@ -122,6 +131,7 @@ class ConsoleWindow(wx.Frame):
                 self.command_processor.Submit(command)
                 self.oldCmdText = newText
                 self.oldCmdSelection = newSel
+                self.stackUndoCount = 0
         event.Skip()
 
     def OnChar(self, event):
