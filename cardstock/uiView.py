@@ -170,7 +170,7 @@ class UiView(object):
 
     def OnMouseExit(self, event):
         self.hasMouseMoved = False
-        if not self.stackManager.isEditing and self.stackManager and self.stackManager.runner and self.model.GetHandler("on_mouse_exit"):
+        if self.stackManager and not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_mouse_exit"):
             self.stackManager.runner.RunHandler(self.model, "on_mouse_exit", event)
         event.Skip()
 

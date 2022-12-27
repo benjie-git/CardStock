@@ -96,6 +96,13 @@ class BaseTool(object):
                 else:
                     # Vertical
                     newPoint = [startPoint[0], pos[1]]
+            elif objType == "drag":
+                if abs(dx) > abs(dy):
+                    # Square/Circle, as wide as the mouse drag
+                    newPoint = [pos[0], startPoint[1]]
+                else:
+                    # Square/Circle, as tall as the mouse drag
+                    newPoint = [startPoint[0], pos[1]]
             else:
                 if abs(dx) > abs(dy):
                     # Square/Circle, as wide as the mouse drag
@@ -230,6 +237,7 @@ class HandTool(BaseTool):
                 selectedViews = self.stackManager.GetSelectedUiViews()
                 if len(selectedViews) == 1 and selectedViews[0].parent.model.type == "group":
                     selectedViews = [self.targetUi]
+                pos = self.ConstrainDragPoint("drag", self.absOrigin, event)
                 for ui in selectedViews:
                     offset = (pos.x - self.absOrigin.x, pos.y - self.absOrigin.y)
                     origPos = self.oldFrames[ui.model.GetProperty("name")].Position
