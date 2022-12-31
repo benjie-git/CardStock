@@ -119,6 +119,10 @@ class StackWorker(object):
             elif msg == 'objectFocus':
                 self.focusedFabId = args[0]
 
+            elif msg == "visibilityChanged":
+                didFocus = args[0]
+                self.stackManager.periodicPaused = not didFocus
+
             elif msg == "pageFocus":
                 self.EnqueueSyncPressedKeys()
 

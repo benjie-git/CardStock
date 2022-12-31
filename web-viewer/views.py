@@ -760,13 +760,22 @@ class UiShape(UiView):
         self.shape = shape
         self.fabIds = [self.shape]
 
+    def UpdateFabObjCoords(self):
+        results = self.GetFabObjCoords()
+        uid = self.fabIds[0]
+        vals = results[0]
+        t = self.model.GetProperty("pen_thickness")
+        if not t: t=0
+        worker.stackWorker.SendAsync(("fabSet", uid, {'left': vals[0], 'top': vals[1], 'angle':vals[2],
+                                                      'strokeWidth': t}))
+
     def OnPropertyChanged(self, key):
         if key == "fill_color":
             worker.stackWorker.SendAsync(("fabSet", self.shape, {'fill': self.model.GetProperty(key)}))
         elif key == "pen_color":
             worker.stackWorker.SendAsync(("fabSet", self.shape, {'stroke': self.model.GetProperty(key)}))
         elif key == "pen_thickness":
-            worker.stackWorker.SendAsync(("fabSet", self.shape, {'strokeWidth': self.model.GetProperty(key)}))
+            self.UpdateFabObjCoords()
         elif self.model.type == "oval" and key == "size":
             s = self.model.GetProperty("size")
             worker.stackWorker.SendAsync(("fabSet", self.shape, {'rx': int(s.width/2), 'ry': int(s.height/2)}))

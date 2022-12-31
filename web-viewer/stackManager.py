@@ -21,6 +21,7 @@ class StackManager(object):
         self.cardIndex = None
         self.didSetup = False
         self.runner = None
+        self.periodicPaused = False
         self.lastPeriodic = time()
         self.lastFrame = self.lastPeriodic
         self.delayedSetDowns = []
@@ -146,7 +147,7 @@ class StackManager(object):
 
     def OnPeriodic(self):
         # This is called at approximately 60 Hz, unless the stack/computer/browser are unable to keep up.
-        if not self.didSetup:
+        if not self.didSetup or self.periodicPaused:
             return
 
         self.RunAnimations()

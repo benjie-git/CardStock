@@ -47,6 +47,7 @@ class Runner():
             "goto_next_card": self.goto_next_card,
             "goto_previous_card": self.goto_previous_card,
             "run_stack": self.run_stack,
+            "open_url": self.open_url,
             "play_sound": self.play_sound,
             "stop_sound": self.stop_sound,
             "broadcast_message": self.broadcast_message,
@@ -571,6 +572,9 @@ class Runner():
     def ask_text(self, message, defaultResponse=""):
         worker.stackWorker.EnqueueSyncPressedKeys()
         return worker.stackWorker.SendSync(str, ("prompt", message, defaultResponse))
+
+    def open_url(self, URL, in_place=False):
+        worker.stackWorker.SendAsync(("open_url", URL, in_place))
 
     def play_sound(self, filepath):
         worker.stackWorker.SendAsync(("playAudio", filepath))
