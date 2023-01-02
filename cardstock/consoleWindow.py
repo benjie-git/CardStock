@@ -66,6 +66,7 @@ class ConsoleWindow(wx.Frame):
         self.textBox.Bind(stc.EVT_STC_CHARADDED, self.OnChar)
         self.textBox.Bind(stc.EVT_STC_CHANGE, self.OnTextChange)
         self.textBox.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.textBox.Bind(wx.EVT_LEFT_UP, self.OnMouseUp)
         self.textBox.Bind(stc.EVT_STC_UPDATEUI, self.UpdateEditable)
         self.Bind(wx.EVT_SIZE, self.OnResize)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
@@ -224,10 +225,19 @@ class ConsoleWindow(wx.Frame):
         if self.allowInput:
             start = self.textBox.GetSelectionStart()
             end = self.textBox.GetSelectionEnd()
+            if not wx.GetMouseState().LeftIsDown() and start == end and start < self.lastOutputPos and start >= self.lastOutputPos - 2:
+                start = self.lastOutputPos
+                end = start
+                self.textBox.SetSelection(start, end)
             editable = (start >= self.lastOutputPos and end >= self.lastOutputPos)
             self.textBox.SetEditable(editable)
         else:
             self.textBox.SetEditable(False)
+
+    def OnMouseUp(self, event):
+        if self.allowInput:
+            wx.CallAfter(self.UpdateEditable)
+        event.Skip()
 
     def Clear(self):
         if self.allowInput:
