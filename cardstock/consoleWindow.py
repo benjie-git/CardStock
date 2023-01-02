@@ -185,6 +185,11 @@ class ConsoleWindow(wx.Frame):
                     self.historyPos = None
                     self.SetCommandText(self.workingCommand)
                     return
+        elif chr(event.GetUnicodeKey()).isalnum() and self.allowInput and not self.textBox.IsEditable():
+            last = self.textBox.GetLastPosition()
+            self.textBox.SetSelection(last, last)
+            self.UpdateEditable()
+
         event.Skip()
 
     def OnClose(self, event):
@@ -252,6 +257,9 @@ class ConsoleWindow(wx.Frame):
     def OnReturn(self):
         # Return key was pressed, and not for autocompletion, nor in the middle of a multiline command entry
         if self.allowInput:
+            last = self.textBox.GetLastPosition()
+            self.textBox.SetSelection(last, last)
+            self.UpdateEditable()
             code = self.GetCommandText()
             self.textBox.AppendText('\n')
             self.lastOutputPos = self.textBox.GetLastPosition()
