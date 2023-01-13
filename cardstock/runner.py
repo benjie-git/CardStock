@@ -141,6 +141,7 @@ class Runner():
             self.keyCodeStringMap[wx.WXK_ALT] = "Option"
             self.keyCodeStringMap[wx.WXK_CONTROL] = "Command"
             self.keyCodeStringMap[wx.WXK_RAW_CONTROL] = "Control"
+        self.keyCodeStringReverseMap = None
 
     def AddSyntaxErrors(self, analyzerSyntaxErrors):
         for path, e in analyzerSyntaxErrors.items():
@@ -730,6 +731,14 @@ class Runner():
             return chr(event.GetUnicodeKey())
         return None
 
+    def KeyCodeForName(self, name):
+        if not self.keyCodeStringReverseMap:
+            self.keyCodeStringReverseMap = {value:key for key,value in self.keyCodeStringMap.items()}
+        if name in self.keyCodeStringReverseMap:
+            return self.keyCodeStringReverseMap[name]
+        else:
+            return ord(name)
+
     def OnKeyDown(self, event):
         key_name = self.KeyNameForEvent(event)
         if key_name and key_name not in self.pressedKeys:
@@ -764,6 +773,13 @@ class Runner():
         if '__warningregistry__' in vars:
             vars.pop('__warningregistry__')
         return vars
+
+    def EnqueueSyncPressedKeys(self):
+        for name in self.pressedKeys:
+            e = wx.KeyEvent()
+            code = self.KeyCodeForName(name)
+            e.SetKeyCode(code)
+            self.stackManager.uiCard.OnKeyUp(e)
 
     @RunOnMainAsync
     def SetFocus(self, obj):
@@ -880,6 +896,8 @@ class Runner():
         @RunOnMainSync
         def func():
             wx.MessageDialog(None, str(message), "", wx.OK).ShowModal()
+
+        self.EnqueueSyncPressedKeys()
         func()
 
     def ask_yes_no(self, message):
@@ -890,6 +908,7 @@ class Runner():
         def func():
             return wx.MessageDialog(None, str(message), "", wx.YES_NO).ShowModal() == wx.ID_YES
 
+        self.EnqueueSyncPressedKeys()
         return func()
 
     def ask_text(self, message, defaultResponse=None):
@@ -905,6 +924,7 @@ class Runner():
                 return dlg.GetValue()
             return None
 
+        self.EnqueueSyncPressedKeys()
         return func()
 
     def open_url(self, URL, in_place=False):
