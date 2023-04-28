@@ -59,7 +59,17 @@ You can either:
 
 ### 1. Run it from source:
 1. install python3
-2. Linux-only: apt install libasound2-dev libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
+2. Linux-only: 
+
+   ```
+   apt install libasound2-dev \
+               libwebkit2gtk-4.0-dev \
+               python3-wxgtk4.0 \
+               python3-wxgtk-media4.0 \
+               python3-wxgtk-webview4.0
+   # or equivalent on non-debian/ubuntu distros
+   ```
+
 3. Linux-only: pip3 install attrdict3
 4. pip3 install wxpython PyInstaller simpleaudio requests  # note that wxpython can take a long time to build
 5. download or clone this repository
