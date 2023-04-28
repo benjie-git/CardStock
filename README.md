@@ -19,7 +19,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * You can build programs using objects including text and graphics, images, buttons, text entry fields, and web views.
 * You can use your own python code to manipulate the objects and respond to mouse and keyboard events.
 * You can play sound files from your code.
-* You can search and use clip art in your stacks, thanks to integration with https://openclipart.com.
+* You can search and use clip art in your stacks, thanks to integration with https://openclipart.org.
 * In-context help appears in the app, right where you need it.  And can be turned off when you no longer want it taking up space.
 * All of the creature comforts you've come to expect from a proper application, like full Undo/Redo, and a Find/Replace system that works throughout all of your code and object properties.
 
