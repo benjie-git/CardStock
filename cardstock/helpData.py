@@ -696,7 +696,7 @@ class HelpDataButton():
         "title": {"type": "string",
                   "info": "The <b>title</b> property is the visible text on the button."},
         "style": {"type": "[Border, Borderless, Checkbox, Radio]",
-                   "info": "Buttons with style <b>Border</b> show a rectangular or rounded border, "
+                   "info": "Buttons with style <b>Border</b> show a rounded rectangular border, "
                            "depending on your computer's operating system.  This is the most commonly seen style of "
                            "button.  The <b>Borderless</b> style behaves the same, but is drawn without a border."
                            "You can also set style to be <b>Checkbox</b>, which allows users to alternately select and "
@@ -1098,7 +1098,7 @@ class HelpDataCard():
                                                                  "include position=(10,10)"}},
                     "return": "textfield",
                     "info": "Adds a new Text Field to the card, and returns the new object."},
-        "add_text_tabel": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
+        "add_text_label": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Text Label object.  If omitted, the name will be "
                                                                 "'label_{N}'."},
                                   "...": {"info": "optionally set more properties here.  For example, "
