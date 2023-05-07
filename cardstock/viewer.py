@@ -1,6 +1,12 @@
 #!/usr/bin/python3
+# This file is part of CardStock.
+#     https://github.com/benjie-git/CardStock
+#
+# Copyright Ben Levitt 2020-2023
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.  If a copy
+# of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-# viewer.py
 """
 This is the root frame of the CardStock stack viewer application.  It also is used to run stacks from within
 the designer, and is used to run the stack from a standalone, exported app as well.

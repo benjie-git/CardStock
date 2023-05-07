@@ -1,4 +1,16 @@
-from browser import self as worker
+# This file is part of CardStock.
+#     https://github.com/benjie-git/CardStock
+#
+# Copyright Ben Levitt 2020-2023
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.  If a copy
+# of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+try:
+    from browser import window as context
+except:
+    from browser import self as context
+
 import math
 
 
@@ -6,18 +18,20 @@ class Size(object):
     def __init__(self, *args):
         super().__init__()
         if len(args) == 1 and isinstance(args[0], (list, tuple)):
-            self._width = args[0][0]
-            self._height = args[0][1]
+            self._width = round(float(args[0][0]))
+            self._height = round(float(args[0][1]))
         elif len(args) == 1 and isinstance(args[0], Size):
-            self._width = args[0]._width
-            self._height = args[0]._height
+            self._width = round(args[0]._width)
+            self._height = round(args[0]._height)
         elif len(args) == 2 and isinstance(args[0], (int, float)) and isinstance(args[1], (int, float)):
-            self._width = args[0]
-            self._height = args[1]
+            self._width = round(args[0])
+            self._height = round(args[1])
         else:
             raise TypeError("Size() requires 2 numbers or a Size")
 
     def __eq__(self, other):
+        if isinstance(other, (list, tuple)) and len(other) != 2:
+            return False
         if isinstance(other, (Size, list, tuple)):
             return (self[0] == other[0] and self[1] == other[1])
         return False
@@ -29,7 +43,7 @@ class Size(object):
     def width(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("width must be a number")
-        self._width = val
+        self._width = round(val)
 
     @property
     def height(self):
@@ -38,7 +52,7 @@ class Size(object):
     def height(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("height must be a number")
-        self._height = val
+        self._height = round(val)
 
     @property
     def Width(self):
@@ -47,7 +61,7 @@ class Size(object):
     def Width(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("width must be a number")
-        self._width = val
+        self._width = round(val)
 
     @property
     def Height(self):
@@ -56,7 +70,7 @@ class Size(object):
     def Height(self, val):
         if not isinstance(val, (int, float)):
             raise TypeError("height must be a number")
-        self._height = val
+        self._height = round(val)
 
     def __str__(self):
         return f"({self._width}, {self._height})"
@@ -71,40 +85,40 @@ class Size(object):
 
     def __setitem__(self, key, val):
         if key == 0:
-            self.width = val
+            self.width = round(val)
         elif key == 1:
-            self.height = val
+            self.height = round(val)
         else:
             raise KeyError("Size has 2 elements")
 
     def __iadd__(self, other):
         if isinstance(other, (tuple, list, Point, Size)):
-            self._width += other[0]
-            self._height += other[1]
+            self._width = round(self._width + other[0])
+            self._height = round(self._height + other[1])
         else:
             raise TypeError()
         return self
 
     def __isub__(self, other):
         if isinstance(other, (tuple, list, Point, Size)):
-            self._width -= other[0]
-            self._height -= other[1]
+            self._width = round(self._width - other[0])
+            self._height = round(self._height - other[1])
         else:
             raise TypeError()
         return self
 
     def __imul__(self, other):
         if isinstance(other, (int, float)):
-            self._width *= other
-            self._height *= other
+            self._width = round(self._width * other[0])
+            self._height = round(self._height * other[1])
         else:
             raise TypeError()
         return self
 
     def __itruediv__(self, other):
         if isinstance(other, (int, float)):
-            self._width /= other
-            self._height /= other
+            self._width = round(self._width / other[0])
+            self._height = round(self._height / other[1])
         else:
             raise TypeError()
         return self
@@ -144,6 +158,125 @@ class Point(object):
     def __init__(self, *args):
         super().__init__()
         if len(args) == 1 and isinstance(args[0], (list, tuple, Point, RealPoint)):
+            self._x = round(float(args[0][0]))
+            self._y = round(float(args[0][1]))
+        elif len(args) == 2 and isinstance(args[0], (int, float)) and isinstance(args[1], (int, float)):
+            self._x = round(args[0])
+            self._y = round(args[1])
+        else:
+            raise TypeError(f"Point() requires 2 numbers or a Point {args}")
+
+    def __eq__(self, other):
+        if isinstance(other, (list, tuple)) and len(other) != 2:
+            return False
+        if isinstance(other, (Point, list, tuple)):
+            return (self[0] == other[0] and self[1] == other[1])
+        return False
+
+    @property
+    def x(self):
+        return self._x
+    @x.setter
+    def x(self, val):
+        if not isinstance(val, (int, float)):
+            raise TypeError("x must be a number")
+        self._x = round(val)
+
+    @property
+    def y(self):
+        return self._y
+    @y.setter
+    def y(self, val):
+        if not isinstance(val, (int, float)):
+            raise TypeError("y must be a number")
+        self._y = round(val)
+
+    def __str__(self):
+        return f"({self._x}, {self._y})"
+
+    def __getitem__(self, key):
+        if key == 0:
+            return self._x
+        elif key == 1:
+            return self._y
+        else:
+            raise KeyError("Point has 2 elements")
+
+    def __setitem__(self, key, val):
+        if key == 0:
+            self._x = round(val)
+        elif key == 1:
+            self._y = round(val)
+        else:
+            raise KeyError("Point has 2 elements")
+
+    def __iadd__(self, other):
+        if isinstance(other, (tuple, list, Point, Size)):
+            self._x += round(other[0])
+            self._y += round(other[1])
+        else:
+            raise TypeError()
+        return self
+
+    def __isub__(self, other):
+        if isinstance(other, (tuple, list, Point, Size)):
+            self._x -= round(other[0])
+            self._y -= round(other[1])
+        else:
+            raise TypeError()
+        return self
+
+    def __imul__(self, other):
+        if isinstance(other, (int, float)):
+            self._x = round(self._x * other)
+            self._y = round(self._y * other)
+        else:
+            raise TypeError()
+        return self
+
+    def __itruediv__(self, other):
+        if isinstance(other, (int, float)):
+            self._x = round(self._x / other)
+            self._y = round(self._y / other)
+        else:
+            raise TypeError()
+        return self
+
+    def __add__(self, other):
+        if isinstance(other, (Point, Size, tuple, list)):
+            return Point(self._x + other[0], self._y + other[1])
+        else:
+            raise TypeError()
+
+    def __sub__(self, other):
+        if isinstance(other, (Point, RealPoint, Size, tuple, list)):
+            return Point(self._x - other[0], self._y - other[1])
+        else:
+            raise TypeError()
+
+    def __mul__(self, other):
+        if isinstance(other, (int, float)):
+            return Point(self._x * other, self._y * other)
+        else:
+            raise TypeError()
+
+    def __truediv__(self, other):
+        if isinstance(other, (int, float)):
+            return Point(self._x / other, self._y / other)
+        else:
+            raise TypeError()
+
+    def __iter__(self):
+        return (self.__getitem__(k) for k in (0, 1))
+
+    def __len__(self):
+        return 2
+
+
+class RealPoint(object):
+    def __init__(self, *args):
+        super().__init__()
+        if len(args) == 1 and isinstance(args[0], (list, tuple, Point, RealPoint)):
             self._x = args[0][0]
             self._y = args[0][1]
         elif len(args) == 2 and isinstance(args[0], (int, float)) and isinstance(args[1], (int, float)):
@@ -153,6 +286,8 @@ class Point(object):
             raise TypeError(f"Point() requires 2 numbers or a Point {args}")
 
     def __eq__(self, other):
+        if isinstance(other, (list, tuple)) and len(other) != 2:
+            return False
         if isinstance(other, (Point, list, tuple)):
             return (self[0] == other[0] and self[1] == other[1])
         return False
@@ -257,10 +392,6 @@ class Point(object):
         return 2
 
 
-class RealPoint(Point):
-    pass
-
-
 class Rect(object):
     def __init__(self, *args):
         super().__init__()
@@ -285,12 +416,12 @@ class Rect(object):
     def Union(self, other):
         if other.Top < self.Top:
             diff = other.Top - self.Top
-            self.Top -= diff
-            self.Height += diff
+            self.Top += diff
+            self.Height -= diff
         if other.Left < self.Left:
             diff = other.Left - self.Left
-            self.Left -= diff
-            self.Width += diff
+            self.Left += diff
+            self.Width -= diff
         if other.Bottom > self.Bottom:
             diff = other.Bottom - self.Bottom
             self.Height += diff
@@ -298,6 +429,9 @@ class Rect(object):
             diff = other.Right - self.Right
             self.Width += diff
         return self
+
+    def Contains(self, pt):
+        return (self.Left <= pt[0] <= self.Right and self.Top <= pt[1] <= self.Bottom)
 
     def __eq__(self, other):
         if isinstance(other, Rect):
@@ -311,10 +445,16 @@ class Rect(object):
     @property
     def Right(self):
         return self.Left + self.Width
+    @Right.setter
+    def Right(self, r):
+        self.Width = r-self.Left
 
     @property
     def Bottom(self):
         return self.Top + self.Height
+    @Bottom.setter
+    def Bottom(self, b):
+        self.Height = b-self.Top
 
     @property
     def Position(self):
@@ -352,23 +492,23 @@ class Rect(object):
 class Colour(object):
     def __init__(self, *a):
         if len(a) == 1 and isinstance(a[0], str):
-            self.fabCol = worker.fabric.Color.new(a[0])
+            self.fabCol = context.fabric.Color.new(a[0])
         elif len(a) == 1 and isinstance(a[0], (list, tuple)):
             colorStr = self.PartsToHex(*a[0])
-            self.fabCol = worker.fabric.Color.new(colorStr)
+            self.fabCol = context.fabric.Color.new(colorStr)
         else:
             colorStr = self.PartsToHex(*a)
-            self.fabCol = worker.fabric.Color.new(colorStr)
+            self.fabCol = context.fabric.Color.new(colorStr)
 
     def PartsToHex(self, r, g, b, a=1.0):
-        r = int(r*255)
-        g = int(g*255)
-        b = int(b*255)
+        r = round(r*255)
+        g = round(g*255)
+        b = round(b*255)
         if a == 1.0:
             colorStr = '#'+''.join('{:02X}'.format(n) for n in (r, g, b, 255))
             return colorStr
         else:
-            a = int(a*255)
+            a = round(a*255)
             colorStr = '#'+''.join('{:02X}'.format(n) for n in (r, g, b, a))
             return colorStr
 
@@ -398,32 +538,32 @@ class AffineMatrix2D(object):
         AffineMatrix2D.nextMat += 1
 
         if other:
-            self.matrix = worker.fabric.util.composeMatrix(other.matrix)
+            self.matrix = context.fabric.util.composeMatrix(other.matrix)
         else:
             d = {'angle': 0,
                  'scaleX': 1.0, 'scaleY': 1.0,
                  'flipX': False, 'flipY': False,
                  'skewX': 0.0, 'skewY': 0.0,
                  'translateX': 0, 'translateY': 0}
-            self.matrix = worker.fabric.util.composeMatrix(d)
+            self.matrix = context.fabric.util.composeMatrix(d)
 
     def Translate(self, x, y):
-        newMat = worker.fabric.util.composeMatrix({'translateX':x, 'translateY':y})
-        newMat = worker.fabric.util.multiplyTransformMatrices(self.matrix, newMat, False)
+        newMat = context.fabric.util.composeMatrix({'translateX':x, 'translateY':y})
+        newMat = context.fabric.util.multiplyTransformMatrices(self.matrix, newMat, False)
         self.matrix = newMat
 
     def Rotate(self, angle):
         angle = math.degrees(angle)
-        newMat = worker.fabric.util.composeMatrix({'angle': angle})
-        newMat = worker.fabric.util.multiplyTransformMatrices(self.matrix, newMat, False)
+        newMat = context.fabric.util.composeMatrix({'angle': angle})
+        newMat = context.fabric.util.multiplyTransformMatrices(self.matrix, newMat, False)
         self.matrix = newMat
 
     def Invert(self):
-        newMat = worker.fabric.util.invertTransform(self.matrix)
+        newMat = context.fabric.util.invertTransform(self.matrix)
         self.matrix = newMat
 
     def TransformPoint(self, x, y):
-        pos = worker.fabric.util.transformPoint({'x':x, 'y':y}, self.matrix)
+        pos = context.fabric.util.transformPoint({'x':x, 'y':y}, self.matrix)
         return RealPoint(pos.x, pos.y)
 
 

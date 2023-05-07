@@ -1,4 +1,16 @@
-from browser import self as worker
+# This file is part of CardStock.
+#     https://github.com/benjie-git/CardStock
+#
+# Copyright Ben Levitt 2020-2023
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.  If a copy
+# of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+try:
+    from browser import window as context
+except:
+    from browser import self as context
+
 import wx_compat as wx
 import sanitizer
 from urllib.parse import urlparse
@@ -7,7 +19,7 @@ import migrations
 from time import time
 import re
 
-VERSION='0.99.1'
+VERSION='0.99.2'
 FILE_FORMAT_VERSION=6
 
 
@@ -135,22 +147,23 @@ class ViewModel(object):
                 [m.GetProperty("name") for m in self.stackManager.stackModel.childModels]), notify=False)
         return newModel
 
+    displayTypes = {"card": "Card",
+                    "button": "Button",
+                    "textfield": "TextField",
+                    "textlabel": "TextLabel",
+                    "image": "Image",
+                    "webview": "WebView",
+                    "pen": "Pen",
+                    "line": "Line",
+                    "rect": "Rectangle",
+                    "oval": "Oval",
+                    "polygon": "Polygon",
+                    "roundrect": "Round Rectangle",
+                    "group": "Group",
+                    "stack": "Stack"}
+
     def GetDisplayType(self):
-        displayTypes = {"card": "Card",
-                        "button": "Button",
-                        "textfield": "TextField",
-                        "textlabel": "TextLabel",
-                        "image": "Image",
-                        "webview": "WebView",
-                        "pen": "Pen",
-                        "line": "Line",
-                        "rect": "Rectangle",
-                        "oval": "Oval",
-                        "polygon": "Polygon",
-                        "roundrect": "Round Rectangle",
-                        "group": "Group",
-                        "stack": "Stack"}
-        return displayTypes[self.type]
+        return self.displayTypes[self.type]
 
     def SetDirty(self, isDirty):
         if isDirty:
@@ -171,8 +184,10 @@ class ViewModel(object):
     def CanRotate(self):
         return ("rotation" in self.properties)
 
-    def GetPath(self):
+    def GetPath(self, subName=None):
         parts = []
+        if subName:
+            parts.append(subName)
         m = self
         while m.parent:
             parts.append(m.GetProperty("name"))
@@ -193,9 +208,9 @@ class ViewModel(object):
             ancestors.append(m)
             m = m.parent
         for m in reversed(ancestors):
-            pos = m.GetProperty("position")
-            size = m.GetProperty("size")
-            rot = m.GetProperty("rotation")
+            pos = m.properties["position"]
+            size = m.properties["size"]
+            rot = m.properties.get("rotation")
             aff.Translate(*(pos + (int(size[0]/2), int(size[1]/2))))
             if rot:
                 aff.Rotate(math.radians(-rot))
@@ -227,7 +242,7 @@ class ViewModel(object):
         # This is not fully general purpose: it assumes the parent is a card (not inside a group)
         # This is ok since you can't manually resize a child of a group, and this function is
         # only used from the resize path in the Select Tool.
-        rot = self.GetProperty("rotation")
+        rot = self.properties.get("rotation")
         center = (ptA + ptB)/2
         if rot:
             aff = wx.AffineMatrix2D()
@@ -252,11 +267,12 @@ class ViewModel(object):
 
     def GetAbsolutePosition(self):
         parent = self.parent
-        pos = self.GetProperty("position")
+        pos = self.properties["position"]
         if self.parent and self.parent.type != "card":
             aff = parent.GetAffineTransform()
             pos = aff.TransformPoint(*pos)
-        return wx.RealPoint(pos)
+            return wx.RealPoint(pos)
+        return pos
 
     def SetAbsolutePosition(self, pos):
         parent = self.parent
@@ -269,7 +285,7 @@ class ViewModel(object):
     def GetAbsoluteCenter(self):
         s = self.GetProperty("size")
         if self.parent and self.parent.type == "card":
-            pos = self.GetProperty("position")
+            pos = self.properties["position"]
             return pos + (s[0]/2, s[1]/2)
         aff = self.GetAffineTransform()
         p = wx.RealPoint(*aff.TransformPoint(int(s[0]/2), int(s[1]/2)))
@@ -306,7 +322,7 @@ class ViewModel(object):
         return wx.Rect(*p, *s)
 
     def GetAbsoluteFrame(self):
-        if self.parent and self.parent.type == "card" and not self.GetProperty("rotation"):
+        if self.parent and self.parent.type == "card" and not self.properties.get("rotation"):
             return self.GetFrame()
         return self.RotatedRect(wx.Rect(wx.Point(0,0), self.properties["size"]))
 
@@ -320,12 +336,12 @@ class ViewModel(object):
             if len(v.strip()) > 0:
                 handlers[k] = v
 
-        props = self.properties.copy()
+        props = {k:v for k,v in self.properties.items() if v is not None}
         props.pop("is_visible")
         props.pop("speed")
         for k,v in self.propertyTypes.items():
             if v in ["point", "floatpoint", "size"] and k in props:
-                props[k] = list(props[k])
+                props[k] = [int(props[k][0]), int(props[k][1])]
             elif v == "dict":
                 props[k] = sanitizer.SanitizeDict(props[k], [])
 
@@ -340,11 +356,11 @@ class ViewModel(object):
         for k, v in data["handlers"].items():
             self.handlers[k] = v
         for k, v in data["properties"].items():
-            if k in self.propertyTypes:
+            if k in self.propertyTypes and v is not None:
                 if self.propertyTypes[k] == "point":
                     self.SetProperty(k, wx.Point(v), notify=False)
                 elif self.propertyTypes[k] == "floatpoint":
-                    self.SetProperty(k, wx.RealPoint(v[0], v[1]), notify=False)
+                    self.SetProperty(k, wx.RealPoint(int(float(v[0])), int(float(v[1]))), notify=False)
                 elif self.propertyTypes[k] == "size":
                     self.SetProperty(k, wx.Size(v), notify=False)
                 elif self.propertyTypes[k] == "string":
@@ -460,7 +476,7 @@ class ViewModel(object):
             if n is None:
                 return
             for fabId in ui.fabIds:
-                worker.stackWorker.SendAsync(("fabReorder", fabId, n))
+                context.stackWorker.SendAsync(("fabReorder", fabId, n))
                 n += 1
 
     def OrderMoveBy(self, delta):
@@ -489,7 +505,7 @@ class ViewModel(object):
             value = wx.Point(value[0], value[1])
         elif key in self.propertyTypes and self.propertyTypes[key] == "floatpoint" and not isinstance(value, wx.RealPoint):
             value = wx.RealPoint(value[0], value[1])
-        elif key in self.propertyTypes and self.propertyTypes[key] == "size" and not isinstance(value, wx.Point):
+        elif key in self.propertyTypes and self.propertyTypes[key] == "size" and not isinstance(value, wx.Size):
             value = wx.Size(value)
         elif key in self.propertyTypes and self.propertyTypes[key] == "choice" and value not in self.GetPropertyChoices(key):
             return
@@ -547,15 +563,15 @@ class ViewModel(object):
         s = self.GetProperty('size')
         f = wx.Rect(0, 0, s[0], s[1])
         points = self.RotatedRectPoints(f)
-        self.polygons = [worker.SAT.Polygon.new(worker.SAT.Vector.new(),
-                                              [worker.SAT.Vector.new(p.x, p.y) for p in points])]
+        self.polygons = [context.SAT.Polygon.new(context.SAT.Vector.new(),
+                                              [context.SAT.Vector.new(p.x, p.y) for p in points])]
 
     def MovePolygon(self):
         if self.polygons:
             newPos = self.GetAbsolutePosition()
             dx,dy = (newPos[0] - self.polygonPos[0], newPos[1] - self.polygonPos[1])
             for poly in self.polygons:
-                poly.setOffset(worker.SAT.Vector.new(dx, dy))
+                poly.setOffset(context.SAT.Vector.new(dx, dy))
 
     def AddAnimation(self, key, duration, onUpdate, onStart=None, onFinish=None, onCancel=None):
         # On Runner thread
@@ -689,7 +705,7 @@ class ViewProxy(object):
         if not model: return False
         uiView = model.stackManager.GetUiViewByModel(model)
         if uiView and uiView.textbox:
-            return worker.stackWorker.focusedFabId == uiView.textbox
+            return context.stackWorker.focusedFabId == uiView.textbox
         return False
 
     def clone(self, name=None, **kwargs):
@@ -709,9 +725,10 @@ class ViewProxy(object):
                 else:
                     raise TypeError(f"clone(): unable to set property {k}")
 
-            self._model.stackManager.uiCard.model.AddChild(newModel)
-            newModel.RunSetup(model.stackManager.runner)
-            model.stackManager.runner.AddCardObj(newModel)
+            model.stackManager.uiCard.model.AddChild(newModel)
+            if not model.stackManager.isEditing:
+                newModel.RunSetup(model.stackManager.runner)
+                model.stackManager.runner.AddCardObj(newModel)
 
             if not newModel.didSetDown:
                 # add the view on the main thread
@@ -925,10 +942,10 @@ class ViewProxy(object):
     def rotation(self):
         model = self._model
         if not model: return 0
-        return model.GetProperty("rotation")
+        return model.properties.get("rotation")
     @rotation.setter
     def rotation(self, val):
-        if self._model.GetProperty("rotation") is None:
+        if self._model.properties.get("rotation") is None:
             raise TypeError("object does not support rotation")
         if not isinstance(val, (int, float)):
             raise TypeError("rotation must be a number")
@@ -981,7 +998,7 @@ class ViewProxy(object):
         else:
             polys = model.GetPolygons()
             for poly in polys:
-                if worker.SAT.pointInPolygon(worker.SAT.Vector.new(point.x, point.y), poly):
+                if context.SAT.pointInPolygon(context.SAT.Vector.new(point.x, point.y), poly):
                     return True
             return False
 
@@ -998,7 +1015,7 @@ class ViewProxy(object):
         oPolys = oModel.GetPolygons()
         for poly in polys:
             for oPoly in oPolys:
-                if worker.SAT.testPolygonPolygon(poly, oPoly):
+                if context.SAT.testPolygonPolygon(poly, oPoly):
                     return True
         return False
 
@@ -1025,7 +1042,7 @@ class ViewProxy(object):
                  wx.Rect(rect.BottomLeft+(cornerSetback,-2), rect.BottomRight+(-cornerSetback,0)),
                  wx.Rect(rect.TopLeft+(0,cornerSetback), rect.BottomLeft+(2,-cornerSetback))]
 
-        oRot = oModel.GetProperty("rotation")
+        oRot = oModel.properties.get("rotation")
         if oRot is None: oRot = 0
 
         # if oRot == 0:
@@ -1035,17 +1052,17 @@ class ViewProxy(object):
         left = rects[3]
 
         if not ViewProxy.scratchPoly:
-            ViewProxy.scratchPoly = worker.SAT.Polygon.new(worker.SAT.Vector.new(), [])
+            ViewProxy.scratchPoly = context.SAT.Polygon.new(context.SAT.Vector.new(), [])
 
         def TestRect(r):
             points = (r.BottomLeft, r.BottomRight, r.TopRight, r.TopLeft)
-            points = [worker.SAT.Vector.new(p.x, p.y) for p in points]
+            points = [context.SAT.Vector.new(p.x, p.y) for p in points]
             scratch = ViewProxy.scratchPoly
             scratch.setPoints(points)
-            # scratch = worker.SAT.Polygon.new(worker.SAT.Vector.new(), points)
+            # scratch = context.SAT.Polygon.new(context.SAT.Vector.new(), points)
             polys = model.GetPolygons()
             for poly in polys:
-                if worker.SAT.testPolygonPolygon(poly, scratch):
+                if context.SAT.testPolygonPolygon(poly, scratch):
                     return True
             return False
 
@@ -1157,7 +1174,7 @@ class ViewProxy(object):
         model.AddAnimation("size", duration, onUpdate, onStart, internalOnFinished)
 
     def animate_rotation(self, duration, end_rotation, force_direction=0, on_finished=None, *args, **kwargs):
-        if self._model.GetProperty("rotation") is None:
+        if self._model.properties.get("rotation") is None:
             raise TypeError("animate_rotation(): object does not support rotation")
 
         if not isinstance(duration, (int, float)):
@@ -1271,6 +1288,17 @@ class StackModel(ViewModel):
         data["properties"].pop("name")
         data["CardStock_stack_format"] = FILE_FORMAT_VERSION
         data["CardStock_stack_version"] = VERSION
+
+        # Workaround for circular reference brython bug
+        def touchData(d):
+            if isinstance(d, dict):
+                for v in d.values():
+                    touchData(v)
+            elif isinstance(d, (list, tuple)):
+                for v in d:
+                    touchData(v)
+        touchData(data)
+
         return data
 
     def SetData(self, stackData):
@@ -1361,6 +1389,8 @@ class CardModel(ViewModel):
     def SetProperty(self, key, value, notify=True):
         if key in ["size", "can_save", "can_resize"]:
             self.parent.SetProperty(key, value, notify)
+            if key == "size":
+                self.Notify("size")
         else:
             super().SetProperty(key, value, notify)
 
@@ -1467,8 +1497,8 @@ class CardModel(ViewModel):
             for m in self.childModels:
                 m.PerformFlips(fx, fy, notify=notify)
             for m in self.childModels:
-                pos = m.GetProperty("position")
-                size = m.GetProperty("size")
+                pos = m.properties["position"]
+                size = m.properties["size"]
                 pos = wx.Point((cardSize.width - (pos.x + size.width)) if fx else pos.x,
                                (cardSize.height - (pos.y + size.height)) if fy else pos.y)
                 m.SetProperty("position", pos, notify=notify)
@@ -1692,12 +1722,14 @@ class ButtonModel(ViewModel):
         self.properties["title"] = "Button"
         self.properties["style"] = "Border"
         self.properties["is_selected"] = False
+        self.properties["rotation"] = 0.0
 
         self.propertyTypes["title"] = "string"
         self.propertyTypes["style"] = "choice"
         self.propertyTypes["is_selected"] = "bool"
+        self.propertyTypes["rotation"] = "float"
 
-        self.UpdatePropKeys("Default")
+        self.UpdatePropKeys("Border")
 
     def SetProperty(self, key, value, notify=True):
         if key == "style":
@@ -1713,12 +1745,20 @@ class ButtonModel(ViewModel):
                         self.stackManager.runner.RunHandler(self, "on_selection_changed", None, value)
         super().SetProperty(key, value, notify)
 
+    def SetData(self, data):
+        super().SetData(data)
+        self.UpdatePropKeys(self.properties["style"])
+
+    def SetFromModel(self, model):
+        super().SetFromModel(model)
+        self.UpdatePropKeys(self.properties["style"])
+
     def UpdatePropKeys(self, style):
         # Custom property order and mask for the inspector
         if style in ("Border", "Borderless"):
-            self.propertyKeys = ["name", "title", "style", "position", "size"]
+            self.propertyKeys = ["name", "title", "style", "position", "size", "rotation"]
         else:
-            self.propertyKeys = ["name", "title", "style", "is_selected", "position", "size"]
+            self.propertyKeys = ["name", "title", "style", "is_selected", "position", "size", "rotation"]
 
     def get_radio_group(self):
         g = []
@@ -2182,7 +2222,7 @@ class GroupModel(ViewModel):
         self.origFrame = self.GetFrame()
         for model in model.childModels:
             model.origGroupSubviewFrame = model.GetFrame()
-            model.origGroupSubviewRotation = model.GetProperty("rotation")
+            model.origGroupSubviewRotation = model.properties.get("rotation")
 
     def SetData(self, data):
         super().SetData(data)
@@ -2191,7 +2231,7 @@ class GroupModel(ViewModel):
             model.parent = self
             self.childModels.append(model)
             model.origGroupSubviewFrame = model.GetFrame()
-            model.origGroupSubviewRotation = model.GetProperty("rotation")
+            model.origGroupSubviewRotation = model.properties.get("rotation")
         self.origFrame = self.GetFrame()
 
     def SetProperty(self, key, value, notify=True):
@@ -2202,17 +2242,17 @@ class GroupModel(ViewModel):
                 m.Notify("is_visible")
 
     def AddChildModels(self, models):
-        selfPos = self.GetProperty("position")
+        selfPos = self.properties["position"]
         for model in models:
             self.childModels.append(model)
             model.parent = self
-            pos = model.GetProperty("position")
+            pos = model.properties["position"]
             model.SetProperty("position", [pos[0]-selfPos[0], pos[1]-selfPos[1]], notify=False)
         self.UpdateFrame()
         self.origFrame = self.GetFrame()
         for model in models:
             model.origGroupSubviewFrame = model.GetFrame()
-            model.origGroupSubviewRotation = model.GetProperty("rotation")
+            model.origGroupSubviewRotation = model.properties.get("rotation")
         self.Notify("child")
         self.isDirty = True
 
@@ -2220,8 +2260,8 @@ class GroupModel(ViewModel):
         self.childModels.remove(model)
         del model.origGroupSubviewFrame
         del model.origGroupSubviewRotation
-        pos = model.GetProperty("position")
-        selfPos = self.GetProperty("position")
+        pos = model.properties["position"]
+        selfPos = self.properties["position"]
         model.SetProperty("position", [pos[0]+selfPos[0], pos[1]+selfPos[1]], notify=False)
         self.stackManager.delayedSetDowns.append(model)
         self.isDirty = True
@@ -2235,7 +2275,7 @@ class GroupModel(ViewModel):
             self.SetFrame(newRect)
             offset = (newRect.Left - oldRect.Left, newRect.Top - oldRect.Top)
             for m in self.childModels:
-                oldPos = m.GetProperty("position")
+                oldPos = m.properties["position"]
                 m.SetProperty("position", [oldPos[0] - offset[0], oldPos[1] - offset[1]], notify=False)
 
     def PerformFlips(self, fx, fy, notify=True):
@@ -2254,7 +2294,7 @@ class GroupModel(ViewModel):
             for m in self.childModels:
                 m.PerformFlips(fx, fy, notify=notify)
                 if fx != fy:
-                    rot = m.GetProperty("rotation")
+                    rot = m.properties.get("rotation")
                     if rot is not None:
                         m.SetProperty("rotation", -rot)
             self.ResizeChildModels()
@@ -2316,6 +2356,7 @@ class GroupModel(ViewModel):
                     # if the width is longer, scale the height to get thinner as the parallelogram folds up
                     size = wx.Size(math.sqrt((points[0].x - points[1].x) ** 2 + (points[0].y - points[1].y) ** 2),
                                    math.cos(math.radians(rotB-rotA)) * math.sqrt((points[1].x - points[2].x) ** 2 + (points[1].y - points[2].y) ** 2))
+                size = wx.Size(abs(size[0]), abs(size[1]))
                 m.SetFrame(wx.Rect(center - tuple(size/2), size))
 
 
@@ -2368,7 +2409,6 @@ class ImageModel(ViewModel):
         self.propertyKeys = ["name", "file", "fit", "position", "size", "rotation"]
 
     def PerformFlips(self, fx, fy, notify=True):
-        super().PerformFlips(fx, fy, notify)
         if fx:
             self.SetProperty("xFlipped", not self.GetProperty("xFlipped"), notify=notify)
         if fy:
@@ -2548,13 +2588,13 @@ class LineModel(ViewModel):
 
     def GetData(self):
         data = super().GetData()
-        data["points"] = self.points.copy()
+        data["points"] = [[p[0], p[1]] for p in self.points]
         return data
 
     def SetData(self, data):
         super().SetData(data)
         self.type = data["type"]
-        self.points = data["points"]
+        self.points = [[int(float(p[0])), int(float(p[1]))] for p in data["points"]]
 
     def SetShape(self, shape):
         self.type = shape["type"]
@@ -2577,9 +2617,9 @@ class LineModel(ViewModel):
             if len(points) > 1:
                 oldP = points[0]
                 for p in points[1:]:
-                    self.polygons.append(worker.SAT.Polygon.new(worker.SAT.Vector.new(),
-                                                                [worker.SAT.Vector.new(oldP[0], oldP[1]),
-                                                                 worker.SAT.Vector.new(p[0], p[1])]))
+                    self.polygons.append(context.SAT.Polygon.new(context.SAT.Vector.new(),
+                                                                [context.SAT.Vector.new(oldP[0], oldP[1]),
+                                                                 context.SAT.Vector.new(p[0], p[1])]))
                     oldP = p
         else:
             super().MakePolygon()
@@ -2607,7 +2647,7 @@ class LineModel(ViewModel):
             return self.scaledPoints
 
         origSize = self.properties["originalSize"]
-        size = self.GetProperty("size")
+        size = self.properties["size"]
 
         if not origSize or origSize[0] == 0 or origSize[1] == 0:
             return self.points
@@ -2646,10 +2686,10 @@ class LineModel(ViewModel):
         if len(self.points) == 0:
             return
 
-        oldSize = self.GetProperty("size") if self.properties["originalSize"] else None
+        oldSize = self.properties["size"] if self.properties["originalSize"] else None
 
         # First move all points to be relative to the card origin
-        offset = self.GetProperty("position")
+        offset = self.properties["position"]
         points = self.points.copy()
         # adjust all points in shape
         i = 0
@@ -2811,13 +2851,13 @@ class ShapeModel(LineModel):
             t = self.properties['pen_thickness'] / 2
             points = self.GetAbsolutePoints()
             points = [(p.x+t, p.y-t) for p in points]
-            if worker.decomp.makeCCW(points):
+            if context.decomp.makeCCW(points):
                 points.reverse()
-            convexPolygons = worker.decomp.quickDecomp(points)
+            convexPolygons = context.decomp.quickDecomp(points)
             self.polygons = []
             for poly in convexPolygons:
-                self.polygons.append(worker.SAT.Polygon.new(worker.SAT.Vector.new(),
-                                                            [worker.SAT.Vector.new(p[0], p[1]) for p in poly]))
+                self.polygons.append(context.SAT.Polygon.new(context.SAT.Vector.new(),
+                                                            [context.SAT.Vector.new(p[0], p[1]) for p in poly]))
         elif self.type == "oval":
             t = self.properties['pen_thickness'] / 2
             rX = self.properties['size'].width/2 + t
@@ -2832,8 +2872,8 @@ class ShapeModel(LineModel):
                     for theta in (math.pi * 2 * i / n for i in range(n))
                 ]
                 ellipsePoints = self.RotatedPoints(ellipsePoints)
-                self.polygons = [worker.SAT.Polygon.new(worker.SAT.Vector.new(),
-                                                        [worker.SAT.Vector.new(p.x, p.y) for p in ellipsePoints])]
+                self.polygons = [context.SAT.Polygon.new(context.SAT.Vector.new(),
+                                                        [context.SAT.Vector.new(p.x, p.y) for p in ellipsePoints])]
         elif self.type == "rect":
             super().MakePolygon()
 
@@ -2930,8 +2970,8 @@ class RoundRectModel(ShapeModel):
         f = wx.Rect(-t, -t, s[0]+2*t, s[1]+2*t)
         points = [f.BottomLeft, f.BottomRight, f.TopRight, f.TopLeft]
         points = self.RotatedPoints(points)
-        self.polygons = [worker.SAT.Polygon.new(worker.SAT.Vector.new(),
-                                              [worker.SAT.Vector.new(p.x, p.y) for p in points])]
+        self.polygons = [context.SAT.Polygon.new(context.SAT.Vector.new(),
+                                              [context.SAT.Vector.new(p.x, p.y) for p in points])]
 
     def SetShape(self, shape):
         self.properties["corner_radius"] = shape["corner_radius"] if "corner_radius" in shape else 8

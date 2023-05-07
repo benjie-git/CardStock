@@ -1,6 +1,18 @@
+# This file is part of CardStock.
+#     https://github.com/benjie-git/CardStock
+#
+# Copyright Ben Levitt 2020-2023
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.  If a copy
+# of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+try:
+    from browser import window as context
+except:
+    from browser import self as context
+
 import re
 import sys
-from browser import self as worker
 from browser import timer
 import colorsys
 import traceback
@@ -33,6 +45,8 @@ class Runner():
         self.lastCard = None
         self.stopHandlingMouseEvent = False
         self.stackStartTime = None
+        self.broadcastChannel = None
+        self.errorMsgs = []
 
         self.initialClientVars = {
             "wait": self.wait,
@@ -102,6 +116,15 @@ class Runner():
         self.lastCard = None
         self.stopHandlingMouseEvent = False
 
+        if "channelName" in context:
+            if self.broadcastChannel:
+                self.broadcastChannel.close()
+            self.broadcastChannel = context.BroadcastChannel.new(context.channelName)
+            def onmessage(e):
+                if e.data == "close":
+                    context.stackWorker.SendAsync(("closeWindow",))
+            self.broadcastChannel.onmessage = onmessage
+
     def SetupForCard(self, cardModel):
         """
         Setup clientVars with the current card's view names as variables.
@@ -147,6 +170,9 @@ class Runner():
         If we're already on the runnerThread, that means an object's event code called another event, so run that
         immediately.
         """
+        if self.stackManager.isEditing:
+            return False
+
         handlerStr = uiModel.handlers[handlerName].strip()
         if handlerStr == "":
             return False
@@ -163,7 +189,7 @@ class Runner():
                 return False
 
         self.RunHandlerInternal(uiModel, handlerName, handlerStr, mouse_pos, key_name, arg)
-        worker.stackWorker.SendAsync(("render",))
+        context.stackWorker.SendAsync(("render",))
         return True
 
     def RunHandlerInternal(self, uiModel, handlerName, handlerStr, mouse_pos, key_name, arg):
@@ -305,7 +331,8 @@ class Runner():
             line_number = err.lineno
             errModel = uiModel
             errHandlerName = handlerName
-            print(f"{error_class}: {detail} in {errModel.properties['name']}:{errHandlerName}:{line_number}", file=sys.stderr)
+            errMsg = f"{error_class}: {detail} in {errModel.properties['name']}:{errHandlerName}:{line_number}"
+            self.ReportError(errModel, errHandlerName, line_number, errMsg)
         except Exception as err:
             if err.__class__.__name__ == "RuntimeError" and err.args[0] == "Return":
                 # Catch our exception-based return calls
@@ -332,9 +359,10 @@ class Runner():
                             errHandlerName = self.funcDefs[trace[i].name][1]
                             line_number = trace[i].lineno
                 if errModel:
-                    print(f"{error_class}: {detail} in {errModel.properties['name']}:{errHandlerName}:{line_number}", file=sys.stderr)
+                    errMsg = f"{error_class}: {detail} in {errModel.properties['name']}:{errHandlerName}:{line_number}"
                 else:
-                    print(f"{error_class}: {detail}:{errHandlerName}:{line_number}\n{handlerStr}", file=sys.stderr)
+                    errMsg = f"{error_class}: {detail}:{errHandlerName}:{line_number}\n{handlerStr}"
+                self.ReportError(errModel, errHandlerName, line_number, errMsg)
 
         del self.lastHandlerStack[-1]
 
@@ -345,6 +373,9 @@ class Runner():
                     self.clientVars.pop(k)
             else:
                 self.clientVars[k] = v
+
+    def CullRewrittenHandlerMap(self, handlers):
+        self.rewrittenHandlerMap = {k:v for k,v in self.rewrittenHandlerMap.items() if k in handlers}
 
     def RewriteHandler(self, handlerStr):
         # rewrite handlers that use return outside of a function, and replace with an exception that we catch, to
@@ -391,32 +422,49 @@ class Runner():
 
     def RunWithExceptionHandling(self, func=None, *args, **kwargs):
         """ Run a function with exception handling.  This always runs on the runnerThread. """
-        uiModel = None
+        line_number = None
+        errModel = None
+        errHandlerName = None
+
         oldCard = None
         oldSelf = None
-        funcName = None
-        if func:
-            funcName = func.__name__
-            if funcName in self.funcDefs:
-                uiModel = self.funcDefs[funcName][0]
-                if self.lastCard != uiModel.GetCard():
-                    self.oldCard = self.lastCard
-                    self.SetupForCard(uiModel.GetCard())
-                if "self" in self.clientVars:
-                    oldSelf = self.clientVars["self"]
-                self.clientVars["self"] = uiModel.GetProxy()
+        in_func = []
+
+        funcName = func.__name__
+        if funcName in self.funcDefs:
+            uiModel = self.funcDefs[funcName][0]
+            if self.lastCard != uiModel.GetCard():
+                self.oldCard = self.lastCard
+                self.SetupForCard(uiModel.GetCard())
+            if "self" in self.clientVars:
+                oldSelf = self.clientVars["self"]
+            self.clientVars["self"] = uiModel.GetProxy()
 
         try:
-            if func:
-                func(*args, **kwargs)
+            func(*args, **kwargs)
         except Exception as err:
-            if err.__class__.__name__ == "RuntimeError" and err.args[0] == "Return":
-                # Catch our exception-based return calls
-                pass
+            error_class = err.__class__.__name__
+            detail = err.args[0]
+            cl, exc, tb = sys.exc_info()
+            trace = traceback.extract_tb(tb)
+            for i in range(len(trace)):
+                if trace[i].filename == "<string>" and trace[i].name != "<module>":
+                    if trace[i].name in self.funcDefs:
+                        errModel = self.funcDefs[trace[i].name][0]
+                        if errModel.clonedFrom: errModel = errModel.clonedFrom
+                        errHandlerName = self.funcDefs[trace[i].name][1]
+                        line_number = trace[i].lineno
+                    in_func.append((trace[i].name, trace[i].lineno))
+
+            if error_class and errModel:
+                msg = f"{error_class} in {self.HandlerPath(errModel, errHandlerName)}, line {line_number}: {detail}"
+                if len(in_func) > 1:
+                    frames = [f"{f[0]}():{f[1]}" for f in in_func]
+                    trail = ' => '.join(frames)
+                    msg += f" (from {trail})"
+                self.ReportError(errModel, errHandlerName, line_number, msg)
             else:
-                error_class = err.__class__.__name__
-                detail = err.args[0]
-                print(f"{error_class}: {detail} in:\n{funcName}", file=sys.stderr)
+                self.ReportError("", "", 0, detail)
 
         if oldCard:
             self.SetupForCard(oldCard)
@@ -425,6 +473,20 @@ class Runner():
         else:
             if "self" in self.clientVars:
                 self.clientVars.pop("self")
+
+    def ReportError(self, errModel, errHandlerName, errLineNum, errMsg):
+        print(errMsg, file = sys.stderr)
+
+        if "channelName" in context:
+            if errMsg not in self.errorMsgs:
+                if errModel:
+                    self.errorMsgs.append(errMsg)
+                    path = errModel.GetPath()
+                    errData = (path, errHandlerName, errLineNum, errMsg)
+                else:
+                    errData = ("", "", 0, errMsg)
+                if self.broadcastChannel:
+                    self.broadcastChannel.postMessage(errData)
 
     def ScrapeNewFuncDefs(self, oldVars, newVars, model, handlerName):
         # Keep track of where each user function has been defined, so we can send you to the right handler's code in
@@ -481,9 +543,9 @@ class Runner():
         if obj:
             uiView = self.stackManager.GetUiViewByModel(obj._model)
             if uiView and uiView.model.type == "textfield":
-                worker.stackWorker.SendAsync(("focus", uiView.textbox))
+                context.stackWorker.SendAsync(("focus", uiView.textbox))
         else:
-            worker.stackWorker.SendAsync(("focus", 0))
+            context.stackWorker.SendAsync(("focus", 0))
 
     # --------- User-accessible view functions -----------
 
@@ -544,8 +606,8 @@ class Runner():
         except ValueError:
             raise TypeError("wait(): delay must be a number")
 
-        worker.stackWorker.SendAsync(("render",))
-        worker.stackWorker.Wait(delay)
+        context.stackWorker.SendAsync(("render",))
+        context.stackWorker.Wait(delay)
 
     def time(self):
         return time()
@@ -562,25 +624,25 @@ class Runner():
         return math.sqrt((pointB[0] - pointA[0]) ** 2 + (pointB[1] - pointA[1]) ** 2)
 
     def alert(self, message):
-        worker.stackWorker.EnqueueSyncPressedKeys()
-        worker.stackWorker.SendSync(None, ("alert", message))
+        context.stackWorker.EnqueueSyncPressedKeys()
+        context.stackWorker.SendSync(None, ("alert", message))
 
     def ask_yes_no(self, message):
-        worker.stackWorker.EnqueueSyncPressedKeys()
-        return worker.stackWorker.SendSync(bool, ("confirm", message))
+        context.stackWorker.EnqueueSyncPressedKeys()
+        return context.stackWorker.SendSync(bool, ("confirm", message))
 
     def ask_text(self, message, defaultResponse=""):
-        worker.stackWorker.EnqueueSyncPressedKeys()
-        return worker.stackWorker.SendSync(str, ("prompt", message, defaultResponse))
+        context.stackWorker.EnqueueSyncPressedKeys()
+        return context.stackWorker.SendSync(str, ("prompt", message, defaultResponse))
 
     def open_url(self, URL, in_place=False):
-        worker.stackWorker.SendAsync(("open_url", URL, in_place))
+        context.stackWorker.SendAsync(("open_url", URL, in_place))
 
     def play_sound(self, filepath):
-        worker.stackWorker.SendAsync(("playAudio", filepath))
+        context.stackWorker.SendAsync(("playAudio", filepath))
 
     def stop_sound(self):
-        worker.stackWorker.SendAsync(("playAudio",))
+        context.stackWorker.SendAsync(("playAudio",))
 
     def paste(self):
         return []
@@ -592,10 +654,10 @@ class Runner():
         return name in self.pressedKeys
 
     def is_mouse_pressed(self):
-        return worker.stackWorker.isMouseDown
+        return context.stackWorker.isMouseDown
 
     def is_using_touch_screen(self):
-        return worker.stackWorker.usingTouchScreen
+        return context.stackWorker.usingTouchScreen
 
     def get_mouse_pos(self):
         return self.lastMousePos

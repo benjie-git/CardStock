@@ -1,3 +1,11 @@
+# This file is part of CardStock.
+#     https://github.com/benjie-git/CardStock
+#
+# Copyright Ben Levitt 2020-2023
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.  If a copy
+# of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 # Allow migrating older file formats to newer ones
 
 import re
@@ -213,27 +221,6 @@ def MigrateModelFromFormatVersion(fromVer, stackModel):
             for k ,v in obj.handlers.items():
                 if len(v):
                     val = v
-                    val = re.sub(r"\bOnSetup\b", "on_setup", val)
-                    val = re.sub(r"\bOnShowCard\b", "on_show_card", val)
-                    val = re.sub(r"\bOnHideCard\b", "on_hide_card", val)
-                    val = re.sub(r"\bOnClick\b", "on_click", val)
-                    val = re.sub(r"\bOnTextEnter\b", "on_text_enter", val)
-                    val = re.sub(r"\bOnTextChanged\b", "on_text_changed", val)
-                    val = re.sub(r"\bOnMousePress\b", "on_mouse_press", val)
-                    val = re.sub(r"\bOnMouseMove\b", "on_mouse_move", val)
-                    val = re.sub(r"\bOnMouseRelease\b", "on_mouse_release", val)
-                    val = re.sub(r"\bOnMouseEnter\b", "on_mouse_enter", val)
-                    val = re.sub(r"\bOnMouseExit\b", "on_mouse_exit", val)
-                    val = re.sub(r"\bOnDoneLoading\b", "on_done_loading", val)
-                    val = re.sub(r"\bOnCardStockLink\b", "on_card_stock_link", val)
-                    val = re.sub(r"\bOnBounce\b", "on_bounce", val)
-                    val = re.sub(r"\bOnMessage\b", "on_message", val)
-                    val = re.sub(r"\bOnKeyPress\b", "on_key_press", val)
-                    val = re.sub(r"\bOnKeyHold\b", "on_key_hold", val)
-                    val = re.sub(r"\bOnKeyRelease\b", "on_key_release", val)
-                    val = re.sub(r"\bOnResize\b", "on_resize", val)
-                    val = re.sub(r"\bOnPeriodic\b", "on_periodic", val)
-                    val = re.sub(r"\bOnExitStack\b", "on_exit_stack", val)
                     val = re.sub(r"\bmousePos\b", "mouse_pos", val)
                     val = re.sub(r"\bkeyName\b", "key_name", val)
                     val = re.sub(r"\belapsedTime\b", "elapsed_time", val)

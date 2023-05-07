@@ -1,4 +1,16 @@
-from browser import self as worker
+# This file is part of CardStock.
+#     https://github.com/benjie-git/CardStock
+#
+# Copyright Ben Levitt 2020-2023
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.  If a copy
+# of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+try:
+    from browser import window as context
+except:
+    from browser import self as context
+
 import wx_compat as wx
 from models import *
 from views import *
@@ -19,6 +31,7 @@ class StackManager(object):
         self.modelToViewMap = {}
         self.uiCard = UiCard(None, self, None)
         self.cardIndex = None
+        self.isEditing = False
         self.didSetup = False
         self.runner = None
         self.periodicPaused = False
@@ -57,55 +70,70 @@ class StackManager(object):
 
         self.stackModel.SetDown()
         self.stackModel.DismantleChildTree()
-        worker.stackWorker.SendAsync(("fabFunc", 0, "clear"))
+        context.stackWorker.SendAsync(("fabFunc", 0, "clear"))
 
-    def LoadFromStr(self, stackStr):
+    def LoadFromStr(self, stackStr, initialCardNumber):
         stackJSON = json.loads(stackStr)
-        self.Load(stackJSON)
+        self.Load(stackJSON, initialCardNumber)
 
-    def Load(self, stackJSON):
+    def Load(self, stackJSON, initialCardNumber):
         if self.stackModel:
             self.Unload()
 
-        if self.runner:
-            self.runner.SetDown()
-        self.runner = runner.Runner(self)
+        if len(stackJSON) == 0:
+            stackModel = StackModel(self)
+            stackModel.AppendCardModel(CardModel(self))
+            stackJSON = stackModel.GetData()
+
+        if not self.isEditing:
+            if self.runner:
+                self.runner.SetDown()
+            self.runner = runner.Runner(self)
         self.stackModel = StackModel(self)
         self.stackModel.SetData(stackJSON)
         if self.stackModel.GetProperty("can_resize"):
             if self.windowSize:
                 self.stackModel.SetProperty("size", self.windowSize)
         self.lastPeriodic = time()
-        self.runner.StartStack()
+        if not self.isEditing:
+            self.runner.StartStack()
         self.cardIndex = None
         self.didSetup = False
-        self.LoadCardAtIndex(0)
+        self.LoadCardAtIndex(initialCardNumber, reload=True)
 
     def RunSetupIfNeeded(self):
         if not self.didSetup:
-            s = self.stackModel.GetProperty("size")
-            self.stackModel.RunSetup(self.runner)
-            worker.stackWorker.SendAsync(("canvasSetSize", s.width, s.height, self.stackModel.GetProperty('can_resize')))
+            s = self.stackModel.properties["size"]
+            if not self.isEditing:
+                self.stackModel.RunSetup(self.runner)
+            context.stackWorker.SendAsync(("canvasSetSize", s.width, s.height, self.stackModel.GetProperty('can_resize')))
             self.didSetup = True
 
     def LoadCardAtIndex(self, cardIndex, reload=False):
         if len(self.stackModel.childModels) > cardIndex:
             if reload or cardIndex != self.cardIndex:
-                worker.stackWorker.Wait(0.02) # wait for pending frame render before changing cards
+                context.stackWorker.Wait(0.02)  # wait for pending frame render before changing cards
                 self.cardIndex = cardIndex
                 card = self.stackModel.childModels[cardIndex]
-                self.runner.SetupForCard(card)
+                if not self.isEditing:
+                    self.runner.SetupForCard(card)
                 self.uiCard.Load(card)
+                if self.isEditing:
+                    context.stackEditor.SelectUiView(None)
+                    context.stackEditor.SelectUiView(self.uiCard)
+                    context.stackEditor.Render()
 
     def WindowDidResize(self, w, h):
         self.windowSize = wx.Size(w, h)
         if self.stackModel and self.stackModel.GetProperty('can_resize'):
             self.stackModel.SetProperty('size', self.windowSize)
-            worker.stackWorker.SendAsync(("canvasSetSize", self.windowSize.width, self.windowSize.height,
+            context.stackWorker.SendAsync(("canvasSetSize", self.windowSize.width, self.windowSize.height,
                                           self.stackModel.properties['can_resize']))
             for ui in self.uiCard.uiViews:
+                ui.lastPos = None
                 ui.OnPropertyChanged("position")
-            self.runner.RunHandler(self.uiCard.model, "on_resize", None, False)
+            if not self.isEditing:
+                self.runner.RunHandler(self.uiCard.model, "on_resize", None, False)
 
     def Yield(self):
         self.RunAnimations()
@@ -130,7 +158,7 @@ class StackManager(object):
         # which could start new animations.  Enqueue these to run later.
         if len(onFinishedCalls):
             self.delayedAnimFinishedCalls.extend(onFinishedCalls)
-            worker.stackWorker.SendAsync(("echo", "runAnimationsFinished"))
+            context.stackWorker.SendAsync(("echo", "runAnimationsFinished"))
 
         # Check for all collisions
         collisions = {}
@@ -143,7 +171,7 @@ class StackManager(object):
             didRun = True
 
         if didRun:
-            worker.stackWorker.SendAsync(("render",))
+            context.stackWorker.SendAsync(("render",))
 
     def OnPeriodic(self):
         # This is called at approximately 60 Hz, unless the stack/computer/browser are unable to keep up.
@@ -164,7 +192,7 @@ class StackManager(object):
         if len(self.delayedAnimFinishedCalls):
             for c in self.delayedAnimFinishedCalls:
                 c()
-            worker.stackWorker.SendAsync(("render",))
+            context.stackWorker.SendAsync(("render",))
             self.delayedAnimFinishedCalls = []
 
     def ConvPointInPlace(self, p):
@@ -172,7 +200,7 @@ class StackManager(object):
         p.y = cardSize.height - p.y
 
     def ConvRect(self, r):
-        cardSize = self.uiCard.model.GetProperty("size")
+        cardSize = self.stackModel.properties["size"]
         return wx.Rect(r.Left, cardSize.height - (r.Top+r.Height), r.Width, r.Height)
 
     def GetUiViewByModel(self, model):
@@ -225,10 +253,14 @@ class StackManager(object):
         ids = []
         def remUi(ui):
             ids.extend(ui.fabIds)
+            if ui.isSelected:
+                ids.extend(ui.selIds)
+                ui.selIds = []
+                ui.isSelected = False
             for u in ui.uiViews:
                 remUi(u)
         remUi(uiView)
-        worker.stackWorker.SendAsync(("fabDel", *ids))
+        context.stackWorker.SendAsync(("fabDel", *ids))
 
     def AddUiViewsFromModels(self, models):
         """
@@ -263,7 +295,7 @@ class StackManager(object):
                 self.uiCard.model.RemoveChild(ui.model)
             self.RemoveFabObjs(ui)
             self.delayedSetDowns.append(ui)
-            worker.stackWorker.SendAsync(("render",))
+            context.stackWorker.SendAsync(("render",))
         else:
             if viewModel.parent:
                 viewModel.parent.RemoveChild(viewModel)
@@ -273,7 +305,8 @@ class StackManager(object):
         newCard.SetProperty("name", newCard.DeduplicateName("card_1",
                                                             [m.GetProperty("name") for m in self.stackModel.childModels]))
         self.stackModel.InsertCardModel(self.cardIndex+1, newCard)
-        newCard.RunSetup(self.runner)
+        if not self.isEditing:
+            newCard.RunSetup(self.runner)
         self.LoadCardAtIndex(self.cardIndex+1)
 
     def DuplicateCard(self, card=None):
@@ -284,7 +317,8 @@ class StackManager(object):
         newCard.SetProperty("name", newCard.DeduplicateName(newCard.GetProperty("name"),
                                                             [m.GetProperty("name") for m in self.stackModel.childModels]))
         self.stackModel.InsertCardModel(self.cardIndex+1, newCard)
-        newCard.RunSetup(self.runner)
+        if not self.isEditing:
+            newCard.RunSetup(self.runner)
         self.LoadCardAtIndex(self.cardIndex+1)
         return newCard
 
@@ -317,7 +351,8 @@ class StackManager(object):
             for m in models:
                 if m.GetCard() == card:
                     validModels.append(m)
-                    proxies[m] = m.proxy
+                    if m.proxy:
+                        proxies[m] = m.proxy
                     self.RemoveUiViewByModel(m)
                     m.SetBackUp(self)
             group.AddChildModels(validModels)
@@ -340,7 +375,8 @@ class StackManager(object):
                 proxies = {}
                 for child in group.childModels.copy():
                     childModels.append(child)
-                    proxies[child] = child.proxy
+                    if child.proxy:
+                        proxies[child] = child.proxy
                     group.RemoveChild(child)
                     child.SetBackUp(self)
                 if group.GetCard() == self.uiCard.model:
@@ -363,6 +399,8 @@ class StackManager(object):
         ui = self.GetUiViewByModel(model)
         if ui:
             ui.OnPropertyChanged(key)
+        if self.isEditing:
+            context.stackEditor.editPanel.prop_inspector.OnPropertyChanged(model, key)
 
     @classmethod
     def ModelFromData(cls, stackManager, data):

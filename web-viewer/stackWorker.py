@@ -1,4 +1,12 @@
-from browser import self as worker
+# This file is part of CardStock.
+#     https://github.com/benjie-git/CardStock
+#
+# Copyright Ben Levitt 2020-2023
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.  If a copy
+# of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+from browser import self as context
 from browser import timer
 from time import time
 import stackManager
@@ -22,9 +30,9 @@ def NextId():
 
 class StackWorker(object):
     def __init__(self):
-        worker.importScripts(worker.location.origin + LIB_PREFIX + 'fabric.worker.js')
-        worker.importScripts(worker.location.origin + LIB_PREFIX + 'SAT.js')
-        worker.importScripts(worker.location.origin + LIB_PREFIX + 'decomp.min.js')
+        context.importScripts(context.location.origin + LIB_PREFIX + 'fabric.worker.js')
+        context.importScripts(context.location.origin + LIB_PREFIX + 'SAT.js')
+        context.importScripts(context.location.origin + LIB_PREFIX + 'decomp.min.js')
 
         self.waitSAB = None
         self.waitSA32 = None
@@ -39,7 +47,7 @@ class StackWorker(object):
         self.usingTouchScreen = False
         self.focusedFabId = 0
         self.messageQueue = []
-        worker.bind("message", self.OnMessageW)
+        context.bind("message", self.OnMessageW)
 
     def OnMessageW(self, evt):
         self.messageQueue.append(evt.data)
@@ -59,23 +67,27 @@ class StackWorker(object):
                 self.waitSAB = args[0]
                 self.countsSAB = args[1]
                 self.dataSAB = args[2]
-                self.waitSA32 = worker.Int32Array.new(self.waitSAB)
-                self.countsSA32 = worker.Int32Array.new(self.countsSAB)
-                self.dataSA16 = worker.Int16Array.new(self.dataSAB)
+                if len(args[3]):
+                    context.channelName = args[3]
+                self.waitSA32 = context.Int32Array.new(self.waitSAB)
+                self.countsSA32 = context.Int32Array.new(self.countsSAB)
+                self.dataSA16 = context.Int16Array.new(self.dataSAB)
                 # This is our main interval timer for running OnPeriodic, animations, etc.  This fires at ~60 Hz.
                 timer.set_interval(self.stackManager.OnPeriodic, 16.666)
 
             elif msg == 'load':
                 # Load a stack from a dict object
                 json = args[0]
-                self.stackManager.Load(json.to_dict())
-                self.SendAsync(("render",))
+                initialCardNumber = int(args[1])
+                self.stackManager.Load(json.to_dict(), initialCardNumber)
+                self.SendAsync(("loadDone",))
 
             elif msg == 'loadStr':
                 # load a stack from a json string
                 jsonStr = args[0]
-                self.stackManager.LoadFromStr(jsonStr)
-                self.SendAsync(("render",))
+                initialCardNumber = int(args[1])
+                self.stackManager.LoadFromStr(jsonStr, initialCardNumber)
+                self.SendAsync(("loadDone",))
 
             elif msg == 'mouseDown':
                 # handle a mouseDown
@@ -86,7 +98,7 @@ class StackWorker(object):
 
             elif msg == 'mouseMove':
                 # handle a mouseMove
-                numMoves = worker.Atomics.sub(self.countsSA32, 0, 1)
+                numMoves = context.Atomics.sub(self.countsSA32, 0, 1)
                 if numMoves == 1:
                     uid, pos, isTouch = args
                     self.stackManager.uiCard.OnFabricMouseMove(uid, pos, isTouch)
@@ -122,9 +134,13 @@ class StackWorker(object):
             elif msg == "visibilityChanged":
                 didFocus = args[0]
                 self.stackManager.periodicPaused = not didFocus
+                if not didFocus:
+                    self.EnqueueSyncPressedKeys()
 
-            elif msg == "pageFocus":
-                self.EnqueueSyncPressedKeys()
+            elif msg == "stackFocus":
+                didFocus = args[0]
+                if not didFocus:
+                    self.EnqueueSyncPressedKeys()
 
             elif msg == "windowSized":
                 self.stackManager.WindowDidResize(*args)
@@ -140,6 +156,10 @@ class StackWorker(object):
     def EnqueueSyncPressedKeys(self):
         for name in self.stackManager.runner.pressedKeys:
             self.messageQueue.append(("keyUp", name))
+        if self.isMouseDown:
+            self.messageQueue.append(("mouseUp", 0, self.stackManager.runner.lastMousePos, self.usingTouchScreen))
+        self.ProcessQueue()
+
 
     def Wait(self, durationSec):
         # no sleep() allowed, so use Atomics.wait() to wait for a thing that will never happen, but with a timeout!
@@ -150,18 +170,18 @@ class StackWorker(object):
             remaining = (endTime - time()) * 1000
             self.waitSA32[0] = 0
             # wait up to 15ms at a time, or ~1 frame at 60Hz
-            worker.Atomics.wait(self.waitSA32, 0, 0, max(0, min(15, remaining)))
+            context.Atomics.wait(self.waitSA32, 0, 0, max(0, min(15, remaining)))
 
     def SendAsync(self, *args):
         # Send a message and don't wait
-        worker.send(args)
+        context.send(args)
 
     def SendSync(self, returnType, *args):
         # Send a message and wait for a response
         self.waitSA32[0] = 0
-        worker.send(args)
+        context.send(args)
         # wait for the waitSA32[0] value to be set to a 1, which means the main thread is done, so we can stop waiting
-        worker.Atomics.wait(self.waitSA32, 0, 0)
+        context.Atomics.wait(self.waitSA32, 0, 0)
         if returnType == bool:
             # if we're expecting a bool, just look at the first val
             return bool(self.dataSA16[0])
@@ -179,38 +199,38 @@ class StackWorker(object):
         # Tell the StackCanvas to create o new fabric object, or replace an existing one
         if replace == None:
             i = NextId()
-            worker.send((("fabNew", i, *args),))
+            context.send((("fabNew", i, *args),))
         else:
             i = replace
-            worker.send((("fabReplace", replace, *args),))
+            context.send((("fabReplace", replace, *args),))
         return i
 
     def CreateTextField(self, *args):
         # Tell the StackCanvas to create o new fabric TextField object
         i = NextId()
-        worker.send((("fieldNew", i, *args),))
+        context.send((("fieldNew", i, *args),))
         return i
 
     def CreateImageStatic(self, path, options, replace=None):
         # Tell the StackCanvas to create o new static Image, or replace an existing one
         if replace == None:
             i = NextId()
-            worker.send((("imgNewStatic", i, path, options),))
+            context.send((("imgNewStatic", i, path, options),))
         else:
             i = replace
-            worker.send((("imgReplaceStatic", replace, path, options),))
+            context.send((("imgReplaceStatic", replace, path, options),))
         return i
 
     def CreateImage(self, *args, replace=None):
         # Tell the StackCanvas to create o new fabric Image object, or replace an existing one
         if replace == None:
             i = NextId()
-            worker.send((("imgNew", i, *args),))
+            context.send((("imgNew", i, *args),))
         else:
             i = replace
-            worker.send((("imgReplace", replace, *args),))
+            context.send((("imgReplace", replace, *args),))
         return i
 
     def write(self, text):
         # stderr and stdout will write here on print, errors, etc.
-        worker.send((("write", text),))
+        context.send((("write", text),))
