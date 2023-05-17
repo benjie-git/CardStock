@@ -353,3 +353,19 @@ def MigrateModelFromFormatVersion(fromVer, stackModel):
             for child in obj.childModels:
                 replaceNames(child)
         replaceNames(stackModel)
+
+    if fromVer <= 6:
+        """
+        In File Format Version 7, get and set event_code functions were renamed
+        """
+        # Update names of StopAnimating methods, OnIdle->OnPeriodic
+        def replaceNames(obj):
+            for k ,v in obj.handlers.items():
+                if len(v):
+                    val = v
+                    val = val.replace(".get_event_code(", ".get_code_for_event(")
+                    val = val.replace(".set_event_code(", ".set_code_for_event(")
+                    obj.handlers[k] = val
+            for child in obj.childModels:
+                replaceNames(child)
+        replaceNames(stackModel)

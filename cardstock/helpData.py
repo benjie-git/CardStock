@@ -557,15 +557,17 @@ class HelpDataObject():
                          "info": "Moves this object to the given index, in the list of "
                                  "its parent's children, with 0 being at the back.  But note that "
                          "currently, all text fields and web views will be displayed in front of other objects."},
-        "get_event_code": {"args": {"eventName": {"type": "string", "info": "The name of the event to look up."}},
+        "get_code_for_event": {"args": {"eventName": {"type": "string", "info": "The name of the event to look up."}},
                             "return": "string",
                             "info": "Returns a string containing this object's event code for the given "
-                                    "<b>eventName</b>"},
-        "set_event_code": {"args": {"eventName": {"type": "string", "info": "The name of the event to set."},
+                                    "<b>eventName</b>.  For example, button_1.get_code_for_event('on_click') will "
+                                    "return the code in the object named button_1 for the 'on_click' event."},
+        "set_code_for_event": {"args": {"eventName": {"type": "string", "info": "The name of the event to set."},
                                      "code": {"type": "string", "info": "The code to run on this event."}},
                             "return": None,
-                            "info": "Sets this object's event code for the given <b>eventName</b> to"
-                                    "<b>code</b>."},
+                            "info": "Sets the <b>code</b> to be run when the event named <b>eventName</b> triggers for this object.  "
+                                    "For example, button_1.set_code_for_event('on_click', 'alert(\"Hello\")') will set up "
+                                    "button_1 to show an alert when clicked."},
         "stop_handling_mouse_event": {"args": {},
                                    "return": None,
                                    "info": "If you call this method from your event code for any on_mouse_press(), on_mouse_move(), "
