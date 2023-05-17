@@ -19,7 +19,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * You can build programs using objects including text and graphics, images, buttons, text entry fields, and web views.
 * You can use your own python code to manipulate the objects and respond to mouse and keyboard events.
 * You can play sound files from your code.
-* You can search and use clip art in your stacks, thanks to integration with https://openclipart.com.
+* You can search and use clip art in your stacks, thanks to integration with https://openclipart.org.
 * In-context help appears in the app, right where you need it.  And can be turned off when you no longer want it taking up space.
 * All of the creature comforts you've come to expect from a proper application, like full Undo/Redo, and a Find/Replace system that works throughout all of your code and object properties.
 
@@ -37,6 +37,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 ### Future Plans
 * Build a web-based design tool to allow creating and editing stacks directly on https://cardstock.run.
 * Add a built-in library of sounds to use, and the ability to record your own sounds.
+* Allow looping sounds, and playing synthesized notes
 * Allow filling shapes with color gradients.
 * Add app icons for the CardStock Designer and Viewer.
 
@@ -80,5 +81,5 @@ You can either:
 * [CardStock Wiki](https://github.com/benjie-git/CardStock/wiki)
 * [CardStock on Reddit](https://www.reddit.com/r/CardStockPython/)
 * [CardStock Manual](https://github.com/benjie-git/CardStock/wiki/Manual)
-* [CardStock Tutorial](https://github.com/benjie-git/CardStock/wiki/Tutorial)
+* [CardStock Tutorial](https://github.com/benjie-git/CardStock/wiki/Tutorial-Dice)
 * [CardStock Reference Guide](https://github.com/benjie-git/CardStock/wiki/Reference)

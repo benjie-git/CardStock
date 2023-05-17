@@ -12,6 +12,8 @@ import version
 import platform
 from helpData import HelpData, HelpDataTypes
 
+OUTPUT_HTML = False
+
 
 class CardStockAbout(wx.Dialog):
     """ An about box that uses an HTML view. """
@@ -422,9 +424,10 @@ stack, run it on the web, and send out links to let others run it.</p>
 
         html = wx.html.HtmlWindow(self, -1)
         htmlStr = self.GetHTML()
-        # f = open("manual.html","w")
-        # f.write(htmlStr)
-        # f.close()
+        if OUTPUT_HTML:
+            f = open("manual.html","w")
+            f.write(htmlStr)
+            f.close()
         html.SetPage(htmlStr)
         html.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
@@ -588,9 +591,10 @@ the current card.  And you can access objects on other cards as, for example, st
 
         self.html = wx.html.HtmlWindow(self.splitter, -1)
         htmlStr = self.GetHTML()
-        # f = open("reference.html","w")
-        # f.write(htmlStr)
-        # f.close()
+        if OUTPUT_HTML:
+            f = open("reference.html","w")
+            f.write(htmlStr)
+            f.close()
         self.html.SetPage(htmlStr)
         self.html.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
