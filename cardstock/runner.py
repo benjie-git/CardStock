@@ -811,7 +811,8 @@ class Runner():
 
         self.RunHandler(self.stackManager.uiCard.model, "on_message", None, message)
         for ui in self.stackManager.uiCard.GetAllUiViews():
-            self.RunHandler(ui.model, "on_message", None, message)
+            if not ui.model.didDelete:
+                self.RunHandler(ui.model, "on_message", None, message)
 
     def goto_card(self, card):
         index = None

@@ -673,6 +673,7 @@ class ViewModel(object):
         self.proxyClass = ViewProxy
         self.animLock = threading.Lock()
         self.didSetDown = False
+        self.didDelete = False
         self.clonedFrom = None
 
     def __repr__(self):
@@ -1259,7 +1260,7 @@ class ViewProxy(object):
         model = self._model
         if not model: return
 
-        if not model.stackManager.isEditing and model.stackManager.runner:
+        if not model.stackManager.isEditing and model.stackManager.runner and not model.didDelete:
            model.stackManager.runner.RunHandler(model, "on_message", None, message)
 
     def clone(self, name=None, **kwargs):
@@ -1315,9 +1316,10 @@ class ViewProxy(object):
 
     def delete(self):
         model = self._model
-        if not model or not model.parent or model.parent.type == "group":
+        if not model or not model.parent or model.parent.type == "group" or model.didDelete:
             return
 
+        model.didDelete = True
         # immediately update the model
         sm = model.stackManager
         if model.type != "card":
