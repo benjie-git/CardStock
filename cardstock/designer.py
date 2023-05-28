@@ -449,7 +449,7 @@ class DesignerFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.OnMenuAbout, id=wx.ID_ABOUT)
         self.Bind(wx.EVT_MENU, self.OnMenuHelp, id=wx.ID_HELP)
-        self.Bind(wx.EVT_MENU, self.OnMenuBasics, id=ID_BASICS)
+        # self.Bind(wx.EVT_MENU, self.OnMenuBasics, id=ID_BASICS)
         self.Bind(wx.EVT_MENU, self.OnMenuReference, id=wx.ID_REFRESH)
         self.Bind(wx.EVT_MENU, self.OnMenuContextHelp, id=wx.ID_CONTEXT_HELP)
 
@@ -1180,11 +1180,6 @@ class DesignerFrame(wx.Frame):
         dlg = helpDialogs.CardStockAbout(self)
         dlg.ShowModal()
         dlg.Destroy()
-
-    def OnMenuBasics(self, event):
-        dlg = helpDialogs.CardStockBasics(self)
-        dlg.Bind(wx.EVT_CLOSE, self.OnHelpClose)
-        dlg.Show()
 
     def OnMenuHelp(self, event):
         dlg = helpDialogs.CardStockManual(self)
