@@ -18,6 +18,7 @@ import sys
 import json
 import configparser
 import wx
+import embeddedImages
 from time import sleep
 import version
 from tools import *
@@ -121,7 +122,8 @@ class DesignerFrame(wx.Frame):
         # self.lastStats = {}
 
         self.toolbar = self.CreateToolBar(style=wx.TB_TEXT)
-        self.toolbar.AddTool(ID_RUN, 'Run Stack', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
+        icn = embeddedImages.run.GetBitmap()
+        self.toolbar.AddTool(ID_RUN, 'Run Stack', icn, wx.NullBitmap)
 
         self.toolbar.AddStretchableSpace()
 
@@ -1047,7 +1049,8 @@ class DesignerFrame(wx.Frame):
         # Update toolbar to show 'Run This Card' only when on card 2+
         isShowingTool = self.toolbar.FindById(ID_RUN_FROM)
         if not isShowingTool and self.stackManager.cardIndex > 0:
-            self.toolbar.InsertTool(1, ID_RUN_FROM, 'Run This Card', wx.ArtProvider.GetBitmap(wx.ART_FULL_SCREEN), wx.NullBitmap)
+            icn = embeddedImages.run_card.GetBitmap()
+            self.toolbar.InsertTool(1, ID_RUN_FROM, 'Run This Card', icn, wx.NullBitmap)
         elif isShowingTool and self.stackManager.cardIndex == 0:
             self.toolbar.RemoveTool(ID_RUN_FROM)
 
