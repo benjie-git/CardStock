@@ -35,7 +35,6 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * You can export a stack into a standalone application that you can share and distribute, or upload it to the web, on https://cardstock.run.
 
 ### Future Plans
-* Build a web-based design tool to allow creating and editing stacks directly on https://cardstock.run.
 * Add a built-in library of sounds to use, and the ability to record your own sounds.
 * Allow looping sounds, and playing synthesized notes.
 * Add more tutorials for CardStock, and for learning python through CardStock.
