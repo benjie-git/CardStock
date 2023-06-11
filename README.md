@@ -40,6 +40,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * Add more tutorials for CardStock, and for learning python through CardStock.
 * Allow filling shapes with color gradients.
 * Add app icons for the CardStock Designer and Viewer.
+* Improve bounce physics and collision detection performance.
 
 ________
 ## Known Issues
