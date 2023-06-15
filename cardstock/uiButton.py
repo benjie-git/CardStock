@@ -50,7 +50,7 @@ class UiButton(UiView):
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key == "title":
+        if key == "title" or key == "fill_color" or key == "text_color":
             self.stackManager.view.Refresh()
         elif key == "style":
             sm = self.stackManager
@@ -117,7 +117,7 @@ class UiButton(UiView):
             gc.DrawRoundedRectangle(wx.Rect(1, 0, width-1, height-1), 5)
             # Draw foreground round rect
             gc.SetPen(wx.Pen('#444444', fd(1)))
-            gc.SetBrush(wx.Brush('#CCCCCC' if hilighted else 'white'))
+            gc.SetBrush(wx.Brush('#CCCCCC' if hilighted else self.model.GetProperty("fill_color")))
             gc.DrawRoundedRectangle(wx.Rect(0, 1, width-1, height-1), 5)
 
             title = self.model.GetProperty("title")
@@ -130,7 +130,7 @@ class UiButton(UiView):
                 line = lines.split("\n")[0]
 
                 gc.SetFont(font)
-                gc.SetTextForeground(wx.Colour('black'))
+                gc.SetTextForeground(wx.Colour(self.model.GetProperty("text_color")))
                 textWidth = gc.GetTextExtent(line).Width
                 xPos = (startX + (width - td(textWidth)) / 2)
                 gc.DrawText(line, wx.Point(int(xPos), int(startY)))
@@ -202,12 +202,17 @@ class ButtonModel(ViewModel):
         self.properties["title"] = "Button"
         self.properties["style"] = "Border"
         self.properties["is_selected"] = False
+        self.properties["is_selected"] = False
         self.properties["rotation"] = 0.0
+        self.properties["fill_color"] = "white"
+        self.properties["text_color"] = "black"
 
         self.propertyTypes["title"] = "string"
         self.propertyTypes["style"] = "choice"
         self.propertyTypes["is_selected"] = "bool"
         self.propertyTypes["rotation"] = "float"
+        self.propertyTypes["fill_color"] = "color"
+        self.propertyTypes["text_color"] = "color"
 
         self.UpdatePropKeys(self.properties["style"])
 
@@ -228,7 +233,9 @@ class ButtonModel(ViewModel):
     def UpdatePropKeys(self, style):
         # Custom property order and mask for the inspector
         if style in ("Border", "Borderless"):
-            self.propertyKeys = ["name", "title", "style", "rotation", "position", "size"]
+            self.propertyKeys = ["name", "title", "style", "rotation", "position", "size", "text_color"]
+            if style == "Border":
+                self.propertyKeys.append("fill_color")
             self.initialEditHandler = "on_click"
             if "on_click" not in self.visibleHandlers:
                 self.visibleHandlers.add("on_click")
@@ -285,6 +292,28 @@ class Button(ViewProxy):
         model = self._model
         if not model: return
         model.SetProperty("style", bool(val))
+
+    @property
+    def fill_color(self):
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("fill_color")
+    @fill_color.setter
+    def fill_color(self, val):
+        model = self._model
+        if not model: return
+        model.SetProperty("fill_color", str(val))
+
+    @property
+    def text_color(self):
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("text_color")
+    @text_color.setter
+    def fill_color(self, val):
+        model = self._model
+        if not model: return
+        model.SetProperty("text_color", str(val))
 
     @property
     def is_selected(self):
