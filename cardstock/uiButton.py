@@ -310,7 +310,7 @@ class Button(ViewProxy):
         if not model: return ""
         return model.GetProperty("text_color")
     @text_color.setter
-    def fill_color(self, val):
+    def text_color(self, val):
         model = self._model
         if not model: return
         model.SetProperty("text_color", str(val))

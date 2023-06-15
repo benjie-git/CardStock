@@ -719,7 +719,11 @@ class HelpDataButton():
         "is_selected": {"type": "bool",
                         "info": "For Border and Borderless style buttons, this is always False.  For Checkbox style "
                                 "buttons, this is True when the Checkbox is checked.  For Radio buttons, this is True "
-                                "when this Radio button is the selected button in its group."}
+                                "when this Radio button is the selected button in its group."},
+        "fill_color": {"type": "bool",
+                        "info": "For Border buttons, set the background color."},
+        "text_color": {"type": "bool",
+                        "info": "For Border buttons, set the text color."}
     }
 
     methods = {
