@@ -24,6 +24,7 @@ import queue
 import sanitizer
 from enum import Enum
 import simpleaudio
+import consoleWindow
 
 
 class TaskType (Enum):
@@ -105,6 +106,7 @@ class Runner():
             "alert": self.alert,
             "ask_yes_no": self.ask_yes_no,
             "ask_text": self.ask_text,
+            "input": self.input,
             "goto_card": self.goto_card,
             "goto_next_card": self.goto_next_card,
             "goto_previous_card": self.goto_previous_card,
@@ -935,6 +937,36 @@ class Runner():
 
         self.EnqueueSyncPressedKeys()
         return func()
+
+    def input(self, prompt=""):
+        if self.stopRunnerThread or self.generatingThumbnail:
+            return None
+
+        self.inputText = None
+
+        def gotInput(text):
+            self.inputText = text
+
+        @RunOnMainSync
+        def f():
+            self.viewer.consoleWindow.RemovePrompt()
+            self.viewer.consoleWindow.AppendText(prompt, consoleWindow.OUTPUT_STYLE, True)
+            self.viewer.consoleWindow.inputFunc = gotInput
+
+            self.viewer.consoleWindow.Show()
+            self.viewer.consoleWindow.Focus()
+
+        f()
+        self.stackManager.analyzer.disableAC = True
+        while True:
+            if self.inputText is not None:
+                break
+            sleep(0.1)
+
+        self.stackManager.analyzer.disableAC = False
+        t = self.inputText
+        del self.inputText
+        return t
 
     def open_url(self, URL, in_place=False):
         if not isinstance(URL, str):

@@ -69,6 +69,7 @@ class ConsoleWindow(wx.Frame):
         self.SetStreamsUp()
         self.runner = None
         self.didSetDown = False
+        self.inputFunc = None
 
         self.textBox.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
         self.textBox.Bind(stc.EVT_STC_CHARADDED, self.OnChar)
@@ -89,6 +90,10 @@ class ConsoleWindow(wx.Frame):
             self.UpdateAC()
             self.hasShown = True
             self.GetParent().Raise()
+
+    def Focus(self):
+        self.Raise()
+        self.textBox.SetFocus()
 
     def Destroy(self):
         self.SetStreamsDown()
@@ -175,6 +180,7 @@ class ConsoleWindow(wx.Frame):
         if self.textBox.IsEditable() and not self.textBox.AutoCompActive():
             key = event.GetKeyCode()
             if key in [wx.WXK_UP, wx.WXK_NUMPAD_UP]:
+                if self.inputFunc: return
                 if self.historyPos is None:
                     if len(cmdHistory):
                         self.workingCommand = self.GetCommandText()
@@ -185,6 +191,7 @@ class ConsoleWindow(wx.Frame):
                     self.SetCommandText(cmdHistory[self.historyPos])
                 return
             elif key in [wx.WXK_DOWN, wx.WXK_NUMPAD_DOWN] and len(cmdHistory):
+                if self.inputFunc: return
                 if self.historyPos is not None and self.historyPos < len(cmdHistory)-1:
                     self.historyPos += 1
                     self.SetCommandText(cmdHistory[self.historyPos])
@@ -262,8 +269,27 @@ class ConsoleWindow(wx.Frame):
         else:
             self.textBox.ChangeValue("  ")
 
+    def RemovePrompt(self):
+        self.SetCommandText("")
+        last = self.textBox.GetLastPosition()
+        self.textBox.Replace(last-2, last, "  ")
+        # self.lastOutputPos -= 2
+
     def OnReturn(self):
         # Return key was pressed, and not for autocompletion, nor in the middle of a multiline command entry
+        if self.inputFunc:
+            last = self.textBox.GetLastPosition()
+            self.textBox.SetSelection(last, last)
+            self.UpdateEditable()
+            text = self.GetCommandText()
+            self.textBox.AppendText('\n')
+            self.lastOutputPos = self.textBox.GetLastPosition()
+            self.textBox.SetSelection(self.lastOutputPos, self.lastOutputPos)
+            self.AppendText('> ', INPUT_STYLE, False)
+            self.inputFunc(text)
+            self.inputFunc = None
+            return
+
         if self.allowInput:
             last = self.textBox.GetLastPosition()
             self.textBox.SetSelection(last, last)

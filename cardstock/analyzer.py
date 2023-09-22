@@ -29,6 +29,7 @@ class CodeAnalyzer(object):
         self.analysisTimer.Bind(wx.EVT_TIMER, self.OnAnalysisTimer)
         self.analysisPending = False
         self.analysisRunning = False
+        self.disableAC = False
 
         self.varNames = set()
         self.funcNames = set()
@@ -74,7 +75,7 @@ class CodeAnalyzer(object):
 
         self.built_in = ["False", "True", "None"]
         self.built_in.extend("else import pass break except in raise finally is return and continue for lambda try "
-                             "as def from while del global not with elif if or yield".split(" "))
+                             "as def from while del global not with elif if or yield input()".split(" "))
 
     def SetDown(self):
         self.syntaxErrors = None
@@ -176,6 +177,9 @@ class CodeAnalyzer(object):
         return retVals
 
     def GetACList(self, handlerObj, handlerName, leadingStr, prefix):
+        if self.disableAC:
+            return []
+
         if len(leadingStr) == 0 or leadingStr[-1] != '.':
             if len(prefix) < 1:
                 return []
