@@ -1435,7 +1435,7 @@ class ViewProxy(object):
     @speed.setter
     def speed(self, val):
         try:
-            val = wx.Point(val[0], val[1])
+            val = wx.Point(int(val[0]), int(val[1]))
         except:
             raise ValueError("speed must be a point or a list of two numbers")
         model = self._model

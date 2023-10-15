@@ -102,6 +102,8 @@ class Runner():
             "run_after_delay": self.run_after_delay,
             "time": self.time,
             "distance": self.distance,
+            "angle_from_points": self.angle_from_points,
+            "rotate_point": self.rotate_point,
             "paste": self.paste,
             "alert": self.alert,
             "ask_yes_no": self.ask_yes_no,
@@ -899,6 +901,32 @@ class Runner():
         except:
             raise ValueError("distance(): pointB must be a point or a list of two numbers")
         return math.sqrt((pointB[0] - pointA[0]) ** 2 + (pointB[1] - pointA[1]) ** 2)
+
+    def angle_from_points(self, pointA, pointB):
+        try:
+            pointA = wx.RealPoint(pointA[0], pointA[1])
+        except:
+            raise ValueError("angle_from_points(): pointA must be a Point object or a list of two numbers")
+        try:
+            pointB = wx.RealPoint(pointB[0], pointB[1])
+        except:
+            raise ValueError("angle_from_points(): pointB must be a Point object or a list of two numbers")
+        return (math.degrees(math.atan2(*(tuple(pointB - pointA))))-90)%360
+
+    def rotate_point(self, point, angle):
+        try:
+            point = wx.RealPoint(point[0], point[1])
+        except:
+            raise ValueError("rotate_point(): point must be a Point object or a list of two numbers")
+        try:
+            angle = float(angle)
+        except ValueError:
+            raise TypeError("rotate_point(): angle must be a number")
+
+        angle = math.radians(angle)
+        px, py = point
+        return self.MakePoint(-(math.cos(angle) * -px - math.sin(angle) * py),
+                math.sin(angle) * -px + math.cos(angle) * py)
 
     def alert(self, message):
         if self.stopRunnerThread or self.generatingThumbnail:

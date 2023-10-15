@@ -336,6 +336,16 @@ class HelpDataGlobals():
         "distance": {"args": {"pointA": {"type": "point", "info": "One location on the card."},
                               "pointB": {"type": "point", "info": "Another location on the card."}}, "return": "float",
                      "info": "Return the distance between <b>pointA</b> and <b>pointB</b>."},
+        "angle_from_points": {"args": {"pointA": {"type": "point", "info": "One location on the card."},
+                              "pointB": {"type": "point", "info": "Another location on the card."}}, "return": "float",
+                     "info": "Return the angle between the bottom edge of the card, and the line from <b>pointA</b> to "
+                             "<b>pointB</b>, rotating clockwise.  This can be useful to find the rotation angle to use "
+                             "to point an object at <b>pointA</b> towards <b>pointB</b>."},
+        "rotate_point": {"args": {"point": {"type": "point", "info": "A distance in x and y, from (0,0)."},
+                              "angle": {"type": "float", "info": "An angle in degrees to rotate the point around (0,0)."}}, "return": "point",
+                     "info": "Returns a new point, calculated by rotating <b>point</b> by <b>angle</b> degrees, "
+                             "clockwise around the point (0,0).  This is useful to, for example, set the speed of a "
+                             "cannonball that should be moving in the direction that a cannon is already pointing."},
         "run_after_delay": {"args": {"duration": {"type": "float", "info": "Number of seconds to delay."},
                                    "func": {"type": "function", "info": "A function to call after the delay."},
                                    "*args": {"type": "any", "info": "0 or more arguments and/or keyword argumentss to pass into <b>func</b>."}}, "return": None,
