@@ -54,6 +54,13 @@ class CDSPoint(wx.Point):
     def __add__(self, other):
         return super().__add__(tuple((int(x) for x in other)))
 
+    def __isub__(self, other):
+        super().__isub__(tuple((int(x) for x in other)))
+        return self
+
+    def __sub__(self, other):
+        return super().__sub__(tuple((int(x) for x in other)))
+
 
 class CDSRealPoint(wx.RealPoint):
     def __init__(self, *args, **kwargs):
@@ -88,11 +95,30 @@ class CDSRealPoint(wx.RealPoint):
         self += (0, val-self[1])
         self.model.FramePartChanged(self)
 
+    def __add__(self, other):
+        if sys.version_info.major == 3 and sys.version_info.minor >= 10:
+            return super().__add__(tuple((int(x) for x in other)))
+        else:
+            return super().__add__(other)
+
     def __iadd__(self, other):
         if sys.version_info.major == 3 and sys.version_info.minor >= 10:
             super().__iadd__(tuple((int(x) for x in other)))
         else:
             super().__iadd__(other)
+        return self
+
+    def __sub__(self, other):
+        if sys.version_info.major == 3 and sys.version_info.minor >= 10:
+            return super().__sub__(tuple((int(x) for x in other)))
+        else:
+            return super().__sub__(other)
+
+    def __isub__(self, other):
+        if sys.version_info.major == 3 and sys.version_info.minor >= 10:
+            super().__isub__(tuple((int(x) for x in other)))
+        else:
+            super().__isub__(other)
         return self
 
 
