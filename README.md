@@ -54,7 +54,9 @@ ________
 The prebuilt applications for Mac and Windows have no external dependencies.
 
 Running CardStock from source requires Python 3.7 or newer (3.11 recommended), and wxPython 4.1 or newer (wxPython 4.2.x recommended).
-CardStock requires installing the python modules attrdict3(linux-only), wxpython, simpleaudio, PyInstaller, and requests.
+CardStock requires installing the python modules attrdict3(linux-only), wxpython, simpleaudio, PyInstaller, and requests.  
+Note that Python 3.12 is currently incompatible with wxpython, and so will not run CardStock until
+wxPython receives an update.
 
 ## Installation
 You can either:
