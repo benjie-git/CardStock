@@ -16,12 +16,12 @@
         "on_setup": "from random import randint",
         "on_key_press": "if key_name == \"Space\":\n   ball.send_message(\"StartGame\")",
         "on_mouse_press": "ball.send_message(\"StartGame\")",
-        "on_periodic": "# Make the paddle follow the mouse's X position\n# but keep it on-screen.\nx = min(max(get_mouse_pos().x, 0), card.size.width)\npaddle.center = [x, 40]",
+        "on_periodic": "# Make the paddle follow the mouse's X position\n# but keep it on-screen.\nx = min(max(get_mouse_pos().x, 0), card.size.width)\npaddle.center.x = x",
         "on_resize": "# Keep the label at the top, following the window's height\nlabel.position.y = card.size.height - label.size.height - 5"
       },
       "properties": {
         "name": "card_1",
-        "fill_color": "#EEEEEE"
+        "fill_color": "#D0EBF5"
       },
       "childModels": [
         {
@@ -103,10 +103,10 @@
               36,
               36
             ],
-            "pen_color": "#000000",
+            "pen_color": "black",
             "pen_thickness": 2,
             "rotation": 0.0,
-            "fill_color": "#FB0207"
+            "fill_color": "red"
           },
           "points": [
             [
@@ -122,6 +122,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 6,
-  "CardStock_stack_version": "0.99.1"
+  "CardStock_stack_format": 7,
+  "CardStock_stack_version": "0.99.4"
 }
