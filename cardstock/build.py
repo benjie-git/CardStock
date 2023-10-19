@@ -36,6 +36,14 @@ def pyinstall(cmd):
     args = cmd.split(" ")
     PyInstaller.__main__.run(args)
 
+
+if os.path.exists("build"):
+    shutil.rmtree("build")
+
+if os.path.exists("dist"):
+    shutil.rmtree("dist")
+
+
 if wx.Platform == "__WXMAC__":
     # Build the standalone binary
     pyinstall(f"--onedir --clean -y --windowed {extraModsStr} -n standalone standalone.py")
