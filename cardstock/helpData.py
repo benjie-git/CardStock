@@ -402,6 +402,36 @@ class HelpDataGlobals():
                               },
                       "return": None,
                       "info": "Opens the given <b>URL</b> in the default browser."},
+        "request_url": {"args": {"URL": {"type": "string",
+                                         "info": "This is the URL to request."},
+                                 "params": {"type": "dictionary",
+                                         "info": "This optionally holds query parameters for your request."},
+                                 "headers": {"type": "dictionary",
+                                         "info": "This optionally holds HTTP headers for your request."},
+                                 "method": {"type": "string",
+                                         "info": "This optionally holds an HTTP method name like \"GET\" or \"POST\".  "
+                                                 "Requests default to \"GET\"."},
+                                 "timeout": {"type": "float",
+                                         "info": "This optionally allows setting a timeout in seconds, after which the "
+                                                 "request will be cancelled."},
+                                 "on_done": {"type": "function",
+                                         "info": "This optional function is called when the request has received a "
+                                                 "response.  This callback function receives 2 arguments: an HTTP "
+                                                 "status code as an int, and the response as a string, or as binary "
+                                                 "data if the response is not text."},
+                                },
+                        "return": None,
+                        "info": "Requests the given <b>URL</b>.  If an on_done function is provided, this request_url() "
+                                "function will return immediately, and when the response is received, the given "
+                                "<b>on_done(status, result)</b> function will run.  If no on_done function is provided, "
+                                "this request_url() will wait until it gets a response, and will return the response "
+                                "data as text or binary data.<br/><br/><b>Examples:</b><br/><br/>"
+                                "htmlString = request_url(\"https://google.com/\")<br/><br/>"
+                                "def got_result(status, text):<br/>"
+                                "&nbsp;&nbsp;&nbsp;&nbsp;if status == 200:<br/>"
+                                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print(text)<br/>"
+                                "request_url(\"https://google.com/\", on_done=got_result)<br/><br/>"
+                                "jokeJson = request_url(\"https://geek-jokes.sameerkumar.website/api\", params={\"format\": \"json\"})"},
         "play_sound": {"args": {"file": {"type": "string",
                                         "info": "This is the filename of the .wav format audio file to play, relative to where the stack file lives."}},
                       "return": None,

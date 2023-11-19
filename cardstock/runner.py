@@ -10,8 +10,9 @@ import re
 import sys
 import os
 import traceback
+
+import requests
 import wx
-import uiView
 import types
 from uiCard import Card
 import colorsys
@@ -114,6 +115,7 @@ class Runner():
             "goto_previous_card": self.goto_previous_card,
             "run_stack": self.run_stack,
             "open_url": self.open_url,
+            "request_url": self.request_url,
             "play_sound": self.play_sound,
             "stop_sound": self.stop_sound,
             "broadcast_message": self.broadcast_message,
@@ -1001,6 +1003,19 @@ class Runner():
             raise TypeError("open_url(): URL must be a string")
 
         wx.LaunchDefaultBrowser(URL)
+
+    def request_url(self, URL, params=None, headers=None, method="GET", timeout=None, on_done=None):
+        if not on_done:
+            response = requests.request(method, url=URL, params=params, headers=headers, timeout=timeout)
+            return response.text
+        else:
+            def do_request():
+                response = requests.request(method, url=URL, params=params, headers=headers, timeout=timeout)
+                @RunOnMainAsync
+                def f(code, text):
+                    on_done(code, text)
+                f(response.status_code, response.text)
+            CodeRunnerThread(target=do_request).start()
 
     def play_sound(self, filepath):
         if not isinstance(filepath, str):
