@@ -421,16 +421,21 @@ class HelpDataGlobals():
                                                  "data if the response is not text."},
                                 },
                         "return": None,
-                        "info": "Requests the given <b>URL</b>.  If an on_done function is provided, this request_url() "
+                        "info": "Requests the given <b>URL</b>.  If an <b>on_done function</b> is provided, this request_url() "
                                 "function will return immediately, and when the response is received, the given "
-                                "<b>on_done(status, result)</b> function will run.  If no on_done function is provided, "
+                                "<b>on_done(status, result)</b> function will run.  If no <b>on_done</b> function is provided, "
                                 "this request_url() will wait until it gets a response, and will return the response "
-                                "data as text or binary data.<br/><br/><b>Examples:</b><br/><br/>"
+                                "data as text or binary data.  Optional <b>headers</b> and query <b>params</b> can be "
+                                "provided as dictionaries, and <b>method</b> and <b>timeout</b> can be provided as well, "
+                                "if needed. <br/><br/><b>Examples:</b><br/><br/>"
+                                "# Request the text from a URL and wait until we get it back<br/>"
                                 "htmlString = request_url(\"https://google.com/\")<br/><br/>"
+                                "# Request the text from a URL without waiting.  got_result() is called when it's ready.<br/>"
                                 "def got_result(status, text):<br/>"
                                 "&nbsp;&nbsp;&nbsp;&nbsp;if status == 200:<br/>"
                                 "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print(text)<br/>"
                                 "request_url(\"https://google.com/\", on_done=got_result)<br/><br/>"
+                                "# Request the text from a URL, with parameters, and wait until we get it back<br/>"
                                 "jokeJson = request_url(\"https://geek-jokes.sameerkumar.website/api\", params={\"format\": \"json\"})"},
         "play_sound": {"args": {"file": {"type": "string",
                                         "info": "This is the filename of the .wav format audio file to play, relative to where the stack file lives."}},
