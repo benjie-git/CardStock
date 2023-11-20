@@ -1013,7 +1013,7 @@ class Runner():
                 response = requests.request(method, url=URL, params=params, headers=headers, timeout=timeout)
                 @RunOnMainAsync
                 def f(code, text):
-                    on_done(code, text)
+                    self.RunWithExceptionHandling(None, on_done, code, text)
                     self.stackManager.view.Refresh()
                 f(response.status_code, response.text)
             CodeRunnerThread(target=do_request).start()
