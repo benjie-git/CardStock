@@ -1014,6 +1014,7 @@ class Runner():
                 @RunOnMainAsync
                 def f(code, text):
                     on_done(code, text)
+                    self.stackManager.view.Refresh()
                 f(response.status_code, response.text)
             CodeRunnerThread(target=do_request).start()
 
