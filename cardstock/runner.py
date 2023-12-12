@@ -889,7 +889,10 @@ class Runner():
             remaining = endTime - time()
             if self.stopRunnerThread or self.generatingThumbnail:
                 break
-            sleep(min(remaining, 0.25))
+            sleep(min(remaining, 0.03))
+            self.stackManager.OnPeriodicTimer(None)
+            self.stackManager.view.RefreshIfNeeded()
+            wx.YieldIfNeeded()
 
     def time(self):
         return time()
