@@ -23,7 +23,7 @@ except ModuleNotFoundError:
 
 # Settings for Uploading stack to CardStock.run
 CSWEB_DISPLAY_NAME = "CardStock.run"
-CSHOST = "https://www.cardstock.run"  # "http://127.0.0.1:8000"
+CSHOST = "https://cardstock.run"  # "http://127.0.0.1:8000"
 CSWEB_SIGNUP_URL = f"{CSHOST}/l/signup"
 CSWEB_GET_TOKEN_URL = f"{CSHOST}/v/1/api-token-auth/"
 CSWEB_UPLOAD_URL = f"{CSHOST}/v/1/upload-stack"
