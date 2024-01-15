@@ -32,7 +32,6 @@ from consoleWindow import ConsoleWindow
 from stackModel import StackModel
 from uiCard import CardModel
 from findEngineDesigner import FindEngine
-from wx.lib.mixins.inspection import InspectionMixin
 from stackExporter import StackExporter
 import mediaSearchDialogs
 from runner import Runner
@@ -1297,11 +1296,10 @@ class DesignerFrame(wx.Frame):
 # ----------------------------------------------------------------------
 
 
-class DesignerApp(wx.App, InspectionMixin):
+class DesignerApp(wx.App):
     def OnInit(self):
         self.argFilename = None
         self.doneStarting = False
-        self.Init() # for InspectionMixin
         self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
         self.frame = DesignerFrame(None)
         self.frame.app = self

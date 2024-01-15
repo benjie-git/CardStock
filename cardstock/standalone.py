@@ -18,7 +18,6 @@ import wx
 import wx.html
 from viewer import ViewerFrame
 from stackModel import StackModel
-from wx.lib.mixins.inspection import InspectionMixin
 
 ID_MENU_FIND = wx.NewIdRef()
 ID_MENU_FIND_SEL = wx.NewIdRef()
@@ -29,9 +28,8 @@ ID_MENU_REPLACE = wx.NewIdRef()
 # ----------------------------------------------------------------------
 
 
-class StandaloneApp(wx.App, InspectionMixin):
+class StandaloneApp(wx.App):
     def OnInit(self):
-        self.Init(self)  # for InspectionMixin
         self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
         self.SetAppDisplayName('CardStock')
 

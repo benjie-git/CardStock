@@ -27,7 +27,6 @@ from stackModel import StackModel
 from runner import Runner
 import helpDialogs
 from findEngineViewer import FindEngine
-from wx.lib.mixins.inspection import InspectionMixin
 from consoleWindow import ConsoleWindow
 from variablesWindow import VariablesWindow
 from codeRunnerThread import RunOnMainSync, RunOnMainAsync
@@ -597,11 +596,10 @@ class ViewerFrame(wx.Frame):
 
 # ----------------------------------------------------------------------
 
-class ViewerApp(wx.App, InspectionMixin):
+class ViewerApp(wx.App):
     def OnInit(self):
         self.argFilename = None
         self.doneStarting = False
-        self.Init(self)  # for InspectionMixin
         self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
         self.SetAppDisplayName('CardStock')
         self.frame = None
