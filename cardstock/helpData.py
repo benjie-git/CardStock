@@ -550,7 +550,7 @@ class HelpDataObject():
         "cut": {"args": {},
                 "return": None,
                 "info": "Copies this object onto the clipboard and then deletes it, just like the Edit menu Cut command."},
-        "clone": {"args": {"...": {"info": "optionally set more properties here.  For example, "
+        "clone": {"args": {"...": {"type": "Any", "info": "optionally set more properties here.  For example, "
                                            "include position=(10,10)"}},
                   "return": "object",
                   "info": "Duplicates this object, and updates the new object's name to be unique, and then returns "
@@ -558,7 +558,7 @@ class HelpDataObject():
         "delete": {"args": {},
                    "return": None,
                    "info": "Deletes this object.  Like Cut, but the object does not get copied to the clipboard."},
-        "send_message": {"args": {"message":{"type": "string", "info": "The message being sent to this object."}},
+        "send_message": {"args": {"message": {"type": "string", "info": "The message being sent to this object."}},
                         "return": None,
                         "info": "Sends a <b>message</b> to this object, that the object can handle in its on_message event code.  For "
                                 "example, you could send the message 'reset' to an object, and in its on_message code, "
@@ -783,7 +783,7 @@ class HelpDataButton():
     handlers = {
         "on_click": {"args": {},
                     "info": "The <b>on_click</b> event is run when a user clicks down on this button, and releases the "
-                            "mouse, while still inside the button.  It is also run when the button's Click() "
+                            "mouse, while still inside the button.  It is also run when the button's click() "
                             "method is called."},
         "on_selection_changed": {"args": {"is_selected": {"type": "bool",
                                                           "info": "The new selection state of this button.  True "
@@ -1142,49 +1142,49 @@ class HelpDataCard():
         "add_button": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Button object.  If omitted, the name will be "
                                                                 "'button_{N}'."},
-                               "...": {"info": "optionally set more properties here.  For example, "
+                               "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
                                                               "include position=(10,10)"}},
                     "return": "button",
                     "info": "Adds a new Button to the card, and returns the new object."},
         "add_text_field": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Text Field object.  If omitted, the name will be "
                                                                 "'field_{N}'."},
-                                  "...": {"info": "optionally set more properties here.  For example, "
+                                  "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
                                                                  "include position=(10,10)"}},
                     "return": "textfield",
                     "info": "Adds a new Text Field to the card, and returns the new object."},
         "add_text_label": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Text Label object.  If omitted, the name will be "
                                                                 "'label_{N}'."},
-                                  "...": {"info": "optionally set more properties here.  For example, "
+                                  "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
                                                                  "include position=(10,10)"}},
                          "return": "textlabel",
                     "info": "Adds a new Text Label object to the card, and returns the new object."},
         "add_image": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Image object.  If omitted, the name will be "
                                                                 "'image_{N}'."},
-                              "...": {"info": "optionally set more properties here.  For example, "
+                              "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
                                                              "include position=(10,10)"}},
                      "return": "image",
                      "info": "Adds a new Image to the card, and returns the new object."},
         "add_oval": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Oval object.  If omitted, the name will be "
                                                                 "'shape_{N}'."},
-                             "...": {"info": "optionally set more properties here.  For example, "
+                             "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
                                                             "include position=(10,10)"}},
                     "return": "oval",
                     "info": "Adds a new Image to the card, and returns the new object."},
         "add_rectangle": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Rectangle object.  If omitted, the name will be "
                                                                 "'shape_{N}'."},
-                                  "...": {"info": "optionally set more properties here.  For example, "
+                                  "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
                                                                  "include position=(10,10)"}},
                          "return": "rect",
                     "info": "Adds a new Rectangle to the card, and returns the new object."},
         "add_round_rectangle": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Round Rectangle object.  If omitted, the name will be "
                                                                 "'shape_{N}'."},
-                                       "...": {"info": "optionally set more properties here.  For example, "
+                                       "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
                                                        "include position=(10,10)"}},
                               "return": "roundrect",
                     "info": "Adds a new Round Rectangle to the card, and returns the new object."},
@@ -1196,7 +1196,7 @@ class HelpDataCard():
                              "name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Line object.  If omitted, the name will be "
                                                                 "'shape_{N}'."},
-                             "...": {"info": "optionally set more properties here.  For example, "
+                             "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
                                                             "include position=(10,10)"}},
                     "return": "line",
                     "info": "Adds a new Line to the card, and returns the new object."},
@@ -1208,7 +1208,7 @@ class HelpDataCard():
                              "name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                 "new Line object.  If omitted, the name will be "
                                                                 "'shape_{N}'."},
-                                "...": {"info": "optionally set more properties here.  For example, "
+                                "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
                                                                "include position=(10,10)"}},
                        "return": "polygon",
                     "info": "Adds a new Polygon shape to the card, and returns the new object."},

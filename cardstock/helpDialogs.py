@@ -373,6 +373,7 @@ stack, run it on the web, and send out links to let others run it.</p>
             self.Close()
         event.Skip()
 
+
 class CardStockReference(wx.Frame):
     """ A help window that uses an HTML view.  This is the Reference Guide, which lists and explains the details of
      each kind of CardStock object. """

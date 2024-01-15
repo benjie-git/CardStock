@@ -39,7 +39,11 @@ class StandaloneApp(wx.App, InspectionMixin):
             if wx.Platform != "__WXMAC__":
                 bundle_dir = sys._MEIPASS
             else:
-                bundle_dir = os.path.join(os.path.dirname(sys.executable), "Resources")
+                dirPath = os.path.dirname(sys.executable)
+                bundle_dir = os.path.join(dirPath, "Resources")
+                if not os.path.exists(os.path.join(bundle_dir, "stack.cds")):
+                    dirPath = os.path.dirname(os.path.dirname(sys.executable))
+                    bundle_dir = os.path.join(dirPath, "Resources")
         else:
             bundle_dir = os.path.dirname(os.path.realpath(__file__))
         stackPath = os.path.join(bundle_dir, "stack.cds")
