@@ -55,6 +55,7 @@ The prebuilt applications for Mac and Windows have no external dependencies.
 
 Running CardStock from source requires Python 3.7 or newer (3.11 recommended), and wxPython 4.1 or newer (wxPython 4.2.x recommended).
 CardStock requires installing the python modules attrdict3(linux-only), wxpython, simpleaudio, PyInstaller, and requests.  
+For mp3 playback support, you'll need to install the lame package (mp3 decoder), and python's streamp3. 
 Note that Python 3.12 is currently incompatible with wxpython, and so will not run CardStock until
 wxPython receives an update.
 
@@ -63,17 +64,19 @@ You can either:
 
 ### 1. Run it from source:
 1. install python3  # Note: Python3.12 is incompatible with wxpython, so 3.11 is recommended
-2. Linux-only: apt install libasound2-dev libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
+2. Linux-only: apt install libasound2-dev lame libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
 3. Linux-only: pip3 install attrdict3
-4. pip3 install wxpython PyInstaller simpleaudio requests  # note that wxpython can take a long time to build
-5. download or clone this repository
-6. run designer.py and viewer.py as desired
-7. optionally run build.py to create your own standalone applications for the Designer and Viewer applications.
+4. Mac-only: brew install lame
+5. pip3 install wxpython PyInstaller simpleaudio requests  # note that wxpython can take a long time to build
+6. download or clone this repository
+7. run designer.py and viewer.py as desired
+8. optionally run build.py to create your own standalone applications for the Designer and Viewer applications.
 
 ### 2. Install using pip/pypi:
-1. Linux-only: apt install libasound2-dev libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
-2. pip3 install cardstock  # note that the dependency wxpython can take a very long time to build
-3. run using the newly installed commands cardstock and cardstock_viewer
+1. Linux-only: apt install libasound2-dev lame libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
+2. Mac-only: brew install lame
+3. pip3 install cardstock  # note that the dependency wxpython can take a very long time to build
+4. run using the newly installed commands cardstock and cardstock_viewer
 
 ### 3. Or download the latest, pre-built CardStock application for Mac or Windows
 1. Download CardStock for Mac or Windows here: https://github.com/benjie-git/CardStock/releases/latest
