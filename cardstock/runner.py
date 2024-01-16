@@ -25,8 +25,12 @@ import queue
 import sanitizer
 from enum import Enum
 import simpleaudio
-from streamp3 import MP3Decoder
 import consoleWindow
+
+try:
+    from streamp3 import MP3Decoder
+except ImportError:
+    MP3Decoder = None
 
 
 class TaskType (Enum):
@@ -1038,12 +1042,15 @@ class Runner():
             s = self.soundCache[filepath]
         else:
             if filepath.lower().endswith(".mp3"):
-                decoded = bytearray()
-                with open(filepath, 'rb') as mp3_file:
-                    decoder = MP3Decoder(mp3_file)
-                    for chunk in decoder:
-                        decoded.extend(chunk)
-                    s = simpleaudio.WaveObject(decoded, decoder.num_channels, 2, decoder.sample_rate)
+                if MP3Decoder:
+                    decoded = bytearray()
+                    with open(filepath, 'rb') as mp3_file:
+                        decoder = MP3Decoder(mp3_file)
+                        for chunk in decoder:
+                            decoded.extend(chunk)
+                        s = simpleaudio.WaveObject(decoded, decoder.num_channels, 2, decoder.sample_rate)
+                else:
+                    s = None
             else:
                 s = simpleaudio.WaveObject.from_wave_file(filepath)
             if s:
