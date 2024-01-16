@@ -1,6 +1,6 @@
 attrdict3
 wxpython
-PyInstaller
+PyInstaller==5.13.2
 requests
 simpleaudio
 streamp3
