@@ -3,4 +3,4 @@ wxpython
 PyInstaller==5.13.2
 requests
 simpleaudio
-streamp3
+streamp3[mp3]
