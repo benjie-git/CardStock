@@ -1249,7 +1249,7 @@ class HelpDataCard():
                                "card's on_show_card event is run, when going to another card."},
         "on_exit_stack": {"args": {},
                         "info": "The <b>on_exit_stack</b> event is run for all cards when the stack exits, whether "
-                                "from the File Close menu item, the Quit() function, the stack.return_from_stack() method,"
+                                "from the File Close menu item, the quit() function, the stack.return_from_stack() method,"
                                 "or closing the stack viewer window.  You can use this to clean up any external "
                                 "resources -- for example, closing files.  This event needs to run quickly, so it's "
                                 "not able to call functions like alert(), ask_text(), ask_yes_no(), run_stack(), etc."},
