@@ -331,8 +331,8 @@ class HelpDataGlobals():
 
     functions = {
         "wait": {"args": {"duration": {"type": "float", "info": "Number of seconds to delay."}}, "return": None,
-                 "info": "Delays the program from running for <b>duration</b> seconds.  No movements or animations "
-                         "will happen during this time."},
+                 "info": "Delays the program from running for <b>duration</b> seconds.  Object animations that are "
+                         "already in progress or queued up will continue during this time."},
         "distance": {"args": {"pointA": {"type": "point", "info": "One location on the card."},
                               "pointB": {"type": "point", "info": "Another location on the card."}}, "return": "float",
                      "info": "Return the distance between <b>pointA</b> and <b>pointB</b>."},
