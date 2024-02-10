@@ -65,18 +65,42 @@ You can either:
 ### 1. Run it from source:
 1. install python3  # Note: Python3.12 is incompatible with wxpython, so 3.11 is recommended
 2. Linux-only: apt install libasound2-dev lame libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
-3. Linux-only: pip3 install attrdict3
-4. Mac-only: brew install lame
+3. Mac-only: brew install lame
+4. pip3 install attrdict3
 5. pip3 install wxpython PyInstaller simpleaudio requests  # note that wxpython can take a long time to build
-6. download or clone this repository
-7. run designer.py and viewer.py as desired
-8. optionally run build.py to create your own standalone applications for the Designer and Viewer applications.
+6. To include mp3 support: pip3 install streamp3
+
+   (Note that this may require setting LDFLAGS and CPPFLAGS to allow finding the lame header and library files.
+
+    You may need to run this as something like
+
+   `CPPFLAGS=-I/opt/homebrew/include LDFLAGS=-L/opt/homebrew/lib pip3 install streamp3` or 
+
+    `CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib pip3 install streamp3`
+
+    depending on where the lame library was installed.)
+   
+7. download or clone this repository
+8. run designer.py and viewer.py as desired
+9. optionally run build.py to create your own standalone applications for the Designer and Viewer applications.
 
 ### 2. Install using pip/pypi:
 1. Linux-only: apt install libasound2-dev lame libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
 2. Mac-only: brew install lame
-3. pip3 install cardstock  # note that the dependency wxpython can take a very long time to build
-4. run using the newly installed commands cardstock and cardstock_viewer
+3. To include mp3 support: pip3 install streamp3
+
+   (Note that this may require setting LDFLAGS and CPPFLAGS to allow finding the lame header and library files.
+
+    You may need to run this as something like
+
+   `CPPFLAGS=-I/opt/homebrew/include LDFLAGS=-L/opt/homebrew/lib pip3 install streamp3` or 
+
+    `CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib pip3 install streamp3`
+
+    depending on where the lame library was installed.)
+
+4. pip3 install cardstock  # note that the dependency wxpython can take a very long time to build
+5. run using the newly installed commands cardstock and cardstock_viewer
 
 ### 3. Or download the latest, pre-built CardStock application for Mac or Windows
 1. Download CardStock for Mac or Windows here: https://github.com/benjie-git/CardStock/releases/latest
