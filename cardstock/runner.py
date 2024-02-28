@@ -98,6 +98,7 @@ class Runner():
         self.runnerThread.start()
         self.stopRunnerThread = False
         self.generatingThumbnail = False
+        self.compileCache = {}
 
         self.soundCache = {}
 
@@ -208,6 +209,11 @@ class Runner():
 
     def EnableUpdateVars(self, enable):
         self.shouldUpdateVars = enable
+
+    def HandlerChanged(self, model, handlerName):
+        path = model.GetPath() + "." + handlerName
+        if path in self.compileCache:
+            del self.compileCache[path]
 
     def StopTimers(self):
         for t in self.timers:
@@ -515,7 +521,15 @@ class Runner():
 
         # rewrite handlers that use return outside of a function, and replace with an exception that we catch, to
         # act like a return.
-        handlerStr = self.RewriteHandler(handlerStr)
+        path = uiModel.GetPath() + "." + handlerName
+        isNew = False
+        if path in self.compileCache:
+            ast = self.compileCache[path]
+        else:
+            handlerStr = self.RewriteHandler(handlerStr)
+            ast = compile(handlerStr, "<string>", "exec")
+            self.compileCache[path] = ast
+            isNew = True
 
         self.lastHandlerStack.append((uiModel, handlerName))
 
@@ -528,20 +542,24 @@ class Runner():
         detail = None
 
         # Use this for noticing user-definitions of new functions
-        oldClientVars = self.clientVars.copy()
+        if isNew:
+            oldClientVars = self.clientVars.copy()
 
         try:
-            exec(handlerStr, self.clientVars)
-            self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
+            exec(ast, self.clientVars)
+            if isNew:
+                self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
         except SyntaxError as err:
-            self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
+            if isNew:
+                self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
             detail = err.msg
             error_class = err.__class__.__name__
             line_number = err.lineno
             errModel = uiModel
             errHandlerName = handlerName
         except Exception as err:
-            self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
+            if isNew:
+                self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
             if err.__class__.__name__ == "RuntimeError" and err.args[0] == "Return":
                 # Catch our exception-based return calls
                 pass

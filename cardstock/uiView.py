@@ -1556,6 +1556,7 @@ class ViewProxy(object):
             raise TypeError(f"set_code_for_event(): this object has no event called '{eventName}'")
 
         model.handlers[eventName] = code
+        model.stackManager.runner.HandlerChanged(model, eventName)
 
     def set_bounce_objects(self, objects):
         if not isinstance(objects, (list, tuple)):
