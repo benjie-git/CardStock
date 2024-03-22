@@ -846,8 +846,13 @@ class StackManager(object):
 
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
         if self.isEditing:
-            uiView = self.HitTest(pos, not event.ShiftDown())
-            uiViews = [uiView] if uiView else None
+            if uiView == self.uiCard and (pos.y < 0 or pos.x > self.uiCard.model.GetProperty("size").width):
+                # Don't select card when a click starts outside of the card.
+                self.SelectUiView(None)
+                uiViews = []
+            else:
+                uiView = self.HitTest(pos, not event.ShiftDown())
+                uiViews = [uiView] if uiView else None
         else:
             uiViews = self.HitTestAll(pos)
 
@@ -859,12 +864,13 @@ class StackManager(object):
             else:
                 self.inlineEditingView.StopInlineEditing()
 
-        if self.tool and self.isEditing:
+        if self.isEditing:
             if uiViews and uiViews[0].model.type.startswith("text") and event.LeftDClick():
                 # Flag this is a double-click  On mouseUp, we'll start the inline editor.
                 self.isDoubleClick = True
             else:
-                self.tool.OnMouseDown(uiViews[0], event)
+                # We need to pass in a view, even when click starts outside the card
+                self.tool.OnMouseDown(uiViews[0] if uiViews else self.uiCard, event)
         else:
             self.lastMouseDownView = uiViews[0]
             self.runner.ResetStopHandlingMouseEvent()

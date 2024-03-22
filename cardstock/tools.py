@@ -180,7 +180,11 @@ class HandTool(BaseTool):
             self.deselectTarget = True
 
         if not selectedGroupSubview and not self.targetUi.isSelected:
-            self.stackManager.SelectUiView(self.targetUi, self.shiftDown)
+            if self.targetUi.model.type == "card" and self.absOrigin.y < 0 or self.absOrigin.x > self.targetUi.model.GetProperty("size").width:
+                # Don't select card when a click starts outside of the card.
+                pass
+            else:
+                self.stackManager.SelectUiView(self.targetUi, self.shiftDown)
 
         self.oldFrames = {}
         selected = self.stackManager.GetSelectedUiViews()
