@@ -519,9 +519,6 @@ class DesignerFrame(wx.Frame):
             contextMenu.AppendSeparator()
             contextMenu.Append(ID_DUPLICATE_CARD, "&Duplicate Card\tCtrl-Alt-+", "Duplicate Card")
             contextMenu.Append(ID_REMOVE_CARD, "&Remove Card", "Remove Card")
-            contextMenu.AppendSeparator()
-            contextMenu.Append(ID_MOVE_CARD_FWD, "Move Card &Forward\tCtrl-Shift-]", "Move Card Forward")
-            contextMenu.Append(ID_MOVE_CARD_BACK, "Move Card Bac&k\tCtrl-Shift-[", "Move Card Back")
 
         if len(uiViews) > 1:
             contextMenu.AppendSeparator()
@@ -554,11 +551,17 @@ class DesignerFrame(wx.Frame):
         contextMenu.AppendSeparator()
         contextMenu.Append(ID_FLIP_HORIZ, "Flip Horizontal\tCtrl-Alt-H", "Flip Horizontal")
         contextMenu.Append(ID_FLIP_VERT, "Flip Vertical\tCtrl-Alt-V", "Flip Vertical")
-        contextMenu.AppendSeparator()
-        contextMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Alt-Shift-F", "Move to Front")
-        contextMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward\tCtrl-Alt-F", "Move Forward")
-        contextMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&kward\tCtrl-Alt-B", "Move Back")
-        contextMenu.Append(ID_MOVE_VIEW_END, "Move to Back\tCtrl-Alt-Shift-B", "Move to Back")
+
+        if len(uiViews) == 1 and uiViews[0].model.type == "card":
+            contextMenu.AppendSeparator()
+            contextMenu.Append(ID_MOVE_CARD_FWD, "Move Card &Forward\tCtrl-Shift-]", "Move Card Forward")
+            contextMenu.Append(ID_MOVE_CARD_BACK, "Move Card Bac&k\tCtrl-Shift-[", "Move Card Back")
+        else:
+            contextMenu.AppendSeparator()
+            contextMenu.Append(ID_MOVE_VIEW_FRONT, "Move to Front\tCtrl-Alt-Shift-F", "Move to Front")
+            contextMenu.Append(ID_MOVE_VIEW_FWD, "Move &Forward\tCtrl-Alt-F", "Move Forward")
+            contextMenu.Append(ID_MOVE_VIEW_BACK, "Move Bac&kward\tCtrl-Alt-B", "Move Back")
+            contextMenu.Append(ID_MOVE_VIEW_END, "Move to Back\tCtrl-Alt-Shift-B", "Move to Back")
 
         return contextMenu
 
