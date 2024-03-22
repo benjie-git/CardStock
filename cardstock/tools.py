@@ -180,7 +180,7 @@ class HandTool(BaseTool):
             self.deselectTarget = True
 
         if not selectedGroupSubview and not self.targetUi.isSelected:
-            if self.targetUi.model.type == "card" and self.absOrigin.y < 0 or self.absOrigin.x > self.targetUi.model.GetProperty("size").width:
+            if self.targetUi.model.type == "card" and (self.absOrigin.y < 0 or self.absOrigin.x > self.targetUi.model.GetProperty("size").width):
                 # Don't select card when a click starts outside of the card.
                 pass
             else:
@@ -247,7 +247,7 @@ class HandTool(BaseTool):
             if self.mode == "move":
                 # We're dragging/moving an object
                 selectedViews = self.stackManager.GetSelectedUiViews()
-                if len(selectedViews) == 1 and selectedViews[0].parent.model.type == "group":
+                if len(selectedViews) == 1 and selectedViews[0].parent and selectedViews[0].parent.model.type == "group":
                     selectedViews = [self.targetUi]
                 pos = self.ConstrainDragPoint("drag", self.absOrigin, event)
                 for ui in selectedViews:
