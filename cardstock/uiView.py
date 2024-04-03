@@ -966,6 +966,8 @@ class ViewModel(object):
             return ["Center", "Stretch", "Contain", "Fill"]
         elif key == "style":
             return ["Border", "Borderless", "Checkbox", "Radio"]
+        elif key == "pen_style":
+            return ["Solid", "Long-Dashes", "Dashes", "Dots"]
         return []
 
     def GetProperty(self, key):

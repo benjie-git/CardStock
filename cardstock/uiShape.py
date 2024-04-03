@@ -10,6 +10,11 @@ import wx
 from uiView import *
 from imageFactory import ImageFactory
 
+DASHES = {"Solid": wx.PENSTYLE_SOLID,
+          "Long-Dashes": wx.PENSTYLE_LONG_DASH,
+          "Dashes": wx.PENSTYLE_SHORT_DASH,
+          "Dots": wx.PENSTYLE_DOT}
+
 
 class UiShape(UiView):
     """
@@ -86,7 +91,7 @@ class UiShape(UiView):
         if thickness == 0:
             pen = wx.TRANSPARENT_PEN
         else:
-            pen = wx.Pen(pen_color, self.stackManager.view.FromDIP(int(thickness)), wx.PENSTYLE_SOLID)
+            pen = wx.Pen(pen_color, self.stackManager.view.FromDIP(int(thickness)), DASHES[self.model.properties["pen_style"]])
         gc.cachedGC.SetPen(pen)
 
         if hasFill:
@@ -216,7 +221,7 @@ class UiShape(UiView):
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key in ["size", "shape", "pen_color", "pen_thickness", "fill_color", "corner_radius", "rotation"]:
+        if key in ["size", "shape", "pen_color", "pen_thickness", "pen_style",  "fill_color", "corner_radius", "rotation"]:
             self.ClearHitRegion()
             self.stackManager.view.Refresh()
         if key in ["size", "shape", "pen_thickness", "corner_radius", "rotation"]:
@@ -255,16 +260,18 @@ class LineModel(ViewModel):
 
         self.properties["originalSize"] = None
         self.properties["pen_color"] = "black"
+        self.properties["pen_style"] = "Solid"
         self.properties["pen_thickness"] = 2
         self.properties["rotation"] = 0.0
 
         self.propertyTypes["originalSize"] = "size"
         self.propertyTypes["pen_color"] = "color"
+        self.propertyTypes["pen_style"] = "choice"
         self.propertyTypes["pen_thickness"] = "uint"
         self.propertyTypes["rotation"] = "float"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "pen_color", "pen_thickness", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "pen_color", "pen_thickness", "pen_style", "position", "size", "rotation"]
 
     def GetData(self):
         data = super().GetData()
@@ -415,6 +422,19 @@ class Line(ViewProxy):
         model.SetProperty("pen_color", val)
 
     @property
+    def pen_style(self):
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("pen_style")
+    @pen_style.setter
+    def pen_style(self, val):
+        if not isinstance(val, str):
+            raise TypeError("pen_style must be one of 'Solid', 'Long-Dashes', 'Dashes', 'Dots'")
+        model = self._model
+        if not model: return
+        model.SetProperty("pen_style", val)
+
+    @property
     def pen_thickness(self):
         model = self._model
         if not model: return 0
@@ -506,7 +526,7 @@ class ShapeModel(LineModel):
         self.propertyTypes["fill_color"] = "color"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "pen_color", "pen_thickness", "fill_color", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "pen_color", "pen_thickness", "pen_style",  "fill_color", "position", "size", "rotation"]
 
     def SetShape(self, shape):
         self.properties["fill_color"] = shape["fill_color"]
@@ -593,7 +613,7 @@ class RoundRectModel(ShapeModel):
         self.propertyTypes["corner_radius"] = "uint"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "pen_color", "pen_thickness", "fill_color", "corner_radius", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "pen_color", "pen_thickness", "pen_style", "fill_color", "corner_radius", "position", "size", "rotation"]
 
     def SetShape(self, shape):
         self.properties["corner_radius"] = shape["corner_radius"] if "corner_radius" in shape else 8
