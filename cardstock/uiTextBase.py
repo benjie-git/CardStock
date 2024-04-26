@@ -288,7 +288,7 @@ class TextBaseProxy(ViewProxy):
             raise TypeError("Text Field objects do not support underlined text.")
         model.SetProperty("is_underlined", val)
 
-    def animate_font_size(self, duration, endVal, on_finished=None, *args, **kwargs):
+    def animate_font_size(self, duration, endVal, easing=None, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_font_size(): duration must be a number")
         if not isinstance(endVal, (int, float)):
@@ -297,20 +297,23 @@ class TextBaseProxy(ViewProxy):
         model = self._model
         if not model: return
 
+        if easing:
+            easing = easing.lower()
+
         def onStart(animDict):
             origVal = self.font_size
             animDict["origVal"] = origVal
             animDict["offset"] = endVal - origVal
 
         def onUpdate(progress, animDict):
-            model.SetProperty("font_size", animDict["origVal"] + animDict["offset"] * progress)
+            model.SetProperty("font_size", animDict["origVal"] + animDict["offset"] * ease(progress, easing))
 
         def internalOnFinished(animDict):
             if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
 
         model.AddAnimation("font_size", duration, onUpdate, onStart, internalOnFinished)
 
-    def animate_text_color(self, duration, endVal, on_finished=None, *args, **kwargs):
+    def animate_text_color(self, duration, endVal, easing=None, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_text_color(): duration must be a number")
         if not isinstance(endVal, str):
@@ -318,6 +321,9 @@ class TextBaseProxy(ViewProxy):
 
         model = self._model
         if not model: return
+
+        if easing:
+            easing = easing.lower()
 
         end_color = wx.Colour(endVal)
         if end_color.IsOk():
@@ -329,7 +335,7 @@ class TextBaseProxy(ViewProxy):
                 animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
 
             def onUpdate(progress, animDict):
-                model.SetProperty("text_color", wx.Colour([int(animDict["origParts"][i] + animDict["offsets"][i] * progress) for i in range(4)]))
+                model.SetProperty("text_color", wx.Colour([int(animDict["origParts"][i] + animDict["offsets"][i] * ease(progress, easing)) for i in range(4)]))
 
             def internalOnFinished(animDict):
                 if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)

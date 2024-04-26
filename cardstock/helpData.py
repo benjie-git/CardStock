@@ -357,9 +357,6 @@ class HelpDataGlobals():
                  "info": "Returns the time in seconds since 'The Unix Epoch', midnight UTC on January 1st, 1970.  That "
                          "date doesn't usually matter, since most often, you'll store the time at one point in your "
                          "program, and then compare it to the new time somewhere else, to determine the difference."},
-        "paste": {"args": {}, "return": "list",
-                  "info": "Pastes any CardStock objects in the clipboard from a previous Copy or Cut command onto the "
-                          "current card, and returns a list of these pasted objects."},
         "alert": {"args": {"message": {"type": "any", "info": "Text to show in the alert dialog."}}, "return": None,
                   "info": "Shows an alert dialog to the user, with the <b>message</b> you provide, and offers an OK button."},
         "ask_yes_no": {"args": {"message": {"type": "any", "info": "Text to show in the dialog."}}, "return": "bool",
@@ -544,12 +541,6 @@ class HelpDataObject():
     }
 
     methods = {
-        "copy": {"args": {},
-                 "return": None,
-                 "info": "Copies this object onto the clipboard, just like the Edit menu Copy command."},
-        "cut": {"args": {},
-                "return": None,
-                "info": "Copies this object onto the clipboard and then deletes it, just like the Edit menu Cut command."},
         "clone": {"args": {"...": {"type": "Any", "info": "optionally set more properties here.  For example, "
                                            "include position=(10,10)"}},
                   "return": "object",
@@ -643,7 +634,12 @@ class HelpDataObject():
         "animate_position": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                      "end_position": {"type": "point",
                                                      "info": "the destination bottom-left corner position at the end of the animation"},
-                                     "on_finished": {"type": "function",
+                                      "easing": {"type": "string",
+                                                 "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
+                                                         "To ease the animation in and/or out, use the easing values "
+                                                         "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
+                                                         "or skipping this argument will use simple, linear animation."},
+                                      "on_finished": {"type": "function",
                                                     "info": "an optional function to run when the animation finishes"},
                                      "*args": {"type": "any", "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
                             "return": None,
@@ -654,7 +650,12 @@ class HelpDataObject():
         "animate_center": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                    "end_position": {"type": "point",
                                                    "info": "the destination center position at the end of the animation"},
-                                   "on_finished": {"type": "function",
+                                    "easing": {"type": "string",
+                                               "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
+                                                       "To ease the animation in and/or out, use the easing values "
+                                                       "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
+                                                       "or skipping this argument will use simple, linear animation."},
+                                    "on_finished": {"type": "function",
                                                   "info": "an optional function to run when the animation finishes"},
                                    "*args": {"type": "any", "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
                           "return": None,
@@ -664,7 +665,12 @@ class HelpDataObject():
 
         "animate_size": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                  "end_size": {"type": "size", "info": "the final size of this object at the end of the animation"},
-                                 "on_finished": {"type": "function", "info": "an optional function to run when the animation finishes"},
+                                  "easing": {"type": "string",
+                                             "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
+                                                     "To ease the animation in and/or out, use the easing values "
+                                                     "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
+                                                     "or skipping this argument will use simple, linear animation."},
+                                  "on_finished": {"type": "function", "info": "an optional function to run when the animation finishes"},
                                  "*args": {"type": "any", "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
                         "return": None,
                         "info": "Visually animates the <b>size</b> of this object from its current size to <b>end_size</b>, "
@@ -678,7 +684,12 @@ class HelpDataObject():
                                                                "info": "an optional hint to tell CardStock which direction "
                                                                        "you want the object to rotate.  A positive value forces "
                                                                        "clockwise rotation, and a negative value forces counter-clockwise."},
-                                     "on_finished": {"type": "function",
+                                      "easing": {"type": "string",
+                                                 "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
+                                                         "To ease the animation in and/or out, use the easing values "
+                                                         "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
+                                                         "or skipping this argument will use simple, linear animation."},
+                                      "on_finished": {"type": "function",
                                                     "info": "an optional function to run when the animation finishes."},
                                      "*args": {"type": "any", "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
                             "return": None,
@@ -842,6 +853,11 @@ class HelpDataTextField():
         "animate_font_size": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                       "end_size": {"type": "string",
                                                    "info": "the final font_size at the end of the animation"},
+                                      "easing": {"type": "string",
+                                                 "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
+                                                         "To ease the animation in and/or out, use the easing values "
+                                                         "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
+                                                         "or skipping this argument will use simple, linear animation."},
                                       "on_finished": {"type": "function",
                                                      "info": "an optional function to run when the animation finishes."},
                                       "*args": {"type": "any", "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
@@ -852,6 +868,11 @@ class HelpDataTextField():
         "animate_text_color": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                       "end_color": {"type": "string",
                                                    "info": "the final text_color at the end of the animation"},
+                                      "easing": {"type": "string",
+                                                 "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
+                                                         "To ease the animation in and/or out, use the easing values "
+                                                         "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
+                                                         "or skipping this argument will use simple, linear animation."},
                                       "on_finished": {"type": "function",
                                                      "info": "an optional function to run when the animation finishes."},
                                       "*args": {"type": "any", "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
@@ -909,6 +930,11 @@ class HelpDataTextLabel():
         "animate_font_size": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                       "end_size": {"type": "string",
                                                    "info": "the final font_size at the end of the animation"},
+                                      "easing": {"type": "string",
+                                                 "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
+                                                         "To ease the animation in and/or out, use the easing values "
+                                                         "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
+                                                         "or skipping this argument will use simple, linear animation."},
                                       "on_finished": {"type": "function",
                                                      "info": "an optional function to run when the animation finishes."},
                                       "*args": {"type": "any", "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
@@ -919,6 +945,11 @@ class HelpDataTextLabel():
         "animate_text_color": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                       "end_color": {"type": "string",
                                                    "info": "the final text_color at the end of the animation"},
+                                      "easing": {"type": "string",
+                                                 "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
+                                                         "To ease the animation in and/or out, use the easing values "
+                                                         "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
+                                                         "or skipping this argument will use simple, linear animation."},
                                       "on_finished": {"type": "function",
                                                      "info": "an optional function to run when the animation finishes."},
                                       "*args": {"type": "any", "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
@@ -1044,7 +1075,12 @@ class HelpDataLine():
         "animate_pen_thickness": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                  "end_thickness": {"type": "int",
                                                  "info": "the final pen_thickness at the end of the animation"},
-                                 "on_finished": {"type": "function",
+                                           "easing": {"type": "string",
+                                                      "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
+                                                              "To ease the animation in and/or out, use the easing values "
+                                                              "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
+                                                              "or skipping this argument will use simple, linear animation."},
+                                           "on_finished": {"type": "function",
                                                 "info": "an optional function to run when the animation finishes."},
                                          "*args": {"type": "any", "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
                         "return": None,
@@ -1055,7 +1091,12 @@ class HelpDataLine():
         "animate_pen_color": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                  "end_color": {"type": "string",
                                                  "info": "the final pen color at the end of the animation"},
-                                 "on_finished": {"type": "function",
+                                       "easing": {"type": "string",
+                                                  "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
+                                                          "To ease the animation in and/or out, use the easing values "
+                                                          "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
+                                                          "or skipping this argument will use simple, linear animation."},
+                                       "on_finished": {"type": "function",
                                                 "info": "an optional function to run when the animation finishes."},
                                      "*args": {"type": "any", "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
                         "return": None,
@@ -1081,7 +1122,12 @@ class HelpDataShape():
         "animate_fill_color": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                      "end_color": {"type": "string",
                                                   "info": "the final fill_color at the end of the animation"},
-                                     "on_finished": {"type": "function",
+                                        "easing": {"type": "string",
+                                                   "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
+                                                           "To ease the animation in and/or out, use the easing values "
+                                                           "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
+                                                           "or skipping this argument will use simple, linear animation."},
+                                        "on_finished": {"type": "function",
                                                     "info": "an optional function to run when the animation finishes."},
                                       "*args": {"type": "any", "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
                             "return": None,
@@ -1106,7 +1152,12 @@ class HelpDataRoundRectangle():
         "animate_corner_radius": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                          "end_corner_radius": {"type": "int",
                                                           "info": "the final corner_radius at the end of the animation"},
-                                         "on_finished": {"type": "function",
+                                           "easing": {"type": "string",
+                                                      "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
+                                                              "To ease the animation in and/or out, use the easing values "
+                                                              "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
+                                                              "or skipping this argument will use simple, linear animation."},
+                                           "on_finished": {"type": "function",
                                                         "info": "an optional function to run when the animation finishes."},
                                          "*args": {"type": "any", "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
                                 "return": None,
@@ -1223,6 +1274,11 @@ class HelpDataCard():
         "animate_fill_color": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                       "end_color": {"type": "string",
                                                    "info": "the final fill_color at the end of the animation"},
+                                      "easing": {"type": "string",
+                                                 "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
+                                                         "To ease the animation in and/or out, use the easing values "
+                                                         "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
+                                                         "or skipping this argument will use simple, linear animation."},
                                       "on_finished": {"type": "function",
                                                      "info": "an optional function to run when the animation finishes."}},
                              "return": None,

@@ -111,7 +111,6 @@ class Runner():
             "distance": self.distance,
             "angle_from_points": self.angle_from_points,
             "rotate_point": self.rotate_point,
-            "paste": self.paste,
             "alert": self.alert,
             "ask_yes_no": self.ask_yes_no,
             "ask_text": self.ask_text,
@@ -1081,13 +1080,6 @@ class Runner():
 
     def stop_sound(self):
         simpleaudio.stop_all()
-
-    @RunOnMainSync
-    def paste(self):
-        models = self.stackManager.Paste(False)
-        for model in models:
-            model.RunSetup(self)
-        return [m.GetProxy() for m in models]
 
     def is_key_pressed(self, name):
         if not isinstance(name, str):
