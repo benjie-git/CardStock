@@ -837,10 +837,11 @@ class Runner():
         if not isinstance(message, str):
             raise TypeError("broadcast_message(): message must be a string")
 
-        self.RunHandler(self.stackManager.uiCard.model, "on_message", None, message)
-        for ui in self.stackManager.uiCard.GetAllUiViews():
-            if not ui.model.didDelete:
-                self.RunHandler(ui.model, "on_message", None, message)
+        def r_broadcast(model):
+            self.RunHandler(model, "on_message", None, message)
+            for m in model.childModels:
+                r_broadcast(m)
+        r_broadcast(self.stackManager.stackModel)
 
     def goto_card(self, card):
         index = None
