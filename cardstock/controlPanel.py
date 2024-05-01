@@ -20,7 +20,7 @@ from wx.lib.resizewidget import ResizeWidget, EVT_RW_LAYOUT_NEEDED
 from pythonEditor import PythonEditor
 from uiView import UiView
 from embeddedImages import embeddedToolImages
-from helpData import HelpData
+from helpDataGen import HelpData
 
 
 class ControlPanel(wx.Panel):
@@ -216,7 +216,7 @@ class ControlPanel(wx.Panel):
                 uiView = self.lastSelectedUiViews[0]
                 if uiView:
                     key = self.inspector.GetCellValue(event.GetRow(), 0)
-                    helpText = HelpData.GetPropertyHelp(uiView, key)
+                    helpText = HelpData.GetPropertyHelp(uiView.model, key)
                     self.UpdateHelpText(helpText)
         else:
             self.UpdateHelpText("")

@@ -9,7 +9,7 @@
 import wx
 import pythonEditor
 import wx.stc
-import helpData
+import helpDataGen
 import appCommands
 from uiView import UiView
 from simpleListBox import SimpleListBox
@@ -322,9 +322,9 @@ class CodeInspector(wx.ScrolledWindow):
             self.Refresh(True)
 
     def OnHandlerPickerSelectionChanged(self, index, text):
-        if index is not None:
+        if index is not None and self.currentUiView:
             handlerName = self.DisplayNameToRawName(text)
-            self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, handlerName))
+            self.updateHelpTextFunc(helpDataGen.HelpData.GetHandlerHelp(self.currentUiView.model, handlerName))
 
     def OnMouseDown(self, event):
         """
@@ -359,8 +359,9 @@ class CodeInspector(wx.ScrolledWindow):
         editorBlock.codeEditor.SetFocus()
         if mouse_pos.y < editorBlock.codeEditor.GetPosition().y:
             editorBlock.codeEditor.SetSelection(0, 0)
-            self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView,
-                                                                     editorBlock.codeEditor.currentHandler))
+            if self.currentUiView:
+                self.updateHelpTextFunc(helpDataGen.HelpData.GetHandlerHelp(self.currentUiView.model,
+                                                                         editorBlock.codeEditor.currentHandler))
         else:
             end = editorBlock.codeEditor.GetLastPosition()
             editorBlock.codeEditor.SetSelection(end, end)
@@ -384,7 +385,7 @@ class CodeInspector(wx.ScrolledWindow):
             handlerName = codeEditor.currentHandler
             if handlerName in self.blocks and self.blocks[handlerName].IsShown():
                 wx.CallAfter(self.blocks[handlerName].ScrollParentIfNeeded)
-                self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, handlerName))
+                self.updateHelpTextFunc(helpDataGen.HelpData.GetHandlerHelp(self.currentUiView.model, handlerName))
                 self.lastFocusedHandler = handlerName
         event.Skip()
 

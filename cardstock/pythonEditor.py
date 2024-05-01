@@ -9,7 +9,7 @@
 import wx
 import wx.stc as stc
 import keyword
-import helpData
+import helpDataGen
 
 """
 The PythonEditor is used for the CodeEditor in the Designer's ControlPanel.
@@ -168,7 +168,7 @@ class PythonEditor(stc.StyledTextCtrl):
             (parentType, name, objType, obj) = self.analyzer.GetTypeFromLeadingString(self.currentModel, leadingStr)
             if self.GetRange(wordEndPos, wordEndPos+1) == "(":
                 name += "()"
-            helpText = helpData.HelpData.GetHelpForName(name, parentType)
+            helpText = helpDataGen.HelpData.GetHelpForName(name, parentType)
             if helpText:
                 self.cPanel.UpdateHelpText(helpText)
         event.Skip()
@@ -300,7 +300,7 @@ class PythonEditor(stc.StyledTextCtrl):
 
         s = event.GetString()
         if s:
-            helpText = helpData.HelpData.GetHelpForName(s, "any")
+            helpText = helpDataGen.HelpData.GetHelpForName(s, "any")
             if helpText:
                 self.cPanel.UpdateHelpText(helpText)
                 return

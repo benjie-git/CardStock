@@ -12,7 +12,7 @@ import ast
 import re
 from easing import ease
 import generator
-import helpData
+import helpDataGen
 from time import time
 from codeRunnerThread import RunOnMainSync, RunOnMainAsync
 from cardstockFrameParts import *
@@ -628,7 +628,7 @@ class ViewModel(object):
     """
 
     minSize = wx.Size(20, 20)
-    reservedNames = helpData.HelpData.ReservedNames()
+    reservedNames = helpDataGen.HelpData.ReservedNames()
 
     def __init__(self, stackManager):
         super().__init__()

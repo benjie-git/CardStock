@@ -9,7 +9,7 @@
 import wx
 import pythonEditor
 import wx.stc
-import helpData
+import helpDataGen
 import appCommands
 from uiView import UiView
 
@@ -140,7 +140,8 @@ class CodeInspector(wx.Window):
         self.SaveCurrentHandler()
         self.UpdateHandlerForUiView(self.stackManager.GetSelectedUiViews()[0], keys[vals.index(displayName)])
         self.codeEditor.SetFocus()
-        self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, self.currentHandler))
+        if self.currentUiView:
+            self.updateHelpTextFunc(helpDataGen.HelpData.GetHandlerHelp(self.currentUiView.model, self.currentHandler))
 
 
     # Internal
@@ -148,7 +149,7 @@ class CodeInspector(wx.Window):
     def CodeEditorFocused(self, event):
         helpText = None
         if self.currentUiView:
-            self.updateHelpTextFunc(helpData.HelpData.GetHandlerHelp(self.currentUiView, self.currentHandler))
+            self.updateHelpTextFunc(helpDataGen.HelpData.GetHandlerHelp(self.currentUiView.model, self.currentHandler))
         event.Skip()
 
     def CodeEditorOnIdle(self, event):

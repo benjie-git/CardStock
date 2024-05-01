@@ -10,7 +10,7 @@ import wx
 import wx.html
 import version
 import platform
-from helpData import HelpData, HelpDataTypes
+from helpDataGen import HelpData, HelpDataTypes
 
 OUTPUT_HTML = False
 

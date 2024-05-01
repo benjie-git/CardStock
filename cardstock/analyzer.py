@@ -8,7 +8,7 @@
 
 import wx
 import ast
-import helpData
+import helpDataGen
 import threading
 import re
 import types
@@ -33,9 +33,9 @@ class CodeAnalyzer(object):
 
         self.varNames = set()
         self.funcNames = set()
-        self.globalVars = helpData.HelpDataGlobals.variables.keys()
-        self.globalFuncs = helpData.HelpDataGlobals.functions.keys()
-        self.builtinFuncs = helpData.HelpDataBuiltins.functions.keys()
+        self.globalVars = helpDataGen.HelpDataGlobals.variables.keys()
+        self.globalFuncs = helpDataGen.HelpDataGlobals.functions.keys()
+        self.builtinFuncs = helpDataGen.HelpDataBuiltins.functions.keys()
         self.cardNames = []
         self.objNames = {}
         self.objProps = {}
@@ -50,13 +50,13 @@ class CodeAnalyzer(object):
         for t in ["bool", "int", "float", "string", "list", "dictionary", "point", "size", "other"]: self.objMethods[t] = []
 
         # Create list of known properties and methods for each object type
-        for cls in helpData.helpClasses:
+        for cls in helpDataGen.helpClasses:
             types = ["any"]
             types.extend(cls.types)
             for t in types:
                 self.objProps[t] = []
                 self.objMethods[t] = []
-        for cls in helpData.helpClasses:
+        for cls in helpDataGen.helpClasses:
             c = cls
             types = ["any", "object"]
             types.extend(cls.types)
@@ -128,11 +128,11 @@ class CodeAnalyzer(object):
                 elif p == "stack":
                     retVals = (objType, p, "stack", self.stackManager.stackModel)
                 elif p in self.globalVars:
-                    retVals = (objType, p, helpData.HelpDataGlobals.variables[p]["type"], None)
+                    retVals = (objType, p, helpDataGen.HelpDataGlobals.variables[p]["type"], None)
                 elif p in self.globalFuncs:
-                    retVals = (objType, p, helpData.HelpDataGlobals.functions[p]["return"], None)
+                    retVals = (objType, p, helpDataGen.HelpDataGlobals.functions[p]["return"], None)
                 elif p in self.builtinFuncs:
-                    retVals = (objType, p, helpData.HelpDataBuiltins.functions[p]["return"], None)
+                    retVals = (objType, p, helpDataGen.HelpDataBuiltins.functions[p]["return"], None)
                 elif p in self.varNames or p in self.funcNames:
                     # Later, track the actual type of each user variable
                     retVals = (objType, p, "any", None)
@@ -158,9 +158,9 @@ class CodeAnalyzer(object):
                     retVals = (objType, p, "any", None)
             else:
                 if p in self.objProps["any"]:
-                    retVals = (objType, p, helpData.HelpData.GetTypeForProp(p), None)
+                    retVals = (objType, p, helpDataGen.HelpData.GetTypeForProp(p), None)
                 elif p in self.objMethods["any"]:
-                    retVals = (objType, p, helpData.HelpData.GetTypeForMethod(p), None)
+                    retVals = (objType, p, helpDataGen.HelpData.GetTypeForMethod(p), None)
                 elif p in self.built_in:
                     retVals = (objType, p, None, None)
                 if obj:
