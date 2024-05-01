@@ -6,11 +6,11 @@
 # This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.  If a copy
 # of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-
 """
 This file includes descriptions of all CardStock objects, properties, methods, and event handlers for use in
 context help, reference docs, and in the future, code completion.
 """
+
 
 HelpDataTypes = [["Type", "Description"],
                  ["<i>bool</i>", "A bool or boolean value holds a simple True or False."],
@@ -18,8 +18,7 @@ HelpDataTypes = [["Type", "Description"],
                  ["<i>float</i>", "A float or floating point value holds any number, including with a decimal point."],
                  ["<i>string</i>", "A string value holds text."],
                  ["<i>list</i>", "A list value is a container that holds a list of other values."],
-                 ["<i>dictionary</i>",
-                  "A dictionary value is a container that holds named items, as key, value pairs."],
+                 ["<i>dictionary</i>", "A dictionary value is a container that holds named items, as key, value pairs."],
                  ["<i>point</i>", "A point value is like a list of two numbers, x and y, that describes a location in "
                                   "the card.  For a point variable p, you can access the x value as p[0] or p.x, and "
                                   "the y value as either p[1] or p.y."],
@@ -27,8 +26,8 @@ HelpDataTypes = [["Type", "Description"],
                                  "size of an object in the card.  For a size variable s, you can access the width "
                                  "value as s[0] or s.width, and the height value as either s[1] or s.height"],
                  ["<i>object</i>", "An object value can hold any CardStock object, like a button, card, or oval."],
-                 ["<i>button, textfield, textlabel, webview, image, oval, rect, roundrect, polygon, line</i>",
-                  "A value of any of these types holds a CardStock object of that specific type."],
+                 ["<i>stack, card, button, textfield, textlabel, webview, image, oval, rect, roundrect, polygon, line</i>",
+                  "A value of any of these types holds a CardStock object of that specific type.  (Note that webview objects are not currently available on cardstock.run.)"],
                  ]
 
 
@@ -110,7 +109,9 @@ class HelpDataGlobals():
                                               "info": "An optional card number of the new stack to start on.  This defaults to card number 1, the first card."},
                                "setupValue": {"type": "any", "info": "An optional value to pass into the new stack."}},
                       "return": "any",
-                      "info": "Opens the stack at the path given by the <b>filename</b> argument, and optionally starts on "
+                      "info": "Opens the stack at the path given by the <b>filename</b> argument.  On CardStock.run, a "
+                              "filename can be a stack name owned by the same user as the current stack, or a full "
+                              "path \"username/StackName\", like \"examples/Pong\".  Optionally starts on "
                               "the card number specified by the <b>cardNumber</b> argument.  If you include a "
                               "<b>setupValue</b> argument, this will be passed into the new stack, which can access it by "
                               "calling <b>stack.get_setup_value()</b>.  The <b>run_stack()</b> call waits "
@@ -233,8 +234,8 @@ class HelpDataObject():
                          "your code, you can get an object's name, but you can not set it."},
         "type": {"type": "string",
                  "info": "Every object has a <b>type</b> property.  It will be one of 'button', 'textfield', 'textlabel', "
-                         "'webview', 'image', 'line', 'oval', 'rect, 'roundrect', 'polygon', 'stack', 'card', 'group'.  Your code can get "
-                         "this value, but not set it."},
+                         "'webview', 'image', 'line', 'oval', 'rect, 'roundrect', 'polygon', 'stack', 'card', 'group'.  "
+                         "Your code can get this value, but not set it.  (Note that webview objects are not currently available on cardstock.run.)"},
         "data": {"type": "dictionary",
                  "info": "Every object has a <b>data</b> property.  It is a dictionary that allows you to persistently "
                          "store arbitrary data in any object within a stack that has <b>can_save</b> set to True."},
@@ -252,8 +253,7 @@ class HelpDataObject():
                            "This value is not stored, but computed based on position and size."},
         "rotation": {"type": "float",
                      "info": "This is the angle in degrees clockwise to rotate this object.  0 is upright.  Note that "
-                             "not all objects can be rotated.  Card and stack objects can not rotate, and text fields "
-                             "and web views can't rotate either."},
+                             "not all objects can be rotated, for example cards and stacks."},
         "speed": {"type": "point",
                   "info": "This is a point value corresponding to the current speed of the object, in pixels/second "
                           "in both the <b>x</b> and <b>y</b> directions."},
@@ -305,27 +305,22 @@ class HelpDataObject():
                           "info": "Flips the object vertically.  This only visibly changes cards, images, groups, and some shapes."},
         "order_to_front": {"args": {},
                            "return": None,
-                           "info": "Moves this object to the front of the card or group it is contained in, in front of all other objects.  But note that "
-                                   "currently, all text fields and web views will be displayed in front of other objects."},
+                           "info": "Moves this object to the front of the card or group it is contained in, in front of all other objects."},
         "order_forward": {"args": {},
                           "return": None,
-                          "info": "Moves this object one position closer to the front of the card or group it is contained in.  But note that "
-                                  "currently, all text fields and web views will be displayed in front of other objects."},
+                          "info": "Moves this object one position closer to the front of the card or group it is contained in."},
         "order_backward": {"args": {},
                            "return": None,
-                           "info": "Moves this object one position closer to the back of the card or group it is contained in.  But note that "
-                                   "currently, all text fields and web views will be displayed in front of other objects."},
+                           "info": "Moves this object one position closer to the back of the card or group it is contained in."},
         "order_to_back": {"args": {},
                           "return": None,
-                          "info": "Moves this object to the back of the card or group it is contained in, behind all other objects.  But note that "
-                                  "currently, all text fields and web views will be displayed in front of other objects."},
+                          "info": "Moves this object to the back of the card or group it is contained in, behind all other objects."},
         "order_to_index": {
             "args": {"toIndex": {"type": "int", "info": "The index to move this object to, in the list of "
                                                         "the card or group's children.  Index 0 is at the back."}},
             "return": None,
             "info": "Moves this object to the given index, in the list of "
-                    "its parent's children, with 0 being at the back.  But note that "
-                    "currently, all text fields and web views will be displayed in front of other objects."},
+                    "its parent's children, with 0 being at the back."},
         "get_code_for_event": {"args": {"eventName": {"type": "string", "info": "The name of the event to look up."}},
                                "return": "string",
                                "info": "Returns a string containing this object's event code for the given "
@@ -821,6 +816,8 @@ class HelpDataLine():
     properties = {
         "pen_thickness": {"type": "int",
                           "info": "The thickness of the line or shape border in pixels."},
+        "pen_style": {"type": "[Solid, Long-Dashes, Dashes, Dots]",
+                      "info": "The pen style of this line or shape border."},
         "pen_color": {"type": "string",
                       "info": "The color used for the line or shape border.  This can be a color word like red, or an "
                               "HTML color like #FF0000 for pure red."},
@@ -949,7 +946,7 @@ class HelpDataCard():
         "can_save": {"type": "bool",
                      "info": "If <b>can_save</b> is <b>True</b>, the user can save the stack while running it. "
                              "If it's <b>False</b>, the user can't save, so the stack will always start out in the same "
-                             "state."},
+                             "state.  (Not currently supported on cardstock.run.)"},
         "can_resize": {"type": "bool",
                        "info": "If <b>can_resize</b> is <b>True</b>, the user can resize the stack window while running it. "
                                "If it's <b>False</b>, the user can't resize the window while the stack runs."},
@@ -1080,7 +1077,7 @@ class HelpDataCard():
                                  "card's on_show_card event is run, when going to another card."},
         "on_exit_stack": {"args": {},
                           "info": "The <b>on_exit_stack</b> event is run for all cards when the stack exits, whether "
-                                  "from the File Close menu item, the quit() function, the stack.return_from_stack() method,"
+                                  "from the File Close menu item, the quit() function, the stack.return_from_stack() method, "
                                   "or closing the stack viewer window.  You can use this to clean up any external "
                                   "resources -- for example, closing files.  This event needs to run quickly, so it's "
                                   "not able to call functions like alert(), ask_text(), ask_yes_no(), run_stack(), etc."},
@@ -1426,8 +1423,3 @@ class HelpDataBuiltins():
                 "return": "other",
                 "info": ""},
     }
-
-
-helpClasses = [HelpDataObject, HelpDataCard, HelpDataStack, HelpDataButton, HelpDataTextLabel, HelpDataTextField,
-               HelpDataWebView, HelpDataImage, HelpDataGroup, HelpDataLine, HelpDataShape, HelpDataRoundRectangle,
-               HelpDataString, HelpDataList]
