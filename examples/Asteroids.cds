@@ -13,7 +13,7 @@
     {
       "type": "card",
       "handlers": {
-        "on_setup": "from random import randint\n   \ntry_again.hide()\nasteroid.hide()\nisGameOver = False",
+        "on_setup": "from random import randint\n\ntry_again.hide()\nasteroid.hide()\nisGameOver = False",
         "on_show_card": "self.send_message(\"start\")",
         "on_key_press": "# Respond to these keys once per press, on KeyDown\nif key_name == \"Space\" and not isGameOver:\n   self.send_message(\"shoot\")\nelif key_name == \"Return\" and isGameOver:\n   self.send_message(\"start\")",
         "on_key_hold": "if not isGameOver:\n   # Respond to these keys continuously while pressed\n   if key_name == \"Left\":\n      ship.rotation -= 180*elapsed_time\n   elif key_name == \"Right\":\n      ship.rotation += 180*elapsed_time\n   \n   elif key_name == \"Up\":\n      ship.speed += rotate_point((0, 450*elapsed_time), ship.rotation)\n      play_sound(\"puff.wav\")",
@@ -47,6 +47,7 @@
               69
             ],
             "pen_color": "#000000CC",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "#DEE2DBCC"
@@ -112,6 +113,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 7,
-  "CardStock_stack_version": "0.99.4"
+  "CardStock_stack_format": 9,
+  "CardStock_stack_version": "0.99.6"
 }

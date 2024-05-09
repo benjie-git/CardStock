@@ -65,12 +65,30 @@ class HelpData():
         return None
 
     @classmethod
+    def GetPropertyTypesString(cls, data, key):
+        if "line" in data.types:
+            if key == "points":
+                t = "[pen, line, polygon]."
+            else:
+                t = "[pen, line, oval, rect, polygon, roundrect]."
+        elif "rect" in data.types:
+            t = "[oval, rect, polygon, roundrect]."
+        elif len(data.types) == 1:
+            t = data.types[0] + "."
+        elif len(data.types) > 1:
+            t = f"[{', '.join(data.types)}]."
+        else:
+            t = ""
+        return t
+
+    @classmethod
     def GetPropertyHelp(cls, model, key):
         data = cls.ForObject(model)
+        t = cls.GetPropertyTypesString(data, key)
         while data:
             if key in data.properties:
                 prop = data.properties[key]
-                text = "<b>"+key+"</b>:<i>" + prop["type"] + "</i> - " + prop["info"]
+                text = t + "<b>" + key + "</b><br/><i>" + prop["type"] + "</i>: " + prop["info"]
                 return text
             data = data.parent
         return None
@@ -95,34 +113,32 @@ class HelpData():
             allClasses.extend(helpClasses)
         if not isFunc:
             out = ""
+            classes = []
             for c in allClasses:
                 if t_in:
                     t = t_in
-                elif len(c.types) == 1:
-                    t = c.types[0] + "."
-                elif len(c.types) > 1:
-                    t = "object."
                 else:
-                    t = ""
+                    t = cls.GetPropertyTypesString(c, key)
                 if key in c.properties:
+                    classes.append(t)
                     prop = c.properties[key]
-                    text = t + "<b>" + key + "</b>:<i>" + prop["type"] + "</i> - " + prop["info"]
-                    out += text + "<br/><br/>\n"
+                    out = "<b>" + key + "</b><br/><i>" + prop["type"] + "</i>: " + prop["info"]
             if out:
-                return out[:-11]
+                if len(classes) == 1:
+                    return classes[0] + out
+                else:
+                    return f"[{', '.join([c.strip('.[]') for c in classes])}].{out}"
         else:
             key = key[:-2]
             out = ""
+            classes = []
             for c in allClasses:
                 if t_in:
                     t = t_in
-                elif len(c.types) == 1:
-                    t = c.types[0] + "."
-                elif len(c.types) > 1:
-                    t = "object."
                 else:
-                    t = ""
+                    t = cls.GetPropertyTypesString(c, key)
                 if key in c.methods:
+                    classes.append(t)
                     method = c.methods[key]
                     argText = ""
                     for name, arg in method["args"].items():
@@ -131,10 +147,12 @@ class HelpData():
                             "info"] + "<br/>"
                     ret = ("Returns: <i>" + method["return"] + "</i><br/>") if method["return"] else ""
                     name = key + "(" + ', '.join(method["args"].keys()) + ")"
-                    out += f"{t}<b>{name}</b><br/>{argText}{ret}<br/>{method['info']}<br/><br/>\n"
+                    out = f"<b>{name}</b><br/>{argText}{ret}<br/>{method['info']}"
             if out:
-                return out[:-11]
-        return None
+                if len(classes) == 1:
+                    return classes[0] + out
+                else:
+                    return f"[{', '.join([c.strip('.[]') for c in classes])}].{out}"
 
     @classmethod
     def HtmlTableFromLists(cls, rows):

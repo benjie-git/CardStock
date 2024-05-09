@@ -464,11 +464,13 @@ class Line(ViewProxy):
 
         model.SetPoints(points)
 
-    def animate_pen_thickness(self, duration, endVal, easing=None, on_finished=None, *args, **kwargs):
+    def animate_pen_thickness(self, duration, endVal, easing=None, on_finished=None):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_pen_thickness(): duration must be a number")
         if not isinstance(endVal, (int, float)):
             raise TypeError("animate_pen_thickness(): end_thickness must be a number")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_pen_thickness(): easing, if provided, must be one of "In", "Out", or "InOut"')
 
         model = self._model
         if not model: return
@@ -485,15 +487,17 @@ class Line(ViewProxy):
             model.SetProperty("pen_thickness", animDict["origVal"] + animDict["offset"] * ease(progress, easing))
 
         def internalOnFinished(animDict):
-            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
 
         model.AddAnimation("pen_thickness", duration, onUpdate, onStart, internalOnFinished)
 
-    def animate_pen_color(self, duration, endVal, easing=None, on_finished=None, *args, **kwargs):
+    def animate_pen_color(self, duration, endVal, easing=None, on_finished=None):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_pen_color(): duration must be a number")
         if not isinstance(endVal, str):
             raise TypeError("animate_pen_color(): end_color must be a string")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_pen_color(): easing, if provided, must be one of "In", "Out", or "InOut"')
 
         model = self._model
         if not model: return
@@ -514,7 +518,7 @@ class Line(ViewProxy):
                 model.SetProperty("pen_color", wx.Colour([int(animDict["origParts"][i] + animDict["offsets"][i] * ease(progress, easing)) for i in range(4)]))
 
             def internalOnFinished(animDict):
-                if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
+                if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
 
             model.AddAnimation("pen_color", duration, onUpdate, onStart, internalOnFinished)
 
@@ -579,11 +583,13 @@ class Shape(Line):
         if not model: return
         model.SetProperty("fill_color", val)
 
-    def animate_fill_color(self, duration, endVal, easing=None, on_finished=None, *args, **kwargs):
+    def animate_fill_color(self, duration, endVal, easing=None, on_finished=None):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_fill_color(): duration must be a number")
         if not isinstance(endVal, str):
             raise TypeError("animate_fill_color(): end_color must be a string")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_fill_color(): easing, if provided, must be one of "In", "Out", or "InOut"')
 
         model = self._model
         if not model: return
@@ -604,7 +610,7 @@ class Shape(Line):
                 model.SetProperty("fill_color", wx.Colour([int(animDict["origParts"][i] + animDict["offsets"][i] * ease(progress, easing)) for i in range(4)]))
 
             def internalOnFinished(animDict):
-                if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
+                if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
 
             model.AddAnimation("fill_color", duration, onUpdate, onStart, internalOnFinished)
 
@@ -648,11 +654,13 @@ class RoundRect(Shape):
         if not model: return
         model.SetProperty("corner_radius", val)
 
-    def animate_corner_radius(self, duration, endVal, easing=None, on_finished=None, *args, **kwargs):
+    def animate_corner_radius(self, duration, endVal, easing=None, on_finished=None):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_corner_radius(): duration must be a number")
         if not isinstance(endVal, (int, float)):
             raise TypeError("animate_corner_radius(): end_corner_radius must be a number")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_corner_radius(): easing, if provided, must be one of "In", "Out", or "InOut"')
 
         model = self._model
         if not model: return
@@ -669,6 +677,6 @@ class RoundRect(Shape):
             model.SetProperty("corner_radius", animDict["origVal"] + animDict["offset"] * ease(progress, easing))
 
         def internalOnFinished(animDict):
-            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
 
         model.AddAnimation("corner_radius", duration, onUpdate, onStart, internalOnFinished)

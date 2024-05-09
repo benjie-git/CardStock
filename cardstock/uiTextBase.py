@@ -288,11 +288,13 @@ class TextBaseProxy(ViewProxy):
             raise TypeError("Text Field objects do not support underlined text.")
         model.SetProperty("is_underlined", val)
 
-    def animate_font_size(self, duration, endVal, easing=None, on_finished=None, *args, **kwargs):
+    def animate_font_size(self, duration, endVal, easing=None, on_finished=None):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_font_size(): duration must be a number")
         if not isinstance(endVal, (int, float)):
             raise TypeError("animate_font_size(): end_thickness must be a number")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_font_size(): easing, if provided, must be one of "In", "Out", or "InOut"')
 
         model = self._model
         if not model: return
@@ -309,15 +311,17 @@ class TextBaseProxy(ViewProxy):
             model.SetProperty("font_size", animDict["origVal"] + animDict["offset"] * ease(progress, easing))
 
         def internalOnFinished(animDict):
-            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
 
         model.AddAnimation("font_size", duration, onUpdate, onStart, internalOnFinished)
 
-    def animate_text_color(self, duration, endVal, easing=None, on_finished=None, *args, **kwargs):
+    def animate_text_color(self, duration, endVal, easing=None, on_finished=None):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_text_color(): duration must be a number")
         if not isinstance(endVal, str):
             raise TypeError("animate_text_color(): end_color must be a string")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_text_color(): easing, if provided, must be one of "In", "Out", or "InOut"')
 
         model = self._model
         if not model: return
@@ -338,6 +342,6 @@ class TextBaseProxy(ViewProxy):
                 model.SetProperty("text_color", wx.Colour([int(animDict["origParts"][i] + animDict["offsets"][i] * ease(progress, easing)) for i in range(4)]))
 
             def internalOnFinished(animDict):
-                if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
+                if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
 
             model.AddAnimation("text_color", duration, onUpdate, onStart, internalOnFinished)

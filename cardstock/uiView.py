@@ -1664,13 +1664,15 @@ class ViewProxy(object):
             return edges
         return f()
 
-    def animate_position(self, duration, end_position, easing=None, on_finished=None, *args, **kwargs):
+    def animate_position(self, duration, end_position, easing=None, on_finished=None):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_position(): duration must be a number")
         try:
             end_position = wx.RealPoint(*end_position)
         except:
             raise ValueError("animate_position(): end_position must be a point or a list of two numbers")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_position(): easing, if provided, must be one of "In", "Out", or "InOut"')
 
         model = self._model
         if not model: return
@@ -1691,20 +1693,22 @@ class ViewProxy(object):
 
         def internalOnFinished(animDict):
             model.SetProperty("speed", (0,0), notify=False)
-            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
 
         def onCanceled(animDict):
             model.SetProperty("speed", (0,0))
 
         model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
-    def animate_center(self, duration, end_center, easing=None, on_finished=None, *args, **kwargs):
+    def animate_center(self, duration, end_center, easing=None, on_finished=None):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_center(): duration must be a number")
         try:
             end_center = wx.RealPoint(*end_center)
         except:
             raise ValueError("animate_center(): end_center must be a point or a list of two numbers")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_center(): easing, if provided, must be one of "In", "Out", or "InOut"')
 
         model = self._model
         if not model: return
@@ -1725,20 +1729,22 @@ class ViewProxy(object):
 
         def internalOnFinished(animDict):
             model.SetProperty("speed", (0,0), notify=False)
-            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
 
         def onCanceled(animDict):
             model.SetProperty("speed", (0,0))
 
         model.AddAnimation("position", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
-    def animate_size(self, duration, end_size, easing=None, on_finished=None, *args, **kwargs):
+    def animate_size(self, duration, end_size, easing=None, on_finished=None):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_size(): duration must be a number")
         try:
             end_size = wx.Size(end_size)
         except:
             raise ValueError("animate_size(): end_size must be a size or a list of two numbers")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_size(): easing, if provided, must be one of "In", "Out", or "InOut"')
 
         model = self._model
         if not model: return
@@ -1756,11 +1762,11 @@ class ViewProxy(object):
             model.SetProperty("size", animDict["origSize"] + tuple(animDict["offset"] * ease(progress, easing)))
 
         def internalOnFinished(animDict):
-            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
 
         model.AddAnimation("size", duration, onUpdate, onStart, internalOnFinished)
 
-    def animate_rotation(self, duration, end_rotation, force_direction=0, easing=None, on_finished=None, *args, **kwargs):
+    def animate_rotation(self, duration, end_rotation, force_direction=0, easing=None, on_finished=None):
         if self._model.GetProperty("rotation") is None:
             raise TypeError("animate_rotation(): object does not support rotation")
 
@@ -1770,6 +1776,8 @@ class ViewProxy(object):
             raise TypeError("animate_rotation(): end_rotation must be a number")
         if not isinstance(force_direction, (int, float)):
             raise TypeError("animate_rotation(): force_direction must be a number")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_rotation(): easing, if provided, must be one of "In", "Out", or "InOut"')
 
         model = self._model
         if not model: return
@@ -1797,7 +1805,7 @@ class ViewProxy(object):
             model.SetProperty("rotation", (animDict["origVal"] + animDict["offset"] * ease(progress, easing))%360)
 
         def internalOnFinished(animDict):
-            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
 
         model.AddAnimation("rotation", duration, onUpdate, onStart, internalOnFinished)
 

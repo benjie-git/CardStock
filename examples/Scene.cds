@@ -15,7 +15,7 @@
       "handlers": {
         "on_setup": "from random import randint",
         "on_key_press": "if key_name == \"N\":\n   night.click()\nelif key_name == \"D\":\n   day.click()",
-        "on_periodic": "# Create a new piece of snow every 30th of a second, if we can keep up!\no = card.add_oval(\n   size = (10,10),\n   position = (randint(0,490),490),\n   fill_color = 'white',\n   pen_thickness = 1)\n\n# Animate it to the bottom of the stack, moing slightly on the x axis too, for fun.\n# When the animation is complete, run o.delete() to remove the new snow from\n# the card, so we don't accumulate old snow, which would slow down the stack and waste memory.\no.animate_position(\n   randint(300,450)/100.0,\n   (o.position.x + randint(-20,20), -10),\n   o.delete)\n"
+        "on_periodic": "# Create a new piece of snow every 30th of a second, if we can keep up!\no = card.add_oval(\n   size = (10,10),\n   position = (randint(0,490),490),\n   fill_color = 'white',\n   pen_thickness = 1)\n\n# Animate it to the bottom of the stack, moving slightly on the x axis too, for fun.\n# When the animation is complete, run o.delete() to remove the new snow from\n# the card, so we don't accumulate old snow, which would slow down the stack and waste memory.\no.animate_position(\n   randint(300,450)/100.0,\n   (o.position.x + randint(-20,20), -10),\n   on_finished=o.delete)\n"
       },
       "properties": {
         "name": "card_1",

@@ -13,7 +13,7 @@
     {
       "type": "card",
       "handlers": {
-        "on_show_card": "pegs = [peg1, peg2, peg3]\ndisks = [disk1, disk2, disk3, disk4, disk5]\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nisRunning = False\nisSetup = False\n\ndef PlaceDisk(disk, peg, height, animate, on_finished):\n   center = [peg.center.x,\n      peg.position.y + (height + 1)*40]\n   if animate:\n      disk.animate_center(0.6, center, on_finished)\n   else:\n      disk.center = center\n      if on_finished: on_finished()\n\ndef ShowStacks(animate, on_finished=None):\n   i = 0\n   for p in range(3):\n      for d in range(len(stacks[p])):\n         i += 1\n         PlaceDisk(stacks[p][d], pegs[p], d, animate, on_finished if (i == len(disks)) else None)\n\ndef MoveTower(disk, source, dest, spare):\n   if disk == 0:\n      steps.append([disk, source, dest])\n   else:\n      MoveTower(disk-1, source, spare, dest)\n      steps.append([disk, source, dest])\n      MoveTower(disk-1, spare, dest, source)\n\ndef MakeNextMove():\n   if len(steps):\n      disk, source, dest = steps.pop(0)\n      stacks[source].remove(disks[disk])\n      stacks[dest].append(disks[disk])\n      ShowStacks(True, MakeNextMove)\n   else:\n      isRunning = False\n\nShowStacks(False)\nisSetup = True"
+        "on_show_card": "pegs = [peg1, peg2, peg3]\ndisks = [disk1, disk2, disk3, disk4, disk5]\nstacks = [[disk5, disk4, disk3, disk2, disk1], [], []]\nisRunning = False\nisSetup = False\n\ndef PlaceDisk(disk, peg, height, animate, on_finished):\n   center = [peg.center.x,\n      peg.position.y + (height + 1)*40]\n   if animate:\n      disk.animate_center(0.6, center, \"InOut\", on_finished)\n   else:\n      disk.center = center\n      if on_finished: on_finished()\n\ndef ShowStacks(animate, on_finished=None):\n   i = 0\n   for p in range(3):\n      for d in range(len(stacks[p])):\n         i += 1\n         PlaceDisk(stacks[p][d], pegs[p], d, animate, on_finished if (i == len(disks)) else None)\n\ndef MoveTower(disk, source, dest, spare):\n   if disk == 0:\n      steps.append([disk, source, dest])\n   else:\n      MoveTower(disk-1, source, spare, dest)\n      steps.append([disk, source, dest])\n      MoveTower(disk-1, spare, dest, source)\n\ndef MakeNextMove():\n   if len(steps):\n      disk, source, dest = steps.pop(0)\n      stacks[source].remove(disks[disk])\n      stacks[dest].append(disks[disk])\n      ShowStacks(True, MakeNextMove)\n   else:\n      isRunning = False\n\nShowStacks(False)\nisSetup = True"
       },
       "properties": {
         "name": "card_1",
@@ -38,6 +38,7 @@
               34
             ],
             "pen_color": "#000000",
+            "pen_style": "Solid",
             "pen_thickness": 0,
             "rotation": 0.0,
             "fill_color": "#926143"
@@ -71,6 +72,7 @@
               34
             ],
             "pen_color": "#000000",
+            "pen_style": "Solid",
             "pen_thickness": 0,
             "rotation": 0.0,
             "fill_color": "#926143"
@@ -104,6 +106,7 @@
               34
             ],
             "pen_color": "#000000",
+            "pen_style": "Solid",
             "pen_thickness": 0,
             "rotation": 0.0,
             "fill_color": "#926143"
@@ -137,6 +140,7 @@
               34
             ],
             "pen_color": "#000000",
+            "pen_style": "Solid",
             "pen_thickness": 0,
             "rotation": 0.0,
             "fill_color": "#926143"
@@ -170,6 +174,7 @@
               36
             ],
             "pen_color": "#000000",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "#FFFFFF",
@@ -204,6 +209,7 @@
               36
             ],
             "pen_color": "#000000",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "#FFFFFF",
@@ -238,6 +244,7 @@
               36
             ],
             "pen_color": "#000000",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "#FFFFFF",
@@ -269,7 +276,7 @@
               16.0,
               392.0
             ],
-            "title": "Solve",
+            "text": "Solve",
             "style": "Border",
             "is_selected": false,
             "rotation": 0.0
@@ -290,7 +297,7 @@
               201.0,
               392.0
             ],
-            "title": "Reset",
+            "text": "Reset",
             "style": "Border",
             "is_selected": false,
             "rotation": 0.0
@@ -314,6 +321,7 @@
               36
             ],
             "pen_color": "#000000",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "#FFFFFF",
@@ -348,6 +356,7 @@
               36
             ],
             "pen_color": "#000000",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "#FFFFFF",
@@ -367,6 +376,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 6,
-  "CardStock_stack_version": "0.99.1"
+  "CardStock_stack_format": 9,
+  "CardStock_stack_version": "0.99.6"
 }

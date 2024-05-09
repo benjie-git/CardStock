@@ -351,11 +351,13 @@ class Card(ViewProxy):
             raise TypeError("broadcast_message(): message must be a string")
         self._model.broadcast_message(message)
 
-    def animate_fill_color(self, duration, endVal, easing=None, on_finished=None, *args, **kwargs):
+    def animate_fill_color(self, duration, endVal, easing=None, on_finished=None):
         if not isinstance(duration, (int, float)):
             raise TypeError("animate_fill_color(): duration must be a number")
         if not isinstance(endVal, str):
             raise TypeError("animate_fill_color(): end_color must be a string")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_fill_color(): easing, if provided, must be one of "In", "Out", or "InOut"')
 
         model = self._model
         if not model: return
@@ -376,7 +378,7 @@ class Card(ViewProxy):
                 model.SetProperty("fill_color", wx.Colour([int(animDict["origParts"][i] + animDict["offsets"][i] * ease(progress, easing)) for i in range(4)]))
 
             def internalOnFinished(animDict):
-                if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished, *args, **kwargs)
+                if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
 
             model.AddAnimation("fill_color", duration, onUpdate, onStart, internalOnFinished)
 

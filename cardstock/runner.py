@@ -1130,7 +1130,7 @@ class Runner():
             raise TypeError("Size(): height must be a number")
         return wx.Size(width, height)
 
-    def run_after_delay(self, duration, func, *args, **kwargs):
+    def run_after_delay(self, duration, func):
         try:
             duration = float(duration)
         except ValueError:
@@ -1147,12 +1147,12 @@ class Runner():
                 timer = wx.Timer()
                 def onTimer(event):
                     if self.stopRunnerThread: return
-                    self.EnqueueFunction(func, *args, **kwargs)
+                    self.EnqueueFunction(func)
                 timer.Bind(wx.EVT_TIMER, onTimer)
                 timer.StartOnce(int(adjustedDuration*1000))
                 self.timers.append(timer)
             else:
-                self.EnqueueFunction(func, *args, **kwargs)
+                self.EnqueueFunction(func)
 
         f()
 

@@ -67,9 +67,7 @@ class HelpDataGlobals():
                                  "clockwise around the point (0,0).  This is useful to, for example, set the speed of a "
                                  "cannonball that should be moving in the direction that a cannon is already pointing."},
         "run_after_delay": {"args": {"duration": {"type": "float", "info": "Number of seconds to delay."},
-                                     "func": {"type": "function", "info": "A function to call after the delay."},
-                                     "*args": {"type": "any",
-                                               "info": "0 or more arguments and/or keyword arguments to pass into <b>func</b>."}},
+                                     "func": {"type": "function", "info": "A function to call after the delay."}},
                             "return": None,
                             "info": "This function lets your program continue running while a timer waits for <b>duration</b> seconds, "
                                     "and then runs the functions <b>func</b>, passing it any additional arguments you add "
@@ -368,12 +366,10 @@ class HelpDataObject():
                                                          "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
                                                          "instead of starting the animation at full speed. "
                                                          "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
-                                                         "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                                         "Setting easing to None or skipping this argument will use simple, linear animation, "
                                                          "which can look abrupt, but is sometimes what you want."},
                                       "on_finished": {"type": "function",
-                                                      "info": "an optional function to run when the animation finishes."},
-                                      "*args": {"type": "any",
-                                                "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
+                                                      "info": "an optional function to run when the animation finishes."}},
                              "return": None,
                              "info": "Visually animates the movement of this object from its current position to <b>end_position</b>, "
                                      "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -388,12 +384,10 @@ class HelpDataObject():
                                                        "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
                                                        "instead of starting the animation at full speed. "
                                                        "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
-                                                       "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                                       "Setting easing to None or skipping this argument will use simple, linear animation, "
                                                        "which can look abrupt, but is sometimes what you want."},
                                     "on_finished": {"type": "function",
-                                                    "info": "an optional function to run when the animation finishes"},
-                                    "*args": {"type": "any",
-                                              "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
+                                                    "info": "an optional function to run when the animation finishes"}},
                            "return": None,
                            "info": "Visually animates the movement of this object from its current position to have its center at <b>end_center</b>, "
                                    "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -408,12 +402,10 @@ class HelpDataObject():
                                                      "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
                                                      "instead of starting the animation at full speed. "
                                                      "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
-                                                     "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                                     "Setting easing to None or skipping this argument will use simple, linear animation, "
                                                      "which can look abrupt, but is sometimes what you want."},
                                   "on_finished": {"type": "function",
-                                                  "info": "an optional function to run when the animation finishes"},
-                                  "*args": {"type": "any",
-                                            "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
+                                                  "info": "an optional function to run when the animation finishes"}},
                          "return": None,
                          "info": "Visually animates the <b>size</b> of this object from its current size to <b>end_size</b>, "
                                  "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -431,12 +423,10 @@ class HelpDataObject():
                                                          "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
                                                          "instead of starting the animation at full speed. "
                                                          "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
-                                                         "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                                         "Setting easing to None or skipping this argument will use simple, linear animation, "
                                                          "which can look abrupt, but is sometimes what you want."},
                                       "on_finished": {"type": "function",
-                                                      "info": "an optional function to run when the animation finishes."},
-                                      "*args": {"type": "any",
-                                                "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
+                                                      "info": "an optional function to run when the animation finishes."}},
                              "return": None,
                              "info": "Visually animates changing this object's <b>rotation</b> angle to <b>end_rotation</b>, "
                                      "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -513,7 +503,7 @@ class HelpDataButton():
 
     properties = {
         "text": {"type": "string",
-                 "info": "The <b>text</b> property is the visible text on the button."},
+                 "info": "The <b>text</b> property holds the text content of this button, text label, or text field."},
         "style": {"type": "[Border, Borderless, Checkbox, Radio]",
                   "info": "Buttons with style <b>Border</b> show a rounded rectangular border, "
                           "depending on your computer's operating system.  This is the most commonly seen style of "
@@ -566,17 +556,17 @@ class HelpDataTextField():
 
     properties = {
         "text": {"type": "string",
-                 "info": "The <b>text</b> property holds the contents of this field as a string."},
+                 "info": "The <b>text</b> property holds the text content of this button, text label, or text field."},
         "alignment": {"type": "[Left, Center, Right]",
-                      "info": "By default, text fields start aligned to the left, but you can change this property to make "
-                              "your text centered, or aligned to the right."},
+                      "info": "By default, text labels and text fields start aligned to the left, but you can change "
+                              "this property to make your text centered, or aligned to the right."},
         "text_color": {"type": "string",
-                       "info": "The color used for the text in this field.  This can be a color word like red, or an "
-                               "HTML color like #333333 for dark gray."},
+                       "info": "The color used for the text in this text label or text field.  This can be a color "
+                               "word like red, or an HTML color like #333333 for dark gray."},
         "font": {"type": "[Default, Serif, Sans-Serif, Mono]",
-                 "info": "The <b>font</b> used for the text in this field."},
+                 "info": "The <b>font</b> used for the text in this label or field."},
         "font_size": {"type": "int",
-                      "info": "The point size for the font used for the text in this field."},
+                      "info": "The point size for the font used for the text in this label or field."},
         "is_bold": {"type": "bool",
                     "info": "Set to True if this object's text is bold."},
         "is_italic": {"type": "bool",
@@ -612,12 +602,10 @@ class HelpDataTextField():
                                         "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
                                         "instead of starting the animation at full speed. "
                                         "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
-                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "Setting easing to None or skipping this argument will use simple, linear animation, "
                                         "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
-                                     "info": "an optional function to run when the animation finishes."},
-                     "*args": {"type": "any",
-                               "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
+                                     "info": "an optional function to run when the animation finishes."}},
             "return": None,
             "info": "Visually animates changing this object's <b>font_size</b> to <b>end_size</b>, "
                     "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -631,12 +619,10 @@ class HelpDataTextField():
                                         "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
                                         "instead of starting the animation at full speed. "
                                         "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
-                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "Setting easing to None or skipping this argument will use simple, linear animation, "
                                         "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
-                                     "info": "an optional function to run when the animation finishes."},
-                     "*args": {"type": "any",
-                               "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
+                                     "info": "an optional function to run when the animation finishes."}},
             "return": None,
             "info": "Visually animates fading this object's <b>text_color</b> to <b>end_color</b>, "
                     "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -665,20 +651,20 @@ class HelpDataTextLabel():
 
     properties = {
         "text": {"type": "string",
-                 "info": "The <b>text</b> property is the text contents of this label."},
+                 "info": "The <b>text</b> property holds the text content of this button, text label, or text field."},
         "alignment": {"type": "[Left, Center, Right]",
-                      "info": "By default text fields start aligned to the left, but you can change this property to make "
-                              "your text centered, or aligned to the right."},
+                      "info": "By default, text labels and text fields start aligned to the left, but you can change "
+                              "this property to make your text centered, or aligned to the right."},
         "can_auto_shrink": {"type": "bool",
                             "info": "When the <b>can_auto_shrink</b> property is True, the <b>font_size</b> of the text in this "
                                     "label will shrink if needed, to fit into the label object's current size."},
         "text_color": {"type": "string",
-                       "info": "The color used for the text in this label.  This can be a color word like red, or an "
-                               "HTML color like #333333 for dark gray."},
+                       "info": "The color used for the text in this text label or text field.  This can be a color "
+                               "word like red, or an HTML color like #333333 for dark gray."},
         "font": {"type": "[Default, Serif, Sans-Serif, Mono]",
-                 "info": "The <b>font</b> used for the text in this label."},
+                 "info": "The <b>font</b> used for the text in this label or field."},
         "font_size": {"type": "int",
-                      "info": "The point size for the font used for the text in this label."},
+                      "info": "The point size for the font used for the text in this label or field."},
         "is_bold": {"type": "bool",
                     "info": "Set to True if this object's text is bold."},
         "is_italic": {"type": "bool",
@@ -697,12 +683,10 @@ class HelpDataTextLabel():
                                         "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
                                         "instead of starting the animation at full speed. "
                                         "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
-                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "Setting easing to None or skipping this argument will use simple, linear animation, "
                                         "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
-                                     "info": "an optional function to run when the animation finishes."},
-                     "*args": {"type": "any",
-                               "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
+                                     "info": "an optional function to run when the animation finishes."}},
             "return": None,
             "info": "Visually animates changing this object's <b>font_size</b> to <b>end_size</b>, "
                     "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -716,12 +700,10 @@ class HelpDataTextLabel():
                                         "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
                                         "instead of starting the animation at full speed. "
                                         "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
-                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "Setting easing to None or skipping this argument will use simple, linear animation, "
                                         "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
-                                     "info": "an optional function to run when the animation finishes."},
-                     "*args": {"type": "any",
-                               "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
+                                     "info": "an optional function to run when the animation finishes."}},
             "return": None,
             "info": "Visually animates fading this object's <b>text_color</b> to <b>end_color</b>, "
                     "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -853,12 +835,10 @@ class HelpDataLine():
                                         "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
                                         "instead of starting the animation at full speed. "
                                         "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
-                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "Setting easing to None or skipping this argument will use simple, linear animation, "
                                         "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
-                                     "info": "an optional function to run when the animation finishes."},
-                     "*args": {"type": "any",
-                               "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
+                                     "info": "an optional function to run when the animation finishes."}},
             "return": None,
             "info": "Visually animates changing this object's <b>pen_thickness</b> to <b>end_thickness</b>, "
                     "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -873,12 +853,10 @@ class HelpDataLine():
                                         "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
                                         "instead of starting the animation at full speed. "
                                         "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
-                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "Setting easing to None or skipping this argument will use simple, linear animation, "
                                         "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
-                                     "info": "an optional function to run when the animation finishes."},
-                     "*args": {"type": "any",
-                               "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
+                                     "info": "an optional function to run when the animation finishes."}},
             "return": None,
             "info": "Visually animates fading this object's <b>pen_color</b> to <b>end_color</b>, "
                     "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -894,7 +872,7 @@ class HelpDataShape():
 
     properties = {
         "fill_color": {"type": "string",
-                       "info": "The color used to fill the inside area of the shape.  This can be a color word like "
+                       "info": "The color used to fill in a shape, or the background of a card.  This can be a color word like "
                                "red, or an HTML color like #FF0000 for pure red."},
     }
 
@@ -908,12 +886,10 @@ class HelpDataShape():
                                         "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
                                         "instead of starting the animation at full speed. "
                                         "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
-                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "Setting easing to None or skipping this argument will use simple, linear animation, "
                                         "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
-                                     "info": "an optional function to run when the animation finishes."},
-                     "*args": {"type": "any",
-                               "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
+                                     "info": "an optional function to run when the animation finishes."}},
             "return": None,
             "info": "Visually animates fading this object's <b>fill_color</b> to <b>end_color</b>, "
                     "over <b>duration</b> seconds.  When the animation completes, runs the "
@@ -942,12 +918,10 @@ class HelpDataRoundRectangle():
                                         "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
                                         "instead of starting the animation at full speed. "
                                         "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
-                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "Setting easing to None or skipping this argument will use simple, linear animation, "
                                         "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
-                                     "info": "an optional function to run when the animation finishes."},
-                     "*args": {"type": "any",
-                               "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
+                                     "info": "an optional function to run when the animation finishes."}},
             "return": None,
             "info": "Visually animates changing this round rectangle's <b>corner_radius</b> to <b>end_corner_radius</b>, "
                     "over <b>duration</b> seconds.  When the animation completes, runs the <b>on_finished</b> function, "
@@ -963,7 +937,7 @@ class HelpDataCard():
 
     properties = {
         "fill_color": {"type": "string",
-                       "info": "The fill_color is used to fill in the background of this card.  This can be a color word like white, "
+                       "info": "The fill_color is used to fill in a shape, or the background of a card.  This can be a color word like white, "
                                "or an HTML color like #EEEEEE for a light grey."},
         "number": {"type": "int",
                    "info": "This is the card number of this card.  The first card is <b>number</b> 1.  You can "
@@ -1051,7 +1025,7 @@ class HelpDataCard():
                                         "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
                                         "instead of starting the animation at full speed. "
                                         "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
-                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "Setting easing to None or skipping this argument will use simple, linear animation, "
                                         "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
                                      "info": "an optional function to run when the animation finishes."}},

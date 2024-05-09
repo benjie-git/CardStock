@@ -164,7 +164,7 @@ space back, or its incessant helpfulness otherwise offends your sensibilities.</
 <p>Each object in your stack, including each card, button, text field, shape, group, etc., has properties that
 you can change in the property editor when that object is selected. You can change things like the object's
 position and size. And each type of object also has its own specific properties.  For example, a card has a <b>fill_color</b>, 
-and a button has a <b>title</b>.  Each object also has a name, which is how you control it from your python code. 
+and a button has a <b>text</b> property.  Each object also has a name, which is how you control it from your python code. 
 CardStock makes sure that these names are unique within each card. See the CardStock Reference for a description of each
 property, for each type of object.</p>
 
@@ -182,7 +182,7 @@ See the CardStock Reference for a description of each type of event, and when th
 
 <p>In your python event-handling code, you have access to all of the objects in your stack, including their
 properties and methods, and some global variables and functions that are always available.  So if your button is called 
-yes_button, you could write <b>yes_button.title = "Done"</b> to change your button's title to the string "Done".  You can 
+yes_button, you could write <b>yes_button.text = "Done"</b> to change your button's title text to the string "Done".  You can 
 also use the variables that are passed into each event function, which are listed inside the parentheses after the event
 name.  All events receive a variable called self, which refers to the object who's event is being run.  
 So in a button's on_click(self) code, self refers to that button object.  In a card's on_show_card(self) code, self will 
@@ -202,8 +202,8 @@ of the current card's objects (including the card itself) will start running the
 great place to run any periodic checks that need to keep happening often.  The on_resize() event runs on a card object 
 when the stack window is resized while that card is shown, to give your stack a chance to re-layout objects based on 
 the new card size.  The on_message() event runs on an object when any of your other code calls that object's 
-object.send_message() method, or calls the broadcast_message() function, which sends the message to all objects in the 
-stack.</p>
+object.send_message() method, or calls the broadcast_message() method on this object's card, or on the stack, which sends the 
+message to all objects on the card or the whole stack, respectively.</p>
 
 <p>The on_key_press() and on_key_release() events of the current card run when a keyboard key is pressed down, and released, 
 respectively.  And on_key_hold() is called approximately every 1/30th of a second for each key that remains held pressed 
@@ -436,13 +436,13 @@ the current card.  And you can access objects on other cards as, for example, st
                                          "of this card as card.object_name.")}
 <hr/>
 {HelpData.ObjectSection("button", "Button", "Buttons in CardStock come in 4 styles.  <b>Border</b> style buttons "
-                                            "show their title centered inside of a rounded rectangle border, and when clicked, "
+                                            "show their <b>text</b> centered inside of a rounded rectangle border, and when clicked, "
                                             "run their on_click() event code.  <b>Borderless</b> buttons behave the same, but "
                                             "are transparent and do not display a border.  A <b>Checkbox</b> button shows its "
-                                            "title left-justified, after a checkbox that shows a check when it is selected. "
+                                            "text left-justified, after a checkbox that shows a check when it is selected. "
                                             "When a user clicks a Checkbox, its selection state toggles between selected and not,"
                                             "and the object's on_selection_changed() event is run.  A <b>Radio</b> button shows its "
-                                            "title left-justified, after an indicator circle, that shows a dot inside when it is selected. "
+                                            "text left-justified, after an indicator circle, that shows a dot inside when it is selected. "
                                             "When a user clicks a Radio button, it is selected, and any other Radio "
                                             "buttons in the same Radio group are deselected, "
                                             "and both objects' on_selection_changed() events is run, first the deselection, "
