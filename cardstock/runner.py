@@ -123,7 +123,6 @@ class Runner():
             "request_url": self.request_url,
             "play_sound": self.play_sound,
             "stop_sound": self.stop_sound,
-            "broadcast_message": self.broadcast_message,
             "is_key_pressed": self.is_key_pressed,
             "is_mouse_pressed": self.is_mouse_pressed,
             "is_using_touch_screen": self.is_using_touch_screen,
@@ -832,16 +831,6 @@ class Runner():
 
 
     # --------- User-accessible view functions -----------
-
-    def broadcast_message(self, message):
-        if not isinstance(message, str):
-            raise TypeError("broadcast_message(): message must be a string")
-
-        def r_broadcast(model):
-            self.RunHandler(model, "on_message", None, message)
-            for m in model.childModels:
-                r_broadcast(m)
-        r_broadcast(self.stackManager.stackModel)
 
     def goto_card(self, card):
         index = None

@@ -70,6 +70,10 @@ class CodeAnalyzer(object):
         self.objProps["size"] += ["width", "height"]
         self.objProps["any"] += ["x", "y", "width", "height"]
 
+        for t in ["file", "bytes"]:
+            self.objProps[t] = []
+            self.objMethods[t] = []
+
         self.objProps = {key:list(set(l)) for (key, l) in self.objProps.items()}  # unique the items
         self.objMethods = {key:list(set(l)) for (key, l) in self.objMethods.items()}  # unique the items
 
@@ -151,13 +155,17 @@ class CodeAnalyzer(object):
                     else:
                         retVals = (objType, p, "list", None)  # list literal
                 elif len(parts[0]) and parts[0][-1] == "}":  # dict literal
-                    retVals = (objType, p, "dict", None)
+                    retVals = (objType, p, "dictionary", None)
                 elif parts[0] == '':  # nothing
                     retVals = (objType, p, None, None)
                 else:
                     retVals = (objType, p, "any", None)
             else:
-                if p in self.objProps["any"]:
+                if objType and p in self.objProps[objType]:
+                    retVals = (objType, p, helpDataGen.HelpData.GetTypeForProp(p, objType), None)
+                elif objType and p in self.objMethods[objType]:
+                    retVals = (objType, p, helpDataGen.HelpData.GetTypeForMethod(p, objType), None)
+                elif p in self.objProps["any"]:
                     retVals = (objType, p, helpDataGen.HelpData.GetTypeForProp(p), None)
                 elif p in self.objMethods["any"]:
                     retVals = (objType, p, helpDataGen.HelpData.GetTypeForMethod(p), None)

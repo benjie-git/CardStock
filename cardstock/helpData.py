@@ -11,14 +11,14 @@ This file includes descriptions of all CardStock objects, properties, methods, a
 context help, reference docs, and in the future, code completion.
 """
 
-
 HelpDataTypes = [["Type", "Description"],
                  ["<i>bool</i>", "A bool or boolean value holds a simple True or False."],
                  ["<i>int</i>", "An int or integer value holds any whole number, positive or negative."],
                  ["<i>float</i>", "A float or floating point value holds any number, including with a decimal point."],
                  ["<i>string</i>", "A string value holds text."],
                  ["<i>list</i>", "A list value is a container that holds a list of other values."],
-                 ["<i>dictionary</i>", "A dictionary value is a container that holds named items, as key, value pairs."],
+                 ["<i>dictionary</i>",
+                  "A dictionary value is a container that holds named items, as key, value pairs."],
                  ["<i>point</i>", "A point value is like a list of two numbers, x and y, that describes a location in "
                                   "the card.  For a point variable p, you can access the x value as p[0] or p.x, and "
                                   "the y value as either p[1] or p.y."],
@@ -26,12 +26,14 @@ HelpDataTypes = [["Type", "Description"],
                                  "size of an object in the card.  For a size variable s, you can access the width "
                                  "value as s[0] or s.width, and the height value as either s[1] or s.height"],
                  ["<i>object</i>", "An object value can hold any CardStock object, like a button, card, or oval."],
-                 ["<i>stack, card, button, textfield, textlabel, webview, image, oval, rect, roundrect, polygon, line</i>",
-                  "A value of any of these types holds a CardStock object of that specific type.  (Note that webview objects are not currently available on cardstock.run.)"],
+                 [
+                     "<i>stack, card, button, textfield, textlabel, webview, image, oval, rect, roundrect, polygon, line</i>",
+                     "A value of any of these types holds a CardStock object of that specific type.  (Note that webview objects are not currently available on cardstock.run.)"],
                  ]
 
 
 class HelpDataGlobals():
+    types = []
     variables = {
         "self": {"type": "object",
                  "info": "In any object's event code, <b>self</b> always refers to the object that contains this code."},
@@ -104,19 +106,20 @@ class HelpDataGlobals():
                                "info": "Goes to the previous card in the stack.  If we're already on the first card, then loop back to "
                                        "the last card.  This sends the on_hide_card event for the current card, and then the "
                                        "on_show_card event for the new card."},
-        "run_stack": {"args": {"filename": {"type": "string", "info": "The path to a stack file to run"},
-                               "cardNumber": {"type": "int",
-                                              "info": "An optional card number of the new stack to start on.  This defaults to card number 1, the first card."},
-                               "setupValue": {"type": "any", "info": "An optional value to pass into the new stack."}},
-                      "return": "any",
-                      "info": "Opens the stack at the path given by the <b>filename</b> argument.  On CardStock.run, a "
-                              "filename can be a stack name owned by the same user as the current stack, or a full "
-                              "path \"username/StackName\", like \"examples/Pong\".  Optionally starts on "
-                              "the card number specified by the <b>cardNumber</b> argument.  If you include a "
-                              "<b>setupValue</b> argument, this will be passed into the new stack, which can access it by "
-                              "calling <b>stack.get_setup_value()</b>.  The <b>run_stack()</b> call waits "
-                              "until the new stack exits by calling <b>stack.return_from_stack(returnVal)</b>, and then "
-                              "this <b>run_stack()</b> call returns that returnVal value, or None if no returnValue was given."},
+        "run_stack": {
+            "args": {"filename": {"type": "string", "info": "The path to a stack file to run.  On CardStock.run, a "
+                                                            "filename can be a stack name owned by the same user as the current stack, or a full "
+                                                            "path \"username/StackName\", like \"examples/Pong\"."},
+                     "cardNumber": {"type": "int",
+                                    "info": "An optional card number of the new stack to start on.  This defaults to card number 1, the first card."},
+                     "setupValue": {"type": "any", "info": "An optional value to pass into the new stack."}},
+            "return": "any",
+            "info": "Opens the stack at the path given by the <b>filename</b> argument.  Optionally starts on "
+                    "the card number specified by the <b>cardNumber</b> argument.  If you include a "
+                    "<b>setupValue</b> argument, this will be passed into the new stack, which can access it by "
+                    "calling <b>stack.get_setup_value()</b>.  The <b>run_stack()</b> call waits "
+                    "until the new stack exits by calling <b>stack.return_from_stack(returnVal)</b>, and then "
+                    "this <b>run_stack()</b> call returns that returnVal value, or None if no returnValue was given."},
         "open_url": {"args": {"URL": {"type": "string",
                                       "info": "This is the URL to open."},
                               "in_place": {"type": "bool",
@@ -167,11 +170,6 @@ class HelpDataGlobals():
         "stop_sound": {"args": {},
                        "return": None,
                        "info": "Stops all currently playing sounds."},
-        "broadcast_message": {"args": {"message": {"type": "string",
-                                                   "info": "This is the message to send."}},
-                              "return": None,
-                              "info": "Sends the <b>message</b> to all objects in this stack, causing each of their "
-                                      "on_message events to run with this <b>message</b>."},
         "is_key_pressed": {"args": {"key_name": {"type": "string", "info": "The name of the key to check."}},
                            "return": "bool",
                            "info": "Returns <b>True</b> if the named keyboard key is currently pressed down, otherwise "
@@ -252,8 +250,8 @@ class HelpDataObject():
                            "is from the left edge of the card.  The second number, <b>y</b>, is how far up from the bottom.  "
                            "This value is not stored, but computed based on position and size."},
         "rotation": {"type": "float",
-                     "info": "This is the angle in degrees clockwise to rotate this object.  0 is upright.  Note that "
-                             "not all objects can be rotated, for example cards and stacks."},
+                     "info": "This is the angle in degrees clockwise to rotate this object around its center.  0 is "
+                             "normal/upright.  Note that not all objects can be rotated, for example cards and stacks."},
         "speed": {"type": "point",
                   "info": "This is a point value corresponding to the current speed of the object, in pixels/second "
                           "in both the <b>x</b> and <b>y</b> directions."},
@@ -363,14 +361,17 @@ class HelpDataObject():
                                      " 'Top', 'Bottom', 'Left', or 'Right', accordingly."},
         "animate_position": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                       "end_position": {"type": "point",
-                                                       "info": "the destination bottom-left corner position at the end of the animation"},
+                                                       "info": "the destination bottom-left corner position at the end of the animation, "
+                                                               "as a 2-item list representing an x and y location, like (100,140)."},
                                       "easing": {"type": "string",
-                                                 "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
-                                                         "To ease the animation in and/or out, use the easing values "
-                                                         "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
-                                                         "or skipping this argument will use simple, linear animation."},
+                                                 "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                                         "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                                         "instead of starting the animation at full speed. "
+                                                         "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                                         "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                                         "which can look abrupt, but is sometimes what you want."},
                                       "on_finished": {"type": "function",
-                                                      "info": "an optional function to run when the animation finishes"},
+                                                      "info": "an optional function to run when the animation finishes."},
                                       "*args": {"type": "any",
                                                 "info": "0 or more arguments and/or keyword arguments to pass into <b>on_finished</b>."}},
                              "return": None,
@@ -380,12 +381,15 @@ class HelpDataObject():
 
         "animate_center": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                     "end_position": {"type": "point",
-                                                     "info": "the destination center position at the end of the animation"},
+                                                     "info": "the destination center position at the end of the animation, "
+                                                             "as a 2-item list representing an x and y location, like (100,140)."},
                                     "easing": {"type": "string",
-                                               "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
-                                                       "To ease the animation in and/or out, use the easing values "
-                                                       "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
-                                                       "or skipping this argument will use simple, linear animation."},
+                                               "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                                       "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                                       "instead of starting the animation at full speed. "
+                                                       "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                                       "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                                       "which can look abrupt, but is sometimes what you want."},
                                     "on_finished": {"type": "function",
                                                     "info": "an optional function to run when the animation finishes"},
                                     "*args": {"type": "any",
@@ -397,12 +401,15 @@ class HelpDataObject():
 
         "animate_size": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                   "end_size": {"type": "size",
-                                               "info": "the final size of this object at the end of the animation"},
+                                               "info": "the final size of this object at the end of the animation, "
+                                                       "as a 2-item list representing the width, and height, like (100,50)."},
                                   "easing": {"type": "string",
-                                             "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
-                                                     "To ease the animation in and/or out, use the easing values "
-                                                     "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
-                                                     "or skipping this argument will use simple, linear animation."},
+                                             "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                                     "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                                     "instead of starting the animation at full speed. "
+                                                     "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                                     "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                                     "which can look abrupt, but is sometimes what you want."},
                                   "on_finished": {"type": "function",
                                                   "info": "an optional function to run when the animation finishes"},
                                   "*args": {"type": "any",
@@ -420,10 +427,12 @@ class HelpDataObject():
                                                                   "you want the object to rotate.  A positive value forces "
                                                                   "clockwise rotation, and a negative value forces counter-clockwise."},
                                       "easing": {"type": "string",
-                                                 "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
-                                                         "To ease the animation in and/or out, use the easing values "
-                                                         "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
-                                                         "or skipping this argument will use simple, linear animation."},
+                                                 "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                                         "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                                         "instead of starting the animation at full speed. "
+                                                         "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                                         "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                                         "which can look abrupt, but is sometimes what you want."},
                                       "on_finished": {"type": "function",
                                                       "info": "an optional function to run when the animation finishes."},
                                       "*args": {"type": "any",
@@ -449,43 +458,43 @@ class HelpDataObject():
                              "program needs, and to define functions, and set up any variables with their initial values."},
         "on_mouse_press": {"args": {
             "mouse_pos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
-                           "info": "The <b>on_mouse_press</b> event is run when the mouse button gets pressed down inside of this object, "
-                                   "and gives you the current mouse position as the point <b>mouse_pos</b>.  This event will be "
-                                   "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
-                                   "itself, unless this propagation is stopped by calling self.stop_handling_mouse_event() from your code.  "
-                                   "Note that Mouse events are run whether you use a mouse, trackpad, touchscreen, or any other pointing device."},
+            "info": "The <b>on_mouse_press</b> event is run when the mouse button gets pressed down inside of this object, "
+                    "and gives you the current mouse position as the point <b>mouse_pos</b>.  This event will be "
+                    "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
+                    "itself, unless this propagation is stopped by calling self.stop_handling_mouse_event() from your code.  "
+                    "Note that Mouse events are run whether you use a mouse, trackpad, touchscreen, or any other pointing device."},
         "on_mouse_move": {"args": {
             "mouse_pos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
-                          "info": "The <b>on_mouse_move</b> event is run every time the mouse moves, while over this object, whether "
-                                  "or not the mouse button is down, and gives you the current mouse position as the point <b>mouse_pos</b>.  "
-                                  "This event will be "
-                                  "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
-                                  "itself, unless this propagation is stopped by calling self.stop_handling_mouse_event() from your code.  "
-                                  "Note that Mouse events are run whether you use a mouse, trackpad, touchscreen, or any other pointing device."},
+            "info": "The <b>on_mouse_move</b> event is run every time the mouse moves, while over this object, whether "
+                    "or not the mouse button is down, and gives you the current mouse position as the point <b>mouse_pos</b>.  "
+                    "This event will be "
+                    "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
+                    "itself, unless this propagation is stopped by calling self.stop_handling_mouse_event() from your code.  "
+                    "Note that Mouse events are run whether you use a mouse, trackpad, touchscreen, or any other pointing device."},
         "on_mouse_release": {"args": {
             "mouse_pos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
-                             "info": "The <b>on_mouse_release</b> event is run when the mouse button is released over this object, and "
-                                     "gives you the current mouse position as the point <b>mouse_pos</b>.  This event will be "
-                                     "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
-                                     "itself, unless this propagation is stopped by calling self.stop_handling_mouse_event() from your code.  "
-                                     "Note that Mouse events are run whether you use a mouse, trackpad, touchscreen, or any other pointing device."},
+            "info": "The <b>on_mouse_release</b> event is run when the mouse button is released over this object, and "
+                    "gives you the current mouse position as the point <b>mouse_pos</b>.  This event will be "
+                    "run for all objects underneath the mouse pointer, from the topmost object, down to the card "
+                    "itself, unless this propagation is stopped by calling self.stop_handling_mouse_event() from your code.  "
+                    "Note that Mouse events are run whether you use a mouse, trackpad, touchscreen, or any other pointing device."},
         "on_mouse_enter": {"args": {
             "mouse_pos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
-                           "info": "The <b>on_mouse_enter</b> event is run when the mouse pointer moves onto this object."},
+            "info": "The <b>on_mouse_enter</b> event is run when the mouse pointer moves onto this object."},
         "on_mouse_exit": {"args": {
             "mouse_pos": {"type": "point", "info": "This is the current position of the mouse pointer on the card."}},
-                          "info": "The <b>on_mouse_exit</b> event is run when the mouse pointer moves back off of this object."},
+            "info": "The <b>on_mouse_exit</b> event is run when the mouse pointer moves back off of this object."},
         "on_bounce": {"args": {
             "other_object": {"type": "object", "info": "The other object that this object just bounced off of.", },
             "edge": {"type": "string",
                      "info": "The edge of the other object that we just bounced off of ('Left', 'Right', 'Top', or 'Bottom')."}},
-                      "info": "The <b>on_bounce</b> event is run whenever this object collides with an object that it "
-                              "knows to bounce off of.  Set up the list of objects that this object will bounce off "
-                              "of by calling object.set_bounce_objects(list) with that list of objects.  For example, if "
-                              "you have called ball.set_bounce_objects([card]), then the ball object will bounce off of "
-                              "the edges of the card.  And when the ball touches the top of the card, ball.speed.y will "
-                              "flip from positive to negative, so that the ball will start moving downwards, and the "
-                              "<b>on_bounce(other_object, edge)</b> event will run with other_object=card and edge='Top'."},
+            "info": "The <b>on_bounce</b> event is run whenever this object collides with an object that it "
+                    "knows to bounce off of.  Set up the list of objects that this object will bounce off "
+                    "of by calling object.set_bounce_objects(list) with that list of objects.  For example, if "
+                    "you have called ball.set_bounce_objects([card]), then the ball object will bounce off of "
+                    "the edges of the card.  And when the ball touches the top of the card, ball.speed.y will "
+                    "flip from positive to negative, so that the ball will start moving downwards, and the "
+                    "<b>on_bounce(other_object, edge)</b> event will run with other_object=card and edge='Top'."},
         "on_message": {"args": {"message": {"type": "string", "info": "This is the message string that was passed into "
                                                                       "a send_message() or broadcast_message() call."}},
                        "info": "The <b>on_message</b> event is run when broadcast_message() is called, or send_message() "
@@ -503,8 +512,8 @@ class HelpDataButton():
     types = ["button"]
 
     properties = {
-        "title": {"type": "string",
-                  "info": "The <b>title</b> property is the visible text on the button."},
+        "text": {"type": "string",
+                 "info": "The <b>text</b> property is the visible text on the button."},
         "style": {"type": "[Border, Borderless, Checkbox, Radio]",
                   "info": "Buttons with style <b>Border</b> show a rounded rectangular border, "
                           "depending on your computer's operating system.  This is the most commonly seen style of "
@@ -599,10 +608,12 @@ class HelpDataTextField():
                      "end_size": {"type": "string",
                                   "info": "the final font_size at the end of the animation"},
                      "easing": {"type": "string",
-                                "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
-                                        "To ease the animation in and/or out, use the easing values "
-                                        "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
-                                        "or skipping this argument will use simple, linear animation."},
+                                "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                        "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                        "instead of starting the animation at full speed. "
+                                        "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
                                      "info": "an optional function to run when the animation finishes."},
                      "*args": {"type": "any",
@@ -616,10 +627,12 @@ class HelpDataTextField():
                      "end_color": {"type": "string",
                                    "info": "the final text_color at the end of the animation"},
                      "easing": {"type": "string",
-                                "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
-                                        "To ease the animation in and/or out, use the easing values "
-                                        "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
-                                        "or skipping this argument will use simple, linear animation."},
+                                "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                        "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                        "instead of starting the animation at full speed. "
+                                        "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
                                      "info": "an optional function to run when the animation finishes."},
                      "*args": {"type": "any",
@@ -680,10 +693,12 @@ class HelpDataTextLabel():
                      "end_size": {"type": "string",
                                   "info": "the final font_size at the end of the animation"},
                      "easing": {"type": "string",
-                                "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
-                                        "To ease the animation in and/or out, use the easing values "
-                                        "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
-                                        "or skipping this argument will use simple, linear animation."},
+                                "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                        "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                        "instead of starting the animation at full speed. "
+                                        "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
                                      "info": "an optional function to run when the animation finishes."},
                      "*args": {"type": "any",
@@ -697,10 +712,12 @@ class HelpDataTextLabel():
                      "end_color": {"type": "string",
                                    "info": "the final text_color at the end of the animation"},
                      "easing": {"type": "string",
-                                "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
-                                        "To ease the animation in and/or out, use the easing values "
-                                        "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
-                                        "or skipping this argument will use simple, linear animation."},
+                                "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                        "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                        "instead of starting the animation at full speed. "
+                                        "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
                                      "info": "an optional function to run when the animation finishes."},
                      "*args": {"type": "any",
@@ -753,7 +770,7 @@ class HelpDataWebView():
             "args": {"URL": {"type": "string", "info": "This is the URL of the web page that just loaded."},
                      "did_load": {"type": "bool", "info": "True if the URL loaded successfully, otherwise False."}},
             "info": "The <b>on_done_loading</b> event is run whenever a web page finishes loading.",
-            },
+        },
         "on_card_stock_link": {
             "args": {"message": {"type": "string", "info": "This is the message part of a 'cardstock:message' URL."}},
             "info": "The <b>on_card_stock_link</b> event is run whenever a web page tries to load a URL of the form "
@@ -832,10 +849,12 @@ class HelpDataLine():
                      "end_thickness": {"type": "int",
                                        "info": "the final pen_thickness at the end of the animation"},
                      "easing": {"type": "string",
-                                "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
-                                        "To ease the animation in and/or out, use the easing values "
-                                        "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
-                                        "or skipping this argument will use simple, linear animation."},
+                                "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                        "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                        "instead of starting the animation at full speed. "
+                                        "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
                                      "info": "an optional function to run when the animation finishes."},
                      "*args": {"type": "any",
@@ -850,10 +869,12 @@ class HelpDataLine():
                      "end_color": {"type": "string",
                                    "info": "the final pen color at the end of the animation"},
                      "easing": {"type": "string",
-                                "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
-                                        "To ease the animation in and/or out, use the easing values "
-                                        "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
-                                        "or skipping this argument will use simple, linear animation."},
+                                "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                        "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                        "instead of starting the animation at full speed. "
+                                        "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
                                      "info": "an optional function to run when the animation finishes."},
                      "*args": {"type": "any",
@@ -883,10 +904,12 @@ class HelpDataShape():
                      "end_color": {"type": "string",
                                    "info": "the final fill_color at the end of the animation"},
                      "easing": {"type": "string",
-                                "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
-                                        "To ease the animation in and/or out, use the easing values "
-                                        "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
-                                        "or skipping this argument will use simple, linear animation."},
+                                "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                        "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                        "instead of starting the animation at full speed. "
+                                        "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
                                      "info": "an optional function to run when the animation finishes."},
                      "*args": {"type": "any",
@@ -915,10 +938,12 @@ class HelpDataRoundRectangle():
                      "end_corner_radius": {"type": "int",
                                            "info": "the final corner_radius at the end of the animation"},
                      "easing": {"type": "string",
-                                "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
-                                        "To ease the animation in and/or out, use the easing values "
-                                        "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
-                                        "or skipping this argument will use simple, linear animation."},
+                                "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                        "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                        "instead of starting the animation at full speed. "
+                                        "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
                                      "info": "an optional function to run when the animation finishes."},
                      "*args": {"type": "any",
@@ -953,59 +978,44 @@ class HelpDataCard():
     }
 
     methods = {
+        "broadcast_message": {"args": {"message": {"type": "string",
+                                                   "info": "This is the message to send."}},
+                              "return": None,
+                              "info": "Sends the <b>message</b> to all objects on this card, causing each of their "
+                                      "on_message events to run with this <b>message</b>."},
         "add_button": {
-            "args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
-                                                        "new Button object.  If omitted, the name will be "
-                                                        "'button_{N}'."},
-                     "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
-                                                    "include position=(10,10)"}},
+            "args": {
+                "...": {"type": "Any", "info": "optionally set any of the new object's properties here.  For example: "
+                                               "name=\"thingy\", position=(20,200), size=(100,50)"}},
             "return": "button",
             "info": "Adds a new Button to the card, and returns the new object."},
         "add_text_field": {
-            "args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
-                                                        "new Text Field object.  If omitted, the name will be "
-                                                        "'field_{N}'."},
-                     "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
-                                                    "include position=(10,10)"}},
+            "args": {"...": {"type": "Any", "info": "optionally set more properties here.  For example: "
+                                                    "name=\"thingy\", position=(20,200), size=(100,50)"}},
             "return": "textfield",
             "info": "Adds a new Text Field to the card, and returns the new object."},
         "add_text_label": {
-            "args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
-                                                        "new Text Label object.  If omitted, the name will be "
-                                                        "'label_{N}'."},
-                     "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
-                                                    "include position=(10,10)"}},
+            "args": {"...": {"type": "Any", "info": "optionally set more properties here.  For example: "
+                                                    "name=\"thingy\", position=(20,200), size=(100,50)"}},
             "return": "textlabel",
             "info": "Adds a new Text Label object to the card, and returns the new object."},
         "add_image": {
-            "args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
-                                                        "new Image object.  If omitted, the name will be "
-                                                        "'image_{N}'."},
-                     "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
-                                                    "include position=(10,10)"}},
+            "args": {"...": {"type": "Any", "info": "optionally set more properties here.  For example: "
+                                                    "name=\"thingy\", position=(20,200), size=(100,50)"}},
             "return": "image",
             "info": "Adds a new Image to the card, and returns the new object."},
-        "add_oval": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
-                                                                 "new Oval object.  If omitted, the name will be "
-                                                                 "'shape_{N}'."},
-                              "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
-                                                             "include position=(10,10)"}},
+        "add_oval": {"args": {"...": {"type": "Any", "info": "optionally set more properties here.  For example: "
+                                                             "name=\"thingy\", position=(20,200), size=(100,50)"}},
                      "return": "oval",
                      "info": "Adds a new Image to the card, and returns the new object."},
         "add_rectangle": {
-            "args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
-                                                        "new Rectangle object.  If omitted, the name will be "
-                                                        "'shape_{N}'."},
-                     "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
-                                                    "include position=(10,10)"}},
+            "args": {"...": {"type": "Any", "info": "optionally set more properties here.  For example: "
+                                                    "name=\"thingy\", position=(20,200), size=(100,50)"}},
             "return": "rect",
             "info": "Adds a new Rectangle to the card, and returns the new object."},
         "add_round_rectangle": {
-            "args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
-                                                        "new Round Rectangle object.  If omitted, the name will be "
-                                                        "'shape_{N}'."},
-                     "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
-                                                    "include position=(10,10)"}},
+            "args": {"...": {"type": "Any", "info": "optionally set more properties here.  For example: "
+                                                    "name=\"thingy\", position=(20,200), size=(100,50)"}},
             "return": "roundrect",
             "info": "Adds a new Round Rectangle to the card, and returns the new object."},
         "add_line": {"args": {"points": {"type": "list", "info": "a list of points, that are the locations of each "
@@ -1013,11 +1023,8 @@ class HelpDataCard():
                                                                  "corner of the card.  It can hold just two points "
                                                                  "to create a simple line segment, or more to create a "
                                                                  "more complex multi-segment line."},
-                              "name": {"type": "string", "info": "an optional argument giving the name to use for this "
-                                                                 "new Line object.  If omitted, the name will be "
-                                                                 "'shape_{N}'."},
-                              "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
-                                                             "include position=(10,10)"}},
+                              "...": {"type": "Any", "info": "optionally set more properties here.  For example: "
+                                                             "name=\"thingy\", position=(20,200), size=(100,50)"}},
                      "return": "line",
                      "info": "Adds a new Line to the card, and returns the new object."},
         "add_polygon": {"args": {"points": {"type": "list", "info": "a list of points, that are the locations of each "
@@ -1025,21 +1032,14 @@ class HelpDataCard():
                                                                     "to the bottom-left corner of the card.  It must hold "
                                                                     "three or more points to display properly as a "
                                                                     "polygon."},
-                                 "name": {"type": "string",
-                                          "info": "an optional argument giving the name to use for this "
-                                                  "new Line object.  If omitted, the name will be "
-                                                  "'shape_{N}'."},
-                                 "...": {"type": "Any", "info": "optionally set more properties here.  For example, "
-                                                                "include position=(10,10)"}},
+                                 "...": {"type": "Any", "info": "optionally set more properties here.  For example: "
+                                                                "name=\"thingy\", position=(20,200), size=(100,50)"}},
                         "return": "polygon",
                         "info": "Adds a new Polygon shape to the card, and returns the new object."},
         "add_group": {"args": {"objects": {"type": "list", "info": "a list of object, all on the same card, to include "
                                                                    "in the new group object."},
-                               "name": {"type": "string",
-                                        "info": "an optional argument giving the name to use for this "
-                                                "new Group object.  If omitted, the name will be "
-                                                "'group_{N}'."}
-                               },
+                               "...": {"type": "Any", "info": "optionally set more properties here.  For example: "
+                                                              "name=\"bundle\""}},
                       "return": "group",
                       "info": "Adds a new Group to the card, and returns the new object."},
         "animate_fill_color": {
@@ -1047,10 +1047,12 @@ class HelpDataCard():
                      "end_color": {"type": "string",
                                    "info": "the final fill_color at the end of the animation"},
                      "easing": {"type": "string",
-                                "info": "an optional argument to allow controlling the animation's start and end speed (easing). "
-                                        "To ease the animation in and/or out, use the easing values "
-                                        "of \"In\", \"Out\", or \"InOut\".  Setting easing to None, \"Linear\", "
-                                        "or skipping this argument will use simple, linear animation."},
+                                "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                        "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                        "instead of starting the animation at full speed. "
+                                        "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                        "Setting easing to None, \"Linear\", or skipping this argument will use simple, linear animation, "
+                                        "which can look abrupt, but is sometimes what you want."},
                      "on_finished": {"type": "function",
                                      "info": "an optional function to run when the animation finishes."}},
             "return": None,
@@ -1122,6 +1124,11 @@ class HelpDataStack():
     }
 
     methods = {
+        "broadcast_message": {"args": {"message": {"type": "string",
+                                                   "info": "This is the message to send."}},
+                              "return": None,
+                              "info": "Sends the <b>message</b> to all objects in this stack, causing each of their "
+                                      "on_message events to run with this <b>message</b>."},
         "add_card": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                  "new card object.  If omitted, the name will be "
                                                                  "'card_{N}'."},
@@ -1156,270 +1163,739 @@ class HelpDataStack():
 
 
 class HelpDataString():
-    """ Just method names and return types, for better autocomplete handling """
     parent = None
     types = ["string"]
     properties = {}
 
     methods = {
-        "capitalize": {"args": {},
-                       "return": "string",
-                       "info": ""},
-        "casefold": {"args": {},
-                     "return": "string",
-                     "info": ""},
-        "count": {"args": {},
-                  "return": "int",
-                  "info": ""},
-        "encode": {"args": {},
-                   "return": "string",
-                   "info": ""},
-        "endswith": {"args": {},
-                     "return": "bool",
-                     "info": ""},
-        "expandtabs": {"args": {},
-                       "return": "string",
-                       "info": ""},
-        "find": {"args": {},
-                 "return": "int",
-                 "info": ""},
-        "format": {"args": {},
-                   "return": "string",
-                   "info": ""},
-        "format_map": {"args": {},
-                       "return": "string",
-                       "info": ""},
-        "index": {"args": {},
-                  "return": "int",
-                  "info": ""},
-        "isalnum": {"args": {},
-                    "return": "bool",
-                    "info": ""},
-        "isalpha": {"args": {},
-                    "return": "bool",
-                    "info": ""},
-        "isascii": {"args": {},
-                    "return": "bool",
-                    "info": ""},
-        "isdecimat": {"args": {},
-                      "return": "bool",
-                      "info": ""},
-        "isidentifier": {"args": {},
-                         "return": "bool",
-                         "info": ""},
-        "islower": {"args": {},
-                    "return": "bool",
-                    "info": ""},
-        "isnumeric": {"args": {},
-                      "return": "bool",
-                      "info": ""},
-        "isprintable": {"args": {},
-                        "return": "bool",
-                        "info": ""},
-        "isspace": {"args": {},
-                    "return": "bool",
-                    "info": ""},
-        "istitle": {"args": {},
-                    "return": "bool",
-                    "info": ""},
-        "isupper": {"args": {},
-                    "return": "bool",
-                    "info": ""},
-        "join": {"args": {},
-                 "return": "string",
-                 "info": ""},
-        "ljust": {"args": {},
-                  "return": "string",
-                  "info": ""},
-        "lower": {"args": {},
-                  "return": "string",
-                  "info": ""},
-        "lstrip": {"args": {},
-                   "return": "string",
-                   "info": ""},
-        "maketrans": {"args": {},
-                      "return": "other",
-                      "info": ""},
-        "partition": {"args": {},
-                      "return": "other",
-                      "info": ""},
-        "replace": {"args": {},
-                    "return": "string",
-                    "info": ""},
-        "rfind": {"args": {},
-                  "return": "int",
-                  "info": ""},
-        "rindex": {"args": {},
-                   "return": "int",
-                   "info": ""},
-        "rjust": {"args": {},
-                  "return": "string",
-                  "info": ""},
-        "rpartition": {"args": {},
-                       "return": "other",
-                       "info": ""},
-        "rsplit": {"args": {},
-                   "return": "list",
-                   "info": ""},
-        "rstrip": {"args": {},
-                   "return": "string",
-                   "info": ""},
-        "split": {"args": {},
-                  "return": "list",
-                  "info": ""},
-        "splitlines": {"args": {},
-                       "return": "list",
-                       "info": ""},
-        "startswith": {"args": {},
-                       "return": "bool",
-                       "info": ""},
-        "strip": {"args": {},
-                  "return": "string",
-                  "info": ""},
-        "swapcase": {"args": {},
-                     "return": "string",
-                     "info": ""},
-        "title": {"args": {},
-                  "return": "string",
-                  "info": ""},
-        "translate": {"args": {},
-                      "return": "string",
-                      "info": ""},
-        "upper": {"args": {},
-                  "return": "string",
-                  "info": ""},
-        "zfill": {"args": {},
-                  "return": "string",
-                  "info": ""},
+        "capitalize": {
+            "args": {},
+            "return": "string",
+            "info": "Returns a copy of the original string with its first character converted to uppercase and all other characters converted to lowercase."
+        },
+        "casefold": {
+            "args": {},
+            "return": "string",
+            "info": "Returns a copy of the original string, normalized and in lower case. This method is more aggressive than <b>lower()</b> in terms of normalization."
+        },
+        "count": {
+            "args": {
+                "substring": {
+                    "type": "string",
+                    "info": "The substring to search for in the string."
+                },
+                "start": {
+                    "type": "int",
+                    "info": "The index at which to start counting (default is 0)."
+                },
+                "end": {
+                    "type": "int",
+                    "info": "The index at which to stop counting (default is the end of the string)."
+                }
+            },
+            "return": "int",
+            "info": "Returns the number of occurrences of <b>substring</b> in the string, optionally starting from <b>start</b> and ending at <b>end</b>."
+        },
+        "encode": {
+            "args": {
+                "encoding": {
+                    "type": "string",
+                    "info": "The character encoding to use for the resulting bytes object."
+                },
+                "errors": {
+                    "type": "string",
+                    "info": "How to handle errors that occur during encoding (e.g., 'strict', 'ignore', 'replace'). Default is 'strict'."
+                }
+            },
+            "return": "bytes",
+            "info": "Returns a bytes object representing the original string, encoded using <b>encoding</b> and handling errors according to <b>errors</b>."
+        },
+        "endswith": {
+            "args": {
+                "suffix": {
+                    "type": "string",
+                    "info": "The suffix to search for in the string."
+                },
+                "start": {
+                    "type": "int",
+                    "info": "The index at which to start searching (default is 0)."
+                },
+                "end": {
+                    "type": "int",
+                    "info": "The index at which to stop searching (default is the end of the string)."
+                }
+            },
+            "return": "bool",
+            "info": "Returns <b>True</b> if the string ends with <b>suffix</b>, starting from <b>start</b> and ending at <b>end</b>. Otherwise, returns <b>False</b>."
+        },
+        "expandtabs": {
+            "args": {
+                "tabsize": {
+                    "type": "int",
+                    "info": "The number of spaces to replace each tab character with. Default is 8."
+                }
+            },
+            "return": "string",
+            "info": "Returns a copy of the original string, replacing all tab characters with enough spaces to fill up <b>tabsize</b> columns."
+        },
+        "find": {
+            "args": {
+                "substring": {
+                    "type": "string",
+                    "info": "The substring to search for in the string."
+                },
+                "start": {
+                    "type": "int",
+                    "info": "The index at which to start searching (default is 0)."
+                },
+                "end": {
+                    "type": "int",
+                    "info": "The index at which to stop searching (default is the end of the string)."
+                }
+            },
+            "return": "int",
+            "info": "Returns the first index in the string where <b>substring</b> is found, starting from <b>start</b> and ending at <b>end</b>. Returns -1 if not found."
+        },
+        "format": {
+            "args": {
+                "format_spec": {
+                    "type": "string",
+                    "info": "A string containing format specification for the substitutions."
+                }
+            },
+            "return": "string",
+            "info": "Returns a copy of the original string with its placeholders replaced by their corresponding values, according to <b>format_spec</b>."
+        },
+
+        "index": {
+            "args": {
+                "sub": {
+                    "type": "string",
+                    "info": "The substring to search for."
+                },
+                "start": {
+                    "type": "int",
+                    "info": "The starting index of the search. Default is 0."
+                },
+                "end": {
+                    "type": "int",
+                    "info": "The ending index of the search. Default is the length of the string."
+                }
+            },
+            "return": "int",
+            "info": "Returns the index of the first occurrence of <b>sub</b> in the string, or -1 if not found.<br>" +
+                    "If <b>start</b> or <b>end</b> are specified, the search is limited to the indicated range."
+        },
+        "isalnum": {
+            "args": {},
+            "return": "bool",
+            "info": "Returns True if all characters in the string are alphanumeric (letters or digits), otherwise False.<br>" +
+                    "Spaces, punctuation, and other special characters will return False."
+        },
+        "isalpha": {
+            "args": {},
+            "return": "bool",
+            "info": "Returns True if all characters in the string are alphabetic (letters), otherwise False.<br>" +
+                    "Spaces, digits, punctuation, and other special characters will return False."
+        },
+        "isascii": {
+            "args": {},
+            "return": "bool",
+            "info": "Returns True if all characters in the string are ASCII-encoded, otherwise False.<br>" +
+                    "ASCII is a standard that defines the first 128 characters of the Unicode character set."
+        },
+        "isdecimal": {
+            "args": {},
+            "return": "bool",
+            "info": "Returns True if all characters in the string are decimal digits (0-9), otherwise False.<br>" +
+                    "This method is similar to <b>isdigit()</b>, but it checks for decimal digits only."
+        },
+        "isidentifier": {
+            "args": {},
+            "return": "bool",
+            "info": "Returns True if the string can be used as a valid Python identifier (variable name), otherwise False.<br>" +
+                    "Valid identifiers cannot start with a number or contain spaces, punctuation, or special characters."
+        },
+        "islower": {
+            "args": {},
+            "return": "bool",
+            "info": "Returns True if all characters in the string are lowercase letters, otherwise False.<br>" +
+                    "Spaces, digits, punctuation, and other special characters will return False."
+        },
+        "isnumeric": {
+            "args": {},
+            "return": "bool",
+            "info": "Returns True if all characters in the string are numeric (digits), otherwise False.<br>" +
+                    "This method is similar to <b>isdigit()</b>, but it checks for any numeric character, not just digits."
+        },
+        "isprintable": {
+            "args": {},
+            "return": "bool",
+            "info": "Returns True if all characters in the string can be printed (displayed), otherwise False.<br>" +
+                    "Spaces, punctuation, and other special characters will return True, but control characters will return False."
+        },
+        "format_map": {
+            "args": {
+                "mapping": {
+                    "type": "dictionary",
+                    "info": "A dictionary of replacement fields."
+                }
+            },
+            "return": "string",
+            "info": "Returns a copy of the string where each occurrence of a key in <b>mapping</b> is replaced with its corresponding value. Spaces are added between replacement fields if needed."
+        },
+        "isspace": {
+            "args": {},
+            "return": "bool",
+            "info": "Returns <b>True</b> if the string contains only whitespace characters, otherwise returns <b>False</b>."
+        },
+        "istitle": {
+            "args": {},
+            "return": "bool",
+            "info": "Returns <b>True</b> if each word in the string starts with a character that is uppercase and there are no other characters that are uppercase, otherwise returns <b>False</b>."
+        },
+        "isupper": {
+            "args": {},
+            "return": "bool",
+            "info": "Returns <b>True</b> if all the cased characters in the string are uppercase and there is at least one cased character, otherwise returns <b>False</b>."
+        },
+        "join": {
+            "args": {
+                "parts": {
+                    "type": "list",
+                    "info": "The list of parts to join into one string."
+                }
+            },
+            "return": "string",
+            "info": "Uses this string as the separator between each part of <b>parts</b>, and joins it all together into one string.  For example:<br/>"
+                    "\"::\".join(['1', '2', '3']) returns \"1::2::3\""
+        },
+        "ljust": {
+            "args": {
+                "width": {
+                    "type": "int",
+                    "info": "The total length of the result."
+                }
+            },
+            "return": "string",
+            "info": "Returns a left-justified string of length <b>width</b>. Padding is done using the specified fill character, which defaults to a space ' '."
+        },
+        "lower": {
+            "args": {},
+            "return": "string",
+            "info": "Returns a copy of the original string converted to all lowercase letters."
+        },
+        "lstrip": {
+            "args": {
+                "chars": {
+                    "type": "string",
+                    "info": "<b>chars</b>: The set of characters to remove. Defaults to removing whitespace."
+                }
+            },
+            "return": "string",
+            "info": "Returns a copy of the original string with leading characters removed from the <b>chars</b> argument. If no argument is given, it removes leading whitespace."
+        },
+        "maketrans": {
+            "args": {
+                "table1": {
+                    "type": "string",
+                    "info": "<b>table1</b>: The first table for the translation."
+                },
+                "table2": {
+                    "type": "string",
+                    "info": "<b>table2</b>: The second table for the translation."
+                }
+            },
+            "return": "dictionary",
+            "info": "Returns a translation table that can be used with <b>str.translate()</b>. You can define this table by specifying two strings of equal length, where each character in the first string maps to its corresponding character in the second string.<br><br>" +
+                    "For example, if you want to map 'a' to '4', 'e' to '3', and leave all other characters unchanged, then you can define <b>table1</b> as 'ae' and <b>table2</b> as '43'."
+        },
+        "partition": {
+            "args": {
+                "sep": {
+                    "type": "string",
+                    "info": "The separator character to use when partitioning the string."
+                }
+            },
+            "return": "tuple",
+            "info": "Returns a tuple containing three elements: the part before the separator, the separator itself, and the part after the separator. If the separator is not found, returns a tuple containing the original string and two empty strings."
+        },
+        "replace": {
+            "args": {
+                "old": {
+                    "type": "string",
+                    "info": "The string to search for."
+                },
+                "new": {
+                    "type": "string",
+                    "info": "The string to replace the old one with."
+                },
+                "count": {
+                    "type": "int",
+                    "info": "The maximum number of replacements to make. Default is unlimited."
+                }
+            },
+            "return": "string",
+            "info": "Returns a copy of the string with all occurrences of the old string replaced by the new one, up to the specified count. If count is not provided, all occurrences are replaced."
+        },
+        "rfind": {
+            "args": {
+                "sub": {
+                    "type": "string",
+                    "info": "The substring to search for."
+                },
+                "start": {
+                    "type": "int",
+                    "info": "The index at which to start the search. Default is -1, meaning the entire string is searched."
+                },
+                "end": {
+                    "type": "int",
+                    "info": "The index at which to stop the search. Default is -1, meaning the entire string is searched."
+                }
+            },
+            "return": "int",
+            "info": "Returns the index of the last occurrence of the substring in the string, or -1 if not found. The search starts from the right end of the string and stops at the specified end index (which can be negative to count from the end). If start is provided, the search starts from that index instead."
+        },
+        "rindex": {
+            "args": {
+                "sub": {
+                    "type": "string",
+                    "info": "The substring to search for."
+                },
+                "start": {
+                    "type": "int",
+                    "info": "The index at which to start the search. Default is -1, meaning the entire string is searched."
+                },
+                "end": {
+                    "type": "int",
+                    "info": "The index at which to stop the search. Default is -1, meaning the entire string is searched."
+                }
+            },
+            "return": "int",
+            "info": "Returns the index of the last occurrence of the substring in the string. Raises a ValueError if not found. The search starts from the right end of the string and stops at the specified end index (which can be negative to count from the end). If start is provided, the search starts from that index instead."
+        },
+        "rjust": {
+            "args": {
+                "width": {
+                    "type": "int",
+                    "info": "The total width of the result string."
+                },
+                "fillchar": {
+                    "type": "string",
+                    "info": "The character to use for padding. Default is a space."
+                }
+            },
+            "return": "string",
+            "info": "Returns a copy of the string right-justified to the specified width, using the fill character to pad on the left. If the string is already longer than the width, it is returned unchanged."
+        },
+        "rpartition": {
+            "args": {
+                "sep": {
+                    "type": "string",
+                    "info": "The separator character to use when partitioning the string."
+                }
+            },
+            "return": "tuple",
+            "info": "Returns a tuple containing three elements: the part before the separator, the separator itself, and the part after the separator. If the separator is not found, returns a tuple containing two empty strings and the original string."
+        },
+        "rstrip": {
+            "args": {
+                "chars": {
+                    "type": "string",
+                    "info": "A single character or a string of characters to be removed from the end of the string."
+                }
+            },
+            "return": "string",
+            "info": "Returns a copy of the original string with trailing whitespace and any specified <b>chars</b> removed. If no argument is given, only whitespace is removed."
+        },
+        "split": {
+            "args": {
+                "sep": {
+                    "type": "string",
+                    "info": "The delimiter separating the string into multiple substrings. Defaults to a space (' ')."
+                },
+                "maxsplit": {
+                    "type": "int",
+                    "info": "The maximum number of splits. Defaults to -1 (no limit)."
+                }
+            },
+            "return": "list",
+            "info": "Splits the string into a list of substrings at each occurrence of the <b>sep</b> delimiter. Returns up to <b>maxsplit</b> substrings, or all substrings if <b>maxsplit</b> is -1."
+        },
+        "splitlines": {
+            "args": {},
+            "return": "list",
+            "info": "Splits the string into a list of substrings at each newline character ('\n'). Equivalent to calling <b>str.split('\n')</b>, but preserves newlines as empty strings in the resulting list."
+        },
+        "startswith": {
+            "args": {
+                "prefix": {
+                    "type": "string",
+                    "info": "The string to check for at the beginning of this string."
+                }
+            },
+            "return": "bool",
+            "info": "Returns <b>True</b> if this string starts with the specified <b>prefix</b>, and <b>False</b> otherwise. Case-sensitive."
+        },
+        "strip": {
+            "args": {},
+            "return": "string",
+            "info": "Returns a copy of the original string with leading and trailing whitespace removed. Equivalent to calling both <b>lstrip()</b> and <b>rstrip()</b>."
+        },
+        "swapcase": {
+            "args": {},
+            "return": "string",
+            "info": "Converts all lowercase characters in the string to uppercase, and vice versa. For example, 'Hello World!' becomes 'hELLO wORLD!'."
+        },
+        "title": {
+            "args": {},
+            "return": "string",
+            "info": "Converts the first character of each word in the string to uppercase, and all other characters to lowercase. For example, 'hello world' becomes 'Hello World'."
+        },
+        "translate": {
+            "args": {
+                "table": {
+                    "type": "dictionary",
+                    "info": "A translation table mapping Unicode ordinals or characters (<b>int</b>/<b>str</b>) to replacement characters (also <b>str</b>)."
+                },
+                "deletechars": {
+                    "type": "string",
+                    "info": "An optional string of characters to be deleted from the input."
+                }
+            },
+            "return": "string",
+            "info": "Returns a copy of the original string with specified characters replaced or deleted. The <b>table</b> argument specifies which characters are replaced, and how. If the <b>deletechars</b> argument is given, any character in it will be removed from the input."
+        },
+        "upper": {
+            "args": {},
+            "return": "string",
+            "info": "Converts all lowercase characters in the string to uppercase. For example, 'hello world' becomes 'HELLO WORLD'."
+        },
+        "zfill": {
+            "args": {
+                "width": {
+                    "type": "int",
+                    "info": "Minimum width of the resulting string."
+                }
+            },
+            "return": "string",
+            "info": "Returns a copy of the original string left filled with <b>ascii</b> '0' digits until the given <b>width</b> is reached. If <b>width</b> is less than the length of the string, it returns the original string."
+        }
     }
 
 
 class HelpDataList():
-    """ Just method names and return types, for better autocomplete handling """
     parent = None
     types = ["list"]
     properties = {}
 
     methods = {
-        "append": {"args": {},
-                   "return": None,
-                   "info": ""},
+        "append": {
+            "args": {
+                "element": {
+                    "type": "object",
+                    "info": "The element to add to the end of the list."
+                }
+            },
+            "return": None,
+            "info": "Adds <b>element</b> to the end of the list."
+        },
+        "clear": {
+            "args": {},
+            "return": None,
+            "info": "Removes all elements from the list."
+        },
+        "copy": {
+            "args": {},
+            "return": "list",
+            "info": "Returns a shallow copy of the list."
+        },
+        "count": {
+            "args": {
+                "element": {
+                    "type": "any",
+                    "info": "The element to search for in the list."
+                }
+            },
+            "return": "int",
+            "info": "Returns the number of <b>element</b> occurrences in the list."
+        },
+        "extend": {
+            "args": {
+                "iterable": {
+                    "type": "any",
+                    "info": "An iterable object to add elements from to the end of the list."
+                }
+            },
+            "return": None,
+            "info": "Adds elements from <b>iterable</b> to the end of the list."
+        },
+        "index": {
+            "args": {
+                "element": {
+                    "type": "any",
+                    "info": "The element to search for in the list."
+                }
+            },
+            "return": "int",
+            "info": "Returns the index of the first occurrence of <b>element</b> in the list, or -1 if not found."
+        },
+        "insert": {
+            "args": {
+                "index": {
+                    "type": "int",
+                    "info": "The index at which to insert <b>element</b>."
+                },
+                "element": {
+                    "type": "any",
+                    "info": "The element to insert into the list."
+                }
+            },
+            "return": None,
+            "info": "Inserts <b>element</b> at position <b>index</b> in the list."
+        },
+        "pop": {
+            "args": {
+                "index": {
+                    "type": "int",
+                    "info": "The index of the element to remove and return (default -1, which removes and returns the last element)."
+                }
+            },
+            "return": "any",
+            "info": "Removes and returns the element at position <b>index</b> in the list.  If no index is specified, removes and returns the last element."
+        },
+        "remove": {
+            "args": {
+                "element": {
+                    "type": "any",
+                    "info": "The element to remove from the list."
+                }
+            },
+            "return": None,
+            "info": "Removes the first occurrence of <b>element</b> from the list."
+        },
+        "reverse": {
+            "args": {},
+            "return": None,
+            "info": "Reverses the order of elements in the list."
+        },
+        "sort": {
+            "args": {
+                "key": {
+                    "type": "callable",
+                    "info": "A function to customize sorting (default None, which uses the standard comparison operation)."
+                },
+                "reverse": {
+                    "type": "bool",
+                    "info": "Whether to sort in descending order (default False, which sorts in ascending order)."
+                }
+            },
+            "return": None,
+            "info": "Sorts the elements of the list in place."
+        }
+    }
+
+
+class HelpDataTuple():
+    parent = None
+    types = ["tuple"]
+    properties = {}
+
+    methods = {
+        "count": {
+            "args": {
+                "element": {
+                    "type": "any",
+                    "info": "The element to search for in the list."
+                }
+            },
+            "return": "int",
+            "info": "Returns the number of <b>element</b> occurrences in the list."
+        },
+        "index": {
+            "args": {
+                "element": {
+                    "type": "any",
+                    "info": "The element to search for in the list."
+                }
+            },
+            "return": "int",
+            "info": "Returns the index of the first occurrence of <b>element</b> in the list, or -1 if not found."
+        }
+    }
+
+
+class HelpDataDict():
+    parent = None
+    types = ["dictionary"]
+    properties = {}
+
+    methods = {
         "clear": {"args": {},
                   "return": None,
-                  "info": ""},
+                  "info": "<b>Clear</b> removes all items from the dictionary.  This method does not return any value."},
         "copy": {"args": {},
-                 "return": "list",
-                 "info": ""},
-        "count": {"args": {},
-                  "return": "int",
-                  "info": ""},
-        "extend": {"args": {},
-                   "return": None,
-                   "info": ""},
-        "index": {"args": {},
-                  "return": "int",
-                  "info": ""},
-        "insert": {"args": {},
-                   "return": None,
-                   "info": ""},
-        "pop": {"args": {},
+                 "return": "dictionary",
+                 "info": "Returns a <b>copy</b> of the dictionary, leaving the original unchanged.  This is useful if you want to create a temporary copy without affecting the original data."},
+        "get": {"args": {"key": {"type": "str or anyhashable", "info": "<b>Key</b> to retrieve from the dictionary."}},
                 "return": "any",
-                "info": ""},
-        "remove": {"args": {},
-                   "return": None,
-                   "info": ""},
-        "reverse": {"args": {},
-                    "return": None,
-                    "info": ""},
-        "sort": {"args": {},
-                 "return": None,
-                 "info": ""},
+                "info": "Retrieves the value associated with <b>key</b> in the dictionary.  If the key does not exist, it returns None."},
+        "items": {"args": {},
+                  "return": "list",
+                  "info": "Returns a list of tuples containing all key-value pairs from the dictionary."},
+        "keys": {"args": {},
+                 "return": "list",
+                 "info": "Returns a list of all keys in the dictionary."},
+        "pop": {"args": {"key": {"type": "any", "info": "<b>Key</b> to remove from the dictionary."}},
+                "return": "any",
+                "info": "Removes and returns the value associated with <b>key</b> in the dictionary.  If the key does not exist, it raises a KeyError."},
+        "popitem": {"args": {},
+                    "return": "tuple",
+                    "info": "Removes and returns an arbitrary item from the dictionary.  This method raises a KeyError if the dictionary is empty."},
+        "setdefault": {"args": {"key": {"type": "any", "info": "<b>Key</b> to set default value for."},
+                                "default": {"type": "any", "info": "Default value to use if key does not exist."}},
+                       "return": "any",
+                       "info": "Sets the value associated with <b>key</b> in the dictionary to the specified default value.  If the key already exists, it returns the original value."},
+        "update": {
+            "args": {"other_dict": {"type": "dictionary", "info": "The other dictionary to update from."}},
+            "return": None,
+            "info": "Updates the dictionary with all key-value pairs from <b>other_dict</b>."},
+        "values": {"args": {},
+                   "return": "list",
+                   "info": "Returns a list of all values in the dictionary."}
     }
 
 
 class HelpDataBuiltins():
-    """ Just function names and return types, for better autocomplete handling """
     parent = None
     types = []
     properties = {}
 
+
     functions = {
-        "abs": {"args": {},
-                "return": "int",
-                "info": ""},
-        "str": {"args": {},
+        "abs": {"args": {}, "return": "float",
+                "info": "<b>abs</b> returns the absolute value of a number."},
+
+        "str": {"args": {"object": {"type": "any", "info": "The object to convert to a string."}},
                 "return": "string",
-                "info": ""},
-        "bool": {"args": {},
+                "info": "<b>str</b> converts an object into a human-readable string.  This is often used for outputting text or combining strings together."},
+
+        "bool": {"args": {"value": {"type": "any", "info": "The value to convert to a boolean."}},
                  "return": "bool",
-                 "info": ""},
-        "list": {"args": {},
+                 "info": "<b>bool</b> converts an object into a boolean value (True or False).  This is often used for conditional statements and logical operations."},
+
+        "list": {"args": {"elements": {"type": "any", "info": "The elements to include in the list."}},
                  "return": "list",
-                 "info": ""},
-        "int": {"args": {},
+                 "info": "<b>list</b> creates a new, ordered collection of objects that can be accessed by their index.  You can add or remove items from the list as needed."},
+
+        "int": {"args": {"value": {"type": "any", "info": "The value to convert into an integer."}},
                 "return": "int",
-                "info": ""},
-        "float": {"args": {},
+                "info": "<b>int</b> converts an object into a whole number (integer).  This is often used for counting, indexing, and numerical calculations."},
+
+        "float": {"args": {"value": {"type": "any", "info": "The value to convert into a floating-point number."}},
                   "return": "float",
-                  "info": ""},
-        "dict": {"args": {},
-                 "return": "dict",
-                 "info": ""},
-        "tuple": {"args": {},
-                  "return": "other",
-                  "info": ""},
-        "len": {"args": {},
+                  "info": "<b>float</b> converts an object into a decimal number (floating-point).  This is often used for mathematical calculations and precise measurements."},
+
+        "dict": {
+            "args": {"key-value pairs": {"type": "any", "info": "The key-value pairs to include in the dictionary."}},
+            "return": "dictionary",
+            "info": "<b>dict</b> creates a new, unordered collection of objects that are accessed by their keys.  You can add or remove items from the dictionary as needed."},
+
+        "tuple": {"args": {"elements": {"type": "any", "info": "The elements to include in the tuple."}},
+                  "return": "tuple",
+                  "info": "<b>tuple</b> creates a new, ordered collection of objects that cannot be changed once created.  You can use tuples for collections where you want to keep the same items but not modify them."},
+
+        "len": {"args": {"collection": {"type": "list|str|dict|set", "info": "The collection to get the length of."}},
                 "return": "int",
-                "info": ""},
-        "min": {"args": {},
-                "return": "int",
-                "info": ""},
-        "max": {"args": {},
-                "return": "int",
-                "info": ""},
-        "print": {"args": {},
+                "info": "<b>len</b> returns the number of items in a given collection (such as a list, string, dictionary, or set)."},
+
+        "min": {
+            "args": {"collection": {"type": "list|tuple|str", "info": "The collection to find the minimum value from."},
+                     "key": {"type": "function",
+                             "info": "An optional function to apply to each element before comparing."}},
+            "return": "any",
+            "info": "<b>min</b> returns the smallest item in a given collection (such as a list, tuple, or string).  You can also specify a key function to determine which value is considered 'smallest'."},
+
+        "max": {
+            "args": {"collection": {"type": "list|tuple|str", "info": "The collection to find the maximum value from."},
+                     "key": {"type": "function",
+                             "info": "An optional function to apply to each element before comparing."}},
+            "return": "any",
+            "info": "<b>max</b> returns the largest item in a given collection (such as a list, tuple, or string).  You can also specify a key function to determine which value is considered 'largest'."},
+
+        "print": {"args": {"*objects": {"type": "any", "info": "The objects to print to the console."}},
                   "return": None,
-                  "info": ""},
-        "range": {"args": {},
-                  "return": "other",
-                  "info": ""},
-        "sorted": {"args": {},
+                  "info": "<b>print</b> outputs one or more objects to the console, followed by a newline character.  This is often used for debugging and displaying output to the user."},
+
+        "range": {
+            "args": {"start": {"type": "int", "info": "The starting value of the range (optional, default=0)"},
+                     "stop": {"type": "int", "info": "The ending value of the range (exclusive)"}},
+            "return": "tuple",
+            "info": "<b>range</b> creates an iterator that produces a sequence of numbers from <b>start</b> up to, but not including, <b>stop</b>.  This is often used for iterating over a range of values in a loop."},
+
+        "sorted": {"args": {"collection": {"type": "list|tuple|str", "info": "The collection to sort."},
+                            "key": {"type": "function",
+                                    "info": "An optional function to apply to each element before comparing."}},
                    "return": "list",
-                   "info": ""},
-        "filter": {"args": {},
-                   "return": "other",
-                   "info": ""},
-        "format": {"args": {},
+                   "info": "<b>sorted</b> returns a new, sorted copy of the given collection (such as a list, tuple, or string).  You can also specify a key function to determine how the items should be ordered."},
+
+        "filter": {
+            "args": {"function": {"type": "function", "info": "The function to apply to each item in the collection"},
+                     "collection": {"type": "list|tuple", "info": "The collection to filter."}},
+            "return": "tuple",
+            "info": "<b>filter</b> creates an iterator that produces a sequence of items from the given collection, where each item passes a specified test (function).  This is often used for selecting specific items from a collection."},
+
+        "format": {"args": {"string": {"type": "string", "info": "The string to format."},
+                            "*values": {"type": "any", "info": "The values to insert into the string"}},
                    "return": "string",
-                   "info": ""},
-        "hex": {"args": {},
+                   "info": "<b>format</b> replaces placeholders in a string with provided values, allowing you to create formatted output.  This is often used for displaying data in a human-readable format."},
+
+        "hex": {"args": {"number": {"type": "int|float", "info": "The number to convert to hexadecimal."}},
                 "return": "string",
-                "info": ""},
-        "oct": {"args": {},
+                "info": "<b>hex</b> converts an integer or floating-point number into its hexadecimal representation as a string."},
+
+        "oct": {"args": {"number": {"type": "int|float", "info": "The number to convert to octal."}},
                 "return": "string",
-                "info": ""},
-        "map": {"args": {},
-                "return": "other",
-                "info": ""},
-        "ord": {"args": {},
-                "return": "string",
-                "info": ""},
-        "open": {"args": {},
-                 "return": "other",
-                 "info": ""},
-        "pow": {"args": {},
+                "info": "<b>oct</b> converts an integer or floating-point number into its octal representation as a string."},
+
+        "map": {
+            "args": {"function": {"type": "function", "info": "The function to apply to each item in the collection"},
+                     "collection": {"type": "list|tuple", "info": "The collection to map."}},
+            "return": "tuple",
+            "info": "<b>map</b> creates an iterator that produces a sequence of items from the given collection, where each item has been processed by a specified function.  This is often used for transforming or processing data in bulk."},
+
+        "ord": {"args": {"character": {"type": "string", "info": "The character to convert to its ASCII value."}},
                 "return": "int",
-                "info": ""},
-        "reversed": {"args": {},
-                     "return": "other",
-                     "info": ""},
-        "round": {"args": {},
-                  "return": "float",
-                  "info": ""},
-        "sum": {"args": {},
+                "info": "<b>ord</b> returns the ASCII value of a single character as an integer.  This is often used for converting characters into numerical codes."},
+
+        "open": {"args": {"file_name": {"type": "string", "info": "The name of the file to open"},
+                          "mode": {"type": "string",
+                                   "info": "The mode in which to open the file (e.g., 'r' for read-only, 'w' for write-only)"}},
+                 "return": "file",
+                 "info": "<b>open</b> opens a file and returns a file object that allows you to read from or write to the file.  This is often used for reading or writing files in your program."},
+
+        "pow": {"args": {"base": {"type": "float", "info": "The base number"},
+                         "exponent": {"type": "float", "info": "The exponent to raise the base to"}},
                 "return": "float",
-                "info": ""},
-        "zip": {"args": {},
-                "return": "other",
-                "info": ""},
+                "info": "<b>pow</b> returns the result of raising a given base number to an exponent.  This is often used for calculating powers and exponents."},
+
+        "reversed": {"args": {"collection": {"type": "list|tuple", "info": "The collection to reverse."}},
+                     "return": "tuple",
+                     "info": "<b>reversed</b> creates an iterator that produces the elements of a given collection in reverse order.  This is often used for processing or iterating over data in reverse."},
+
+        "round": {"args": {"number": {"type": "float", "info": "The number to round"},
+                           "ndigits": {"type": "int",
+                                       "info": "The number of digits after the decimal point to round to (optional, default=0)"}},
+                  "return": "float",
+                  "info": "<b>round</b> rounds a floating-point number to the nearest integer or to a specified precision.  This is often used for converting decimal values into whole numbers."},
+
+        "sum": {"args": {"collection": {"type": "list|tuple", "info": "The collection to sum up"}},
+                "return": "float",
+                "info": "<b>sum</b> returns the total sum of all items in a given collection (such as a list, tuple, or string).  This is often used for calculating totals and aggregations."},
+
+        "zip": {"args": {"*collections": {"type": "list|tuple", "info": "The collections to combine"}},
+                "return": "tuple",
+                "info": "<b>zip</b> creates an iterator that produces tuples containing one item from each of the given collections.  This is often used for combining data from multiple sources into a single collection."}
     }
+
+    methods = functions

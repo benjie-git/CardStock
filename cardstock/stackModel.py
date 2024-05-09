@@ -128,6 +128,14 @@ class Stack(ViewProxy):
     def get_setup_value(self):
         return self._model.stackManager.runner.GetStackSetupValue()
 
+    def broadcast_message(self, message):
+        if not self._model: return
+        if not isinstance(message, str):
+            raise TypeError("broadcast_message(): message must be a string")
+
+        for c in self._model.childModels:
+            c.broadcast_message(message)
+
     def add_card(self, name="card", atNumber=0):
         if not isinstance(name, str):
             raise TypeError("add_card(): name is not a string")

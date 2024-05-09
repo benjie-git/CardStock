@@ -278,6 +278,13 @@ class CardModel(ViewModel):
         if notify:
             self.Notify("size")
 
+    def broadcast_message(self, message):
+        def r_broadcast(model):
+            self.stackManager.runner.RunHandler(model, "on_message", None, message)
+            for m in model.childModels:
+                r_broadcast(m)
+        r_broadcast(self)
+
     def GetDedupNameList(self, exclude):
         names = [m.properties["name"] for m in self.GetAllChildModels()]
         for n in exclude:
@@ -337,6 +344,12 @@ class Card(ViewProxy):
         model = self._model
         if not model: return -1
         return model.parent.childModels.index(model)+1
+
+    def broadcast_message(self, message):
+        if not self._model: return
+        if not isinstance(message, str):
+            raise TypeError("broadcast_message(): message must be a string")
+        self._model.broadcast_message(message)
 
     def animate_fill_color(self, duration, endVal, easing=None, on_finished=None, *args, **kwargs):
         if not isinstance(duration, (int, float)):

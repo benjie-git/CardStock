@@ -112,6 +112,19 @@ def MigrateDataFromFormatVersion(fromVer, dataDict):
         for c in dataDict['cards']:
             replaceNames(c)
 
+    if fromVer <= 8:
+        """
+        In File Format Version 9, button.title changed to button.text
+        """
+        def replaceNames(dataDict):
+            if "title" in dataDict['properties']:
+                dataDict['properties']["text"] = dataDict['properties'].pop("title")
+            if 'childModels' in dataDict:
+                for child in dataDict['childModels']:
+                    replaceNames(child)
+        for c in dataDict['cards']:
+            replaceNames(c)
+
 
 def MigrateModelFromFormatVersion(fromVer, stackModel):
     # Migration code to run after loading the json into models
@@ -365,6 +378,21 @@ def MigrateModelFromFormatVersion(fromVer, stackModel):
                     val = v
                     val = val.replace(".get_event_code(", ".get_code_for_event(")
                     val = val.replace(".set_event_code(", ".set_code_for_event(")
+                    obj.handlers[k] = val
+            for child in obj.childModels:
+                replaceNames(child)
+        replaceNames(stackModel)
+
+    if fromVer <= 8:
+        """
+        In File Format Version 9, broadcast_message() changed from a global func to a method on stacks and cards
+        """
+        def replaceNames(obj):
+            for k ,v in obj.handlers.items():
+                if len(v):
+                    val = v
+                    val = re.sub(r"^\bbroadcast_message\(", "card.broadcast_message(", val)
+                    val = re.sub(r"\.title\b", ".text", val)
                     obj.handlers[k] = val
             for child in obj.childModels:
                 replaceNames(child)

@@ -32,21 +32,33 @@ class HelpData():
         elif typeStr == "webview":                return HelpDataWebView
         elif typeStr == "group":                  return HelpDataGroup
         elif typeStr in ["line", "pen"]:          return HelpDataLine
-        elif typeStr in ["shape", "oval", "rect", "polygon"]:return HelpDataShape
+        elif typeStr in ["shape", "oval", "rect", "polygon"]: return HelpDataShape
         elif typeStr == "roundrect":              return HelpDataRoundRectangle
         elif typeStr == "card":                   return HelpDataCard
         elif typeStr == "stack":                  return HelpDataStack
+        elif typeStr == "string":                 return HelpDataString
+        elif typeStr == "list":                   return HelpDataList
+        elif typeStr == "tuple":                   return HelpDataTuple
+        elif typeStr == "dictionary":             return HelpDataDict
         return HelpDataObject
 
     @classmethod
-    def GetTypeForProp(cls, propName):
+    def GetTypeForProp(cls, propName, objType=None):
+        if objType:
+            c = cls.ForType(objType)
+            if propName in c.properties:
+                return c.properties[propName]["type"]
         for c in helpClasses:
             if propName in c.properties:
                 return c.properties[propName]["type"]
         return None
 
     @classmethod
-    def GetTypeForMethod(cls, methodName):
+    def GetTypeForMethod(cls, methodName, objType=None):
+        if objType:
+            c = cls.ForType(objType)
+            if methodName in c.methods:
+                return c.methods[methodName]["return"]
         for c in helpClasses:
             if methodName in c.methods:
                 return c.methods[methodName]["return"]
@@ -66,30 +78,50 @@ class HelpData():
     @classmethod
     def GetHelpForName(cls, key, objType):
         isFunc = key.endswith("()")
+        t_in = ""
         if objType is None:
             return None
         elif objType == "global":
-            allClasses = [HelpDataGlobals]
+            allClasses = [HelpDataGlobals, HelpDataBuiltins]
         elif objType != "any":
             allClasses = []
+            t_in = objType + "."
             c = cls.ForType(objType)
             while c:
                 allClasses.append(c)
                 c = c.parent
         else:
-            allClasses = [HelpDataGlobals]
+            allClasses = [HelpDataGlobals, HelpDataBuiltins]
             allClasses.extend(helpClasses)
-            allClasses.remove(HelpDataString)
-            allClasses.remove(HelpDataList)
         if not isFunc:
+            out = ""
             for c in allClasses:
+                if t_in:
+                    t = t_in
+                elif len(c.types) == 1:
+                    t = c.types[0] + "."
+                elif len(c.types) > 1:
+                    t = "object."
+                else:
+                    t = ""
                 if key in c.properties:
                     prop = c.properties[key]
-                    text = "<b>" + key + "</b>:<i>" + prop["type"] + "</i> - " + prop["info"]
-                    return text
+                    text = t + "<b>" + key + "</b>:<i>" + prop["type"] + "</i> - " + prop["info"]
+                    out += text + "<br/><br/>\n"
+            if out:
+                return out[:-11]
         else:
             key = key[:-2]
+            out = ""
             for c in allClasses:
+                if t_in:
+                    t = t_in
+                elif len(c.types) == 1:
+                    t = c.types[0] + "."
+                elif len(c.types) > 1:
+                    t = "object."
+                else:
+                    t = ""
                 if key in c.methods:
                     method = c.methods[key]
                     argText = ""
@@ -99,8 +131,9 @@ class HelpData():
                             "info"] + "<br/>"
                     ret = ("Returns: <i>" + method["return"] + "</i><br/>") if method["return"] else ""
                     name = key + "(" + ', '.join(method["args"].keys()) + ")"
-                    text = f"<b>{name}</b><br/>{argText}{ret}<br/>{method['info']}"
-                    return text
+                    out += f"{t}<b>{name}</b><br/>{argText}{ret}<br/>{method['info']}<br/><br/>\n"
+            if out:
+                return out[:-11]
         return None
 
     @classmethod
@@ -108,7 +141,7 @@ class HelpData():
         if len(rows) < 2:
             return ""
 
-        text =  "<table border='0' cellpadding='5' cellspacing='0'>\n"
+        text = "<table border='0' cellpadding='5' cellspacing='0'>\n"
 
         text += "<tr>"
         for cell in rows[0]:
@@ -301,4 +334,4 @@ class HelpData():
 
 helpClasses = [HelpDataObject, HelpDataCard, HelpDataStack, HelpDataButton, HelpDataTextLabel, HelpDataTextField,
                HelpDataWebView, HelpDataImage, HelpDataGroup, HelpDataLine, HelpDataShape, HelpDataRoundRectangle,
-               HelpDataString, HelpDataList]
+               HelpDataString, HelpDataList, HelpDataTuple, HelpDataDict]
