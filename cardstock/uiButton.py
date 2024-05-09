@@ -50,7 +50,7 @@ class UiButton(UiView):
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key == "title":
+        if key == "text":
             self.stackManager.view.Refresh()
         elif key == "style":
             sm = self.stackManager
@@ -120,7 +120,7 @@ class UiButton(UiView):
             gc.SetBrush(wx.Brush('#CCCCCC' if hilighted else 'white'))
             gc.DrawRoundedRectangle(wx.Rect(0, 1, width-1, height-1), 5)
 
-            title = self.model.GetProperty("title")
+            title = self.model.GetProperty("text")
             if len(title):
                 font = wx.Font(wx.FontInfo(wx.Size(0, fd(fd(16)))).Family(wx.FONTFAMILY_DEFAULT))
                 lineHeight = td(font.GetPixelSize().height)
@@ -136,7 +136,7 @@ class UiButton(UiView):
                 gc.DrawText(line, wx.Point(int(xPos), int(startY)))
 
         elif style == "Borderless":
-            title = self.model.GetProperty("title")
+            title = self.model.GetProperty("text")
             if len(title):
                 (width, height) = self.model.GetProperty("size")
                 font = wx.Font(wx.FontInfo(wx.Size(0, fd(fd(16)))).Family(wx.FONTFAMILY_DEFAULT))
@@ -162,7 +162,7 @@ class UiButton(UiView):
             startY = int((height + iconBmp.Height) / 2) + (1 if fd(100) == 100 else fd(-3))
             gc.DrawBitmap(iconBmp, fd(2), startY)
 
-            title = self.model.GetProperty("title")
+            title = self.model.GetProperty("text")
             if len(title):
                 font = wx.Font(wx.FontInfo(wx.Size(0, fd(fd(16)))).Family(wx.FONTFAMILY_DEFAULT))
                 lineHeight = td(font.GetPixelSize().height)
@@ -199,12 +199,12 @@ class ButtonModel(ViewModel):
         self.initialEditHandler = "on_click"
 
         self.properties["name"] = "button_1"
-        self.properties["title"] = "Button"
+        self.properties["text"] = "Button"
         self.properties["style"] = "Border"
         self.properties["is_selected"] = False
         self.properties["rotation"] = 0.0
 
-        self.propertyTypes["title"] = "string"
+        self.propertyTypes["text"] = "string"
         self.propertyTypes["style"] = "choice"
         self.propertyTypes["is_selected"] = "bool"
         self.propertyTypes["rotation"] = "float"
@@ -228,14 +228,14 @@ class ButtonModel(ViewModel):
     def UpdatePropKeys(self, style):
         # Custom property order and mask for the inspector
         if style in ("Border", "Borderless"):
-            self.propertyKeys = ["name", "title", "style", "rotation", "position", "size"]
+            self.propertyKeys = ["name", "text", "style", "rotation", "position", "size"]
             self.initialEditHandler = "on_click"
             if "on_click" not in self.visibleHandlers:
                 self.visibleHandlers.add("on_click")
             if "on_selection_changed" in self.visibleHandlers and len(self.handlers["on_selection_changed"]) == 0:
                 self.visibleHandlers.remove("on_selection_changed")
         else:
-            self.propertyKeys = ["name", "title", "style", "is_selected", "rotation", "position", "size"]
+            self.propertyKeys = ["name", "text", "style", "is_selected", "rotation", "position", "size"]
             self.initialEditHandler = "on_selection_changed"
             if "on_selection_changed" not in self.visibleHandlers:
                 self.visibleHandlers.add("on_selection_changed")
@@ -265,15 +265,15 @@ class Button(ViewProxy):
     """
 
     @property
-    def title(self):
+    def text(self):
         model = self._model
         if not model: return ""
-        return model.GetProperty("title")
-    @title.setter
-    def title(self, val):
+        return model.GetProperty("text")
+    @text.setter
+    def text(self, val):
         model = self._model
         if not model: return
-        model.SetProperty("title", str(val))
+        model.SetProperty("text", str(val))
 
     @property
     def style(self):
