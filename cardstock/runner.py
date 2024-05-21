@@ -129,8 +129,8 @@ class Runner():
             "get_mouse_pos": self.get_mouse_pos,
             "clear_focus": self.clear_focus,
             "quit":self.quit,
-            "ColorRGB": self.MakeColorRGB,
-            "ColorHSB": self.MakeColorHSB,
+            "color_rgb": self.color_rgb,
+            "color_hsb": self.color_hsb,
             "Point": self.MakePoint,
             "Size": self.MakeSize,
         }
@@ -1092,24 +1092,24 @@ class Runner():
         self.SetFocus(None)
 
     @staticmethod
-    def MakeColorRGB(red, green, blue):
+    def color_rgb(red, green, blue):
         if not isinstance(red, (float, int)) or not 0 <= red <= 1:
-            raise TypeError("ColorRGB(): red must be a number between 0 and 1")
+            raise TypeError("color_rgb(): red must be a number between 0 and 1")
         if not isinstance(green, (float, int)) or not 0 <= green <= 1:
-            raise TypeError("ColorRGB(): green must be a number between 0 and 1")
+            raise TypeError("color_rgb(): green must be a number between 0 and 1")
         if not isinstance(blue, (float, int)) or not 0 <= blue <= 1:
-            raise TypeError("ColorRGB(): blue must be a number between 0 and 1")
+            raise TypeError("color_rgb(): blue must be a number between 0 and 1")
         red, green, blue = (int(red * 255), int(green * 255), int(blue * 255))
         return f"#{red:02X}{green:02X}{blue:02X}"
 
     @staticmethod
-    def MakeColorHSB(hue, saturation, brightness):
+    def color_hsb(hue, saturation, brightness):
         if not isinstance(hue, (float, int)) or not 0 <= hue <= 1:
-            raise TypeError("ColorHSB(): hue must be a number between 0 and 1")
+            raise TypeError("color_hsb(): hue must be a number between 0 and 1")
         if not isinstance(saturation, (float, int)) or not 0 <= saturation <= 1:
-            raise TypeError("ColorHSB(): saturation must be a number between 0 and 1")
+            raise TypeError("color_hsb(): saturation must be a number between 0 and 1")
         if not isinstance(brightness, (float, int)) or not 0 <= brightness <= 1:
-            raise TypeError("ColorHSB(): brightness must be a number between 0 and 1")
+            raise TypeError("color_hsb(): brightness must be a number between 0 and 1")
         red, green, blue = colorsys.hsv_to_rgb(hue, saturation, brightness)
         red, green, blue = (int(red * 255), int(green * 255), int(blue * 255))
         return f"#{red:02X}{green:02X}{blue:02X}"

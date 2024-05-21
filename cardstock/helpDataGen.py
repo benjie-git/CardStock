@@ -68,11 +68,11 @@ class HelpData():
     def GetPropertyTypesString(cls, data, key):
         if "line" in data.types:
             if key == "points":
-                t = "[pen, line, polygon]."
+                t = "[line, pen, polygon]."
             else:
-                t = "[pen, line, oval, rect, polygon, roundrect]."
+                t = "[line, pen, oval, rect, roundrect, polygon]."
         elif "rect" in data.types:
-            t = "[oval, rect, polygon, roundrect]."
+            t = "[oval, rect, roundrect, polygon]."
         elif len(data.types) == 1:
             t = data.types[0] + "."
         elif len(data.types) > 1:
@@ -127,7 +127,7 @@ class HelpData():
                 if len(classes) == 1:
                     return classes[0] + out
                 else:
-                    return f"[{', '.join([c.strip('.[]') for c in classes])}].{out}"
+                    return f"[{', '.join([c.strip('[].') for c in classes])}].{out}"
         else:
             key = key[:-2]
             out = ""
@@ -152,7 +152,7 @@ class HelpData():
                 if len(classes) == 1:
                     return classes[0] + out
                 else:
-                    return f"[{', '.join([c.strip('.[]') for c in classes])}].{out}"
+                    return f"[{', '.join([c.strip('[].') for c in classes])}].{out}"
 
     @classmethod
     def HtmlTableFromLists(cls, rows):

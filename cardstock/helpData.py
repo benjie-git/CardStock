@@ -188,15 +188,15 @@ class HelpDataGlobals():
         "clear_focus": {"args": {},
                         "return": None,
                         "info": "If any TextField has focus, unfocus it, so that any typing will no longer be entered there."},
-        "ColorRGB": {
+        "color_rgb": {
             "args": {"red": {"type": "float", "info": "The red component of the color as a number from 0.0 to 1.0."},
                      "green": {"type": "float",
                                "info": "The green component of the color as a number from 0.0 to 1.0."},
                      "blue": {"type": "float", "info": "The blue component of the color as a number from 0.0 to 1.0."}},
             "return": "string",
             "info": "Returns an HTML color string of the form '#rrggbb' based on the red, green, and blue values given.  For example "
-                    "<b>ColorRGB(1, 0, 0)</b> returns '#FF0000' which is bright red."},
-        "ColorHSB": {"args": {"hue": {"type": "float",
+                    "<b>color_rgb(1, 0, 0)</b> returns '#FF0000' which is bright red."},
+        "color_hsb": {"args": {"hue": {"type": "float",
                                       "info": "The hue of the color as a number from 0.0 to 1.0, where 0 means red, and goes up through the rainbow, back to red again at 1.0."},
                               "saturation": {"type": "float",
                                              "info": "The saturation of the color as a number from 0.0 to 1.0, where 0 means gray and 1 means fully saturated color."},
@@ -204,7 +204,7 @@ class HelpDataGlobals():
                                              "info": "The brightness component of the color as a number from 0.0 to 1.0, where 0 means black."}},
                      "return": "string",
                      "info": "Returns an HTML color string of the form '#rrggbb'.  For example "
-                             "<b>ColorHSB(0, 1, 1)</b> returns '#FF0000' which is bright red."},
+                             "<b>color_hsb(0, 1, 1)</b> returns '#FF0000' which is bright red."},
         "Point": {"args": {"x": {"type": "float", "info": "The x (horizontal) part of this point."},
                            "y": {"type": "float", "info": "The y (vertical) part of this point."}},
                   "return": "point",
@@ -275,7 +275,7 @@ class HelpDataObject():
                           "the new object for you to store into a variable."},
         "delete": {"args": {},
                    "return": None,
-                   "info": "Deletes this object.  Like Cut, but the object does not get copied to the clipboard."},
+                   "info": "Deletes this object."},
         "send_message": {"args": {"message": {"type": "string", "info": "The message being sent to this object."}},
                          "return": None,
                          "info": "Sends a <b>message</b> to this object, that the object can handle in its on_message event code.  For "
@@ -947,15 +947,16 @@ class HelpDataCard():
                              "If it's <b>False</b>, the user can't save, so the stack will always start out in the same "
                              "state.  (Not currently supported on cardstock.run.)"},
         "can_resize": {"type": "bool",
-                       "info": "If <b>can_resize</b> is <b>True</b>, the user can resize the stack window while running it. "
-                               "If it's <b>False</b>, the user can't resize the window while the stack runs."},
+                       "info": "If <b>can_resize</b> is <b>True</b>, then when running, the card will automatically adjust its size "
+                               "to fill the browser window on cardstock.run, or on desktop, will allow the user to "
+                               "manually resize the window."},
     }
 
     methods = {
         "broadcast_message": {"args": {"message": {"type": "string",
                                                    "info": "This is the message to send."}},
                               "return": None,
-                              "info": "Sends the <b>message</b> to all objects on this card, causing each of their "
+                              "info": "Sends the <b>message</b> to all objects on this card, or to all objects on all cards if called on the stack, causing each of the objects' "
                                       "on_message events to run with this <b>message</b>."},
         "add_button": {
             "args": {
@@ -1097,11 +1098,28 @@ class HelpDataStack():
                                  "give you the number of the current card."},
     }
 
+    properties_inspector_only = {
+        "author": {"type": "string",
+                   "info": "You can enter your name as the author here.  This property is not accessible from the stack's code."},
+        "username": {"type": "string",
+                   "info": "The username of the user who created this stack.  This property is not accessible from the stack's code."},
+        "stack_name": {"type": "string",
+                   "info": "The name of this stack.  This property is not accessible from the stack's code."},
+        "created": {"type": "string",
+                   "info": "The date and time that this stack was first saved.  This property is not accessible from the stack's code."},
+        "last_saved": {"type": "string",
+                   "info": "The date and time that this stack was most recently saved.  This property is not accessible from the stack's code."},
+        "notes": {"type": "string",
+                  "info": "You can enter info about your stack here, for example, instructions, explanation, a Change "
+                          "Log, License information, etc.  These <b>notes</b> are accessible via the (i) button to "
+                          "anyone running this stack.  This property is not accessible from the stack's code."},
+    }
+
     methods = {
         "broadcast_message": {"args": {"message": {"type": "string",
                                                    "info": "This is the message to send."}},
                               "return": None,
-                              "info": "Sends the <b>message</b> to all objects in this stack, causing each of their "
+                              "info": "Sends the <b>message</b> to all objects on this card, or to all objects on all cards if called on the stack, causing each of the objects' "
                                       "on_message events to run with this <b>message</b>."},
         "add_card": {"args": {"name": {"type": "string", "info": "an optional argument giving the name to use for this "
                                                                  "new card object.  If omitted, the name will be "
@@ -1797,9 +1815,13 @@ class HelpDataBuiltins():
             "return": "any",
             "info": "<b>max</b> returns the largest item in a given collection (such as a list, tuple, or string).  You can also specify a key function to determine which value is considered 'largest'."},
 
-        "print": {"args": {"*objects": {"type": "any", "info": "The objects to print to the console."}},
+        "print": {"args": {"objects, ...": {"type": "any", "info": "The objects to print to the console."}},
                   "return": None,
                   "info": "<b>print</b> outputs one or more objects to the console, followed by a newline character.  This is often used for debugging and displaying output to the user."},
+
+        "input": {"args": {"prompt": {"type": "string", "info": "Text to print to the console before waiting for user input."}},
+                  "return": "string",
+                  "info": "Wait for the user to type text into the console.  When the user types the Return/Enter key, this function returns the string that the user typed."},
 
         "range": {
             "args": {"start": {"type": "int", "info": "The starting value of the range (optional, default=0)"},

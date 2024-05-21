@@ -24,7 +24,7 @@ import findEngineDesigner
 import resourcePathManager
 import analyzer
 from stackModel import StackModel
-from uiCard import UiCard, CardModel
+from uiCard import UiCard, UiView, CardModel
 from uiButton import UiButton
 from uiTextField import UiTextField
 from uiTextLabel import UiTextLabel
@@ -122,6 +122,7 @@ class StackManager(object):
         # This is the only UiCard in the designer or viewer.  It gets re-set-up with each card model, one at a time.
         self.uiCard = None
         self.uiCard = UiCard(None, self, self.stackModel.childModels[0])
+        self.uiStack = UiView(None, self, self.stackModel, None)
 
         self.uiCard.model.SetDirty(False)
         self.command_processor.ClearCommands()
@@ -284,10 +285,11 @@ class StackManager(object):
             self.stackModel.SetDown()
         model.SetStackManager(self)
         self.stackModel = model
+        self.uiStack = UiView(None, self, self.stackModel, None)
         self.cardIndex = None
         if self.isEditing:
             wx.CallAfter(self.analyzer.RunAnalysis)
-            self.uiCard.ResizeCardView(self.stackModel.GetProperty("size"))
+            self.uiCard.ResizeCardView(self.uiCard.model.GetProperty("size"))
         if not skipSetDown:
             self.command_processor.ClearCommands()
             self.stackModel.SetDirty(False)
@@ -317,8 +319,10 @@ class StackManager(object):
                     if not self.isEditing and not reload:
                         if self.uiCard.model.GetHandler("on_show_card"):
                             self.runner.RunHandler(self.uiCard.model, "on_show_card", None)
-                        if self.stackModel.GetProperty("can_resize"):
+                        if self.uiCard.model.GetProperty("can_resize"):
                             self.runner.RunHandler(self.uiCard.model, "on_resize", None, True)
+                if self.designer:
+                    self.designer.SetFrameSizeFromModel()
                 self.view.Refresh()
             if self.designer:
                 self.designer.Thaw()
@@ -668,6 +672,11 @@ class StackManager(object):
 
     def SelectUiView(self, uiView, extend=False):
         if self.isEditing:
+            selectStack = False
+            if uiView == self.uiStack:
+                selectStack = True
+                uiView = None
+
             if extend and uiView and uiView.parent and uiView.parent.model.type == "group":
                 extend = False
             if extend and len(self.selectedViews) and self.selectedViews[0].parent and self.selectedViews[0].parent.model.type == "group":
@@ -688,17 +697,18 @@ class StackManager(object):
             if self.designer:
                 self.designer.SetSelectedUiViews(self.selectedViews)
 
+            if selectStack:
+                self.designer.cPanel.UpdateForUiViews([self.uiStack])
+
     @RunOnMainAsync
     def OnPropertyChanged(self, model, key):
         uiView = self.GetUiViewByModel(model)
-        if model == self.stackModel:
-            uiView = self.uiCard
-            if key == "size":
-                s = model.GetProperty(key)
-                if self.designer:
-                    self.uiCard.ResizeCardView(s)
-                else:
-                    self.view.GetTopLevelParent().SetClientSize(self.view.FromDIP(s))
+        if model.type == "card" and key == "size":
+            s = model.GetProperty(key)
+            if self.designer:
+                self.uiCard.ResizeCardView(s)
+            else:
+                self.view.GetTopLevelParent().SetClientSize(self.view.FromDIP(s))
         if uiView:
             uiView.OnPropertyChanged(model, key)
         if uiView and self.designer:
@@ -793,6 +803,8 @@ class StackManager(object):
         newCard = CardModel(self)
         newCard.SetProperty("name", newCard.DeduplicateName("card_1",
                                                             [m.GetProperty("name") for m in self.stackModel.childModels]))
+        newCard.SetProperty("size", self.uiCard.model.GetProperty("size"))
+        newCard.SetProperty("can_resize", self.uiCard.model.GetProperty("can_resize"))
         command = AddNewUiViewCommand(True, "Add Card", self, self.cardIndex+1, "card", newCard)
         self.command_processor.Submit(command)
 

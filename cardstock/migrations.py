@@ -116,14 +116,18 @@ def MigrateDataFromFormatVersion(fromVer, dataDict):
         """
         In File Format Version 9, button.title changed to button.text
         """
-        def replaceNames(dataDict):
-            if "title" in dataDict['properties']:
-                dataDict['properties']["text"] = dataDict['properties'].pop("title")
-            if 'childModels' in dataDict:
-                for child in dataDict['childModels']:
+        def replaceNames(d):
+            if "title" in d['properties']:
+                d['properties']["text"] = d['properties'].pop("title")
+            if 'childModels' in d:
+                for child in d['childModels']:
                     replaceNames(child)
         for c in dataDict['cards']:
+            c['properties']['size'] = dataDict['properties']['size']
+            c['properties']['can_resize'] = dataDict['properties']['can_resize']
             replaceNames(c)
+        dataDict['properties'].pop('size')
+        dataDict['properties'].pop('can_resize')
 
 
 def MigrateModelFromFormatVersion(fromVer, stackModel):
@@ -391,7 +395,9 @@ def MigrateModelFromFormatVersion(fromVer, stackModel):
             for k ,v in obj.handlers.items():
                 if len(v):
                     val = v
-                    val = re.sub(r"^\bbroadcast_message\(", "card.broadcast_message(", val)
+                    val = re.sub(r"\bbroadcast_message\(", "card.broadcast_message(", val)
+                    val = re.sub(r"\bColorRGB\(", "color_rgb(", val)
+                    val = re.sub(r"\bColorHSB\(", "color_hsb(", val)
                     val = re.sub(r"\.title\b", ".text", val)
                     obj.handlers[k] = val
             for child in obj.childModels:

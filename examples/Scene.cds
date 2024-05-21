@@ -7,7 +7,8 @@
       500
     ],
     "can_save": false,
-    "can_resize": false
+    "author": "",
+    "notes": "lots of notes\n\n\ngo here\n\n\n\n\nand here."
   },
   "cards": [
     {
@@ -19,7 +20,12 @@
       },
       "properties": {
         "name": "card_1",
-        "fill_color": "#88AAFF"
+        "size": [
+          500,
+          500
+        ],
+        "fill_color": "#88AAFF",
+        "can_resize": false
       },
       "childModels": [
         {
@@ -37,7 +43,7 @@
               39.0,
               425.0
             ],
-            "title": "Day",
+            "text": "Day",
             "style": "Border",
             "is_selected": false,
             "rotation": 0.0
@@ -61,6 +67,7 @@
               147
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "brown"
@@ -94,6 +101,7 @@
               94
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 0,
             "rotation": 0.0,
             "fill_color": "yellow"
@@ -127,6 +135,7 @@
               136
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "brown"
@@ -164,6 +173,7 @@
               58
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "#A47D5D"
@@ -194,7 +204,7 @@
               39.0,
               455.0
             ],
-            "title": "Night",
+            "text": "Night",
             "style": "Border",
             "is_selected": false,
             "rotation": 0.0
@@ -203,6 +213,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 6,
-  "CardStock_stack_version": "0.99.1"
+  "CardStock_stack_format": 9,
+  "CardStock_stack_version": "0.99.6"
 }

@@ -182,7 +182,7 @@ See the CardStock Reference for a description of each type of event, and when th
 
 <p>In your python event-handling code, you have access to all of the objects in your stack, including their
 properties and methods, and some global variables and functions that are always available.  So if your button is called 
-yes_button, you could write <b>yes_button.text = "Done"</b> to change your button's title text to the string "Done".  You can 
+yes_button, you could write <b>yes_button.text = "Done"</b> to change your button's text to the string "Done".  You can 
 also use the variables that are passed into each event function, which are listed inside the parentheses after the event
 name.  All events receive a variable called self, which refers to the object who's event is being run.  
 So in a button's on_click(self) code, self refers to that button object.  In a card's on_show_card(self) code, self will 

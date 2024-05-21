@@ -62,7 +62,7 @@ class UiCard(UiView):
     def OnResize(self, event):
         didEnqueue = False
         self.stackManager.view.didResize = True
-        if not self.stackManager.isEditing and self.stackManager.runner and self.stackManager.stackModel.GetProperty("can_resize"):
+        if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetProperty("can_resize"):
             didEnqueue = self.stackManager.runner.RunHandler(self.model, "on_resize", None, False)
         if self.stackManager.isEditing or not didEnqueue:
             self.stackManager.view.Refresh()
@@ -155,27 +155,12 @@ class CardModel(ViewModel):
         # Custom property order and mask for the inspector
         self.properties["name"] = "card_1"
         self.properties["fill_color"] = "white"
-        self.propertyKeys = ["name", "fill_color", "size", "can_save", "can_resize"]
+        self.properties["size"] = wx.Size(500, 500)
+        self.properties["can_resize"] = False
+        self.propertyKeys = ["name", "fill_color", "size", "can_resize"]
 
         self.propertyTypes["fill_color"] = "color"
-        self.propertyTypes["can_save"] = 'bool'
         self.propertyTypes["can_resize"] = 'bool'
-
-    def SetProperty(self, key, value, notify=True):
-        if key in ["size", "can_save", "can_resize"]:
-            self.parent.SetProperty(key, value, notify)
-        else:
-            super().SetProperty(key, value, notify)
-
-    def GetProperty(self, key):
-        if key in ["size", "can_save", "can_resize"]:
-            return self.parent.GetProperty(key)
-        else:
-            return super().GetProperty(key)
-
-    def GetFrame(self):
-        s = self.parent.GetProperty("size")
-        return wx.Rect((0,0), s)
 
     def GetAbsoluteFrame(self):
         return self.GetFrame()
@@ -193,7 +178,6 @@ class CardModel(ViewModel):
         data["childModels"] = []
         for m in self.childModels:
             data["childModels"].append(m.GetData())
-        data["properties"].pop("size")
         data["properties"].pop("position")
         return data
 

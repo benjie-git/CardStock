@@ -33,6 +33,7 @@ from codeRunnerThread import RunOnMainSync, RunOnMainAsync
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
+ID_SHOW_NOTES = wx.NewIdRef()
 ID_MENU_FIND = wx.NewIdRef()
 ID_MENU_FIND_SEL = wx.NewIdRef()
 ID_MENU_FIND_NEXT = wx.NewIdRef()
@@ -95,12 +96,11 @@ class ViewerFrame(wx.Frame):
         return super().Destroy()
 
     def OnResize(self, event):
-        if self.stackManager:
-            if self.stackManager.stackModel.GetProperty("can_resize"):
-                if not self.stackManager.uiCard.runningInternalResize:
-                    size = self.stackManager.view.GetTopLevelParent().GetClientSize()
-                    size = self.stackManager.view.ToDIP(size)
-                    self.stackManager.uiCard.model.SetProperty("size", size)
+        if self.stackManager and self.stackManager.uiCard.model.GetProperty("can_resize"):
+            if not self.stackManager.uiCard.runningInternalResize:
+                size = self.stackManager.view.GetTopLevelParent().GetClientSize()
+                size = self.stackManager.view.ToDIP(size)
+                self.stackManager.uiCard.model.SetProperty("size", size)
         event.Skip()
 
     def SaveFile(self):
@@ -122,6 +122,11 @@ class ViewerFrame(wx.Frame):
     def MakeMenuBar(self):
         # create the file menu
         fileMenu = wx.Menu()
+
+        if self.stackManager.stackModel.GetProperty("notes").strip():
+            fileMenu.Append(ID_SHOW_NOTES, "Stack &Notes\tCtrl-I", "Stack Notes")
+            fileMenu.AppendSeparator()
+
         if not self.isStandalone and not self.designer:
             fileMenu.Append(wx.ID_OPEN, "&Open\tCtrl-O", "Open Stack")
         if self.stackManager.filename and self.stackManager.stackModel.GetProperty("can_save"):
@@ -159,6 +164,8 @@ class ViewerFrame(wx.Frame):
         menuBar.Append(editMenu, "&Edit")
         menuBar.Append(helpMenu, "&Help")
         self.SetMenuBar(menuBar)
+
+        self.Bind(wx.EVT_MENU,  self.OnMenuNotes, id=ID_SHOW_NOTES)
 
         self.Bind(wx.EVT_MENU,   self.OnMenuOpen, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU,   self.OnMenuSave, id=wx.ID_SAVE)
@@ -421,6 +428,9 @@ class ViewerFrame(wx.Frame):
     def OnReplaceAllEvent(self, event):
         self.findEngine.ReplaceAll()
 
+    def OnMenuNotes(self, event):
+        wx.MessageDialog(None, self.stackManager.stackModel.GetProperty("notes"), str("Stack Notes"), wx.OK).ShowModal()
+
     def OnMenuAbout(self, event):
         dlg = helpDialogs.CardStockAbout(self)
         dlg.ShowModal()
@@ -524,13 +534,13 @@ class ViewerFrame(wx.Frame):
             self.SetMaxClientSize(wx.DefaultSize)
             self.SetMinClientSize(wx.DefaultSize)
 
-        cs = self.FromDIP(self.stackManager.stackModel.GetProperty("size"))
+        cs = self.FromDIP(self.stackManager.uiCard.model.GetProperty("size"))
 
         self.stackManager.view.SetSize(cs)
         self.stackManager.UpdateBuffer()
         self.SetClientSize(cs)
 
-        if self.stackManager.stackModel.GetProperty("can_resize"):
+        if self.stackManager.uiCard.model.GetProperty("can_resize"):
             self.SetMinClientSize(self.FromDIP(wx.Size(200,200)))
         else:
             self.SetMaxClientSize(cs)
@@ -551,7 +561,6 @@ class ViewerFrame(wx.Frame):
             self.MakeConsoleMenuBar()
         if self.variablesWindow:
             self.MakeVariablesMenuBar()
-        self.SetupViewerSize()
 
         if self.designer:
             runner.AddSyntaxErrors(self.designer.stackManager.analyzer.syntaxErrors)
@@ -561,6 +570,7 @@ class ViewerFrame(wx.Frame):
         if not (0 <= cardIndex < len(self.stackManager.stackModel.childModels)):
             cardIndex = 0
         self.stackManager.LoadCardAtIndex(cardIndex)
+        self.SetupViewerSize()
         if self.generateThumbnail:
             # Once loading has finished, we'll call MakeThumbnail
             runner.AddCallbackToMain(self.MakeThumbnail)

@@ -98,7 +98,7 @@ class CodeInspector(wx.ScrolledWindow):
         self.ClearViews()
         self.currentUiView = uiView
 
-        self.container.addButton.Show(uiView is not None)
+        self.container.addButton.Show(uiView is not None and uiView.model.type is not "stack")
 
         if uiView:
             if wx.Platform == "__WXMSW__":
@@ -144,7 +144,7 @@ class CodeInspector(wx.ScrolledWindow):
             else:
                 editorBlock.Hide()
 
-        if numShown == 0:
+        if numShown == 0 and len(self.blocks):
             initial = self.currentUiView.model.initialEditHandler
             self.currentUiView.model.visibleHandlers.add(initial)
             lastBlock = self.blocks[initial]
@@ -154,7 +154,8 @@ class CodeInspector(wx.ScrolledWindow):
 
         if numShown == 1:
             lastBlock.SetCanShowCloseButton(False)
-        lastBlock.line.Hide()  # Hide last block's bottom-line
+        if numShown > 0:
+            lastBlock.line.Hide()  # Hide last block's bottom-line
 
         self.visibleBlocks = []
         for handlerName, block in self.blocks.items():

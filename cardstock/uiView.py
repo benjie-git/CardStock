@@ -111,7 +111,7 @@ class UiView(object):
         if key in ["position", "size", "rotation"]:
             if self.view:
                 s = model.GetProperty("size")
-                if model.type in ("stack", "card"):
+                if model.type == "card":
                     self.stackManager.uiCard.ResizeCardView(s)
                     pos = (0,0)
                 else:
@@ -1185,6 +1185,8 @@ class ViewModel(object):
     def StopAnimation(self, key=None):
         # On Runner thread
         if key:
+            if key == "center":
+                key = "position"
             # Stop animating this one property
             with self.animLock:
                 if key in self.animations:

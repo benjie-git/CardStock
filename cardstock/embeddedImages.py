@@ -1827,3 +1827,25 @@ run_card = PyEmbeddedImage(
     b'oYtpYIMmLoTa24LD8N787h4HZn49aBOuurbGd2GRqUkb/bRFInFmHaHWj3dXAbmiVSEKvdXI'
     b'z1NfgSFs/AfYVbefCNvSjf3FUOzbMm9pzCfMTY6u/U+UYubiiqSJe0JXaOxvomLnMvJVkBWb'
     b'r7zwqvHpRndI2sKZ2za2/gt+0YIMN1o1aQAAAABJRU5ErkJggg==')
+
+#----------------------------------------------------------------------
+stack = PyEmbeddedImage(
+    b'iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAQAAABu4E3oAAAAIGNIUk0AAHomAACAhAAA+gAA'
+    b'AIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAACYktHRAAAqo0jMgAAAAlwSFlzAAAuIwAALiMB'
+    b'eKU/dgAAAAd0SU1FB+gFFBUsF4FX8wUAAAIqSURBVDjLrZJNaBNRFIVPjUabIIIxFirFLqrQ'
+    b'lbipCCLVShcupBFaFBSCIv6s6qK7rIy4ECvUjQgVbJGKSq2If1il1eCqtQu1SCVpZpKZZN5M'
+    b'nHRCM83vXBdpk0wSbQS/3Xucc989913gv2FBBzb9i6Edny4LO77DhYZ65FZ4jks/RMrFtGtB'
+    b'fMTB9QwdmBsJpZNUwOBCV6N4gj1/ktsxeIZxApnJzstuGUNwVhu6WxYm+FyKapBP+/ydHAbM'
+    b'yTyXohKjvxD1Ny0VXtqwatm8zcjlQbU7pswHodPCzkMx3x/C9M1FVa2uL0lXJAxje61iTnyz'
+    b'qo9iSa0kz6Weh0/E3QrG0V4pb8CpZm6SzyTeywekl+GMRkTEC2eV4VAqYaRmlZ447sFSbrnu'
+    b'kVWlUFmPjYWOyNOBh5FeFiyOJMI1qeb4wq8VNQEDABodp1smNi7a7Lkxe+tOADD0N9F9GnNV'
+    b'xm/DY29UilfHFyJuhhtoXBOWulMxN9Xjs2e1vekttrXL7PJTZdS6m6Zs+ArR/IYF/V3yl7Cx'
+    b'MsNcyhivMyKin2IfeyXmlynvD1wUMY6t5Zah27y+tLpU+ttgF3sXuyv2S3Ixvp9vFrGr3NJ3'
+    b'kpuVjeKG6eoLxScY6cIplbgfxiTaKn/GgVvn+AWespXx58PdQVwozraCVox6YxGlJE9qgyE8'
+    b'MzdUzX7r6ztCnBFRdoY/HEAv6uKY8/NIwMvwAI76DIWtcOFo/fJ1+A0/LbhAOScBfwAAABl0'
+    b'RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAldEVYdGRhdGU6Y3JlYXRlADIw'
+    b'MjQtMDUtMTRUMjE6MzM6NTcrMDA6MDD+Sg9MAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI0LTA1'
+    b'LTE0VDIxOjMzOjQ2KzAwOjAw5cq82gAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNC0wNS0y'
+    b'MFQyMTo0NDoyMyswMDowMGrEotwAAAAASUVORK5CYII=')
+
+

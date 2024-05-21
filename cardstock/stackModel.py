@@ -25,17 +25,28 @@ class StackModel(ViewModel):
         self.type = "stack"
         self.proxyClass = Stack
 
-        self.properties["size"] = wx.Size(500, 500)
         self.properties["name"] = "stack"
         self.properties["can_save"] = False
-        self.properties["can_resize"] = False
+        self.properties["author"] = ""
+        self.properties["notes"] = ""
 
+        self.propertyTypes["stack_name"] = 'static'
         self.propertyTypes["can_save"] = 'bool'
-        self.propertyTypes["can_resize"] = 'bool'
+        self.propertyTypes["author"] = 'string'
+        self.propertyTypes["notes"] = 'text'
 
-        self.propertyKeys = []
+        self.propertyKeys = ["stack_name", "author", "can_save", "notes"]
 
         self.handlers = {}
+        self.initialEditHandler = None
+
+    def GetProperty(self, key):
+        if key == "stack_name":
+            if self.stackManager.designer and self.stackManager.designer.filename:
+                return self.stackManager.designer.filename
+            return ""
+        else:
+            return super().GetProperty(key)
 
     def AppendCardModel(self, cardModel):
         cardModel.parent = self
@@ -46,15 +57,17 @@ class StackModel(ViewModel):
         self.childModels.insert(index, cardModel)
 
     def InsertNewCard(self, name, atIndex):
-        card = CardModel(self.stackManager)
-        card.SetProperty("name", self.DeduplicateName(name, [m.GetProperty("name") for m in self.childModels]))
+        newCard = CardModel(self.stackManager)
+        newCard.SetProperty("name", self.DeduplicateName(name, [m.GetProperty("name") for m in self.childModels]))
+        newCard.SetProperty("size", self.stackManager.uiCard.model.GetProperty("size"))
+        newCard.SetProperty("can_resize", self.stackManager.uiCard.model.GetProperty("can_resize"))
         if atIndex == -1:
-            self.AppendCardModel(card)
+            self.AppendCardModel(newCard)
         else:
-            self.InsertCardModel(atIndex, card)
+            self.InsertCardModel(atIndex, newCard)
             newIndex = self.childModels.index(self.stackManager.uiCard.model)
             self.stackManager.cardIndex = newIndex
-        return card
+        return newCard
 
     def RemoveCardModel(self, cardModel):
         cardModel.parent = None
@@ -81,6 +94,7 @@ class StackModel(ViewModel):
         data = super().GetData()
         data["cards"] = [m.GetData() for m in self.childModels]
         data["properties"].pop("position")
+        data["properties"].pop("size")
         data["properties"].pop("name")
         data["CardStock_stack_format"] = version.FILE_FORMAT_VERSION
         data["CardStock_stack_version"] = version.VERSION

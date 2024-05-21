@@ -46,6 +46,7 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 
 ID_OPEN_EXAMPLE = wx.NewIdRef()
 ID_EXPORT = wx.NewIdRef()
+ID_EDIT_STACK = wx.NewIdRef()
 ID_RUN = wx.NewIdRef()
 ID_RUN_FROM = wx.NewIdRef()
 ID_SEARCH_IMAGE = wx.NewIdRef()
@@ -122,6 +123,7 @@ class DesignerFrame(wx.Frame):
 
         self.toolbar = self.CreateToolBar(style=wx.TB_TEXT)
         icn = embeddedImages.run.GetBitmap()
+        self.toolbar.AddTool(ID_EDIT_STACK, 'Stack', embeddedImages.stack.GetBitmap(), wx.NullBitmap)
         self.toolbar.AddTool(ID_RUN, 'Run Stack', icn, wx.NullBitmap)
 
         self.toolbar.AddStretchableSpace()
@@ -136,6 +138,7 @@ class DesignerFrame(wx.Frame):
 
         self.toolbar.Realize()
 
+        self.Bind(wx.EVT_TOOL, self.OnMenuEditStack, id=ID_EDIT_STACK)
         self.Bind(wx.EVT_TOOL, self.OnMenuRun, id=ID_RUN)
         self.Bind(wx.EVT_FIND, self.OnFindEvent)
         self.Bind(wx.EVT_FIND_NEXT, self.OnFindEvent)
@@ -277,7 +280,7 @@ class DesignerFrame(wx.Frame):
                 self.lastRunErrors = []
 
     def SetFrameSizeFromModel(self):
-        size = self.stackManager.stackModel.GetProperty("size")
+        size = self.stackManager.uiCard.model.GetProperty("size")
         self.stackManager.uiCard.ResizeCardView(size)
         size = self.FromDIP(size)
         self.stackManager.UpdateBuffer()
@@ -710,6 +713,9 @@ class DesignerFrame(wx.Frame):
         self.viewer.Show(not generateThumbnail)
         self.viewer.Refresh()
         self.isStartingViewer = False
+
+    def OnMenuEditStack(self, event):
+        self.stackManager.SelectUiView(self.stackManager.uiStack)
 
     def OnMenuRun(self, event):
         if wx.GetMouseState().LeftIsDown():

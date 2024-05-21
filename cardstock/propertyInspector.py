@@ -81,7 +81,10 @@ class PropertyInspector(wx.grid.Grid):
                     self.EnableCellEditControl(True)
             else:
                 ed = self.GetCellEditor(self.GetGridCursorRow(), 1)
-                if isinstance(ed, GridCellCustomChoiceEditor):
+                if isinstance(ed, wx.grid.GridCellAutoWrapStringEditor):
+                    event.EventObject.WriteText('\n')
+                    return
+                elif isinstance(ed, GridCellCustomChoiceEditor):
                     ed.GetControl().DoClose(True)
                 else:
                     self.DisableCellEditControl()
@@ -174,10 +177,14 @@ class PropertyInspector(wx.grid.Grid):
             elif valType == "file":
                 editor = GridCellImageFileEditor(self, self.stackManager.runner is None)
                 renderer = GridCellImageFileRenderer(self.stackManager.runner is None)
-            elif valType in ("obj", "list", "static_list", "dict", "set"):
-                editable = (valType not in ("obj", "static_list"))
+            elif valType in ("obj", "list", "static_list", "dict", "set", "static"):
+                editable = (valType not in ("obj", "static_list", "static"))
                 editor = GridCellObjectEditor(self, editable)
                 renderer = GridCellObjectRenderer()
+            elif valType == "text":
+                editor = wx.grid.GridCellAutoWrapStringEditor()
+                renderer = wx.grid.GridCellAutoWrapStringRenderer()
+                self.SetRowSize(r, 200)
             if renderer:
                 self.SetCellRenderer(r, 1, renderer)
             if editor:
