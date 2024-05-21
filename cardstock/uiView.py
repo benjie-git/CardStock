@@ -378,7 +378,7 @@ class UiView(object):
 
     def PrePaint(self, gc):
         # Rotate and Translate the GC, such that we can draw this object in local coords
-        stackSize = self.stackManager.stackModel.properties["size"]
+        stackSize = self.stackManager.uiCard.model.GetProperty("size")
         pos = self.model.properties["position"]
         rot = self.model.GetProperty("rotation")
         rot = math.radians(rot) if rot else None
