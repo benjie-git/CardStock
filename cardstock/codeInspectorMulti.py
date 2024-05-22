@@ -98,7 +98,7 @@ class CodeInspector(wx.ScrolledWindow):
         self.ClearViews()
         self.currentUiView = uiView
 
-        self.container.addButton.Show(uiView is not None and uiView.model.type is not "stack")
+        self.container.addButton.Show(uiView is not None)
 
         if uiView:
             if wx.Platform == "__WXMSW__":

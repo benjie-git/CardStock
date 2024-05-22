@@ -1229,8 +1229,7 @@ class ViewModel(object):
     def RunSetup(self, runner):
         if self.type == "card":
             runner.SetupForCard(self)
-        if self.GetHandler("on_setup"):
-            runner.RunHandler(self, "on_setup", None)
+        runner.RunHandler(self, "on_setup", None)
         for m in self.childModels:
             m.RunSetup(runner)
 

@@ -99,8 +99,7 @@ as one piece, and that group becomes a new object itself.</p>
 <h2>Designer Layout</h2>
 <p>The CardStock Designer application is where you design, build, draw, and code your CardStock programs.  The Designer
 window is split into two main parts.  On the left is your stack, that shows the currently selected card and its objects.
-On the right
-is the control panel.  The top of the control panel lets you choose an editing tool.</p>
+On the right is the control panel.  The top of the control panel lets you choose an editing tool.</p>
 <p>The first is the hand tool, which
 lets you select, move, rotate, and resize objects, and edit their properties and code.  Select an object by clicking it, and add 
 or remove objects from the selection by Shift-clicking them.  You can also drag out a selection rectangle to select all objects

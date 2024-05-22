@@ -312,7 +312,9 @@ class ViewerFrame(wx.Frame):
                 self.SaveFile()
 
         if not self.stackManager.runner.stopRunnerThread:
-            for l in range(len(self.stackStack)-1):
+            self.stackManager.runner.RunHandler(self.stackManager.stackModel, "on_exit_stack", None)
+
+            for _ in range(len(self.stackStack)-1):
                 self.PopStack(None, True)
 
             self.stackManager.SetDown()
@@ -566,6 +568,7 @@ class ViewerFrame(wx.Frame):
         if self.designer:
             runner.AddSyntaxErrors(self.designer.stackManager.analyzer.syntaxErrors)
         if not isGoingBack:
+            self.stackManager.runner.SetupForCard(self.stackManager.stackModel.childModels[0])
             self.stackManager.stackModel.RunSetup(runner)
         self.stackManager.LoadCardAtIndex(None)
         if not (0 <= cardIndex < len(self.stackManager.stackModel.childModels)):

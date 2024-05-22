@@ -226,8 +226,6 @@ class Runner():
         if self.runnerThread:
             self.stopRunnerThread = True
             self.StopTimers()
-            for card in self.stackManager.stackModel.childModels:
-                self.RunHandler(card, "on_exit_stack", None)
             self.stackReturnQueue.put(None)  # Stop waiting for a run_stack() call to return
             self.handlerQueue.put((TaskType.Wake, )) # Wake up the runner thread get() call so it can see that we're stopping
 
@@ -520,14 +518,6 @@ class Runner():
         # rewrite handlers that use return outside of a function, and replace with an exception that we catch, to
         # act like a return.
         path = uiModel.GetPath() + "." + handlerName
-        isNew = False
-        if path in self.compileCache:
-            ast = self.compileCache[path]
-        else:
-            handlerStr = self.RewriteHandler(handlerStr)
-            ast = compile(handlerStr, "<string>", "exec")
-            self.compileCache[path] = ast
-            isNew = True
 
         self.lastHandlerStack.append((uiModel, handlerName))
 
@@ -539,11 +529,19 @@ class Runner():
         in_func = []
         detail = None
 
-        # Use this for noticing user-definitions of new functions
-        if isNew:
-            oldClientVars = self.clientVars.copy()
-
         try:
+            isNew = False
+            if path in self.compileCache:
+                ast = self.compileCache[path]
+            else:
+                handlerStr = self.RewriteHandler(handlerStr)
+                ast = compile(handlerStr, "<string>", "exec")
+                self.compileCache[path] = ast
+                isNew = True
+            # Use this for noticing user-definitions of new functions
+            if isNew:
+                oldClientVars = self.clientVars.copy()
+
             exec(ast, self.clientVars)
             if isNew:
                 self.ScrapeNewFuncDefs(oldClientVars, self.clientVars, uiModel, handlerName)
@@ -751,7 +749,7 @@ class Runner():
                 self.funcDefs[k] = (model, handlerName)
 
     def HandlerPath(self, model, handlerName, card=None):
-        if model.type == "card":
+        if model.type in ["card", "stack"]:
             return f"{model.GetProperty('name')}.{handlerName}()"
         else:
             if card is None:
@@ -881,6 +879,7 @@ class Runner():
     def return_from_stack(self, result=None):
         if not self.viewer:
             return
+        self.RunHandler(self.stackManager.stackModel, "on_exit_stack", None)
         stackReturnValue = sanitizer.SanitizeValue(result, [])
         if self.viewer.GosubStack(None,-1, stackReturnValue):
             raise RuntimeError('Return')

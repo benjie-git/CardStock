@@ -149,7 +149,6 @@ class CardModel(ViewModel):
         self.handlers = handlers
         self.handlers["on_resize"] = ""
         self.handlers["on_hide_card"] = ""
-        self.handlers["on_exit_stack"] = ""
         self.initialEditHandler = "on_setup"
 
         # Custom property order and mask for the inspector

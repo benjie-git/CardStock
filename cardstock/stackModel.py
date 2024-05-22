@@ -38,8 +38,8 @@ class StackModel(ViewModel):
 
         self.propertyKeys = ["stack_name", "author", "can_save", "info"]
 
-        self.handlers = {}
-        self.initialEditHandler = None
+        self.handlers = {"on_setup": "", "on_exit_stack": ""}
+        self.initialEditHandler = "on_setup"
 
     def GetProperty(self, key):
         if key == "stack_name":
@@ -79,6 +79,8 @@ class StackModel(ViewModel):
 
     def GetModelFromPath(self, path):
         parts = path.split('.')
+        if len(parts) and parts[0] == "":
+            return self
         m = self
         for p in parts:
             found = False

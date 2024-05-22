@@ -717,6 +717,8 @@ class StackManager(object):
     def GetUiViewByModel(self, model):
         if not self.uiCard:
             return None
+        if model == self.stackModel:
+            return self.uiStack
         if model == self.uiCard.model:
             return self.uiCard
         if model in self.modelToViewMap:

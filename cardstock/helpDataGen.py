@@ -350,6 +350,7 @@ class HelpData():
             cls.reservedNames.extend(HelpDataCard.properties.keys())
             cls.reservedNames.extend(HelpDataCard.methods.keys())
             cls.reservedNames.extend(HelpDataStack.properties.keys())
+            cls.reservedNames.extend(HelpDataStack.methods.keys())
             cls.reservedNames.extend(keyword.kwlist)
         return cls.reservedNames
 

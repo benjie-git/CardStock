@@ -89,7 +89,13 @@ class ErrorListWindow(wx.Frame):
                         e.card = None
 
     def JumpToError(self, error):
-        if error.card:
+        if error.obj and error.obj.type == "stack":
+            self.designer.stackManager.SelectUiView(self.designer.stackManager.uiStack)
+            if error.lineNum:
+                self.designer.cPanel.codeInspector.SelectAndScrollToLine(error.handlerName, error.lineNum - 1)
+            self.designer.Raise()
+
+        elif error.card:
             self.designer.cPanel.SetToolByName("hand")
             self.designer.stackManager.LoadCardAtIndex(error.card.parent.childModels.index(error.card))
             if error.obj:

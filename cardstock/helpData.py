@@ -105,7 +105,7 @@ class HelpDataGlobals():
                                        "the last card.  This sends the on_hide_card event for the current card, and then the "
                                        "on_show_card event for the new card."},
         "run_stack": {
-            "args": {"filename": {"type": "string", "info": "The path to a stack file to run.  On CardStock.run, a "
+            "args": {"filename": {"type": "string", "info": "The path to a stack file to run.  On cardstock.run, a "
                                                             "filename can be a stack name owned by the same user as the current stack, or a full "
                                                             "path \"username/StackName\", like \"examples/Pong\"."},
                      "cardNumber": {"type": "int",
@@ -1048,12 +1048,6 @@ class HelpDataCard():
         "on_hide_card": {"args": {},
                          "info": "The <b>on_hide_card</b> event is run when a card is hidden, right before the new "
                                  "card's on_show_card event is run, when going to another card."},
-        "on_exit_stack": {"args": {},
-                          "info": "The <b>on_exit_stack</b> event is run for all cards when the stack exits, whether "
-                                  "from the File Close menu item, the quit() function, the stack.return_from_stack() method, "
-                                  "or closing the stack viewer window.  You can use this to clean up any external "
-                                  "resources -- for example, closing files.  This event needs to run quickly, so it's "
-                                  "not able to call functions like alert(), ask_text(), ask_yes_no(), run_stack(), etc."},
         "on_resize": {
             "args": {"is_initial": {"type": "bool", "info": "True if this event is running due to showing the "
                                                             "card.  False if this event is running due to the "
@@ -1156,7 +1150,14 @@ class HelpDataStack():
                                     "will return None."},
     }
 
-    handlers = {}
+    handlers = {
+        "on_exit_stack": {"args": {},
+                          "info": "The <b>on_exit_stack</b> event is run when the stack exits, whether "
+                                  "from the File Close menu item, the quit() function, the stack.return_from_stack() method, "
+                                  "or closing the running stack window.  You can use this to clean up any external "
+                                  "resources -- for example, closing files.  This event needs to run quickly, so it's "
+                                  "not able to call functions like alert(), ask_text(), ask_yes_no(), run_stack(), etc."},
+    }
 
 
 class HelpDataString():
