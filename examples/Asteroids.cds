@@ -2,12 +2,9 @@
   "type": "stack",
   "handlers": {},
   "properties": {
-    "size": [
-      800,
-      800
-    ],
     "can_save": false,
-    "can_resize": true
+    "author": "",
+    "info": ""
   },
   "cards": [
     {
@@ -23,7 +20,12 @@
       },
       "properties": {
         "name": "card_1",
-        "fill_color": "#000000"
+        "size": [
+          800,
+          800
+        ],
+        "fill_color": "#000000",
+        "can_resize": true
       },
       "childModels": [
         {
@@ -113,6 +115,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 8,
-  "CardStock_stack_version": "0.99.5"
+  "CardStock_stack_format": 9,
+  "CardStock_stack_version": "0.99.6"
 }

@@ -2,12 +2,9 @@
   "type": "stack",
   "handlers": {},
   "properties": {
-    "size": [
-      500,
-      500
-    ],
     "can_save": true,
-    "can_resize": false
+    "author": "",
+    "info": ""
   },
   "cards": [
     {
@@ -17,7 +14,12 @@
       },
       "properties": {
         "name": "card_1",
-        "fill_color": "#C4ACA9"
+        "size": [
+          500,
+          500
+        ],
+        "fill_color": "#C4ACA9",
+        "can_resize": false
       },
       "childModels": [
         {
@@ -63,6 +65,7 @@
               450
             ],
             "pen_color": "#000000",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "#FFFFFF"
@@ -93,7 +96,7 @@
               434.0,
               464.0
             ],
-            "title": ">",
+            "text": ">",
             "style": "Border",
             "is_selected": false,
             "rotation": 0.0
@@ -114,7 +117,7 @@
               11.0,
               464.0
             ],
-            "title": "<",
+            "text": "<",
             "style": "Border",
             "is_selected": false,
             "rotation": 0.0
@@ -160,7 +163,7 @@
               77.0,
               464.0
             ],
-            "title": "Add",
+            "text": "Add",
             "style": "Border",
             "is_selected": false,
             "rotation": 0.0
@@ -179,7 +182,7 @@
               332.0,
               466.0
             ],
-            "text": "1/1",
+            "text": "1/2",
             "alignment": "Right",
             "text_color": "black",
             "font": "Serif",
@@ -206,7 +209,7 @@
               132.0,
               464.0
             ],
-            "title": "Del",
+            "text": "Del",
             "style": "Border",
             "is_selected": false,
             "rotation": 0.0
@@ -240,6 +243,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 6,
-  "CardStock_stack_version": "0.99.1"
+  "CardStock_stack_format": 9,
+  "CardStock_stack_version": "0.99.6"
 }

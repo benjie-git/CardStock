@@ -2,12 +2,9 @@
   "type": "stack",
   "handlers": {},
   "properties": {
-    "size": [
-      455,
-      455
-    ],
     "can_save": false,
-    "can_resize": false
+    "author": "",
+    "info": ""
   },
   "cards": [
     {
@@ -18,7 +15,12 @@
       },
       "properties": {
         "name": "card_1",
-        "fill_color": "#BBD4BF"
+        "size": [
+          455,
+          455
+        ],
+        "fill_color": "#BBD4BF",
+        "can_resize": false
       },
       "childModels": [
         {
