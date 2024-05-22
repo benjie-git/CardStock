@@ -33,7 +33,7 @@ from codeRunnerThread import RunOnMainSync, RunOnMainAsync
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-ID_SHOW_NOTES = wx.NewIdRef()
+ID_SHOW_INFO = wx.NewIdRef()
 ID_MENU_FIND = wx.NewIdRef()
 ID_MENU_FIND_SEL = wx.NewIdRef()
 ID_MENU_FIND_NEXT = wx.NewIdRef()
@@ -123,8 +123,8 @@ class ViewerFrame(wx.Frame):
         # create the file menu
         fileMenu = wx.Menu()
 
-        if self.stackManager.stackModel.GetProperty("notes").strip():
-            fileMenu.Append(ID_SHOW_NOTES, "Stack &Notes\tCtrl-I", "Stack Notes")
+        if self.stackManager.stackModel.GetProperty("info").strip():
+            fileMenu.Append(ID_SHOW_INFO, "Stack &Info\tCtrl-I", "Stack Info")
             fileMenu.AppendSeparator()
 
         if not self.isStandalone and not self.designer:
@@ -165,7 +165,7 @@ class ViewerFrame(wx.Frame):
         menuBar.Append(helpMenu, "&Help")
         self.SetMenuBar(menuBar)
 
-        self.Bind(wx.EVT_MENU,  self.OnMenuNotes, id=ID_SHOW_NOTES)
+        self.Bind(wx.EVT_MENU,  self.OnMenuInfo, id=ID_SHOW_INFO)
 
         self.Bind(wx.EVT_MENU,   self.OnMenuOpen, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU,   self.OnMenuSave, id=wx.ID_SAVE)
@@ -428,8 +428,9 @@ class ViewerFrame(wx.Frame):
     def OnReplaceAllEvent(self, event):
         self.findEngine.ReplaceAll()
 
-    def OnMenuNotes(self, event):
-        wx.MessageDialog(None, self.stackManager.stackModel.GetProperty("notes"), str("Stack Notes"), wx.OK).ShowModal()
+    def OnMenuInfo(self, event=None):
+        info = self.stackManager.stackModel.GetProperty("info")
+        wx.MessageDialog(None, info, "Stack Info", wx.OK).ShowModal()
 
     def OnMenuAbout(self, event):
         dlg = helpDialogs.CardStockAbout(self)

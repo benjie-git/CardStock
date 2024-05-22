@@ -197,14 +197,14 @@ class HelpDataGlobals():
             "info": "Returns an HTML color string of the form '#rrggbb' based on the red, green, and blue values given.  For example "
                     "<b>color_rgb(1, 0, 0)</b> returns '#FF0000' which is bright red."},
         "color_hsb": {"args": {"hue": {"type": "float",
-                                      "info": "The hue of the color as a number from 0.0 to 1.0, where 0 means red, and goes up through the rainbow, back to red again at 1.0."},
-                              "saturation": {"type": "float",
-                                             "info": "The saturation of the color as a number from 0.0 to 1.0, where 0 means gray and 1 means fully saturated color."},
-                              "brightness": {"type": "float",
-                                             "info": "The brightness component of the color as a number from 0.0 to 1.0, where 0 means black."}},
-                     "return": "string",
-                     "info": "Returns an HTML color string of the form '#rrggbb'.  For example "
-                             "<b>color_hsb(0, 1, 1)</b> returns '#FF0000' which is bright red."},
+                                       "info": "The hue of the color as a number from 0.0 to 1.0, where 0 means red, and goes up through the rainbow, back to red again at 1.0."},
+                               "saturation": {"type": "float",
+                                              "info": "The saturation of the color as a number from 0.0 to 1.0, where 0 means gray and 1 means fully saturated color."},
+                               "brightness": {"type": "float",
+                                              "info": "The brightness component of the color as a number from 0.0 to 1.0, where 0 means black."}},
+                      "return": "string",
+                      "info": "Returns an HTML color string of the form '#rrggbb'.  For example "
+                              "<b>color_hsb(0, 1, 1)</b> returns '#FF0000' which is bright red."},
         "Point": {"args": {"x": {"type": "float", "info": "The x (horizontal) part of this point."},
                            "y": {"type": "float", "info": "The y (vertical) part of this point."}},
                   "return": "point",
@@ -942,10 +942,6 @@ class HelpDataCard():
         "number": {"type": "int",
                    "info": "This is the card number of this card.  The first card is <b>number</b> 1.  You can "
                            "read this value, but not set it."},
-        "can_save": {"type": "bool",
-                     "info": "If <b>can_save</b> is <b>True</b>, the user can save the stack while running it. "
-                             "If it's <b>False</b>, the user can't save, so the stack will always start out in the same "
-                             "state.  (Not currently supported on cardstock.run.)"},
         "can_resize": {"type": "bool",
                        "info": "If <b>can_resize</b> is <b>True</b>, then when running, the card will automatically adjust its size "
                                "to fill the browser window on cardstock.run, or on desktop, will allow the user to "
@@ -1096,23 +1092,28 @@ class HelpDataStack():
         "current_card": {"type": "object",
                          "info": "This is the card object that is currently visible.  stack.<b>current_card</b>.number will "
                                  "give you the number of the current card."},
+        "can_save": {"type": "bool",
+                     "info": "If <b>can_save</b> is <b>True</b>, the user can save the stack while running it. "
+                             "If it's <b>False</b>, the user can't save, so the stack will always start out in the same "
+                             "state.  (Not currently supported on cardstock.run.)"},
+        "info": {"type": "string",
+                 "info": "You can enter info about your stack here, for example, instructions, explanation, a Change "
+                         "Log, License information, etc.  This <b>info</b> is accessible from your code, but not "
+                         "settable.  It's also viewable to anyone running this stack via the [Info] button when running "
+                         "on cardstock.run, or via the Stack Info menu item when running in the desktop app."},
     }
 
     properties_inspector_only = {
         "author": {"type": "string",
                    "info": "You can enter your name as the author here.  This property is not accessible from the stack's code."},
         "username": {"type": "string",
-                   "info": "The username of the user who created this stack.  This property is not accessible from the stack's code."},
+                     "info": "The username of the user who created this stack.  This property is not accessible from the stack's code."},
         "stack_name": {"type": "string",
-                   "info": "The name of this stack.  This property is not accessible from the stack's code."},
+                       "info": "The name of this stack.  This property is not accessible from the stack's code."},
         "created": {"type": "string",
-                   "info": "The date and time that this stack was first saved.  This property is not accessible from the stack's code."},
+                    "info": "The date and time that this stack was first saved.  This property is not accessible from the stack's code."},
         "last_saved": {"type": "string",
-                   "info": "The date and time that this stack was most recently saved.  This property is not accessible from the stack's code."},
-        "notes": {"type": "string",
-                  "info": "You can enter info about your stack here, for example, instructions, explanation, a Change "
-                          "Log, License information, etc.  These <b>notes</b> are accessible via the (i) button to "
-                          "anyone running this stack.  This property is not accessible from the stack's code."},
+                       "info": "The date and time that this stack was most recently saved.  This property is not accessible from the stack's code."},
     }
 
     methods = {
@@ -1131,6 +1132,9 @@ class HelpDataStack():
                               },
                      "return": "card",
                      "info": "Adds a new empty card to the stack, and returns the card object."},
+        "show_info": {"args": {},
+                      "return": None,
+                      "info": "Shows the stack's info property."},
         "card_with_number": {"args": {"number": {"type": "int",
                                                  "info": "the card number of the card to get."}},
                              "return": "card",
@@ -1144,7 +1148,8 @@ class HelpDataStack():
                                       "be returned by the calling stack's <b>run_stack()</b> call, which will now finally return. "
                                       "If the current stack was not started by a <b>run_stack()</b> call, this function does "
                                       "nothing, and returns normally."},
-        "get_setup_value": {"args": {}, "return": None,
+        "get_setup_value": {"args": {},
+                            "return": None,
                             "info": "If this stack was started by another stack calling run_stack() with a setupValue argument, "
                                     "you can call this <b>get_setup_value()</b> method "
                                     "to get the setupValue that was passed in from the calling stack.  Otherwise this "
@@ -1763,7 +1768,6 @@ class HelpDataBuiltins():
     types = []
     properties = {}
 
-
     functions = {
         "abs": {"args": {}, "return": "float",
                 "info": "<b>abs</b> returns the absolute value of a number."},
@@ -1819,9 +1823,10 @@ class HelpDataBuiltins():
                   "return": None,
                   "info": "<b>print</b> outputs one or more objects to the console, followed by a newline character.  This is often used for debugging and displaying output to the user."},
 
-        "input": {"args": {"prompt": {"type": "string", "info": "Text to print to the console before waiting for user input."}},
-                  "return": "string",
-                  "info": "Wait for the user to type text into the console.  When the user types the Return/Enter key, this function returns the string that the user typed."},
+        "input": {"args": {
+            "prompt": {"type": "string", "info": "Text to print to the console before waiting for user input."}},
+            "return": "string",
+            "info": "Wait for the user to type text into the console.  When the user types the Return/Enter key, this function returns the string that the user typed."},
 
         "range": {
             "args": {"start": {"type": "int", "info": "The starting value of the range (optional, default=0)"},

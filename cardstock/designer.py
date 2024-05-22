@@ -672,6 +672,9 @@ class DesignerFrame(wx.Frame):
         exporter.StartExport(doSave)
 
     def RunFromCard(self, cardIndex, generateThumbnail=False):
+        self.stackManager.view.SetFocus()  # Blur any active property editor, to commit its new value
+        wx.YieldIfNeeded()
+
         if self.isStartingViewer:
             return
         self.isStartingViewer = True

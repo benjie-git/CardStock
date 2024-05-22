@@ -11,7 +11,8 @@ from uiView import ViewModel, ViewProxy
 from uiCard import CardModel
 import version
 import migrations
-from codeRunnerThread import RunOnMainSync
+from codeRunnerThread import RunOnMainSync, RunOnMainAsync
+
 
 class StackModel(ViewModel):
     """
@@ -28,14 +29,14 @@ class StackModel(ViewModel):
         self.properties["name"] = "stack"
         self.properties["can_save"] = False
         self.properties["author"] = ""
-        self.properties["notes"] = ""
+        self.properties["info"] = ""
 
         self.propertyTypes["stack_name"] = 'static'
         self.propertyTypes["can_save"] = 'bool'
         self.propertyTypes["author"] = 'string'
-        self.propertyTypes["notes"] = 'text'
+        self.propertyTypes["info"] = 'text'
 
-        self.propertyKeys = ["stack_name", "author", "can_save", "notes"]
+        self.propertyKeys = ["stack_name", "author", "can_save", "info"]
 
         self.handlers = {}
         self.initialEditHandler = None
@@ -123,6 +124,10 @@ class Stack(ViewProxy):
         return len(self._model.childModels)
 
     @property
+    def info(self):
+        return self._model.GetProperty("info")
+
+    @property
     def current_card(self):
         if self._model.didSetDown: return None
         return self._model.stackManager.uiCard.model.GetProxy()
@@ -149,6 +154,10 @@ class Stack(ViewProxy):
 
         for c in self._model.childModels:
             c.broadcast_message(message)
+
+    @RunOnMainAsync
+    def show_info(self):
+        self._model.stackManager.ShowStackInfo()
 
     def add_card(self, name="card", atNumber=0):
         if not isinstance(name, str):

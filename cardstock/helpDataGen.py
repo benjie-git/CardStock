@@ -86,12 +86,16 @@ class HelpData():
         data = cls.ForObject(model)
         t = cls.GetPropertyTypesString(data, key)
         while data:
+            prop = None
             if key in data.properties:
                 prop = data.properties[key]
-                text = t + "<b>" + key + "</b><br/><i>" + prop["type"] + "</i>: " + prop["info"]
+            elif hasattr(data, "properties_inspector_only") and key in data.properties_inspector_only:
+                prop = data.properties_inspector_only[key]
+            if prop:
+                text = "<i>" + t + "</i><b>" + key + "</b>: <i>" + prop["type"] + "</i><br/><br/>" + prop["info"]
                 return text
             data = data.parent
-        return None
+        return ""
 
     @classmethod
     def GetHelpForName(cls, key, objType):

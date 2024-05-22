@@ -1185,6 +1185,10 @@ class StackManager(object):
             self.runner.viewer.UpdateVars()
         self.lastVarUpdateTime = time()
 
+    def ShowStackInfo(self):
+        if self.runner and self.runner.viewer:
+            self.runner.viewer.OnMenuInfo()
+
     def GetDesignerFindPath(self):
         cPanel = self.designer.cPanel
         cardModel = self.uiCard.model
