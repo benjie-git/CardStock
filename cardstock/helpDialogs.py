@@ -99,8 +99,9 @@ as one piece, and that group becomes a new object itself.</p>
 <h2>Designer Layout</h2>
 <p>The CardStock Designer application is where you design, build, draw, and code your CardStock programs.  The Designer
 window is split into two main parts.  On the left is your stack, that shows the currently selected card and its objects.
-On the right is the control panel.  The top of the control panel lets you choose an editing tool.</p>
-<p>The first is the hand tool, which
+On the right is the control panel.  Along the top are controls that let you move between cards, test-run your stack, 
+and choose an editing tool.</p>
+<p>The first tool is the selection/hand tool, which
 lets you select, move, rotate, and resize objects, and edit their properties and code.  Select an object by clicking it, and add 
 or remove objects from the selection by Shift-clicking them.  You can also drag out a selection rectangle to select all objects
 whose centers it contains.  You can also cycle forwards and backwards through objects on the current card using Tab and
@@ -113,17 +114,17 @@ ratio stable.  You can drag selected objects to move them, or use the arrow keys
 a time, or by 5 or 20 pixels at a time by holding down Shift or Alt/Option, respectively.  You can also rotate an object 
 by dragging the round, blue rotation knob at the top of the selected object, and can constrain rotation to multiples of
 5 degrees by holding down the Shift key.</p>
-<p>The next five tools are the button, text field, web view, image, and text label tools.  These each 
-let you create that type of object, by drawing out the new object's shape on the card on the left.  You can double-click
-a text field or text label to edit its text in-place on the card.  Note that you can set a Button object's style, to 
-make it it appear and behave as either a regular button with a Border, a Borderless button, a Checkbox, or a Radio button.  
+<p>The next five tools are the button, text field, web view, image, and text label tools.  (Note that web-views are not 
+currently supported on cardstock.run.)  These tools each let you create that type of object, by drawing out the new 
+object's shape on the card on the left.  You can also double-click a text field or text label to edit its text in-place 
+on the card.  Note that you can set a Button object's style, to make it it appear and behave as either a regular button 
+with a Border, a Borderless button, a Checkbox, or a Radio button.
 </p>
-<p>The next six tools
-are the drawing tools, which let you draw with a pen, drag out an oval, a rectangle, a rounded rectangle, a polygon, 
-or a line.
-While creating a shape, you can hold down the Shift key to constrain ovals and rectangles to being circles and squares, 
-and to make new lines stay perfectly horizontal, vertical, or 45° diagonal. After creating an object, CardStock will 
-switch back to the Hand tool.  Pressing Escape in the Designer will also always return you to the Hand tool.</p>
+<p>The next six tools are the drawing tools, which let you draw with a pen, drag out an oval, a rectangle, a 
+rounded rectangle, a polygon, or a line.  While creating a shape, you can hold down the Shift key to constrain ovals 
+and rectangles to being circles and squares, and to make new lines stay perfectly horizontal, vertical, or 45° 
+diagonal. After creating an object, CardStock will switch back to the Hand tool.  Pressing Escape in the Designer will 
+also always return you to the Hand tool.</p>
  
 <p>Additionally there are keyboard shortcuts for selecting all of the tools.  Those shortcuts are shown when the mouse 
 is over that tool's button in the control panel.  They are:<br/>
@@ -142,17 +143,14 @@ is over that tool's button in the control panel.  They are:<br/>
 <li>L for <b>L</b>ine
 </ul>
 </p>
-<p>The area in the control panel below the tools changes depending on which tool you're using, and which objects are 
-selected in the card.  When a drawing tool is selected, the control panel offers you settings to choose the pen color,
-pen thickness, and fill color for the shapes you draw next.  Then click and drag out the shape you want to add to the 
-card.</p>
-<p>When you select a single object 
+<p>To the right of your card editor is the control panel.  When you select a single object 
 in your card, the control panel will show the two main object editing areas:  The property editor shows, and lets you edit, a
 list of the selected object's properties, like name, size, position on the card, colors, etc.  Below the property editor is 
 the code editor.  The code editor lets you view and edit the code that runs when events are triggered for this object.
 For example, if you select a button object,
 you could edit the code for its <b>on_click</b> event, which runs when that button is clicked.  In between the two editors is 
-the Context Help box.  This shows information about the most recently selected property or event, or the last 
+the Context Help box.  (On cardstock.run, this is actually located on the bottom left of the page.)  This shows 
+information about the most recently selected property or event, or the last 
 autocompleted term in the code editor.  You can resize the Context Help box by dragging the bottom-right, blue corner,
 and can hide it using the command in CardStock's Help Menu if you already know the info it's telling you, you want the
 space back, or its incessant helpfulness otherwise offends your sensibilities.</p>
@@ -277,8 +275,8 @@ then add a line like <b>self.speed.y -= 30</b> into the object's on_periodic() e
 <h2>Web Views</h2>
 
 <p>CardStock also allows you to embed web pages into your stacks, using Web View objects.  But note that currently 
-WebViews only work when your stack is run as a program on your computer, and not when uploaded and run through the
-cardstock.run site.  You can set the URL property
+Web Views only work when your stack is run as a program on your computer, and not on the cardstock.run website.  
+You can set the URL property
 of a Web View, and it will load the web page at that URL.  Or you can set the HTML property of a Web View, and it will 
 display that HTML.  You can restrict a Web View to only allow loading pages from a specific set of hosts, by setting its allowed_hosts
 property.  For example, if you only want to allow loading pages from my-fun-game.com, then you can set webview_1.URL to
@@ -313,7 +311,7 @@ object and list variables hierarchically to see their items and properties, by c
 For example, you could click the right arrow on the "card" row to see your current card's properties, and then on the 
 "children" row to see all objects on that card.  Then on a button's row to see all the properties of that button.  For 
 rows representing numbers, strings, boolean values, etc., you can click on the row's value to edit it live, while your 
-stack is running.</p>
+stack is running.  (This feature is not currently available on cardstock.run.)</p>
 
 <p>If any errors occur while running your stack, error messages will be written to the console window, and then after 
 you return to the Designer, they will be listed in the red-colored Error List window that will
@@ -322,7 +320,7 @@ offending line in the code editor for that event.</p>
 
 <p>If you want to look at all of your code at once, instead of only at one object's code at a time,
 you can open the All Code window from the Help menu.  Clicking a line in the All Code editor will take you to that
-line of that object's event code in the code editor.</p>
+line of that object's event code in the code editor.  (This feature is not currently available on cardstock.run.)</p>
 
 <p>Note that CardStock has a full Find and Replace system, that lets you find, and optionally replace, strings in your
 code and properties throughout your whole stack.  It allows finding using python style regular expression syntax, if you
