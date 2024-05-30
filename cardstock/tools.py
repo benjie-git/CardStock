@@ -570,15 +570,17 @@ class ViewTool(BaseTool):
             if not self.targetUi and dist(self.origMousePos, pos) > MOVE_THRESHOLD:
                 m = generator.StackGenerator.ModelFromType(self.stackManager, self.name)
                 m.SetProperty("size", [0,0], notify=False)
-                m.SetProperty("center", self.origMousePos, notify=False)
+                s = m.GetProperty("size")
+                m.SetProperty("center", self.origMousePos+s/2, notify=False)
                 self.targetUi = self.stackManager.AddUiViewInternal(m)
                 self.stackManager.SelectUiView(self.targetUi)
 
             if self.targetUi:
                 offset = (pos.x-self.origMousePos[0], pos.y-self.origMousePos[1])
                 topLeft = (min(pos[0], self.origMousePos[0]), min(pos[1], self.origMousePos[1]))
-                self.targetUi.model.SetProperty("center", topLeft, notify=False)
                 self.targetUi.model.SetProperty("size", [abs(offset[0]), abs(offset[1])])
+                s = self.targetUi.model.GetProperty("size")
+                self.targetUi.model.SetProperty("center", topLeft+s/2, notify=False)
         event.Skip()
 
     def OnMouseUp(self, uiView, event):
