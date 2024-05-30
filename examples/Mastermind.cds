@@ -2,12 +2,9 @@
   "type": "stack",
   "handlers": {},
   "properties": {
-    "size": [
-      500,
-      500
-    ],
     "can_save": false,
-    "can_resize": false
+    "author": "",
+    "info": "The goal of Mastermind is to guess the secret 5-digit number.  \n\nEnter your guesses for each digit, and click Guess.  Then each digit will be color coded according to whether it is the correct number in the correct spot, a correct number but in the wrong spot, or not in the secret number."
   },
   "cards": [
     {
@@ -18,7 +15,12 @@
       },
       "properties": {
         "name": "card_1",
-        "fill_color": "#F0F0F0"
+        "size": [
+          500,
+          500
+        ],
+        "fill_color": "#F0F0F0",
+        "can_resize": false
       },
       "childModels": [
         {
@@ -30,15 +32,16 @@
               472,
               187
             ],
-            "position": [
-              14.0,
-              24.0
+            "center": [
+              250.0,
+              117.0
             ],
             "originalSize": [
               472,
               187
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "#E0E0E0"
@@ -67,9 +70,9 @@
               58,
               70
             ],
-            "position": [
-              57.0,
-              336.0
+            "center": [
+              86.0,
+              371.0
             ],
             "text": "0",
             "alignment": "Center",
@@ -92,15 +95,16 @@
               44,
               44
             ],
-            "position": [
-              64.0,
-              417.0
+            "center": [
+              86.0,
+              439.0
             ],
             "originalSize": [
               44,
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "white"
@@ -129,9 +133,9 @@
               58,
               70
             ],
-            "position": [
-              137.0,
-              336.0
+            "center": [
+              166.0,
+              371.0
             ],
             "text": "0",
             "alignment": "Center",
@@ -154,15 +158,16 @@
               44,
               44
             ],
-            "position": [
-              144.0,
-              417.0
+            "center": [
+              166.0,
+              439.0
             ],
             "originalSize": [
               44,
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "white"
@@ -191,9 +196,9 @@
               58,
               70
             ],
-            "position": [
-              217.0,
-              336.0
+            "center": [
+              246.0,
+              371.0
             ],
             "text": "0",
             "alignment": "Center",
@@ -216,15 +221,16 @@
               44,
               44
             ],
-            "position": [
-              224.0,
-              417.0
+            "center": [
+              246.0,
+              439.0
             ],
             "originalSize": [
               44,
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "white"
@@ -253,9 +259,9 @@
               58,
               70
             ],
-            "position": [
-              297.0,
-              336.0
+            "center": [
+              326.0,
+              371.0
             ],
             "text": "0",
             "alignment": "Center",
@@ -278,15 +284,16 @@
               44,
               44
             ],
-            "position": [
-              304.0,
-              417.0
+            "center": [
+              326.0,
+              439.0
             ],
             "originalSize": [
               44,
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "white"
@@ -315,9 +322,9 @@
               58,
               70
             ],
-            "position": [
-              377.0,
-              336.0
+            "center": [
+              406.0,
+              371.0
             ],
             "text": "0",
             "alignment": "Center",
@@ -340,15 +347,16 @@
               44,
               44
             ],
-            "position": [
-              384.0,
-              417.0
+            "center": [
+              406.0,
+              439.0
             ],
             "originalSize": [
               44,
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "white"
@@ -375,11 +383,11 @@
               132,
               28
             ],
-            "position": [
-              293.0,
-              273.0
+            "center": [
+              359.0,
+              287.0
             ],
-            "title": "Guess",
+            "text": "Guess",
             "style": "Border",
             "is_selected": false,
             "rotation": 0.0
@@ -394,15 +402,16 @@
               44,
               44
             ],
-            "position": [
-              32.0,
-              156.0
+            "center": [
+              54.0,
+              178.0
             ],
             "originalSize": [
               44,
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "green"
@@ -427,9 +436,9 @@
               372,
               32
             ],
-            "position": [
-              91.0,
-              159.0
+            "center": [
+              277.0,
+              175.0
             ],
             "text": "This number is in the correct spot",
             "alignment": "Left",
@@ -452,15 +461,16 @@
               44,
               44
             ],
-            "position": [
-              32.0,
-              96.0
+            "center": [
+              54.0,
+              118.0
             ],
             "originalSize": [
               44,
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "blue"
@@ -485,9 +495,9 @@
               372,
               32
             ],
-            "position": [
-              91.0,
-              99.0
+            "center": [
+              277.0,
+              115.0
             ],
             "text": "This number is in the wrong spot",
             "alignment": "Left",
@@ -510,15 +520,16 @@
               44,
               44
             ],
-            "position": [
-              32.0,
-              36.0
+            "center": [
+              54.0,
+              58.0
             ],
             "originalSize": [
               44,
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "red"
@@ -543,9 +554,9 @@
               372,
               32
             ],
-            "position": [
-              91.0,
-              39.0
+            "center": [
+              277.0,
+              55.0
             ],
             "text": "This number is not in the answer",
             "alignment": "Left",
@@ -568,9 +579,9 @@
               194,
               28
             ],
-            "position": [
-              262.0,
-              240.0
+            "center": [
+              359.0,
+              254.0
             ],
             "text": "Num Guesses: 0",
             "alignment": "Center",
@@ -587,7 +598,7 @@
         {
           "type": "button",
           "handlers": {
-            "on_click": "alert(\"The goal of Mastermind is to guess the secret 5-digit number.  enter \"\n\"your guesses for each digit, and click Guess.  Then each digit will be color \"\n\"coded according to whether it is the correct number in the correct spot, \"\n\"a correct number but in the wrong spot, or a wrong digit that's not in the \"\n\"secret number at all.  Then adjust your digits and click Guess again!\")"
+            "on_click": "stack.show_info()"
           },
           "properties": {
             "name": "help_button",
@@ -595,11 +606,11 @@
               55,
               29
             ],
-            "position": [
-              3.0,
-              470.0
+            "center": [
+              30.0,
+              484.0
             ],
-            "title": "Help",
+            "text": "Help",
             "style": "Border",
             "is_selected": false,
             "rotation": 0.0
@@ -608,6 +619,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 6,
-  "CardStock_stack_version": "0.99.1"
+  "CardStock_stack_format": 10,
+  "CardStock_stack_version": "0.99.7"
 }

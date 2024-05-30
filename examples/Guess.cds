@@ -2,22 +2,24 @@
   "type": "stack",
   "handlers": {},
   "properties": {
-    "size": [
-      597,
-      293
-    ],
     "can_save": false,
-    "can_resize": false
+    "author": "",
+    "info": ""
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "on_show_card": "def UpdateBox():\n   lineStart = line.position.x\n   lineWidth = line.size.width\n   box.position.x = lineStart + (lowerBound-1) * lineWidth/100.0\n   box.size.width = (upperBound-lowerBound+1) * lineWidth/100.0\n\nresetButton.click()\n"
+        "on_show_card": "def UpdateBox():\n   lineStart = line.left\n   lineWidth = line.size.width\n   box.size.width = (upperBound-lowerBound+1) * lineWidth/100.0\n   box.left = lineStart + (lowerBound-1) * lineWidth/100.0\n\nresetButton.click()\n"
       },
       "properties": {
         "name": "card_1",
-        "fill_color": "#CBE1C4"
+        "size": [
+          597,
+          293
+        ],
+        "fill_color": "#CBE1C4",
+        "can_resize": false
       },
       "childModels": [
         {
@@ -29,9 +31,9 @@
               459,
               41
             ],
-            "position": [
-              69.0,
-              247.0
+            "center": [
+              298.0,
+              267.0
             ],
             "text": "Guess a number from 1 - 100.",
             "alignment": "Center",
@@ -56,9 +58,9 @@
               60,
               28
             ],
-            "position": [
-              230.0,
-              210.0
+            "center": [
+              260.0,
+              224.0
             ],
             "text": "",
             "alignment": "Right",
@@ -81,15 +83,16 @@
               500,
               20
             ],
-            "position": [
-              38.0,
-              106.0
+            "center": [
+              288.0,
+              116.0
             ],
             "originalSize": [
               420,
               20
             ],
             "pen_color": "#000000",
+            "pen_style": "Solid",
             "pen_thickness": 1,
             "rotation": 0.0,
             "fill_color": "#000000"
@@ -114,9 +117,9 @@
               44,
               36
             ],
-            "position": [
-              17.0,
-              49.0
+            "center": [
+              39.0,
+              67.0
             ],
             "text": "1",
             "alignment": "Center",
@@ -139,9 +142,9 @@
               71,
               32
             ],
-            "position": [
-              500.0,
-              53.0
+            "center": [
+              535.0,
+              69.0
             ],
             "text": "100",
             "alignment": "Center",
@@ -164,15 +167,16 @@
               20,
               22
             ],
-            "position": [
-              535.0,
-              94.0
+            "center": [
+              545.0,
+              105.0
             ],
             "originalSize": [
               20,
               22
             ],
             "pen_color": "#000000",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0
           },
@@ -196,15 +200,16 @@
               20,
               22
             ],
-            "position": [
-              40.0,
-              94.0
+            "center": [
+              50.0,
+              105.0
             ],
             "originalSize": [
               20,
               22
             ],
             "pen_color": "#000000",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0
           },
@@ -230,11 +235,11 @@
               90,
               26
             ],
-            "position": [
-              303.0,
-              211.0
+            "center": [
+              348.0,
+              224.0
             ],
-            "title": "Enter",
+            "text": "Enter",
             "style": "Border",
             "is_selected": false,
             "rotation": 0.0
@@ -249,15 +254,16 @@
               139,
               37
             ],
-            "position": [
-              178.0,
-              101.0
+            "center": [
+              247.0,
+              119.0
             ],
             "originalSize": [
               139,
               46
             ],
             "pen_color": "#000000",
+            "pen_style": "Solid",
             "pen_thickness": 1,
             "rotation": 0.0,
             "fill_color": "#009400"
@@ -284,11 +290,11 @@
               67,
               40
             ],
-            "position": [
-              0.0,
-              253.0
+            "center": [
+              33.0,
+              273.0
             ],
-            "title": "Reset",
+            "text": "Reset",
             "style": "Borderless",
             "is_selected": false,
             "rotation": 0.0
@@ -303,9 +309,9 @@
               115,
               23
             ],
-            "position": [
-              210.0,
-              175.0
+            "center": [
+              267.0,
+              186.0
             ],
             "text": "",
             "alignment": "Center",
@@ -322,6 +328,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 6,
-  "CardStock_stack_version": "0.99.1"
+  "CardStock_stack_format": 10,
+  "CardStock_stack_version": "0.99.7"
 }

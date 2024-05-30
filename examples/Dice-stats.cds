@@ -2,12 +2,9 @@
   "type": "stack",
   "handlers": {},
   "properties": {
-    "size": [
-      389,
-      459
-    ],
     "can_save": false,
-    "can_resize": false
+    "author": "",
+    "info": ""
   },
   "cards": [
     {
@@ -17,7 +14,12 @@
       },
       "properties": {
         "name": "card_1",
-        "fill_color": "#88D174"
+        "size": [
+          389,
+          459
+        ],
+        "fill_color": "#88D174",
+        "can_resize": false
       },
       "childModels": [
         {
@@ -29,9 +31,9 @@
               185,
               32
             ],
-            "position": [
-              42.0,
-              220.0
+            "center": [
+              134.0,
+              236.0
             ],
             "text": "",
             "alignment": "Center",
@@ -54,15 +56,16 @@
               77,
               77
             ],
-            "position": [
-              156.0,
-              273.0
+            "center": [
+              194.0,
+              311.0
             ],
             "originalSize": [
               77,
               77
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "white",
@@ -88,9 +91,9 @@
               51,
               50
             ],
-            "position": [
-              167.0,
-              288.0
+            "center": [
+              192.0,
+              313.0
             ],
             "text": "",
             "alignment": "Center",
@@ -113,15 +116,16 @@
               77,
               77
             ],
-            "position": [
-              36.0,
-              273.0
+            "center": [
+              74.0,
+              311.0
             ],
             "originalSize": [
               77,
               77
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "white",
@@ -147,9 +151,9 @@
               51,
               50
             ],
-            "position": [
-              47.0,
-              288.0
+            "center": [
+              72.0,
+              313.0
             ],
             "text": "",
             "alignment": "Center",
@@ -166,7 +170,7 @@
         {
           "type": "button",
           "handlers": {
-            "on_click": "RollOnce()\nbroadcast_message(\"update\")"
+            "on_click": "RollOnce()\ncard.broadcast_message(\"update\")"
           },
           "properties": {
             "name": "roll",
@@ -174,11 +178,11 @@
               177,
               24
             ],
-            "position": [
-              46.0,
-              425.0
+            "center": [
+              134.0,
+              437.0
             ],
-            "title": "Roll",
+            "text": "Roll",
             "style": "Border",
             "is_selected": false,
             "rotation": 0.0
@@ -195,9 +199,9 @@
               120,
               246
             ],
-            "position": [
-              265.0,
-              175.0
+            "center": [
+              325.0,
+              298.0
             ],
             "text": "",
             "alignment": "Left",
@@ -214,7 +218,7 @@
         {
           "type": "button",
           "handlers": {
-            "on_click": "stepSize = 20\n\nfor i in range(5000):\n   RollOnce()\n   \n   # Update the stats displays once per step_size rolls\n   if i % stepSize == stepSize-1:\n      broadcast_message(\"update\")\n"
+            "on_click": "stepSize = 20\n\nfor i in range(5000):\n   RollOnce()\n   \n   # Update the stats displays once per step_size rolls\n   if i % stepSize == stepSize-1:\n      card.broadcast_message(\"update\")\n"
           },
           "properties": {
             "name": "roll_5000",
@@ -222,11 +226,11 @@
               116,
               24
             ],
-            "position": [
-              267.0,
-              425.0
+            "center": [
+              325.0,
+              437.0
             ],
-            "title": "Roll 5000x",
+            "text": "Roll 5000x",
             "style": "Border",
             "is_selected": false,
             "rotation": 0.0
@@ -235,7 +239,7 @@
         {
           "type": "rect",
           "handlers": {
-            "on_message": "if message == \"update\":\n   items = stats_list[2:]\n   low = min(items)\n   high = max(items)\n   num_points = len(items)\n\n   pos = graph_frame.position\n   s = graph_frame.size\n\n   xStep = (s.width-2)/(num_points-1)\n   yStep = (s.height-3)/(high)\n\n   points = []\n   for n in range(len(items)):\n      points.append((xStep*n+pos.x, yStep*(items[n])+pos.y))\n\n   stat_line.points = points"
+            "on_message": "if message == \"update\":\n   items = stats_list[2:]\n   low = min(items)\n   high = max(items)\n   num_points = len(items)\n\n   pos = Point(graph_frame.left, graph_frame.bottom)\n   s = graph_frame.size\n\n   xStep = (s.width-2)/(num_points-1)\n   yStep = (s.height-3)/(high)\n\n   points = []\n   for n in range(len(items)):\n      points.append((xStep*n+pos.x, yStep*(items[n])+pos.y))\n\n   stat_line.points = points"
           },
           "properties": {
             "name": "graph_frame",
@@ -243,15 +247,16 @@
               370,
               160
             ],
-            "position": [
-              10.0,
-              7.0
+            "center": [
+              195.0,
+              87.0
             ],
             "originalSize": [
               370,
               171
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white"
@@ -276,15 +281,16 @@
               365,
               2
             ],
-            "position": [
-              12.0,
-              9.0
+            "center": [
+              194.0,
+              10.0
             ],
             "originalSize": [
               365,
               2
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0
           },
@@ -302,6 +308,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 6,
-  "CardStock_stack_version": "0.99.1"
+  "CardStock_stack_format": 10,
+  "CardStock_stack_version": "0.99.7"
 }

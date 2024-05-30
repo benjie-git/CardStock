@@ -235,18 +235,25 @@ class HelpDataObject():
         "data": {"type": "dictionary",
                  "info": "Every object has a <b>data</b> property.  It is a dictionary that allows you to persistently "
                          "store arbitrary data in any object within a stack that has <b>can_save</b> set to True."},
-        "position": {"type": "point",
-                     "info": "The <b>position</b> property is a point value that describes where on the "
-                             "card this object's bottom-left corner is.  The first number, <b>x</b>, is how many pixels the object is "
-                             "from the left edge of the card.  The second number, <b>y</b>, is how far up from the bottom."},
         "size": {"type": "size",
                  "info": "The <b>size</b> property is a size value that describes how big this object is on screen. "
                          "The first number, <b>width</b>, is how wide the object is, and the second number, <b>height</b>, is how tall."},
         "center": {"type": "point",
                    "info": "The <b>center</b> property is a point value that describes where on the card this "
                            "object's center point is.  The first number, <b>x</b>, is how many pixels the object's center "
-                           "is from the left edge of the card.  The second number, <b>y</b>, is how far up from the bottom.  "
-                           "This value is not stored, but computed based on position and size."},
+                           "is from the left edge of the card.  The second number, <b>y</b>, is how far up from the bottom."},
+        "left": {"type": "float",
+                 "info": "The <b>left</b> property is the distance of the object's left edge from the left edge of "
+                         "the card."},
+        "right": {"type": "float",
+                  "info": "The <b>right</b> property is the distance of the object's right edge from the left edge of "
+                          "the card."},
+        "bottom": {"type": "float",
+                   "info": "The <b>bottom</b> property is the distance of the object's bottom edge from the bottom edge of "
+                           "the card."},
+        "top": {"type": "float",
+                "info": "The <b>top</b> property is the distance of the object's top edge from the bottom edge of "
+                        "the card."},
         "rotation": {"type": "float",
                      "info": "This is the angle in degrees clockwise to rotate this object around its center.  0 is "
                              "normal/upright.  Note that not all objects can be rotated, for example cards and stacks."},
@@ -269,7 +276,7 @@ class HelpDataObject():
 
     methods = {
         "clone": {"args": {"...": {"type": "Any", "info": "optionally set more properties here.  For example, "
-                                                          "include position=(10,10)"}},
+                                                          "include center=(100,100)"}},
                   "return": "object",
                   "info": "Duplicates this object, and updates the new object's name to be unique, and then returns "
                           "the new object for you to store into a variable."},
@@ -357,26 +364,9 @@ class HelpDataObject():
                                      "object passed into this function.  If this object is touching any edges of the "
                                      "other object, the return value will be a list including one or more of the strings:"
                                      " 'Top', 'Bottom', 'Left', or 'Right', accordingly."},
-        "animate_position": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
-                                      "end_position": {"type": "point",
-                                                       "info": "the destination bottom-left corner position at the end of the animation, "
-                                                               "as a 2-item list representing an x and y location, like (100,140)."},
-                                      "easing": {"type": "string",
-                                                 "info": "an optional argument to allow controlling the animation's start and end accelerations. "
-                                                         "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
-                                                         "instead of starting the animation at full speed. "
-                                                         "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
-                                                         "Setting easing to None or skipping this argument will use simple, linear animation, "
-                                                         "which can look abrupt, but is sometimes what you want."},
-                                      "on_finished": {"type": "function",
-                                                      "info": "an optional function to run when the animation finishes."}},
-                             "return": None,
-                             "info": "Visually animates the movement of this object from its current position to <b>end_position</b>, "
-                                     "over <b>duration</b> seconds.  When the animation completes, runs the "
-                                     "<b>on_finished</b> function, if one was passed in."},
 
         "animate_center": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
-                                    "end_position": {"type": "point",
+                                    "end_center": {"type": "point",
                                                      "info": "the destination center position at the end of the animation, "
                                                              "as a 2-item list representing an x and y location, like (100,140)."},
                                     "easing": {"type": "string",
@@ -433,7 +423,7 @@ class HelpDataObject():
                                      "<b>on_finished</b> function, if one was passed in."},
         "stop_animating": {"args": {"property_name": {"type": "string",
                                                       "info": "optional name of the property to stop animating, for "
-                                                              "example: \"size\" or \"position\".  If left blank, stops "
+                                                              "example: \"size\" or \"center\".  If left blank, stops "
                                                               "all animations of properties of this object."}},
                            "return": None,
                            "info": "Stops the animation specified by <b>property_name</b> from running on this object, "
@@ -796,7 +786,7 @@ class HelpDataGroup():
                             "children back onto the card as individual objects."},
         "stop_all_animating": {"args": {"property_name": {"type": "string",
                                                           "info": "optional name of the property to stop animating, for "
-                                                                  "example: \"size\" or \"position\".  If left blank, stops "
+                                                                  "example: \"size\" or \"center\".  If left blank, stops "
                                                                   "all animations of properties of this group and its children."}},
                                "return": None,
                                "info": "Stops the animation specified by <b>property_name</b> from running on this group "
@@ -957,36 +947,36 @@ class HelpDataCard():
         "add_button": {
             "args": {
                 "...": {"type": "Any", "info": "optionally set any of the new object's properties here.  For example: "
-                                               "name=\"thingy\", position=(20,200), size=(100,50)"}},
+                                               "name=\"thingy\", center=(20,200), size=(100,50)"}},
             "return": "button",
             "info": "Adds a new Button to the card, and returns the new object."},
         "add_text_field": {
             "args": {"...": {"type": "Any", "info": "optionally set more properties here.  For example: "
-                                                    "name=\"thingy\", position=(20,200), size=(100,50)"}},
+                                                    "name=\"thingy\", center=(20,200), size=(100,50)"}},
             "return": "textfield",
             "info": "Adds a new Text Field to the card, and returns the new object."},
         "add_text_label": {
             "args": {"...": {"type": "Any", "info": "optionally set more properties here.  For example: "
-                                                    "name=\"thingy\", position=(20,200), size=(100,50)"}},
+                                                    "name=\"thingy\", center=(20,200), size=(100,50)"}},
             "return": "textlabel",
             "info": "Adds a new Text Label object to the card, and returns the new object."},
         "add_image": {
             "args": {"...": {"type": "Any", "info": "optionally set more properties here.  For example: "
-                                                    "name=\"thingy\", position=(20,200), size=(100,50)"}},
+                                                    "name=\"thingy\", center=(20,200), size=(100,50)"}},
             "return": "image",
             "info": "Adds a new Image to the card, and returns the new object."},
         "add_oval": {"args": {"...": {"type": "Any", "info": "optionally set more properties here.  For example: "
-                                                             "name=\"thingy\", position=(20,200), size=(100,50)"}},
+                                                             "name=\"thingy\", center=(20,200), size=(100,50)"}},
                      "return": "oval",
                      "info": "Adds a new Image to the card, and returns the new object."},
         "add_rectangle": {
             "args": {"...": {"type": "Any", "info": "optionally set more properties here.  For example: "
-                                                    "name=\"thingy\", position=(20,200), size=(100,50)"}},
+                                                    "name=\"thingy\", center=(20,200), size=(100,50)"}},
             "return": "rect",
             "info": "Adds a new Rectangle to the card, and returns the new object."},
         "add_round_rectangle": {
             "args": {"...": {"type": "Any", "info": "optionally set more properties here.  For example: "
-                                                    "name=\"thingy\", position=(20,200), size=(100,50)"}},
+                                                    "name=\"thingy\", center=(20,200), size=(100,50)"}},
             "return": "roundrect",
             "info": "Adds a new Round Rectangle to the card, and returns the new object."},
         "add_line": {"args": {"points": {"type": "list", "info": "a list of points, that are the locations of each "
@@ -995,7 +985,7 @@ class HelpDataCard():
                                                                  "to create a simple line segment, or more to create a "
                                                                  "more complex multi-segment line."},
                               "...": {"type": "Any", "info": "optionally set more properties here.  For example: "
-                                                             "name=\"thingy\", position=(20,200), size=(100,50)"}},
+                                                             "name=\"thingy\", center=(20,200), size=(100,50)"}},
                      "return": "line",
                      "info": "Adds a new Line to the card, and returns the new object."},
         "add_polygon": {"args": {"points": {"type": "list", "info": "a list of points, that are the locations of each "
@@ -1004,7 +994,7 @@ class HelpDataCard():
                                                                     "three or more points to display properly as a "
                                                                     "polygon."},
                                  "...": {"type": "Any", "info": "optionally set more properties here.  For example: "
-                                                                "name=\"thingy\", position=(20,200), size=(100,50)"}},
+                                                                "name=\"thingy\", center=(20,200), size=(100,50)"}},
                         "return": "polygon",
                         "info": "Adds a new Polygon shape to the card, and returns the new object."},
         "add_group": {"args": {"objects": {"type": "list", "info": "a list of object, all on the same card, to include "
@@ -1032,7 +1022,7 @@ class HelpDataCard():
                     "if one was passed in."},
         "stop_all_animating": {"args": {"property_name": {"type": "string",
                                                           "info": "optional name of the property to stop animating, for "
-                                                                  "example: \"size\" or \"position\".  If left blank, stops "
+                                                                  "example: \"size\" or \"center\".  If left blank, stops "
                                                                   "animations of all properties of this card and its children."}},
                                "return": None,
                                "info": "Stops the animation specified by <b>property_name</b> from running on this card "

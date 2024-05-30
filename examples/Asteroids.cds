@@ -15,7 +15,7 @@
         "on_key_press": "# Respond to these keys once per press, on KeyDown\nif key_name == \"Space\" and not isGameOver:\n   self.send_message(\"shoot\")\nelif key_name == \"Return\" and isGameOver:\n   self.send_message(\"start\")",
         "on_key_hold": "if not isGameOver:\n   # Respond to these keys continuously while pressed\n   if key_name == \"Left\":\n      ship.rotation -= 180*elapsed_time\n   elif key_name == \"Right\":\n      ship.rotation += 180*elapsed_time\n   \n   elif key_name == \"Up\":\n      ship.speed += rotate_point((0, 450*elapsed_time), ship.rotation)\n      play_sound(\"puff.wav\")",
         "on_mouse_press": "if is_using_touch_screen():\n   if not isGameOver:\n      if not ship.is_touching_point(mouse_pos):\n         ship.rotation = angle_from_points(ship.center, mouse_pos)\n         self.send_message(\"shoot\")\n   else:\n      self.send_message(\"start\")\n",
-        "on_message": "if message == \"start\":\n   # Delete all asteroids\n   for c in card.children.copy():\n      if c.name.startswith(\"asteroid_\"):\n         c.delete()\n   \n   # Set up the first asteroid, as a clone of the original, hidden one\n   ast = asteroid.clone()\n   if randint(0, 1):\n      ast.position = (100,randint(50, card.size.height-100))\n   else:\n      ast.position = (randint(50, card.size.width-100),100)\n   \n   ast.speed += (randint(-100,100), randint(-100,100))\n   ast.show()\n   numAsteroids = 1\n   isGameOver = False\n   ship.rotation = 0\n   ship.center = card.center\n   try_again.hide()\n\nelif message == \"shoot\":\n   # Create shot\n   shot = card.add_oval(\"shot\",\n      center=(ship.center+rotate_point((0, 50), ship.rotation)),\n      size=(10,10),\n      fill_color='red',\n      speed=ship.speed+rotate_point((0, 150), ship.rotation))\n   # Delete after 2 seconds\n   run_after_delay(2, shot.delete)\n   # recoil the ship\n   ship.speed -= rotate_point((0, 3), ship.rotation)\n\nelif message == \"gameOver\":\n   # Stop the ship\n   ship.speed = (0,0)\n   \n   # Stop all asteroids, and Delete shots\n   for c in card.children.copy():\n      if c.name.startswith(\"asteroid_\"):\n         c.speed = (0, 0)\n      if c.name.startswith(\"shot\"):\n         c.delete()\n   isGameOver = True\n   try_again.show()\n",
+        "on_message": "if message == \"start\":\n   # Delete all asteroids\n   for c in card.children.copy():\n      if c.name.startswith(\"asteroid_\"):\n         c.delete()\n   \n   # Set up the first asteroid, as a clone of the original, hidden one\n   ast = asteroid.clone()\n   if randint(0, 1):\n      ast.center = (100,randint(50, card.size.height-100))\n   else:\n      ast.center = (randint(50, card.size.width-100),100)\n   \n   ast.speed += (randint(-100,100), randint(-100,100))\n   ast.show()\n   numAsteroids = 1\n   isGameOver = False\n   ship.rotation = 0\n   ship.center = card.center\n   try_again.hide()\n\nelif message == \"shoot\":\n   # Create shot\n   shot = card.add_oval(\"shot\",\n      center=(ship.center+rotate_point((0, 50), ship.rotation)),\n      size=(10,10),\n      fill_color='red',\n      speed=ship.speed+rotate_point((0, 150), ship.rotation))\n   # Delete after 2 seconds\n   run_after_delay(2, shot.delete)\n   # recoil the ship\n   ship.speed -= rotate_point((0, 3), ship.rotation)\n\nelif message == \"gameOver\":\n   # Stop the ship\n   ship.speed = (0,0)\n   \n   # Stop all asteroids, and Delete shots\n   for c in card.children.copy():\n      if c.name.startswith(\"asteroid_\"):\n         c.speed = (0, 0)\n      if c.name.startswith(\"shot\"):\n         c.delete()\n   isGameOver = True\n   try_again.show()\n",
         "on_resize": "try_again.center = [card.center.x, card.size.height-40]"
       },
       "properties": {
@@ -40,9 +40,9 @@
               80,
               80
             ],
-            "position": [
-              96.0,
-              625.0
+            "center": [
+              136.0,
+              665.0
             ],
             "originalSize": [
               69,
@@ -73,12 +73,12 @@
           "properties": {
             "name": "ship",
             "size": [
-              114,
+              65,
               114
             ],
-            "position": [
-              319.0,
-              391.0
+            "center": [
+              351.0,
+              448.0
             ],
             "file": "ship-off.png",
             "fit": "Center",
@@ -96,9 +96,9 @@
               400,
               35
             ],
-            "position": [
-              185.0,
-              756.0
+            "center": [
+              385.0,
+              773.0
             ],
             "text": "Press Return to Play Again",
             "alignment": "Center",
@@ -115,6 +115,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 9,
-  "CardStock_stack_version": "0.99.6"
+  "CardStock_stack_format": 10,
+  "CardStock_stack_version": "0.99.7"
 }

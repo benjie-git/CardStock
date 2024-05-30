@@ -10,7 +10,7 @@
     {
       "type": "card",
       "handlers": {
-        "on_setup": "from random import randint\n\nisMoving = False\nspace.hide() # hide the space piece\n\npieces = [c for c in card.children if c.name.startswith(\"group\")]\npieces.append(space)\n\norigPieces = pieces.copy()\n\ndef Shuffle():\n   # Switch each piece with a random other piece.\n   # Make one more swap so it's an even number of swaps\n   # otherwise it would be unsolvable.\n   shuffleList = list(range(len(pieces)-1))\n   shuffleList.append(randint(0,14))\n   for i in shuffleList:\n      j = i\n      while j == i:\n         # make sure we're not swapping a piece with itself\n         j = randint(0,len(pieces)-2)\n      pieces[i], pieces[j] = pieces[j], pieces[i]\n      tmp = pieces[j].position\n      pieces[j].position = pieces[i].position\n      pieces[i].position = tmp\n\ndef SlideSpots(moves):\n   # Animate sliding\n   global isMoving\n   if not isMoving:\n      tmpPieces = {}\n      tmpPositions = {}\n      for i,j in moves:\n         tmpPieces[i] = pieces[i]\n         tmpPositions[i] = pieces[i].position\n      for i,j in moves:\n         pieces[i].animate_position(0.15, tmpPositions[j], \"InOut\", DoneMoving)\n      for i,j in moves:\n         pieces[j] = tmpPieces[i]\n      isMoving = True\n\ndef DoneMoving():\n   global isMoving\n   isMoving = False\n   CheckForWin()\n\ndef CheckForWin():\n   if pieces == origPieces:\n      play_sound(\"yay.wav\")\n      wait(3)\n      Shuffle()\n\ndef BuildCycleList(start, offset, n):\n   # Create move list that moves n peices, and swaps the space piece to the other end of the list\n   spots = list(reversed([start + offset*i for i in range(n+1)]))\n   moves = []\n   for i in range(len(spots)-1):\n      moves.append((spots[i], spots[i+1]))\n   moves.append((spots[-1], spots[0]))\n   return moves\n\ndef MoveDir(dir, n):\n   # Move n pieces in direction\n   i = pieces.index(space)\n   if dir == \"Right\" and i%4 != 0:\n      SlideSpots(BuildCycleList(i, -1, n))\n   elif dir == \"Left\" and i%4 != 3:\n      SlideSpots(BuildCycleList(i, 1, n))\n   elif dir == \"Up\" and i<12:\n      SlideSpots(BuildCycleList(i, 4, n))\n   elif dir == \"Down\" and i>=4:\n      SlideSpots(BuildCycleList(i, -4, n))\n\ndef MoveFrom(obj):\n   # Slide pieces from the clicked object obj, to the space piece, if they are in the same row/col\n   global isMoving\n   s = pieces.index(space)\n   o = pieces.index(obj)\n   sx, sy = s%4, int(s/4)\n   ox, oy = o%4, int(o/4)\n   if sx == ox and sy < oy:\n      MoveDir(\"Up\", oy-sy)\n   elif sx == ox and sy > oy:\n      MoveDir(\"Down\", sy-oy)\n   elif sy == oy and sx < ox:\n      MoveDir(\"Left\", ox-sx)\n   elif sy == oy and sx > ox:\n      MoveDir(\"Right\", sx-ox)\n\n# Shuffle when we start the stack\nShuffle()",
+        "on_setup": "from random import randint\n\nisMoving = False\nspace.hide() # hide the space piece\n\npieces = [c for c in card.children if c.name.startswith(\"group\")]\npieces.append(space)\n\norigPieces = pieces.copy()\n\ndef Shuffle():\n   # Switch each piece with a random other piece.\n   # Make one more swap so it's an even number of swaps\n   # otherwise it would be unsolvable.\n   shuffleList = list(range(len(pieces)-1))\n   shuffleList.append(randint(0,14))\n   for i in shuffleList:\n      j = i\n      while j == i:\n         # make sure we're not swapping a piece with itself\n         j = randint(0,len(pieces)-2)\n      pieces[i], pieces[j] = pieces[j], pieces[i]\n      tmp = pieces[j].center\n      pieces[j].center = pieces[i].center\n      pieces[i].center = tmp\n\ndef SlideSpots(moves):\n   # Animate sliding\n   global isMoving\n   if not isMoving:\n      tmpPieces = {}\n      tmpPositions = {}\n      for i,j in moves:\n         tmpPieces[i] = pieces[i]\n         tmpPositions[i] = pieces[i].center\n      for i,j in moves:\n         pieces[i].animate_center(0.15, tmpPositions[j], \"InOut\", DoneMoving)\n      for i,j in moves:\n         pieces[j] = tmpPieces[i]\n      isMoving = True\n\ndef DoneMoving():\n   global isMoving\n   isMoving = False\n   CheckForWin()\n\ndef CheckForWin():\n   if pieces == origPieces:\n      play_sound(\"yay.wav\")\n      wait(3)\n      Shuffle()\n\ndef BuildCycleList(start, offset, n):\n   # Create move list that moves n peices, and swaps the space piece to the other end of the list\n   spots = list(reversed([start + offset*i for i in range(n+1)]))\n   moves = []\n   for i in range(len(spots)-1):\n      moves.append((spots[i], spots[i+1]))\n   moves.append((spots[-1], spots[0]))\n   return moves\n\ndef MoveDir(dir, n):\n   # Move n pieces in direction\n   i = pieces.index(space)\n   if dir == \"Right\" and i%4 != 0:\n      SlideSpots(BuildCycleList(i, -1, n))\n   elif dir == \"Left\" and i%4 != 3:\n      SlideSpots(BuildCycleList(i, 1, n))\n   elif dir == \"Up\" and i<12:\n      SlideSpots(BuildCycleList(i, 4, n))\n   elif dir == \"Down\" and i>=4:\n      SlideSpots(BuildCycleList(i, -4, n))\n\ndef MoveFrom(obj):\n   # Slide pieces from the clicked object obj, to the space piece, if they are in the same row/col\n   global isMoving\n   s = pieces.index(space)\n   o = pieces.index(obj)\n   sx, sy = s%4, int(s/4)\n   ox, oy = o%4, int(o/4)\n   if sx == ox and sy < oy:\n      MoveDir(\"Up\", oy-sy)\n   elif sx == ox and sy > oy:\n      MoveDir(\"Down\", sy-oy)\n   elif sy == oy and sx < ox:\n      MoveDir(\"Left\", ox-sx)\n   elif sy == oy and sx > ox:\n      MoveDir(\"Right\", sx-ox)\n\n# Shuffle when we start the stack\nShuffle()",
         "on_key_press": "if key_name in [\"Left\", \"Right\", \"Up\", \"Down\"]:\n   MoveDir(key_name, 1)"
       },
       "properties": {
@@ -32,9 +32,9 @@
               400,
               400
             ],
-            "position": [
-              30.0,
-              30.0
+            "center": [
+              230.0,
+              230.0
             ],
             "originalSize": [
               438,
@@ -66,9 +66,9 @@
               100,
               100
             ],
-            "position": [
-              330.0,
-              30.0
+            "center": [
+              380.0,
+              80.0
             ],
             "originalSize": [
               103,
@@ -102,9 +102,9 @@
               100,
               100
             ],
-            "position": [
-              30.0,
-              330.0
+            "center": [
+              80.0,
+              380.0
             ],
             "rotation": 0.0
           },
@@ -118,9 +118,9 @@
                   100,
                   100
                 ],
-                "position": [
-                  0.0,
-                  0.0
+                "center": [
+                  50.0,
+                  50.0
                 ],
                 "originalSize": [
                   81,
@@ -152,9 +152,9 @@
                   85,
                   83
                 ],
-                "position": [
-                  7.0,
-                  8.0
+                "center": [
+                  49.0,
+                  49.0
                 ],
                 "text": "1",
                 "alignment": "Center",
@@ -181,9 +181,9 @@
               100,
               100
             ],
-            "position": [
-              130.0,
-              330.0
+            "center": [
+              180.0,
+              380.0
             ],
             "rotation": 0.0
           },
@@ -197,9 +197,9 @@
                   100,
                   100
                 ],
-                "position": [
-                  0.0,
-                  0.0
+                "center": [
+                  50.0,
+                  50.0
                 ],
                 "originalSize": [
                   81,
@@ -231,9 +231,9 @@
                   85,
                   83
                 ],
-                "position": [
-                  7.0,
-                  8.0
+                "center": [
+                  49.0,
+                  49.0
                 ],
                 "text": "2",
                 "alignment": "Center",
@@ -260,9 +260,9 @@
               100,
               100
             ],
-            "position": [
-              230.0,
-              330.0
+            "center": [
+              280.0,
+              380.0
             ],
             "rotation": 0.0
           },
@@ -276,9 +276,9 @@
                   100,
                   100
                 ],
-                "position": [
-                  0.0,
-                  0.0
+                "center": [
+                  50.0,
+                  50.0
                 ],
                 "originalSize": [
                   81,
@@ -310,9 +310,9 @@
                   85,
                   83
                 ],
-                "position": [
-                  7.0,
-                  8.0
+                "center": [
+                  49.0,
+                  49.0
                 ],
                 "text": "3",
                 "alignment": "Center",
@@ -339,9 +339,9 @@
               100,
               100
             ],
-            "position": [
-              330.0,
-              330.0
+            "center": [
+              380.0,
+              380.0
             ],
             "rotation": 0.0
           },
@@ -355,9 +355,9 @@
                   100,
                   100
                 ],
-                "position": [
-                  0.0,
-                  0.0
+                "center": [
+                  50.0,
+                  50.0
                 ],
                 "originalSize": [
                   81,
@@ -389,9 +389,9 @@
                   85,
                   83
                 ],
-                "position": [
-                  7.0,
-                  8.0
+                "center": [
+                  49.0,
+                  49.0
                 ],
                 "text": "4",
                 "alignment": "Center",
@@ -418,9 +418,9 @@
               100,
               100
             ],
-            "position": [
-              30.0,
-              230.0
+            "center": [
+              80.0,
+              280.0
             ],
             "rotation": 0.0
           },
@@ -434,9 +434,9 @@
                   100,
                   100
                 ],
-                "position": [
-                  0.0,
-                  0.0
+                "center": [
+                  50.0,
+                  50.0
                 ],
                 "originalSize": [
                   81,
@@ -468,9 +468,9 @@
                   85,
                   83
                 ],
-                "position": [
-                  7.0,
-                  8.0
+                "center": [
+                  49.0,
+                  49.0
                 ],
                 "text": "5",
                 "alignment": "Center",
@@ -497,9 +497,9 @@
               100,
               100
             ],
-            "position": [
-              130.0,
-              230.0
+            "center": [
+              180.0,
+              280.0
             ],
             "rotation": 0.0
           },
@@ -513,9 +513,9 @@
                   100,
                   100
                 ],
-                "position": [
-                  0.0,
-                  0.0
+                "center": [
+                  50.0,
+                  50.0
                 ],
                 "originalSize": [
                   81,
@@ -547,9 +547,9 @@
                   85,
                   83
                 ],
-                "position": [
-                  7.0,
-                  8.0
+                "center": [
+                  49.0,
+                  49.0
                 ],
                 "text": "6",
                 "alignment": "Center",
@@ -576,9 +576,9 @@
               100,
               100
             ],
-            "position": [
-              230.0,
-              230.0
+            "center": [
+              280.0,
+              280.0
             ],
             "rotation": 0.0
           },
@@ -592,9 +592,9 @@
                   100,
                   100
                 ],
-                "position": [
-                  0.0,
-                  0.0
+                "center": [
+                  50.0,
+                  50.0
                 ],
                 "originalSize": [
                   81,
@@ -626,9 +626,9 @@
                   85,
                   83
                 ],
-                "position": [
-                  7.0,
-                  8.0
+                "center": [
+                  49.0,
+                  49.0
                 ],
                 "text": "7",
                 "alignment": "Center",
@@ -655,9 +655,9 @@
               100,
               100
             ],
-            "position": [
-              330.0,
-              230.0
+            "center": [
+              380.0,
+              280.0
             ],
             "rotation": 0.0
           },
@@ -671,9 +671,9 @@
                   100,
                   100
                 ],
-                "position": [
-                  0.0,
-                  0.0
+                "center": [
+                  50.0,
+                  50.0
                 ],
                 "originalSize": [
                   81,
@@ -705,9 +705,9 @@
                   85,
                   83
                 ],
-                "position": [
-                  7.0,
-                  8.0
+                "center": [
+                  49.0,
+                  49.0
                 ],
                 "text": "8",
                 "alignment": "Center",
@@ -734,9 +734,9 @@
               100,
               100
             ],
-            "position": [
-              30.0,
-              130.0
+            "center": [
+              80.0,
+              180.0
             ],
             "rotation": 0.0
           },
@@ -750,9 +750,9 @@
                   100,
                   100
                 ],
-                "position": [
-                  0.0,
-                  0.0
+                "center": [
+                  50.0,
+                  50.0
                 ],
                 "originalSize": [
                   81,
@@ -784,9 +784,9 @@
                   85,
                   83
                 ],
-                "position": [
-                  7.0,
-                  8.0
+                "center": [
+                  49.0,
+                  49.0
                 ],
                 "text": "9",
                 "alignment": "Center",
@@ -813,9 +813,9 @@
               100,
               100
             ],
-            "position": [
-              130.0,
-              130.0
+            "center": [
+              180.0,
+              180.0
             ],
             "rotation": 0.0
           },
@@ -829,9 +829,9 @@
                   100,
                   100
                 ],
-                "position": [
-                  0.0,
-                  0.0
+                "center": [
+                  50.0,
+                  50.0
                 ],
                 "originalSize": [
                   81,
@@ -863,9 +863,9 @@
                   85,
                   83
                 ],
-                "position": [
-                  7.0,
-                  8.0
+                "center": [
+                  49.0,
+                  49.0
                 ],
                 "text": "10",
                 "alignment": "Center",
@@ -892,9 +892,9 @@
               100,
               100
             ],
-            "position": [
-              230.0,
-              130.0
+            "center": [
+              280.0,
+              180.0
             ],
             "rotation": 0.0
           },
@@ -908,9 +908,9 @@
                   100,
                   100
                 ],
-                "position": [
-                  0.0,
-                  0.0
+                "center": [
+                  50.0,
+                  50.0
                 ],
                 "originalSize": [
                   81,
@@ -942,9 +942,9 @@
                   85,
                   83
                 ],
-                "position": [
-                  7.0,
-                  8.0
+                "center": [
+                  49.0,
+                  49.0
                 ],
                 "text": "11",
                 "alignment": "Center",
@@ -971,9 +971,9 @@
               100,
               100
             ],
-            "position": [
-              330.0,
-              130.0
+            "center": [
+              380.0,
+              180.0
             ],
             "rotation": 0.0
           },
@@ -987,9 +987,9 @@
                   100,
                   100
                 ],
-                "position": [
-                  0.0,
-                  0.0
+                "center": [
+                  50.0,
+                  50.0
                 ],
                 "originalSize": [
                   81,
@@ -1021,9 +1021,9 @@
                   85,
                   83
                 ],
-                "position": [
-                  7.0,
-                  8.0
+                "center": [
+                  49.0,
+                  49.0
                 ],
                 "text": "12",
                 "alignment": "Center",
@@ -1050,9 +1050,9 @@
               100,
               100
             ],
-            "position": [
-              30.0,
-              30.0
+            "center": [
+              80.0,
+              80.0
             ],
             "rotation": 0.0
           },
@@ -1066,9 +1066,9 @@
                   100,
                   100
                 ],
-                "position": [
-                  0.0,
-                  0.0
+                "center": [
+                  50.0,
+                  50.0
                 ],
                 "originalSize": [
                   81,
@@ -1100,9 +1100,9 @@
                   85,
                   83
                 ],
-                "position": [
-                  7.0,
-                  8.0
+                "center": [
+                  49.0,
+                  49.0
                 ],
                 "text": "13",
                 "alignment": "Center",
@@ -1129,9 +1129,9 @@
               100,
               100
             ],
-            "position": [
-              130.0,
-              30.0
+            "center": [
+              180.0,
+              80.0
             ],
             "rotation": 0.0
           },
@@ -1145,9 +1145,9 @@
                   100,
                   100
                 ],
-                "position": [
-                  0.0,
-                  0.0
+                "center": [
+                  50.0,
+                  50.0
                 ],
                 "originalSize": [
                   81,
@@ -1179,9 +1179,9 @@
                   85,
                   83
                 ],
-                "position": [
-                  7.0,
-                  8.0
+                "center": [
+                  49.0,
+                  49.0
                 ],
                 "text": "14",
                 "alignment": "Center",
@@ -1208,9 +1208,9 @@
               100,
               100
             ],
-            "position": [
-              230.0,
-              30.0
+            "center": [
+              280.0,
+              80.0
             ],
             "rotation": 0.0
           },
@@ -1224,9 +1224,9 @@
                   100,
                   100
                 ],
-                "position": [
-                  0.0,
-                  0.0
+                "center": [
+                  50.0,
+                  50.0
                 ],
                 "originalSize": [
                   81,
@@ -1258,9 +1258,9 @@
                   85,
                   83
                 ],
-                "position": [
-                  7.0,
-                  8.0
+                "center": [
+                  49.0,
+                  49.0
                 ],
                 "text": "15",
                 "alignment": "Center",
@@ -1279,6 +1279,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 9,
-  "CardStock_stack_version": "0.99.6"
+  "CardStock_stack_format": 10,
+  "CardStock_stack_version": "0.99.7"
 }

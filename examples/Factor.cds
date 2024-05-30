@@ -2,12 +2,9 @@
   "type": "stack",
   "handlers": {},
   "properties": {
-    "size": [
-      500,
-      495
-    ],
     "can_save": false,
-    "can_resize": false
+    "author": "",
+    "info": ""
   },
   "cards": [
     {
@@ -18,9 +15,48 @@
       },
       "properties": {
         "name": "card_1",
-        "fill_color": "#DDEEDD"
+        "size": [
+          500,
+          495
+        ],
+        "fill_color": "#DDEEDD",
+        "can_resize": false
       },
       "childModels": [
+        {
+          "type": "rect",
+          "handlers": {},
+          "properties": {
+            "name": "rect_1",
+            "size": [
+              156,
+              29
+            ],
+            "center": [
+              197.0,
+              405.0
+            ],
+            "originalSize": [
+              162,
+              30
+            ],
+            "pen_color": "black",
+            "pen_style": "Solid",
+            "pen_thickness": 1,
+            "rotation": 0.0,
+            "fill_color": "white"
+          },
+          "points": [
+            [
+              0.0,
+              30.0
+            ],
+            [
+              162.0,
+              0.0
+            ]
+          ]
+        },
         {
           "type": "textfield",
           "handlers": {
@@ -32,9 +68,9 @@
               150,
               24
             ],
-            "position": [
-              122.0,
-              393.0
+            "center": [
+              197.0,
+              405.0
             ],
             "text": "",
             "alignment": "Right",
@@ -59,11 +95,11 @@
               84,
               21
             ],
-            "position": [
-              286.0,
-              394.0
+            "center": [
+              328.0,
+              404.0
             ],
-            "title": "Find!",
+            "text": "Find!",
             "style": "Border",
             "is_selected": false,
             "rotation": 0.0
@@ -78,9 +114,9 @@
               390,
               305
             ],
-            "position": [
-              52.0,
-              54.0
+            "center": [
+              247.0,
+              206.0
             ],
             "text": "",
             "alignment": "Left",
@@ -103,9 +139,9 @@
               379,
               38
             ],
-            "position": [
-              57.0,
-              428.0
+            "center": [
+              246.0,
+              447.0
             ],
             "text": "Enter a number to Prime Factor:",
             "alignment": "Center",
@@ -122,6 +158,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 6,
-  "CardStock_stack_version": "0.99.1"
+  "CardStock_stack_format": 10,
+  "CardStock_stack_version": "0.99.7"
 }
