@@ -460,7 +460,7 @@ class StackManager(object):
 
         def setAlignPos(model, val, dir):
             rect = model.GetAbsoluteFrame()
-            pos = wx.Point(tuple(int(x) for x in model.GetProperty("position")))
+            pos = wx.Point((int(x) for x in model.GetProperty("center") - (rect.Width/2, rect.Height/2)))
             if dir == "Left": pos.x += int(val - rect.Left)
             if dir == "HCenter": pos.x += int(val - (rect.Left + (rect.Right - rect.Left)/2))
             if dir == "Right": pos.x += int(val - rect.Right)
@@ -469,7 +469,7 @@ class StackManager(object):
             if dir == "VCenter": pos.y += int(val - (rect.Top + (rect.Bottom - rect.Top)/2))
             if dir == "Bottom": pos.y += int(val - rect.Top)
             return SetPropertyCommand(True, "Set Property", self.designer.cPanel, self.cardIndex,
-                                      model, "position", pos)
+                                      model, "center", pos + (rect.Width/2, rect.Height/2))
 
         models = [ui.model for ui in self.selectedViews]
 
@@ -982,7 +982,7 @@ class StackManager(object):
         for uiView in self.uiCard.GetAllUiViews():
             if uiView.view:
                 # Make sure native subview positions get adjusted based on the new origin
-                uiView.OnPropertyChanged(uiView.model, "position")
+                uiView.OnPropertyChanged(uiView.model, "center")
 
     def OnResize(self, event):
         if self.uiCard.model not in self.stackModel.childModels:

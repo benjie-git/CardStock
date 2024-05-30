@@ -273,7 +273,7 @@ class TextFieldModel(TextBaseModel):
         self.propertyTypes["is_multiline"] = "bool"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "text", "alignment", "font", "font_size", "text_color", "is_editable", "is_multiline", "position", "size"]
+        self.propertyKeys = ["name", "text", "alignment", "font", "font_size", "text_color", "is_editable", "is_multiline", "center", "size"]
 
     @RunOnMainSync
     def GetSelectedText(self):

@@ -176,7 +176,7 @@ class TextLabelModel(TextBaseModel):
         self.propertyTypes["rotation"] = "float"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "text", "alignment", "font", "font_size", "text_color", "can_auto_shrink", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "text", "alignment", "font", "font_size", "text_color", "can_auto_shrink", "center", "size", "rotation"]
 
 
 class TextLabel(TextBaseProxy):

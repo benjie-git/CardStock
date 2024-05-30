@@ -29,8 +29,8 @@ class MoveUiViewsCommand(Command):
             self.stackManager.LoadCardAtIndex(self.cardIndex)
             self.stackManager.SelectUiView(None)
         for m in self.viewModels:
-            pos = m.GetProperty("position")
-            m.SetProperty("position", (pos[0]+self.delta[0], pos[1]+self.delta[1]))
+            pos = m.GetProperty("center")
+            m.SetProperty("center", (pos[0]+self.delta[0], pos[1]+self.delta[1]))
             if needsSelection:
                 self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(m), True)
         return True
@@ -42,8 +42,8 @@ class MoveUiViewsCommand(Command):
             self.stackManager.LoadCardAtIndex(self.cardIndex)
             self.stackManager.SelectUiView(None)
         for m in self.viewModels:
-            pos = m.GetProperty("position")
-            m.SetProperty("position", (pos[0]-self.delta[0], pos[1]-self.delta[1]))
+            pos = m.GetProperty("center")
+            m.SetProperty("center", (pos[0]-self.delta[0], pos[1]-self.delta[1]))
             if needsSelection:
                 self.stackManager.SelectUiView(self.stackManager.GetUiViewByModel(m), True)
         return True

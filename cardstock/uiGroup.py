@@ -67,11 +67,11 @@ class UiGroup(UiView):
                 uiReg = wx.Region(ui.GetHitRegion())
                 reg.Union(uiReg)
             self.hitRegion = reg
-            self.hitRegionOffset = self.model.GetAbsolutePosition()
+            self.hitRegionOffset = self.model.GetAbsoluteCenter()
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key in ["position", "rotation"]:
+        if key in ["center", "rotation"]:
             for ui in self.uiViews:
                 ui.OnPropertyChanged(ui.model, key)
         elif key == "size":
@@ -124,7 +124,7 @@ class GroupModel(ViewModel):
         self.propertyTypes["rotation"] = "float"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "center", "size", "rotation"]
 
     def GetAllChildModels(self):
         allModels = []
@@ -166,12 +166,12 @@ class GroupModel(ViewModel):
                 m.Notify("is_visible")
 
     def AddChildModels(self, models):
-        selfPos = self.GetProperty("position")
+        selfPos = self.GetProperty("center")
         for model in models:
             self.childModels.append(model)
             model.parent = self
-            pos = model.GetProperty("position")
-            model.SetProperty("position", [pos[0]-selfPos[0], pos[1]-selfPos[1]], notify=False)
+            pos = model.GetProperty("center")
+            model.SetProperty("center", [pos[0]-selfPos[0], pos[1]-selfPos[1]], notify=False)
         self.UpdateFrame()
         self.origFrame = self.GetFrame()
         for model in models:
@@ -184,9 +184,9 @@ class GroupModel(ViewModel):
         self.childModels.remove(model)
         del model.origGroupSubviewFrame
         del model.origGroupSubviewRotation
-        pos = model.GetProperty("position")
-        selfPos = self.GetProperty("position")
-        model.SetProperty("position", [pos[0]+selfPos[0], pos[1]+selfPos[1]], notify=False)
+        pos = model.GetProperty("center")
+        selfPos = self.GetProperty("center")
+        model.SetProperty("center", [pos[0]+selfPos[0], pos[1]+selfPos[1]], notify=False)
         model.SetDown()
         self.isDirty = True
 
@@ -199,8 +199,8 @@ class GroupModel(ViewModel):
             self.SetFrame(newRect)
             offset = (newRect.Left - oldRect.Left, newRect.Top - oldRect.Top)
             for m in self.childModels:
-                oldPos = m.GetProperty("position")
-                m.SetProperty("position", [oldPos[0] - offset[0], oldPos[1] - offset[1]], notify=False)
+                oldPos = m.GetProperty("center")
+                m.SetProperty("center", [oldPos[0] - offset[0], oldPos[1] - offset[1]], notify=False)
 
     def PerformFlips(self, fx, fy, notify=True):
         super().PerformFlips(fx, fy, notify)

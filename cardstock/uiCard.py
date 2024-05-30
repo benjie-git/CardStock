@@ -69,6 +69,19 @@ class UiCard(UiView):
             self.stackManager.view.RefreshIfNeeded()
         event.Skip()
 
+    def DoPaint(self, gc):
+        # Recursively paint this object and all children
+        self.Paint(gc)
+        for ui in self.uiViews:
+            ui.DoPaint(gc)
+
+    def DoPaintSelectionBoxes(self, gc):
+        # Recursively paint selection boxes for this object and all children, if selected
+        if self.isSelected:
+            self.PaintSelectionBox(gc)
+        for ui in self.uiViews:
+            ui.DoPaintSelectionBoxes(gc)
+
     def Paint(self, gc):
         bg = wx.Colour(self.model.GetProperty("fill_color"))
         if not bg:
@@ -107,7 +120,7 @@ class UiCard(UiView):
         elif key == "size":
             for ui in self.uiViews:
                 ui.ClearHitRegion()
-                ui.OnPropertyChanged(ui.model, "position")
+                ui.OnPropertyChanged(ui.model, "center")
 
     def OnKeyDown(self, event):
         if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_key_press"):
@@ -161,6 +174,15 @@ class CardModel(ViewModel):
         self.propertyTypes["fill_color"] = "color"
         self.propertyTypes["can_resize"] = 'bool'
 
+    def GetProperty(self, key):
+        if key == "center":
+            return wx.RealPoint(*self.GetProperty("size")/2)
+        return super().GetProperty(key)
+
+    def GetFrame(self):
+        s = self.GetProperty("size")
+        return wx.Rect(0,0, *[int(x) for x in s])
+
     def GetAbsoluteFrame(self):
         return self.GetFrame()
 
@@ -177,7 +199,7 @@ class CardModel(ViewModel):
         data["childModels"] = []
         for m in self.childModels:
             data["childModels"].append(m.GetData())
-        data["properties"].pop("position")
+        data["properties"].pop("center")
         return data
 
     def SetData(self, data):
@@ -253,11 +275,11 @@ class CardModel(ViewModel):
             for m in self.childModels:
                 m.PerformFlips(fx, fy, notify=notify)
             for m in self.childModels:
-                pos = m.GetProperty("position")
+                pos = m.GetProperty("center")
                 size = m.GetProperty("size")
                 pos = wx.Point(int((cardSize.width - (pos.x + size.width)) if fx else pos.x),
                                int((cardSize.height - (pos.y + size.height)) if fy else pos.y))
-                m.SetProperty("position", pos, notify=notify)
+                m.SetProperty("center", pos, notify=notify)
         if notify:
             self.Notify("size")
 

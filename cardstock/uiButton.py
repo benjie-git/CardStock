@@ -228,14 +228,14 @@ class ButtonModel(ViewModel):
     def UpdatePropKeys(self, style):
         # Custom property order and mask for the inspector
         if style in ("Border", "Borderless"):
-            self.propertyKeys = ["name", "text", "style", "rotation", "position", "size"]
+            self.propertyKeys = ["name", "text", "style", "center", "size", "rotation"]
             self.initialEditHandler = "on_click"
             if "on_click" not in self.visibleHandlers:
                 self.visibleHandlers.add("on_click")
             if "on_selection_changed" in self.visibleHandlers and len(self.handlers["on_selection_changed"]) == 0:
                 self.visibleHandlers.remove("on_selection_changed")
         else:
-            self.propertyKeys = ["name", "text", "style", "is_selected", "rotation", "position", "size"]
+            self.propertyKeys = ["name", "text", "style", "is_selected", "center", "size", "rotation"]
             self.initialEditHandler = "on_selection_changed"
             if "on_selection_changed" not in self.visibleHandlers:
                 self.visibleHandlers.add("on_selection_changed")

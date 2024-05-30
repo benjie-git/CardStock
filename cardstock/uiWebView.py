@@ -72,7 +72,7 @@ class UiWebView(UiView):
             gc.SetBrush(wx.TRANSPARENT_BRUSH)
             gc.SetPen(wx.Pen(color, 1, wx.PENSTYLE_DOT))
 
-            pos = wx.Point(0,0)-tuple(int(x) for x in self.model.GetProperty("position"))
+            pos = wx.Point(0,0)-tuple(int(x) for x in self.model.GetProperty("center"))
             f = self.model.GetFrame()
             f.Inflate(2)
             f.Offset(pos)
@@ -151,7 +151,7 @@ class WebViewModel(ViewModel):
         self.propertyTypes["allowed_hosts"] = "list"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "URL", "allowed_hosts", "position", "size"]
+        self.propertyKeys = ["name", "URL", "allowed_hosts", "center", "size"]
 
     def SetProperty(self, key, value, notify=True):
         if key == "URL":

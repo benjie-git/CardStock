@@ -155,11 +155,13 @@ class UiShape(UiView):
         if not self.model.IsVisible():
             self.hitRegion = wx.Region((0,0), (0,0))
 
+        s = self.model.GetProperty("size")
+
         with self.model.animLock:
             thickness = self.model.GetProperty("pen_thickness")
-            s = self.model.GetProperty("size")
             origPoints = self.model.GetScaledPoints()
-            rotRect = self.model.RotatedRect(self.model.RectFromPoints(origPoints))
+            r = self.model.RectFromPoints(origPoints)
+            rotRect = self.model.RotatedRect(r)
 
         if self.model.type in ["pen", "line", "polygon"]:
             # Make lines extra thick for easier clicking
@@ -170,8 +172,7 @@ class UiShape(UiView):
         # hitRegion bitmap.  Then set the offset of the hitRegion bitmap down/left to make up for it.
         regOffset = (thickness+20)/2 + 24
 
-        height = rotRect.Size[1]+2*regOffset
-        img = ImageFactory.shared().GetImage(rotRect.Size[0]+2*regOffset, height)
+        img = ImageFactory.shared().GetImage(rotRect.Size[0]+2*regOffset, rotRect.Size[1]+2*regOffset)
         context = wx.GraphicsRenderer.GetDefaultRenderer().CreateContextFromImage(img)
         context.SetBrush(wx.Brush('white', wx.BRUSHSTYLE_SOLID))
         context.SetPen(wx.Pen('white', int(thickness), wx.PENSTYLE_SOLID))
@@ -179,13 +180,16 @@ class UiShape(UiView):
         aff = self.model.GetAffineTransform()
         vals = aff.Get()
         # Draw into region bmp rotated but not translated
-        vals = (vals[0].m_11, vals[0].m_12, vals[0].m_21, vals[0].m_22, vals[1][0] - (rotRect.Position.x-regOffset), vals[1][1] - (rotRect.Position.y-regOffset))
+        vals = (vals[0].m_11, vals[0].m_12, vals[0].m_21, vals[0].m_22,
+                vals[1][0] - (rotRect.Position.x-regOffset),
+                vals[1][1] - (rotRect.Position.y-regOffset))
         aff = context.CreateMatrix(*vals)
 
         if "hitReg" in self.cachedPaths:
             path = self.cachedPaths["hitReg"]
         else:
             path = self.MakeShapePath(context)
+            path.Transform(context.CreateMatrix(1, 0, 0, 1, -s[0]/2, -s[1]/2))
             path.Transform(aff)
             self.cachedPaths["hitReg"] = path
 
@@ -196,11 +200,11 @@ class UiShape(UiView):
         if self.stackManager.isEditing and self.isSelected and self.stackManager.tool.name == "hand":
             for resizerRect in self.GetLocalResizeBoxRects().values():
                 path = context.CreatePath()
-                path.AddRectangle(resizerRect.Left, resizerRect.Top, resizerRect.Width, resizerRect.Height)
+                path.AddRectangle(resizerRect.Left - s[0]/2, resizerRect.Top - s[1]/2, resizerRect.Width, resizerRect.Height)
                 path.Transform(aff)
                 context.FillPath(path)
             path = context.CreatePath()
-            path.AddCircle(*self.GetLocalRotationHandlePoint(), 6)
+            path.AddCircle(*(self.GetLocalRotationHandlePoint() - s/2), 6)
             path.Transform(aff)
             context.FillPath(path)
         context.Flush()
@@ -209,7 +213,7 @@ class UiShape(UiView):
         ImageFactory.shared().RecycleImage(img)
         reg.Offset(int(rotRect.Position.x-regOffset), int(rotRect.Position.y-regOffset))
         self.hitRegion = reg
-        self.hitRegionOffset = self.model.GetAbsolutePosition()
+        self.hitRegionOffset = self.model.GetAbsoluteCenter()
 
     def GetLocalResizeBoxPoints(self):
         thicknessOffset = self.model.GetProperty("pen_thickness")/2
@@ -271,7 +275,7 @@ class LineModel(ViewModel):
         self.propertyTypes["rotation"] = "float"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "pen_color", "pen_thickness", "pen_style", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "pen_color", "pen_thickness", "pen_style", "center", "size", "rotation"]
 
     def GetData(self):
         data = super().GetData()
@@ -335,7 +339,7 @@ class LineModel(ViewModel):
         return self.scaledPoints
 
     def GetAbsolutePoints(self):
-        pos = self.GetAbsolutePosition()
+        pos = self.GetAbsoluteCenter()
         return [p + pos for p in self.GetScaledPoints()]
 
     @staticmethod
@@ -353,7 +357,7 @@ class LineModel(ViewModel):
         oldSize = self.GetProperty("size") if self.properties["originalSize"] else None
 
         # First move all points to be relative to the card origin
-        offset = self.GetProperty("position")
+        offset = self.GetProperty("center")
         points = self.points.copy()
         # adjust all points in shape
         i = 0
@@ -372,7 +376,7 @@ class LineModel(ViewModel):
         rect = wx.Rect(rect.Left, rect.Top, rect.Width-1, rect.Height-1)
 
         # adjust view rect
-        self.SetProperty("position", rect.Position)
+        self.SetProperty("center", rect.Position + rect.Size/2)
         if rect.Width < self.minSize.width: rect.Width = self.minSize.width
         if rect.Height < self.minSize.height: rect.Height = self.minSize.height
 
@@ -396,8 +400,8 @@ class LineModel(ViewModel):
     def SetPoints(self, points):
         with self.animLock:
             cardSize = self.GetCard().GetProperty("size")
-            self.SetProperty("position", (0,0), notify=False)
             self.SetProperty("size", cardSize, notify=False)
+            self.SetProperty("center", (0,0), notify=False)
             self.properties["originalSize"] = None
             self.points = points
             self.ReCropShape()
@@ -536,7 +540,7 @@ class ShapeModel(LineModel):
         self.propertyTypes["fill_color"] = "color"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "pen_color", "pen_thickness", "pen_style",  "fill_color", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "pen_color", "pen_thickness", "pen_style",  "fill_color", "center", "size", "rotation"]
 
     def SetShape(self, shape):
         self.properties["fill_color"] = shape["fill_color"]
@@ -628,7 +632,7 @@ class RoundRectModel(ShapeModel):
         self.propertyTypes["corner_radius"] = "uint"
 
         # Custom property order and mask for the inspector
-        self.propertyKeys = ["name", "pen_color", "pen_thickness", "pen_style", "fill_color", "corner_radius", "position", "size", "rotation"]
+        self.propertyKeys = ["name", "pen_color", "pen_thickness", "pen_style", "fill_color", "corner_radius", "center", "size", "rotation"]
 
     def SetShape(self, shape):
         self.properties["corner_radius"] = shape["corner_radius"] if "corner_radius" in shape else 8

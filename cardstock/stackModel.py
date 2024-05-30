@@ -96,7 +96,7 @@ class StackModel(ViewModel):
     def GetData(self):
         data = super().GetData()
         data["cards"] = [m.GetData() for m in self.childModels]
-        data["properties"].pop("position")
+        data["properties"].pop("center")
         data["properties"].pop("size")
         data["properties"].pop("name")
         data["CardStock_stack_format"] = version.FILE_FORMAT_VERSION

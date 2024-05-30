@@ -172,14 +172,14 @@ class VariablesWindow(wx.Frame):
                 props = vars.properties.copy()
                 if vars.type == "stack":
                     props["children"] = vars.childModels.copy()
-                    del props["position"]
+                    del props["center"]
                     del props["size"]
                     del props["speed"]
                     del props["is_visible"]
                 elif vars.type == "card":
                     props["children"] = vars.childModels.copy()
                     props["size"] = vars.parent.properties["size"]
-                    del props["position"]
+                    del props["center"]
                     del props["speed"]
                     del props["is_visible"]
                 elif vars.type == "group":

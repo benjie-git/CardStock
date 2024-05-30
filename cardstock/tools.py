@@ -173,7 +173,7 @@ class HandTool(BaseTool):
                 self.targetUi = self.targetUi.parent
 
         self.absOrigin = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
-        self.relOrigin = self.absOrigin - wx.Point(tuple(int(x) for x in self.targetUi.model.GetAbsolutePosition()))
+        self.relOrigin = self.absOrigin - wx.Point(tuple(int(x) for x in self.targetUi.model.GetAbsoluteCenter()))
         self.stackManager.view.CaptureMouse()
 
         if self.targetUi.isSelected and self.shiftDown:
@@ -209,8 +209,8 @@ class HandTool(BaseTool):
                         if r.Inflate(2).Contains(self.absOrigin):
                             # Drag started in a resize box
                             self.resizeCorner = ("L" in k, "B" in k)
-                            self.resizeAnchorPointLocal = wx.Point(0 if "R" in k else origSize.width,
-                                                                   0 if "T" in k else origSize.height)
+                            self.resizeAnchorPointLocal = wx.Point(int(origSize.width/2) * (-1 if "R" in k else 1),
+                                                                   int(origSize.height/2) * (-1 if "T" in k else 1))
                             self.resizeCardLastSize = objRect.Size
                             self.resizeAff = self.targetUi.model.GetAffineTransform()
                             self.resizeAffInverted = wx.AffineMatrix2D(self.resizeAff)
@@ -220,7 +220,6 @@ class HandTool(BaseTool):
                             return
                     rotPt = self.targetUi.GetRotationHandlePoint()
                     if rotPt:
-                        rotPt = tuple(int(x) for x in rotPt)
                         r = wx.Rect(wx.Point(rotPt)-(6,6), (12,12))
                         if r.Contains(self.absOrigin):
                             # Drag started in a rotate knob
@@ -252,8 +251,9 @@ class HandTool(BaseTool):
                 pos = self.ConstrainDragPoint("drag", self.absOrigin, event)
                 for ui in selectedViews:
                     offset = (pos.x - self.absOrigin.x, pos.y - self.absOrigin.y)
-                    origPos = self.oldFrames[ui.model.GetProperty("name")].Position
-                    ui.model.SetProperty("position", [origPos.x + offset[0], origPos.y + offset[1]])
+                    oldF = self.oldFrames[ui.model.GetProperty("name")]
+                    origPos = oldF.Position + (int(oldF.Size.Width/2), int(oldF.Size.Height/2))
+                    ui.model.SetProperty("center", [origPos.x + offset[0], origPos.y + offset[1]])
 
             elif self.mode == "rotate":
                 # We're rotating an object
@@ -319,7 +319,7 @@ class HandTool(BaseTool):
 
                     unrotRect = self.targetUi.model.UnrotatedRectFromAbsPoints(wx.Point(self.resizeAnchorPointAbs),
                                                                                wx.Point(int(pos[0]), int(pos[1])))
-                    self.targetUi.model.SetProperty("position", unrotRect.TopLeft, notify=False)
+                    self.targetUi.model.SetProperty("center", unrotRect.TopLeft + (unrotRect.Size/2), notify=False)
                     self.targetUi.model.SetProperty("size", unrotRect.Size)
 
         event.Skip()
@@ -388,8 +388,9 @@ class HandTool(BaseTool):
             self.lastBoxList = None
             self.stackManager.view.Refresh()
         elif self.mode == "move":
-            pos = self.targetUi.model.GetProperty("position")
-            viewOrigin = self.oldFrames[self.targetUi.model.GetProperty("name")].Position
+            pos = self.targetUi.model.GetProperty("center")
+            oldF = self.oldFrames[self.targetUi.model.GetProperty("name")]
+            viewOrigin = oldF.Position + (int(oldF.Size.Width / 2), int(oldF.Size.Height / 2))
             offset = (pos[0] - viewOrigin.x, pos[1] - viewOrigin.y)
             if offset != (0, 0):
                 selectedViews = self.stackManager.GetSelectedUiViews()
@@ -399,8 +400,9 @@ class HandTool(BaseTool):
                 command = MoveUiViewsCommand(True, 'Move', self.stackManager, self.stackManager.cardIndex,
                                              models, offset)
                 for m in models:
-                    viewOrigin = self.oldFrames[m.GetProperty("name")].Position
-                    m.SetProperty("position", viewOrigin, notify=False)
+                    oldF = self.oldFrames[m.GetProperty("name")]
+                    viewOrigin = oldF.Position + (int(oldF.Size.Width / 2), int(oldF.Size.Height / 2))
+                    m.SetProperty("center", viewOrigin, notify=False)
                 self.stackManager.command_processor.Submit(command)
         elif self.mode == "rotate":
             newRot = self.targetUi.model.GetProperty("rotation")
@@ -412,8 +414,9 @@ class HandTool(BaseTool):
             self.stackManager.command_processor.Submit(command)
             self.stackManager.view.Thaw()
         elif self.mode == "resize":
-            pos = self.targetUi.model.GetProperty("position")
-            viewOrigin = self.oldFrames[self.targetUi.model.GetProperty("name")].Position
+            pos = self.targetUi.model.GetProperty("center")
+            oldF = self.oldFrames[self.targetUi.model.GetProperty("name")]
+            viewOrigin = oldF.Position + (int(oldF.Size.Width / 2), int(oldF.Size.Height / 2))
             moveOffset = (pos[0] - viewOrigin.x, pos[1] - viewOrigin.y)
 
             endw, endh = self.targetUi.model.GetProperty("size")
@@ -436,8 +439,8 @@ class HandTool(BaseTool):
                                                      self.targetUi.model, self.xFlipped, self.yFlipped))
 
                 self.stackManager.view.Freeze()
-                self.targetUi.model.SetProperty("position", viewOrigin, notify=False)
                 self.targetUi.model.SetProperty("size", origSize, notify=False)
+                self.targetUi.model.SetProperty("center", viewOrigin, notify=False)
                 command = CommandGroup(True, "Resize", self, commands)
                 self.stackManager.command_processor.Submit(command)
                 self.stackManager.view.Thaw()
@@ -567,14 +570,14 @@ class ViewTool(BaseTool):
             if not self.targetUi and dist(self.origMousePos, pos) > MOVE_THRESHOLD:
                 m = generator.StackGenerator.ModelFromType(self.stackManager, self.name)
                 m.SetProperty("size", [0,0], notify=False)
-                m.SetProperty("position", self.origMousePos, notify=False)
+                m.SetProperty("center", self.origMousePos, notify=False)
                 self.targetUi = self.stackManager.AddUiViewInternal(m)
                 self.stackManager.SelectUiView(self.targetUi)
 
             if self.targetUi:
                 offset = (pos.x-self.origMousePos[0], pos.y-self.origMousePos[1])
                 topLeft = (min(pos[0], self.origMousePos[0]), min(pos[1], self.origMousePos[1]))
-                self.targetUi.model.SetProperty("position", topLeft, notify=False)
+                self.targetUi.model.SetProperty("center", topLeft, notify=False)
                 self.targetUi.model.SetProperty("size", [abs(offset[0]), abs(offset[1])])
         event.Skip()
 
@@ -628,7 +631,7 @@ class PenTool(BaseTool):
         self.pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
 
         m = generator.StackGenerator.ModelFromType(self.stackManager, self.name)
-        m.SetProperty("position", [0,0], notify=False)
+        m.SetProperty("center", [0,0], notify=False)
         m.SetProperty("size", self.stackManager.stackModel.GetProperty("size"))
         self.targetUi = self.stackManager.AddUiViewInternal(m)
         # self.stackManager.SelectUiView(self.targetUi)
@@ -705,8 +708,8 @@ class ShapeTool(BaseTool):
             pos = self.stackManager.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
             if not self.targetUi and dist(self.startPoint, pos) > MOVE_THRESHOLD:
                 m = generator.StackGenerator.ModelFromType(self.stackManager, self.name)
-                m.SetProperty("position", [0, 0], notify=False)
                 m.SetProperty("size", self.stackManager.stackModel.GetProperty("size"), notify=False)
+                m.SetProperty("center", [0, 0], notify=False)
                 m.SetShape({"type": self.name, "pen_color": self.pen_color, "fill_color": self.fill_color,
                             "thickness": self.thickness, "points": self.points})
                 self.targetUi = self.stackManager.AddUiViewInternal(m)
@@ -767,8 +770,8 @@ class PolygonTool(BaseTool):
         if not self.stackManager.view.HasCapture():
             self.points = [mouse_pos]
             m = generator.StackGenerator.ModelFromType(self.stackManager, self.name)
-            m.SetProperty("position", [0, 0], notify=False)
             m.SetProperty("size", self.stackManager.stackModel.GetProperty("size"), notify=False)
+            m.SetProperty("center", [0, 0], notify=False)
             m.SetShape({"type": self.name, "pen_color": self.pen_color, "fill_color": self.fill_color,
                         "thickness": self.thickness, "points": self.points})
             self.targetUi = self.stackManager.AddUiViewInternal(m)
