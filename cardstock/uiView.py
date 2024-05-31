@@ -786,22 +786,31 @@ class ViewModel(object):
 
     def GetAffineTransform(self):
         # Get the transform that converts local coords to abs coords
-        m = self.parent
         ancestors = [self]
-        aff = wx.AffineMatrix2D()
+        m = self.parent
         while m and m.type not in ["card", "stack"]:
             ancestors.append(m)
             m = m.parent
+
+        aff = wx.AffineMatrix2D()
         i = 1
         for m in reversed(ancestors):
+            rot = m.GetProperty("rotation")
             if i < len(ancestors):
-                pos = (m.GetEdge("L"), m.GetEdge("B"))
+                if rot:
+                    pos = m.GetProperty("center")
+                    aff.Translate(pos[0], pos[1])
+                    aff.Rotate(math.radians(-rot))
+                    halfSize = m.GetProperty("size")/-2
+                    aff.Translate(*halfSize)
+                else:
+                    pos = (m.GetEdge("L"), m.GetEdge("B"))
+                    aff.Translate(pos[0], pos[1])
             else:
                 pos = m.GetProperty("center")
-            rot = m.GetProperty("rotation")
-            aff.Translate(pos[0], pos[1])
-            if rot:
-                aff.Rotate(math.radians(-rot))
+                aff.Translate(pos[0], pos[1])
+                if rot:
+                    aff.Rotate(math.radians(-rot))
             i += 1
         return aff
 
@@ -1036,6 +1045,18 @@ class ViewModel(object):
         self.OrderMoveTo(index)
 
     def GetEdge(self, edge):
+        f = self.GetFrame()
+        if edge == "T":
+            return f.Bottom
+        elif edge == "B":
+            return f.Top
+        elif edge == "L":
+            return f.Left
+        elif edge == "R":
+            return f.Right
+        return None
+
+    def GetAbsoluteEdge(self, edge):
         f = self.GetAbsoluteFrame()
         if edge == "T":
             return f.Bottom
@@ -1047,7 +1068,7 @@ class ViewModel(object):
             return f.Right
         return None
 
-    def SetEdge(self, edge, val):
+    def SetAbsoluteEdge(self, edge, val):
         f = self.GetAbsoluteFrame()
         c = self.GetCenter()
         if edge == "T":
@@ -1442,46 +1463,46 @@ class ViewProxy(object):
     @property
     def left(self):
         if not self._model: return 0
-        return self._model.GetEdge("L")
+        return self._model.GetAbsoluteEdge("L")
     @left.setter
     def left(self, val):
         if not isinstance(val, (int, float)):
             raise ValueError("left must be a number")
         if not self._model: return
-        self._model.SetEdge("L", val)
+        self._model.SetAbsoluteEdge("L", val)
 
     @property
     def right(self):
         if not self._model: return 0
-        return self._model.GetEdge("R")
+        return self._model.GetAbsoluteEdge("R")
     @right.setter
     def right(self, val):
         if not isinstance(val, (int, float)):
             raise ValueError("right must be a number")
         if not self._model: return
-        self._model.SetEdge("R", val)
+        self._model.SetAbsoluteEdge("R", val)
 
     @property
     def top(self):
         if not self._model: return 0
-        return self._model.GetEdge("T")
+        return self._model.GetAbsoluteEdge("T")
     @top.setter
     def top(self, val):
         if not isinstance(val, (int, float)):
             raise ValueError("top must be a number")
         if not self._model: return
-        self._model.SetEdge("T", val)
+        self._model.SetAbsoluteEdge("T", val)
 
     @property
     def bottom(self):
         if not self._model: return 0
-        return self._model.GetEdge("B")
+        return self._model.GetAbsoluteEdge("B")
     @bottom.setter
     def bottom(self, val):
         if not isinstance(val, (int, float)):
             raise ValueError("bottom must be a number")
         if not self._model: return
-        self._model.SetEdge("B", val)
+        self._model.SetAbsoluteEdge("B", val)
 
     @RunOnMainAsync
     def flip_horizontal(self):
