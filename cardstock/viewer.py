@@ -59,6 +59,7 @@ class ViewerFrame(wx.Frame):
 
         super().__init__(parent, -1, self.title, size=(500,500), style=wx.DEFAULT_FRAME_STYLE)
 
+        self.didSetupFirstCardSize = False
         self.stackManager = StackManager(self, False)
         self.stackManager.view.UseDeferredRefresh(True)
         if isStandalone and resMap:
@@ -96,12 +97,13 @@ class ViewerFrame(wx.Frame):
         return super().Destroy()
 
     def OnResize(self, event):
-        if self.stackManager and self.stackManager.uiCard.model.GetProperty("can_resize"):
+        if self.stackManager and self.didSetupFirstCardSize and self.stackManager.uiCard.model.GetProperty("can_resize"):
             if not self.stackManager.uiCard.runningInternalResize:
                 size = self.stackManager.view.GetTopLevelParent().GetClientSize()
                 size = self.stackManager.view.ToDIP(size)
                 self.stackManager.uiCard.model.SetProperty("size", size)
-        event.Skip()
+        if event:
+            event.Skip()
 
     def SaveFile(self):
         if self.designer:
@@ -548,6 +550,7 @@ class ViewerFrame(wx.Frame):
         else:
             self.SetMaxClientSize(cs)
             self.SetMinClientSize(cs)
+        self.didSetupFirstCardSize = True
 
     def RunViewer(self, runner, stackModel, filename, cardIndex, ioValue, isGoingBack):
         # Load the model, start the runner, and handle ioValues(setup and return values) for pushed/popped stacks

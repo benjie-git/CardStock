@@ -87,7 +87,7 @@ class UiView(object):
                         self.stackManager.uiCard.ResizeCardView(s)
                     pos = (0,0)
                 else:
-                    c = self.stackManager.ConvPoint(wx.Point(self.model.GetCenter()))
+                    c = self.stackManager.ConvPoint(wx.Point(self.model.GetAbsoluteCenter()))
                     s = self.view.FromDIP(self.model.GetProperty("size"))
                     pos = c - s / 2
                     self.view.SetSize(s)
@@ -115,8 +115,8 @@ class UiView(object):
                     self.stackManager.uiCard.ResizeCardView(s)
                     pos = (0,0)
                 else:
-                    c = self.stackManager.ConvPoint(wx.Point(model.GetCenter()))
                     s = self.view.FromDIP(model.GetProperty("size"))
+                    c = self.stackManager.ConvPoint(wx.Point(model.GetAbsoluteCenter()))
                     pos = c - s / 2
                     self.view.SetSize(s)
                 self.view.SetPosition(pos)
@@ -792,12 +792,17 @@ class ViewModel(object):
         while m and m.type not in ["card", "stack"]:
             ancestors.append(m)
             m = m.parent
+        i = 1
         for m in reversed(ancestors):
-            pos = m.GetProperty("center")
+            if i < len(ancestors):
+                pos = (m.GetEdge("L"), m.GetEdge("B"))
+            else:
+                pos = m.GetProperty("center")
             rot = m.GetProperty("rotation")
             aff.Translate(pos[0], pos[1])
             if rot:
                 aff.Rotate(math.radians(-rot))
+            i += 1
         return aff
 
     def RotatedPoints(self, points, aff=None):
@@ -881,8 +886,8 @@ class ViewModel(object):
         return self.RotatedRect(wx.Rect((0,0), s))
 
     def SetFrame(self, rect):
-        self.SetProperty("center", rect.Position + (rect.Size/2))
         self.SetProperty("size", rect.Size)
+        self.SetProperty("center", rect.Position + (rect.Size/2))
 
     def GetData(self):
         handlers = {}

@@ -166,12 +166,11 @@ class GroupModel(ViewModel):
                 m.Notify("is_visible")
 
     def AddChildModels(self, models):
-        selfPos = self.GetProperty("center")
+        self.properties["size"] = wx.Size(0,0)
+        self.properties["center"] = wx.RealPoint(0,0)
         for model in models:
             self.childModels.append(model)
             model.parent = self
-            pos = model.GetProperty("center")
-            model.SetProperty("center", [pos[0]-selfPos[0], pos[1]-selfPos[1]], notify=False)
         self.UpdateFrame()
         self.origFrame = self.GetFrame()
         for model in models:
@@ -186,7 +185,8 @@ class GroupModel(ViewModel):
         del model.origGroupSubviewRotation
         pos = model.GetProperty("center")
         selfPos = self.GetProperty("center")
-        model.SetProperty("center", [pos[0]+selfPos[0], pos[1]+selfPos[1]], notify=False)
+        selfSize = self.GetProperty("size")
+        model.SetProperty("center", [pos[0]+selfPos[0]-selfSize[0]/2, pos[1]+selfPos[1]-selfSize[1]/2], notify=False)
         model.SetDown()
         self.isDirty = True
 
