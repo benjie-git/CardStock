@@ -1182,13 +1182,13 @@ class ViewModel(object):
             if key in self.animations:
                 animList = self.animations[key]
                 animDict = animList[0]
+                if "startTime" in animDict and animDict["onFinish"]:
+                    animDict["onFinish"](animDict)
                 if len(animList) > 1:
                     del animList[0]
                     self.StartAnimation(key)
                 else:
                     del self.animations[key]
-                if "startTime" in animDict and animDict["onFinish"]:
-                    animDict["onFinish"](animDict)
 
     def StopAnimation(self, key=None):
         # On Runner thread
@@ -1735,6 +1735,138 @@ class ViewProxy(object):
             model.SetProperty("speed", (0,0))
 
         model.AddAnimation("center", duration, onUpdate, onStart, internalOnFinished, onCanceled)
+
+    def animate_left(self, duration, end_left, easing=None, on_finished=None):
+        if not isinstance(duration, (int, float)):
+            raise TypeError("animate_left(): duration must be a number")
+        if not isinstance(end_left, (int, float)):
+            raise TypeError("end_left must be a number")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_left(): easing, if provided, must be one of "In", "Out", or "InOut"')
+
+        model = self._model
+        if not model: return
+
+        if easing:
+            easing = easing.lower()
+
+        def onStart(animDict):
+            origLeft = self.left
+            offset = end_left - origLeft
+            animDict["origLeft"] = origLeft
+            animDict["offset"] = offset
+            self._model.properties["speed"][0] = int(offset*(1.0/duration))
+
+        def onUpdate(progress, animDict):
+            self.left = animDict["origLeft"] + animDict["offset"] * ease(progress, easing)
+
+        def internalOnFinished(animDict):
+            self._model.properties["speed"][0] = 0
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
+
+        def onCanceled(animDict):
+            self._model.properties["speed"][0] = 0
+
+        model.AddAnimation("left", duration, onUpdate, onStart, internalOnFinished, onCanceled)
+
+    def animate_right(self, duration, end_right, easing=None, on_finished=None):
+        if not isinstance(duration, (int, float)):
+            raise TypeError("animate_right(): duration must be a number")
+        if not isinstance(end_right, (int, float)):
+            raise TypeError("end_right must be a number")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_right(): easing, if provided, must be one of "In", "Out", or "InOut"')
+
+        model = self._model
+        if not model: return
+
+        if easing:
+            easing = easing.lower()
+
+        def onStart(animDict):
+            origRight = self.right
+            offset = end_right - origRight
+            animDict["origRight"] = origRight
+            animDict["offset"] = offset
+            self._model.properties["speed"][0] = int(offset*(1.0/duration))
+
+        def onUpdate(progress, animDict):
+            self.right = animDict["origRight"] + animDict["offset"] * ease(progress, easing)
+
+        def internalOnFinished(animDict):
+            self._model.properties["speed"][0] = 0
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
+
+        def onCanceled(animDict):
+            self._model.properties["speed"][0] = 0
+
+        model.AddAnimation("left", duration, onUpdate, onStart, internalOnFinished, onCanceled)
+
+    def animate_top(self, duration, end_top, easing=None, on_finished=None):
+        if not isinstance(duration, (int, float)):
+            raise TypeError("animate_top(): duration must be a number")
+        if not isinstance(end_top, (int, float)):
+            raise TypeError("end_top must be a number")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_top(): easing, if provided, must be one of "In", "Out", or "InOut"')
+
+        model = self._model
+        if not model: return
+
+        if easing:
+            easing = easing.lower()
+
+        def onStart(animDict):
+            origTop = self.top
+            offset = end_top - origTop
+            animDict["origTop"] = origTop
+            animDict["offset"] = offset
+            self._model.properties["speed"][1] = int(offset*(1.0/duration))
+
+        def onUpdate(progress, animDict):
+            self.top = animDict["origTop"] + animDict["offset"] * ease(progress, easing)
+
+        def internalOnFinished(animDict):
+            self._model.properties["speed"][1] = 0
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
+
+        def onCanceled(animDict):
+            self._model.properties["speed"][1] = 0
+
+        model.AddAnimation("top", duration, onUpdate, onStart, internalOnFinished, onCanceled)
+
+    def animate_bottom(self, duration, end_bottom, easing=None, on_finished=None):
+        if not isinstance(duration, (int, float)):
+            raise TypeError("animate_bottom(): duration must be a number")
+        if not isinstance(end_bottom, (int, float)):
+            raise TypeError("end_bottom must be a number")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_bottom(): easing, if provided, must be one of "In", "Out", or "InOut"')
+
+        model = self._model
+        if not model: return
+
+        if easing:
+            easing = easing.lower()
+
+        def onStart(animDict):
+            origBottom = self.bottom
+            offset = end_bottom - origBottom
+            animDict["origBottom"] = origBottom
+            animDict["offset"] = offset
+            self._model.properties["speed"][1] = int(offset*(1.0/duration))
+
+        def onUpdate(progress, animDict):
+            self.bottom = animDict["origBottom"] + animDict["offset"] * ease(progress, easing)
+
+        def internalOnFinished(animDict):
+            self._model.properties["speed"][1] = 0
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
+
+        def onCanceled(animDict):
+            self._model.properties["speed"][1] = 0
+
+        model.AddAnimation("top", duration, onUpdate, onStart, internalOnFinished, onCanceled)
 
     def animate_size(self, duration, end_size, easing=None, on_finished=None):
         if not isinstance(duration, (int, float)):

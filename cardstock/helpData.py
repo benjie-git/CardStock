@@ -244,16 +244,20 @@ class HelpDataObject():
                            "is from the left edge of the card.  The second number, <b>y</b>, is how far up from the bottom."},
         "left": {"type": "float",
                  "info": "The <b>left</b> property is the distance of the object's left edge from the left edge of "
-                         "the card."},
+                         "the card.  This value is computed based on the <b>center</b> and <b>size</b> properties, and "
+                         "setting it just updates <b>center</b>."},
         "right": {"type": "float",
                   "info": "The <b>right</b> property is the distance of the object's right edge from the left edge of "
-                          "the card."},
+                          "the card.  This value is computed based on the <b>center</b> and <b>size</b> properties, and "
+                          "setting it just updates <b>center</b>."},
         "bottom": {"type": "float",
                    "info": "The <b>bottom</b> property is the distance of the object's bottom edge from the bottom edge of "
-                           "the card."},
+                           "the card.  This value is computed based on the <b>center</b> and <b>size</b> properties, and "
+                           "setting it just updates <b>center</b>."},
         "top": {"type": "float",
                 "info": "The <b>top</b> property is the distance of the object's top edge from the bottom edge of "
-                        "the card."},
+                        "the card.  This value is computed based on the <b>center</b> and <b>size</b> properties, and "
+                        "setting it just updates <b>center</b>."},
         "rotation": {"type": "float",
                      "info": "This is the angle in degrees clockwise to rotate this object around its center.  0 is "
                              "normal/upright.  Note that not all objects can be rotated, for example cards and stacks."},
@@ -367,8 +371,8 @@ class HelpDataObject():
 
         "animate_center": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                     "end_center": {"type": "point",
-                                                     "info": "the destination center position at the end of the animation, "
-                                                             "as a 2-item list representing an x and y location, like (100,140)."},
+                                                   "info": "the destination center position at the end of the animation, "
+                                                           "as a 2-item list representing an x and y location, like (100,140)."},
                                     "easing": {"type": "string",
                                                "info": "an optional argument to allow controlling the animation's start and end accelerations. "
                                                        "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
@@ -380,6 +384,74 @@ class HelpDataObject():
                                                     "info": "an optional function to run when the animation finishes"}},
                            "return": None,
                            "info": "Visually animates the movement of this object from its current position to have its center at <b>end_center</b>, "
+                                   "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                   "<b>on_finished</b> function, if one was passed in."},
+
+        "animate_left": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
+                                  "end_left": {"type": "float",
+                                               "info": "the target left edge position at the end of the animation."},
+                                  "easing": {"type": "string",
+                                             "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                                     "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                                     "instead of starting the animation at full speed. "
+                                                     "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                                     "Setting easing to None or skipping this argument will use simple, linear animation, "
+                                                     "which can look abrupt, but is sometimes what you want."},
+                                  "on_finished": {"type": "function",
+                                                  "info": "an optional function to run when the animation finishes"}},
+                         "return": None,
+                         "info": "Visually animates the movement of this object from its current position to have its left edge at <b>end_left</b>, "
+                                 "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                 "<b>on_finished</b> function, if one was passed in."},
+
+        "animate_right": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
+                                   "end_right": {"type": "float",
+                                                 "info": "the target right edge position at the end of the animation."},
+                                   "easing": {"type": "string",
+                                              "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                                      "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                                      "instead of starting the animation at full speed. "
+                                                      "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                                      "Setting easing to None or skipping this argument will use simple, linear animation, "
+                                                      "which can look abrupt, but is sometimes what you want."},
+                                   "on_finished": {"type": "function",
+                                                   "info": "an optional function to run when the animation finishes"}},
+                          "return": None,
+                          "info": "Visually animates the movement of this object from its current position to have its right edge at <b>end_right</b>, "
+                                  "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                  "<b>on_finished</b> function, if one was passed in."},
+
+        "animate_top": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
+                                 "end_top": {"type": "float",
+                                             "info": "the target top edge position at the end of the animation."},
+                                 "easing": {"type": "string",
+                                            "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                                    "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                                    "instead of starting the animation at full speed. "
+                                                    "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                                    "Setting easing to None or skipping this argument will use simple, linear animation, "
+                                                    "which can look abrupt, but is sometimes what you want."},
+                                 "on_finished": {"type": "function",
+                                                 "info": "an optional function to run when the animation finishes"}},
+                        "return": None,
+                        "info": "Visually animates the movement of this object from its current position to have its top edge at <b>end_top</b>, "
+                                "over <b>duration</b> seconds.  When the animation completes, runs the "
+                                "<b>on_finished</b> function, if one was passed in."},
+
+        "animate_bottom": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
+                                    "end_bottom": {"type": "float",
+                                                   "info": "the target bottom edge position at the end of the animation."},
+                                    "easing": {"type": "string",
+                                               "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                                       "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                                       "instead of starting the animation at full speed. "
+                                                       "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                                       "Setting easing to None or skipping this argument will use simple, linear animation, "
+                                                       "which can look abrupt, but is sometimes what you want."},
+                                    "on_finished": {"type": "function",
+                                                    "info": "an optional function to run when the animation finishes"}},
+                           "return": None,
+                           "info": "Visually animates the movement of this object from its current position to have its bottom edge at <b>end_bottom</b>, "
                                    "over <b>duration</b> seconds.  When the animation completes, runs the "
                                    "<b>on_finished</b> function, if one was passed in."},
 
