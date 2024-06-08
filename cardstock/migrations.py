@@ -13,7 +13,7 @@ import re
 def MigrateDataFromFormatVersion(fromVer, dataDict):
     # Migration code to run on json before loading it into models
 
-    if fromVer <= 2:
+    if fromVer < 3:
         """
         In File Format Version 3, some properties and methods were renamed.
         """
@@ -37,7 +37,7 @@ def MigrateDataFromFormatVersion(fromVer, dataDict):
         for c in dataDict['cards']:
             replaceNames(c)
 
-    if fromVer <= 4:
+    if fromVer < 5:
         """
         In File Format Version 5, naming changed from camelCase to snake_case
         """
@@ -99,7 +99,7 @@ def MigrateDataFromFormatVersion(fromVer, dataDict):
         for c in dataDict['cards']:
             replaceNames(c)
 
-    if fromVer <= 5:
+    if fromVer < 6:
         """
         In File Format Version 6, button.has_border changed to button.style
         """
@@ -112,7 +112,7 @@ def MigrateDataFromFormatVersion(fromVer, dataDict):
         for c in dataDict['cards']:
             replaceNames(c)
 
-    if fromVer <= 8:
+    if fromVer < 9:
         """
         In File Format Version 9, button.title changed to button.text
         """
@@ -133,7 +133,7 @@ def MigrateDataFromFormatVersion(fromVer, dataDict):
 def MigrateModelFromFormatVersion(fromVer, stackModel):
     # Migration code to run after loading the json into models
 
-    if fromVer <= 1:
+    if fromVer < 2:
         """
         In File Format Version 1, the cards used the top-left corner as the origin, y increased while moving down.
         In File Format Version 2, the cards use the bottom-left corner as the origin, y increases while moving up.
@@ -164,7 +164,7 @@ def MigrateModelFromFormatVersion(fromVer, stackModel):
                 replaceNames(child)
         replaceNames(stackModel)
 
-    if fromVer <= 2:
+    if fromVer < 3:
         """
         In File Format Version 3, some properties and methods were renamed.
         """
@@ -187,7 +187,7 @@ def MigrateModelFromFormatVersion(fromVer, stackModel):
                 replaceNames(child)
         replaceNames(stackModel)
 
-    if fromVer <= 3:
+    if fromVer < 4:
         """
         In File Format Version 4, some properties and methods were renamed.
         """
@@ -207,7 +207,7 @@ def MigrateModelFromFormatVersion(fromVer, stackModel):
                 replaceNames(child)
         replaceNames(stackModel)
 
-    if fromVer <= 4:
+    if fromVer < 5:
         """
         In File Format Version 5, naming changed from camelCase to snake_case
         """
@@ -371,7 +371,7 @@ def MigrateModelFromFormatVersion(fromVer, stackModel):
                 replaceNames(child)
         replaceNames(stackModel)
 
-    if fromVer <= 6:
+    if fromVer < 7:
         """
         In File Format Version 7, get and set event_code functions were renamed
         """
@@ -387,7 +387,7 @@ def MigrateModelFromFormatVersion(fromVer, stackModel):
                 replaceNames(child)
         replaceNames(stackModel)
 
-    if fromVer <= 8:
+    if fromVer < 9:
         """
         In File Format Version 9, broadcast_message() changed from a global func to a method on stacks and cards
         """
@@ -399,6 +399,20 @@ def MigrateModelFromFormatVersion(fromVer, stackModel):
                     val = re.sub(r"\bColorRGB\(", "color_rgb(", val)
                     val = re.sub(r"\bColorHSB\(", "color_hsb(", val)
                     val = re.sub(r"\.title\b", ".text", val)
+                    obj.handlers[k] = val
+            for child in obj.childModels:
+                replaceNames(child)
+        replaceNames(stackModel)
+
+    if fromVer < 10:
+        """
+        In File Format Version 10, we're moving from 3 to 4-space indentation
+        """
+        def replaceNames(obj):
+            for k ,v in obj.handlers.items():
+                if len(v):
+                    val = v
+                    val = re.sub(r" {3}(?= *$)", "    ", val[::-1], flags=re.MULTILINE)[::-1]
                     obj.handlers[k] = val
             for child in obj.childModels:
                 replaceNames(child)

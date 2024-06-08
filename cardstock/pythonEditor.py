@@ -16,7 +16,7 @@ The PythonEditor is used for the CodeEditor in the Designer's ControlPanel.
 It offers syntax highlighting, brace pairing, and simple code autocompletion.
 """
 
-TAB_WIDTH = 3
+TAB_WIDTH = 4
 
 
 if wx.Platform == '__WXMSW__':
@@ -51,7 +51,8 @@ class PythonEditor(stc.StyledTextCtrl):
             self.analyzer.AddScanCompleteNotification(self.ScanFinished)
 
         self.SetTabWidth(TAB_WIDTH)
-        self.SetUseTabs(0)
+        self.SetIndent(TAB_WIDTH)
+        self.SetUseTabs(False)
         self.SetTabIndents(True)
         self.SetBackSpaceUnIndents(True)
         # self.SetIndentationGuides(True)

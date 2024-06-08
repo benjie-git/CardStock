@@ -7,4 +7,4 @@
 # of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 VERSION = '0.99.6'
-FILE_FORMAT_VERSION = 9
+FILE_FORMAT_VERSION = 10
