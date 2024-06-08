@@ -10,7 +10,7 @@
     {
       "type": "card",
       "handlers": {
-        "on_setup": "import math\n\ndef factor(n):\n   # Test for -1\n   if n < 0:\n      output.text += \"-1\\n\"\n      factor(-n)\n      return\n\n   # Test for 0 or 1\n   if n <= 1:\n      return\n   \n   # Test for 2\n   if n % 2 == 0:\n      output.text += str(2) + \"\\n\"\n      factor(int(n/2))\n      return\n\n   # Test for 3+ odds\n   for d in range(3, n+1, 2):\n      if n % d == 0:\n         output.text += str(d) + \"\\n\"\n         factor(int(n/d))\n         return\n",
+        "on_setup": "import math\n\ndef factor(n):\n    # Test for -1\n    if n < 0:\n        output.text += \"-1\\n\"\n        factor(-n)\n        return\n\n    # Test for 0 or 1\n    if n <= 1:\n        return\n    \n    # Test for 2\n    if n % 2 == 0:\n        output.text += str(2) + \"\\n\"\n        factor(int(n/2))\n        return\n\n    # Test for 3+ odds\n    for d in range(3, n+1, 2):\n        if n % d == 0:\n            output.text += str(d) + \"\\n\"\n            factor(int(n/d))\n            return\n",
         "on_show_card": "field.focus()\n"
       },
       "properties": {
@@ -87,7 +87,7 @@
         {
           "type": "button",
           "handlers": {
-            "on_click": "output.text = \"\"\n\ntry:\n   num = int(field.text)\n   factor(num)\nexcept:\n   pass\n\nfield.focus()"
+            "on_click": "output.text = \"\"\n\ntry:\n    num = int(field.text)\n    factor(num)\nexcept:\n    pass\n\nfield.focus()"
           },
           "properties": {
             "name": "button",
@@ -158,6 +158,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 10,
+  "CardStock_stack_format": 11,
   "CardStock_stack_version": "0.99.7"
 }

@@ -10,7 +10,7 @@
     {
       "type": "card",
       "handlers": {
-        "on_setup": "from random import randint\n\n# Set up empty stats\nstats_list = [0 for i in range(0,13)]\nstats_label.send_message(\"update\")\n\ndef RollOnce():\n   # Roll the dice\n   a = randint(1,6)\n   b = randint(1,6)\n   label_1.text = a\n   label_2.text = b\n\n   # show the total\n   total = a+b\n   totalLabel.text = \"The total is \" + str(total)\n\n   # Update the stats\n   stats_list[total] += 1\n"
+        "on_setup": "from random import randint\n\n# Set up empty stats\nstats_list = [0 for i in range(0,13)]\nstats_label.send_message(\"update\")\n\ndef RollOnce():\n    # Roll the dice\n    a = randint(1,6)\n    b = randint(1,6)\n    label_1.text = a\n    label_2.text = b\n\n    # show the total\n    total = a+b\n    totalLabel.text = \"The total is \" + str(total)\n\n    # Update the stats\n    stats_list[total] += 1\n"
       },
       "properties": {
         "name": "card_1",
@@ -191,7 +191,7 @@
         {
           "type": "textlabel",
           "handlers": {
-            "on_message": "if message == \"update\":\n   lines = [f\" {n}: {stats_list[n]}\" for n in range(2,10)]\n   lines.extend([f\"{n}: {stats_list[n]}\" for n in range(10,13)])\n   self.text = '\\n'.join(lines)\n"
+            "on_message": "if message == \"update\":\n    lines = [f\" {n}: {stats_list[n]}\" for n in range(2,10)]\n    lines.extend([f\"{n}: {stats_list[n]}\" for n in range(10,13)])\n    self.text = '\\n'.join(lines)\n"
           },
           "properties": {
             "name": "stats_label",
@@ -218,7 +218,7 @@
         {
           "type": "button",
           "handlers": {
-            "on_click": "stepSize = 20\n\nfor i in range(5000):\n   RollOnce()\n   \n   # Update the stats displays once per step_size rolls\n   if i % stepSize == stepSize-1:\n      card.broadcast_message(\"update\")\n"
+            "on_click": "stepSize = 10\n\nfor i in range(5000):\n    RollOnce()\n    \n    # Update the stats displays once per step_size rolls\n    if i % stepSize == stepSize-1:\n        card.broadcast_message(\"update\")\n"
           },
           "properties": {
             "name": "roll_5000",
@@ -239,7 +239,7 @@
         {
           "type": "rect",
           "handlers": {
-            "on_message": "if message == \"update\":\n   items = stats_list[2:]\n   low = min(items)\n   high = max(items)\n   num_points = len(items)\n\n   pos = Point(graph_frame.left, graph_frame.bottom)\n   s = graph_frame.size\n\n   xStep = (s.width-2)/(num_points-1)\n   yStep = (s.height-3)/(high)\n\n   points = []\n   for n in range(len(items)):\n      points.append((xStep*n+pos.x, yStep*(items[n])+pos.y))\n\n   stat_line.points = points"
+            "on_message": "if message == \"update\":\n    items = stats_list[2:]\n    low = min(items)\n    high = max(items)\n    num_points = len(items)\n\n    pos = Point(graph_frame.left, graph_frame.bottom)\n    s = graph_frame.size\n\n    xStep = (s.width-2)/(num_points-1)\n    yStep = (s.height-3)/(high)\n\n    points = []\n    for n in range(len(items)):\n        points.append((xStep*n+pos.x, yStep*(items[n])+pos.y))\n\n    stat_line.points = points"
           },
           "properties": {
             "name": "graph_frame",
@@ -308,6 +308,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 10,
+  "CardStock_stack_format": 11,
   "CardStock_stack_version": "0.99.7"
 }

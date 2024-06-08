@@ -10,7 +10,7 @@
     {
       "type": "card",
       "handlers": {
-        "on_show_card": "def UpdateBox():\n   lineStart = line.left\n   lineWidth = line.size.width\n   box.size.width = (upperBound-lowerBound+1) * lineWidth/100.0\n   box.left = lineStart + (lowerBound-1) * lineWidth/100.0\n\nresetButton.click()\n"
+        "on_show_card": "def UpdateBox():\n    lineStart = line.left\n    lineWidth = line.size.width\n    box.size.width = (upperBound-lowerBound+1) * lineWidth/100.0\n    box.left = lineStart + (lowerBound-1) * lineWidth/100.0\n\nresetButton.click()\n"
       },
       "properties": {
         "name": "card_1",
@@ -50,7 +50,7 @@
         {
           "type": "textfield",
           "handlers": {
-            "on_text_enter": "try:\n   guess = int(self.text)\nexcept:\n   guess = None\n\nif guess is None:\n   return\n\nif guess == number:\n   title.text = \"Congratulations, you guessed it!\"\n\nelif guess < number:\n   if guess > lowerBound:\n      lowerBound = guess\n   hint.text = \"Higher...\"\n   UpdateBox()\n\nelif guess > number:\n   if guess < upperBound:\n      upperBound = guess\n   hint.text = \"Lower...\"\n   UpdateBox()\n\nself.select_all()\n"
+            "on_text_enter": "try:\n    guess = int(self.text)\nexcept:\n    guess = None\n\nif guess is None:\n    return\n\nif guess == number:\n    title.text = \"Congratulations, you guessed it!\"\n\nelif guess < number:\n    if guess > lowerBound:\n        lowerBound = guess\n    hint.text = \"Higher...\"\n    UpdateBox()\n\nelif guess > number:\n    if guess < upperBound:\n        upperBound = guess\n    hint.text = \"Lower...\"\n    UpdateBox()\n\nself.select_all()\n"
           },
           "properties": {
             "name": "field",
@@ -328,6 +328,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 10,
+  "CardStock_stack_format": 11,
   "CardStock_stack_version": "0.99.7"
 }

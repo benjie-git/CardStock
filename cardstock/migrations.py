@@ -12,6 +12,7 @@ import re
 
 def MigrateDataFromFormatVersion(fromVer, dataDict):
     # Migration code to run on json before loading it into models
+    # Necessary for renaming properties
 
     if fromVer < 3:
         """
@@ -421,7 +422,21 @@ def MigrateModelFromFormatVersion(fromVer, stackModel):
 
     if fromVer < 10:
         """
-        In File Format Version 10, remove .position, realize the formerly virtual .center property.
+        In File Format Version 10, we're moving from 3 to 4-space indentation
+        """
+        def replaceNames(obj):
+            for k ,v in obj.handlers.items():
+                if len(v):
+                    val = v
+                    val = re.sub(r" {3}(?= *$)", "    ", val[::-1], flags=re.MULTILINE)[::-1]
+                    obj.handlers[k] = val
+            for child in obj.childModels:
+                replaceNames(child)
+        replaceNames(stackModel)
+
+    if fromVer < 11:
+        """
+        In File Format Version 11, remove .position, realize the formerly virtual .center property.
         This migration is too simple/incomplete, and this will be a breaking change for some stacks.
         """
         def replaceNames(obj):
