@@ -323,6 +323,8 @@ class StackManager(object):
                             self.runner.RunHandler(self.uiCard.model, "on_resize", None, True)
                 if self.designer:
                     self.designer.SetFrameSizeFromModel()
+                else:
+                    self.runner.viewer.SetupViewerSize()
                 self.view.Refresh()
             if self.designer:
                 self.designer.Thaw()
