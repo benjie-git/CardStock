@@ -546,8 +546,10 @@ class ViewerFrame(wx.Frame):
         if self.stackManager.uiCard.model.GetProperty("can_resize"):
             self.SetMinClientSize(self.FromDIP(wx.Size(200,200)))
         else:
-            self.SetMaxClientSize(cs)
+            self.SetMinClientSize(wx.Size(100,100))
+            self.SetMaxClientSize(wx.Size(100000,100000))
             self.SetMinClientSize(cs)
+            self.SetMaxClientSize(cs)
 
     def RunViewer(self, runner, stackModel, filename, cardIndex, ioValue, isGoingBack):
         # Load the model, start the runner, and handle ioValues(setup and return values) for pushed/popped stacks

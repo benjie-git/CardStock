@@ -1312,7 +1312,10 @@ class DesignerApp(wx.App):
     def OnInit(self):
         self.argFilename = None
         self.doneStarting = False
-        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
+#        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
+        import locale
+        locale.setlocale(locale.LC_ALL, "C")
+        self.locale = wx.Locale()
         self.frame = DesignerFrame(None)
         self.frame.app = self
         self.frame.Show(True)
