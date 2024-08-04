@@ -105,6 +105,8 @@ class UiCard(UiView):
         elif key == "fill_color":
             self.view.Refresh()
         elif key == "size":
+            if self == self.stackManager.uiCard and self.stackManager.runner and self.stackManager.runner.viewer:
+                self.stackManager.runner.viewer.SetupViewerSize()
             for ui in self.uiViews:
                 ui.ClearHitRegion()
                 ui.OnPropertyChanged(ui.model, "position")
