@@ -548,7 +548,8 @@ class ViewerFrame(wx.Frame):
         if self.stackManager.uiCard.model.GetProperty("can_resize"):
             self.SetMinClientSize(self.FromDIP(wx.Size(200,200)))
         else:
-            self.SetMaxClientSize(cs)
+            self.SetMinClientSize(wx.Size(100,100))
+            self.SetMaxClientSize(wx.Size(100000,100000))
             self.SetMinClientSize(cs)
         self.didSetupFirstCardSize = True
 

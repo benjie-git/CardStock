@@ -403,8 +403,11 @@ class StackManager(object):
                                 m.SetProperty("center", m.GetProperty("center") + (10, -10))
                             self.CopyModels(models)
                             self.uiCard.model.DeduplicateNamesForModels(models)
+                            for m in models:
+                                m.SetProperty("position", m.GetProperty("position") + (10,-10))
                             command = AddUiViewsCommand(True, 'Add Views', self, self.cardIndex, models)
                             self.command_processor.Submit(command, storeIt=canUndo)
+                            self.CopyModels(models)
                 elif wx.TheClipboard.IsSupported(wx.DataFormat(wx.DF_BITMAP)):
                     clipData = wx.CustomDataObject(wx.DataFormat(wx.DF_BITMAP))
                     if wx.TheClipboard.GetData(clipData):
