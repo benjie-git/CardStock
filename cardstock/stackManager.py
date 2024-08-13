@@ -325,6 +325,8 @@ class StackManager(object):
                     self.designer.SetFrameSizeFromModel()
                 elif self.runner.viewer and cardModel.GetProperty("can_resize"):
                     self.runner.viewer.OnResize(None)
+                else:
+                    self.runner.viewer.SetupViewerSize()
                 self.view.Refresh()
             if self.designer:
                 self.designer.Thaw()

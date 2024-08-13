@@ -551,6 +551,7 @@ class ViewerFrame(wx.Frame):
             self.SetMinClientSize(wx.Size(100,100))
             self.SetMaxClientSize(wx.Size(100000,100000))
             self.SetMinClientSize(cs)
+            self.SetMaxClientSize(cs)
         self.didSetupFirstCardSize = True
 
     def RunViewer(self, runner, stackModel, filename, cardIndex, ioValue, isGoingBack):

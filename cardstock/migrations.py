@@ -130,9 +130,9 @@ def MigrateDataFromFormatVersion(fromVer, dataDict):
         dataDict['properties'].pop('size')
         dataDict['properties'].pop('can_resize')
 
-    if fromVer < 10:
+    if fromVer < 11:
         """
-        In File Format Version 10, remove .position, realize the formerly virtual .center property
+        In File Format Version 11, remove .position, realize the formerly virtual .center property
         """
         def replaceNames(d):
             if "position" in d['properties']:
