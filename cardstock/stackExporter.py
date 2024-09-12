@@ -178,7 +178,7 @@ class StackExporter(object):
             can_save = self.stackManager.stackModel.GetProperty("can_save")
 
             # Prep temp dir
-            tmp = "/tmp/CardStock" if wx.Platform != "__WXMSW__" else "C:\Windows\Temp\CardStock"
+            tmp = "/tmp/CardStock" if wx.Platform != "__WXMSW__" else "C:\\Windows\\Temp\\CardStock"
             sep = ":" if wx.Platform != "__WXMSW__" else ";"
             tmp += "-"+str(random.randint(1000000, 9999999))
             os.mkdir(tmp)

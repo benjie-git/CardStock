@@ -31,7 +31,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * Run python commands in an interactive Console window while your stack runs, to check or set variable values, call functions, or any other python you want to run.
 * Browse your running stack's variables and objects, and modify them live in the Variables window.
 * View all code used in a whole stack in one place, and click a line to jump to that line in that object's code editor for that event.
-* View recent error messages, and click one to jump to the offending line of code in the Designer.
+* View recent error messages, and click one to jump to the offending line of code in the Designer app.
 * You can export a stack into a standalone application that you can share and distribute, or upload it to the web, on https://cardstock.run.
 
 ### Future Plans
@@ -39,7 +39,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * Allow looping sounds, and playing synthesized notes.
 * Add more tutorials for CardStock, and for learning python through CardStock.
 * Allow filling shapes with color gradients.
-* Add app icons for the CardStock Designer and Viewer.
+* Add app icons for the CardStock Designer app.
 * Improve bounce physics and collision detection performance.
 
 ________
@@ -53,22 +53,21 @@ ________
 ## Requirements
 The prebuilt applications for Mac and Windows have no external dependencies.
 
-Running CardStock from source requires Python 3.9 or newer (3.11 recommended), and wxPython 4.1 or newer (wxPython 4.2.x recommended).
-CardStock requires installing the python modules attrdict3(linux-only), wxpython, simpleaudio, PyInstaller, and requests.  
+Running CardStock from source requires Python 3.9 or newer (3.11+ recommended), and wxPython 4.1 or newer (wxPython 4.2.x recommended).
+CardStock requires installing the python modules attrdict3(linux-only), wxpython,simpleaudio, PyInstaller, and requests.  
 For mp3 playback support, you'll need to install the lame package (mp3 decoder), and python's streamp3. 
-Note that Python 3.12 is currently incompatible with released versions of wxpython, and so will not run CardStock until
-wxPython receives an update.
 
 ## Installation
 You can either:
 
 ### 1. Run it from source:
-1. install python3  # Note: Python3.12 is incompatible with wxpython, so 3.11 is recommended
+1. install python3
 2. Linux-only: apt install libasound2-dev lame libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
 3. Mac-only: brew install lame
 4. pip3 install attrdict3
-5. pip3 install wxpython PyInstaller simpleaudio requests  # note that wxpython can take a long time to build
-6. To include mp3 support: pip3 install streamp3
+5. pip3 install wxpython PyInstaller requests  # note that wxpython can take a long time to build
+6. pip3 install --force git+https://github.com/cexen/py-simple-audio.git  # The official simpleaudio package is no longer maintained.  This fork includes a fix for compatability with python 3.12+
+7. To include mp3 support: pip3 install streamp3
 
    (Note that this may require setting LDFLAGS and CPPFLAGS to allow finding the lame header and library files.
 
@@ -81,8 +80,8 @@ You can either:
     depending on where the lame library was installed.)
    
 7. download or clone this repository
-8. run designer.py and viewer.py as desired
-9. optionally run build.py to create your own standalone applications for the Designer and Viewer applications.
+8. run python3 designer.py
+9. optionally run build.py to create your own standalone applications for the CardStock Designer application.
 
 ### 2. Install using pip/pypi:
 1. Linux-only: apt install libasound2-dev lame libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
@@ -100,7 +99,7 @@ You can either:
     depending on where the lame library was installed.)
 
 4. pip3 install cardstock  # note that the dependency wxpython can take a very long time to build
-5. run using the newly installed commands cardstock and cardstock_viewer
+5. run using the newly installed cardstock command
 
 ### 3. Or download the latest, pre-built CardStock application for Mac or Windows
 1. Download CardStock for Mac or Windows here: https://github.com/benjie-git/CardStock/releases/latest

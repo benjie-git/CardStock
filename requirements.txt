@@ -1,6 +1,6 @@
 attrdict3
-wxpython
+wxpython>=4.2.2
 PyInstaller==5.13.2
 requests
-simpleaudio
-streamp3[mp3]
+simpleaudio @ git+https://github.com/cexen/py-simple-audio.git
+streamp3

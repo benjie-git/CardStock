@@ -26,7 +26,7 @@ try:
 except ModuleNotFoundError:
     pass
 
-"""PyInstaller commands for building the standalone Designer and Viewer apps on Mac and Windows"""
+"""PyInstaller commands for building the standalone CardStock app on Mac and Windows"""
 
 
 extraModsStr = " ".join([f"--hidden-import {mod}" for mod in EXTRA_MODULES])
@@ -58,20 +58,15 @@ if wx.Platform == "__WXMAC__":
     shutil.move("dist/standalone.app", "dist/containerDir/")
     pyinstall("-y CardStock_Designer_mac.spec")
     shutil.rmtree("dist/containerDir")
-    shutil.rmtree("dist/CardStock_Designer")
-
-    # Build the viewer binary
-    pyinstall("-y CardStock_Viewer_mac.spec")
-    shutil.rmtree("dist/CardStock_Viewer")
+    shutil.rmtree("dist/CardStock")
 
     # Build the package directory
     package_dir = f"dist/CardStock_v{version.VERSION}"
     if os.path.exists(package_dir):
         shutil.rmtree(package_dir)
     os.mkdir(package_dir)
-    shutil.move("dist/CardStock_Designer.app", package_dir)
-    shutil.move("dist/CardStock_Viewer.app", package_dir)
-    shutil.copytree("../examples", package_dir + "/CardStock_Designer.app/Contents/MacOS/examples")
+    shutil.move("dist/CardStock.app", package_dir)
+    shutil.copytree("../examples", package_dir + "/CardStock.app/Contents/MacOS/examples")
     shutil.copy("../README.md", package_dir)
     shutil.copy("../LICENSE", package_dir)
 
@@ -84,17 +79,15 @@ if wx.Platform == "__WXMAC__":
 elif wx.Platform == "__WXMSW__":
     # Build the binaries
     pyinstall(f"--onefile --clean -y --windowed {extraModsStr} -n standalone standalone.py")
-    pyinstall(f"--onefile --clean -y --windowed {extraModsStr} --exclude-module PyInstaller --add-data dist/standalone.exe;. -n CardStock_Designer designer.py")
+    pyinstall(f"--onefile --clean -y --windowed {extraModsStr} --exclude-module PyInstaller --add-data dist/standalone.exe;. -n CardStock designer.py")
     os.remove("dist/standalone.exe")
-    pyinstall(f"--onefile --clean -y --windowed {extraModsStr} -n CardStock_Viewer viewer.py")
 
     # Build the package directory
     package_dir = f"dist/CardStock_v{version.VERSION}"
     if os.path.exists(package_dir):
         shutil.rmtree(package_dir)
     os.mkdir(package_dir)
-    shutil.move("dist/CardStock_Designer.exe", package_dir)
-    shutil.move("dist/CardStock_Viewer.exe", package_dir)
+    shutil.move("dist/CardStock.exe", package_dir)
     shutil.copytree("../examples", package_dir + "/examples")
     shutil.copy("../README.md", package_dir)
     shutil.copy("../LICENSE", package_dir)
@@ -103,24 +96,21 @@ elif wx.Platform == "__WXMSW__":
     shutil.rmtree("__pycache__")
     shutil.rmtree("build")
     os.remove("standalone.spec")
-    os.remove("CardStock_Designer.spec")
-    os.remove("CardStock_Viewer.spec")
+    os.remove("CardStock.spec")
 
 
 else:
     # Build the binaries
     pyinstall(f"--onefile --clean -y --windowed {extraModsStr} -n standalone standalone.py")
-    pyinstall(f"--onefile --clean -y --windowed {extraModsStr} --exclude-module PyInstaller --add-data dist/standalone:. -n CardStock_Designer designer.py")
+    pyinstall(f"--onefile --clean -y --windowed {extraModsStr} --exclude-module PyInstaller --add-data dist/standalone:. -n CardStock designer.py")
     os.remove("dist/standalone")
-    pyinstall(f"--onefile --clean -y --windowed {extraModsStr} -n CardStock_Viewer viewer.py")
 
     # Build the package directory
     package_dir = f"dist/CardStock_v{version.VERSION}"
     if os.path.exists(package_dir):
         shutil.rmtree(package_dir)
     os.mkdir(package_dir)
-    shutil.move("dist/CardStock_Designer", package_dir)
-    shutil.move("dist/CardStock_Viewer", package_dir)
+    shutil.move("dist/CardStock", package_dir)
     shutil.copytree("../examples", package_dir + "/examples")
     shutil.copy("../README.md", package_dir)
     shutil.copy("../LICENSE", package_dir)
@@ -129,5 +119,4 @@ else:
     shutil.rmtree("__pycache__")
     shutil.rmtree("build")
     os.remove("standalone.spec")
-    os.remove("CardStock_Designer.spec")
-    os.remove("CardStock_Viewer.spec")
+    os.remove("CardStock.spec")
