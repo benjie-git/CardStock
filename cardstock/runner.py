@@ -1056,7 +1056,7 @@ class Runner():
                             decoded.extend(chunk)
                         s = simpleaudio.WaveObject(decoded, decoder.num_channels, 2, decoder.sample_rate)
                 else:
-                    s = None
+                    raise ValueError("play_sound(): Python module streamp3 not found, so playing mp3 files is not supported.")
             else:
                 s = simpleaudio.WaveObject.from_wave_file(filepath)
             if s:
