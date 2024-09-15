@@ -60,7 +60,12 @@ For mp3 playback support, you'll need to install the lame package (mp3 decoder),
 ## Installation
 You can either:
 
-### 1. Run it from source:
+### 1. Download the latest, pre-built CardStock application for Mac or Windows
+#### (This is strongly recommended for Windows users, as building from source is quite an adventure.)
+1. Download CardStock for Mac or Windows here: https://github.com/benjie-git/CardStock/releases/latest
+2. Note that the pre-built Windows app is not yet code-signed, so Windows may complain the first time you open the app. If a window appears saying "Windows protected your PC", click the More Info link at the end of the warning paragraph, and then the "Run Anyway" button that appears at the bottom of the window.
+
+### 2. Run it from source:
 1. install python3
 2. Linux-only: apt install libasound2-dev lame libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
 3. Mac-only: brew install lame
@@ -69,7 +74,7 @@ You can either:
 6. pip3 install --force git+https://github.com/cexen/py-simple-audio.git  # The official simpleaudio package is no longer maintained.  This fork includes a fix for compatability with python 3.12+
 7. To include mp3 support: pip3 install streamp3
 
-   (Note that this may require setting LDFLAGS and CPPFLAGS to allow finding the lame header and library files.
+   Note that this may require setting LDFLAGS and CPPFLAGS to allow finding the lame header and library files.
 
     You may need to run this as something like
 
@@ -77,18 +82,18 @@ You can either:
 
     `CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib pip3 install streamp3`
 
-    depending on where the lame library was installed.)
+    depending on where the lame library was installed.
    
 7. download or clone this repository
 8. run python3 designer.py
 9. optionally run build.py to create your own standalone applications for the CardStock Designer application.
 
-### 2. Install using pip/pypi:
+### 3. Install using pip/pypi:
 1. Linux-only: apt install libasound2-dev lame libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
 2. Mac-only: brew install lame
 3. To include mp3 support: pip3 install streamp3
 
-   (Note that this may require setting LDFLAGS and CPPFLAGS to allow finding the lame header and library files.
+   Note that this may require setting LDFLAGS and CPPFLAGS to allow finding the lame header and library files.
 
     You may need to run this as something like
 
@@ -96,14 +101,10 @@ You can either:
 
     `CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib pip3 install streamp3`
 
-    depending on where the lame library was installed.)
+    depending on where the lame library was installed.
 
 4. pip3 install cardstock  # note that the dependency wxpython can take a very long time to build
 5. run using the newly installed cardstock command
-
-### 3. Or download the latest, pre-built CardStock application for Mac or Windows
-1. Download CardStock for Mac or Windows here: https://github.com/benjie-git/CardStock/releases/latest
-2. Note that the pre-built Windows app is not yet code-signed, so Windows will complain the first time you open the app. If a window appears saying "Windows protected your PC", click the More Info link at the end of the warning paragraph, and then the "Run Anyway" button that appears at the bottom of the window.
 
 
 ## Reference
