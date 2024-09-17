@@ -39,7 +39,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 * Allow looping sounds, and playing synthesized notes.
 * Add more tutorials for CardStock, and for learning python through CardStock.
 * Allow filling shapes with color gradients.
-* Add app icons for the CardStock Designer app.
+* Add an app icon.
 * Improve bounce physics and collision detection performance.
 
 ________
