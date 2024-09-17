@@ -45,6 +45,7 @@ class PythonEditor(stc.StyledTextCtrl):
         self.currentHandler = None
         self.cPanel = cPanel
         self.returnHandler = None
+        self.currentSyntaxError = None
 
         self.analyzer = self.stackManager.analyzer
         if cPanel:
@@ -162,16 +163,20 @@ class PythonEditor(stc.StyledTextCtrl):
     def PyEditorOnMouseDown(self, event):
         if self.cPanel:
             currentPos = self.HitTestPos(event.GetPosition())[1]
-            wordEndPos = self.WordEndPosition(currentPos, True)
-            lineNum = self.LineFromPosition(currentPos)
-            lineStartPos = self.GetLineEndPosition(lineNum) - self.GetLineLength(lineNum)
-            leadingStr = self.GetRange(lineStartPos, wordEndPos)
-            (parentType, name, objType, obj) = self.analyzer.GetTypeFromLeadingString(self.currentModel, leadingStr)
-            if self.GetRange(wordEndPos, wordEndPos+1) == "(":
-                name += "()"
-            helpText = helpDataGen.HelpData.GetHelpForName(name, parentType)
-            if helpText:
+            if self.currentSyntaxError and self.IndicatorAllOnFor(currentPos):
+                helpText = f"<b>SyntaxError</b>: {self.currentSyntaxError}"
                 self.cPanel.UpdateHelpText(helpText)
+            else:
+                wordEndPos = self.WordEndPosition(currentPos, True)
+                lineNum = self.LineFromPosition(currentPos)
+                lineStartPos = self.GetLineEndPosition(lineNum) - self.GetLineLength(lineNum)
+                leadingStr = self.GetRange(lineStartPos, wordEndPos)
+                (parentType, name, objType, obj) = self.analyzer.GetTypeFromLeadingString(self.currentModel, leadingStr)
+                if self.GetRange(wordEndPos, wordEndPos+1) == "(":
+                    name += "()"
+                helpText = helpDataGen.HelpData.GetHelpForName(name, parentType)
+                if helpText:
+                    self.cPanel.UpdateHelpText(helpText)
         event.Skip()
 
     def PyEditorOnZoom(self, event):
@@ -236,10 +241,12 @@ class PythonEditor(stc.StyledTextCtrl):
     def ClearSyntaxErrorMarks(self):
         self.SetIndicatorCurrent(2)
         self.IndicatorClearRange(0, self.GetLastPosition())
+        self.currentSyntaxError = None
 
-    def MarkSyntaxError(self, startPos, length):
+    def MarkSyntaxError(self, startPos, length, error):
         self.SetIndicatorCurrent(2)
         self.IndicatorFillRange(startPos, length)
+        self.currentSyntaxError = error
 
     def ScanFinished(self):
         if self.currentModel and self.cPanel:
@@ -253,7 +260,7 @@ class PythonEditor(stc.StyledTextCtrl):
                 lineStartPos = self.GetLineEndPosition(lineNum)-self.GetLineLength(lineNum)
                 startPos = lineStartPos + linePos-1
                 remaining = self.GetLastPosition() - (startPos)
-                self.MarkSyntaxError(startPos, min(2, remaining))
+                self.MarkSyntaxError(startPos, min(2, remaining), e[4])
 
     def UpdateAC(self):
         if not self.IsEditable():

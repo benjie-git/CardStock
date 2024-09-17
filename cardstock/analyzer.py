@@ -330,7 +330,7 @@ class CodeAnalyzer(object):
             lineStr = e.args[1][3]
             lineNum = e.args[1][1]
             linePos = e.args[1][2]
-            self.syntaxErrors[path] = (e.args[0], lineStr, lineNum, linePos)
+            self.syntaxErrors[path] = (e.args[0], lineStr, lineNum, linePos, e)
 
             # Syntax error?  Try again with all code in this handler, up to right before the bad line,
             # to make sure we find any variables we can, that appear before the bad line
