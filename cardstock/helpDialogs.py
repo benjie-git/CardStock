@@ -12,7 +12,7 @@ import version
 import platform
 from helpDataGen import HelpData, HelpDataTypes
 
-OUTPUT_HTML = False
+OUTPUT_HTML = True
 
 
 class CardStockAbout(wx.Dialog):
@@ -122,7 +122,7 @@ with a Border, a Borderless button, a Checkbox, or a Radio button.
 </p>
 <p>The next six tools are the drawing tools, which let you draw with a pen, drag out an oval, a rectangle, a 
 rounded rectangle, a polygon, or a line.  While creating a shape, you can hold down the Shift key to constrain ovals 
-and rectangles to being circles and squares, and to make new lines stay perfectly horizontal, vertical, or 45° 
+and rectangles to being circles and squares, and to make new lines stay perfectly horizontal, vertical, or 45 degrees 
 diagonal. After creating an object, CardStock will switch back to the Hand tool.  Pressing Escape in the Designer will 
 also always return you to the Hand tool.</p>
  
