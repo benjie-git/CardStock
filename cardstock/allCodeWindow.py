@@ -65,20 +65,55 @@ class AllCodeWindow(wx.Frame):
         self.textBox.SetEditable(False)
 
     def AppendOnSetupCode(self, obj):
-        if obj.type != "stack":
-            if obj.type == "card":
-                name = obj.GetProperty("name")
-                card = obj
-            else:
-                card = obj.GetCard()
-                name = card.GetProperty("name") + "." + obj.GetProperty("name")
+        if obj.type == "stack":
+            name = "stack"
+            card = None
+        elif obj.type == "card":
+            name = obj.GetProperty("name")
+            card = obj
+        else:
+            card = obj.GetCard()
+            name = card.GetProperty("name") + "." + obj.GetProperty("name")
 
-            handlerName = "on_setup"
+        handlerName = "on_setup"
+        displayName = UiView.handlerDisplayNames[handlerName]
+        handlerCode = obj.GetHandler(handlerName)
+        if handlerCode:
+            self.text += f"# {name}\n"
+            self.numLines += 1
+
+            self.methodStartLines.append((self.numLines, card, obj, handlerName))
+            code = f"def {displayName}\n"
+            lines = handlerCode.splitlines(False)
+            code += "\n".join(["\t"+line for line in lines])
+            self.text += code + "\n\n"
+            self.numLines += 1 + len(lines) + 1
+
+        for child in obj.childModels:
+            self.AppendOnSetupCode(child)
+
+    def AppendNonSetupCode(self, obj):
+        if obj.type == "stack":
+            name = "stack"
+            card = None
+        elif obj.type == "card":
+            name = obj.GetProperty("name")
+            card = obj
+        else:
+            card = obj.GetCard()
+            name = card.GetProperty("name") + "." + obj.GetProperty("name")
+
+        didAddComment = False
+        for handlerName in obj.handlers:
+            if handlerName == "on_setup": continue
+
             displayName = UiView.handlerDisplayNames[handlerName]
             handlerCode = obj.GetHandler(handlerName)
             if handlerCode:
-                self.text += f"# {name}\n"
-                self.numLines += 1
+                if not didAddComment:
+                    self.text += f"# {name}\n"
+                    didAddComment = True
+                    self.numLines += 1
 
                 self.methodStartLines.append((self.numLines, card, obj, handlerName))
                 code = f"def {displayName}\n"
@@ -86,37 +121,6 @@ class AllCodeWindow(wx.Frame):
                 code += "\n".join(["\t"+line for line in lines])
                 self.text += code + "\n\n"
                 self.numLines += 1 + len(lines) + 1
-
-        for child in obj.childModels:
-            self.AppendOnSetupCode(child)
-
-    def AppendNonSetupCode(self, obj):
-        if obj.type != "stack":
-            if obj.type == "card":
-                name = obj.GetProperty("name")
-                card = obj
-            else:
-                card = obj.GetCard()
-                name = card.GetProperty("name") + "." + obj.GetProperty("name")
-
-            didAddComment = False
-            for handlerName in obj.handlers:
-                if handlerName == "on_setup": continue
-
-                displayName = UiView.handlerDisplayNames[handlerName]
-                handlerCode = obj.GetHandler(handlerName)
-                if handlerCode:
-                    if not didAddComment:
-                        self.text += f"# {name}\n"
-                        didAddComment = True
-                        self.numLines += 1
-
-                    self.methodStartLines.append((self.numLines, card, obj, handlerName))
-                    code = f"def {displayName}\n"
-                    lines = handlerCode.splitlines(False)
-                    code += "\n".join(["\t"+line for line in lines])
-                    self.text += code + "\n\n"
-                    self.numLines += 1 + len(lines) + 1
         for child in obj.childModels:
             self.AppendNonSetupCode(child)
 
@@ -126,7 +130,10 @@ class AllCodeWindow(wx.Frame):
         self.textBox.ClearSyntaxErrorMarks()
         for path, e in self.analyzer.syntaxErrors.items():
             for info in self.methodStartLines:
-                infoPath = info[2].GetPath() + "." + info[3]
+                if info[2]:
+                    infoPath = info[2].GetPath() + "." + info[3]
+                else:
+                    infoPath = info[3]
                 if infoPath == path:
                     lineNum = e[2] + info[0]
                     linePos = e[3] - 1
@@ -149,7 +156,10 @@ class AllCodeWindow(wx.Frame):
         event.Skip()
 
     def JumpToCode(self, card, obj, handlerName, lineNum):
-        self.designer.stackManager.LoadCardAtIndex(card.parent.childModels.index(card))
+        if card:
+            self.designer.stackManager.LoadCardAtIndex(card.parent.childModels.index(card))
+        else:
+            self.designer.stackManager.SelectUiView(self.designer.stackManager.uiStack)
         uiView = self.designer.stackManager.GetUiViewByModel(obj)
         self.designer.stackManager.SelectUiView(uiView)
         self.designer.cPanel.UpdateHandlerForUiViews([uiView], None)
