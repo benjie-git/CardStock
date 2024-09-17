@@ -12,7 +12,7 @@ import version
 import platform
 from helpDataGen import HelpData, HelpDataTypes
 
-OUTPUT_HTML = True
+OUTPUT_HTML = False
 
 
 class CardStockAbout(wx.Dialog):
