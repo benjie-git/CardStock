@@ -28,7 +28,6 @@ class UiButton(UiView):
         self.stackManager = stackManager
         super().__init__(parent, stackManager, model, None)
         self.mouseDownInside = False
-        self.mouseStillInside = False
         if not UiButton.radioOnBmp:
             UiButton.radioOnBmp = radio_on.GetBitmap()
             UiButton.radioOffBmp = radio_off.GetBitmap()
@@ -67,7 +66,7 @@ class UiButton(UiView):
         style = self.model.GetProperty("style")
         if not self.stackManager.isEditing:
             self.mouseDownInside = True
-            self.mouseStillInside = True
+            self.model.mouseStillInside = True
             self.stackManager.view.Refresh()
             if style == "Radio":
                 self.model.SetProperty("is_selected", True)
@@ -77,13 +76,13 @@ class UiButton(UiView):
 
     def OnMouseEnter(self, event):
         if self.mouseDownInside:
-            self.mouseStillInside = True
+            self.model.mouseStillInside = True
             self.stackManager.view.Refresh()
         super().OnMouseEnter(event)
 
     def OnMouseExit(self, event):
         if self.mouseDownInside:
-            self.mouseStillInside = False
+            self.model.mouseStillInside = False
             self.stackManager.view.Refresh()
         super().OnMouseExit(event)
 
@@ -95,17 +94,18 @@ class UiButton(UiView):
 
     def OnMouseUp(self, event):
         if self.stackManager and not self.stackManager.isEditing:
-            if self.mouseDownInside and self.mouseStillInside:
+            if self.mouseDownInside and self.model.mouseStillInside:
                 if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_click"):
                     self.stackManager.runner.RunHandler(self.model, "on_click", event)
                 self.mouseDownInside = False
+                self.model.mouseStillInside = False
                 self.stackManager.view.Refresh()
         super().OnMouseUp(event)
 
     def Paint(self, gc):
         style = self.model.GetProperty("style")
 
-        hilighted = self.mouseDownInside and self.mouseStillInside
+        hilighted = self.mouseDownInside and self.model.mouseStillInside
         fd = self.stackManager.view.FromDIP
         td = self.stackManager.view.ToDIP
         if style == "Border":
@@ -188,6 +188,7 @@ class ButtonModel(ViewModel):
         super().__init__(stackManager)
         self.type = "button"
         self.proxyClass = Button
+        self.mouseStillInside = False
 
         # Add custom handlers to the top of the list
         handlers = {"on_setup": "",
@@ -299,6 +300,12 @@ class Button(ViewProxy):
         if not model: return
         if model.GetProperty("style") not in ("Border", "Borderless"):
             model.SetProperty("is_selected", bool(val))
+
+    @property
+    def is_pressed(self):
+        model = self._model
+        if not model: return False
+        return model.mouseStillInside
 
     def click(self):
         model = self._model

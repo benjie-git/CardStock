@@ -25,6 +25,7 @@ import queue
 import sanitizer
 from enum import Enum
 import simpleaudio
+import tones
 import consoleWindow
 
 try:
@@ -122,6 +123,8 @@ class Runner():
             "open_url": self.open_url,
             "request_url": self.request_url,
             "play_sound": self.play_sound,
+            "play_tone": self.play_tone,
+            "play_note": self.play_note,
             "stop_sound": self.stop_sound,
             "is_key_pressed": self.is_key_pressed,
             "is_mouse_pressed": self.is_mouse_pressed,
@@ -1032,7 +1035,35 @@ class Runner():
                 f(response.status_code, response.text)
             CodeRunnerThread(target=do_request).start()
 
-    def play_sound(self, filepath):
+    def play_tone(self, frequency, duration, wait=False):
+        if not isinstance(frequency, (int, float)):
+            raise TypeError('frequency must be a number')
+        if not isinstance(duration, (int, float)):
+            raise TypeError('duration must be a number')
+        if duration > 60:
+            raise ValueError('duration must be less than one minute')
+
+        filepath = f"::TONE::{frequency}::{duration}"
+
+        if filepath in self.soundCache:
+            s = self.soundCache[filepath]
+        else:
+            b = tones.get_tone_data(frequency, duration)
+            s = simpleaudio.WaveObject(b, 1, 2, 44100)
+            self.soundCache[filepath] = s
+        if s:
+            p = s.play()
+            if wait:
+                p.wait_done()
+
+
+    def play_note(self, note, duration, wait=False):
+        if not isinstance(note, str) or not re.match(r'[a-gA-G]#?[1-6]*', note):
+            raise TypeError(
+                'note must be a note name of the format "<Note letter>" optionally followed by a "#" and optional octave number 1-6.  For example: "A", "C#", "D2", or "F#3".')
+        self.play_tone(tones.note_frequency(note), duration, wait)
+
+    def play_sound(self, filepath, wait=False):
         if not isinstance(filepath, str):
             raise TypeError("play_sound(): filepath must be a string")
 
@@ -1065,7 +1096,9 @@ class Runner():
                 raise ValueError("play_sound(): Couldn't read audio file at '" + filepath + "'")
 
         if s:
-            s.play()
+            p = s.play()
+            if wait:
+                p.wait_done()
 
     def stop_sound(self):
         simpleaudio.stop_all()

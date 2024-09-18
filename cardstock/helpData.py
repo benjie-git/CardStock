@@ -162,9 +162,29 @@ class HelpDataGlobals():
                                 "# Request the text from a URL, with parameters, and wait until we get it back<br/>"
                                 "jokeJson = request_url(\"https://geek-jokes.sameerkumar.website/api\", params={\"format\": \"json\"})"},
         "play_sound": {"args": {"file": {"type": "string",
-                                         "info": "This is the filename of the .wav format audio file to play, relative to where the stack file lives."}},
+                                         "info": "This is the filename of the .wav format audio file to play, relative to where the stack file lives."},
+                                "wait": {"type": "bool",
+                                         "info": "Optional parameter.  If set to True, this call won't return until the sound is done playing.  Defaults to False, returning immediately."}},
                        "return": None,
                        "info": "Starts playing the .wav formatted sound file at location <b>file</b>."},
+        "play_tone": {"args": {"frequency": {"type": "float",
+                                         "info": "The frequency of the tone to play in Hz.  Middle C is 440."},
+                               "duration": {"type": "float",
+                                              "info": "The number of seconds to play this tone."},
+                               "wait": {"type": "bool",
+                                        "info": "Optional parameter.  If set to True, this call won't return until the tone is done playing.  Defaults to False, returning immediately."}},
+                       "return": None,
+                       "info": "Starts playing the tone at the given <b>frequency</b>, for the given <b>duration</b>."},
+        "play_note": {"args": {"note": {"type": "string",
+                                         "info": "The name of the note to play.  Note names use the format: note letter, "
+                                                 "followed by an optional # for sharp, followed by an optional octave number.  "
+                                                 "For example: \"A\", \"C#\", \"D2\", or \"F#3\"."},
+                               "duration": {"type": "float",
+                                              "info": "The number of seconds to play this tone."},
+                               "wait": {"type": "bool",
+                                        "info": "Optional parameter.  If set to True, this call won't return until the note is done playing.  Defaults to False, returning immediately."}},
+                      "return": None,
+                       "info": "Starts playing the tone at the given <b>frequency</b>, for the given <b>duration</b>."},
         "stop_sound": {"args": {},
                        "return": None,
                        "info": "Stops all currently playing sounds."},
@@ -518,7 +538,9 @@ class HelpDataButton():
         "is_selected": {"type": "bool",
                         "info": "For Border and Borderless style buttons, this is always False.  For Checkbox style "
                                 "buttons, this is True when the Checkbox is checked.  For Radio buttons, this is True "
-                                "when this Radio button is the selected button in its group."}
+                                "when this Radio button is the selected button in its group."},
+        "is_pressed": {"type": "bool",
+                        "info": "This is True while the button is actively being pressed by the mouse / touch screen."}
     }
 
     methods = {
