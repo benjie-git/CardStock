@@ -165,7 +165,7 @@ class PythonEditor(stc.StyledTextCtrl):
             currentPos = self.HitTestPos(event.GetPosition())[1]
             if self.currentSyntaxError and self.IndicatorAllOnFor(currentPos):
                 helpText = f"<b>SyntaxError</b>: {self.currentSyntaxError}"
-                self.cPanel.UpdateHelpText(helpText)
+                self.cPanel.UpdateHelpText(helpText, isSyntaxError=True)
             else:
                 wordEndPos = self.WordEndPosition(currentPos, True)
                 lineNum = self.LineFromPosition(currentPos)
@@ -242,6 +242,8 @@ class PythonEditor(stc.StyledTextCtrl):
         self.SetIndicatorCurrent(2)
         self.IndicatorClearRange(0, self.GetLastPosition())
         self.currentSyntaxError = None
+        if self.cPanel.isShowingSyntaxError:
+            self.cPanel.UpdateHelpText(None)
 
     def MarkSyntaxError(self, startPos, length, error):
         self.SetIndicatorCurrent(2)

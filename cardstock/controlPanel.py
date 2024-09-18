@@ -47,6 +47,7 @@ class ControlPanel(wx.Panel):
         self.fill_color = "white"
         self.pen_thickness = 4
         self.isContextHelpEnabled = True
+        self.isShowingSyntaxError = False
         numCols = 12
         spacing = 6
 
@@ -180,11 +181,13 @@ class ControlPanel(wx.Panel):
     def IsContextHelpShown(self):
         return self.isContextHelpEnabled
 
-    def UpdateHelpText(self, helpText):
+    def UpdateHelpText(self, helpText, isSyntaxError=False):
         if helpText:
             self.panelHelp.SetPage("<body bgColor='#EEEEEE'>" + helpText + "</body>")
+            self.isShowingSyntaxError = isSyntaxError
         else:
             self.panelHelp.SetPage("<body bgColor='#EEEEEE'></body>")
+            self.isShowingSyntaxError = False
 
     def SelectInInspectorForPropertyName(self, key, selectStart, selectEnd):
         if len(self.lastSelectedUiViews) == 1:
