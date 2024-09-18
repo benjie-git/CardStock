@@ -109,9 +109,9 @@ class FindEngine(object):
 
             flags = (re.MULTILINE) if (findMatchCase) else (re.IGNORECASE | re.MULTILINE)
             if findWholeWord:
-                p = re.compile(r'\b{searchStr}\b'.format(searchStr=findStr), flags)
+                p = re.compile(r'\b{searchStr}\b'.format(searchStr=re.escape(findStr)), flags)
             else:
-                p = re.compile(r'{searchStr}'.format(searchStr=findStr), flags)
+                p = re.compile(r'{searchStr}'.format(searchStr=re.escape(findStr)), flags)
 
             start = -1
             end = -1
@@ -155,9 +155,9 @@ class FindEngine(object):
 
             flags = (re.MULTILINE) if (findMatchCase) else (re.IGNORECASE | re.MULTILINE)
             if findWholeWord:
-                p = re.compile(r'\b{searchStr}\b'.format(searchStr=findStr), flags)
+                p = re.compile(r'\b{searchStr}\b'.format(searchStr=re.escape(findStr)), flags)
             else:
-                p = re.compile(r'{searchStr}'.format(searchStr=findStr), flags)
+                p = re.compile(r'{searchStr}'.format(searchStr=re.escape(findStr)), flags)
 
             matches = [m for m in p.finditer(text)]
             for match in reversed(matches):
