@@ -36,7 +36,7 @@ The guiding principles behind my vision for CardStock are the following, in orde
 
 ### Future Plans
 * Add a built-in library of sounds to use, and the ability to record your own sounds.
-* Allow looping sounds, and playing synthesized notes.
+* Allow looping sounds.
 * Add more tutorials for CardStock, and for learning python through CardStock.
 * Allow filling shapes with color gradients.
 * Add an app icon.
