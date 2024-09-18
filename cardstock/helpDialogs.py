@@ -323,8 +323,7 @@ you can open the All Code window from the Help menu.  Clicking a line in the All
 line of that object's event code in the code editor.  (This feature is not currently available on cardstock.run.)</p>
 
 <p>Note that CardStock has a full Find and Replace system, that lets you find, and optionally replace, strings in your
-code and properties throughout your whole stack.  It allows finding using python style regular expression syntax, if you
-want to use that to search for more complex expressions.</p>
+code and properties throughout your whole stack.</p>
 
 <br/><br/>
 
