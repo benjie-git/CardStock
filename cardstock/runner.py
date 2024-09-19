@@ -1037,11 +1037,9 @@ class Runner():
 
     def play_tone(self, frequency, duration, wait=False):
         if not isinstance(frequency, (int, float)):
-            raise TypeError('frequency must be a number')
-        if not isinstance(duration, (int, float)):
-            raise TypeError('duration must be a number')
-        if duration > 60:
-            raise ValueError('duration must be less than one minute')
+            raise TypeError('play_tone(): frequency must be a number')
+        if not isinstance(duration, (int, float)) or  duration <= 0 or duration > 60:
+            raise ValueError('play_tone(): duration must be a positive number less than 60 (one minute)')
 
         filepath = f"::TONE::{frequency}::{duration}"
 
@@ -1059,8 +1057,11 @@ class Runner():
 
     def play_note(self, note, duration, wait=False):
         if not isinstance(note, str) or not re.match(r'[a-gA-G]#?[1-6]*', note):
-            raise TypeError(
-                'note must be a note name of the format "<Note letter>" optionally followed by a "#" and optional octave number 1-6.  For example: "A", "C#", "D2", or "F#3".')
+            raise TypeError('play_note(): note must be a note name of the format "<Note letter>" optionally followed '
+                            'by a "#" and optional octave number 1-6.  For example: "A", "C#", "D2", or "F#3".')
+        if not isinstance(duration, (int, float)) or  duration <= 0 or duration > 60:
+            raise ValueError('play_note(): duration must be a positive number less than 60 (one minute)')
+
         self.play_tone(tones.note_frequency(note), duration, wait)
 
     def play_sound(self, filepath, wait=False):
