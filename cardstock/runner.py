@@ -84,6 +84,7 @@ class Runner():
         self.lastCard = None
         self.stopHandlingMouseEvent = False
         self.shouldUpdateVars = False
+        self.tonePlayers = {}
 
         self.stackSetupValue = None
         self.stackReturnQueue = queue.Queue()
@@ -1038,10 +1039,17 @@ class Runner():
     def play_tone(self, frequency, duration, wait=False):
         if not isinstance(frequency, (int, float)):
             raise TypeError('play_tone(): frequency must be a number')
-        if not isinstance(duration, (int, float)) or  duration <= 0 or duration > 60:
-            raise ValueError('play_tone(): duration must be a positive number less than 60 (one minute)')
+        if not isinstance(duration, (int, float)) or duration > 60:
+            raise ValueError('play_tone(): duration must be a number less than 60 (one minute)')
 
         filepath = f"::TONE::{frequency}::{duration}"
+
+        if frequency in self.tonePlayers:
+            self.tonePlayers[frequency].stop()
+            del self.tonePlayers[frequency]
+
+        if duration <= 0:
+            return
 
         if filepath in self.soundCache:
             s = self.soundCache[filepath]
@@ -1051,16 +1059,18 @@ class Runner():
             self.soundCache[filepath] = s
         if s:
             p = s.play()
+            self.tonePlayers[frequency] = p
             if wait:
                 p.wait_done()
+                del self.tonePlayers[frequency]
 
 
     def play_note(self, note, duration, wait=False):
         if not isinstance(note, str) or not re.match(r'[a-gA-G]#?[1-6]*', note):
             raise TypeError('play_note(): note must be a note name of the format "<Note letter>" optionally followed '
                             'by a "#" and optional octave number 1-6.  For example: "A", "C#", "D2", or "F#3".')
-        if not isinstance(duration, (int, float)) or  duration <= 0 or duration > 60:
-            raise ValueError('play_note(): duration must be a positive number less than 60 (one minute)')
+        if not isinstance(duration, (int, float)) or duration > 60:
+            raise ValueError('play_note(): duration must be a number less than 60 (one minute)')
 
         self.play_tone(tones.note_frequency(note), duration, wait)
 

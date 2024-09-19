@@ -170,7 +170,7 @@ class HelpDataGlobals():
         "play_tone": {"args": {"frequency": {"type": "float",
                                          "info": "The frequency of the tone to play in Hz.  Middle C is 440."},
                                "duration": {"type": "float",
-                                              "info": "The number of seconds to play this tone."},
+                                              "info": "The number of seconds to play this tone, or 0 to stop it."},
                                "wait": {"type": "bool",
                                         "info": "Optional parameter.  If set to True, this call won't return until the tone is done playing.  Defaults to False, returning immediately."}},
                        "return": None,
@@ -180,7 +180,7 @@ class HelpDataGlobals():
                                                  "followed by an optional # for sharp, followed by an optional octave number.  "
                                                  "For example: \"A\", \"C#\", \"D2\", or \"F#3\"."},
                                "duration": {"type": "float",
-                                              "info": "The number of seconds to play this tone."},
+                                              "info": "The number of seconds to play this note, or 0 to stop it."},
                                "wait": {"type": "bool",
                                         "info": "Optional parameter.  If set to True, this call won't return until the note is done playing.  Defaults to False, returning immediately."}},
                       "return": None,
