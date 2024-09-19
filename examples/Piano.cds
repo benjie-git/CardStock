@@ -47,7 +47,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white",
             "corner_radius": 8
@@ -84,7 +84,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white",
             "corner_radius": 8
@@ -121,7 +121,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white",
             "corner_radius": 8
@@ -158,7 +158,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white",
             "corner_radius": 8
@@ -195,7 +195,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white",
             "corner_radius": 8
@@ -232,7 +232,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white",
             "corner_radius": 8
@@ -269,7 +269,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white",
             "corner_radius": 8
@@ -306,7 +306,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white",
             "corner_radius": 8
@@ -330,12 +330,12 @@
           "properties": {
             "name": "roundrect_1",
             "size": [
-              36,
-              90
+              32,
+              100
             ],
             "position": [
-              41.0,
-              138.0
+              43.0,
+              128.0
             ],
             "originalSize": [
               30,
@@ -343,7 +343,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "#000000",
             "corner_radius": 8
@@ -367,12 +367,12 @@
           "properties": {
             "name": "roundrect_2",
             "size": [
-              36,
-              90
+              32,
+              100
             ],
             "position": [
-              86.0,
-              138.0
+              88.0,
+              128.0
             ],
             "originalSize": [
               30,
@@ -380,7 +380,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "#000000",
             "corner_radius": 8
@@ -404,12 +404,12 @@
           "properties": {
             "name": "roundrect_3",
             "size": [
-              36,
-              90
+              32,
+              100
             ],
             "position": [
-              176.0,
-              138.0
+              178.0,
+              128.0
             ],
             "originalSize": [
               30,
@@ -417,7 +417,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "#000000",
             "corner_radius": 8
@@ -441,12 +441,12 @@
           "properties": {
             "name": "roundrect_4",
             "size": [
-              36,
-              90
+              32,
+              100
             ],
             "position": [
-              221.0,
-              138.0
+              223.0,
+              128.0
             ],
             "originalSize": [
               30,
@@ -454,7 +454,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "#000000",
             "corner_radius": 8
@@ -478,12 +478,12 @@
           "properties": {
             "name": "roundrect_5",
             "size": [
-              36,
-              90
+              32,
+              100
             ],
             "position": [
-              266.0,
-              138.0
+              268.0,
+              128.0
             ],
             "originalSize": [
               30,
@@ -491,7 +491,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "#000000",
             "corner_radius": 8
@@ -528,7 +528,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white",
             "corner_radius": 8
@@ -565,7 +565,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white",
             "corner_radius": 8
@@ -602,7 +602,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white",
             "corner_radius": 8
@@ -639,7 +639,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white",
             "corner_radius": 8
@@ -676,7 +676,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white",
             "corner_radius": 8
@@ -713,7 +713,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white",
             "corner_radius": 8
@@ -750,7 +750,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "white",
             "corner_radius": 8
@@ -774,12 +774,12 @@
           "properties": {
             "name": "roundrect_22",
             "size": [
-              36,
-              90
+              32,
+              100
             ],
             "position": [
-              356.0,
-              138.0
+              358.0,
+              128.0
             ],
             "originalSize": [
               30,
@@ -787,7 +787,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "#000000",
             "corner_radius": 8
@@ -811,12 +811,12 @@
           "properties": {
             "name": "roundrect_23",
             "size": [
-              36,
-              90
+              32,
+              100
             ],
             "position": [
-              401.0,
-              138.0
+              403.0,
+              128.0
             ],
             "originalSize": [
               30,
@@ -824,7 +824,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "#000000",
             "corner_radius": 8
@@ -848,12 +848,12 @@
           "properties": {
             "name": "roundrect_24",
             "size": [
-              36,
-              90
+              32,
+              100
             ],
             "position": [
-              491.0,
-              138.0
+              493.0,
+              128.0
             ],
             "originalSize": [
               30,
@@ -861,7 +861,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "#000000",
             "corner_radius": 8
@@ -885,12 +885,12 @@
           "properties": {
             "name": "roundrect_25",
             "size": [
-              36,
-              90
+              32,
+              100
             ],
             "position": [
-              536.0,
-              138.0
+              538.0,
+              128.0
             ],
             "originalSize": [
               30,
@@ -898,7 +898,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "#000000",
             "corner_radius": 8
@@ -922,12 +922,12 @@
           "properties": {
             "name": "roundrect_26",
             "size": [
-              36,
-              90
+              32,
+              100
             ],
             "position": [
-              581.0,
-              138.0
+              583.0,
+              128.0
             ],
             "originalSize": [
               30,
@@ -935,7 +935,7 @@
             ],
             "pen_color": "black",
             "pen_style": "Solid",
-            "pen_thickness": 4,
+            "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "#000000",
             "corner_radius": 8
@@ -955,5 +955,5 @@
     }
   ],
   "CardStock_stack_format": 10,
-  "CardStock_stack_version": "0.99.6.2"
+  "CardStock_stack_version": "0.99.7"
 }
