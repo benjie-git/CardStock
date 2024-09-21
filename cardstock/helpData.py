@@ -168,7 +168,7 @@ class HelpDataGlobals():
                        "return": None,
                        "info": "Starts playing the .wav formatted sound file at location <b>file</b>."},
         "play_tone": {"args": {"frequency": {"type": "float",
-                                         "info": "The frequency of the tone to play in Hz.  Middle C is 440."},
+                                         "info": "The frequency of the tone to play in Hz."},
                                "duration": {"type": "float",
                                               "info": "The number of seconds to play this tone, or 0 to stop it."},
                                "wait": {"type": "bool",
