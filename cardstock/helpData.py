@@ -176,7 +176,7 @@ class HelpDataGlobals():
                        "return": None,
                        "info": "Starts playing the tone at the given <b>frequency</b>, for the given <b>duration</b>."},
         "play_note": {"args": {"note": {"type": "string",
-                                         "info": "The name of the note to play.  Note names use the format: note letter, "
+                                         "info": "The name of the note to play.  Note names use the format: \"Note letter\", "
                                                  "followed by an optional # for sharp, followed by an optional octave number.  "
                                                  "For example: \"A\", \"C#\", \"D2\", or \"F#3\"."},
                                "duration": {"type": "float",
@@ -185,6 +185,16 @@ class HelpDataGlobals():
                                         "info": "Optional parameter.  If set to True, this call won't return until the note is done playing.  Defaults to False, returning immediately."}},
                       "return": None,
                        "info": "Starts playing the tone at the given <b>frequency</b>, for the given <b>duration</b>."},
+        "play_notes": {"args": {"notes": {"type": "string",
+                                          "info": 'notes must be a string of note names, separated by spaces, each of the format "Note letter" optionally followed '
+                                                  'by a "#" and optional octave number 1-6.  Each note name can also be followed by an optional note length after a "/" character.  '
+                                                  'For example: "A3/8 C#3/2" would play an eighth note at A3 followed by a half note at C#3.  Notes are quarter notes by default.'},
+                                "tempo": {"type": "float",
+                                          "info": "The tempo to play back these notes, in beats per minute, assuming each half note is one beat."},
+                                "wait": {"type": "bool",
+                                         "info": "Optional parameter.  If set to True, this call won't return until the notes are done playing.  Defaults to False, returning immediately."}},
+                       "return": None,
+                       "info": "Starts playing the string of <b>notes</b>, at the given <b>tempo</b>."},
         "stop_sound": {"args": {},
                        "return": None,
                        "info": "Stops all currently playing sounds."},

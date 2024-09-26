@@ -126,6 +126,7 @@ class Runner():
             "play_sound": self.play_sound,
             "play_tone": self.play_tone,
             "play_note": self.play_note,
+            "play_notes": self.play_notes,
             "stop_sound": self.stop_sound,
             "is_key_pressed": self.is_key_pressed,
             "is_mouse_pressed": self.is_mouse_pressed,
@@ -1073,6 +1074,43 @@ class Runner():
             raise ValueError('play_note(): duration must be a number less than 60 (one minute)')
 
         self.play_tone(tones.note_frequency(note), duration, wait)
+
+    def play_notes(self, notes, tempo, wait=False):
+        if not isinstance(notes, str):
+            raise TypeError('play_notes(): notes must be a string of note names, separated by spaces, each of the format "<Note letter>" optionally followed '
+                            'by a "#" and optional octave number 1-6.  Each note name can also be followed by an optional note length after a "/" character.  '
+                            'For example: "A3/8 C#3/2" would play an eighth note at A3 followed by a half note at C#3.  Notes are quarter notes by default.')
+        if not isinstance(tempo, (int, float)):
+            raise ValueError('play_notes(): tempo must be a number')
+
+        def play_remaining_notes(note_list):
+            if len(note_list) == 0:
+                return
+
+            note = note_list[0]
+
+            if "/" in note:
+                n, b = note.split("/")
+                b = int(b)
+            else:
+                n = note
+                b = 4  # Default to 1/4 note
+
+            # get duration in seconds of this note
+            # 60 s/min * 2 half_notes/whole / tempo / fraction_of_beat
+            d = 60.0 * 2 / tempo / b
+
+            if n.upper() != "R":
+                self.play_note(n, d * 0.95)
+
+            note_list = note_list[1:]
+            if wait:
+                self.wait(d)
+                play_remaining_notes(note_list)
+            else:
+                self.run_after_delay(d, lambda nl=note_list: play_remaining_notes(nl))
+
+        play_remaining_notes(notes.split(" "))
 
     def play_sound(self, filepath, wait=False):
         if not isinstance(filepath, str):

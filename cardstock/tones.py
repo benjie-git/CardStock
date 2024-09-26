@@ -8,6 +8,8 @@
 
 import numpy as np
 
+fade_time = 0.005
+
 # Convert note name to frequency
 def note_frequency(note):
     note = note.upper()
@@ -30,6 +32,7 @@ def get_tone_data(frequency, duration):
     volume = 0.25  # range [0.0, 1.0]
     scale = volume * 2**16
     fs = 44100  # sampling rate, Hz, must be integer
+    fade_length = int(fs*fade_time)
 
     # round duration to nearest whole wavelength
     wl = 1.0/frequency
@@ -37,4 +40,9 @@ def get_tone_data(frequency, duration):
 
     # generate samples, note conversion to float32 array
     samples = (np.sin(2 * np.pi * np.arange(fs * duration) * frequency / fs) * scale).astype(np.int16)
+    fade_in = np.linspace(0, 1, fade_length)
+    fade_out = np.linspace(1, 0, fade_length)
+    samples[:fade_length] = samples[:fade_length] * fade_in
+    samples[-fade_length:] = samples[-fade_length:] * fade_out
+
     return samples.tobytes()
