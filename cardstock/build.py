@@ -15,12 +15,6 @@ import version
 EXTRA_MODULES = []
 
 try:
-    import requests
-    EXTRA_MODULES.append("requests")
-except ModuleNotFoundError:
-    pass
-
-try:
     import serial
     EXTRA_MODULES.append("serial")
 except ModuleNotFoundError:

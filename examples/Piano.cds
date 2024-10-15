@@ -14,7 +14,7 @@
         "on_mouse_enter": "current_note = None\nself.send_message(\"update\")",
         "on_mouse_press": "self.send_message(\"update\")",
         "on_mouse_release": "self.send_message(\"update\")",
-        "on_message": "if message == \"update\":\n    if last_note and (current_note != last_note or not is_mouse_pressed()):\n        last_note = None\n        stop_sound()\n    if current_note != last_note and current_note and is_mouse_pressed():\n        last_note = current_note\n        play_note(current_note, 6)"
+        "on_message": "if message == \"update\":\n    if last_note and (current_note != last_note or not is_mouse_pressed()):\n        # Time to stop the previous note\n        last_note = None\n        stop_sound()\n    if current_note != last_note and current_note and is_mouse_pressed():\n        # Start playing the currently selected note\n        last_note = current_note\n        play_note(current_note, 6)"
       },
       "properties": {
         "name": "card_1",
