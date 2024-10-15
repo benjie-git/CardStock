@@ -550,6 +550,10 @@ class HelpDataButton():
                         "info": "For Border and Borderless style buttons, this is always False.  For Checkbox style "
                                 "buttons, this is True when the Checkbox is checked.  For Radio buttons, this is True "
                                 "when this Radio button is the selected button in its group."},
+        "fill_color": {"type": "string",
+                       "info": "For buttons with a border, set the button's background color."},
+        "text_color": {"type": "string",
+                       "info": "Set this button's text color."},
         "is_pressed": {"type": "bool",
                         "info": "This is True while the button is actively being pressed by the mouse / touch screen."}
     }

@@ -49,7 +49,7 @@ class UiButton(UiView):
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key == "text":
+        if key in ["title", "fill_color", "text_color"]:
             self.stackManager.view.Refresh()
         elif key == "style":
             sm = self.stackManager
@@ -117,7 +117,7 @@ class UiButton(UiView):
             gc.DrawRoundedRectangle(wx.Rect(1, 0, width-1, height-1), 5)
             # Draw foreground round rect
             gc.SetPen(wx.Pen('#444444', fd(1)))
-            gc.SetBrush(wx.Brush('#CCCCCC' if hilighted else 'white'))
+            gc.SetBrush(wx.Brush('#CCCCCC' if hilighted else self.model.GetProperty("fill_color")))
             gc.DrawRoundedRectangle(wx.Rect(0, 1, width-1, height-1), 5)
 
             title = self.model.GetProperty("text")
@@ -130,7 +130,7 @@ class UiButton(UiView):
                 line = lines.split("\n")[0]
 
                 gc.SetFont(font)
-                gc.SetTextForeground(wx.Colour('black'))
+                gc.SetTextForeground(wx.Colour(self.model.GetProperty("text_color")))
                 textWidth = gc.GetTextExtent(line).Width
                 xPos = (startX + (width - td(textWidth)) / 2)
                 gc.DrawText(line, wx.Point(int(xPos), int(startY)))
@@ -147,7 +147,7 @@ class UiButton(UiView):
                 line = lines.split("\n")[0]
 
                 gc.SetFont(font)
-                gc.SetTextForeground(wx.Colour('#888888' if hilighted else 'black'))
+                gc.SetTextForeground(wx.Colour('#888888' if hilighted else self.model.GetProperty("text_color")))
                 textWidth = gc.GetTextExtent(line).Width
                 xPos = (startX + (width - td(textWidth)) / 2)
                 gc.DrawText(line, wx.Point(int(xPos), int(startY)))
@@ -169,7 +169,7 @@ class UiButton(UiView):
                 startY = int((height + lineHeight) / 2) + (1 if fd(100) == 100 else fd(-3))
                 startPos = (25, startY)
                 gc.SetFont(font)
-                gc.SetTextForeground(wx.Colour('black'))
+                gc.SetTextForeground(wx.Colour(self.model.GetProperty("text_color")))
                 lines = wordwrap(title, fd(width-25), gc)
                 line = lines.split("\n")[0]
                 gc.DrawText(line, startPos)
@@ -202,11 +202,15 @@ class ButtonModel(ViewModel):
         self.properties["name"] = "button_1"
         self.properties["text"] = "Button"
         self.properties["style"] = "Border"
+        self.properties["fill_color"] = "white"
+        self.properties["text_color"] = "black"
         self.properties["is_selected"] = False
         self.properties["rotation"] = 0.0
 
         self.propertyTypes["text"] = "string"
         self.propertyTypes["style"] = "choice"
+        self.propertyTypes["fill_color"] = "color"
+        self.propertyTypes["text_color"] = "color"
         self.propertyTypes["is_selected"] = "bool"
         self.propertyTypes["rotation"] = "float"
 
@@ -229,14 +233,17 @@ class ButtonModel(ViewModel):
     def UpdatePropKeys(self, style):
         # Custom property order and mask for the inspector
         if style in ("Border", "Borderless"):
-            self.propertyKeys = ["name", "text", "style", "rotation", "position", "size"]
+            if style == "Border":
+                self.propertyKeys = ["name", "text", "style", "fill_color", "text_color", "rotation", "position", "size"]
+            else:
+                self.propertyKeys = ["name", "text", "style", "text_color", "rotation", "position", "size"]
             self.initialEditHandler = "on_click"
             if "on_click" not in self.visibleHandlers:
                 self.visibleHandlers.add("on_click")
             if "on_selection_changed" in self.visibleHandlers and len(self.handlers["on_selection_changed"]) == 0:
                 self.visibleHandlers.remove("on_selection_changed")
         else:
-            self.propertyKeys = ["name", "text", "style", "is_selected", "rotation", "position", "size"]
+            self.propertyKeys = ["name", "text", "style", "text_color", "is_selected", "rotation", "position", "size"]
             self.initialEditHandler = "on_selection_changed"
             if "on_selection_changed" not in self.visibleHandlers:
                 self.visibleHandlers.add("on_selection_changed")
@@ -286,6 +293,28 @@ class Button(ViewProxy):
         model = self._model
         if not model: return
         model.SetProperty("style", bool(val))
+
+    @property
+    def fill_color(self):
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("fill_color")
+    @fill_color.setter
+    def fill_color(self, val):
+        model = self._model
+        if not model: return
+        model.SetProperty("fill_color", str(val))
+
+    @property
+    def text_color(self):
+        model = self._model
+        if not model: return ""
+        return model.GetProperty("text_color")
+    @text_color.setter
+    def text_color(self, val):
+        model = self._model
+        if not model: return
+        model.SetProperty("text_color", str(val))
 
     @property
     def is_selected(self):
