@@ -299,7 +299,9 @@ class TextFieldModel(TextBaseModel):
                 uiView.view.ScrollToLine(pos[1])
                 uiView.view.ScrollToColumn(pos[0])
 
-    def STC_IndexToRowCol(self, field, index):
+    def IndexToRowCol(self, field, index):
+        if not self.properties["is_multiline"]:
+            return (0, index)
         if not field:
             uiView = self.stackManager.GetUiViewByModel(self)
             if uiView and uiView.view:
@@ -310,7 +312,9 @@ class TextFieldModel(TextBaseModel):
             col = field.GetLineLength(row)
         return (row, col)
 
-    def STC_RowColToIndex(self, field, row, col):
+    def RowColToIndex(self, field, row, col):
+        if not self.properties["is_multiline"]:
+            return col
         if not field:
             uiView = self.stackManager.GetUiViewByModel(self)
             if uiView and uiView.view:
@@ -341,7 +345,7 @@ class TextFieldModel(TextBaseModel):
             field = uiView.view
             f = self.GetAbsoluteFrame()
             ptRel = wx.Point(int(ptAbs[0] - f.Left)-2, int(f.Height - (ptAbs[1] - f.Top)-2))
-            index = field.PositionFromPoint(ptRel)
+            index = field.HitTestPos(ptRel)[1]
             return index
         return 0
 
@@ -351,7 +355,10 @@ class TextFieldModel(TextBaseModel):
         if uiView and uiView.view:
             field = uiView.view
             f = self.GetAbsoluteFrame()
-            ptRel = field.PointFromPosition(index)
+            if self.properties["is_multiline"]:
+                ptRel = field.PointFromPosition(index)
+            else:
+                ptRel = field.PositionToCoords(index)
             ptAbs = wx.Point(int(ptRel[0] + f.Left)+2, int((f.Height - ptRel[1]) + f.Top - 2 - self.properties["font_size"]/2))
             return ptAbs
         return (0,0)
@@ -428,13 +435,13 @@ class TextField(TextBaseProxy):
     def index_to_row_col(self, index):
         model = self._model
         if not model: return (0,0)
-        return model.STC_IndexToRowCol(None, index)
+        return model.IndexToRowCol(None, index)
 
     @RunOnMainSync
     def row_col_to_index(self, row, col):
         model = self._model
         if not model: return 0
-        return model.STC_RowColToIndex(None, row, col)
+        return model.RowColToIndex(None, row, col)
 
     @property
     @RunOnMainSync

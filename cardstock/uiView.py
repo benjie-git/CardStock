@@ -93,7 +93,8 @@ class UiView(object):
                     self.view.SetSize(s)
                 self.view.SetPosition(pos)
 
-            self.BindEvents(view)
+            if self.model.type != "textfield":
+                self.BindEvents(view)
             view.Bind(wx.EVT_SIZE, self.OnResize)
             self.view.Show(self.model.IsVisible())
 
