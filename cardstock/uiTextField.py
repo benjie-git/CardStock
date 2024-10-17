@@ -47,26 +47,18 @@ class UiTextField(UiTextBase):
             alignment = wx.TE_CENTER
 
         pos = self.stackManager.ConvRect(model.GetAbsoluteFrame()).TopLeft
-        if model.GetProperty("is_multiline"):
-            field = CDSSTC(parent=stackManager.view, size=model.GetProperty("size"), pos=pos,
-                                       style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
-            field.SetUseHorizontalScrollBar(False)
-            field.SetTabWidth(3)
-            field.SetUseTabs(0)
-            field.SetWrapMode(stc.STC_WRAP_WORD)
-            field.SetMarginWidth(1, 0)
-            field.ChangeValue(text)
-            field.Bind(stc.EVT_STC_MODIFIED, self.OnSTCTextChanged)
-            field.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
-            field.Bind(wx.EVT_KEY_DOWN, self.OnSTCKeyDown)
-            field.EmptyUndoBuffer()
-        else:
-            field = CDSTextCtrl(parent=stackManager.view, size=model.GetProperty("size"), pos=pos,
-                                style=wx.TE_PROCESS_ENTER | alignment)
-            field.ChangeValue(text)
-            field.Bind(wx.EVT_TEXT, self.OnTextChanged)
-            field.Bind(CDS_EVT_TEXT_UNDO, self.OnTextChanged)
-            field.EmptyUndoBuffer()
+        field = CDSSTC(parent=stackManager.view, size=model.GetProperty("size"), pos=pos,
+                                   style=alignment | wx.BORDER_SIMPLE | stc.STC_WRAP_WORD)
+        field.SetUseHorizontalScrollBar(False)
+        field.SetTabWidth(3)
+        field.SetUseTabs(0)
+        field.SetWrapMode(stc.STC_WRAP_WORD)
+        field.SetMarginWidth(1, 0)
+        field.ChangeValue(text)
+        field.Bind(stc.EVT_STC_MODIFIED, self.OnSTCTextChanged)
+        field.Bind(stc.EVT_STC_ZOOM, self.OnZoom)
+        field.Bind(wx.EVT_KEY_DOWN, self.OnSTCKeyDown)
+        field.EmptyUndoBuffer()
 
         self.BindEvents(field)
         field.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
@@ -100,6 +92,8 @@ class UiTextField(UiTextBase):
     def OnSTCKeyDown(self, event):
         if event.GetKeyCode() == wx.WXK_RETURN:
             self.OnTextEnter(event)
+            if not self.model.GetProperty("is_multiline"):
+                return
         event.Skip()
 
     def StartInlineEditing(self):
@@ -125,20 +119,14 @@ class UiTextField(UiTextBase):
             self.stackManager.view.SetFocus()
 
     def OnResize(self, event):
-        if self.view and self.model.GetProperty("is_multiline"):
+        if self.view:
             self.view.SetScrollWidth(self.view.GetSize().Width-6)
         if event:
             event.Skip()
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key == "is_multiline":
-            self.StopInlineEditing(notify=False)
-            sm = self.stackManager
-            sm.SelectUiView(None)
-            sm.LoadCardAtIndex(sm.cardIndex, reload=True)
-            sm.SelectUiView(sm.GetUiViewByModel(model))
-        elif key == "is_editable":
+        if key == "is_editable":
             if self.stackManager.isEditing:
                 self.view.SetEditable(False)
             else:
@@ -153,19 +141,18 @@ class UiTextField(UiTextBase):
                     self.stackManager.runner.RunHandler(self.model, "on_text_enter", event)
             wx.CallAfter(f)
 
-    def OnTextChanged(self, event):
-        if not self.stackManager.isEditing:
-            if not self.settingValueInternally:
-                self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
-                if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_text_changed"):
-                    self.stackManager.runner.RunHandler(self.model, "on_text_changed", event)
-        event.Skip()
-
     def OnSTCTextChanged(self, event):
         if not self.stackManager.isEditing:
             if event.GetModificationType()%2 == 1:
+                t = event.GetEventObject().GetValue()
+                if not self.model.GetProperty("is_multiline"):
+                    if '\n' in t or '\r' in t:
+                        t = t.replace('\r', '')
+                        t = t.replace('\n', '')
+                        wx.CallAfter(self.view.SetText, t)
+                        return
                 if not self.settingValueInternally:
-                    self.model.SetProperty("text", event.GetEventObject().GetValue(), notify=False)
+                    self.model.SetProperty("text", t, notify=False)
                     if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetHandler("on_text_changed"):
                         self.stackManager.runner.RunHandler(self.model, "on_text_changed", event)
         event.Skip()
@@ -291,8 +278,7 @@ class TextFieldModel(TextBaseModel):
             sel = uiView.view.GetSelection()
             length = len(self.GetProperty("text"))
             s = uiView.view.GetRange(0,sel[0]) + text + uiView.view.GetRange(sel[1], length)
-            if is_multiline:
-                pos = (uiView.view.GetScrollPos(wx.HORIZONTAL), uiView.view.GetScrollPos(wx.VERTICAL))
+            pos = (uiView.view.GetScrollPos(wx.HORIZONTAL), uiView.view.GetScrollPos(wx.VERTICAL))
             self.SetProperty("text", s)
             uiView.view.SetSelection(sel[0], sel[0]+len(text))
             if is_multiline:
@@ -300,8 +286,6 @@ class TextFieldModel(TextBaseModel):
                 uiView.view.ScrollToColumn(pos[0])
 
     def IndexToRowCol(self, field, index):
-        if not self.properties["is_multiline"]:
-            return (0, index)
         if not field:
             uiView = self.stackManager.GetUiViewByModel(self)
             if uiView and uiView.view:
@@ -313,8 +297,6 @@ class TextFieldModel(TextBaseModel):
         return (row, col)
 
     def RowColToIndex(self, field, row, col):
-        if not self.properties["is_multiline"]:
-            return col
         if not field:
             uiView = self.stackManager.GetUiViewByModel(self)
             if uiView and uiView.view:
@@ -355,10 +337,7 @@ class TextFieldModel(TextBaseModel):
         if uiView and uiView.view:
             field = uiView.view
             f = self.GetAbsoluteFrame()
-            if self.properties["is_multiline"]:
-                ptRel = field.PointFromPosition(index)
-            else:
-                ptRel = field.PositionToCoords(index)
+            ptRel = field.PointFromPosition(index)
             ptAbs = wx.Point(int(ptRel[0] + f.Left)+2, int((f.Height - ptRel[1]) + f.Top - 2 - self.properties["font_size"]/2))
             return ptAbs
         return (0,0)
