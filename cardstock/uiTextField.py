@@ -299,6 +299,27 @@ class TextFieldModel(TextBaseModel):
                 uiView.view.ScrollToLine(pos[1])
                 uiView.view.ScrollToColumn(pos[0])
 
+    def STC_IndexToRowCol(self, field, index):
+        if not field:
+            uiView = self.stackManager.GetUiViewByModel(self)
+            if uiView and uiView.view:
+                field = uiView.view
+        (inBounds, col, row) = field.PositionToXY(index)
+        if not inBounds:
+            row = field.GetNumberOfLines() - 1
+            col = field.GetLineLength(row)
+        return (row, col)
+
+    def STC_RowColToIndex(self, field, row, col):
+        if not field:
+            uiView = self.stackManager.GetUiViewByModel(self)
+            if uiView and uiView.view:
+                field = uiView.view
+        pos = field.XYToPosition(col, row)
+        if pos == -1:
+            pos = field.GetLastPosition()
+        return pos
+
     @RunOnMainSync
     def GetSelection(self):
         uiView = self.stackManager.GetUiViewByModel(self)
@@ -312,6 +333,29 @@ class TextFieldModel(TextBaseModel):
         uiView = self.stackManager.GetUiViewByModel(self)
         if uiView and uiView.view:
             uiView.view.SetSelection(start_index, end_index)
+
+    @RunOnMainSync
+    def GetTextPositionAtAbsolutePoint(self, ptAbs):
+        uiView = self.stackManager.GetUiViewByModel(self)
+        if uiView and uiView.view:
+            field = uiView.view
+            f = self.GetAbsoluteFrame()
+            ptRel = wx.Point(int(ptAbs[0] - f.Left)-2, int(f.Height - (ptAbs[1] - f.Top)-2))
+            index = field.PositionFromPoint(ptRel)
+            return index
+        return 0
+
+    @RunOnMainSync
+    def GetAbsolutePointAtTextPosition(self, index):
+        uiView = self.stackManager.GetUiViewByModel(self)
+        if uiView and uiView.view:
+            field = uiView.view
+            f = self.GetAbsoluteFrame()
+            ptRel = field.PointFromPosition(index)
+            ptAbs = wx.Point(int(ptRel[0] + f.Left)+2, int((f.Height - ptRel[1]) + f.Top - 2 - self.properties["font_size"]/2))
+            return ptAbs
+        return (0,0)
+
 
 
 class TextField(TextBaseProxy):
@@ -369,6 +413,28 @@ class TextField(TextBaseProxy):
             model.SetSelectedText(val)
             return
         raise TypeError("selected_text must be a string")
+
+    def point_to_index(self, point):
+        model = self._model
+        if not model: return None
+        return model.GetTextPositionAtAbsolutePoint(point)
+
+    def index_to_point(self, index):
+        model = self._model
+        if not model: return None
+        return model.GetAbsolutePointAtTextPosition(index)
+
+    @RunOnMainSync
+    def index_to_row_col(self, index):
+        model = self._model
+        if not model: return (0,0)
+        return model.STC_IndexToRowCol(None, index)
+
+    @RunOnMainSync
+    def row_col_to_index(self, row, col):
+        model = self._model
+        if not model: return 0
+        return model.STC_RowColToIndex(None, row, col)
 
     @property
     @RunOnMainSync

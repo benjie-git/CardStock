@@ -613,8 +613,8 @@ class HelpDataTextField():
                               "<b>False</b>. This value is not settable, but you can call the method focus() to try to "
                               "focus this Field."},
         "selection": {"type": "list",
-                      "info": "A text field's <b>selection</b> value is a list of 2 numbers.  The first is the start position "
-                              "of the selection within the field's text, and the second is the position of the end "
+                      "info": "A text field's <b>selection</b> value is a list of 2 numbers.  The first is the start index "
+                              "of the selection within the field's text, and the second is the index of the end "
                               "of the selection.  For example, if the text is 'Hello', and the 'He' is selected, then "
                               "the value of <b>selection</b> would be (0, 2)."},
         "selected_text": {"type": "string",
@@ -630,6 +630,32 @@ class HelpDataTextField():
     }
 
     methods = {
+        "point_to_index": {
+            "args": {"point": {"type": "point", "info": "a point relative to the bottom-left corner of the current card"}},
+            "return": "int",
+            "info": "Returns the index, or character position, of the character at the given point on the card.  The "
+                    "first character in the field is at index 0."},
+        "index_to_point": {
+            "args": {"index": {"type": "int", "info": "an index, or character position within the text of this field. "
+                              "For example, 0 is the first character."}},
+            "return": "point",
+            "info": "Returns the point on the card that lines up with the start of the character at the given index within this field's text."},
+        "index_to_row_col": {
+            "args": {"index": {"type": "int", "info": "an index, or character position within the text of this field. "
+                              "For example, 0 is the first character."}},
+            "return": "int",
+            "info": "Converts from an text position index to a row (line number) and column (character within the row) "
+                    "pair.  Returns a list of two integers, giving the row and column, respectively, of the character "
+                    "at the given index in this field's text.  For example field.index_to_row_col(0) would return "
+                    "(0, 0) to indicate the first character on the first line."},
+        "row_col_to_index": {
+            "args": {"row": {"type": "int", "info": "the row, or line number of the target character.  0 indicates the "
+                                                    "first line."},
+                     "col": {"type": "int", "info": "the column, or character position on the given row, of the target "
+                                                    "character.  0 indicates the first character on a line."}},
+            "return": "int",
+            "info": "Converts from a row and column position to a character index.  Returns the index of the character "
+                    "at the given row and column within this field's text."},
         "animate_font_size": {
             "args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                      "end_size": {"type": "string",
