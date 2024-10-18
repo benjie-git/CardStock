@@ -856,11 +856,12 @@ class StackManager(object):
     def OnMouseDown(self, uiView, event):
         if self.view.HasCapture() and event.LeftDClick():
             # Make sure we don't double-capture the mouse on GTK/Linux
-            event.Skip()
             if uiView and uiView.model.type.startswith("text") and event.LeftDClick():
                 # Flag this is a double-click  On mouseUp, we'll start the inline editor.
                 self.isDoubleClick = True
-            if self.tool.name != "polygon" or wx.Platform == "__WXGTK__":
+            else:
+                event.Skip()
+            if self.tool.name != "polygon" and wx.Platform == "__WXGTK__":
                 return
 
         pos = self.view.ScreenToClient(event.GetEventObject().ClientToScreen(event.GetPosition()))
