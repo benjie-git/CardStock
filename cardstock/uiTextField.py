@@ -326,7 +326,8 @@ class TextFieldModel(TextBaseModel):
         if uiView and uiView.view:
             field = uiView.view
             f = self.GetAbsoluteFrame()
-            ptRel = wx.Point(int(ptAbs[0] - f.Left)-2, int(f.Height - (ptAbs[1] - f.Top)-2))
+            ptRel = wx.Point(self.stackManager.view.FromDIP(int(ptAbs[0] - f.Left)-2),
+                             self.stackManager.view.FromDIP(int(f.Height - (ptAbs[1] - f.Top)-2)))
             index = field.HitTestPos(ptRel)[1]
             return index
         return 0
@@ -338,7 +339,8 @@ class TextFieldModel(TextBaseModel):
             field = uiView.view
             f = self.GetAbsoluteFrame()
             ptRel = field.PointFromPosition(index)
-            ptAbs = wx.Point(int(ptRel[0] + f.Left)+2, int((f.Height - ptRel[1]) + f.Top - 2 - self.properties["font_size"]/2))
+            ptAbs = wx.Point(self.stackManager.view.ToDIP(int(ptRel[0] + f.Left)+2),
+                             self.stackManager.view.ToDIP(int((f.Height - ptRel[1]) + f.Top - 2 - self.properties["font_size"]/2)))
             return ptAbs
         return (0,0)
 
