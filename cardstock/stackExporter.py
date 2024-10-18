@@ -183,195 +183,210 @@ class StackExporter(object):
             tmp += "-"+str(random.randint(1000000, 9999999))
             os.mkdir(tmp)
 
-            # Copy stack
-            tmpStack = os.path.join(tmp, 'stack.cds')
-            shutil.copyfile(self.stackManager.filename, tmpStack)
+            try:
+                # Copy stack
+                tmpStack = os.path.join(tmp, 'stack.cds')
+                shutil.copyfile(self.stackManager.filename, tmpStack)
+
+                # Create ResourceMap.json
+                self.BuildResMap()
+                mapFile = os.path.join(tmp, 'ResourceMap.json')
+                jsonData = json.dumps(self.resMap)
+                with open(mapFile, 'w') as f:
+                    f.write(jsonData)
+
+                # Set up pyinstaller args
+                args = [
+                    '--windowed',
+                    '--workpath',
+                    tmp,
+                    '--specpath',
+                    tmp,
+                    '--clean',
+                    '--name',
+                    filename,
+                    '-y',
+                    f'{HERE}/standalone.py']
+
+                if wx.Platform == "__WXMAC__":
+                    args.extend([
+                        '--onedir',
+                        # '-s',  # slightly smaller, but slower to build.  Maybe make optional?
+                        "--add-data",
+                        f"{tmpStack}{sep}.",
+                        '--distpath',
+                        os.path.dirname(filepath)
+                    ])
+                elif wx.Platform == "__WXMSW__":
+                    if can_save:
+                        os.mkdir(filepath)
+                        resPath = os.path.join(filepath, "Resources")
+                        os.mkdir(resPath)
+                        shutil.copyfile(tmpStack, os.path.join(resPath, "stack.cds"))
+                        distpath = filepath
+                    else:
+                        distpath = os.path.dirname(filepath)
+
+                    args.extend([
+                        '--onefile',
+                        '--distpath', distpath])
+                    if not can_save:
+                        args.extend(["--add-data", f"{tmpStack}{sep}."])
+                else:
+                    if can_save:
+                        os.mkdir(filepath)
+                        resPath = os.path.join(filepath, "Resources")
+                        os.mkdir(resPath)
+                        shutil.copyfile(tmpStack, os.path.join(resPath, "stack.cds"))
+                        distpath = filepath
+                    else:
+                        distpath = os.path.dirname(filepath)
+
+                    args.extend([
+                        '--onefile',
+                        # '-s',  # slightly smaller, but slower to build.  Maybe make optional?
+                        '--distpath', distpath])
+                    if not can_save:
+                        args.extend(["--add-data", f"{tmpStack}{sep}."])
+
+                args.extend(["--add-data", f"{mapFile}{sep}."])
+                stackDir = os.path.dirname(self.stackManager.filename)
+                for (origPath, newPath) in self.resMap.items():
+                    absPath = os.path.join(stackDir, origPath)
+                    tmpPath = os.path.join(tmp, newPath)
+                    shutil.copyfile(absPath, tmpPath)
+                    args.extend(["--add-data", f"{tmpPath}{sep}."])
+
+                for mod in self.moduleList:
+                    args.extend(["--hidden-import", mod])
+
+                print("Run: pyinstaller " + " ".join(args))
+                PyInstaller.__main__.run(args)
+                print("Export finished.")
+            except Exception as e:
+                wx.MessageDialog(self.stackManager.designer, str(e)).ShowModal()
+
+            try:
+                if wx.Platform == "__WXMAC__":
+                    try:
+                        os.remove(filepath) # remove the actual chosen path, keep the .app
+                    except (IsADirectoryError, PermissionError) as e:
+                        shutil.rmtree(filepath)
+
+                shutil.rmtree(tmp)
+            except Exception as e:
+                pass
+
+    def ExportFromBundle(self, filepath):
+        try:
+            bundle_dir = sys._MEIPASS
+            if wx.Platform == "__WXMAC__":
+                standaloneDir = os.path.join(bundle_dir, "../Resources")
+                standalonePath = os.path.join(standaloneDir, "standalone.app")
+                appPath = filepath + ".app"
+                shutil.copytree(standalonePath, appPath)
+                resDir = appPath + "/Contents/MacOS"
+                shutil.copyfile(self.stackManager.filename, os.path.join(resDir, "stack.cds"))
+            elif wx.Platform == "__WXMSW__":
+                standalonePath = os.path.join(bundle_dir, "standalone.exe")
+                exeName = os.path.basename(filepath) + ".exe"
+                appPath = os.path.join(filepath, exeName)
+                os.mkdir(filepath)
+                shutil.copyfile(standalonePath, appPath)
+                resDir = os.path.join(filepath, "Resources")
+                os.mkdir(resDir)
+                shutil.copyfile(self.stackManager.filename, os.path.join(resDir, "stack.cds"))
+            else:
+                standalonePath = os.path.join(bundle_dir, "standalone")
+                exeName = os.path.basename(filepath)
+                appPath = os.path.join(filepath, exeName)
+                os.mkdir(filepath)
+                shutil.copyfile(standalonePath, appPath)
+                os.chmod(appPath, 0o775)
+                resDir = os.path.join(filepath, "Resources")
+                os.mkdir(resDir)
+                shutil.copyfile(self.stackManager.filename, os.path.join(resDir, "stack.cds"))
 
             # Create ResourceMap.json
             self.BuildResMap()
-            mapFile = os.path.join(tmp, 'ResourceMap.json')
             jsonData = json.dumps(self.resMap)
+            mapFile = os.path.join(resDir, 'ResourceMap.json')
             with open(mapFile, 'w') as f:
                 f.write(jsonData)
 
-            # Set up pyinstaller args
-            args = [
-                '--windowed',
-                '--workpath',
-                tmp,
-                '--specpath',
-                tmp,
-                '--clean',
-                '--name',
-                filename,
-                '-y',
-                f'{HERE}/standalone.py']
-
-            if wx.Platform == "__WXMAC__":
-                args.extend([
-                    '--onedir',
-                    # '-s',  # slightly smaller, but slower to build.  Maybe make optional?
-                    "--add-data",
-                    f"{tmpStack}{sep}.",
-                    '--distpath',
-                    os.path.dirname(filepath)
-                ])
-            elif wx.Platform == "__WXMSW__":
-                if can_save:
-                    os.mkdir(filepath)
-                    resPath = os.path.join(filepath, "Resources")
-                    os.mkdir(resPath)
-                    shutil.copyfile(tmpStack, os.path.join(resPath, "stack.cds"))
-                    distpath = filepath
-                else:
-                    distpath = os.path.dirname(filepath)
-
-                args.extend([
-                    '--onefile',
-                    '--distpath', distpath])
-                if not can_save:
-                    args.extend(["--add-data", f"{tmpStack}{sep}."])
-            else:
-                if can_save:
-                    os.mkdir(filepath)
-                    resPath = os.path.join(filepath, "Resources")
-                    os.mkdir(resPath)
-                    shutil.copyfile(tmpStack, os.path.join(resPath, "stack.cds"))
-                    distpath = filepath
-                else:
-                    distpath = os.path.dirname(filepath)
-
-                args.extend([
-                    '--onefile',
-                    # '-s',  # slightly smaller, but slower to build.  Maybe make optional?
-                    '--distpath', distpath])
-                if not can_save:
-                    args.extend(["--add-data", f"{tmpStack}{sep}."])
-
-            args.extend(["--add-data", f"{mapFile}{sep}."])
             stackDir = os.path.dirname(self.stackManager.filename)
             for (origPath, newPath) in self.resMap.items():
                 absPath = os.path.join(stackDir, origPath)
-                tmpPath = os.path.join(tmp, newPath)
-                shutil.copyfile(absPath, tmpPath)
-                args.extend(["--add-data", f"{tmpPath}{sep}."])
+                shutil.copyfile(absPath, os.path.join(resDir, newPath))
 
-            for mod in self.moduleList:
-                args.extend(["--hidden-import", mod])
-
-            print("Run: pyinstaller " + " ".join(args))
-            PyInstaller.__main__.run(args)
-
-            if wx.Platform == "__WXMAC__":
-                try:
-                    os.remove(filepath) # remove the actual chosen path, keep the .app
-                except (IsADirectoryError, PermissionError) as e:
-                    shutil.rmtree(filepath)
-
-            shutil.rmtree(tmp)
             print("Export finished.")
+        except Exception as e:
+            wx.MessageDialog(self.stackManager.designer, str(e)).ShowModal()
 
-    def ExportFromBundle(self, filepath):
-        bundle_dir = sys._MEIPASS
-        if wx.Platform == "__WXMAC__":
-            standaloneDir = os.path.join(bundle_dir, "../Resources")
-            standalonePath = os.path.join(standaloneDir, "standalone.app")
-            appPath = filepath + ".app"
-            shutil.copytree(standalonePath, appPath)
-            resDir = appPath + "/Contents/MacOS"
-            shutil.copyfile(self.stackManager.filename, os.path.join(resDir, "stack.cds"))
-        elif wx.Platform == "__WXMSW__":
-            standalonePath = os.path.join(bundle_dir, "standalone.exe")
-            exeName = os.path.basename(filepath) + ".exe"
-            appPath = os.path.join(filepath, exeName)
-            os.mkdir(filepath)
-            shutil.copyfile(standalonePath, appPath)
-            resDir = os.path.join(filepath, "Resources")
-            os.mkdir(resDir)
-            shutil.copyfile(self.stackManager.filename, os.path.join(resDir, "stack.cds"))
-        else:
-            standalonePath = os.path.join(bundle_dir, "standalone")
-            exeName = os.path.basename(filepath)
-            appPath = os.path.join(filepath, exeName)
-            os.mkdir(filepath)
-            shutil.copyfile(standalonePath, appPath)
-            os.chmod(appPath, 0o775)
-            resDir = os.path.join(filepath, "Resources")
-            os.mkdir(resDir)
-            shutil.copyfile(self.stackManager.filename, os.path.join(resDir, "stack.cds"))
-
-        # Create ResourceMap.json
-        self.BuildResMap()
-        jsonData = json.dumps(self.resMap)
-        mapFile = os.path.join(resDir, 'ResourceMap.json')
-        with open(mapFile, 'w') as f:
-            f.write(jsonData)
-
-        stackDir = os.path.dirname(self.stackManager.filename)
-        for (origPath, newPath) in self.resMap.items():
-            absPath = os.path.join(stackDir, origPath)
-            shutil.copyfile(absPath, os.path.join(resDir, newPath))
-
-        print("Export finished.")
 
     def ExportWeb(self):
-        stackName = os.path.basename(self.stackManager.filename)
-        if stackName.endswith(".cds"):
-            stackName = stackName[:-4]
-        resMap = {}
-        i=1
-        stackDir = os.path.dirname(self.stackManager.filename)
-        for path in self.resList:
-            resMap[path] = "r-"+str(i)
-            i += 1
-
-        token = self.stackManager.designer.configInfo["upload_token"]
-        headers = {"Authorization": f"Token {token}"}
-
-        params = {
-            "name": stackName,
-            "is_public": True,
-            "resource_map": json.dumps(resMap),
-        }
-
-        tmp = "/tmp/" if wx.Platform != "__WXMSW__" else "C:\\Windows\\Temp\\"
-        tmpPath = tmp + "CardStock_" + str(random.randint(1000000, 9999999)) + ".png"
-        self.stackManager.designer.thumbnail.SaveFile(tmpPath, wx.BITMAP_TYPE_PNG)
-
-        files = {"stack_data": open(self.stackManager.filename, 'rb'),
-                 "thumbnail": open(tmpPath, 'rb')}
-        for k,v in resMap.items():
-            absPath = os.path.join(stackDir, k)
-            files[v] = open(absPath, 'rb')
-
         try:
-            response = requests.post(CSWEB_UPLOAD_URL, headers=headers, data=params, files=files)
-            responseJson = response.json()
-            if 'url' in responseJson:
-                msg = f"Upload done.  This stack is available at\n\n{responseJson['url']}"
-                dialog = wx.MessageDialog(None, msg, 'Upload Succeeded', wx.YES_NO | wx.CANCEL | wx.CANCEL_DEFAULT)
-                dialog.SetYesNoCancelLabels('Open URL', 'Copy URL', 'Done')
-                answer = dialog.ShowModal()
-                dialog.Destroy()
-                if answer == wx.ID_NO:
-                    # Copy URL
-                    if wx.TheClipboard.Open():
-                        wx.TheClipboard.SetData(wx.TextDataObject(responseJson['url']))
-                        wx.TheClipboard.Close()
-                elif answer == wx.ID_YES:
-                    # Open URL
-                    wx.LaunchDefaultBrowser(responseJson['url'])
-                return responseJson['url']
-            msg = f"Upload failed. \n\n {responseJson.get('error')}"
+            stackName = os.path.basename(self.stackManager.filename)
+            if stackName.endswith(".cds"):
+                stackName = stackName[:-4]
+            resMap = {}
+            i=1
+            stackDir = os.path.dirname(self.stackManager.filename)
+            for path in self.resList:
+                resMap[path] = "r-"+str(i)
+                i += 1
+
+            token = self.stackManager.designer.configInfo["upload_token"]
+            headers = {"Authorization": f"Token {token}"}
+
+            params = {
+                "name": stackName,
+                "is_public": True,
+                "resource_map": json.dumps(resMap),
+            }
+
+            tmp = "/tmp/" if wx.Platform != "__WXMSW__" else "C:\\Windows\\Temp\\"
+            tmpPath = tmp + "CardStock_" + str(random.randint(1000000, 9999999)) + ".png"
+            self.stackManager.designer.thumbnail.SaveFile(tmpPath, wx.BITMAP_TYPE_PNG)
+
+            files = {"stack_data": open(self.stackManager.filename, 'rb'),
+                     "thumbnail": open(tmpPath, 'rb')}
+            for k,v in resMap.items():
+                absPath = os.path.join(stackDir, k)
+                files[v] = open(absPath, 'rb')
+
+            try:
+                response = requests.post(CSWEB_UPLOAD_URL, headers=headers, data=params, files=files)
+                responseJson = response.json()
+                if 'url' in responseJson:
+                    os.remove(tmpPath)
+                    msg = f"Upload done.  This stack is available at\n\n{responseJson['url']}"
+                    dialog = wx.MessageDialog(None, msg, 'Upload Succeeded', wx.YES_NO | wx.CANCEL | wx.CANCEL_DEFAULT)
+                    dialog.SetYesNoCancelLabels('Open URL', 'Copy URL', 'Done')
+                    answer = dialog.ShowModal()
+                    dialog.Destroy()
+                    if answer == wx.ID_NO:
+                        # Copy URL
+                        if wx.TheClipboard.Open():
+                            wx.TheClipboard.SetData(wx.TextDataObject(responseJson['url']))
+                            wx.TheClipboard.Close()
+                    elif answer == wx.ID_YES:
+                        # Open URL
+                        wx.LaunchDefaultBrowser(responseJson['url'])
+                    return responseJson['url']
+                msg = f"Upload failed. \n\n {responseJson.get('error')}"
+            except Exception as e:
+                msg = f"Upload failed.\n\n{e}"
+
+            try:
+                os.remove(tmpPath)
+            except:
+                pass
         except Exception as e:
-            msg = f"Upload failed.\n\n{e}"
+            wx.MessageDialog(self.stackManager.designer, str(e)).ShowModal()
+            return None
 
-        try:
-            os.remove(tmpPath)
-        except:
-            pass
-
-        wx.MessageDialog(None, msg, "", wx.OK).ShowModal()
+        wx.MessageDialog(self.stackManager.designer, msg, "", wx.OK).ShowModal()
         return None
 
 
