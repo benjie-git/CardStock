@@ -188,7 +188,7 @@ class HelpDataGlobals():
         "play_notes": {"args": {"notes": {"type": "string",
                                           "info": 'notes must be a string of note names, separated by spaces, each of the format "Note letter" optionally followed '
                                                   'by a "#" and optional octave number 1-6.  Each note name can also be followed by an optional note length after a "/" character.  '
-                                                  'For example: "A3/8 C#3/2" would play an eighth note at A3 followed by a half note at C#3.  To include a rest, use the non-note '
+                                                  'For example: "A3/8 C#3/2." would play an eighth note at A3 followed by a dotted half note at C#3.  To include a rest, use the non-note '
                                                   'name "R", for example "R/4" for a quarter note rest.  Notes are quarter notes by default.'},
                                 "tempo": {"type": "float",
                                           "info": "The tempo to play back these notes, in beats per minute, assuming each half note is one beat."},

@@ -1088,17 +1088,22 @@ class Runner():
                 return
 
             note = note_list[0]
+            dotted = 1
 
             if "/" in note:
                 n, b = note.split("/")
-                b = int(b)
+                if len(b) and b[-1] == ".":
+                    b = int(b[:-1])
+                    dotted = 1.5
+                else:
+                    b = int(b)
             else:
                 n = note
                 b = 4  # Default to 1/4 note
 
             # get duration in seconds of this note
             # 60 s/min * 2 half_notes/whole / tempo / fraction_of_beat
-            d = 60.0 * 2 / tempo / b
+            d = 60.0 * 2 / tempo / b * dotted
 
             if n.upper() != "R":
                 self.play_note(n, d * 0.95)
