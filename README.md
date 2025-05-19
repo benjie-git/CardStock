@@ -70,15 +70,37 @@ You can either:
 2. download or clone this repository
 3. Linux-only: apt install libasound2-dev libmp3lame-dev libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
 4. Mac-only: brew install lame
-5. pip3 install attrdict3  # installing this first is required for wxpython
-6. pip3 install -r requirements.txt  # note that wxpython can take a long time to build
-7. run python3 designer.py
-8. optionally run build.py to create your own standalone applications for the CardStock Designer application.
+5. To include mp3 support: pip3 install streamp3-313compat
+
+   Note that this may require setting LDFLAGS and CPPFLAGS to allow finding the lame header and library files.
+
+    You may need to run this as something like
+
+   `CPPFLAGS=-I/opt/homebrew/include LDFLAGS=-L/opt/homebrew/lib pip3 install streamp3-313compat` or 
+
+    `CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib pip3 install streamp3-313compat`
+
+    depending on where the lame library was installed.
+
+6. pip3 install attrdict3  # installing this first is required for wxpython
+7. pip3 install -r requirements.txt  # note that wxpython can take a long time to build
+8. run python3 designer.py
+9. optionally run build.py to create your own standalone applications for the CardStock Designer application.
 
 ### 3. Install using pip/pypi:
 1. Linux-only: apt install libasound2-dev libmp3lame-dev libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
 2. Mac-only: brew install lame
 3. To include mp3 support: pip3 install streamp3-313compat
+
+   Note that this may require setting LDFLAGS and CPPFLAGS to allow finding the lame header and library files.
+
+    You may need to run this as something like
+
+   `CPPFLAGS=-I/opt/homebrew/include LDFLAGS=-L/opt/homebrew/lib pip3 install streamp3-313compat` or 
+
+    `CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib pip3 install streamp3-313compat`
+
+    depending on where the lame library was installed.
 4. pip3 install attrdict3  # installing this first is required for wxpython
 5. pip3 install cardstock  # note that the dependency wxpython can take a very long time to build
 6. run using the newly installed cardstock command
