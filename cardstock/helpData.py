@@ -569,6 +569,23 @@ class HelpDataButton():
                                       "info": "If this button is a Radio button, then return the selected Radio button in this button's "
                                               "Radio group. If this button is not a Radio button, or if none of the buttons in the group are "
                                               "selected, returns None."},
+        "animate_fill_color": {
+            "args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
+                     "end_color": {"type": "string",
+                                   "info": "the final fill_color at the end of the animation"},
+                     "easing": {"type": "string",
+                                "info": "an optional argument to allow controlling the animation's start and end accelerations. "
+                                        "Using \"In\" or \"InOut\" will ramp up the animation speed smoothly at the start, "
+                                        "instead of starting the animation at full speed. "
+                                        "Using \"Out\" or \"InOut\" will ramp down the animation speed smoothly at the end. "
+                                        "Setting easing to None or skipping this argument will use simple, linear animation, "
+                                        "which can look abrupt, but is sometimes what you want."},
+                     "on_finished": {"type": "function",
+                                     "info": "an optional function to run when the animation finishes."}},
+            "return": None,
+            "info": "Visually animates fading this object's <b>fill_color</b> to <b>end_color</b>, "
+                    "over <b>duration</b> seconds.  When the animation completes, runs the "
+                    "<b>on_finished</b> function, if one was passed in."},
     }
 
     handlers = {
