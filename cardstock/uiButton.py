@@ -354,3 +354,34 @@ class Button(ViewProxy):
             if m:
                 return m.GetProxy()
         return None
+
+    def animate_fill_color(self, duration, endVal, easing=None, on_finished=None):
+        if not isinstance(duration, (int, float)):
+            raise TypeError("animate_fill_color(): duration must be a number")
+        if not isinstance(endVal, str):
+            raise TypeError("animate_fill_color(): end_color must be a string")
+        if easing and not isinstance(easing, str):
+            raise TypeError('animate_fill_color(): easing, if provided, must be one of "In", "Out", or "InOut"')
+
+        model = self._model
+        if not model: return
+
+        if easing:
+            easing = easing.lower()
+
+        end_color = wx.Colour(endVal)
+
+        def onStart(animDict):
+            origVal = wx.Colour(self.fill_color)
+            origParts = [origVal.Red(), origVal.Green(), origVal.Blue(), origVal.Alpha()]
+            animDict["origParts"] = origParts
+            endParts = [end_color.Red(), end_color.Green(), end_color.Blue(), end_color.Alpha()]
+            animDict["offsets"] = [endParts[i]-origParts[i] for i in range(4)]
+
+        def onUpdate(progress, animDict):
+            model.SetProperty("fill_color", wx.Colour([animDict["origParts"][i] + animDict["offsets"][i] * ease(progress, easing) for i in range(4)]))
+
+        def internalOnFinished(animDict):
+            if on_finished: self._model.stackManager.runner.EnqueueFunction(on_finished)
+
+        model.AddAnimation("fill_color", duration, onUpdate, onStart, internalOnFinished)
