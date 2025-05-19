@@ -55,7 +55,7 @@ The prebuilt applications for Mac and Windows have no external dependencies.
 
 Running CardStock from source requires Python 3.9 or newer (3.11+ recommended), and wxPython 4.1 or newer (wxPython 4.2.x recommended).
 CardStock requires installing the python modules attrdict3(linux-only), wxpython,simpleaudio, PyInstaller, and requests.  
-For mp3 playback support, you'll need to install the lame package (mp3 decoder), and python's streamp3. 
+For mp3 playback support, you'll need to install the lame package (mp3 decoder), and python's streamp3-313compat. 
 
 ## Installation
 You can either:
@@ -67,44 +67,21 @@ You can either:
 
 ### 2. Run it from source:
 1. install python3
-2. Linux-only: apt install libasound2-dev lame libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
-3. Mac-only: brew install lame
-4. pip3 install attrdict3
-5. pip3 install wxpython PyInstaller requests  # note that wxpython can take a long time to build
-6. pip3 install --force git+https://github.com/cexen/py-simple-audio.git  # The official simpleaudio package is no longer maintained.  This fork includes a fix for compatability with python 3.12+
-7. To include mp3 support: pip3 install streamp3
-
-   Note that this may require setting LDFLAGS and CPPFLAGS to allow finding the lame header and library files.
-
-    You may need to run this as something like
-
-   `CPPFLAGS=-I/opt/homebrew/include LDFLAGS=-L/opt/homebrew/lib pip3 install streamp3` or 
-
-    `CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib pip3 install streamp3`
-
-    depending on where the lame library was installed.
-   
-7. download or clone this repository
-8. run python3 designer.py
-9. optionally run build.py to create your own standalone applications for the CardStock Designer application.
+2. download or clone this repository
+3. Linux-only: apt install libasound2-dev libmp3lame-dev libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
+4. Mac-only: brew install lame
+5. pip3 install attrdict3  # installing this first is required for wxpython
+6. pip3 install -r requirements.txt  # note that wxpython can take a long time to build
+7. run python3 designer.py
+8. optionally run build.py to create your own standalone applications for the CardStock Designer application.
 
 ### 3. Install using pip/pypi:
-1. Linux-only: apt install libasound2-dev lame libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
+1. Linux-only: apt install libasound2-dev libmp3lame-dev libwebkit2gtk-4.0-dev  # or equivalent on non-debian/ubuntu distros
 2. Mac-only: brew install lame
-3. To include mp3 support: pip3 install streamp3
-
-   Note that this may require setting LDFLAGS and CPPFLAGS to allow finding the lame header and library files.
-
-    You may need to run this as something like
-
-   `CPPFLAGS=-I/opt/homebrew/include LDFLAGS=-L/opt/homebrew/lib pip3 install streamp3` or 
-
-    `CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib pip3 install streamp3`
-
-    depending on where the lame library was installed.
-
-4. pip3 install cardstock  # note that the dependency wxpython can take a very long time to build
-5. run using the newly installed cardstock command
+3. To include mp3 support: pip3 install streamp3-313compat
+4. pip3 install attrdict3  # installing this first is required for wxpython
+5. pip3 install cardstock  # note that the dependency wxpython can take a very long time to build
+6. run using the newly installed cardstock command
 
 
 ## Reference
