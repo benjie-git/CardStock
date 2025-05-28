@@ -49,7 +49,7 @@ class UiButton(UiView):
 
     def OnPropertyChanged(self, model, key):
         super().OnPropertyChanged(model, key)
-        if key in ["title", "fill_color", "text_color"]:
+        if key in ["text", "fill_color", "text_color"]:
             self.stackManager.view.Refresh()
         elif key == "style":
             sm = self.stackManager
