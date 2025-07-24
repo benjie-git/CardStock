@@ -1,3 +1,35 @@
+
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="center">
+        <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=en">English</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=zh-TW">繁體中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=ja">日本語</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=ko">한국어</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=hi">हिन्दी</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=th">ไทย</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=fr">Français</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=de">Deutsch</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=es">Español</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=it">Italiano</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=ru">Русский</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=pt">Português</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=nl">Nederlands</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=pl">Polski</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=ar">العربية</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=fa">فارسی</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=tr">Türkçe</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=vi">Tiếng Việt</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=id">Bahasa Indonesia</a>
+        | <a href="https://openaitx.github.io/view.html?user=benjie-git&project=CardStock&lang=as">অসমীয়া</
+      </div>
+    </div>
+  </details>
+</div>
+
 # CardStock
 
 ## About
