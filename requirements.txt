@@ -2,6 +2,6 @@ attrdict3
 wxpython>=4.2.2
 PyInstaller==5.13.2
 requests==2.31.0
-numpy
+numpy==2.2.6
 simpleaudio-312compat
 streamp3-313compat
