@@ -42,8 +42,14 @@ class ResourcePathManager(object):
             if self.pathMap and hasattr(sys, "_MEIPASS"):
                 # we are running in a standalone app bundle
                 base_dir = sys._MEIPASS
-                if not os.path.exists(os.path.join(base_dir, path)):
+                if os.path.exists(os.path.join(base_dir, path)):
+                    base_dir = base_dir
+                elif os.path.exists(os.path.join(os.path.dirname(sys.executable), 'Resources', path)):
                     base_dir = os.path.join(os.path.dirname(sys.executable), 'Resources')
+                elif os.path.exists(os.path.join(os.path.dirname(os.path.dirname(sys.executable)), 'Resources', path)):
+                    base_dir = os.path.join(os.path.dirname(os.path.dirname(sys.executable)), 'Resources')
+                elif os.path.exists(os.path.join(os.path.dirname(os.path.dirname(sys.executable)), 'MacOS', path)):
+                    base_dir = os.path.join(os.path.dirname(os.path.dirname(sys.executable)), 'MacOS')
             else:
                 base_dir = os.path.dirname(self.stackManager.filename)
         else:
@@ -52,5 +58,3 @@ class ResourcePathManager(object):
         absPath = os.path.join(base_dir, path)
         self.pathCache[path] = absPath
         return absPath
-
-

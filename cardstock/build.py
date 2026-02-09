@@ -12,7 +12,7 @@ import shutil
 import PyInstaller.__main__
 import version
 
-EXTRA_MODULES = []
+EXTRA_MODULES = ["requests"]  # Make sure this isn't empty, or it'll break the pyinstaller command line
 
 try:
     import serial
@@ -49,8 +49,8 @@ if wx.Platform == "__WXMAC__":
     if os.path.exists("dist/containerDir"):
         shutil.rmtree("dist/containerDir")
     os.mkdir("dist/containerDir")
-    shutil.move("dist/standalone.app", "dist/containerDir/")
     pyinstall("-y CardStock_Designer_mac.spec")
+    shutil.move("dist/standalone.app", "dist/CardStock.app/Contents/Resources/")
     shutil.rmtree("dist/containerDir")
     shutil.rmtree("dist/CardStock")
 
