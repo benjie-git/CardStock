@@ -282,8 +282,8 @@ class ViewerFrame(wx.Frame):
         if self.stackManager.filename:
             initialDir = os.path.dirname(self.stackManager.filename)
         initialDir = os.path.join(initialDir, '')
-        dlg = wx.FileDialog(self, "Open CardStock file...", initialDir,
-                           style=wx.FD_OPEN, wildcard = self.wildcard)
+        dlg = wx.FileDialog(self, "Open CardStock file...", defaultDir=initialDir,
+                           style=wx.FD_OPEN, wildcard=self.wildcard)
         self.stackManager.view.Enable(False)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()

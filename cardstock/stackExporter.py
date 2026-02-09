@@ -144,12 +144,14 @@ class StackExporter(object):
                 plainFileName = plainFileName[:-4]
 
             initialDir = os.path.dirname(self.stackManager.filename)
-            dlg = wx.FileDialog(self.stackManager.designer, "Export CardStock application to...", initialDir,
-                                plainFileName,
+            dlg = wx.FileDialog(self.stackManager.designer, "Export CardStock application to...",
+                                defaultDir=str(initialDir), defaultFile=str(plainFileName+".app"),
                                 style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
-                                wildcard="CardStock Application (*)|*")
+                                wildcard="CardStock Application (*.app)|*.app")
             if dlg.ShowModal() == wx.ID_OK:
                 path = dlg.GetPath()
+                if path.endswith(".app"):
+                    path = path[:-4]
             dlg.Hide()
             dlg.Destroy()
             wx.YieldIfNeeded()
@@ -478,8 +480,8 @@ class ExportDialog(wx.Dialog):
 
     def OnAdd(self, event):
         initialDir = os.path.dirname(self.exporter.stackManager.filename)
-        dlg = wx.FileDialog(self.exporter.stackManager.designer, "Add Resource File(s)", initialDir,
-                            "",
+        dlg = wx.FileDialog(self.exporter.stackManager.designer, "Add Resource File(s)",
+                            defaultDir=initialDir, defaultFile="",
                             style=wx.FD_OPEN | wx.FD_MULTIPLE,
                             wildcard="Any File (*)|*")
         if dlg.ShowModal() == wx.ID_OK:

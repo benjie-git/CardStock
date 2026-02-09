@@ -647,7 +647,7 @@ class DesignerFrame(wx.Frame):
             initialDir = os.path.join(initialDir, '')  # Ensure a trailing slash
         dlg = wx.FileDialog(self, "Save CardStock file as...",
                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
-                           wildcard = self.wildcard)
+                           wildcard=self.wildcard)
         dlg.SetDirectory(initialDir)
         self.stackContainer.Enable(False)
         if dlg.ShowModal() == wx.ID_OK:

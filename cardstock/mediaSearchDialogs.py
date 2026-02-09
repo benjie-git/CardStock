@@ -184,9 +184,9 @@ class AudioSearchDialog(MediaSearchDialog):
         if self.cur_dir:
             initialDir = self.cur_dir
         wildcard = "WAV files (*.wav)|*.wav"
-        dlg = wx.FileDialog(self, "Save Sound as...", initialDir, name,
+        dlg = wx.FileDialog(self, "Save Sound as...", defaultDir=initialDir, defaultFile=name,
                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
-                           wildcard = wildcard)
+                           wildcard=wildcard)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             if not os.path.splitext(filename)[1]:
