@@ -1,5 +1,5 @@
 attrdict3
-wxpython>=4.2.2
+wxpython>=4.2.2,!=4.2.5
 PyInstaller
 requests
 numpy
