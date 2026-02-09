@@ -53,7 +53,7 @@ ________
 ## Requirements
 The prebuilt applications for Mac and Windows have no external dependencies.
 
-Running CardStock from source requires Python 3.9 or newer (3.11+ recommended), and wxPython 4.1 or newer (wxPython 4.2.x recommended).
+Running CardStock from source requires Python 3.9 or newer (3.12+ recommended), and wxPython 4.2.2 or newer (wxPython 4.2.4 currently recommended).
 CardStock requires installing the python modules attrdict3(linux-only), wxpython,simpleaudio, PyInstaller, and requests.  
 For mp3 playback support, you'll need to install the lame package (mp3 decoder), and python's streamp3-313compat. 
 
@@ -84,7 +84,7 @@ You can either:
 
 6. pip3 install attrdict3  # installing this first is required for wxpython
 7. pip3 install -r requirements.txt  # note that wxpython can take a long time to build
-8. run python3 designer.py
+8. run as: `python -m cardstock` or `python3 designer.py` 
 9. optionally run build.py to create your own standalone applications for the CardStock Designer application.
 
 ### 3. Install using pip/pypi:
@@ -103,8 +103,7 @@ You can either:
     depending on where the lame library was installed.
 4. pip3 install attrdict3  # installing this first is required for wxpython
 5. pip3 install cardstock  # note that the dependency wxpython can take a very long time to build
-6. run using the newly installed cardstock command
-
+6. run using the newly installed cardstock command, or `python -m cardstock`
 
 ## Reference
 * [CardStock Wiki](https://github.com/benjie-git/CardStock/wiki)

@@ -144,14 +144,22 @@ class StackExporter(object):
                 plainFileName = plainFileName[:-4]
 
             initialDir = os.path.dirname(self.stackManager.filename)
-            dlg = wx.FileDialog(self.stackManager.designer, "Export CardStock application to...",
-                                defaultDir=str(initialDir), defaultFile=str(plainFileName+".app"),
-                                style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
-                                wildcard="CardStock Application (*.app)|*.app")
-            if dlg.ShowModal() == wx.ID_OK:
-                path = dlg.GetPath()
-                if path.endswith(".app"):
-                    path = path[:-4]
+            if wx.Platform == "__WXMAC__":
+                dlg = wx.FileDialog(self.stackManager.designer, "Export CardStock application to...",
+                                    defaultDir=str(initialDir), defaultFile=str(plainFileName+".app"),
+                                    style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                                    wildcard="CardStock Application (*.app)|*.app")
+                if dlg.ShowModal() == wx.ID_OK:
+                    path = dlg.GetPath()
+                    if path.endswith(".app"):
+                        path = path[:-4]
+            else:
+                dlg = wx.FileDialog(self.stackManager.designer, "Export CardStock application to...",
+                                    defaultDir=str(initialDir), defaultFile=str(plainFileName),
+                                    style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                                    wildcard="CardStock Application (*)|*")
+                if dlg.ShowModal() == wx.ID_OK:
+                    path = dlg.GetPath()
             dlg.Hide()
             dlg.Destroy()
             wx.YieldIfNeeded()
