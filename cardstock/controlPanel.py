@@ -361,11 +361,15 @@ class ControlPanel(wx.Panel):
             tipBg = wx.Window(self, pos=pos + (button.GetSize().Width/2, -1))
             tipBg.Enable(False)
             tipBg.SetBackgroundColour('black')
-            tip = wx.StaticText(tipBg, pos=wx.Point(1, 1), label=toolTip)
+            tipInner = wx.Window(tipBg, pos=wx.Point(1, 1))
+            tipInner.Enable(False)
+            tipInner.SetBackgroundColour('white')
+            tip = wx.StaticText(tipInner, label=toolTip)
             tip.Enable(False)
             tip.SetForegroundColour('black')
             tip.SetBackgroundColour('white')
             tipBg.SetSize(tip.GetSize()+(2, 2))
+            tipInner.SetSize(tip.GetSize())
             self.toolTip = tipBg
             event.Skip()
 
