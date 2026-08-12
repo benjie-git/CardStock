@@ -856,7 +856,7 @@ class StackManager(object):
     def OnMouseDown(self, uiView, event):
         if self.view.HasCapture() and event.LeftDClick():
             # Make sure we don't double-capture the mouse on GTK/Linux
-            if uiView and uiView.model.type.startswith("text") and event.LeftDClick():
+            if uiView and (uiView.model.type in ("textlabel", "textfield", "button", "card")) and event.LeftDClick():
                 # Flag this is a double-click  On mouseUp, we'll start the inline editor.
                 self.isDoubleClick = True
             else:
@@ -885,7 +885,7 @@ class StackManager(object):
                 self.inlineEditingView.StopInlineEditing()
 
         if self.isEditing:
-            if uiViews and uiViews[0].model.type.startswith("text") and event.LeftDClick():
+            if uiViews and (uiView.model.type in ("textlabel", "textfield", "button", "card")) and event.LeftDClick():
                 # Flag this is a double-click  On mouseUp, we'll start the inline editor.
                 self.isDoubleClick = True
             else:
@@ -962,10 +962,15 @@ class StackManager(object):
 
         if self.tool and self.isEditing:
             self.tool.OnMouseUp(uiViews[0], event)
-            if uiViews and uiViews[0].model and uiViews[0].model.type.startswith("text") and self.isDoubleClick:
-                # Fire it up!
-                uiViews[0].StartInlineEditing()
-                event.Skip()
+            if uiViews and uiViews[0].model and self.isDoubleClick:
+                if uiViews[0].model.type.startswith("text"):
+                    # Fire it up!
+                    uiViews[0].StartInlineEditing()
+                    event.Skip()
+                elif uiViews[0].model.type == "button":
+                    if uiViews[0].model.GetProperty("style") in ("Radio", "Checkbox"):
+                        uiViews[0].model.SetProperty("is_selected", not uiViews[0].model.GetProperty("is_selected"))
+                        event.Skip()
         else:
             if self.lastMouseDownView:
                 if self.lastMouseDownView != uiViews[0]:

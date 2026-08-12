@@ -127,7 +127,8 @@ class UiTextBase(UiView):
     def OnLoseFocus(self, event):
         if self.isInlineEditing:
             self.StopInlineEditing()
-        self.view.SetSelection(0, 0)
+        if self.view:
+            self.view.SetSelection(0, 0)
         event.Skip()
 
     def StartInlineEditing(self):
