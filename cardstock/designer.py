@@ -15,6 +15,27 @@ Use the viewer.py app to run and use a stack, without being able to edit it.
 
 import os
 import sys
+
+
+# Force the app to run in Light mode, since, unfortunately, Dark mode is pretty broken.
+# Ensure this executes before importing or creating wx objects
+if sys.platform == "darwin":
+    try:
+        import objc
+        from Foundation import NSBundle
+
+        # Force the bundle layer to fall back to the Aqua appearance
+        bundle = NSBundle.mainBundle()
+        info = bundle.localizedInfoDictionary() or bundle.infoDictionary()
+        info["NSRequiresAquaSystemAppearance"] = True
+    except ImportError:
+        pass
+elif sys.platform == "win32":
+    os.environ["wx_msw_dark_mode"] = "0"
+elif sys.platform.startswith("linux"):
+    os.environ["GTK_THEME"] = "Adwaita:light"
+
+
 import json
 import configparser
 import wx

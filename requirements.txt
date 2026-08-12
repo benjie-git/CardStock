@@ -1,6 +1,7 @@
 attrdict3
 wxpython >=4.2.2,!=4.2.5,!=4.3.0,!=4.3.1; sys_platform == "darwin"
 wxpython >=4.2.2; sys_platform != "darwin"
+pyobjc-framework-Cocoa ; sys_platform == "darwin"
 PyInstaller
 requests
 numpy
