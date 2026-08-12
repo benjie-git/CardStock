@@ -104,6 +104,8 @@ class UiTextBase(UiView):
             spec = f"fore:{colorStr},face:{fontName},size:{td(size)}"
             view.StyleSetSpec(stc.STC_STYLE_DEFAULT, spec)
             view.StyleClearAll()
+            view.StyleSetBold(stc.STC_STYLE_DEFAULT, model.properties["is_bold"])
+            view.StyleSetItalic(stc.STC_STYLE_DEFAULT, model.properties["is_italic"])
 
     def OnKeyDown(self, event):
         if self.stackManager.isEditing:
@@ -125,6 +127,7 @@ class UiTextBase(UiView):
     def OnLoseFocus(self, event):
         if self.isInlineEditing:
             self.StopInlineEditing()
+        self.view.SetSelection(0, 0)
         event.Skip()
 
     def StartInlineEditing(self):

@@ -2,23 +2,25 @@
   "type": "stack",
   "handlers": {},
   "properties": {
-    "size": [
-      500,
-      500
-    ],
     "can_save": false,
-    "can_resize": false
+    "author": "",
+    "info": ""
   },
   "cards": [
     {
       "type": "card",
       "handlers": {
-        "on_setup": "from random import randint\n\nindicators = [oval_1, oval_2, oval_3, oval_4, oval_5]\nfields = [field_1, field_2, field_3, field_4, field_5]\nnums = [0, 0, 0, 0, 0]\nnum_guesses = 0\n\n# Set up field attributes to find next and previous fields\nfor i in range(len(fields)):\n   fields[i].next = fields[(i+1)%5] if i<4 else None\n   fields[i].prev = fields[(i-1)%5] if i>0 else None\n\ndef reset():\n   global num_guesses\n   \n   for i in range(5):\n      nums[i] = randint(0, 9)\n      indicators[i].fill_color = \"white\"\n      fields[i].text = 0\n   num_guesses = 0\n   num_guesses_label.text = \"Num Guesses: \" + str(num_guesses)\n   fields[0].focus()\n   fields[0].select_all()\n\n\ndef check():\n   global num_guesses\n   \n   num_greens = 0\n   num_guesses += 1\n   num_guesses_label.text = \"Num Guesses: \" + str(num_guesses)\n   \n   for i in range(5):\n      n = nums[i]\n      f = int(fields[i].text)\n      if f == n:\n         indicators[i].fill_color = \"green\"\n         num_greens += 1\n      elif f in nums:\n         indicators[i].fill_color = \"blue\"\n      else:\n         indicators[i].fill_color = \"red\"\n      if num_greens == 5:\n         alert(f\"You Won in {num_guesses} guesses!\")\n         reset()\n\nreset()\n",
-        "on_key_press": "if key_name == \"Tab\":\n   for f in fields:\n      if f.has_focus:\n         f.select_all()\n\nelif key_name in [\"Backspace\", \"Left\"]:\n   for f in fields:\n      if f.has_focus:\n         if f.prev:\n            f.prev.focus()\n            f.prev.select_all()\n         else:\n            f.select_all()\n         break\n\nelif key_name == \"Right\":\n   for f in fields:\n      if f.has_focus:\n         if f.next:\n            f.next.focus()\n            f.next.select_all()\n         else:\n            f.select_all()\n         break\n         \n"
+        "on_setup": "from random import randint\n\nindicators = [oval_1, oval_2, oval_3, oval_4, oval_5]\nfields = [field_1, field_2, field_3, field_4, field_5]\nnums = [0, 0, 0, 0, 0]\nnum_guesses = 0\n\n# Set up field attributes to find next and previous fields\nfor i in range(len(fields)):\n    fields[i].next = fields[(i+1)%5] if i<4 else None\n    fields[i].prev = fields[(i-1)%5] if i>0 else None\n\ndef reset():\n    global num_guesses\n    \n    for i in range(5):\n        nums[i] = randint(0, 9)\n        indicators[i].fill_color = \"white\"\n        fields[i].text = 0\n    num_guesses = 0\n    num_guesses_label.text = \"Num Guesses: \" + str(num_guesses)\n    fields[0].focus()\n    fields[0].select_all()\n\n\ndef check():\n    global num_guesses\n    \n    num_greens = 0\n    num_guesses += 1\n    num_guesses_label.text = \"Num Guesses: \" + str(num_guesses)\n    \n    for i in range(5):\n        n = nums[i]\n        f = int(fields[i].text)\n        if f == n:\n            indicators[i].fill_color = \"green\"\n            num_greens += 1\n        elif f in nums:\n            indicators[i].fill_color = \"blue\"\n        else:\n            indicators[i].fill_color = \"red\"\n        if num_greens == 5:\n            alert(f\"You Won in {num_guesses} guesses!\")\n            reset()\n\nreset()\n",
+        "on_key_press": "if key_name == \"Tab\":\n    for f in fields:\n        if f.has_focus:\n            f.select_all()\n\nelif key_name in [\"Backspace\", \"Left\"]:\n    for f in fields:\n        if f.has_focus:\n            if f.prev:\n                f.prev.focus()\n                f.prev.select_all()\n            else:\n                f.select_all()\n            break\n\nelif key_name == \"Right\":\n    for f in fields:\n        if f.has_focus:\n            if f.next:\n                f.next.focus()\n                f.next.select_all()\n            else:\n                f.select_all()\n            break\n            \n"
       },
       "properties": {
         "name": "card_1",
-        "fill_color": "#F0F0F0"
+        "size": [
+          500,
+          500
+        ],
+        "fill_color": "#F0F0F0",
+        "can_resize": false
       },
       "childModels": [
         {
@@ -39,6 +41,7 @@
               187
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 2,
             "rotation": 0.0,
             "fill_color": "#E0E0E0"
@@ -57,7 +60,7 @@
         {
           "type": "textfield",
           "handlers": {
-            "on_text_changed": "if len(self.text) == 1:\n   field_2.focus()\n   field_2.select_all()",
+            "on_text_changed": "if len(self.text) == 1:\n    field_2.focus()\n    field_2.select_all()",
             "on_text_enter": "guess.click()",
             "on_mouse_release": "self.select_all()"
           },
@@ -75,7 +78,7 @@
             "alignment": "Center",
             "text_color": "black",
             "font": "Default",
-            "font_size": 44,
+            "font_size": 42,
             "is_bold": false,
             "is_italic": false,
             "is_underlined": false,
@@ -101,6 +104,7 @@
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "white"
@@ -119,7 +123,7 @@
         {
           "type": "textfield",
           "handlers": {
-            "on_text_changed": "if len(self.text) == 1:\n   field_3.focus()\n   field_3.select_all()",
+            "on_text_changed": "if len(self.text) == 1:\n    field_3.focus()\n    field_3.select_all()",
             "on_text_enter": "guess.click()",
             "on_mouse_release": "self.select_all()"
           },
@@ -137,7 +141,7 @@
             "alignment": "Center",
             "text_color": "black",
             "font": "Default",
-            "font_size": 44,
+            "font_size": 42,
             "is_bold": false,
             "is_italic": false,
             "is_underlined": false,
@@ -163,6 +167,7 @@
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "white"
@@ -181,7 +186,7 @@
         {
           "type": "textfield",
           "handlers": {
-            "on_text_changed": "if len(self.text) == 1:\n   field_4.focus()\n   field_4.select_all()",
+            "on_text_changed": "if len(self.text) == 1:\n    field_4.focus()\n    field_4.select_all()",
             "on_text_enter": "guess.click()",
             "on_mouse_release": "self.select_all()"
           },
@@ -199,7 +204,7 @@
             "alignment": "Center",
             "text_color": "black",
             "font": "Default",
-            "font_size": 44,
+            "font_size": 42,
             "is_bold": false,
             "is_italic": false,
             "is_underlined": false,
@@ -225,6 +230,7 @@
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "white"
@@ -243,7 +249,7 @@
         {
           "type": "textfield",
           "handlers": {
-            "on_text_changed": "if len(self.text) == 1:\n   field_5.focus()\n   field_5.select_all()",
+            "on_text_changed": "if len(self.text) == 1:\n    field_5.focus()\n    field_5.select_all()",
             "on_text_enter": "guess.click()",
             "on_mouse_release": "self.select_all()"
           },
@@ -261,7 +267,7 @@
             "alignment": "Center",
             "text_color": "black",
             "font": "Default",
-            "font_size": 44,
+            "font_size": 42,
             "is_bold": false,
             "is_italic": false,
             "is_underlined": false,
@@ -287,6 +293,7 @@
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "white"
@@ -305,7 +312,7 @@
         {
           "type": "textfield",
           "handlers": {
-            "on_text_changed": "if len(self.text) == 1:\n   field_1.focus()\n   field_1.select_all()",
+            "on_text_changed": "if len(self.text) == 1:\n    field_1.focus()\n    field_1.select_all()",
             "on_text_enter": "guess.click()",
             "on_mouse_release": "self.select_all()"
           },
@@ -323,7 +330,7 @@
             "alignment": "Center",
             "text_color": "black",
             "font": "Default",
-            "font_size": 44,
+            "font_size": 42,
             "is_bold": false,
             "is_italic": false,
             "is_underlined": false,
@@ -349,6 +356,7 @@
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "white"
@@ -379,8 +387,10 @@
               293.0,
               273.0
             ],
-            "title": "Guess",
+            "text": "Guess",
             "style": "Border",
+            "fill_color": "white",
+            "text_color": "black",
             "is_selected": false,
             "rotation": 0.0
           }
@@ -403,6 +413,7 @@
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "green"
@@ -461,6 +472,7 @@
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "blue"
@@ -519,6 +531,7 @@
               44
             ],
             "pen_color": "black",
+            "pen_style": "Solid",
             "pen_thickness": 4,
             "rotation": 0.0,
             "fill_color": "red"
@@ -599,8 +612,10 @@
               3.0,
               470.0
             ],
-            "title": "Help",
+            "text": "Help",
             "style": "Border",
+            "fill_color": "white",
+            "text_color": "black",
             "is_selected": false,
             "rotation": 0.0
           }
@@ -608,6 +623,6 @@
       ]
     }
   ],
-  "CardStock_stack_format": 6,
-  "CardStock_stack_version": "0.99.1"
+  "CardStock_stack_format": 10,
+  "CardStock_stack_version": "1.0.0"
 }
