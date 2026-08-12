@@ -103,9 +103,9 @@ class UiTextBase(UiView):
                 fontName = font.GetNativeFontInfoUserDesc().split(" ")[0]
             spec = f"fore:{colorStr},face:{fontName},size:{td(size)}"
             view.StyleSetSpec(stc.STC_STYLE_DEFAULT, spec)
-            view.StyleClearAll()
             view.StyleSetBold(stc.STC_STYLE_DEFAULT, model.properties["is_bold"])
             view.StyleSetItalic(stc.STC_STYLE_DEFAULT, model.properties["is_italic"])
+            view.StyleClearAll()
 
     def OnKeyDown(self, event):
         if self.stackManager.isEditing:
