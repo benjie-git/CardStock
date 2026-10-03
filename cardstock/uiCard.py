@@ -60,6 +60,8 @@ class UiCard(UiView):
         self.runningInternalResize = False
 
     def OnResize(self, event):
+        if not self.stackManager:
+            return
         didEnqueue = False
         self.stackManager.view.didResize = True
         if not self.stackManager.isEditing and self.stackManager.runner and self.model.GetProperty("can_resize"):
