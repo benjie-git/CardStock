@@ -114,7 +114,7 @@ class ViewerFrame(wx.Frame):
                 with open(self.stackManager.filename, 'w') as f:
                     f.write(jsonData)
                 self.stackManager.stackModel.SetDirty(False)
-            except TypeError:
+            except (TypeError, OSError):
                 # e = sys.exc_info()
                 # print(e)
                 wx.MessageDialog(None, str("Couldn't save file"), "", wx.OK).ShowModal()
