@@ -1598,6 +1598,18 @@ class ViewProxy(object):
             return not sreg.IsEmpty()
         return f()
 
+    def find_collisions(self, tag, radius=None, exact=True):
+        """Return the list of objects whose name starts with `tag` and that are
+        colliding with this object.  Each object is treated as a circle using its
+        half-diagonal (the smallest circle that encloses it); `radius` overrides this
+        object's own radius.  With exact=True the exact shape regions are used."""
+        if not isinstance(tag, str):
+            raise TypeError("find_collisions(): tag must be a string")
+        model = self._model
+        if not model:
+            return []
+        return model.stackManager.FindCollisions(model, tag, radius, exact)
+
     def is_touching_edge(self, obj, skipIsTouchingCheck=False):
         if not isinstance(obj, ViewProxy):
             raise TypeError("is_touching_edge(): obj must be a CardStock object")

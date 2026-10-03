@@ -730,6 +730,61 @@ class StackManager(object):
             return self.modelToViewMap[model]
         return None
 
+    def FindCollisions(self, model, tag, radius=None, exact=True):
+        """Return proxies of objects whose name starts with tag and that collide
+        with `model`.  Broad phase = bounding circles (half-diagonal); exact phase =
+        wx.Region intersection, run on the main thread."""
+        if not self.uiCard or not model or not tag:
+            return []
+
+        # This object's radius (default = half its diagonal).
+        s = model.GetProperty("size")
+        if radius is None:
+            radius = ((float(s[0]) ** 2 + float(s[1]) ** 2) ** 0.5) / 2.0
+        else:
+            radius = float(radius)
+        selfCenter = model.GetAbsoluteCenter()
+
+        # Broad phase: cheap pure-Python scan over all views on the card.
+        candidates = []
+        for ui in self.uiCard.GetAllUiViews():
+            oModel = ui.model
+            if oModel is None or oModel is model:
+                continue
+            if oModel.didSetDown or not oModel.IsVisible():
+                continue
+            name = oModel.GetProperty("name") or ""
+            if not name.startswith(tag):
+                continue
+            os = oModel.GetProperty("size")
+            oRadius = ((float(os[0]) ** 2 + float(os[1]) ** 2) ** 0.5) / 2.0
+            oc = oModel.GetAbsoluteCenter()
+            dx = selfCenter[0] - oc[0]
+            dy = selfCenter[1] - oc[1]
+            if dx * dx + dy * dy > (radius + oRadius) ** 2:
+                continue
+            candidates.append(ui)
+
+        if not exact or not candidates:
+            return [ui.model.GetProxy() for ui in candidates]
+
+        # Exact phase: region intersection on the main thread.
+        @RunOnMainSync
+        def exactTest():
+            selfUi = self.GetUiViewByModel(model)
+            if not selfUi:
+                return []
+            sreg = selfUi.GetHitRegion()
+            result = []
+            for ui in candidates:
+                reg = wx.Region(sreg)
+                reg.Intersect(ui.GetHitRegion())
+                if not reg.IsEmpty():
+                    result.append(ui.model.GetProxy())
+            return result
+
+        return exactTest()
+
     def GetUiViewByName(self, name):
         if self.uiCard.model.properties["name"] == name:
             return self.uiCard

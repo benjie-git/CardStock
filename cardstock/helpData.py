@@ -388,6 +388,22 @@ class HelpDataObject():
                                      "object passed into this function.  If this object is touching any edges of the "
                                      "other object, the return value will be a list including one or more of the strings:"
                                      " 'Top', 'Bottom', 'Left', or 'Right', accordingly."},
+        "find_collisions": {
+            "args": {"tag": {"type": "string",
+                             "info": "The prefix of the name of the objects to test against.  For example, "
+                                     "'ball' matches objects named ball, ball_1, ball_2, and so on."},
+                     "exact": {"type": "bool",
+                               "info": "an optional flag.  Defaults to True, which uses exact shape collisions for "
+                                       "accurate results.  Pass False to use the faster circle approximation."},
+                     "radius": {"type": "float",
+                                "info": "when the <b>exact</b> arg is <b>False</b> optionally use this <b>radius</b> arg as this object's radius, "
+                                        "overriding the default of half its diagonal.  The other objects always use their own half-diagonal radius."}},
+            "return": "list",
+            "info": "Returns the list of objects whose name starts with <b>tag</b> and that are colliding with this object.  "
+                    "This is much faster than looping through all the objects and calling is_touching() on each one.  "
+                    "By default this tests against exact shapes.  Pass exact=False to treat each object as a circle using its "
+                    "half-diagonal (the smallest circle that encloses it) as its radius, which is a faster approximation, and will never "
+                    "miss a real overlap, but may return some false positives.  The <b>radius</b> arg can be used to override this value."},
         "animate_position": {"args": {"duration": {"type": "float", "info": "time in seconds for the animation to run"},
                                       "end_position": {"type": "point",
                                                        "info": "the destination bottom-left corner position at the end of the animation, "
